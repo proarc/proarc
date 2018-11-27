@@ -158,7 +158,7 @@ public class NdkEPeriodicalIssueForm extends NdkPeriodicalIssueForm {
                         .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                         // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
                         .addField(NdkForms.roleTerm(
-                                "Role Term - MA", false, "Authority - M", true, "Type - M", true
+                                "Role Term - MA", false, "Authority - M", false, "Type - M", false
                         )) // roleTerm
                         .createField()) // role
                 // description
@@ -472,6 +472,55 @@ public class NdkEPeriodicalIssueForm extends NdkPeriodicalIssueForm {
                 // holdingSimple
                 // holdingExternal
                 .createField(); // location
+    }
+
+    protected Field language() {
+        // language, languageDefinition
+        return new FieldBuilder("language").setTitle("Languages - R").setMaxOccurrences(10)
+                .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
+                // @objectPart, @displayLabel, @altRepGroup, @usage
+                .addField(new FieldBuilder("objectPart").setTitle("Object Part - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("300")
+                        .setHint("Možnost vyjádřit jazyk konkrétní části svazku.")
+                        .addMapValue("summary", "summary")
+                        .addMapValue("table of contents", "table of contents")
+                        .addMapValue("accompanying material", "accompanying material")
+                        .addMapValue("translation", "translation")
+                        .createField()) // @objectPart
+                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
+                // languageTerm, languageTermDefinition
+                .addField(new FieldBuilder("languageTerm").setMaxOccurrences(1)
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        // @authorityURI, @valueURI
+                        // @authority, enum
+                        .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1)
+                                .setType(Field.SELECT).setRequired(false)
+                                .setHint("Použít hodnotu „iso639-2b“.")
+                                .addMapValue("iso639-2b", "ISO 639-2B")
+                                .addMapValue("rfc3066", "RFC 3066")
+                                .addMapValue("iso639-3", "ISO 639-3")
+                                .addMapValue("rfc4646", "RFC 4646")
+                                .addMapValue("rfc5646", "RFC 5646")
+                                .createField()) // authority
+                        // type, codeOrText('code', 'text')
+                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
+                                .setType(Field.SELECT).setRequired(false).setDefaultValue("code")
+                                .setHint("Použít hodnotu \"code\".")
+                                .addMapValue("code", "code")
+                                .addMapValue("text", "text")
+                                .createField()) // type
+                        .addField(new FieldBuilder("value").setTitle("Language - R").setMaxOccurrences(1)
+                                .setType(Field.COMBO).setRequired(false)
+                                .setHint("Přesné určení jazyka kódem.<p>Nutno použít kontrolovaný slovník ISO 639-2.")
+                                .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
+                                                .addField(new FieldBuilder("title").setTitle("Name").createField())
+                                                .addField(new FieldBuilder("value").setTitle("Language").createField())
+                                                .addField(new FieldBuilder("type").setTitle("Type").createField())
+                                                .addField(new FieldBuilder("authority").setTitle("Authority").createField())
+                                                .createField(),
+                                        "value", "type", "authority").createField()) // value) // value
+                        .createField()) // languageTerm
+                // scriptTerm
+                .createField(); // language
     }
 
     private Field recordInfo() {
