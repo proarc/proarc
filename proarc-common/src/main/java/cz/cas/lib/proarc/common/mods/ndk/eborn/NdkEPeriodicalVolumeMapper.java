@@ -16,7 +16,21 @@
 
 package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
-import cz.cas.lib.proarc.common.mods.ndk.NdkPeriodicalMapper;
+import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
+import cz.cas.lib.proarc.common.mods.ndk.NdkPeriodicalVolumeMapper;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 
-public class NdkEPeriodicalVolumeMapper extends NdkPeriodicalMapper {
+public class NdkEPeriodicalVolumeMapper extends NdkPeriodicalVolumeMapper {
+
+    @Override
+    public void createMods(ModsDefinition mods, Context ctx) {
+        super.createMods(mods, ctx);
+    }
+
+    @Override
+    protected void addGenre(ModsDefinition mods) {
+        //  mods/genre="electronic_volume"
+        MapperUtils.addGenre(mods, Const.GENRE_EVOLUME);
+    }
 }

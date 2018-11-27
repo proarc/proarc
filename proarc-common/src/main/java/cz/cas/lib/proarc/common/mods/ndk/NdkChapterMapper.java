@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
@@ -34,7 +35,6 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addGenre;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
@@ -67,8 +67,7 @@ public class NdkChapterMapper extends NdkMapper {
                 }
             }
         }
-        // genre="picture"
-        addGenre(mods, "chapter");
+        addGenre(mods);
         addNameWithEtal(mods);
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
@@ -87,6 +86,11 @@ public class NdkChapterMapper extends NdkMapper {
         }
 
         fillRecordInfo(mods);
+    }
+
+    protected void addGenre(ModsDefinition mods) {
+        //  mods/genre="chapter"
+        MapperUtils.addGenre(mods, Const.GENRE_CHAPTER);
     }
 
     @Override

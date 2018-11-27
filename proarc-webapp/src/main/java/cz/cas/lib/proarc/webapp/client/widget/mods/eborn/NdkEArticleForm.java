@@ -51,10 +51,10 @@ public class NdkEArticleForm extends NdkArticleForm {
 
     private Field relatedItem(String width) {
         return new FieldBuilder("relatedItem").setTitle("Related Item - MA").setMaxOccurrences(10)
-                .addField(part())
                 .addField(relatedTitleInfo(width))
                 .addField(relatedName())
                 .addField(relatedOriginInfo())
+                .addField(identifier())
                 .createField();
     }
 
@@ -71,6 +71,13 @@ public class NdkEArticleForm extends NdkArticleForm {
                                 .setWidth(width)
                                 .createField()) // title/value
                         .createField()) // title
+                .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Part Number - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Pořadové číslo.")
+                                .createField()) // value
+                        .createField()) // partNumber
+                // partName, type="stringPlusLanguage"
                 .createField(); // titleInfo
     }
 
@@ -346,7 +353,7 @@ public class NdkEArticleForm extends NdkArticleForm {
                 // reformattingQuality
                 // internetMediaType
                 // digitalOrigin
-                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("born digital")
                         .setHint("Indikátor zdroje digitálního dokumentu, hodnota born digital").createField())
                 // digitalOrigin
                 // extent, stringPlusLanguagePlusSupplied

@@ -347,23 +347,32 @@ public class NdkEPeriodicalForm extends NdkPeriodicalForm {
                 .addField(new FieldBuilder("dateCreated").setMaxOccurrences(1)
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                         // @encoding, @qualifier, @point, @keyDate
-                        .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
-                                .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
-                                .addMapValue("continuing", "continuing")
-                                .addMapValue("serial", "serial")
-                                .addMapValue("integrating resource", "integrating resource")
-                                .createField()) // issuance
-                        // frequency, stringPlusLanguagePlusAuthority
-                        .addField(new FieldBuilder("frequency").setTitle("Frequencies - R").setMaxOccurrences(5)
-                                .setHint("Údaje o pravidelnosti vydávání.")
-                                // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                                .addField(new FieldBuilder("value").setTitle("Frequency - R").setMaxOccurrences(1).setType(Field.TEXT)
-                                        .setHint("Údaje o pravidelnosti vydávání.")
-                                        .createField())
-                                .createField()) // frequency
+                    .addField(new FieldBuilder("value").setTitle("Date Created - R").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+                        .setHint("Datum vytvoření předlohy pro rukopisy."
+                            + "<p>Bude použito pouze při popisu tiskaře, viz poznámka u"
+                            + " elementu &lt;originInfo>."
+                            + "<p>Odpovídá hodnotě z katalogizačního záznamu pole 260, podpole „g“")
+                    .createField()) // value
+                .createField()) // dateCreated
+                .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                    .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
+                    .addMapValue("continuing", "continuing")
+                    .addMapValue("serial", "serial")
+                    .addMapValue("integrating resource", "integrating resource")
+                .createField()) // issuance
+                // frequency, stringPlusLanguagePlusAuthority
+                .addField(new FieldBuilder("frequency").setTitle("Frequencies - R").setMaxOccurrences(5)
+                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
+                        .setHint("Hodnota “marcfrequency” u údajů z pole 008 pro kontrolovaný slovník")
+                        .addMapValue("marcfrequency", "marcfrequency")
+                        .createField()) // authority
+                    .addField(new FieldBuilder("value").setTitle("Frequency - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .setHint("Údaje o pravidelnosti vydávání.<p>Odpovídá údaji MARC21 v poli 310 nebo pozici 18 v poli 008.")
                         .createField())
-                .createField(); // originInfo
+                .createField()) // frequency
+            .createField(); // originInfo
     }
 
     @Override
@@ -447,7 +456,7 @@ public class NdkEPeriodicalForm extends NdkPeriodicalForm {
                                 .addMapValue("počítačový disk", "rdacarrier - počítačový disk")
                                 .createField()) // value
                         .createField()) // form
-                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("born digital")
                         .setHint("Indikátor zdroje digitálního dokumentu" +
                                 "<p>hodnota \"born digital\"</p>").createField())
                 // reformattingQuality
