@@ -6,7 +6,7 @@
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 15.689) 20161116
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 15.689) 20181116
 
 Revision 1.98.proarc.15.689 - Changed handling 100: value is not split if @ind1=0
 Revision 1.98.proarc.14.704 - Repair mapping of 041$b to objectPart-summary
