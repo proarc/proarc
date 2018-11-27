@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
@@ -24,12 +24,15 @@ import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
 
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 /**
  *
  * @author Jan Pokorsky
  */
-public final class NdkPeriodicalVolumeMapper extends NdkMapper {
-    public static final String GENRE = "volume";
+public class NdkPeriodicalVolumeMapper extends NdkMapper {
 
     /**
      * Updates missing required attribute and elements.
@@ -39,7 +42,12 @@ public final class NdkPeriodicalVolumeMapper extends NdkMapper {
         super.createMods(mods, ctx);
 
         //  mods/genre="volume"
-        addGenre(mods, GENRE);
+        addGenre(mods);
+    }
+
+    protected void addGenre(ModsDefinition mods) {
+        //  mods/genre="volume"
+        MapperUtils.addGenre(mods, Const.GENRE_VOLUME);
     }
 
     @Override

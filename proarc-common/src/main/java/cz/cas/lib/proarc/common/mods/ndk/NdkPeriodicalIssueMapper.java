@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.Extent;
@@ -37,7 +38,6 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addGenre;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
@@ -73,8 +73,7 @@ public class NdkPeriodicalIssueMapper extends NdkMapper {
                 }
             }
         }
-        // genre="issue"
-        GenreDefinition genre = addGenre(mods, "issue");
+        GenreDefinition genre = addGenre(mods);
         // genre@type="normal" if null
         if (genre.getType() == null) {
             genre.setType("normal");
@@ -102,6 +101,11 @@ public class NdkPeriodicalIssueMapper extends NdkMapper {
                 break;
             }
         }
+    }
+
+    protected GenreDefinition addGenre(ModsDefinition mods) {
+        //  mods/genre="issue"
+       return MapperUtils.addGenre(mods, Const.GENRE_ISSUE);
     }
 
     @Override
