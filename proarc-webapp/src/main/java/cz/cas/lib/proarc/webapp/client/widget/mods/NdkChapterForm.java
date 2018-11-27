@@ -423,6 +423,10 @@ public final class NdkChapterForm {
                 // detail, type="detailDefinition"
                 // extent, type="extentDefinition"
                 .addField(new FieldBuilder("extent").setTitle("Extent - MA").setMaxOccurrences(10)
+                    .addField(new FieldBuilder("unit").setMaxOccurrences(1).setTitle("Unit - R").setType(Field.COMBO).setDefaultValue("pageIndex")
+                        .addMapValue("pageNumber", "Page Number")
+                        .addMapValue("pageIndex", "Page Index")
+                        .createField())
                     // start, type="stringPlusLanguage"
                     .addField(new FieldBuilder("start").setMaxOccurrences(1)
                         .addField(new FieldBuilder("value").setTitle("Start - MA").setMaxOccurrences(1).setType(Field.TEXT)
