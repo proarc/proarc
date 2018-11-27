@@ -200,6 +200,19 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
             }
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
+            // issue 124
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritLocation(defaultMods, titleMods.getLocation());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+            }
+            String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
+            String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
+            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal);
         } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
             copyEArticle(parent, defaultMods);
         }
