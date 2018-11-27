@@ -212,7 +212,7 @@ public final class NdkEmonographChapterForm {
                                     .addMapValue("electronic", "electronic")
                                     .createField()) // value
                             .createField()) // form
-                    .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                    .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("born digital")
                             .setHint("Indikátor zdroje digitálního dokumentu, hodnota born digital").createField())
                     // reformattingQuality
                     // internetMediaType

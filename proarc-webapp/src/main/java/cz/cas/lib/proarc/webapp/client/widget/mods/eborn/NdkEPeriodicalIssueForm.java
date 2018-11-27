@@ -327,7 +327,7 @@ public class NdkEPeriodicalIssueForm extends NdkPeriodicalIssueForm {
                                 .setHint("Poznámka o fyzickém stavu dokumentu."
                                         + "<p>Pro každou poznámku je nutno vytvořit nový &lt;note> element.")
                                 .createField()) // value
-                        .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("born digital")
                                 .setHint("Indikátor zdroje digitálního dokumentu, hodnota born digital.").createField())
                         .createField()) // note
                 .createField(); // physicalDescription
