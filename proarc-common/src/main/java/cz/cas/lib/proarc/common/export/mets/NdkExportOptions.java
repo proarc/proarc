@@ -45,11 +45,7 @@ public class NdkExportOptions {
         }
 
         String deletePackage = config.getString(PROP_DELETE_PACKAGE);
-        if ("true".equals(deletePackage)) {
-            options.setDeletePackage(true);
-        } else {
-            options.setDeletePackage(false);
-        }
+        options.setDeletePackage(Boolean.parseBoolean(deletePackage));
 
         return options;
     }
