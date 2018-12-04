@@ -308,7 +308,7 @@ public final class NdkEmonographVolumeForm {
                                 .addMapValue("temper", "temper")
                                 .addMapValue("w3cdtf", "W3CDTF")
                                 .createField()) // @encoding
-                        .addField(new FieldBuilder("point").setTitle("Point - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                        .addField(new FieldBuilder("point").setTitle("Point - MA").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
                                 .setHint("Hodnoty „start“ resp. „end“ jen u údaje z pole 008, pro rozmezí dat.")
                                 .addMapValue("start", "start")
                                 .addMapValue("end", "end")
@@ -333,7 +333,7 @@ public final class NdkEmonographVolumeForm {
                                         + "<p>264_3 je manufacture")
                                 .createField()) // value
                         .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
-                                .setType(Field.SELECT).setRequired(true)
+                                .setType(Field.SELECT).setRequired(false)
                                 .setHint("<p>264_0 production" +
                                         "<p>264_2 distribution " +
                                         "<p>264_3 manufacture")
@@ -452,7 +452,7 @@ public final class NdkEmonographVolumeForm {
                 // reformattingQuality
                 // internetMediaType
                 // extent, stringPlusLanguagePlusSupplied
-                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("digitalOrigin").setTitle("Digital origin - M").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("born digital")
                         .setHint("Indikátor zdroje digitálního dokumentu").createField())
                 // note, physicalDescriptionNote extends stringPlusLanguage
                 .createField(); // physicalDescription

@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.export.crossref.CrossrefExport;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -264,6 +265,9 @@ public class ExportResource {
         List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
             if (r.getValidationError() != null) {
+                if (isMissingURNNBN(r) && appConfig.isDeletePackage()) {
+                    MetsUtils.deleteFolder(r.getTargetFolder());
+                }
                 result.add(new ExportResult(r.getValidationError().getExceptions()));
             } else {
                 // XXX not used for now
@@ -271,6 +275,18 @@ public class ExportResource {
             }
         }
         return new SmartGwtResponse<>(result);
+    }
+
+    /**
+     * @return true if at least one exception contains "URNNBN misssing" otherwise @return false
+     */
+    private boolean isMissingURNNBN(NdkExport.Result r) {
+        for (MetsExportExceptionElement exception : r.getValidationError().getExceptions()) {
+            if ("URNNBN identifier is missing".equals(exception.getMessage())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

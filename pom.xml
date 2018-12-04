@@ -38,7 +38,6 @@
         <module>proarc-urnnbn</module>
         <module>proarc-webapp</module>
         <module>proarc-z3950</module>
-
   </modules>
 
     <properties>
