@@ -173,6 +173,7 @@ public final class OldPrintMonographTitleForm {
                         .addMapValue("url", "URL")
                         .addMapValue("urnnbn", "URN:NBN")
                         .addMapValue("uuid", "UUID")
+                        .addMapValue("BCBT","BCBT")
                         .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
