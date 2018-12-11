@@ -31,6 +31,7 @@ import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.VisitorException;
 import cz.cas.lib.proarc.common.object.ndk.DefaultNdkVisitor;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.Status;
 import cz.cas.lib.proarc.mix.Mix;
@@ -82,7 +83,12 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkPlugin.MODEL_MONOGRAPHVOLUME,
             NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
             NdkPlugin.MODEL_CARTOGRAPHIC,
-            NdkPlugin.MODEL_SHEETMUSIC
+            NdkPlugin.MODEL_SHEETMUSIC,
+            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME,
+            NdkEbornPlugin.MODEL_ECHAPTER,
+            NdkEbornPlugin.MODEL_EPERIODICALISSUE,
+            NdkEbornPlugin.MODEL_EARTICLE,
+            NdkEbornPlugin.MODEL_EPERIODICALVOLUME
             ));
     private static final Logger LOG = Logger.getLogger(UrnNbnVisitor.class.getName());
 
