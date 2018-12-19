@@ -16,6 +16,7 @@
 
 package cz.cas.lib.proarc.common.object.ndk;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.JsonValueMap;
@@ -27,15 +28,18 @@ import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import cz.cas.lib.proarc.common.object.HasDisseminationHandler;
 import cz.cas.lib.proarc.common.object.HasMetadataHandler;
+import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,8 +52,23 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     private static final String ID = "ndkEborn";
 
     public static final String MODEL_EMONOGRAPHVOLUME = "model:ndkemonographvolume";
+    public static final String MODEL_EMONOGRAPHTITLE = "model:ndkemonographtitle";
+    public static final String MODEL_ECHAPTER = "model:ndkechapter";
 
-    public static final Map<String, String> TYPE_MAP = Collections.singletonMap(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "MONOGRAPH_UNIT");
+    public static final String MODEL_EPERIODICALISSUE = "model:ndkeperiodicalissue";
+    public static final String MODEL_EPERIODICALVOLUME = "model:ndkeperiodicalvolume";
+    public static final String MODEL_EPERIODICAL = "model:ndkeperiodical";
+    public static final String MODEL_EARTICLE = "model:ndkearticle";
+
+    public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_ECHAPTER, Const.CHAPTER);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICALVOLUME, Const.PERIODICAL_VOLUME);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICAL, Const.PERIODICAL_TITLE);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICALISSUE, Const.ISSUE);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EARTICLE, Const.ARTICLE);
+    }});
 
     @Override
     public String getId() {
@@ -59,15 +78,86 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     @Override
     public Collection<MetaModel> getModel() {
         List<MetaModel> models = new ArrayList<>();
+
+        models.add(new MetaModel(
+                MODEL_EMONOGRAPHTITLE, true, null,
+                Arrays.asList(new ElementType("NDK Multipart eMonograph", "en"), new ElementType("NDK Vícedílná eMonografie", "cs")),
+                ModsConstants.NS,
+                MODEL_EMONOGRAPHTITLE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[] {}
+        ));
+        // eMonograph volume should contain some media (e.g. PDF)
         models.add(new MetaModel(
                 MODEL_EMONOGRAPHVOLUME, true, null,
-                Collections.singletonList(new ElementType("NDK Svazek eBorn monografie", "cs")),
+                Arrays.asList(new ElementType("NDK eMonograph Volume", "en"), new ElementType("NDK Svazek eMonografie", "cs")),
                 ModsConstants.NS,
                 MODEL_EMONOGRAPHVOLUME,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM, DatastreamEditorType.MEDIA)
+                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_ECHAPTER, null, null,
+                Arrays.asList(new ElementType("NDK eChapter", "en"), new ElementType("NDK eKapitola", "cs")),
+                ModsConstants.NS,
+                MODEL_ECHAPTER,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                //new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)} why periodical?
+                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_EPERIODICAL, true, null,
+                Arrays.asList(new ElementType("NDK ePeriodical", "en"), new ElementType("NDK ePeriodikum", "cs")),
+                ModsConstants.NS,
+                MODEL_EPERIODICAL,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[] {}
+        ));
+        models.add(new MetaModel(
+                MODEL_EPERIODICALVOLUME, null, null,
+                Arrays.asList(new ElementType("NDK ePeriodical Volume", "en"), new ElementType("NDK eRočník", "cs")),
+                ModsConstants.NS,
+                MODEL_EPERIODICALVOLUME,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICAL, RelationCriteria.Type.PID)}
+        ));
+        // eIssue volume should contain some media (e.g. PDF)
+        models.add(new MetaModel(
+                MODEL_EPERIODICALISSUE, null, null,
+                Arrays.asList(new ElementType("NDK ePeriodical Issue", "en"), new ElementType("NDK eČíslo", "cs")),
+                ModsConstants.NS,
+                MODEL_EPERIODICALISSUE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM, DatastreamEditorType.MEDIA),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_EARTICLE, null, null,
+                Arrays.asList(new ElementType("NDK eArticle", "en"), new ElementType("NDK eČlánek", "cs")),
+                ModsConstants.NS,
+                MODEL_EARTICLE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.OCR, DatastreamEditorType.MEDIA,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID)}
+
         ));
 
         return Collections.unmodifiableList(models);

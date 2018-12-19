@@ -34,6 +34,12 @@ public interface ModsConstants {
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_INDEX = "pageIndex";
     public static final String FIELD_PAGE_NUMBER = "pageNumber";
+    public static final String FIELD_PAGE_TITLE = "pageTitle";
+    public static final String FIELD_PAGE_SUBTITLE = "pageSubTitle";
+    public static final String FIELD_PAGE_EXTENT = "pageExtent";
+    public static final String FIELD_PAGE_NOTE = "pageNote";
+    public static final String FIELD_PAGE_GENRE = "pageGenre";
+    public static final String FIELD_PAGE_TYPEOFRESOURCE = "pageTypeOfResource";
     public static final String FIELD_IDENTIFIERS = "identifiers";
     public static final String FIELD_NOTE = "note";
     //periodical
@@ -89,6 +95,8 @@ public interface ModsConstants {
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA = "rdamedia";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER = "rdacarrier";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM = "marcform";
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCCATEGORY= "marccategory";
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD= "marcsmd";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_GMD = "gmd";
 
     public static final String VALUE_DESCRIPTIONSTANDARD_RDA = "rda";

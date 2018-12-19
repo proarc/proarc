@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.export.crossref.CrossrefExport;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -102,9 +103,18 @@ public class ExportResource {
             @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
     ) throws IOException, ExportException {
 
-        URI targetPath = runDatastreamExport(pids, dsIds, hierarchy);
-
-        return new SmartGwtResponse<ExportResult>(new ExportResult(targetPath));
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
+        }
+        if (dsIds.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
+        }
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig));
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        File target = export.export(exportFolder, hierarchy, pids, dsIds);
+        URI targetPath = user.getUserHomeUri().relativize(target.toURI());
+        return new SmartGwtResponse<>(new ExportResult(targetPath));
     }
 
     @POST
@@ -189,7 +199,7 @@ public class ExportResource {
                 appConfig.getDesaServices(), MetaModelRepository.getInstance());
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
-        List<ExportResult> result = new ArrayList<ExportResult>(pids.size());
+        List<ExportResult> result = new ArrayList<>(pids.size());
         if (forDownload) {
             Result r = export.exportDownload(exportFolder, pids.get(0));
             result.add(r.getValidationError() != null
@@ -213,11 +223,11 @@ public class ExportResource {
                 }
             }
         }
-        return new SmartGwtResponse<ExportResult>(result);
+        return new SmartGwtResponse<>(result);
     }
 
     /**
-     * Gets the exported package built by {@link #newDesaExport() } with {@code forDownload=true}.
+     * Gets the exported package built by {@link #newDesaExport(List, boolean, boolean, boolean)}  } with {@code forDownload=true}.
      * The package data are removed after completion of the response.
      *
      * @param token token to identify the prepared package
@@ -241,7 +251,7 @@ public class ExportResource {
         finalizer.add(new Closeable() {
 
             @Override
-            public void close() throws IOException {
+            public void close() {
                 FileUtils.deleteQuietly(file.getParentFile());
             }
         });
@@ -250,6 +260,13 @@ public class ExportResource {
                 .build();
     }
 
+    /**
+     * Gets the exported package as PSP (default) or SIP (simpler format for eborn documents)
+     * @param pids identifiers of saved objects in fedora repository
+     * @param typeOfPackage (PSP | SIP]
+     * @return ExportResult with path to package and possible errors from export
+     * @throws ExportException
+     */
     @POST
     @Path(ExportResourceApi.NDK_PATH)
     @Produces({MediaType.APPLICATION_JSON})
@@ -282,6 +299,9 @@ public class ExportResource {
         List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
             if (r.getValidationError() != null) {
+                if (isMissingURNNBN(r) && appConfig.isDeletePackage()) {
+                    MetsUtils.deleteFolder(r.getTargetFolder());
+                }
                 result.add(new ExportResult(r.getValidationError().getExceptions()));
             } else {
                 // XXX not used for now
@@ -289,6 +309,18 @@ public class ExportResource {
             }
         }
         return new SmartGwtResponse<>(result);
+    }
+
+    /**
+     * @return true if at least one exception contains "URNNBN misssing" otherwise @return false
+     */
+    private boolean isMissingURNNBN(NdkExport.Result r) {
+        for (MetsExportExceptionElement exception : r.getValidationError().getExceptions()) {
+            if ("URNNBN identifier is missing".equals(exception.getMessage())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -319,7 +351,7 @@ public class ExportResource {
             result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
         }
         if (!status.isOk()) {
-            result.setErrors(new ArrayList<ExportError>());
+            result.setErrors(new ArrayList<>());
             for (ExportResultLog.ExportResult logResult : status.getReslog().getExports()) {
                 for (ResultError error : logResult.getError()) {
                     result.getErrors().add(new ExportError(
@@ -327,7 +359,7 @@ public class ExportResource {
                 }
             }
         }
-        return new SmartGwtResponse<ExportResult>(result);
+        return new SmartGwtResponse<>(result);
     }
 
     /**
@@ -359,7 +391,7 @@ public class ExportResource {
             result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
         }
         if (!status.isOk()) {
-            result.setErrors(new ArrayList<ExportError>());
+            result.setErrors(new ArrayList<>());
             for (ExportResultLog.ExportResult logResult : status.getReslog().getExports()) {
                 for (ResultError error : logResult.getError()) {
                     result.getErrors().add(new ExportError(
@@ -367,7 +399,7 @@ public class ExportResource {
                 }
             }
         }
-        return new SmartGwtResponse<ExportResult>(result);
+        return new SmartGwtResponse<>(result);
     }
 
     /**
@@ -399,14 +431,14 @@ public class ExportResource {
             Logger.getLogger(ExportResource.class.getName()).log(Level.SEVERE, null, ex);
         }
         ExportResultLog reslog = export.getResultLog();
-        result.setErrors(new ArrayList<ExportError>());
+        result.setErrors(new ArrayList<>());
         for (ExportResultLog.ExportResult logResult : reslog.getExports()) {
             for (ResultError error : logResult.getError()) {
                 result.getErrors().add(new ExportError(
                         error.getPid(), error.getMessage(), false, error.getDetails()));
             }
         }
-        return new SmartGwtResponse<ExportResult>(result);
+        return new SmartGwtResponse<>(result);
     }
 
     @GET
@@ -467,7 +499,7 @@ public class ExportResource {
 
         public ExportResult(List<MetsExportExceptionElement> validations) {
             if (validations != null) {
-                errors = new ArrayList<ExportError>();
+                errors = new ArrayList<>();
                 for (MetsExportExceptionElement me : validations) {
                     errors.add(new ExportError(me));
                 }
@@ -482,6 +514,11 @@ public class ExportResource {
             return target;
         }
 
+        /**
+         * Muset be mutable {@link ExportResource#newArchive(List)}
+         * @return
+         */
+        @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
         public List<ExportError> getErrors() {
             return errors;
         }
@@ -495,7 +532,7 @@ public class ExportResource {
         }
 
         public void setErrors(List<ExportError> errors) {
-            this.errors = errors;
+            this.errors = new ArrayList<>(errors);
         }
 
         public String getToken() {
@@ -563,32 +600,33 @@ public class ExportResource {
     }
 
     private URI runK4Export(List<String> pids, boolean hierarchy, String policy, String exportPageContext) throws IOException {
-                if (pids.isEmpty()) {
-                        throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
-                    }
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
+        }
 
-                        Kramerius4Export export = new Kramerius4Export(
-                                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export(), policy, exportPageContext);
-                URI exportUri = user.getExportFolder();
-                File exportFolder = new File(exportUri);
-                File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
-                return user.getUserHomeUri().relativize(target.toURI());
-            }
+        Kramerius4Export export = new Kramerius4Export(
+        RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export(), policy, exportPageContext);
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
+        return user.getUserHomeUri().relativize(target.toURI());
+    }
 
-            private URI runDatastreamExport(
-            List<String> pids,
-            List<String> dsIds,
-            boolean hierarchy) throws IOException, ExportException {
-                if (pids.isEmpty()) {
-                        throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
-                    }
-                if (dsIds.isEmpty()) {
-                        throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
-                    }
-                DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig));
-                URI exportUri = user.getExportFolder();
-                File exportFolder = new File(exportUri);
-                File target = export.export(exportFolder, hierarchy, pids, dsIds);
-                return user.getUserHomeUri().relativize(target.toURI());
-            }
+    private URI runDatastreamExport(
+        List<String> pids,
+        List<String> dsIds,
+        boolean hierarchy
+    ) throws IOException, ExportException {
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
+        }
+        if (dsIds.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
+        }
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig));
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        File target = export.export(exportFolder, hierarchy, pids, dsIds);
+        return user.getUserHomeUri().relativize(target.toURI());
+    }
 }

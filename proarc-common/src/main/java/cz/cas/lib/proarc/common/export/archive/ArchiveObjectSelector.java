@@ -86,7 +86,7 @@ public class ArchiveObjectSelector {
         } else if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICAL.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)
-                ) {
+                || NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(modelId)) {
             searchChildren(entry, entryPath);
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             DigitalObjectElement parent = entryPath.get(1);

@@ -17,79 +17,30 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.math.BigInteger;
-import java.net.URI;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
-
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.JHoveOutput;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
-import cz.cas.lib.proarc.mets.MetsType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.FileType.FLocat;
@@ -97,9 +48,10 @@ import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap.XmlData;
 import cz.cas.lib.proarc.mets.Mets;
+import cz.cas.lib.proarc.mets.MetsType;
 import cz.cas.lib.proarc.mets.MetsType.FileSec;
-import cz.cas.lib.proarc.mets.MetsType.MetsHdr;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
+import cz.cas.lib.proarc.mets.MetsType.MetsHdr;
 import cz.cas.lib.proarc.mets.MetsType.MetsHdr.Agent;
 import cz.cas.lib.proarc.mets.MetsType.StructLink;
 import cz.cas.lib.proarc.mets.StructLinkType.SmLink;
@@ -130,6 +82,52 @@ import cz.cas.lib.proarc.premis.PreservationLevelComplexType;
 import cz.cas.lib.proarc.premis.RelatedEventIdentificationComplexType;
 import cz.cas.lib.proarc.premis.RelatedObjectIdentificationComplexType;
 import cz.cas.lib.proarc.premis.RelationshipComplexType;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.net.URI;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Visitor class for creating mets document out of Mets objects
@@ -149,6 +147,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     int pageCounter = 0;
     int articleCounter = 0;
     int chapterCounter = 0;
+    int titleCounter = 1;
 
     /**
      * creates directory structure for mets elements
@@ -188,15 +187,20 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
         mets.setLabel1(getTitle(metsElement) + metsElement.getLabel());
+        mets.setMetsHdr(createMetsHdr(metsElement));
+        fileGrpMap = MetsUtils.initFileGroups();
+    }
+
+    /**
+     * Creates the Mets header info
+     */
+    protected MetsHdr createMetsHdr(IMetsElement metsElement) throws MetsExportException {
         MetsHdr metsHdr = new MetsHdr();
         metsHdr.setCREATEDATE(metsElement.getCreateDate());
         metsHdr.setLASTMODDATE(metsElement.getLastUpdateDate());
-
         setAgent(metsHdr, "CREATOR", "ORGANIZATION", metsElement.getMetsContext().getOptions().getCreator());
         setAgent(metsHdr, "ARCHIVIST", "ORGANIZATION",metsElement.getMetsContext().getOptions().getArchivist());
-
-        mets.setMetsHdr(metsHdr);
-        fileGrpMap = MetsUtils.initFileGroups();
+        return metsHdr;
     }
 
     /**
@@ -302,7 +306,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
                 byte[] digest = md.digest();
                 String result = new String(Hex.encodeHex(digest));
-                metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + outputFile.getName(), result, totalBytes));
+                metsElement.getMetsContext().getFileList().add(new FileMD5Info(File.separator + outputFile.getName(), result, totalBytes));
                 fileMd5Name = "md5_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".md5";
                 File fileMd5 = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + fileMd5Name);
                 OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileMd5));
@@ -316,7 +320,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 is = new FileInputStream(fileMd5);
                 FileMD5Info md5InfoMd5File = MetsUtils.getDigest(is);
                 is.close();
-                metsElement.getMetsContext().getFileList().add(new FileMD5Info("." + File.separator + fileMd5Name, null, fileMd5.length()));
+                metsElement.getMetsContext().getFileList().add(new FileMD5Info(File.separator + fileMd5Name, null, fileMd5.length()));
                 MetsUtils.saveInfoFile(metsElement.getMetsContext().getOutputPath(), metsElement.getMetsContext(), md5InfoMd5File.getMd5(), fileMd5Name, outputFile);
             } catch (Exception ex) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to save mets file:" + outputFile.getAbsolutePath(), false, ex);
@@ -375,6 +379,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             modsMdSecType.setID("MODSMD_" + metsElement.getModsElementID());
             MdWrap modsMdWrap = new MdWrap();
             modsMdWrap.setMDTYPE("MODS");
+            fillMdTypeVersion(modsMdWrap, metsElement);
             modsMdWrap.setMIMETYPE("text/xml");
             XmlData modsxmlData = new XmlData();
             metsElement.getModsStream().get(0).setAttribute("ID", "MODS_" + metsElement.getModsElementID());
@@ -398,6 +403,19 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
+    private void fillMdTypeVersion(MdWrap modsMdWrap, IMetsElement metsElement) {
+        if (Const.PERIODICAL_TITLE.equals(metsElement.getMetsContext().getRootElement().getElementType())) {
+            modsMdWrap.setMDTYPEVERSION(getModsVersion(metsElement));
+        }
+    }
+
+    private String getModsVersion(IMetsElement metsElement) {
+        if (metsElement.getModsStream() != null && metsElement.getModsStream().get(0).getAttributeNode("version") != null) {
+            return metsElement.getModsStream().get(0).getAttributeNode("version").getValue();
+        }
+        return ModsUtils.VERSION;
+    }
+
     /**
      * adds an order and index attributes to pageDiv
      *
@@ -413,7 +431,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if ((partNode.getAttributes() != null) && (partNode.getAttributes().getNamedItem("type") != null)) {
             pageDiv.setTYPE(partNode.getAttributes().getNamedItem("type").getNodeValue());
         } else {
-            pageDiv.setTYPE("NormalPage");
+            pageDiv.setTYPE("normalPage");
         }
         NodeList nodeList = partNode.getChildNodes();
         for (int a = 0; a < nodeList.getLength(); a++) {
@@ -522,7 +540,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 fileMD5Info.setMd5(tempMd5.getMd5());
             }
             fileType.setSIZE(Long.valueOf(fileMD5Info.getSize()));
-            fileMD5Info.setFileName("." + File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName);
+            fileMD5Info.setFileName(File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName);
             fileMD5Info.setMimeType(fileType.getMIMETYPE());
             fileType.setCHECKSUM(fileMD5Info.getMd5());
             metsContext.getFileList().add(fileMD5Info);
@@ -531,9 +549,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         FLocat flocat = new FLocat();
         flocat.setLOCTYPE("URL");
-        String href = "." + "/" + Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName;
         URI uri;
-        uri = URI.create(href);
+        uri = URI.create(Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName);
         flocat.setHref(uri.toASCIIString());
         fileType.getFLocat().add(flocat);
         return fileType;
@@ -956,6 +973,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if (fileNames.get("TECHMDGRP") == null) {
             LOG.log(Level.FINE, "Generating tech");
             Mets amdSecMets = new Mets();
+            amdSecMets.setMetsHdr(createMetsHdr(metsElement));
             amdSecMets.setLabel1(mets.getLabel1());
             amdSecMets.setTYPE(mets.getTYPE());
             StructMapType mapType = new StructMapType();
@@ -996,7 +1014,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             FLocat flocatAmd = new FLocat();
                             FLocat pageFlocat = fileTypePage.getFLocat().get(0);
                             if (pageFlocat.getHref() != null) {
-                                flocatAmd.setHref("." + pageFlocat.getHref().substring(1));
+                                flocatAmd.setHref(pageFlocat.getHref());
                             }
                             flocatAmd.setLOCTYPE(pageFlocat.getLOCTYPE());
                             fileTypeAmdSec.getFLocat().add(flocatAmd);
@@ -1328,6 +1346,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, IMetsElement sourceElement) throws MetsExportException {
         List<IMetsElement> sourceElements = new ArrayList<IMetsElement>();
+        if (metsElement.getModel().contains(NdkPlugin.MODEL_NDK_PAGE)) {
+            addDmdSec(metsElement);
+        }
         sourceElements.add(sourceElement);
         insertPage(physicalDiv, metsElement, pageCounter, sourceElements);
     }
@@ -1490,7 +1511,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         DivType divType = new DivType();
-        divType.setID(metsElement.getElementID());
+        divType.setID(metsElement.getModsElementID());
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
         divType.setTYPE(Const.typeNameMap.get(metsElement.getElementType()));
         divType.getDMDID().add(metsElement.getModsMetsElement());
@@ -1530,6 +1551,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         } else if (Const.MONOGRAPH_UNIT.equals(metsElement.getElementType())) {
             divType.setTYPE("VOLUME");
             divType.setID(metsElement.getElementID().replaceAll(Const.MONOGRAPH_UNIT, Const.VOLUME));
+            physicalDiv.getDMDID().clear();
             physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
         } else {
             divType.setTYPE(Const.VOLUME);
@@ -1598,6 +1620,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             insertVolume(logicalDiv, physicalDiv, metsElement, false);
         } else {
             metsElement.setModsElementID("TITLE_0001");
+            titleCounter++;
             addDmdSec(metsElement);
             logicalDiv.getDMDID().add(metsElement.getModsMetsElement());
             physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
@@ -1615,8 +1638,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 } else if (Const.CHAPTER.equals(childMetsElement.getElementType())) {
                     insertChapter(logicalDiv, physicalDiv, childMetsElement, chapterCounter);
                     chapterCounter++;
+                } else if (Const.MONOGRAPH_MULTIPART.equals(childMetsElement.getElementType())) {
+                    insertMonographTitle(logicalDiv, physicalDiv, childMetsElement, titleCounter);
+                    titleCounter++;
                 } else
-                    throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Supplement, Monograph unit, Chapter or Page, got:" + childMetsElement.getElementType(), false, null);
+                    throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Supplement, Monograph unit, Monograph Title, Chapter or Page, got:" + childMetsElement.getElementType(), false, null);
             }
 
             for (IMetsElement childMetsElement : metsElement.getChildren()) {
@@ -1624,6 +1650,50 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
                     insertVolume(logicalDiv, physicalDiv, childMetsElement, true);
                 }
+            }
+        }
+    }
+
+    private void insertMonographTitle(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, int counter) throws MetsExportException {
+        metsElement.setModsElementID("TITLE_000" + counter);
+        addDmdSec(metsElement);
+        DivType divType = new DivType();
+        divType.setID("MONOGRAPH_000" + counter);
+        divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
+        if (Const.MONOGRAPH_MULTIPART.equals(metsElement.getElementType())) {
+            divType.setTYPE(Const.MONOGRAPH);
+            physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+        }
+        divType.getDMDID().add(metsElement.getModsMetsElement());
+        logicalDiv.getDiv().add(divType);
+
+        for (IMetsElement childMetsElement : metsElement.getChildren()) {
+            if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
+                continue;
+            } else
+            if (Const.SUPPLEMENT.equals(childMetsElement.getElementType())) {
+                childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
+                insertSupplement(divType, physicalDiv, childMetsElement);
+            } else
+            if (Const.PAGE.equals(childMetsElement.getElementType())) {
+                pageCounter++;
+                insertPage(physicalDiv, childMetsElement, pageCounter, metsElement);
+            } else if (Const.CHAPTER.equals(childMetsElement.getElementType())) {
+                insertChapter(divType, physicalDiv, childMetsElement, chapterCounter);
+                chapterCounter++;
+            } else if (Const.PICTURE.equals(childMetsElement.getElementType())) {
+                insertPicture(divType, physicalDiv, childMetsElement);
+            } else if (Const.MONOGRAPH_MULTIPART.equals(childMetsElement.getElementType())) {
+                insertMonographTitle(divType, physicalDiv, childMetsElement, titleCounter);
+                titleCounter++;
+            } else
+                throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Supplement, Monograph unit, Monograph Title, Chapter or Page, got:" + childMetsElement.getElementType(), false, null);
+        }
+
+        for (IMetsElement childMetsElement : metsElement.getChildren()) {
+            if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
+                childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
+                insertVolume(divType, physicalDiv, childMetsElement, true);
             }
         }
     }
@@ -1742,7 +1812,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         elementDivType.setLabel3(metsElement.getLabel());
-        elementDivType.setTYPE(metsElement.getElementType());
+        elementDivType.setTYPE(metsElement.getModsElementID());
         elementDivType.getDMDID().add(metsElement.getModsMetsElement());
 
         logicalDiv.getDiv().add(elementDivType);
@@ -1753,6 +1823,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Adds the info about linkage between an element and page into the
      * struct-link
+     *
+     * @implNote This only creates number sequence from Mods (Part->Extent->Start:Part->Extent->End).
+     * @implNote When the pages not exist the exception is thrown later by @link{ {@link #addStructLink()} }
      *
      * @param metsElement
      */
@@ -1787,7 +1860,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         addDmdSec(metsElement);
         DivType elementDivType = new DivType();
-        elementDivType.setID(metsElement.getElementID());
+        elementDivType.setID(metsElement.getModsElementID());
         elementDivType.setORDER(BigInteger.valueOf(counterIntPart));
 
         elementDivType.setLabel3(metsElement.getLabel());
@@ -1796,7 +1869,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
         logicalDiv.getDiv().add(elementDivType);
         addInternalElements(elementDivType, metsElement);
-        for (MetsElement element : metsElement.getChildren()) {
+        for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(elementDivType, physicalDiv, element);
             } else
@@ -1820,7 +1893,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         addDmdSec(metsElement);
         DivType elementDivType = new DivType();
-        elementDivType.setID(metsElement.getElementID());
+        elementDivType.setID(metsElement.getModsElementID());
         elementDivType.setORDER(BigInteger.valueOf(counterIntPart));
 
         elementDivType.setLabel3(metsElement.getLabel());
@@ -1830,7 +1903,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         logicalDiv.getDiv().add(elementDivType);
         addInternalElements(elementDivType, metsElement);
         addStructLinkFromMods(metsElement);
-        for (MetsElement element : metsElement.getChildren()) {
+        for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(elementDivType, physicalDiv, element);
                 // } else if (Const.PAGE.equals(element.getElementType())) {

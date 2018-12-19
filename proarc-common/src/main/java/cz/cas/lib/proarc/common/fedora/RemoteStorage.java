@@ -613,7 +613,7 @@ public final class RemoteStorage {
                         // ensure that it is content for given profile
                         .asOfDateTime(DateUtility.getXSDDateTime(new Date(lastModified)))
                         .execute(object.getClient());
-                InputStream is = response.getEntity(InputStream.class);
+                InputStream is = response.getEntityInputStream();
                 try {
                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                    FoxmlUtils.copy(is, buffer);

@@ -14,17 +14,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cz.cas.lib.proarc.common.mods.ndk;
+package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
-import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
+import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMonographTitleMapper;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 
-public class NdkEMonographVolumeMapper extends NdkMonographVolumeMapper {
-    private boolean addTextResource = true;
-
-    public boolean isAddTextResource() {
-        return addTextResource;
-    }
+public class NdkEMonographTitleMapper extends NdkMonographTitleMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
@@ -33,8 +30,7 @@ public class NdkEMonographVolumeMapper extends NdkMonographVolumeMapper {
 
     @Override
     protected void addGenre(ModsDefinition mods) {
-        //  mods/genre="electronic volume"
-        MapperUtils.addGenre(mods, "electronic volume");
-        mods.getPhysicalDescription().stream().map(desc -> desc.getDigitalOrigin()).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
+        //  mods/genre="electronic_title"
+        MapperUtils.addGenre(mods, Const.GENRE_ETITLE);
     }
 }

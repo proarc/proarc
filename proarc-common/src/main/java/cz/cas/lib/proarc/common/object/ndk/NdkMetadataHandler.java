@@ -40,6 +40,7 @@ import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
@@ -62,6 +63,7 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
@@ -93,7 +95,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
     public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
-    public static final String DEFAULT_PAGE_TYPE = "NormalPage";
+    public static final String DEFAULT_PAGE_TYPE = "normalPage";
 
     /**
      * The set of model IDs that should be checked for connected members.
@@ -198,9 +200,62 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
             }
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
+            // issue 124
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritLocation(defaultMods, titleMods.getLocation());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+            }
+            String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
+            String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
+            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal);
+        } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
+            copyEArticle(parent, defaultMods);
         }
 
         return defaultMods;
+    }
+
+    private void copyEArticle(DigitalObjectHandler parent, ModsDefinition defaultMods) throws DigitalObjectException {
+        // issue 859
+        RelatedItemDefinition relatedItem = new RelatedItemDefinition();
+        defaultMods.getRelatedItem().add(relatedItem);
+        DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
+        if (title != null) {
+            ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+            if (titleMods.getTitleInfo().size() != 0) {
+                relatedItem.getTitleInfo().add(titleMods.getTitleInfo().get(0));
+            }
+            relatedItem.getName().addAll(titleMods.getName());
+            copyIdentifier(relatedItem, titleMods, "issn");
+        }
+        DigitalObjectHandler issue = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICALISSUE);
+        if (issue != null) {
+            ModsDefinition issueMods = issue.<ModsDefinition>metadata().getMetadata().getData();
+            if (relatedItem.getTitleInfo().size() != 0
+                    && issueMods.getTitleInfo().size() != 0
+                    && issueMods.getTitleInfo().get(0).getPartNumber().size() != 0) {
+                relatedItem.getTitleInfo().get(0).getPartNumber().add(issueMods.getTitleInfo().get(0).getPartNumber().get(0));
+            }
+            copyIdentifier(relatedItem, issueMods, "uuid");
+        }
+    }
+
+    private void copyIdentifier(RelatedItemDefinition relatedItem, ModsDefinition mods, String key) {
+        List<IdentifierDefinition> identifiers = mods.getIdentifier();
+        if (key == null) {
+            return;
+        }
+        for (IdentifierDefinition identifier : identifiers) {
+            if (key.equals(identifier.getType())) {
+                relatedItem.getIdentifier().add(identifier);
+            }
+        }
+
     }
 
     private void setRules(ModsDefinition mods) {
@@ -320,6 +375,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             mods = createDefault(modelId);
         } else {
             NdkMapper mapper = mapperFactory.get(modelId);
+            mapper.setModelId(modelId);
             Context context = new Context(handler);
             ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
             try {
@@ -383,15 +439,19 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public <O> DescriptionMetadata<O> getMetadataAsJsonObject(String mappingId) throws DigitalObjectException {
         DescriptionMetadata<ModsDefinition> dm = getMetadata();
         DescriptionMetadata json = dm;
-        if (mappingId == null) {
-            String modelId = handler.relations().getModel();
+        String modelId = null;
+        if (mappingId == null || ModsCutomEditorType.EDITOR_PAGE.equals(mappingId)) {
+            modelId = handler.relations().getModel();
             MetaModel model = modelId == null ? null : MetaModelRepository.getInstance().find(modelId);
             if (model == null) {
                 throw new DigitalObjectException(fobject.getPid(), null, "ds", "Missing mappingId!", null);
             }
-            mappingId = model.getModsCustomEditor();
+            if (mappingId == null) {
+                mappingId = model.getModsCustomEditor();
+            }
         }
         NdkMapper mapper = mapperFactory.get(mappingId);
+        mapper.setModelId(ModsCutomEditorType.EDITOR_PAGE.equals(mappingId) ? modelId : mappingId);
         Context context = new Context(handler);
         json.setData(mapper.toJsonObject(dm.getData(), context));
         json.setEditor(mappingId);
@@ -412,7 +472,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException {
         String modelId = handler.relations().getModel();
-        if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
+        if (modelId.equals(NdkPlugin.MODEL_PAGE) || modelId.equals(NdkPlugin.MODEL_NDK_PAGE)) {
             ModsDefinition mods = editor.read();
             NdkPageMapper mapper = new NdkPageMapper();
             Page page = mapper.toJsonObject(mods, new Context(handler));
@@ -430,7 +490,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public void setPage(PageViewItem page, String message) throws DigitalObjectException {
         String modelId = handler.relations().getModel();
-        if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
+        if (modelId.equals(NdkPlugin.MODEL_PAGE) || modelId.equals(NdkPlugin.MODEL_NDK_PAGE)) {
             DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
             metadata.setTimestamp(editor.getLastModified());
             NdkPageMapper mapper = new NdkPageMapper();
@@ -536,6 +596,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
         checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
         NdkMapper mapper = mapperFactory.get(modelId);
+        mapper.setModelId(modelId);
         Context context = new Context(handler);
         mapper.createMods(mods, context);
         if (LOG.isLoggable(Level.FINE)) {

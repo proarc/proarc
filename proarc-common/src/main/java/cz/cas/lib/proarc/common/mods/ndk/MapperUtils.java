@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.mods.LanguageTermDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.NamePartDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
@@ -36,6 +37,7 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -44,7 +46,7 @@ import java.util.List;
  *
  * @author Jan Pokorsky
  */
-final class MapperUtils {
+public final class MapperUtils {
 
     static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
@@ -60,7 +62,7 @@ final class MapperUtils {
         return mods;
     }
 
-    static GenreDefinition addGenre(ModsDefinition mods, String value) {
+    public static GenreDefinition addGenre(ModsDefinition mods, String value) {
         List<GenreDefinition> genres = mods.getGenre();
         GenreDefinition reqGenre = null;
         for (GenreDefinition genre : genres) {
@@ -75,6 +77,17 @@ final class MapperUtils {
             genres.add(0, reqGenre);
         }
         return reqGenre;
+    }
+
+    public static GenreDefinition replaceGenre(ModsDefinition mods, String oldValue, String newValue) {
+        List<GenreDefinition> genres = mods.getGenre();
+        for (GenreDefinition genre : genres) {
+            if (oldValue.equals(genre.getValue())) {
+                genre.setValue(newValue);
+                return genre;
+            }
+        }
+        return addGenre(mods, newValue);
     }
 
     /**
@@ -113,7 +126,9 @@ final class MapperUtils {
     }
 
     static StringBuilder addNonSort(StringBuilder title, TitleInfoDefinition ti) {
-        return addTitlePart(title, ti.getNonSort(), null);
+        List<StringPlusLanguage> listNonSort = new ArrayList<>();
+        listNonSort.addAll(ti.getNonSort());
+        return addTitlePart(title, listNonSort, null);
     }
 
     static StringBuilder addTitle(StringBuilder title, TitleInfoDefinition ti) {
@@ -193,6 +208,12 @@ final class MapperUtils {
             }
         }
         fillLanguage(recordInfo.getLanguageOfCataloging());
+        if (recordInfo.getRecordOrigin().size() != 0 && recordInfo.getRecordOrigin().get(0).getValue().startsWith("Converted from")) {
+            NoteDefinition note = new NoteDefinition();
+            note.setValue(recordInfo.getRecordOrigin().get(0).getValue());
+            recordInfo.getRecordInfoNote().add(note);
+            recordInfo.getRecordOrigin().get(0).setValue("machine generated");
+        }
     }
 
     static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {
@@ -211,7 +232,11 @@ final class MapperUtils {
             for (NamePartDefinition namePart : name.getNamePart()) {
                 String type = namePart.getType();
                 if (type == null) {
-                    sbName.append(namePart.getValue()).append(' ');
+                    if (namePart.getValue().contains(", ")) {
+                        sbName.append(namePart.getValue());
+                    } else {
+                        sbName.append(namePart.getValue()).append(' ');
+                    }
                 } else if ("family".equals(type)) {
                     sbFamily.append(namePart.getValue()).append(' ');
                 } else if ("given".equals(type)) {
@@ -238,6 +263,22 @@ final class MapperUtils {
             if (sbName.length() > 0) {
                 addElementType(dcElms, sbName.toString());
             }
+        }
+    }
+
+    static void addNameWithEtal(ModsDefinition mods) {
+        NameDefinition nameDefinition = null;
+        for (NameDefinition name : mods.getName()) {
+            if (name.getEtal() != null && (!name.getEtal().getValue().isEmpty() || null != name.getEtal().getValue())) {
+                name.getNameIdentifier().clear();
+                name.getNamePart().clear();
+                nameDefinition = name;
+                break;
+            }
+        }
+        if (nameDefinition != null) {
+            mods.getName().clear();
+            mods.getName().add(nameDefinition);
         }
     }
 

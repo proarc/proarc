@@ -34,6 +34,7 @@ import javax.xml.bind.annotation.XmlValue;
  *
  * @author Jan Pokorsky
  */
+@SuppressWarnings({"unused", "AssignmentOrReturnOfFieldWithMutableType"})
 @XmlRootElement(name = "exports", namespace = ProarcXmlUtils.NS_EXPORT)
 @XmlAccessorType(value = XmlAccessType.FIELD)
 public class ExportResultLog {
@@ -71,7 +72,7 @@ public class ExportResultLog {
 
     public List<ExportResult> getExports() {
         if (exports == null) {
-            exports = new ArrayList<ExportResult>();
+            exports = new ArrayList<>();
         }
         return exports;
     }
@@ -139,7 +140,7 @@ public class ExportResultLog {
 
         public List<ResultError> getError() {
             if (error == null) {
-                error = new ArrayList<ResultError>();
+                error = new ArrayList<>();
             }
             return error;
         }
@@ -161,11 +162,13 @@ public class ExportResultLog {
         @XmlValue
         private String details;
 
+        private static final int CAPACITY = 200;
+
         static String toDetails(List<String> details) {
             StringBuilder sb = null;
             for (String s : details) {
                 if (sb == null) {
-                    sb = new StringBuilder(200);
+                    sb = new StringBuilder(CAPACITY);
                     sb.append(s);
                 } else {
                     sb.append("\n").append(s);

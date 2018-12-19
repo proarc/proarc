@@ -157,9 +157,20 @@ public final class OldPrintSupplementForm {
                     .createField()) // value
                 .createField()) // namePart
                 // displayForm
-                // etal
+                .addField(new FieldBuilder("etal").setMaxOccurrences(1)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Etal - O").setType(Field.TEXT)
+                        .setHint("Element indikující, že existuje více autorů, než pouze ti, kteří byli uvedeni v <name> elementu." +
+                            "<p>V případě užití tohoto elementu je dále top element <name> neopakovatelný." +
+                            "<p><etal> je nutné umístit do samostatného top elementu <name>, ve kterém se " +
+                            "nesmí objevit subelementy <namePart> a <nameIdentifier>." +
+                            "<p><etal> je neopakovatelný element, který se do zápisu vkládá ručně.").createField())
+                    .createField()) //etal
                 // affiliation
                 // role, roleDefinition
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Číslo národní autority - RA").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
                 .addField(new FieldBuilder("role").setTitle("Role - MA").setMaxOccurrences(5)
                     .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                     // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
@@ -248,7 +259,7 @@ public final class OldPrintSupplementForm {
                     // placeTerm, placeTermDefinition extends stringPlusLanguage
                     .addField(new FieldBuilder("placeTerm").setMaxOccurrences(1)
                         // type, codeOrText('code', 'text')
-                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("TEXT")
+                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
                             .setHint("Typ popisu místa. Kódem nebo textově."
                                 + "<p>Pokud má dokument více míst vydání v poli 260, podpole „a“, přebírají se ze záznamu všechna místa"
                                 + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 260</li>")
@@ -557,6 +568,7 @@ public final class OldPrintSupplementForm {
                     .addMapValue("url", "URL")
                     .addMapValue("urnnbn", "URN:NBN")
                     .addMapValue("uuid", "UUID")
+                    .addMapValue("BCBT","BCBT")
                 .createField())
                 // stringPlusLanguage/value
                 .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
