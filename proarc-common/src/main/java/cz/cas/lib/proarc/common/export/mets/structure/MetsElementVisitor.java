@@ -97,6 +97,7 @@ import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -1395,7 +1396,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     metsElement.setAltoFile(fileType);
                 }
             } else {
-                if ((Const.mandatoryStreams.contains(streamName)) && (!metsElement.getMetsContext().isAllowNonCompleteStreams())) {
+                if (isMandatoryStream(streamName)&& (!metsElement.getMetsContext().isAllowNonCompleteStreams())) {
                     throw new MetsExportException(metsElement.getOriginalPid(), "Stream:" + streamName + " is missing", false, null);
                 }
             }
@@ -1409,6 +1410,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (IMetsElement sourceElement : sourceElements) {
             addMappingPageStruct(structLinkMapping, sourceElement.getModsElementID());
         }
+    }
+
+    protected boolean isMandatoryStream(String streamName) {
+        return Const.mandatoryStreams.contains(streamName);
     }
 
     class StructLinkMapping {

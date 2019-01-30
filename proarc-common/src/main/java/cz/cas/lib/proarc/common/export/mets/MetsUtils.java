@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.info.Info;
 import cz.cas.lib.proarc.mets.info.Info.Checksum;
@@ -179,6 +180,13 @@ public class MetsUtils {
             List<NdkEbornPlugin> plugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
                     .filter(plugin -> plugin instanceof NdkEbornPlugin).map(plugin -> ((NdkEbornPlugin) plugin)).collect(Collectors.toList());
             for (NdkEbornPlugin plugin : plugins) {
+                if (plugin.TYPE_MAP.containsKey(model)) {
+                    return plugin.TYPE_MAP.get(model);
+                }
+            }
+            List<OldPrintPlugin> oldPrintPlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                    .filter(plugin -> plugin instanceof OldPrintPlugin).map(plugin -> ((OldPrintPlugin) plugin)).collect(Collectors.toList());
+            for (OldPrintPlugin plugin : oldPrintPlugins) {
                 if (plugin.TYPE_MAP.containsKey(model)) {
                     return plugin.TYPE_MAP.get(model);
                 }
@@ -834,7 +842,7 @@ public class MetsUtils {
         if (identifiersMap.containsKey(Const.URNNBN)) {
             String urnnbn = identifiersMap.get(Const.URNNBN);
             return urnnbn.substring(urnnbn.lastIndexOf(":") + 1);
-        } else if (element.getMetsContext().isAllowMissingURNNBN()) {
+        } else if (element.getMetsContext().isAllowMissingURNNBN() || isOldPrintPlugin(element)){
             // if missing URNNBN is allowed, then try to use UUID - otherwise
             // throw an exception
             element.getMetsContext().getMetsExportException().addException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
@@ -847,6 +855,10 @@ public class MetsUtils {
             // URNNBN is mandatory
             throw new MetsExportException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
         }
+    }
+
+    private static boolean isOldPrintPlugin(IMetsElement element) {
+        return element.getModel() != null && element.getModel().contains("oldprint");
     }
 
     /**

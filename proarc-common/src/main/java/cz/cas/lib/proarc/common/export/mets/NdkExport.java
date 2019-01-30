@@ -43,8 +43,8 @@ import org.apache.commons.lang.Validate;
  */
 public class NdkExport {
 
-    private final RemoteStorage rstorage;
-    private final NdkExportOptions options;
+    protected final RemoteStorage rstorage;
+    protected final NdkExportOptions options;
 
     public NdkExport(RemoteStorage rstorage, NdkExportOptions options) {
         this.rstorage = rstorage;
@@ -83,6 +83,7 @@ public class NdkExport {
             try {
                 Result r = export(target, pid, hierarchy, keepResult, log);
                 results.add(r);
+                deleteUnnecessaryFolder(target);
                 logResult(r, logItem);
             } catch (ExportException ex) {
                 logItem.setStatus(ResultStatus.FAILED);
@@ -95,6 +96,13 @@ public class NdkExport {
         }
         ExportUtils.writeExportResult(target, reslog);
         return results;
+    }
+
+    /**
+     * All folders are necessary, nothing is deleted
+     * Used in NdkSttExport
+     */
+    protected void deleteUnnecessaryFolder(File target) {
     }
 
     /**
