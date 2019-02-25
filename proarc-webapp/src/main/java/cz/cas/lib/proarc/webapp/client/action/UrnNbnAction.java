@@ -39,6 +39,8 @@ import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
@@ -46,8 +48,12 @@ import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UrnNbnDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Set;
 
 /**
  * Registers NDK digital object(s) in the URN:NBN resolver.
@@ -57,6 +63,15 @@ import java.util.LinkedHashMap;
 public class UrnNbnAction extends AbstractAction {
 
     private final ClientMessages i18n;
+
+    public static final Set<String> URNNBN_MODELS = Collections.unmodifiableSet(new HashSet<>(
+            Arrays.asList(NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALISSUE,
+                    NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHVOLUME,
+                    NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
+                    NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
+                    NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EPERIODICALISSUE,
+                    NdkEbornPlugin.MODEL_EARTICLE, NdkEbornPlugin.MODEL_ECHAPTER
+                    )));
 
     public UrnNbnAction(ClientMessages i18n) {
         this(i18n, i18n.UrnNbnAction_Title(),
@@ -96,7 +111,7 @@ public class UrnNbnAction extends AbstractAction {
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
                 // XXX hack; it needs support to query model/object for action availability
-                if (modelId != null && modelId.startsWith("model:ndk")) {
+                if (modelId != null && URNNBN_MODELS.contains(modelId)) {
                     accept = true;
                     continue;
                 }
