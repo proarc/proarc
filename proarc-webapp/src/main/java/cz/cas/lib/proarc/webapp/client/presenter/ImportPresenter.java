@@ -381,7 +381,7 @@ public class ImportPresenter {
                         Record[] data = response.getData();
                         if (data != null && data.length > 0) {
                             BatchRecord newBatch = new BatchRecord(data[0]);
-                            if (newBatch.isArchive()) {
+                            if (newBatch.isArchiveOrKramerius()) {
                                 SC.say(i18n.ImportWizard_SelectFolderStep_ImportScheduled_Title());
                                 response.setInvalidateCache(true);
                                 dsBatch.updateCaches(response, request);

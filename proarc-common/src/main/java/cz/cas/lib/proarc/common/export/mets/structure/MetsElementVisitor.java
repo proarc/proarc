@@ -97,6 +97,7 @@ import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -1395,7 +1396,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     metsElement.setAltoFile(fileType);
                 }
             } else {
-                if ((Const.mandatoryStreams.contains(streamName)) && (!metsElement.getMetsContext().isAllowNonCompleteStreams())) {
+                if (isMandatoryStream(streamName)&& (!metsElement.getMetsContext().isAllowNonCompleteStreams())) {
                     throw new MetsExportException(metsElement.getOriginalPid(), "Stream:" + streamName + " is missing", false, null);
                 }
             }
@@ -1409,6 +1410,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         for (IMetsElement sourceElement : sourceElements) {
             addMappingPageStruct(structLinkMapping, sourceElement.getModsElementID());
         }
+    }
+
+    protected boolean isMandatoryStream(String streamName) {
+        return Const.mandatoryStreams.contains(streamName);
     }
 
     class StructLinkMapping {
@@ -1513,7 +1518,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         DivType divType = new DivType();
         divType.setID(metsElement.getModsElementID());
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
-        divType.setTYPE(Const.typeNameMap.get(metsElement.getElementType()));
+        divType.setTYPE(transformSupplement(Const.typeNameMap.get(metsElement.getElementType())));
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
         for (IMetsElement element : metsElement.getChildren()) {
@@ -1525,6 +1530,17 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Page or Picture, got:" + element.getElementType(), false, null);
         }
+    }
+
+
+    /**
+     *  Transform value SUPPL to SUPPLMENENT
+     */
+    private String transformSupplement(String modelType) {
+        if (Const.MODS_SUPPLEMENT.equals(modelType)) {
+            return Const.SUPPLEMENT;
+        }
+        return modelType;
     }
 
     /**

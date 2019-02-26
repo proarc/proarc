@@ -37,6 +37,7 @@ public interface ConfigurationProfileResourceApi {
     public static final String PROFILE_DESCRIPTION = "description";
     public static final String PROFILE_ERROR = "error";
     public static final String ARCHIVE_ID = ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT;
+    public static final String KRAMERIUS_ID = ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT;
 
     /**
      * @see #PROFILE_GROUP_PARAM

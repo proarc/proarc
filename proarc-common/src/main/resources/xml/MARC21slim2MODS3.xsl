@@ -8,6 +8,7 @@
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
     MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 15.689) 20181116
 
+Revision 1.98.proarc.16.884 - Changed handling 700: add @ind1=0
 Revision 1.98.proarc.15.689 - Changed handling 100: value is not split if @ind1=0
 Revision 1.98.proarc.14.704 - Repair mapping of 041$b to objectPart-summary
 Revision 1.98.proarc.13.689 - Changed handling 100,700: value is split into given and family <namePart> if it contains ',' 2018/02/09
@@ -2745,7 +2746,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <recordOrigin>machine generated</recordOrigin>
 
             <recordInfoNote>Converted from MARCXML to MODS version 3.6 using MARC21slim2MODS3.xsl
-                (Revision 1.98 2018/02/09, ProArc patch 15.689 2018/11/16)</recordInfoNote>
+                (Revision 1.98 2018/02/09, ProArc patch 16.884 2019/02/10)</recordInfoNote>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -4501,7 +4502,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
     <!-- name 700 710 711 720 -->
 
     <xsl:template name="createNameFrom700">
-        <xsl:if test="@ind1='1'">
+        <xsl:if test="@ind1='0' or @ind1='1'">
             <name type="personal">
                 <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
                 <xsl:call-template name="xxx880"/>
