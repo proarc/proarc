@@ -54,6 +54,7 @@ import cz.cas.lib.proarc.webapp.client.action.export.DesaExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.KWISExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.KrameriusExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.NdkExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.NdkOldPrintExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.NdkSipExportAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
@@ -83,6 +84,7 @@ public final class DigitalObjectManager {
     private KWISExportAction kwisExportAction;
     private NdkExportAction ndkExportAction;
     private NdkSipExportAction ndkSipExportAction;
+    private NdkOldPrintExportAction ndkOldPrintExportAction;
     private CejshExportAction cejshExportAction;
     private CrossrefExportAction crossrefExportAction;
     private DesaExportAction desaDownloadAction;
@@ -210,6 +212,7 @@ public final class DigitalObjectManager {
         krameriusExportAction = new KrameriusExportAction(i18n);
         kwisExportAction = new KWISExportAction(i18n);
         ndkExportAction = new NdkExportAction(i18n);
+        ndkOldPrintExportAction = new NdkOldPrintExportAction(i18n);
         ndkSipExportAction = new NdkSipExportAction(i18n);
         cejshExportAction = new CejshExportAction(i18n);
         crossrefExportAction = new CrossrefExportAction(i18n);
@@ -264,7 +267,7 @@ public final class DigitalObjectManager {
                 Object[] selection = Actions.getSelection(event);
                 return selection != null && selection.length > 0;
             }
-            
+
             @Override
             public void performAction(ActionEvent event) {
                 // choose default action iff supported
@@ -276,6 +279,7 @@ public final class DigitalObjectManager {
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkSipExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(ndkOldPrintExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(crossrefExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(desaExportAction, actionSource, true));
@@ -320,6 +324,7 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(archiveExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(ndkOldPrintExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(crossrefExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(desaExportAction, actionSource, true));

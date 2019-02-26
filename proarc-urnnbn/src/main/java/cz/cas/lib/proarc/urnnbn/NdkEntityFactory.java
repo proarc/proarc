@@ -81,12 +81,12 @@ public class NdkEntityFactory {
     }
 
     public Import createMonographImport(
-            ModsDefinition volumeMods, MixType mix, ErrorHandler status
+            ModsDefinition volumeMods, MixType mix, ErrorHandler status, boolean eBorn
             ) throws SAXException {
 
         Monograph m = new Monograph();
         m.setCcnb(ResolverUtils.getIdentifier("ccnb", volumeMods));
-        m.setDigitalBorn(false);
+        m.setDigitalBorn(eBorn);
         m.setIsbn(ResolverUtils.getIdentifier("isbn", volumeMods));
         //mods:name[@type='personal' and not(@usage='primary')]//mods:namePart[not(@type= 'date')]
         m.setOtherOriginator(ResolverUtils.getOriginator("personal", false, volumeMods));
@@ -113,10 +113,12 @@ public class NdkEntityFactory {
 
         Import imp = new Import();
         imp.setMonograph(m);
-        DigitalDocument digitalDocument = new DigitalDocumentBuilder()
-                .setUuid(ResolverUtils.getIdentifier("uuid", volumeMods))
-                .setMix(mix)
-                .build();
+        DigitalDocument digitalDocument;
+        if (eBorn) {
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", volumeMods)).build();
+        } else{
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", volumeMods)).setMix(mix).build();
+        }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
         ResolverXmlUtils.validate(imp, status);
@@ -125,7 +127,7 @@ public class NdkEntityFactory {
 
     public Import createPeriodicalIssueImport(
             ModsDefinition titleMods, ModsDefinition volumeMods,
-            ModsDefinition issueMods, MixType mix, ErrorHandler status
+            ModsDefinition issueMods, MixType mix, ErrorHandler status, boolean eBorn
             ) throws SAXException {
 
         Import imp = new Import();
@@ -133,7 +135,7 @@ public class NdkEntityFactory {
         // optional
         issue.setCcnb(ResolverUtils.getIdentifier("ccnb", issueMods, volumeMods, titleMods));
         // optional
-        issue.setDigitalBorn(false);
+        issue.setDigitalBorn(eBorn);
         // optional
 //        issue.setDocumentType("???");
         // optional
@@ -178,10 +180,12 @@ public class NdkEntityFactory {
         issue.setTitleInfo(titleInfo);
         imp.setPeriodicalIssue(issue);
 
-        DigitalDocument digitalDocument = new DigitalDocumentBuilder()
-                .setUuid(ResolverUtils.getIdentifier("uuid", issueMods))
-                .setMix(mix)
-                .build();
+        DigitalDocument digitalDocument;
+        if (eBorn) {
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", issueMods)).build();
+        } else{
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", issueMods)).setMix(mix).build();
+        }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
         ResolverXmlUtils.validate(imp, status);
@@ -192,14 +196,14 @@ public class NdkEntityFactory {
             ModsDefinition titleMods, MixType mix, ErrorHandler status
             ) throws SAXException {
 
-        return createOtherEntityImport(titleMods, "cartographic", mix, status);
+        return createOtherEntityImport(titleMods, "cartographic", mix, status, false);
     }
 
     public Import createSheetMusicImport(
             ModsDefinition titleMods, MixType mix, ErrorHandler status
             ) throws SAXException {
 
-        return createOtherEntityImport(titleMods, "sheetmusic", mix, status);
+        return createOtherEntityImport(titleMods, "sheetmusic", mix, status, false);
     }
 
     /**
@@ -212,12 +216,12 @@ public class NdkEntityFactory {
      * @throws SAXException
      */
     public Import createOtherEntityImport(
-            ModsDefinition titleMods, String documentType, MixType mix, ErrorHandler status
+            ModsDefinition titleMods, String documentType, MixType mix, ErrorHandler status, boolean eBorn
             ) throws SAXException {
 
         OtherEntity entity = new OtherEntity();
         entity.setCcnb(ResolverUtils.getIdentifier("ccnb", titleMods));
-        entity.setDigitalBorn(false);
+        entity.setDigitalBorn(eBorn);
         entity.setDocumentType(documentType);
         entity.setIsbn(ResolverUtils.getIdentifier("isbn", titleMods));
         //mods:name[@type='personal' and not(@usage='primary')]//mods:namePart[not(@type= 'date')]
@@ -245,10 +249,13 @@ public class NdkEntityFactory {
 
         Import imp = new Import();
         imp.setOtherEntity(entity);
-        DigitalDocument digitalDocument = new DigitalDocumentBuilder()
-                .setUuid(ResolverUtils.getIdentifier("uuid", titleMods))
-                .setMix(mix)
-                .build();
+
+        DigitalDocument digitalDocument;
+        if (eBorn) {
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", titleMods)).build();
+        } else{
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", titleMods)).setMix(mix).build();
+        }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
         ResolverXmlUtils.validate(imp, status);

@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.export.archive.ArchiveImport;
+import cz.cas.lib.proarc.common.imports.kramerius.KrameriusImport;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
@@ -80,6 +81,8 @@ public final class ImportProfile {
     public ImportHandler createImporter() {
         if (ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(getProfileId())) {
             return new ArchiveImport();
+        } else if(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT.equals(getProfileId())) {
+            return new KrameriusImport();
         } else {
             return new FileSetImport();
         }

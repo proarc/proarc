@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.export.crossref.CrossrefExport;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
+import cz.cas.lib.proarc.common.export.mets.NdkSttExport;
 import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -291,6 +292,9 @@ public class ExportResource {
                 break;
             case "SIP":
                 export = new NdkSipExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
+                break;
+            case "STT":
+                export = new NdkSttExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported type of package");

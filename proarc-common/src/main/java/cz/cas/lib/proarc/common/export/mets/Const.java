@@ -39,6 +39,7 @@ public final class Const {
     public static final HashMap<String, List<String>> streamMapping;
     public static final List<String> allowedIdentifiers = new ArrayList<>();
     public static final List<String> mandatoryStreams = new ArrayList<>();
+    public static final List<String> sttMandatoryStreams = new ArrayList<>();
     public static final List<String> canContainPage = new ArrayList<>();
     public static final Map<String, String> streamMappingFile = new HashMap<>();
     public static final Map<String, String> streamMappingPrefix = new HashMap<>();
@@ -179,8 +180,10 @@ public final class Const {
         typeNameMap.put(CHAPTER, MODS_CHAPTER);
         typeNameMap.put(MONOGRAPH_MULTIPART, TITLE);
 
-        mandatoryStreams.add(MC_GRP_ID);
-        mandatoryStreams.add(UC_GRP_ID);
+        sttMandatoryStreams.add(MC_GRP_ID);
+        sttMandatoryStreams.add(UC_GRP_ID);
+
+        mandatoryStreams.addAll(sttMandatoryStreams);
         mandatoryStreams.add(ALTO_GRP_ID);
         mandatoryStreams.add(TXT_GRP_ID);
 
