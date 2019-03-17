@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.imports.kramerius;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -46,6 +47,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
 /**
@@ -60,8 +62,11 @@ public class FileReader {
     private static final Logger LOG = Logger.getLogger(FileReader.class.getName());
 
     private final Set<String> KRAMERIUS_PREFIX = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            "kramerius:hasIntCompPart", "kramerius:hasItem",
-            "kramerius:hasPage", "kramerius:hasUnit", "kramerius:hasVolume")));
+            "kramerius:hasIntCompPart", "hasIntCompPart", "kramerius:hasItem", "hasItem",
+            "kramerius:hasPage", "hasPage", "kramerius:hasUnit", "hasInit", "kramerius:hasVolume", "hasVolume")));
+
+    private final Set<String> KRAMERIUS_DATASTREAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "RELS-EXT", "IMG_FULL", "IMG_PREVIEW", "IMG_THUMB", "TEXT_OCR", "ALTO", "BIBLIO_MODS", "DC", "NDK_ARCHIVAL", "NDK_USER")));
 
     // K4 to NDK model mapping
     private final Map<String, String> modelMap = new HashMap<String, String>() {
@@ -126,6 +131,7 @@ public class FileReader {
             if (dObj == null) {
                 dObj = FoxmlUtils.unmarshal(new StreamSource(file), DigitalObject.class);
             }
+            removeDataStreams(dObj);
             createDataStreams(dObj);
             lObj = iSession.getLocals().create(objFile, dObj);
             updateLocalObject(lObj, ctx);
@@ -137,6 +143,36 @@ public class FileReader {
         lObj.flush();
         importItem.setState(BatchItem.ObjectState.LOADED);
         iSession.getImportManager().update(importItem);
+    }
+
+    private void removeDataStreams(DigitalObject dObj) {
+        List<DatastreamType> datastreams = copyDatastreams(dObj.getDatastream());
+        dObj.getDatastream().clear();
+        fillDatastreams(datastreams, dObj);
+    }
+
+    private void fillDatastreams(List<DatastreamType> datastreams, DigitalObject dObj) {
+        for (int i = 0; i < datastreams.size(); i++) {
+            if (KRAMERIUS_DATASTREAMS.contains(datastreams.get(i).getID())) {
+                dObj.getDatastream().add(datastreams.get(i));
+                if ("DC".equals(datastreams.get(i).getID())) {
+                    XmlContentType xml = datastreams.get(i).getDatastreamVersion().get(0).getXmlContent();
+                    Attr attribute =  xml.getAny().get(0).getAttributeNode("xsi:schemaLocation");
+
+                    if (attribute != null) {
+                       xml.getAny().get(0).getAttributes().removeNamedItem(attribute.getName());
+                    }
+                }
+            }
+        }
+    }
+
+    private List<DatastreamType> copyDatastreams(List<DatastreamType> dObjDatastreams) {
+        List<DatastreamType> datastreams = new ArrayList<>();
+        for (int i = 0; i < dObjDatastreams.size(); i++) {
+            datastreams.add(dObjDatastreams.get(i));
+        }
+        return datastreams;
     }
 
     private void createDataStreams(DigitalObject digitalObject) {
@@ -225,7 +261,7 @@ public class FileReader {
             }
 
             //repair mapping
-            repairModelMapping(relationEditor);
+            // repairModelMapping(relationEditor);
 
             //set members
             List<String> members = getMembers(relationEditor);
