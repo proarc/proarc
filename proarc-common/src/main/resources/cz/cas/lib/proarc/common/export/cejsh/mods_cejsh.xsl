@@ -273,12 +273,19 @@ Author Miroslav Pavelka
                         <xsl:for-each select="mods:abstract">
                             <xsl:if test="./@lang='eng'">
                                 <xsl:element name="description">
-                                    <xsl:attribute name="lang">EN</xsl:attribute>
+                                    <xsl:attribute name="lang">en</xsl:attribute>
                                     <xsl:value-of select="normalize-space(.)"/>
                                 </xsl:element>
                             </xsl:if>
                         </xsl:for-each>
-
+                        <xsl:for-each select="mods:abstract">
+                            <xsl:if test="./@lang='cze'">
+                                <xsl:element name="description">
+                                    <xsl:attribute name="lang">cs</xsl:attribute>
+                                    <xsl:value-of select="normalize-space(.)"/>
+                                </xsl:element>
+                            </xsl:if>
+                        </xsl:for-each>
                         <xsl:element name="attribute">
                             <xsl:attribute name="key">cejsh.paper-type</xsl:attribute>
                             <xsl:attribute name="value">ARTICLE</xsl:attribute>
@@ -425,9 +432,21 @@ Author Miroslav Pavelka
 
                         <xsl:if test="mods:subject/mods:topic/@lang='eng'">
                             <xsl:element name="keywords">
-                                <xsl:attribute name="lang">EN</xsl:attribute>
+                                <xsl:attribute name="lang">en</xsl:attribute>
                                 <xsl:for-each select="mods:subject/mods:topic">
                                     <xsl:if test="./@lang='eng'">
+                                        <xsl:element name="k">
+                                            <xsl:value-of select="."/>
+                                        </xsl:element>
+                                    </xsl:if>
+                                </xsl:for-each>
+                            </xsl:element>
+                        </xsl:if>
+                        <xsl:if test="mods:subject/mods:topic/@lang='cze'">
+                            <xsl:element name="keywords">
+                                <xsl:attribute name="lang">cs</xsl:attribute>
+                                <xsl:for-each select="mods:subject/mods:topic">
+                                    <xsl:if test="./@lang='cze'">
                                         <xsl:element name="k">
                                             <xsl:value-of select="."/>
                                         </xsl:element>
