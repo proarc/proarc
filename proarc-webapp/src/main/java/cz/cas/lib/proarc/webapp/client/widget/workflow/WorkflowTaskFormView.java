@@ -335,7 +335,7 @@ public class WorkflowTaskFormView implements Refreshable {
         owner.setValueField(UserDataSource.FIELD_ID);
         owner.setDisplayField(UserDataSource.FIELD_USERNAME);
         owner.setWidth("*");
-        owner.setValidators(new RequiredIfValidator(requiredFunc));
+       // owner.setValidators(new RequiredIfValidator(requiredFunc));
 
         TextAreaItem note = new TextAreaItem(WorkflowTaskDataSource.FIELD_NOTE);
         note.setStartRow(true);
