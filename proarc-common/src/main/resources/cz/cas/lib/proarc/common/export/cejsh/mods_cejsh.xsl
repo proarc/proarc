@@ -399,6 +399,13 @@ Author Miroslav Pavelka
                                     </xsl:attribute>
                                 </xsl:element>
                             </xsl:if>
+                            <xsl:if test="mods:relatedItem/mods:part/mods:extent/mods:start and mods:relatedItem/mods:part/mods:extent/mods:end">
+                                <xsl:element name="position">
+                                    <xsl:attribute name="value">
+                                        <xsl:value-of select="mods:relatedItem/mods:part/mods:extent/mods:start"/>-<xsl:value-of select="mods:relatedItem/mods:part/mods:extent/mods:end"/>
+                                    </xsl:attribute>
+                                </xsl:element>
+                            </xsl:if>
                         </xsl:element>
 
                         <xsl:if test="$supplementId and $supplementType='issue_supplement'">
