@@ -30,8 +30,14 @@ public class ConfigurationProfile {
     public static final String DEFAULT = "profile.default";
     /** The ID of the default archive import profile that is based on {@code proarc.cfg}. */
     public static final String DEFAULT_ARCHIVE_IMPORT = "profile.default_archive_import";
-    /** The ID of the defualt kramertius import profile that is based on (@code proarc.cfg]. */
+    /** The ID of the default kramerius import profile that is based on (@code proarc.cfg]. */
     public static final String DEFAULT_KRAMERIUS_IMPORT = "profile.default_kramerius_import";
+    /** The ID of the ndk monograph kramerius import profile that is based on (@code proarc.cfg]. */
+    public static final String STT_KRAMERIUS_IMPORT = "profile.stt_kramerius_import";
+    /** The ID of the ndk monograph kramerius import profile that is based on (@code proarc.cfg]. */
+    public static final String NDK_MONOGRAPH_KRAMERIUS_IMPORT = "profile.ndk_monograph_kramerius_import";
+    /** The ID of the ndk periodical kramerius import profile that is based on (@code proarc.cfg]. */
+    public static final String NDK_PERIODICAL_KRAMERIUS_IMPORT = "profile.ndk_periodical_kramerius_import";
     private final String id;
     private File file;
     private String label;
