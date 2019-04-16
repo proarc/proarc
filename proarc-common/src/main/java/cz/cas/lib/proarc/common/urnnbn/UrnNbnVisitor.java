@@ -717,7 +717,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             DigitalObjectHandler objectHandler = elm.getHandler();
             elmMods.getIdentifier().add(urnNbnId);
             elmDescription.setData(elmMods);
-            elmModsHandler.setMetadata(elmDescription, "URN:NBN registration");
+            elmModsHandler.setMetadata(elmDescription, "URN:NBN registration", "update");
             objectHandler.commit();
             p.getStatus().ok(elm, urnnbn);
         } catch (Exception ex) {
