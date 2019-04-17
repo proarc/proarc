@@ -2061,13 +2061,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     </xsl:call-template>
                 </xsl:variable>
                 <xsl:if test="normalize-space($partNumber)">
-                    <pat>
+                    <part>
                         <detail type="part">
                             <number>
                                 <xsl:value-of select="$partNumber" />
                             </number>
                         </detail>
-                    </pat>
+                    </part>
                 </xsl:if>
             </relatedItem>
         </xsl:for-each>
@@ -2767,13 +2767,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
     <xsl:template name="partDefinition">
         <xsl:if test="@tag=773">
-            <xsl:for-each select="marc:subfield[@code='g']">
+            <!--xsl:for-each select="marc:subfield[@code='g']">
                 <text>
                     <xsl:value-of select="."/>
                 </text>
-            </xsl:for-each>
+            </xsl:for-each-->
             <xsl:for-each select="marc:subfield[@code='q']">
-                <xsl:call-template name="parsePart"/>
+                <xsl:call-template name="parsePartPage"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
@@ -2981,7 +2981,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <xsl:call-template name="relatedIdentifier"/>
         <xsl:call-template name="relatedIdentifierISSN"/>
         <xsl:call-template name="relatedIdentifierLocal"/>
-        <!--xsl:call-template name="relatedPart"/-->
+        <xsl:call-template name="relatedPart"/>
     </xsl:template>
     <xsl:template name="subjectGeographicZ">
         <geographic>
@@ -3429,6 +3429,20 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:choose>
         </xsl:attribute>
     </xsl:template>
+    <xsl:template name="parsePartPage">
+        <xsl:variable name="page">
+            <xsl:if test="contains(text(),'&lt;')">
+                <xsl:value-of select="substring-after(text(),'&lt;')"/>
+            </xsl:if>
+        </xsl:variable>
+        <xsl:if test="$page">
+            <extent>
+                <start>
+                    <xsl:value-of select="$page"/>
+                </start>
+            </extent>
+        </xsl:if>
+    </xsl:template>
     <xsl:template name="parsePart">
         <!-- assumes 773$q= 1:2:3<4
              with up to 3 levels and one optional start page
@@ -3500,11 +3514,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:variable name="page">
+        <!--xsl:variable name="page">
             <xsl:if test="contains(text(),'&lt;')">
                 <xsl:value-of select="substring-after(text(),'&lt;')"/>
             </xsl:if>
-        </xsl:variable>
+        </xsl:variable-->
         <xsl:if test="$level1">
             <detail level="1">
                 <number>
@@ -3526,13 +3540,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </number>
             </detail>
         </xsl:if>
-        <xsl:if test="$page">
+        <!--xsl:if test="$page">
             <extent unit="page">
                 <start>
                     <xsl:value-of select="$page"/>
                 </start>
             </extent>
-        </xsl:if>
+        </xsl:if-->
     </xsl:template>
     <xsl:template name="getLanguage">
         <xsl:param name="langString"/>
