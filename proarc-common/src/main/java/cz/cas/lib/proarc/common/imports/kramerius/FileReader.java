@@ -19,7 +19,9 @@ package cz.cas.lib.proarc.common.imports.kramerius;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -39,6 +41,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,7 +62,13 @@ public class FileReader {
 
     private final File targetFolder;
     private final ImportSession iSession;
+    private final String type;
     private static final Logger LOG = Logger.getLogger(FileReader.class.getName());
+
+    public static final String NDK_MONOGRAPH_MAP = "ndk_monograph";
+    public static final String NDK_PERIODICAL_MAP = "ndk_periodical";
+    public static final String STT_MAP = "stt";
+    public static final String K4_MAP = "default";
 
     private final Set<String> KRAMERIUS_PREFIX = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "kramerius:hasIntCompPart", "hasIntCompPart", "kramerius:hasItem", "hasItem",
@@ -68,30 +77,58 @@ public class FileReader {
     private final Set<String> KRAMERIUS_DATASTREAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "RELS-EXT", "IMG_FULL", "IMG_PREVIEW", "IMG_THUMB", "TEXT_OCR", "ALTO", "BIBLIO_MODS", "DC", "NDK_ARCHIVAL", "NDK_USER")));
 
-    // K4 to NDK model mapping
-    private final Map<String, String> modelMap = new HashMap<String, String>() {
+    // K4 model mapping
+    private final Map<String, String> modelMonographMap = new HashMap<String, String>() {
         {
             put("model:article", NdkPlugin.MODEL_ARTICLE);
             put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
             // put("model:monograph", NdkPlugin.MODEL_MONOGRAPHTITLE);
             put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
             put("model:monograph", NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            put("model:periodical", NdkPlugin.MODEL_PERIODICAL);
-            put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
+            //put("model:periodical", NdkPlugin.MODEL_PERIODICAL);
+            //put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
             //put("model:supplement", NdkPlugin.MODEL_PERIODICALSUPPLEMENT);
-            put("model:periodicalvolume", NdkPlugin.MODEL_PERIODICALVOLUME);
+            //put("model:periodicalvolume", NdkPlugin.MODEL_PERIODICALVOLUME);
             put("model:picture", NdkPlugin.MODEL_PICTURE);
             put("model:sheetmusic", NdkPlugin.MODEL_SHEETMUSIC);
         }
     };
 
-    public Map<String, String> getModelMap() {
-        return modelMap;
+    private final Map<String, String> modelPeriodicalMap = new HashMap<String, String>() {
+        {
+            put("model:periodical", NdkPlugin.MODEL_PERIODICAL);
+            put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
+            put("model:supplement", NdkPlugin.MODEL_PERIODICALSUPPLEMENT);
+            put("model:periodicalvolume", NdkPlugin.MODEL_PERIODICALVOLUME);
+            put("model:picture", NdkPlugin.MODEL_PICTURE);
+            put("model:sheetmusic", NdkPlugin.MODEL_SHEETMUSIC);
+            put("model:article", NdkPlugin.MODEL_ARTICLE);
+            put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
+        }
+    };
+
+    private final Map<String, String> modelSTTMap = new HashMap<String, String>() {
+        {
+            // Unsupported operation yet
+        }
+    };
+
+    public Map<String, String> getModelMonographMap() {
+        return modelMonographMap;
     }
 
-    public FileReader(File targetFolder, ImportSession session) {
+    public Map<String, String> getModelPeriodicalMap() {
+        return modelPeriodicalMap;
+    }
+
+    public Map<String, String> getModelSTTMap() {
+        return modelSTTMap;
+    }
+
+    public FileReader(File targetFolder, ImportSession session, String type) {
         this.targetFolder = targetFolder;
         this.iSession = session;
+        this.type = type;
     }
 
     public void read(File file, ImportOptions ctx, int index) throws IllegalStateException {
@@ -131,6 +168,7 @@ public class FileReader {
             if (dObj == null) {
                 dObj = FoxmlUtils.unmarshal(new StreamSource(file), DigitalObject.class);
             }
+            setDateAndUser(dObj);
             removeDataStreams(dObj);
             createDataStreams(dObj);
             lObj = iSession.getLocals().create(objFile, dObj);
@@ -143,6 +181,20 @@ public class FileReader {
         lObj.flush();
         importItem.setState(BatchItem.ObjectState.LOADED);
         iSession.getImportManager().update(importItem);
+    }
+
+    private void setDateAndUser(DigitalObject dObj) {
+        List<PropertyType> properties = dObj.getObjectProperties().getProperty();
+        for (PropertyType property: properties) {
+            if (FoxmlUtils.PROPERTY_OWNER.equals(property.getNAME())) {
+                property.setVALUE(iSession.options.getUsername());
+            }
+            if (FoxmlUtils.PROPERTY_CREATEDATE.equals(property.getNAME())) {
+                String date = DateUtility.getXSDDateTime(new Date(System.currentTimeMillis()));
+                property.setVALUE(date);
+            }
+        }
+        return;
     }
 
     private void removeDataStreams(DigitalObject dObj) {
@@ -261,7 +313,7 @@ public class FileReader {
             }
 
             //repair mapping
-            // repairModelMapping(relationEditor);
+            repairModelMapping(relationEditor);
 
             //set members
             List<String> members = getMembers(relationEditor);
@@ -299,7 +351,25 @@ public class FileReader {
     private void repairModelMapping(RelationEditor relationEditor) throws DigitalObjectException {
         String oldModelId = relationEditor.getModel();
         if (oldModelId != null && !NdkPlugin.MODEL_PAGE.equals(oldModelId)) {
-            String newModelId = getModelMap().get(oldModelId);
+            String newModelId = "";
+            switch(type) {
+                case NDK_MONOGRAPH_MAP:
+                    newModelId = getModelMonographMap().get(oldModelId);
+                    break;
+                case NDK_PERIODICAL_MAP:
+                    newModelId = getModelPeriodicalMap().get(oldModelId);
+                    break;
+                /* not supported yet
+                case STT_MAP:
+                    newModelId = getModelSTTMap().get(oldModelId);
+                    break;*/
+                default:
+                    newModelId = oldModelId;
+                    break;
+            }
+            if (newModelId == null) {
+                newModelId = oldModelId;
+            }
             relationEditor.setModel(newModelId);
         }
     }
