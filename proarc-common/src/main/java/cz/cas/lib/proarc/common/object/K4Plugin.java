@@ -176,7 +176,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         }
 
         @Override
-        public void setMetadata(DescriptionMetadata<ModsDefinition> data, String message) throws DigitalObjectException {
+        public void setMetadata(DescriptionMetadata<ModsDefinition> data, String message, String typeRecord) throws DigitalObjectException {
             ModsDefinition mods = data.getData();
             String modelId = handler.relations().getModel();
             if (mods == null) {
@@ -190,7 +190,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         }
 
         @Override
-        public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException {
+        public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message, String typeRecord) throws DigitalObjectException {
             String json = jsonData.getData();
             String editorId = jsonData.getEditor();
             String modelId = handler.getModel().getPid();
@@ -214,7 +214,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         }
 
         @Override
-        public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException {
+        public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message, String typeRecord) throws DigitalObjectException {
             ModsDefinition mods;
             String modelId = handler.getModel().getPid();
             if (xmlData.getData() != null) {

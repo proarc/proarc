@@ -531,9 +531,9 @@ public class WorkflowResource {
         dMetadata.setTimestamp(timestamp);
         dMetadata.setIgnoreValidation(ignoreValidation);
         if (isJsonData) {
-            mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog());
+            mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), "update");
         } else {
-            mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog());
+            mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), "update");
         }
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));

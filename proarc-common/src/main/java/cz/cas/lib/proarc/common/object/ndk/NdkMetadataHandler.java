@@ -131,13 +131,13 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     @Override
-    public void setMetadata(DescriptionMetadata<ModsDefinition> data, String message) throws DigitalObjectException {
+    public void setMetadata(DescriptionMetadata<ModsDefinition> data, String message, String typeRecord) throws DigitalObjectException {
         ModsDefinition mods = data.getData();
         String modelId = handler.relations().getModel();
         if (mods == null) {
             mods = createDefault(modelId);
         }
-        write(modelId, mods, data, message);
+        write(modelId, mods, data, message, typeRecord);
     }
 
     /**
@@ -367,7 +367,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     @Override
-    public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException {
+    public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message, String typeRecord) throws DigitalObjectException {
         String json = jsonData.getData();
         String modelId = handler.getModel().getPid();
         ModsDefinition mods;
@@ -384,11 +384,11 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 throw new DigitalObjectException(fobject.getPid(), null, ModsStreamEditor.DATASTREAM_ID, null, ex);
             }
         }
-        write(modelId, mods, jsonData, message);
+        write(modelId, mods, jsonData, message, typeRecord);
     }
 
     @Override
-    public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException {
+    public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message, String typeRecord) throws DigitalObjectException {
         ModsDefinition mods;
         String modelId = handler.getModel().getPid();
         if (xmlData.getData() != null) {
@@ -411,7 +411,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         } else {
             mods = createDefault(modelId);
         }
-        write(modelId, mods, xmlData, message);
+        write(modelId, mods, xmlData, message, typeRecord);
     }
 
     private void checkValidation(ValidationErrorHandler errHandler, DescriptionMetadata<String> xmlData)
@@ -497,7 +497,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             ModsDefinition mods = mapper.createPage(
                     page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
             metadata.setIgnoreValidation(true);
-            write(modelId, mods, metadata, message);
+            write(modelId, mods, metadata, message, "update");
         } else {
             throw new DigitalObjectException(fobject.getPid(), "Unexpected model for NDK page: " + modelId);
         }
@@ -584,7 +584,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     protected void write(String modelId, ModsDefinition mods,
-            DescriptionMetadata<?> options, String message) throws DigitalObjectException {
+            DescriptionMetadata<?> options, String message, String typeRecord) throws DigitalObjectException {
         ModsDefinition oldMods = null;
         long timestamp = options.getTimestamp();
         if (timestamp < 0) {
@@ -594,7 +594,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (timestamp > 0) {
             oldMods = editor.read();
         }
-        checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
+        if (!"new".equals(typeRecord)) {
+            checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
+        }
         NdkMapper mapper = mapperFactory.get(modelId);
         mapper.setModelId(modelId);
         Context context = new Context(handler);

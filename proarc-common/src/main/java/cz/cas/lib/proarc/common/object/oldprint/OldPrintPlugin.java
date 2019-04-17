@@ -256,7 +256,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                     ModsDefinition mods = mapper.createPage(
                             page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
                     metadata.setIgnoreValidation(true);
-                    write(modelId, mods, metadata, message);
+                    write(modelId, mods, metadata, message, "update");
                 } else {
                     throw new DigitalObjectException(fobject.getPid(), "Unexpected model for oldprint page: " + modelId);
                 }
