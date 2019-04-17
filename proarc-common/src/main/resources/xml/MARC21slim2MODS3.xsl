@@ -1,6 +1,7 @@
 <xsl:stylesheet xmlns="http://www.loc.gov/mods/v3" xmlns:marc="http://www.loc.gov/MARC21/slim"
-    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    exclude-result-prefixes="xlink marc" version="1.0">
+                xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:xsi="http://www.w3.org/1999/XSL/Transform"
+                exclude-result-prefixes="xlink marc" version="1.0">
     <xsl:include href="http://www.loc.gov/standards/marcxml/xslt/MARC21slimUtils.xsl"/>
     <xsl:output encoding="UTF-8" indent="yes" method="xml"/>
     <xsl:strip-space elements="*"/>
@@ -2060,13 +2061,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     </xsl:call-template>
                 </xsl:variable>
                 <xsl:if test="normalize-space($partNumber)">
-                    <part>
+                    <pat>
                         <detail type="part">
                             <number>
                                 <xsl:value-of select="$partNumber" />
                             </number>
                         </detail>
-                    </part>
+                    </pat>
                 </xsl:if>
             </relatedItem>
         </xsl:for-each>
@@ -2280,6 +2281,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="relatedItem76X-78X"/>
             </relatedItem>
         </xsl:for-each>
+
+        <xsi:for-each select="marc:datafield[@tag=773]">
+            <part>
+                <xsl:call-template name="partDefinition"/>
+            </part>
+        </xsi:for-each>
         <xsl:for-each select="marc:datafield[@tag=776]">
             <relatedItem type="otherFormat">
                 <xsl:call-template name="relatedItem76X-78X"/>
@@ -2758,6 +2765,19 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </recordInfo>
     </xsl:template>
 
+    <xsl:template name="partDefinition">
+        <xsl:if test="@tag=773">
+            <xsl:for-each select="marc:subfield[@code='g']">
+                <text>
+                    <xsl:value-of select="."/>
+                </text>
+            </xsl:for-each>
+            <xsl:for-each select="marc:subfield[@code='q']">
+                <xsl:call-template name="parsePart"/>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
+
     <xsl:template name="displayForm">
         <xsl:for-each select="marc:subfield[@code='c']">
             <displayForm>
@@ -2961,7 +2981,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <xsl:call-template name="relatedIdentifier"/>
         <xsl:call-template name="relatedIdentifierISSN"/>
         <xsl:call-template name="relatedIdentifierLocal"/>
-        <xsl:call-template name="relatedPart"/>
+        <!--xsl:call-template name="relatedPart"/-->
     </xsl:template>
     <xsl:template name="subjectGeographicZ">
         <geographic>
