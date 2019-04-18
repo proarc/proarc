@@ -629,4 +629,18 @@
         <depositorName></depositorName>
         <emailAddress></emailAddress>
     </journal>
+    <journal issn="0032-7786">
+        <title></title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher></publisher>
+        <journalId></journalId>
+        <publisherId></publisherId>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName>Czech Botanical Society</depositorName>
+        <emailAddress>dlib@lib.cas.cz</emailAddress>
+    </journal>
 </cejsh>
