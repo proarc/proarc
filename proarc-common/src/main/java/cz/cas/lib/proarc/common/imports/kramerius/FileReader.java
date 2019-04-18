@@ -36,7 +36,10 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -303,7 +306,7 @@ public class FileReader {
         return ndkUser;
     }
 
-    private LocalObject updateLocalObject(LocalObject localObject, ImportOptions ctx) {
+    private LocalObject updateLocalObject(LocalObject localObject, ImportOptions ctx) throws DigitalObjectException {
         try {
             RelationEditor relationEditor = new RelationEditor(localObject);
 
@@ -324,9 +327,25 @@ public class FileReader {
             relationEditor.setRelations(new ArrayList<>());
             relationEditor.write(relationEditor.getLastModified(), null);
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Element RELS-EXT can not be override.");
+            LOG.log(Level.SEVERE, "Element RELS-EXT can not be override." + localObject.getPid());
+        }
+        try {
+            ModsStreamEditor modsStreamEditor = new ModsStreamEditor(localObject);
+            ModsDefinition mods = modsStreamEditor.read();
+            repairModsIdentifier(mods.getIdentifier());
+            modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
+        } catch (Exception ex){
+            LOG.log(Level.SEVERE, "Stream Mods can not be override. " + localObject.getPid());
         }
         return localObject;
+    }
+
+    private void repairModsIdentifier(List<IdentifierDefinition> identifiers) {
+        for (IdentifierDefinition identifier: identifiers) {
+            if ("urn".equalsIgnoreCase(identifier.getType())) {
+                identifier.setType("uuid");
+            }
+        }
     }
 
     private boolean isPage(RelationEditor relationEditor) throws DigitalObjectException {
