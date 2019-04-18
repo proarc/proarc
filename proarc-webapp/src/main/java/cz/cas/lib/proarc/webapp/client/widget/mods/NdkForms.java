@@ -95,10 +95,13 @@ public final class NdkForms {
     }
 
 
-
     public static FieldBuilder createLangTermValue() {
+        return createLangTermValue(true);
+    }
+
+    public static FieldBuilder createLangTermValue(boolean required) {
         return new FieldBuilder("value").setTitle("Language - M").setMaxOccurrences(1)
-                .setType(Field.COMBO).setRequired(true)
+                .setType(Field.COMBO).setRequired(required)
                 .setHint("Přesné určení jazyka kódem.<p>Nutno použít kontrolovaný slovník ISO 639-2.")
                 .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
                                 .addField(new FieldBuilder("title").setTitle("Name").createField())
