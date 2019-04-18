@@ -412,7 +412,7 @@ public class DigitalObjectManager {
 
             DescriptionMetadata<String> descMetadata = new DescriptionMetadata<>();
             descMetadata.setData(xml);
-            doHandler.metadata().setMetadataAsXml(descMetadata, message);
+            doHandler.metadata().setMetadataAsXml(descMetadata, message, "new");
 
             if (parentHandler != null) {
                 RelationEditor parentRelsExt = parentHandler.relations();

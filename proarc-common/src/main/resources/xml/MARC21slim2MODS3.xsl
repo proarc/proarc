@@ -1,6 +1,7 @@
 <xsl:stylesheet xmlns="http://www.loc.gov/mods/v3" xmlns:marc="http://www.loc.gov/MARC21/slim"
-    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    exclude-result-prefixes="xlink marc" version="1.0">
+                xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:xsi="http://www.w3.org/1999/XSL/Transform"
+                exclude-result-prefixes="xlink marc" version="1.0">
     <xsl:include href="http://www.loc.gov/standards/marcxml/xslt/MARC21slimUtils.xsl"/>
     <xsl:output encoding="UTF-8" indent="yes" method="xml"/>
     <xsl:strip-space elements="*"/>
@@ -2280,6 +2281,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="relatedItem76X-78X"/>
             </relatedItem>
         </xsl:for-each>
+
+        <xsi:for-each select="marc:datafield[@tag=773]">
+            <part>
+                <xsl:call-template name="partDefinition"/>
+            </part>
+        </xsi:for-each>
         <xsl:for-each select="marc:datafield[@tag=776]">
             <relatedItem type="otherFormat">
                 <xsl:call-template name="relatedItem76X-78X"/>
@@ -2756,6 +2763,19 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </languageOfCataloging>
             </xsl:for-each>
         </recordInfo>
+    </xsl:template>
+
+    <xsl:template name="partDefinition">
+        <xsl:if test="@tag=773">
+            <!--xsl:for-each select="marc:subfield[@code='g']">
+                <text>
+                    <xsl:value-of select="."/>
+                </text>
+            </xsl:for-each-->
+            <xsl:for-each select="marc:subfield[@code='q']">
+                <xsl:call-template name="parsePartPage"/>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template name="displayForm">
@@ -3409,6 +3429,20 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:choose>
         </xsl:attribute>
     </xsl:template>
+    <xsl:template name="parsePartPage">
+        <xsl:variable name="page">
+            <xsl:if test="contains(text(),'&lt;')">
+                <xsl:value-of select="substring-after(text(),'&lt;')"/>
+            </xsl:if>
+        </xsl:variable>
+        <xsl:if test="$page">
+            <extent>
+                <start>
+                    <xsl:value-of select="$page"/>
+                </start>
+            </extent>
+        </xsl:if>
+    </xsl:template>
     <xsl:template name="parsePart">
         <!-- assumes 773$q= 1:2:3<4
              with up to 3 levels and one optional start page
@@ -3480,11 +3514,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:variable name="page">
+        <!--xsl:variable name="page">
             <xsl:if test="contains(text(),'&lt;')">
                 <xsl:value-of select="substring-after(text(),'&lt;')"/>
             </xsl:if>
-        </xsl:variable>
+        </xsl:variable-->
         <xsl:if test="$level1">
             <detail level="1">
                 <number>
@@ -3506,13 +3540,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </number>
             </detail>
         </xsl:if>
-        <xsl:if test="$page">
+        <!--xsl:if test="$page">
             <extent unit="page">
                 <start>
                     <xsl:value-of select="$page"/>
                 </start>
             </extent>
-        </xsl:if>
+        </xsl:if-->
     </xsl:template>
     <xsl:template name="getLanguage">
         <xsl:param name="langString"/>

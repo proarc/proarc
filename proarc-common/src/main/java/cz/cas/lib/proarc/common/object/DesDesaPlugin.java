@@ -197,7 +197,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
         }
 
         @Override
-        public void setMetadata(DescriptionMetadata<Object> data, String message) throws DigitalObjectException {
+        public void setMetadata(DescriptionMetadata<Object> data, String message, String typeRecord) throws DigitalObjectException {
             Object metadata = data.getData();
             if (metadata == null) {
                 String modelId = handler.relations().getModel();
@@ -207,7 +207,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
         }
 
         @Override
-        public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException {
+        public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message, String typeRecord) throws DigitalObjectException {
             String json = jsonData.getData();
             Object metadata;
             if (json == null) {
@@ -228,7 +228,7 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
         }
 
         @Override
-        public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException {
+        public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message, String typeRecord) throws DigitalObjectException {
             String xml = xmlData.getData();
             Object metadata;
             if (xml == null) {

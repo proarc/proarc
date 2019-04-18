@@ -65,6 +65,8 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkPicture(elm, p);
         } else if (NdkPlugin.MODEL_SHEETMUSIC.equals(model)) {
             return visitNdkSheetMusic(elm, p);
+        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(model)) {
+            return visitNdkEMonographTitle(elm, p);
         } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(model)) {
             return visitNdkEMonographVolume(elm, p);
         } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(model)) {
@@ -140,6 +142,10 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
     @Override
     public R visitNdkPage(DigitalObjectElement elm, P p) throws VisitorException {
         return null;
+    }
+
+    public R visitNdkEMonographTitle(DigitalObjectElement elm, P p) throws  VisitorException {
+        return visitChildren(elm, p);
     }
 
     public R visitNdkEMonographVolume(DigitalObjectElement elm, P p) throws VisitorException {
