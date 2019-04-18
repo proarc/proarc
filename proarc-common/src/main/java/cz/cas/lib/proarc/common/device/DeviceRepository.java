@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.device;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import org.w3c.dom.Element;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
@@ -60,6 +59,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
+import org.w3c.dom.Element;
 
 /**
  * The repository of devices producing digital objects.
@@ -235,7 +235,7 @@ public final class DeviceRepository {
                     audiodesc = (Mets)unmarshaller.unmarshal(audiosrc);
                     audiodesc = repairNkComplexType(audiodesc);
                 } catch (JAXBException e) {
-                    e.printStackTrace();
+                    LOG.log(Level.SEVERE, "Unable get Mets metadata");
                     audiodesc = new Mets();
                 }
             } else {
@@ -301,7 +301,7 @@ public final class DeviceRepository {
                     marshaller.marshal(update.getAudioDescription(), result);
                     audiodescriptionEditor.write(result, update.getAudioTimestamp(), log);
                 } catch (JAXBException e) {
-                    e.printStackTrace();
+                    LOG.log(Level.SEVERE, "Unable to unmarshall audiodescription");
                 }
             }
 
@@ -446,6 +446,7 @@ public final class DeviceRepository {
             try {
                 agent = ((PremisComplexType) ((JAXBElement) amdSec.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue()).getAgent().get(0);
             } catch (ClassCastException e) {
+                LOG.log(Level.SEVERE, "Can not get Premis Tupe from AmdSec");
                 return mets;
             }
             Element extension = (Element) agent.getAgentExtension().get(0).getAny().get(0);
@@ -465,7 +466,7 @@ public final class DeviceRepository {
                     } else if ("settings".equals(extension.getFirstChild().getLocalName()))
                         settings = extension.getFirstChild().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.FINE, "Error in premis:agentExtension");
+                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
                 }
                 try {
                     if ("serialNumber".equals(extension.getFirstChild().getNextSibling().getLocalName())) {
@@ -473,13 +474,13 @@ public final class DeviceRepository {
                     } else if ("settings".equals(extension.getFirstChild().getNextSibling().getLocalName()))
                         settings = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.FINE, "Error in premis:agentExtension");
+                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
                 }
                 try {
                     if ("settings".equals(extension.getFirstChild().getNextSibling().getNextSibling().getLocalName()))
                         settings = extension.getFirstChild().getNextSibling().getNextSibling().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.FINE, "Error in premis:agentExtension");
+                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
                 }
             }
             nk.setManufacturer(manufacturer);

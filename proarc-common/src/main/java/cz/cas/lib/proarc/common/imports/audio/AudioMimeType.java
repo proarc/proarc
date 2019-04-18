@@ -61,11 +61,11 @@ public enum AudioMimeType {
 
     public static AudioMimeType loadFromMimeType(String mime) {
         AudioMimeType[] values = values();
-        AudioMimeType[] arr$ = values;
-        int len$ = values.length;
+        AudioMimeType[] arr = values;
+        int len = values.length;
 
-        for(int i$ = 0; i$ < len$; ++i$) {
-            AudioMimeType iType = arr$[i$];
+        for(int i = 0; i < len; ++i) {
+            AudioMimeType iType = arr[i];
             if (iType.getMimeType().equals(mime)) {
                 return iType;
             }

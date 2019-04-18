@@ -743,6 +743,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             agentComplexType.getAgentExtension().add(extension);
             extension.getAny().add(addNkNode(agent));
         } catch (Exception ex) {
+            LOG.log(Level.INFO, "Can not get value from Premis, set defualt values");
             agentName = "ProArc";
             agentType = "software";
         }

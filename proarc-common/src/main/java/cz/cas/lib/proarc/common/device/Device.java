@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.common.device;
 import cz.cas.lib.proarc.audiopremis.AudioPremisUtils;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
-import javax.xml.bind.annotation.XmlElementWrapper;
 
 /**
  * A device referenced by a digital object.
