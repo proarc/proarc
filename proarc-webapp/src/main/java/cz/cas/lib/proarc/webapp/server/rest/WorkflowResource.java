@@ -270,7 +270,13 @@ public class WorkflowResource {
         job.setFinanced(financed);
         job.setLabel(label);
         job.setNote(note);
-        job.setOwnerId(userId);
+
+
+        if (userId==null) {
+            job.setOwnerId(new BigDecimal(getUserId()));
+        } else {
+            job.setOwnerId(userId);
+        }
         job.setParentId(parentId);
         job.setPriority(priority != null ? priority : 2);
         job.setState(state);
@@ -286,6 +292,10 @@ public class WorkflowResource {
         } catch (WorkflowException ex) {
             return toError(ex, null);
         }
+    }
+
+    private Integer getUserId() {
+        return session.getUser().getId();
     }
 
     @Path(WorkflowResourceApi.TASK_PATH)
@@ -371,6 +381,9 @@ public class WorkflowResource {
     public SmartGwtResponse<TaskView> updateTask(TaskUpdate task) {
         if (task == null) {
             return SmartGwtResponse.asError("No task!");
+        }
+        if (task.getOwnerId() == null) {
+            task.setOwnerId(new BigDecimal(session.getUser().getId()));
         }
         WorkflowDefinition workflow = workflowProfiles.getProfiles();
         if (workflow == null) {
@@ -518,9 +531,9 @@ public class WorkflowResource {
         dMetadata.setTimestamp(timestamp);
         dMetadata.setIgnoreValidation(ignoreValidation);
         if (isJsonData) {
-            mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog());
+            mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), "update");
         } else {
-            mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog());
+            mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), "update");
         }
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));

@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
-
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
@@ -43,6 +41,18 @@ import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.mods.UrlDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
+
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -78,6 +88,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
                 }
             }
         }
+        addNameWithEtal(mods);
         //  mods/typeOfResource="text"
         List<TypeOfResourceDefinition> typeOfResources = mods.getTypeOfResource();
         TypeOfResourceDefinition reqTypeOfResource = null;
@@ -92,8 +103,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
             type.setValue("text");
             typeOfResources.add(0, type);
         }
-        //  mods/genre="volume"
-        addGenre(mods, "volume");
+        addGenre(mods);
         //  mods/originInfo/place/placeTerm/type="text"
         List<OriginInfoDefinition> originInfos = mods.getOriginInfo();
         for (OriginInfoDefinition oi : originInfos) {
@@ -145,11 +155,24 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
         }
         // mods/part@type=="volume"
         for (PartDefinition part : mods.getPart()) {
-            if (part.getType() == null) {
-                part.setType("volume");
+            if (!part.getDetail().isEmpty()) {
+                if (!part.getDetail().get(0).getCaption().isEmpty()) {
+                    if (part.getDetail().get(0).getCaption().get(0).getValue() != null) {
+                        part.setType("volume");
+                    }
+                }
+            }
+            if (!"volume".equals(part.getType())) {
+                mods.getPart().clear();
+                break;
             }
         }
         fillRecordInfo(mods);
+    }
+
+    protected void addGenre(ModsDefinition mods) {
+        //  mods/genre="volume"
+        MapperUtils.addGenre(mods, Const.GENRE_VOLUME);
     }
 
     @Override

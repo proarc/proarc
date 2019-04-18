@@ -46,7 +46,7 @@ public class SetParamDefinition {
     }
 
     public String getValue() {
-        return value;
+        return value.trim();
     }
 
     public SetParamDefinition setValue(String value) {

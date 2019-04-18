@@ -63,13 +63,13 @@ public final class ModsUtils {
     /**
      * The actual MODS version.
      */
-    public static final String VERSION = "3.5";
+    public static final String VERSION = "3.6";
 
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
     private static Schema MODS_SCHEMA;
-    private static final String MODS_SCHEMA_PATH = "mods-3-5.xsd";
+    private static final String MODS_SCHEMA_PATH = "mods-3-6.xsd";
 
     /**
      * Default MODS context. Oracle JAXB RI's context should be thread safe.

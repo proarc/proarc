@@ -46,7 +46,7 @@ public class NdkPeriodicalVolumeForm {
         return f;
     }
 
-    private Field titleInfo() {
+    protected Field titleInfo() {
         // titleInfo, titleInfoDefinition
         return new FieldBuilder("titleInfo").setMaxOccurrences(1)
                 // titleInfo@type, enum
@@ -65,7 +65,7 @@ public class NdkPeriodicalVolumeForm {
         .createField(); // titleInfo
     }
 
-    private Field name() {
+    protected Field name() {
         // name, nameDefinition
         return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - R")
                 .setHint("Údaje o odpovědnosti za titul periodika.")
@@ -124,6 +124,10 @@ public class NdkPeriodicalVolumeForm {
                 // etal
                 // affiliation
                 // role, roleDefinition
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
                 .addField(new FieldBuilder("role").setTitle("Role - R").setMaxOccurrences(5)
                         .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                         // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
@@ -138,7 +142,7 @@ public class NdkPeriodicalVolumeForm {
                 .createField(); // name
     }
 
-    private Field genre() {
+    protected Field genre() {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
         return new FieldBuilder("genre").setMaxOccurrences(1)
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
@@ -152,7 +156,7 @@ public class NdkPeriodicalVolumeForm {
         .createField(); // genre
     }
 
-    private Field originInfo() {
+    protected Field originInfo() {
         // originInfo, originInfoDefinition
         return new FieldBuilder("originInfo").setMaxOccurrences(1)
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
@@ -214,7 +218,7 @@ public class NdkPeriodicalVolumeForm {
         .createField(); // physicalDescription
     }
 
-    private Field identifier() {
+    protected Field identifier() {
         // identifier, identifierDefinition, [0,*]
         return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"

@@ -22,6 +22,8 @@ import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.export.archive.ArchiveImport;
 import cz.cas.lib.proarc.common.imports.audio.SoundRecordingImport;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.imports.kramerius.FileReader;
+import cz.cas.lib.proarc.common.imports.kramerius.KrameriusImport;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
@@ -82,13 +84,31 @@ public final class ImportProfile {
     }
 
     public ImportHandler createImporter() {
+        switch(getProfileId()) {
+            case ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT:
+                return new ArchiveImport();
+            case ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.K4_MAP);
+            case ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.NDK_MONOGRAPH_MAP);
+            case ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.NDK_PERIODICAL_MAP);
+            case ConfigurationProfile.STT_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.STT_MAP);
+            case ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT:
+                return new SoundRecordingImport();
+            default:
+                return new FileSetImport();
+        }
+        /*
         if (ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(getProfileId())) {
             return new ArchiveImport();
-        } else if (ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT.equals(getProfileId())) {
-            return new SoundRecordingImport();
+        } else if(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT.equals(getProfileId())) {
+            return new KrameriusImport();
         } else {
             return new FileSetImport();
         }
+        */
     }
 
     public String getModelId() {

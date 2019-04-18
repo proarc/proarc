@@ -60,8 +60,8 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalVolumeForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.bdm.BornDigitalForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.oldprint.OldPrintForms;
 import cz.cas.lib.proarc.webapp.client.widget.nsesss.NsesssV2Form;
-
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -219,6 +219,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                 }
                 callback.execute(true);
                 activeEditor.focus();
+                Optional.ofNullable(dm).ifPresent(f  -> refresh());
             }
 
             @Override
@@ -327,7 +328,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
             form = new NsesssV2Form(i18n, model).getForm();
         }
         if (form == null) {
-            ClientUtils.warning(LOG, "Uknown model editor: %s, editor: %s, format: %s",
+            ClientUtils.warning(LOG, "Unknown model editor: %s, editor: %s, format: %s",
                     model.getId(), model.getEditorId(), metadataFormat);
         }
         return form;

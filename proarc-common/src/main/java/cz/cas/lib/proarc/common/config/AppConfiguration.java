@@ -172,6 +172,10 @@ public final class AppConfiguration {
         return RdaRules.getOptions(config).getRules();
     }
 
+    public Boolean isDeletePackage() {
+        return NdkExportOptions.getOptions(config).isDeletePackage();
+    }
+
     public Configuration getAuthenticators() {
         return config;
     }

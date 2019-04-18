@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import cz.cas.lib.proarc.common.object.HasMetadataHandler;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -76,6 +77,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     public static final String MODEL_CHAPTER = "model:ndkchapter";
     public static final String MODEL_PICTURE = "model:ndkpicture";
     public static final String MODEL_PAGE = "model:page";
+    public static final String MODEL_NDK_PAGE = "model:ndkpage";
 
     private NdkSearchViewHandler searchViewHandler;
 
@@ -100,7 +102,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 MODEL_PERIODICAL,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[] {}
                 ));
         models.add(new MetaModel(
                 MODEL_PERIODICALVOLUME, null, null,
@@ -110,7 +113,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICAL, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_PERIODICALISSUE, null, null,
@@ -120,7 +124,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_PERIODICALSUPPLEMENT, null, null,
@@ -130,7 +135,11 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.NDK_SUPPLEMENT),
+                        new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.NDK_SUPPLEMENT)
+                }
                 ));
         models.add(new MetaModel(
                 MODEL_ARTICLE, null, null,
@@ -141,7 +150,9 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.OCR, DatastreamEditorType.MEDIA,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.PID)}
+
                 ));
         models.add(new MetaModel(
                 MODEL_PICTURE, null, null,
@@ -161,7 +172,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 MODEL_MONOGRAPHTITLE,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPHVOLUME, true, null,
@@ -171,7 +183,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPHSUPPLEMENT, null, null,
@@ -181,7 +194,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID)}
                 ).setPriority(2));
         models.add(new MetaModel(
                 MODEL_CHAPTER, null, null,
@@ -191,7 +205,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_CARTOGRAPHIC, true, null,
@@ -201,7 +216,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{}
                 ));
         models.add(new MetaModel(
                 MODEL_SHEETMUSIC, true, null,
@@ -211,15 +227,40 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{}
                 ));
+        models.add(new MetaModel(
+                MODEL_NDK_PAGE, null, true,
+                Arrays.asList(new ElementType("Ndk Page", "en"), new ElementType("NDK Strana", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_PAGE,
+                this,
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID)
+                }
+        ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
                 Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID)
+                }
                 ).setPriority(3)) // override K4 plugin
                 ;
 
@@ -303,7 +344,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
 
         @Override
         public String getObjectLabel(Item item, Locale locale) {
-            if (MODEL_PAGE.equals(item.getModel())) {
+            if (MODEL_PAGE.equals(item.getModel()) || MODEL_NDK_PAGE.equals(item.getModel())) {
                 return PageView.resolveFedoraObjectLabel(
                         item.getLabel(), NdkPageMapper.getPageTypeLabels(locale));
             }

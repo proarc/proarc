@@ -169,7 +169,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             formats.clear();
             formats.add(new ElementType(input.getMime().toString(), null));
 
-            metadata.setMetadata(dm, message);
+            metadata.setMetadata(dm, message, "update");
         }
 
         @Override
@@ -193,7 +193,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
         }
 
         @Override
-        public void setMetadata(DescriptionMetadata<OaiDcType> data, String message) throws DigitalObjectException {
+        public void setMetadata(DescriptionMetadata<OaiDcType> data, String message, String typeRecord) throws DigitalObjectException {
             OaiDcType dc = data.getData();
             if (dc == null) {
                 dc = createDefautDc();
@@ -202,7 +202,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
         }
 
         @Override
-        public void setMetadataAsJson(DescriptionMetadata<String> json, String message) throws DigitalObjectException {
+        public void setMetadataAsJson(DescriptionMetadata<String> json, String message, String typeRecord) throws DigitalObjectException {
             String data = json.getData();
             OaiDcType dc;
             if (data == null) {
@@ -219,7 +219,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
         }
 
         @Override
-        public void setMetadataAsXml(DescriptionMetadata<String> xml, String message) throws DigitalObjectException {
+        public void setMetadataAsXml(DescriptionMetadata<String> xml, String message, String typeRecord) throws DigitalObjectException {
             OaiDcType dc = null;
             if (xml.getData() != null) {
                 dc = DcUtils.unmarshal(xml.getData(), OaiDcType.class);

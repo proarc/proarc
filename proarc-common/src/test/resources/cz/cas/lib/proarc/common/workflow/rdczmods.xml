@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<modsCollection xmlns="http://www.loc.gov/mods/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-5.xsd">
+<modsCollection xmlns="http://www.loc.gov/mods/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd">
     <mods version="3.5">
         <titleInfo>
             <title>Nová vlna =</title>
@@ -105,7 +105,7 @@
             <recordCreationDate encoding="marc">020227</recordCreationDate>
             <recordChangeDate encoding="iso8601">20080312074017.0</recordChangeDate>
             <recordIdentifier source="CZ PrNK">cpk20021066638</recordIdentifier>
-            <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3-5.xsl
+            <recordOrigin>Converted from MARCXML to MODS version 3.6 using MARC21slim2MODS3-6.xsl
                 (Revision 1.97 2014/05/21, ProArc patch 9.313 2015/07/11)</recordOrigin>
             <languageOfCataloging>
                 <languageTerm type="code" authority="iso639-2b">cze</languageTerm>

@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.mods.CartographicsDefinition;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
@@ -33,6 +33,15 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.Collections;
 import java.util.List;
+
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
 /**
  *
@@ -59,7 +68,8 @@ public final class NdkPictureMapper extends NdkMapper {
             }
         }
         // genre="picture"
-        addGenre(mods, "picture");
+        addGenre(mods);
+        addNameWithEtal(mods);
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
         //  mods/classification@authority="udc"
@@ -69,6 +79,11 @@ public final class NdkPictureMapper extends NdkMapper {
         }
 
         fillRecordInfo(mods);
+    }
+
+    protected void addGenre(ModsDefinition mods) {
+        //  mods/genre="picture"
+        MapperUtils.addGenre(mods, Const.GENRE_PICTURE);
     }
 
     @Override

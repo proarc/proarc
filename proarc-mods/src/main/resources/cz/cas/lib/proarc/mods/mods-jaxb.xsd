@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Via XMLSpy.  Editor:  Ray Denenberg, Library of Congress; rden@loc.gov -->
+<!-- Editor:  Ray Denenberg, Library of Congress; rden@loc.gov -->
 <xs:schema xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.loc.gov/mods/v3" targetNamespace="http://www.loc.gov/mods/v3" elementFormDefault="qualified" attributeFormDefault="unqualified">
     <!-- -->
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.loc.gov/mods/xml.xsd"/>
@@ -9,37 +9,42 @@ MODS: Metadata Object Description Schema. See http://www.loc.gov/standards/mods/
 
           ****************************************************************
          *
-         *                            MODS 3.5
+         *                            MODS 3.6
          *
-         *                            July 8, 2013
+         *                           May 5, 2015
          *
         *****************************************************************
 
 
 ***************************************************
-Changes in version 3.5
+Changes in version 3.6
+1. nonSort definition revised in 3.6. to add attribute @xml:space.
 
-1. Reorganization of the schema. To allow a reader to more easily understand the definition of a particular element,
- by minimizing the number of places within the schema that the reader must look.
-This in itself does not introduce any substantive changes.
+2. HierarchicalGeographic enhancements.
+         - <province> depricated in favor of <state>  (<state> re-defined in guidelines)
+         - Attributes @areaType, @regionType, and @citySectionType
+           defined for elements <area>, <region>, and <citySection>
+         - Attribute @level defined for all place type elements to indicate hierarchical level.
+         - Authority attributeGroup added to all place type elements.
+         - Attribute @period defined. Indicates that the described entity once existed but no longer exists.
 
-2. Add attribute @unit to <extent> of <physicalDescription> ( @unit is already defined for <extent> of <part>).
+3. Four new attributes for <relatedItem>
+       •	@otherType
+       •	@otherTypeAuth
+       •	@otherTypeAuthURI
+       •	@otherTypeURI
 
-3. Add value 'rfc5646' to the enumerated list of values for the authority attribute for languageTerm.
+4. New element <nameIdentifier>, subelement of <name>, re-using the existing <identifier> definition
 
-4. Define attributes @altFormat and @contentType attributes for <abstract>, <accessCondition>, <tableOfContents> and <titleInfo>.
+5. <cartographics>(subelement of <subject>) is made extensible.
 
-5. Define attribute @eventType for <originInfo> (recomended values 'production', 'publication', 'distribution', 'manufacture').
+6. New element <recordInfoNote>, subelement of <recordInfo>, re-using the existing <note> definition
 
-6. Define attribute @typeURI  for <identifier> and <note>  (including <physicalDescription><note>).
-
-7. Define attribute @generator for <classification>.
-
-8.  Define element <etal>, a subelement of <name>.
-
-9. Define attribute @otherType for <titleInfo>.
-
-
+7.  New element <itemIdentifier>, subelement of <location><physicalLocation><holdingSimple><copyInformation>
+       with attribute @type, for example:
+               <itemIdentifer   type="barcode">
+               <itemIdentifier  type="copyNumber">
+               <itemIdentifier  type="accessionNumber">
 
 *********************************************************************************************
 
@@ -94,6 +99,7 @@ The schema has three parts:
         <xs:attribute name="version">
             <xs:simpleType>
                 <xs:restriction base="xs:string">
+                    <xs:enumeration value="3.6"/>
                     <xs:enumeration value="3.5"/>
                     <xs:enumeration value="3.4"/>
                     <xs:enumeration value="3.3"/>
@@ -182,8 +188,6 @@ End list of "top level" MODS elements
                 <xs:attribute name="altRepGroup" type="xs:string"/>
                 <xs:attributeGroup ref="altFormatAttributeGroup"/>
             </xs:extension>
-            <!-- -->
-            <!-- altFormat new in version 3.5 -->
         </xs:simpleContent>
     </xs:complexType>
     <!--
@@ -203,8 +207,6 @@ End list of "top level" MODS elements
                 <xs:attribute name="altRepGroup" type="xs:string"/>
                 <xs:attributeGroup ref="altFormatAttributeGroup"/>
             </xs:extension>
-            <!-- -->
-            <!-- altFormat new in version 3.5 -->
         </xs:complexContent>
     </xs:complexType>
     <!--
@@ -223,9 +225,6 @@ End list of "top level" MODS elements
                 <xs:attribute name="usage" fixed="primary"/>
                 <xs:attribute name="generator" type="xs:string"/>
             </xs:extension>
-            <!-- The following attribute, generator, is new in version 3.5-->
-            <!-- @generator may be used to indicate that the classification is automatically generated,
- and its value may indicate the nature of the generation, for example "lcc to ddc" -->
         </xs:simpleContent>
     </xs:complexType>
     <!--
@@ -274,8 +273,6 @@ End list of "top level" MODS elements
                 <xs:attribute name="invalid" fixed="yes"/>
                 <xs:attribute name="altRepGroup" type="xs:string"/>
             </xs:extension>
-            <!-- -->
-            <!-- typeURI attribute added in version 3.5 -->
         </xs:simpleContent>
     </xs:complexType>
     <!--
@@ -316,9 +313,6 @@ End list of "top level" MODS elements
                             <xs:enumeration value="rfc4646"/>
                             <xs:enumeration value="rfc5646"/>
                             <!-- -->
-                            <!--
-******* value rfc5646 new in version 3.5.
--->
                         </xs:restriction>
                     </xs:simpleType>
                 </xs:attribute>
@@ -412,7 +406,18 @@ End list of "top level" MODS elements
                 </xs:complexType>
             </xs:element>
             <xs:element ref="enumerationAndChronology" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- the following element <itemIdentifer> added in 3.6 -->
+            <xs:element ref="itemIdentifier" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
+    </xs:complexType>
+    <!--  following definition is new in 3.6  -->
+    <xs:element name="itemIdentifier" type="itemIdentifierDefinition"/>
+    <xs:complexType name="itemIdentifierDefinition">
+        <xs:simpleContent>
+            <xs:extension base="stringPlusLanguage">
+                <xs:attribute name="type" type="xs:string"/>
+            </xs:extension>
+        </xs:simpleContent>
     </xs:complexType>
     <!--
 **********form**********
@@ -491,9 +496,9 @@ End list of "top level" MODS elements
     <!-- -->
     <xs:complexType name="nameDefinition">
 <!--        <xs:choice>
-              this choice is introduced in version 3.5, with the introduction of <etal>.  There are two "choices", one without <etal> (the old way) and one with <etal>.
+  this choice give two ways to do this. The second way allows the element <etal>,  to express "et. al."
 
-Choice one. The old way.
+Choice one. WITHOUT <etal>.
 
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <xs:element ref="namePart"/>
@@ -501,18 +506,24 @@ Choice one. The old way.
                 <xs:element ref="affiliation"/>
                 <xs:element ref="role"/>
                 <xs:element ref="description"/>
+                               the following element, <nameIdentifier>, is introduced in version 3.6,
+                               to allow the inclusion of an identifier for the object named by this <name>.
+                               It is typed as "indentifierDefinition", the same definition that
+                               top-level element <identifier> uses.
+                <xs:element ref="nameIdentifier"/>
             </xs:choice>
-            
+
 Choice two.    With <etal>.
 The presence of <etal> Indicates that there are names that cannot be explicitily included. It may be empty, or it may have simple content
-  - e.g. <etal>et al.</etal>.  In the latter case the content is what is suggested for display. When <etal> occurs, <namePart> MAY NOT occur,
+  - e.g. <etal>et al.</etal>.  In the latter case the content is what is suggested for display. When <etal> occurs, <namePart>, <displayForm>, and <identifier> MAY NOT occur,
 <displayForm> MAY NOT occur, <affiliation>, <role>, <description>   MAY occur (but are not repeatable).
 (<etal> is not repeatable within a given <name>, however there may be mutilple <etal> elements, each within in a separate <name> element.)
 
             <xs:sequence>
-                
+
              <etal> is mandatory, nonrepeatable, and must occur first.
             After that <affiliation>, <role>, and <description> may occur, in any order or number.
+                           <nameIdentifier> is not used with <etal>
 
                 <xs:element ref="etal"/>
                 <xs:choice minOccurs="0" maxOccurs="unbounded">
@@ -521,7 +532,7 @@ The presence of <etal> Indicates that there are names that cannot be explicitily
                     <xs:element ref="description"/>
                 </xs:choice>
             </xs:sequence>
-             
+
         </xs:choice>-->
         <xs:sequence>
             <xs:element ref="namePart" minOccurs="0" maxOccurs="unbounded" />
@@ -533,6 +544,7 @@ The presence of <etal> Indicates that there are names that cannot be explicitily
             <xs:element ref="affiliation" minOccurs="0" maxOccurs="unbounded" />
             <xs:element ref="role" minOccurs="0" maxOccurs="unbounded" />
             <xs:element ref="description" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="nameIdentifier" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attribute name="ID" type="xs:ID"/>
         <xs:attributeGroup ref="authorityAttributeGroup"/>
@@ -580,6 +592,9 @@ The presence of <etal> Indicates that there are names that cannot be explicitily
     <xs:element name="displayForm" type="stringPlusLanguage"/>
     <xs:element name="affiliation" type="stringPlusLanguage"/>
     <xs:element name="description" type="stringPlusLanguage"/>
+    <!--  new in 3.6  -->
+    <!--   nameIdentifier  -->
+    <xs:element name="nameIdentifier" type="identifierDefinition"/>
     <!--
 ******** role *********************
     -->
@@ -624,8 +639,6 @@ The presence of <etal> Indicates that there are names that cannot be explicitily
                 <xs:attribute name="ID" type="xs:ID"/>
                 <xs:attribute name="altRepGroup" type="xs:string"/>
             </xs:extension>
-            <!-- -->
-            <!-- typeURI attribute added in version 3.5 -->
         </xs:simpleContent>
     </xs:complexType>
     <!--
@@ -669,16 +682,6 @@ The presence of <etal> Indicates that there are names that cannot be explicitily
         <xs:attribute name="displayLabel" type="xs:string"/>
         <xs:attribute name="altRepGroup" type="xs:string"/>
         <xs:attribute name="eventType" type="xs:string"/>
-        <!--
-           following attribute, @eventType, is new in version 3.5 -->
-        <!-- Recomended values are "production", "publication", "distribution", "manufacture"
-So when eventType="production"
-•    <publisher> is the producer
-•    <dateIssued> is the date of production
-•    <place> is the place of production
-etc.
-Detailed usage rules are supplied in the guidelines.
--->
     </xs:complexType>
     <!--
 
@@ -950,9 +953,6 @@ Detailed usage rules are supplied in the guidelines.
                 <xs:extension base="stringPlusLanguagePlusSupplied">
                     <xs:attribute name="unit"/>
                 </xs:extension>
-                <!--
-******************* unit is new in 3.5
--->
             </xs:simpleContent>
         </xs:complexType>
     </xs:element>
@@ -981,8 +981,6 @@ Detailed usage rules are supplied in the guidelines.
                 <xs:attributeGroup ref="xlink:simpleLink"/>
                 <xs:attribute name="ID" type="xs:ID"/>
             </xs:extension>
-            <!-- -->
-            <!-- typeURI attribute added in version 3.5 -->
         </xs:simpleContent>
     </xs:complexType>
     <!--
@@ -1003,6 +1001,8 @@ Detailed usage rules are supplied in the guidelines.
             <xs:element ref="languageOfCataloging"/>
             <xs:element ref="recordOrigin"/>
             <xs:element ref="descriptionStandard"/>
+*******following added in 3.6************
+            <xs:element ref="recordInfoNote"/>
         </xs:choice>-->
         <xs:sequence>
             <xs:element ref="recordContentSource" minOccurs="0" maxOccurs="unbounded" />
@@ -1012,6 +1012,7 @@ Detailed usage rules are supplied in the guidelines.
             <xs:element ref="languageOfCataloging" minOccurs="0" maxOccurs="unbounded" />
             <xs:element ref="recordOrigin" minOccurs="0" maxOccurs="unbounded" />
             <xs:element ref="descriptionStandard" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="recordInfoNote" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attributeGroup ref="languageAttributeGroup"/>
         <xs:attribute name="displayLabel" type="xs:string"/>
@@ -1024,6 +1025,8 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="recordContentSource" type="stringPlusLanguagePlusAuthority"/>
     <xs:element name="recordCreationDate" type="dateDefinition"/>
     <xs:element name="recordChangeDate" type="dateDefinition"/>
+    <!--*******following added in 3.6************ -->
+    <xs:element name="recordInfoNote" type="noteDefinition"/>
     <!--
 ********** recordIdentifier
 -->
@@ -1091,6 +1094,11 @@ Detailed usage rules are supplied in the guidelines.
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
+        <!-- Following four attributes are new in 3.6 -->
+        <xs:attribute name="otherType" type="xs:string"/>
+        <xs:attribute name="otherTypeAuth" type="xs:string"/>
+        <xs:attribute name="otherTypeAuthURI" type="xs:string"/>
+        <xs:attribute name="otherTypeURI" type="xs:string"/>
         <xs:attribute name="displayLabel" type="xs:string"/>
         <xs:attribute name="ID" type="xs:ID"/>
         <xs:attributeGroup ref="xlink:simpleLink"/>
@@ -1201,6 +1209,8 @@ Detailed usage rules are supplied in the guidelines.
             <xs:element ref="affiliation"/>
             <xs:element ref="role"/>
             <xs:element ref="description"/>
+                       ****** following element <nameIdentifier> new in 3.6.
+            <xs:element ref="nameIdentifier"/>
         </xs:choice>-->
         <xs:sequence>
             <xs:element ref="namePart" minOccurs="0" maxOccurs="unbounded" />
@@ -1208,6 +1218,7 @@ Detailed usage rules are supplied in the guidelines.
             <xs:element ref="affiliation" minOccurs="0" maxOccurs="unbounded" />
             <xs:element ref="role" minOccurs="0" maxOccurs="unbounded" />
             <xs:element ref="description" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="nameIdentifier" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attribute name="type">
             <xs:simpleType>
@@ -1254,12 +1265,14 @@ Detailed usage rules are supplied in the guidelines.
     <!-- -->
     <xs:complexType name="hierarchicalGeographicDefinition">
 <!--        <xs:choice maxOccurs="unbounded">
-            <xs:element ref="extraterrestrialArea"/>
+            <xs:element ref="extraTerrestrialArea"/>
             <xs:element ref="continent"/>
             <xs:element ref="country"/>
             <xs:element ref="province"/>
+                province is deprecated in version 3.6.  Use <state> instead.
             <xs:element ref="region"/>
             <xs:element ref="state"/>
+                <state> definition broadened in 3.6.  Use <state> for all first order political divisions, e.g. province.
             <xs:element ref="territory"/>
             <xs:element ref="county"/>
             <xs:element ref="city"/>
@@ -1268,7 +1281,7 @@ Detailed usage rules are supplied in the guidelines.
             <xs:element ref="area"/>
         </xs:choice>-->
         <xs:sequence>
-            <xs:element ref="extraterrestrialArea" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element ref="extraTerrestrialArea" minOccurs="0" maxOccurs="unbounded" />
             <xs:element ref="continent" minOccurs="0" maxOccurs="unbounded" />
             <xs:element ref="country" minOccurs="0" maxOccurs="unbounded" />
             <xs:element ref="province" minOccurs="0" maxOccurs="unbounded" />
@@ -1284,18 +1297,74 @@ Detailed usage rules are supplied in the guidelines.
         <xs:attributeGroup ref="authorityAttributeGroup"/>
     </xs:complexType>
     <!-- -->
-    <xs:element name="area" type="stringPlusLanguage"/>
-    <xs:element name="city" type="stringPlusLanguage"/>
-    <xs:element name="citySection" type="stringPlusLanguage"/>
-    <xs:element name="continent" type="stringPlusLanguage"/>
-    <xs:element name="country" type="stringPlusLanguage"/>
-    <xs:element name="county" type="stringPlusLanguage"/>
-    <xs:element name="extraterrestrialArea" type="stringPlusLanguage"/>
-    <xs:element name="island" type="stringPlusLanguage"/>
+    <!--
+           New in 3.6:
+           all the above elements were previously stringPlusLanguage.
+           Now the following attributes are added:
+               - @level   (for all)
+               - @authority, @authorityURI, and @valueURI  (the authority attributeGroup)  (for all)
+               - @period  (for all)
+               - @areaType, @regionType, and @citySectionType (for area, region, and citySection, respectively)
+
+               So there is a new auxiliary definition, hierarchicalPart which adds @level, authority group, and @period
+               as well as three new definitions each extending hierarchicalPart, for area, region, and city section, each
+               adding its respective attribute.
+   -->
+    <!--
+           ********** hierarchicalPart   *** new in 3.6, auxiliary definition
+   -->
+    <xs:complexType name="hierarchicalPart">
+        <xs:simpleContent>
+            <xs:extension base="stringPlusLanguage">
+                <xs:attribute name="level"/>
+                <xs:attribute name="period"/>
+                <xs:attributeGroup ref="authorityAttributeGroup"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!--
+           Next, definitions for the place elements, starting with area, region, and citySection
+   -->
+    <xs:element name="area" type="areaDefinition"/>
+    <!--   -->
+    <xs:complexType name="areaDefinition">
+        <xs:simpleContent>
+            <xs:extension base="hierarchicalPart">
+                <xs:attribute name="areaType"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!--   -->
+    <xs:element name="region" type="regionDefinition"/>
+    <!--   -->
+    <xs:complexType name="regionDefinition">
+        <xs:simpleContent>
+            <xs:extension base="hierarchicalPart">
+                <xs:attribute name="regionType"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:element name="citySection" type="citySectionDefinition"/>
+    <!--   -->
+    <xs:complexType name="citySectionDefinition">
+        <xs:simpleContent>
+            <xs:extension base="hierarchicalPart">
+                <xs:attribute name="citySectionType"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!--
+       For the rest, "stringPlusLanguage" is changed to "hierarchicalPart"   ......
+   -->
+    <xs:element name="extraTerrestrialArea" type="hierarchicalPart"/>
+    <xs:element name="city" type="hierarchicalPart"/>
+    <xs:element name="continent" type="hierarchicalPart"/>
+    <xs:element name="country" type="hierarchicalPart"/>
+    <xs:element name="county" type="hierarchicalPart"/>
+    <xs:element name="island" type="hierarchicalPart"/>
+    <xs:element name="state" type="hierarchicalPart"/>
+    <xs:element name="territory" type="hierarchicalPart"/>
     <xs:element name="province" type="stringPlusLanguage"/>
-    <xs:element name="state" type="stringPlusLanguage"/>
-    <xs:element name="region" type="stringPlusLanguage"/>
-    <xs:element name="territory" type="stringPlusLanguage"/>
     <!--
  ********** cartographics **********
 -->
@@ -1306,6 +1375,8 @@ Detailed usage rules are supplied in the guidelines.
             <xs:element ref="scale" minOccurs="0"/>
             <xs:element ref="projection" minOccurs="0"/>
             <xs:element ref="coordinates" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- *********** Following is new in 3.6, to allow an extension schema. -->
+            <xs:element ref="cartographicExtension" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attributeGroup ref="authorityAttributeGroup"/>
     </xs:complexType>
@@ -1313,6 +1384,8 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="scale" type="stringPlusLanguage"/>
     <xs:element name="projection" type="stringPlusLanguage"/>
     <xs:element name="coordinates" type="stringPlusLanguage"/>
+    <!--  	*********** Following is new in 3.6,      -->
+    <xs:element name="cartographicExtension" type="extensionDefinition"/>
     <!--
  ********** occupation **********
 -->
@@ -1334,8 +1407,6 @@ Detailed usage rules are supplied in the guidelines.
                 <xs:attribute name="altRepGroup" type="xs:string"/>
                 <xs:attributeGroup ref="altFormatAttributeGroup"/>
             </xs:extension>
-            <!-- -->
-            <!-- altFormat new in version 3.5 -->
         </xs:simpleContent>
     </xs:complexType>
     <!--
@@ -1397,10 +1468,6 @@ Detailed usage rules are supplied in the guidelines.
         <xs:attributeGroup ref="xlink:simpleLink"/>
         <xs:attributeGroup ref="languageAttributeGroup"/>
         <xs:attribute name="displayLabel" type="xs:string"/>
-        <!--  -->
-        <!-- otherType new in version 3.5 -->
-        <!-- -->
-        <!-- altFormat new in version 3.5 -->
     </xs:complexType>
     <!--
 
@@ -1410,7 +1477,16 @@ Detailed usage rules are supplied in the guidelines.
     <xs:element name="subTitle" type="stringPlusLanguage"/>
     <xs:element name="partNumber" type="stringPlusLanguage"/>
     <xs:element name="partName" type="stringPlusLanguage"/>
-    <xs:element name="nonSort" type="stringPlusLanguage"/>
+    <!-- *********  nonSort definition revised in 3.6. to add attribute xml:space. -->
+    <xs:element name="nonSort">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="stringPlusLanguage">
+                    <xs:attribute ref="xml:space"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
     <!--
 ****************************************************
 *   Top Level Element <typeOfResource>     *
@@ -1518,7 +1594,6 @@ String Definitions
     </xs:attributeGroup>
     <!--
   ********** altFormatAttributeGroup   **********
- altFormat new in version 3.5
 -->
     <xs:attributeGroup name="altFormatAttributeGroup">
         <xs:attribute name="altFormat" type="xs:anyURI"/>

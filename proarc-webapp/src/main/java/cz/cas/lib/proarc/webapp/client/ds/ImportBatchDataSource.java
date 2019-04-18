@@ -206,8 +206,19 @@ public final class ImportBatchDataSource extends ProarcDataSource {
             return ConfigurationProfileResourceApi.ARCHIVE_ID.equals(profileId);
         }
 
+        public static boolean isKramerius(String profileID) {
+            return ConfigurationProfileResourceApi.KRAMERIUS_DEFAULT_ID.equals(profileID)
+                    || ConfigurationProfileResourceApi.KRAMERIUS_NDK_MONOGRAPH_ID.equals(profileID)
+                    || ConfigurationProfileResourceApi.KRAMERIUS_NDK_PERIODICAL_ID.equals(profileID)
+                    || ConfigurationProfileResourceApi.KRAMERIUS_STT_ID.equals(profileID);
+        }
+
         public boolean isArchive() {
             return isArchive(getProfileId());
+        }
+
+        public boolean isKrameirus() {
+            return isKramerius(getProfileId());
         }
 
         public State getState() {
@@ -223,6 +234,9 @@ public final class ImportBatchDataSource extends ProarcDataSource {
             return delegate;
         }
 
+        public boolean isArchiveOrKramerius() {
+            return isKrameirus() || isArchive();
+        }
     }
 
     /**

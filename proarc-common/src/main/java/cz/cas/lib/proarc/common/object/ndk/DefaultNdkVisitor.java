@@ -16,9 +16,9 @@
  */
 package cz.cas.lib.proarc.common.object.ndk;
 
-import cz.cas.lib.proarc.common.object.HierarchyObjectVisitor;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
+import cz.cas.lib.proarc.common.object.HierarchyObjectVisitor;
 import cz.cas.lib.proarc.common.object.VisitorException;
 
 /**
@@ -65,6 +65,16 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkPicture(elm, p);
         } else if (NdkPlugin.MODEL_SHEETMUSIC.equals(model)) {
             return visitNdkSheetMusic(elm, p);
+        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(model)) {
+            return visitNdkEMonographTitle(elm, p);
+        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(model)) {
+            return visitNdkEMonographVolume(elm, p);
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(model)) {
+            return visitNdkEPeriodicalIssue(elm, p);
+        } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(model)) {
+            return visitNdkEArticle(elm, p);
+        } else if (NdkEbornPlugin.MODEL_ECHAPTER.equals(model)) {
+            return visitNdkEChapter(elm, p);
         }
         return super.visit(elm, p);
     }
@@ -132,6 +142,26 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
     @Override
     public R visitNdkPage(DigitalObjectElement elm, P p) throws VisitorException {
         return null;
+    }
+
+    public R visitNdkEMonographTitle(DigitalObjectElement elm, P p) throws  VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitNdkEMonographVolume(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitNdkEPeriodicalIssue(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitNdkEArticle(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitNdkEChapter(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
     }
 
 }

@@ -17,27 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
@@ -47,10 +27,27 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Class that represents the element of Mets export
@@ -65,7 +62,7 @@ public class MetsElement implements IMetsElement {
     private final String originalPid;
     private final Logger LOG = Logger.getLogger(MetsElement.class.getName());
     private MetsElement parent;
-    private final List<MetsElement> children = new ArrayList<MetsElement>();
+    private final List<IMetsElement> children = new ArrayList<>();
     private final List<Element> relsExt;
     private final DigitalObject sourceObject;
     public final List<Element> modsStream;
@@ -230,7 +227,9 @@ public class MetsElement implements IMetsElement {
         }
         Document modsDoc = MetsUtils.getDocumentFromList(this.modsStream);
         try {
-            if ("3.5".equals(this.modsStream.get(0).getAttribute("version"))) {
+            if ("3.6".equals(this.modsStream.get(0).getAttribute("version"))) {
+                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-6.xsd"));
+            } else if ("3.5".equals(this.modsStream.get(0).getAttribute("version"))) {
                 validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-5.xsd"));
             } else {
                 validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods.xsd"));
@@ -279,7 +278,7 @@ public class MetsElement implements IMetsElement {
         Kramerius4Export.removeNils(modsStream.get(0));
 
         model = MetsUtils.getModel(relsExt);
-        this.elementType = Const.typeMap.get(model);
+        this.elementType = MetsUtils.getElementType(model);
 
 
         if (parent instanceof MetsElement) {
@@ -295,7 +294,7 @@ public class MetsElement implements IMetsElement {
             LOG.log(Level.FINE, "Root element found:" + getOriginalPid() + "(" + getElementType() + ")");
         }
 
-        if (!Const.PAGE.equals(elementType)) {
+        if (!Const.PAGE.equals(elementType) || model.contains(NdkPlugin.MODEL_NDK_PAGE)) {
             NdkMapper mapper = NdkMapper.get(model.replaceAll("info:fedora/", ""));
             Document modsDocument = MetsUtils.getDocumentFromList(modsStream);
             DOMSource modsDOMSource = new DOMSource(modsDocument);
@@ -352,7 +351,6 @@ public class MetsElement implements IMetsElement {
     }
 
     /*
-     * (non-Javadoc)
      *
      * @see
      * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getElementID
@@ -381,7 +379,7 @@ public class MetsElement implements IMetsElement {
      * cz.cas.lib.proarc.common.export.mets.structure.IMetsElement#getChildren()
      */
     @Override
-    public List<MetsElement> getChildren() {
+    public List<IMetsElement> getChildren() {
         return children;
     }
 
@@ -488,7 +486,7 @@ public class MetsElement implements IMetsElement {
     public static MetsElement getElement(DigitalObject object, MetsElement parent, MetsContext metsContext, boolean withChildren) throws MetsExportException {
         List<Element> relsExt = FoxmlUtils.findDatastream(object, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
         String model = MetsUtils.getModel(relsExt);
-        String type = Const.typeMap.get(model);
+        String type = MetsUtils.getElementType(model);
         if (type == null) {
             throw new MetsExportException(object.getPID(), "Unknown model:" + model, false, null);
         }

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.oldprint;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
@@ -34,6 +35,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import cz.cas.lib.proarc.common.object.HasMetadataHandler;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -43,9 +45,14 @@ import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
+import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
 /**
  * The plug-in to support old print digital objects.
@@ -80,7 +87,20 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
      */
     public static final String MODEL_MONOGRAPHTITLE = "model:oldprintmonographtitle";
 
+    /**
+     * The chapter of old prints.
+     */
+    public static final String MODEL_CHAPTER = "model:oldprintchapter";
+
     private OldPrintSearchViewHandler searchViewHandler;
+
+    public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_VOLUME, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_SUPPLEMENT, Const.SUPPLEMENT);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHTITLE, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_CHAPTER, Const.CHAPTER);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_PAGE, Const.PAGE);
+    }});
 
     @Override
     public String getId() {
@@ -98,7 +118,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 MODEL_MONOGRAPHTITLE,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[]{}
                 ));
         models.add(new MetaModel(
                 MODEL_VOLUME, true, null,
@@ -108,7 +129,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_SUPPLEMENT, true, null,
@@ -118,7 +140,19 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM)
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID)}
+                ));
+        models.add(new MetaModel(
+                MODEL_CHAPTER, null, null,
+                Arrays.asList(new ElementType("Old Print Chapter", "en"), new ElementType("STT  Kapitola", "cs")),
+                ModsConstants.NS,
+                MODEL_CHAPTER,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
@@ -126,7 +160,11 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 ModsConstants.NS,
                 MODEL_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_SUPPLEMENT, RelationCriteria.Type.PID)
+                }
                 ));
         return models;
     }
@@ -145,7 +183,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     }
 
     private ValueMap<BundleValue> readPageTypes(Locale locale) {
-        return BundleValueMap.fromBundle(BundleName.MODS_OLDPRINT_PAGE_TYPES, locale);
+        //return BundleValueMap.fromBundle(BundleName.MODS_OLDPRINT_PAGE_TYPES, locale);
+        return BundleValueMap.fromBundle(BundleName.MODS_PAGE_TYPES, locale);
     }
 
     @Override
@@ -174,6 +213,15 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                         defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                         defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                    }
+                } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
+                    // issue 241
+                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_VOLUME);
+                    if (title != null) {
+                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                        defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                        inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+                        inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                     }
                 }
 
@@ -208,7 +256,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                     ModsDefinition mods = mapper.createPage(
                             page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
                     metadata.setIgnoreValidation(true);
-                    write(modelId, mods, metadata, message);
+                    write(modelId, mods, metadata, message, "update");
                 } else {
                     throw new DigitalObjectException(fobject.getPid(), "Unexpected model for oldprint page: " + modelId);
                 }

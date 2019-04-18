@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -33,6 +34,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.lang.Validate;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.
@@ -40,45 +42,15 @@ import java.util.logging.Logger;
  * @author Jan Pokorsky
  * @see <a href='http://ndk.cz/digitalizace/nove-standardy-digitalizace-od-roku-2011'>NDK</a>
  */
-public final class NdkExport {
+public class NdkExport {
 
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
-    private final RemoteStorage rstorage;
-    private final NdkExportOptions options;
+    protected final RemoteStorage rstorage;
+    protected final NdkExportOptions options;
 
     public NdkExport(RemoteStorage rstorage, NdkExportOptions options) {
         this.rstorage = rstorage;
         this.options = options;
-    }
-
-//    /**
-//     * Runs export to validate inputs. It cleans outputs on exit.
-//     * @param exportsFolder folder with user exports
-//     * @param pid PID to validate
-//     * @param hierarchy export PID ant its children
-//     * @return validation report
-//     * @throws ExportException unexpected failure
-//     */
-//    public List<MetsExportExceptionElement> validate(File exportsFolder, String pid,
-//            boolean hierarchy) throws ExportException {
-//
-//        Result export = export(exportsFolder, pid, "ValPKGID", hierarchy, false, null);
-//        if (export.getValidationError() != null) {
-//            return export.getValidationError().getExceptions();
-//        } else {
-//            return null;
-//        }
-//    }
-
-    /**
-     * Prepares export package of a single PID without children for later download.
-     * @param exportsFolder folder with user exports
-     * @param pid PID to export
-     * @return the result with token or validation errors
-     * @throws ExportException unexpected failure
-     */
-    public Result exportDownload(File exportsFolder, String pid) throws ExportException {
-        return export(exportsFolder, pid, null, true, false, null);
     }
 
     /**
@@ -101,17 +73,19 @@ public final class NdkExport {
     public List<Result> export(File exportsFolder, List<String> pids,
             boolean hierarchy, boolean keepResult, String log
             ) throws ExportException {
+        Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
         File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)));
-        ArrayList<Result> results = new ArrayList<Result>(pids.size());
+        List<Result> results = new ArrayList<>(pids.size());
         for (String pid : pids) {
             ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
             logItem.setInputPid(pid);
             reslog.getExports().add(logItem);
             try {
-                Result r = export(target, pid, null, hierarchy, keepResult, log);
+                Result r = export(target, pid, hierarchy, keepResult, log);
                 results.add(r);
+                deleteUnnecessaryFolder(target);
                 logResult(r, logItem);
             } catch (ExportException ex) {
                 logItem.setStatus(ResultStatus.FAILED);
@@ -126,54 +100,64 @@ public final class NdkExport {
         return results;
     }
 
-    Result export(File target, String pid, String packageId,
-            boolean hierarchy, boolean keepResult, String log
-            ) throws ExportException {
+    /**
+     * All folders are necessary, nothing is deleted
+     * Used in NdkSttExport
+     */
+    protected void deleteUnnecessaryFolder(File target) {
+    }
+
+    /**
+     * Exports packages. These can be split by PSP identifier (some level of model, for example issue for periodical)
+     *
+     * Each digital object is processed by visitor. This visitor create package on his own (and can be overriden for other NDK formats)
+     *
+     * @param target filepath to export
+     * @param pid pid of exported object. This can be a root of object.
+     * @param hierarchy recursive search for packages
+     * @param keepResult delete or not export folder on exit
+     * @param log message for storage logging
+     * @return Result with target path and possible errors
+     * @throws ExportException contains PID and exception
+     */
+    private Result export(File target, String pid,
+                          boolean hierarchy, boolean keepResult, String log) throws ExportException {
 
         Result result = new Result();
+
+        if (keepResult) {
+            result.setTargetFolder(target);
+        }
+        RemoteObject fo = rstorage.find(pid);
+        MetsContext dc = buildContext(fo, null, target);
         try {
-            if (keepResult) {
-                result.setTargetFolder(target);
+            MetsElement metsElement = getMetsElement(fo, dc, hierarchy);
+            if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
+                metsElement.accept(new MetsElementVisitor());
+            } else {
+                List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+                for (String pspPid : PSPs) {
+                    dc.resetContext();
+                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
+                    MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                    mElm.accept(createMetsVisitor());
+                    // XXX use relative path to users folder?
+                }
             }
-            RemoteObject fo = rstorage.find(pid);
-            MetsContext dc = buildContext(fo, packageId, target);
-            try {
-                MetsElement metsElement = getMetsElement(fo, dc, hierarchy);
-                if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
-                    metsElement.accept(new MetsElementVisitor());
-                } else {
-                    List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
-                    for (String pspPid : PSPs) {
-                        dc.resetContext();
-                        DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
-                        MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
-                        mElm.accept(new MetsElementVisitor());
-                        // XXX use relative path to users folder?
-                    }
-                }
-                storeExportResult(dc, target.toURI().toASCIIString(), log);
-                return result;
-            } catch (MetsExportException ex) {
-                keepResult = false;
-                // do not clean folder as i it is possilbe to write status.log
-                if (ex.getExceptions().isEmpty()) {
-                    throw new ExportException(pid, ex);
-                }
-                return result.setValidationError(ex);
-            } catch (Throwable ex) {
-                keepResult = false;
-                // do not clean folder as i it is possilbe to write status.log
+            storeExportResult(dc, target.toURI().toASCIIString(), log);
+            return result;
+        } catch (MetsExportException ex) {
+            if (ex.getExceptions().isEmpty()) {
                 throw new ExportException(pid, ex);
             }
-        } finally {
-            if (!keepResult) {
-//                // run asynchronously not to block client request?
-//                boolean deleted = FileUtils.deleteQuietly(target);
-//                if (!deleted) {
-//                    LOG.warning("Cannot delete: " + target.toString());
-//                }
-            }
+            return result.setValidationError(ex);
+        } catch (Throwable ex) {
+            throw new ExportException(pid, ex);
         }
+    }
+
+    protected IMetsElementVisitor createMetsVisitor() {
+        return new MetsElementVisitor();
     }
 
     private MetsElement getMetsElement(RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
@@ -182,7 +166,7 @@ public final class NdkExport {
          return MetsElement.getElement(dobj, null, dc, hierarchy);
     }
 
-    private MetsContext buildContext(RemoteObject fo, String packageId, File targetFolder) {
+    protected MetsContext buildContext(RemoteObject fo, String packageId, File targetFolder) {
         MetsContext mc = new MetsContext();
         mc.setFedoraClient(fo.getClient());
         mc.setRemoteStorage(rstorage);
@@ -197,12 +181,12 @@ public final class NdkExport {
     /**
      * Stores logs to the digital object hierarchy.
      *
-     * @param mElm
-     *            exported elements
+     * @param metsContext
+     *            context with exported elements
      * @throws MetsExportException
      *             write failure
      */
-    void storeExportResult(MetsContext metsContext, String target, String log) throws MetsExportException {
+    private void storeExportResult(MetsContext metsContext, String target, String log) throws MetsExportException {
         for (String pid : metsContext.getPidElements().keySet()) {
             try {
                 ExportUtils.storeObjectExportResult(pid, target, log);
@@ -258,14 +242,6 @@ public final class NdkExport {
         Result setTargetFolder(File targetFolder) {
             this.targetFolder = targetFolder;
             return this;
-        }
-
-        /**
-         * Gets the token for future requests.
-         * @return the token
-         */
-        public String getDownloadToken() {
-            return targetFolder == null ? null: targetFolder.getName();
         }
 
     }

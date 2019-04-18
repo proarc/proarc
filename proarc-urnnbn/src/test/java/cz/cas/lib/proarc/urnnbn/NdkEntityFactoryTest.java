@@ -73,7 +73,7 @@ public class NdkEntityFactoryTest {
         ModsDefinition periodicalVolumeMods = mods("registration/ndkPeriodicalVolume.xml");
         MixType mix = mix("registration/mix.xml");
         Import imp = factory.createPeriodicalIssueImport(
-                periodicalMods, periodicalVolumeMods, periodicalIssueMods, mix, null);
+                periodicalMods, periodicalVolumeMods, periodicalIssueMods, mix, null, false);
         assertNotNull(imp);
         PeriodicalIssue pi = imp.getPeriodicalIssue();
         assertNotNull("PeriodicalIssue", pi);
@@ -121,7 +121,7 @@ public class NdkEntityFactoryTest {
         ModsDefinition periodicalVolumeMods = mods("registration/ndkPeriodical2Volume.xml");
         MixType mix = mix("registration/mix.xml");
         Import imp = factory.createPeriodicalIssueImport(
-                periodicalMods, periodicalVolumeMods, periodicalIssueMods, mix, null);
+                periodicalMods, periodicalVolumeMods, periodicalIssueMods, mix, null, false);
         assertNotNull(imp);
         PeriodicalIssue pi = imp.getPeriodicalIssue();
         assertNotNull(pi);
@@ -142,7 +142,7 @@ public class NdkEntityFactoryTest {
     public void testCreateMonographImport() throws Exception {
         ModsDefinition monographMods = mods("registration/ndkMonograph.xml");
         MixType mix = mix("registration/mix.xml");
-        Import imp = factory.createMonographImport(monographMods, mix, null);
+        Import imp = factory.createMonographImport(monographMods, mix, null, false);
         assertNotNull(imp);
         Monograph mv = imp.getMonograph();
         assertNotNull(mv);

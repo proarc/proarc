@@ -17,27 +17,47 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.response.FedoraResponse;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
+import cz.cas.lib.proarc.mets.info.Info;
+import cz.cas.lib.proarc.mets.info.Info.Checksum;
+import cz.cas.lib.proarc.mets.info.Info.Itemlist;
+import cz.cas.lib.proarc.mets.info.Info.Titleid;
+import cz.cas.lib.proarc.mets.info.Info.Validation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
-
+import java.util.stream.Collectors;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -49,9 +69,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -62,35 +80,11 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
 import org.apache.commons.codec.binary.Hex;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.response.FedoraResponse;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
-
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
-import cz.cas.lib.proarc.mets.DivType;
-import cz.cas.lib.proarc.mets.Mets;
-import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
-import cz.cas.lib.proarc.mets.StructMapType;
-import cz.cas.lib.proarc.mets.info.Info;
-import cz.cas.lib.proarc.mets.info.Info.Checksum;
-import cz.cas.lib.proarc.mets.info.Info.Itemlist;
-import cz.cas.lib.proarc.mets.info.Info.Titleid;
-import cz.cas.lib.proarc.mets.info.Info.Validation;
 
 /**
  * @author Robert Simonovsky
@@ -100,8 +94,8 @@ import cz.cas.lib.proarc.mets.info.Info.Validation;
  */
 public class MetsUtils {
 
-    private static Logger LOG = Logger.getLogger(MetsUtils.class.getName());
-    private static Properties mimeToExtension = new Properties();
+    private static final Logger LOG = Logger.getLogger(MetsUtils.class.getName());
+    private static final Properties mimeToExtension = new Properties();
 
     /**
      * Retuns an XMLGregorianCalendar representation of current date
@@ -159,7 +153,7 @@ public class MetsUtils {
                 }
                 relsExt = FoxmlUtils.findDatastream(object, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
                 String model = MetsUtils.getModel(relsExt);
-                String elementType = Const.typeMap.get(model);
+                String elementType = getElementType(model);
 
                 if (Const.PSPElements.contains(elementType)) {
                     if (((Const.MONOGRAPH_UNIT.equals(parentType) || (Const.ISSUE.equals(parentType)))) && (Const.SUPPLEMENT.equals(elementType))) {
@@ -174,18 +168,52 @@ public class MetsUtils {
         }
     }
 
+    /**
+     *
+     * @param model fedora model with info prefix
+     * @return simplified name of model
+     * @throws NoSuchElementException no mapping for model<->type
+     */
+    public static String getElementType(String  model) {
+        String type = Const.typeMap.get(model);
+        if (type == null) {
+            List<NdkEbornPlugin> plugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                    .filter(plugin -> plugin instanceof NdkEbornPlugin).map(plugin -> ((NdkEbornPlugin) plugin)).collect(Collectors.toList());
+            for (NdkEbornPlugin plugin : plugins) {
+                if (plugin.TYPE_MAP.containsKey(model)) {
+                    return plugin.TYPE_MAP.get(model);
+                }
+            }
+            List<OldPrintPlugin> oldPrintPlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                    .filter(plugin -> plugin instanceof OldPrintPlugin).map(plugin -> ((OldPrintPlugin) plugin)).collect(Collectors.toList());
+            for (OldPrintPlugin plugin : oldPrintPlugins) {
+                if (plugin.TYPE_MAP.containsKey(model)) {
+                    return plugin.TYPE_MAP.get(model);
+                }
+            }
+            throw new NoSuchElementException("unknown element type for : " + model);
+        }
+        return type;
+    }
+
+    /**
+     * Fetch PSP id - this is usually determined by some level of model.
+     * @see Const#PSPElements
+     *
+     * @param pid   pid of exported model
+     * @param ctx
+     * @param fillChildren
+     * @return
+     * @throws MetsExportException
+     */
     public static List<String> findPSPPIDs(String pid, MetsContext ctx, boolean fillChildren) throws MetsExportException {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         DigitalObject dObj;
         if (ctx.getFedoraClient() != null) {
             dObj = readFoXML(pid, ctx.getFedoraClient());
         } else {
             dObj = readFoXML(ctx.getPath() + File.separator + pid + ".xml");
         }
-        // List<Element> relsExt = FoxmlUtils.findDatastream(dObj,
-        // "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
-        // String model = MetsUtils.getModel(relsExt);
-        // String elementType = Const.typeMap.get(model);
 
         String parentId = pid;
         String parentModel = null;
@@ -193,16 +221,6 @@ public class MetsUtils {
         List<Element> parentRels = null;
         DigitalObject parentdbObj = null;
         String firstParentType = null;
-
-        // if (ctx.getFedoraClient() != null) {
-        // parentId = MetsUtils.getParent(pid, ctx.getRemoteStorage());
-        // } else {
-        // parentId = MetsUtils.getParent(pid, ctx.getFsParentMap());
-        // }
-        //
-        // if (Const.PSPElements.contains(parentType)) {
-        // result.add(e)
-        // }
 
         while (parentId != null) {
             if (ctx.getFedoraClient() != null) {
@@ -212,7 +230,7 @@ public class MetsUtils {
             }
             parentRels = FoxmlUtils.findDatastream(parentdbObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
             parentModel = MetsUtils.getModel(parentRels);
-            parentType = Const.typeMap.get(parentModel);
+            parentType =  getElementType(parentModel);
 
             if ((parentId.equals(pid)) && (firstParentType == null)) {
                 firstParentType = parentType;
@@ -236,7 +254,7 @@ public class MetsUtils {
                             parentdbObjSupp = readFoXML(ctx.getPath() + File.separator + parentId + ".xml");
                         }
                         List<Element> parentRelsSupp = FoxmlUtils.findDatastream(parentdbObjSupp, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
-                        String parentTypeSupp = Const.typeMap.get(MetsUtils.getModel(parentRelsSupp));
+                        String parentTypeSupp =  getElementType(MetsUtils.getModel(parentRelsSupp));
                         if (Const.MONOGRAPH_UNIT.equals(parentTypeSupp) || (Const.ISSUE.equals(parentTypeSupp))) {
                             // do not add an PSP for Supplement under monograph
                             // unit or issue
@@ -254,50 +272,7 @@ public class MetsUtils {
             findChildPSPs(dObj, ctx, result, firstParentType);
         }
 
-        return result;
-    }
-
-    /**
-     *
-     * Converts byte array to hex string
-     *
-     * @param byteArray
-     * @return
-     */
-    public static String byteToHex(byte[] byteArray) {
-        StringBuffer result = new StringBuffer();
-        for (byte b : byteArray) {
-            result.append(String.format("%02X", b));
-        }
-        return result.toString();
-    }
-
-    /**
-     *
-     * Returns a file name (content location) from the datastream
-     *
-     * @param elements
-     * @return
-     */
-    public static String getFileNameFromStream(List<Element> elements) throws MetsExportException {
-        if (elements == null) {
-            return null;
-        }
-        return MetsUtils.xPathEvaluateString(elements, "*[local-name()='datastreamVersion']/*[local-name()='contentLocation'/@REF");
-    }
-
-    /**
-     *
-     * Returns a mime type attribute from datastream
-     *
-     * @param elements
-     * @return
-     */
-    public static String getMimeFromStream(List<Element> elements) throws MetsExportException {
-        if (elements == null) {
-            return null;
-        }
-        return MetsUtils.xPathEvaluateString(elements, "*[local-name()='datastreamVersion']/@MIMETYPE");
+        return Collections.unmodifiableList(result);
     }
 
     /**
@@ -354,28 +329,6 @@ public class MetsUtils {
                 return result;
             } else {
                 return elements;
-            }
-        }
-        return null;
-    }
-
-    /**
-     *
-     * Returns a datastream of given type
-     *
-     * @param datastreams
-     * @param type
-     * @return
-     */
-    public static List<Element> getDataStreams(List<DatastreamType> datastreams, String type) {
-        for (DatastreamType streamType : datastreams) {
-            if (streamType.getID().startsWith(type)) {
-                List<DatastreamVersionType> dsVersions = streamType.getDatastreamVersion();
-                for (DatastreamVersionType dsVersion : dsVersions) {
-                    XmlContentType dcContent = dsVersion.getXmlContent();
-                    List<Element> elements = dcContent.getAny();
-                    return elements;
-                }
             }
         }
         return null;
@@ -515,31 +468,6 @@ public class MetsUtils {
 
     /**
      *
-     * Returns a dataStream from Fedora for given pid
-     *
-     * @param fedoraClient
-     * @param pid
-     * @param streamName
-     * @return
-     * @throws MetsExportException
-     */
-    public static List<Element> getDataStreams(FedoraClient fedoraClient, String pid, String streamName) throws MetsExportException {
-        try {
-            FedoraResponse response = FedoraClient.getDatastreamDissemination(pid, streamName).execute(fedoraClient);
-            InputStream is = response.getEntityInputStream();
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(is);
-            List<Element> elements = new ArrayList<Element>();
-            elements.add(doc.getDocumentElement());
-            return elements;
-        } catch (Exception ex) {
-            throw new MetsExportException("Error while getting stream " + streamName + " from " + pid, false, ex);
-        }
-    }
-
-    /**
-     *
      * Copies inputStream to outputStream
      *
      * @param is
@@ -581,26 +509,6 @@ public class MetsUtils {
         } catch (Exception ex) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting stream " + streamName + " from " + metsElement.getElementType(), false, ex);
         }
-    }
-
-    /**
-     *
-     * Prepares a logical/physical structure divs in mets
-     *
-     * @param mets
-     * @param label
-     * @param type
-     * @return
-     */
-    public static DivType createStructureDiv(Mets mets, String label, String type) {
-        StructMapType structType = new StructMapType();
-        mets.getStructMap().add(structType);
-        structType.setLabel2(label);
-        structType.setTYPE(type);
-        DivType divType = new DivType();
-        structType.setDiv(divType);
-        divType.setLabel(mets.getLabel1());
-        return divType;
     }
 
     /**
@@ -731,30 +639,6 @@ public class MetsUtils {
 
     /**
      *
-     * Transforms the xml document to a string
-     *
-     * @param doc
-     * @return
-     */
-    public static String documentToString(Document doc) throws MetsExportException {
-        try {
-            StringWriter sw = new StringWriter();
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-            transformer.transform(new DOMSource(doc), new StreamResult(sw));
-            return sw.toString();
-        } catch (TransformerException ex) {
-            throw new MetsExportException("Error converting Document to String", false, ex);
-        }
-    }
-
-    /**
-     *
      * Validates given document agains an XSD schema
      *
      * @param document
@@ -868,7 +752,7 @@ public class MetsUtils {
         return output;
     }
 
-    public static void addModsIdentifiersRecursive(MetsElement element, Info infoJaxb) throws MetsExportException {
+    private static void addModsIdentifiersRecursive(IMetsElement element, Info infoJaxb) throws MetsExportException {
         Map<String, String> identifiers = element.getModsIdentifiers();
         for (String type : identifiers.keySet()) {
             if (Const.allowedIdentifiers.contains(type)) {
@@ -888,7 +772,7 @@ public class MetsUtils {
             }
         }
 
-        for (MetsElement child : element.getChildren()) {
+        for (IMetsElement child : element.getChildren()) {
             addModsIdentifiersRecursive(child, infoJaxb);
         }
     }
@@ -902,61 +786,71 @@ public class MetsUtils {
      */
     public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, File metsFile) throws MetsExportException {
         File infoFile = new File(path + File.separator + metsContext.getPackageID() + File.separator + "info_" + metsContext.getPackageID() + ".xml");
-            GregorianCalendar c = new GregorianCalendar();
-            c.setTime(new Date());
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(new Date());
         XMLGregorianCalendar date2;
         try {
             date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
         } catch (DatatypeConfigurationException e1) {
             throw new MetsExportException("Error while generating info.xml file", false, e1);
         }
-            Info infoJaxb = new Info();
-            infoJaxb.setCreated(date2);
+        Info infoJaxb = new Info();
+        infoJaxb.setCreated(date2);
+        if (metsFile != null) {
             infoJaxb.setMainmets(metsFile.getName());
+        }
+        if (md5 != null) {
             Checksum checkSum = new Checksum();
             checkSum.setChecksum(md5);
             checkSum.setType("MD5");
-        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb);
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
-            Validation validation = new Validation();
-            validation.setValue("W3C-XML");
-            validation.setVersion(Float.valueOf("0.0"));
-            infoJaxb.setValidation(validation);
-            infoJaxb.setCreator(metsContext.getOptions().getCreator());
-            infoJaxb.setPackageid(metsContext.getPackageID());
+        }
+        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb);
+        Validation validation = new Validation();
+        validation.setValue("W3C-XML");
+        validation.setVersion(0.0f);
+        infoJaxb.setValidation(validation);
+        infoJaxb.setCreator(metsContext.getOptions().getCreator());
+        infoJaxb.setPackageid(metsContext.getPackageID());
+
+        if (metsContext.getPackageVersion().isPresent()) {
+            infoJaxb.setMetadataversion(metsContext.getPackageVersion().get());
+        } else {
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
-                infoJaxb.setMetadataversion((float) 1.6);
+                infoJaxb.setMetadataversion(1.6f);
             } else {
-                infoJaxb.setMetadataversion((float) 1.2);
+                infoJaxb.setMetadataversion(1.2f);
             }
-            Itemlist itemList = new Itemlist();
-            infoJaxb.setItemlist(itemList);
-            itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size() + 1)); // size of list + info file
-            List<FileMD5Info> fileList = metsContext.getFileList();
+        }
+
+        Itemlist itemList = new Itemlist();
+        infoJaxb.setItemlist(itemList);
+        itemList.setItemtotal(BigInteger.valueOf(metsContext.getFileList().size() + 1)); // size of list + info file
+        List<FileMD5Info> fileList = metsContext.getFileList();
         long size = 0;
-            for (FileMD5Info fileName : fileList) {
-                itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
-                size += fileName.getSize();
-            }
-            itemList.getItem().add("./" + infoFile.getName());
-            int infoTotalSize = (int) (size/1024);
+        for (FileMD5Info fileName : fileList) {
+            itemList.getItem().add(fileName.getFileName().replaceAll(Matcher.quoteReplacement(File.separator), "/"));
+            size += fileName.getSize();
+        }
+        itemList.getItem().add("/" + infoFile.getName());
+        int infoTotalSize = (int) (size / 1024);
         infoJaxb.setSize(infoTotalSize);
-            try {
-                JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
-                Marshaller marshaller = jaxbContext.createMarshaller();
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
             // SchemaFactory factory =
             // SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             // factory.setResourceResolver(MetsLSResolver.getInstance());
             // Schema schema = factory.newSchema(new
             // StreamSource(Info.class.getResourceAsStream("info.xsd")));
             // marshaller.setSchema(schema);
-                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-                marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-                marshaller.marshal(infoJaxb, infoFile);
-            } catch (Exception ex) {
-                throw new MetsExportException("Error while generating info.xml", false, ex);
-            }
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+            marshaller.marshal(infoJaxb, infoFile);
+        } catch (Exception ex) {
+            throw new MetsExportException("Error while generating info.xml", false, ex);
+        }
 
         List<String> validationErrors;
         try {
@@ -976,17 +870,34 @@ public class MetsUtils {
     }
 
     /**
+     * Generates PackageID from the metsElement info
      *
-     * Returns an ObjectID from the rels-ext stream
-     *
-     * @param relExtElements
+     * @param element
      * @return
+     * @throws MetsExportException
      */
-    public static String getObjectId(List<Element> relExtElements) throws MetsExportException {
-        String XPATH = "*[local-name()='RDF']/*[local-name()='Description']";
-        Node descNode = xPathEvaluateNode(relExtElements, XPATH);
-        String ID = descNode.getAttributes().getNamedItem("rdf:about").getNodeValue();
-        return ID.substring(ID.indexOf("/") + 1);
+    public static String getPackageID(IMetsElement element) throws MetsExportException {
+        Map<String, String> identifiersMap = element.getModsIdentifiers();
+        if (identifiersMap.containsKey(Const.URNNBN)) {
+            String urnnbn = identifiersMap.get(Const.URNNBN);
+            return urnnbn.substring(urnnbn.lastIndexOf(":") + 1);
+        } else if (element.getMetsContext().isAllowMissingURNNBN() || isOldPrintPlugin(element)){
+            // if missing URNNBN is allowed, then try to use UUID - otherwise
+            // throw an exception
+            element.getMetsContext().getMetsExportException().addException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
+            if (identifiersMap.containsKey(Const.UUID)) {
+                return identifiersMap.get(Const.UUID);
+            } else {
+                throw new MetsExportException(element.getOriginalPid(), "Unable to find identifier URNNBN and UUID is missing", false, null);
+            }
+        } else {
+            // URNNBN is mandatory
+            throw new MetsExportException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
+        }
+    }
+
+    private static boolean isOldPrintPlugin(IMetsElement element) {
+        return element.getModel() != null && element.getModel().contains("oldprint");
     }
 
     /**
@@ -1104,24 +1015,6 @@ public class MetsUtils {
         String result = fileSystemParents.get(uuid);
         LOG.log(Level.FINE, "Parent from FS for :" + uuid + " found:" + result);
         return result;
-    }
-
-    /**
-     *
-     * Checks if a monograph is MultiUnit
-     *
-     * @param monograph
-     * @return
-     */
-    public static boolean isMultiUnitMonograph(MetsElement monograph) {
-        if (Const.VOLUME.equals(monograph.getElementType())) {
-            for (MetsElement element : monograph.getChildren()) {
-                if (Const.MONOGRAPH_UNIT.equalsIgnoreCase(element.getElementType())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**

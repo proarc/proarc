@@ -17,18 +17,17 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import com.yourmediashelf.fedora.client.FedoraClient;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.yourmediashelf.fedora.client.FedoraClient;
-
-import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import java.util.Optional;
 
 /**
  * Context for Mets mets export
@@ -57,6 +56,7 @@ public class MetsContext {
     private boolean allowMissingURNNBN = false;
     private File packageDir;
     private String proarcVersion;
+    private Float packageVersion;
     private JhoveContext jhoveContext;
     private NdkExportOptions options;
 
@@ -200,6 +200,14 @@ public class MetsContext {
         this.packageID = packageID;
     }
 
+    public Optional<Float> getPackageVersion() {
+        return Optional.ofNullable(packageVersion);
+    }
+
+    public void setPackageVersion(Float packageVersion) {
+        this.packageVersion = packageVersion;
+    }
+
     /**
      * Returns the output absolute path where output Mets file is stored
      *
@@ -337,16 +345,6 @@ public class MetsContext {
         id++;
         elementIds.put(elementId, id);
         return id;
-    }
-
-    /**
-     * Returns the last ID for given element
-     *
-     * @param elementId
-     * @return
-     */
-    public Integer getElementId(String elementId) {
-        return elementIds.get(elementId);
     }
 
     /**

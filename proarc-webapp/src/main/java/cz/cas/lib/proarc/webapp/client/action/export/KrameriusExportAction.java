@@ -80,7 +80,7 @@ public final class KrameriusExportAction extends ExportAction {
                     accept = false;
                     continue;
                 }
-                if (model != null && ModsConstants.NS.equals(model.getMetadataFormat())) {
+               if (model != null && ModsConstants.NS.equals(model.getMetadataFormat()) && !model.getId().startsWith("model:ndke")) {
                     accept = true;
                     continue;
                 }

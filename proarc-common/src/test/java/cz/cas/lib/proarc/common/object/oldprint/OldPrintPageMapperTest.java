@@ -23,15 +23,14 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -70,7 +69,7 @@ public class OldPrintPageMapperTest {
         assertEquals("1", page.getIndex());
         assertEquals("[1]", page.getNumber());
         assertEquals("Blank", page.getType());
-        assertEquals("note", page.getNote());
+        assertEquals("note", page.getPhysicalDescription());
         List<IdentifierItem> identifiers = page.getIdentifiers();
         assertEquals(2, identifiers.size());
         assertEquals("issn", identifiers.get(0).getType());
@@ -88,7 +87,7 @@ public class OldPrintPageMapperTest {
         assertEquals("1", page.getIndex());
         assertEquals("[1]", page.getNumber());
         assertEquals("Blank", page.getType());
-        assertEquals("note", page.getNote());
+        assertEquals("note", page.getPhysicalDescription());
         List<IdentifierItem> identifiers = page.getIdentifiers();
         assertEquals(2, identifiers.size());
         assertEquals("issn", identifiers.get(0).getType());
@@ -105,7 +104,7 @@ public class OldPrintPageMapperTest {
         page.setIndex("1");
         page.setNumber("[1]");
         page.setType("normalPage");
-        page.setNote("note");
+        page.setPhysicalDescription("note");
         page.setIdentifiers(Arrays.asList(new IdentifierItem(null, "uuid", "1")));
 
         ModsDefinition mods = mapper.toMods(page, ctx);
@@ -119,7 +118,7 @@ public class OldPrintPageMapperTest {
         assertEquals(page.getIndex(), result.getIndex());
         assertEquals(page.getNumber(), result.getNumber());
         assertEquals(page.getType(), result.getType());
-        assertEquals(page.getNote(), result.getNote());
+        assertEquals(page.getPhysicalDescription(), result.getPhysicalDescription());
         assertEquals(Arrays.asList(new IdentifierItem(null, "uuid", "1")), result.getIdentifiers());
     }
 
@@ -127,12 +126,12 @@ public class OldPrintPageMapperTest {
     public void testGetPageTypeLabel() {
         Locale.setDefault(Locale.ENGLISH);
 
-        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("frontEndpaper", Locale.ENGLISH));
-        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("frontEndpaper", new Locale("cs")));
+        assertEquals("Front End Paper", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", Locale.ENGLISH));
+        assertEquals("Přední předsádka (Front End Paper)", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", new Locale("cs")));
 
         Locale.setDefault(new Locale("cs", "CZ"));
 
-        assertEquals("Front Endpaper", OldPrintPageMapper.getPageTypeLabel("frontEndpaper", Locale.ENGLISH));
-        assertEquals("Přední předsádka", OldPrintPageMapper.getPageTypeLabel("frontEndpaper", new Locale("cs")));
+        assertEquals("Front End Paper", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", Locale.ENGLISH));
+        assertEquals("Přední předsádka (Front End Paper)", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", new Locale("cs")));
     }
 }

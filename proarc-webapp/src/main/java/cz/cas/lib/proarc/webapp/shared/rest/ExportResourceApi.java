@@ -53,7 +53,9 @@ public final class ExportResourceApi {
 
     public static final String NDK_PATH = "ndk";
     public static final String NDK_PID_PARAM = "pid";
-    
+
+    public static final String NDK_PACKAGE = "package";
+    public enum Package {SIP, PSP, STT};
     public static final String RESULT_TARGET = "target";
     public static final String RESULT_ID = "exportId";
     public static final String RESULT_TOKEN = "token";

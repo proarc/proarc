@@ -23,6 +23,8 @@ import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkFormGenerator;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PageForm;
+import cz.cas.lib.proarc.webapp.shared.form.Field;
+import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
 
 /**
@@ -48,13 +50,65 @@ public class OldPrintForms {
         } else if ("model:oldprintsupplement".equals(modelId)) {
             f = new OldPrintSupplementForm().build();
         } else if ("model:oldprintpage".equals(modelId)) {
-            return new PageForm(i18n, BundleName.MODS_OLDPRINT_PAGE_TYPES);
+            //return new PageForm(i18n, BundleName.MODS_OLDPRINT_PAGE_TYPES);
+            return new PageForm(i18n);
         } else if ("model:oldprintmonographtitle".equals(modelId)) {
             f = new OldPrintMonographTitleForm().build();
+        } else if ("model:oldprintchapter".equals(modelId)) {
+            f = new OldPrintChapterForms().build();
         } else {
             return null;
         }
         return new NdkFormGenerator(f, activeLocale).generateForm();
+    }
+
+    public static FieldBuilder createLangTermValue() {
+        return new FieldBuilder("value").setTitle("Language - M").setMaxOccurrences(1)
+                .setType(Field.COMBO).setRequired(true)
+                .setHint("Přesné určení jazyka kódem.<p>Nutno použít kontrolovaný slovník ISO 639-2.")
+                .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
+                                .addField(new FieldBuilder("title").setTitle("Name").createField())
+                                .addField(new FieldBuilder("value").setTitle("Language").createField())
+                                .addField(new FieldBuilder("type").setTitle("Type").createField())
+                                .addField(new FieldBuilder("authority").setTitle("Authority").createField())
+                                .createField(),
+                        "value", "type", "authority");
+    }
+
+    public static Field roleTerm(String valueTitle, Boolean isValueRequired,
+                                 String authorityTitle, Boolean isAuthorityRequired,
+                                 String typeTitle, Boolean isTypeRequired) {
+
+        // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
+        return new FieldBuilder("roleTerm").setMaxOccurrences(1)
+                .addField(new FieldBuilder("value").setTitle(valueTitle).setMaxOccurrences(1)
+                        .setType(Field.COMBO)
+                        .setWidth("200")
+                        .setRequired(isValueRequired)
+                        .setHint("Kód role z kontrolovaného slovníku.")
+                        .setOptionDataSource(new FieldBuilder(BundleName.MODS_ROLES.getValueMapId()).setWidth("300")
+                                .addField(new FieldBuilder("value").setTitle("Kód").createField())
+                                .addField(new FieldBuilder("label").setTitle("Popis").createField())
+                                .createField(), "value", "type", "authority")
+                        .createField()) // value
+                // @type, codeOrText(code, text)
+                .addField(new FieldBuilder("type").setTitle(typeTitle).setMaxOccurrences(1)
+                        .setType(Field.SELECT)
+                        .setRequired(isTypeRequired)
+                        .addMapValue("code", "code")
+                        .addMapValue("text", "text")
+                        .createField()) // @type
+                // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                .addField(new FieldBuilder("authority").setTitle(authorityTitle).setMaxOccurrences(1)
+                        .setType(Field.COMBO)
+                        .setWidth("200")
+                        .setRequired(isAuthorityRequired)
+                        .addMapValue("marcrelator", "marcrelator")
+                        .setHint("Údaje o kontrolovaném slovníku využitém k popisu role."
+                                + "<p>K popisu výše uvedeného MARC seznamu nutno uvést authority=“marcrelator“.")
+                        .createField()) // authority
+                .createField(); // roleTerm
     }
 
 }

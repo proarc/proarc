@@ -23,11 +23,14 @@ import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Maps born digital articles.
@@ -40,11 +43,17 @@ public class BdmArticleMapper extends NdkArticleMapper {
     public static final String GENRE_ARTICLE_VALUE = "article";
     /** {@code mods/genre/@type='peer-reviewed'}. */
     public static final String GENRE_PEER_REVIEWED_TYPE = "peer-reviewed";
+    private static final Logger LOG = Logger.getLogger(BdmArticleMapper.class.getName());
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
 
+        /*for (GenreDefinition genre : mods.getGenre()) {
+            if (genre.getType() == null  || genre.getType().isEmpty()) {
+                genre.setType(GENRE_PEER_REVIEWED_TYPE);
+            }
+        }*/
         List<PhysicalDescriptionDefinition> listPhysicalDescription = new ArrayList<>();
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
@@ -69,6 +78,41 @@ public class BdmArticleMapper extends NdkArticleMapper {
             if (checkNewFormDefinition(pd.getForm().get(0), mods)) {
                 mods.getPhysicalDescription().add(pd);
             }
+        }
+
+        setPageInterval(mods);
+    }
+
+    private void setPageInterval(ModsDefinition mods) {
+        try {
+            if (mods.getPart().size() > 0
+                    && mods.getPart().get(0).getExtent().size() > 0
+                    && mods.getPart().get(0).getExtent().get(0).getStart() != null
+                    && mods.getPart().get(0).getExtent().get(0).getStart().getValue() != null
+                    && mods.getPart().get(0).getExtent().get(0).getStart().getValue().length() > 0
+                    && mods.getPart().get(0).getExtent().get(0).getEnd() != null
+                    && mods.getPart().get(0).getExtent().get(0).getEnd().getValue() != null
+                    && mods.getPart().get(0).getExtent().get(0).getEnd().getValue().length() > 0) {
+                return;
+            } else if (mods.getRelatedItem().size() > 0
+                    && mods.getRelatedItem().get(0).getPart().size() > 0
+                    && mods.getRelatedItem().get(0).getPart().get(0).getExtent().size() > 0
+                    && mods.getRelatedItem().get(0).getPart().get(0).getExtent().get(0).getStart() != null
+                    && mods.getRelatedItem().get(0).getPart().get(0).getExtent().get(0).getStart().getValue() != null
+                    && mods.getRelatedItem().get(0).getPart().get(0).getExtent().get(0).getStart().getValue().length() > 0
+                    && mods.getRelatedItem().get(0).getPart().get(0).getExtent().get(0).getEnd() != null
+                    && mods.getRelatedItem().get(0).getPart().get(0).getExtent().get(0).getEnd().getValue() != null
+                    && mods.getRelatedItem().get(0).getPart().get(0).getExtent().get(0).getEnd().getValue().length() > 0) {
+
+                PartDefinition part = mods.getRelatedItem().get(0).getPart().get(0);
+                mods.getPart().clear();
+                mods.getPart().add(part);
+                mods.getRelatedItem().get(0).getPart().clear();
+            }
+        } catch (NullPointerException ex) {
+            LOG.log(Level.INFO, "Mapper can not rewrite mods:relatedItem:part to mods:part, catch NullPointer " + ex);
+        } catch (IndexOutOfBoundsException ex) {
+            LOG.log(Level.INFO, "Mapper can not rewrite mods:relatedItem:part to mods:part, catch IndexOutOfBounds " + ex);
         }
     }
 

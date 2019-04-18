@@ -18,12 +18,24 @@ package cz.cas.lib.proarc.webapp.client.widget.mods;
 
 import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEArticleForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalIssueForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalVolumeForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographChapterForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographTitleForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographVolumeForm;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * The helper for NDK forms.
@@ -34,6 +46,37 @@ public final class NdkForms {
 
     private final ClientMessages i18n;
     private final String activeLocale;
+    private final static Map<String, Supplier<Form>> mappers = new HashMap<>();
+
+    static {
+        mappers.put("model:ndkperiodical", () -> {
+                    Form form = new NdkPeriodicalForm().build();
+                    form.setItemWidth("800");
+                    return form;
+                }
+        );
+        mappers.put("model:ndkperiodicalvolume", new NdkPeriodicalVolumeForm()::build);
+        mappers.put("model:ndkperiodicalissue", new NdkPeriodicalIssueForm()::build);
+        mappers.put("model:ndkperiodicalsupplement", new NdkPeriodicalSupplementForm()::build);
+        mappers.put("model:ndkarticle", new NdkArticleForm()::build);
+        mappers.put("model:ndkchapter", new NdkChapterForm()::build);
+        mappers.put("model:ndkpicture", new NdkPictureForm()::build);
+        mappers.put("model:ndkmonographvolume", new NdkMonographVolumeForm()::build);
+        mappers.put("model:ndkmonographtitle", new NdkMonographTitleForm()::build);
+        mappers.put("model:ndkmonographsupplement", new NdkMonographSupplementForm()::build);
+        mappers.put("model:ndkmap", new NdkCartographicForm()::build);
+        mappers.put("model:ndksheetmusic", new NdkSheetMusicForm()::build);
+        mappers.put("model:ndkmusicdocument", new NdkSoundCollectionForm()::build);
+        mappers.put("model:ndksong", new NdkSoundRecordingForm()::build);
+        mappers.put("model:ndktrack", new NdkSoundPartForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, new NdkEmonographVolumeForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_ECHAPTER, new NdkEmonographChapterForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, new NdkEmonographTitleForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_EPERIODICAL, new NdkEPeriodicalForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, new NdkEPeriodicalIssueForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, new NdkEPeriodicalVolumeForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_EARTICLE, new NdkEArticleForm()::build);
+    }
 
     public NdkForms(ClientMessages i18n) {
         this.i18n = i18n;
@@ -42,51 +85,24 @@ public final class NdkForms {
 
     public DynamicForm getForm(MetaModelRecord model) {
         String modelId = model.getId();
-        Form f;
-        if ("model:ndkperiodical".equals(modelId)) {
-            f = new NdkPeriodicalForm().build();
-            f.setItemWidth("800");
-        } else if ("model:ndkperiodicalvolume".equals(modelId)) {
-            f = new NdkPeriodicalVolumeForm().build();
-        } else if ("model:ndkperiodicalissue".equals(modelId)) {
-            f = new NdkPeriodicalIssueForm().build();
-        } else if ("model:ndkperiodicalsupplement".equals(modelId)) {
-            f = new NdkPeriodicalSupplementForm().build();
-        } else if ("model:ndkarticle".equals(modelId)) {
-            f = new NdkArticleForm().build();
-        } else if ("model:ndkchapter".equals(modelId)) {
-            f = new NdkChapterForm().build();
-        } else if ("model:ndkpicture".equals(modelId)) {
-            f = new NdkPictureForm().build();
-        } else if ("model:ndkmonographvolume".equals(modelId)) {
-            f = new NdkMonographVolumeForm().build();
-        } else if ("model:ndkmonographtitle".equals(modelId)) {
-            f = new NdkMonographTitleForm().build();
-        } else if ("model:ndkmonographsupplement".equals(modelId)) {
-            f = new NdkMonographSupplementForm().build();
-        } else if ("model:ndkmap".equals(modelId)) {
-            f = new NdkCartographicForm().build();
-        } else if ("model:ndksheetmusic".equals(modelId)) {
-            f = new NdkSheetMusicForm().build();
-        } else if ("model:page".equals(modelId)) {
+        if (NdkPlugin.MODEL_PAGE.equals(modelId)) {
             return new PageForm(i18n);
-        } else if ("model:ndkmusicdocument".equals(modelId)) {
-            f = new NdkSoundCollectionForm().build();
-        } else if ("model:ndksong".equals(modelId)) {
-            f = new NdkSoundRecordingForm().build();
-        } else if ("model:ndktrack".equals(modelId)) {
-            f = new NdkSoundPartForm().build();
         } else if ("model:ndkaudiopage".equals(modelId)) {
             return new NdkAudioPageForm(i18n, BundleName.MODS_AUDIO_PAGE_TYPES);
-        } else {
-            return null;
+        } else if (NdkPlugin.MODEL_NDK_PAGE.equals(modelId)) {
+            return new NdkPageForm(i18n);
         }
-        return new NdkFormGenerator(f, activeLocale).generateForm();
+
+        return mappers.get(modelId) == null ? null : new NdkFormGenerator(mappers.get(modelId).get(), activeLocale).generateForm();
     }
 
     public static FieldBuilder createLangTermValue() {
+        return createLangTermValue(true);
+    }
+
+    public static FieldBuilder createLangTermValue(boolean required) {
         return new FieldBuilder("value").setTitle("Language - M").setMaxOccurrences(1)
-                .setType(Field.COMBO).setRequired(true)
+                .setType(Field.COMBO).setRequired(required)
                 .setHint("Přesné určení jazyka kódem.<p>Nutno použít kontrolovaný slovník ISO 639-2.")
                 .setOptionDataSource(new FieldBuilder("ndk.mods.languageTerms").setWidth("300")
                         .addField(new FieldBuilder("title").setTitle("Name").createField())

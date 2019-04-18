@@ -247,14 +247,18 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
                     criteria.addCriteria(ImportTreeDataSource.FIELD_PROFILE, profile);
                 }
                 treeGrid.setCriteria(criteria);
-                boolean notArchive = !BatchRecord.isArchive(profile);
-                selectScanner.setRequired(notArchive);
-                if (notArchive) {
+                boolean isArchive= BatchRecord.isArchive(profile);
+                boolean isKramerius = BatchRecord.isKramerius(profile);
+                selectScanner.setRequired(!isArchive);
+                if (isKramerius) {
                     selectScanner.show();
-                    cbiPageIndexes.show();
-                } else {
+                    cbiPageIndexes.hide();
+                } else if (isArchive) {
                     selectScanner.hide();
                     cbiPageIndexes.hide();
+                } else {
+                    selectScanner.show();
+                    cbiPageIndexes.show();
                 }
             }
         });

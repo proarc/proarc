@@ -1,13 +1,16 @@
 <xsl:stylesheet xmlns="http://www.loc.gov/mods/v3" xmlns:marc="http://www.loc.gov/MARC21/slim"
-    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    exclude-result-prefixes="xlink marc" version="1.0">
+                xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:xsi="http://www.w3.org/1999/XSL/Transform"
+                exclude-result-prefixes="xlink marc" version="1.0">
     <xsl:include href="http://www.loc.gov/standards/marcxml/xslt/MARC21slimUtils.xsl"/>
     <xsl:output encoding="UTF-8" indent="yes" method="xml"/>
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 11.433) 20160318
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 15.689) 20181116
 
+Revision 1.98.proarc.16.884 - Changed handling 700: add @ind1=0
+Revision 1.98.proarc.15.689 - Changed handling 100: value is not split if @ind1=0
 Revision 1.98.proarc.14.704 - Repair mapping of 041$b to objectPart-summary
 Revision 1.98.proarc.13.689 - Changed handling 100,700: value is split into given and family <namePart> if it contains ',' 2018/02/09
 Revision 1.97.proarc.12.298 - Added mapping for 264 ind 4 to originInfo 2017/09/01
@@ -125,17 +128,17 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <xsl:choose>
             <xsl:when test="//marc:collection">
                 <modsCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-5.xsd">
+                    xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd">
                     <xsl:for-each select="//marc:collection/marc:record">
-                        <mods version="3.5">
+                        <mods version="3.6">
                             <xsl:call-template name="marcRecord"/>
                         </mods>
                     </xsl:for-each>
                 </modsCollection>
             </xsl:when>
             <xsl:otherwise>
-                <mods xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.5"
-                    xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-5.xsd">
+                <mods xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.6"
+                    xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd">
                     <xsl:for-each select="//marc:record">
                         <xsl:call-template name="marcRecord"/>
                     </xsl:for-each>
@@ -638,6 +641,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
         <!-- originInfo 250 and 260 -->
 
+        <xsl:if test="marc:datafield[(@tag=260 or @tag=250)]">
         <originInfo>
             <xsl:call-template name="scriptCode"/>
             <xsl:for-each
@@ -935,7 +939,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </xsl:for-each>
             </xsl:if>
         </originInfo>
-
+        </xsl:if>
 
         <!-- originInfo - 264 -->
 
@@ -2277,6 +2281,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="relatedItem76X-78X"/>
             </relatedItem>
         </xsl:for-each>
+
+        <xsi:for-each select="marc:datafield[@tag=773]">
+            <part>
+                <xsl:call-template name="partDefinition"/>
+            </part>
+        </xsi:for-each>
         <xsl:for-each select="marc:datafield[@tag=776]">
             <relatedItem type="otherFormat">
                 <xsl:call-template name="relatedItem76X-78X"/>
@@ -2740,8 +2750,10 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </recordIdentifier>
             </xsl:for-each>
 
-            <recordOrigin>Converted from MARCXML to MODS version 3.5 using MARC21slim2MODS3.xsl
-                (Revision 1.98 2018/02/09, ProArc patch 14.704 2018/03/02)</recordOrigin>
+            <recordOrigin>machine generated</recordOrigin>
+
+            <recordInfoNote>Converted from MARCXML to MODS version 3.6 using MARC21slim2MODS3.xsl
+                (Revision 1.98 2018/02/09, ProArc patch 16.884 2019/02/10)</recordInfoNote>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -2751,6 +2763,19 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </languageOfCataloging>
             </xsl:for-each>
         </recordInfo>
+    </xsl:template>
+
+    <xsl:template name="partDefinition">
+        <xsl:if test="@tag=773">
+            <!--xsl:for-each select="marc:subfield[@code='g']">
+                <text>
+                    <xsl:value-of select="."/>
+                </text>
+            </xsl:for-each-->
+            <xsl:for-each select="marc:subfield[@code='q']">
+                <xsl:call-template name="parsePartPage"/>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template name="displayForm">
@@ -3059,6 +3084,28 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </namePart>
             </xsl:otherwise>
         </xsl:choose>
+        <xsl:call-template name="termsOfAddress"/>
+        <xsl:call-template name="nameDate"/>
+    </xsl:template>
+    <xsl:template name="nameABCDE">
+        <!--Revision 1.98.proarc.13.689-->
+        <xsl:param name="nameString">
+            <xsl:call-template name="subfieldSelect">
+                <xsl:with-param name="codes">aq</xsl:with-param>
+            </xsl:call-template>
+        </xsl:param>
+                <namePart type ="given">
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:call-template name="subfieldSelect">
+                                <xsl:with-param name="codes">aq</xsl:with-param>
+                            </xsl:call-template>
+                        </xsl:with-param>
+                        <xsl:with-param name="punctuation">
+                            <xsl:text>,</xsl:text>
+                        </xsl:with-param>
+                    </xsl:call-template>
+                </namePart>
         <xsl:call-template name="termsOfAddress"/>
         <xsl:call-template name="nameDate"/>
     </xsl:template>
@@ -3382,6 +3429,20 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:choose>
         </xsl:attribute>
     </xsl:template>
+    <xsl:template name="parsePartPage">
+        <xsl:variable name="page">
+            <xsl:if test="contains(text(),'&lt;')">
+                <xsl:value-of select="substring-after(text(),'&lt;')"/>
+            </xsl:if>
+        </xsl:variable>
+        <xsl:if test="$page">
+            <extent>
+                <start>
+                    <xsl:value-of select="$page"/>
+                </start>
+            </extent>
+        </xsl:if>
+    </xsl:template>
     <xsl:template name="parsePart">
         <!-- assumes 773$q= 1:2:3<4
              with up to 3 levels and one optional start page
@@ -3453,11 +3514,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:variable name="page">
+        <!--xsl:variable name="page">
             <xsl:if test="contains(text(),'&lt;')">
                 <xsl:value-of select="substring-after(text(),'&lt;')"/>
             </xsl:if>
-        </xsl:variable>
+        </xsl:variable-->
         <xsl:if test="$level1">
             <detail level="1">
                 <number>
@@ -3479,13 +3540,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </number>
             </detail>
         </xsl:if>
-        <xsl:if test="$page">
+        <!--xsl:if test="$page">
             <extent unit="page">
                 <start>
                     <xsl:value-of select="$page"/>
                 </start>
             </extent>
-        </xsl:if>
+        </xsl:if-->
     </xsl:template>
     <xsl:template name="getLanguage">
         <xsl:param name="langString"/>
@@ -4383,7 +4444,23 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
     <!-- name 100 110 111 1.93      -->
 
     <xsl:template name="createNameFrom100">
-        <xsl:if test="@ind1='0' or @ind1='1'">
+        <xsl:if test="@ind1='0'">
+            <name type="personal">
+                <xsl:attribute name="usage">
+                    <xsl:text>primary</xsl:text>
+                </xsl:attribute>
+                <xsl:call-template name="xxx880"/>
+                <xsl:if test="//marc:datafield[@tag='240']">
+                    <xsl:attribute name="nameTitleGroup">
+                        <xsl:text>1</xsl:text>
+                    </xsl:attribute>
+                </xsl:if>
+                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
+                <xsl:call-template name="nameABCDE"/>
+                <xsl:call-template name="affiliation"/>
+                <xsl:call-template name="role"/>
+            </name>
+        </xsl:if><xsl:if test="@ind1='1'">
             <name type="personal">
                 <xsl:attribute name="usage">
                     <xsl:text>primary</xsl:text>
@@ -4459,7 +4536,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
     <!-- name 700 710 711 720 -->
 
     <xsl:template name="createNameFrom700">
-        <xsl:if test="@ind1='1'">
+        <xsl:if test="@ind1='0' or @ind1='1'">
             <name type="personal">
                 <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
                 <xsl:call-template name="xxx880"/>

@@ -25,6 +25,8 @@ import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectCopyMetadataAction;
@@ -340,11 +342,14 @@ public final class ModsBatchEditor extends AbstractDatastreamEditor implements B
             if (selection != null && selection.length > 0) {
                 String modelId = selection[0].getModelId();
                 String pageTypeMapId = null;
-                if ("model:page".equals(modelId)) {
+                if (NdkPlugin.MODEL_PAGE.equals(modelId) || NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
+                    pageTypeMapId = BundleName.MODS_PAGE_TYPES.getValueMapId();
+                }
+                /* if ("model:page".equals(modelId)) {
                     pageTypeMapId = BundleName.MODS_PAGE_TYPES.getValueMapId();
                 } else if ("model:oldprintpage".equals(modelId)) {
                     pageTypeMapId = BundleName.MODS_OLDPRINT_PAGE_TYPES.getValueMapId();
-                }
+                }*/
                 if (pageTypeMapId != null) {
                     editor.setPageTypeValueMapId(pageTypeMapId);
                 }

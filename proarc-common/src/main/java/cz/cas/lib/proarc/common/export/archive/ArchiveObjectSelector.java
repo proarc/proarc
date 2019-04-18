@@ -20,8 +20,10 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,9 +36,8 @@ import java.util.Set;
 public class ArchiveObjectSelector {
     
     private final DigitalObjectCrawler crawler;
-    private final List<List<DigitalObjectElement>> selectedObjects
-            = new ArrayList<List<DigitalObjectElement>>();
-    private final Set<String> processedPids = new HashSet<String>();
+    private final List<List<DigitalObjectElement>> selectedObjects = new ArrayList<>();
+    private final Set<String> processedPids = new HashSet<>();
 
     public ArchiveObjectSelector(DigitalObjectCrawler crawler) {
         this.crawler = crawler;
@@ -47,7 +48,7 @@ public class ArchiveObjectSelector {
      * @return the list.
      */
     public List<List<DigitalObjectElement>> getSelectedObjects() {
-        return selectedObjects;
+        return Collections.unmodifiableList(selectedObjects);
     }
 
     /**
@@ -61,7 +62,7 @@ public class ArchiveObjectSelector {
         }
     }
 
-    public void select(String pid) throws DigitalObjectException {
+    private void select(String pid) throws DigitalObjectException {
         DigitalObjectElement entry = crawler.getEntry(pid);
         List<DigitalObjectElement> entryPath = crawler.getPath(pid);
         entryPath.add(0, entry);
@@ -79,12 +80,13 @@ public class ArchiveObjectSelector {
                 || NdkPlugin.MODEL_CARTOGRAPHIC.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
                 || NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)
+                || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)
                 ) {
             addSelection(entryPath);
         } else if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICAL.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)
-                ) {
+                || NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(modelId)) {
             searchChildren(entry, entryPath);
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             DigitalObjectElement parent = entryPath.get(1);
@@ -113,7 +115,7 @@ public class ArchiveObjectSelector {
     private void searchChildren(DigitalObjectElement entry, List<DigitalObjectElement> entryPath) throws DigitalObjectException {
         List<DigitalObjectElement> children = crawler.getChildren(entry.getPid());
         for (DigitalObjectElement child : children) {
-            List<DigitalObjectElement> childPath = new ArrayList<DigitalObjectElement>(entryPath.size() + 1);
+            List<DigitalObjectElement> childPath = new ArrayList<>(entryPath.size() + 1);
             childPath.add(child);
             childPath.addAll(entryPath);
             searchPath(childPath);

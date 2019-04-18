@@ -80,7 +80,7 @@ DAMBAAIRAxEAPwCOhyq7nb1KVU0ClRBcreqi9QREMxWUXvY5da78LfwADwa//9k=
 <mods:mods xmlns:mods="http://www.loc.gov/mods/v3" xmlns:ns2="http://www.w3.org/1999/xlink" version="3.4">
   <mods:typeOfResource>text</mods:typeOfResource>
   <mods:identifier type="uuid">2ff2dd0c-d438-4d95-940f-690ee0f44a4a</mods:identifier>
-  <mods:part type="NormalPage">
+  <mods:part type="normalPage">
     <mods:detail type="pageIndex">
       <mods:number>5</mods:number>
     </mods:detail>
