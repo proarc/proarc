@@ -702,7 +702,7 @@ public class NdkMonographVolumeForm {
                 .setHint("Popis části, pokud je svazek částí souboru.")
                 // @ID, @type, @order, @displayLabel, @altRepGroup
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
-                .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("volume")
+                .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.TEXT)
                     .setHint("Hodnota bude vždy „volume“.")
                 .createField()) // type
                 // detail, type="detailDefinition"

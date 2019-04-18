@@ -155,8 +155,16 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
         }
         // mods/part@type=="volume"
         for (PartDefinition part : mods.getPart()) {
-            if (part.getType() == null) {
-                part.setType("volume");
+            if (!part.getDetail().isEmpty()) {
+                if (!part.getDetail().get(0).getCaption().isEmpty()) {
+                    if (part.getDetail().get(0).getCaption().get(0).getValue() != null) {
+                        part.setType("volume");
+                    }
+                }
+            }
+            if (!"volume".equals(part.getType())) {
+                mods.getPart().clear();
+                break;
             }
         }
         fillRecordInfo(mods);
