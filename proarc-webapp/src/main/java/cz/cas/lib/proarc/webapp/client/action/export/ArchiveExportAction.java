@@ -73,6 +73,12 @@ public class ArchiveExportAction extends ExportAction {
 //                MetaModelRecord model = dobj.getModel();
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
+                if (modelId != null && (modelId.contains("ndkmusicdocument")
+                        || modelId.contains("ndksong")
+                        || modelId.contains("ndktrack") || modelId.contains("ndkaudiopage"))) {
+                    accept = false;
+                    continue;
+                }
                 if (modelId != null && modelId.startsWith("model:ndk")) {
                     accept = true;
                     continue;

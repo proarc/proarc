@@ -17,30 +17,30 @@
 package cz.cas.lib.proarc.common.object.ndk;
 
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.PageView;
+import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
+import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.JsonValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
-import cz.cas.lib.proarc.common.object.DefaultDisseminationHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
-import cz.cas.lib.proarc.common.object.DisseminationHandler;
-import cz.cas.lib.proarc.common.object.HasDataHandler;
-import cz.cas.lib.proarc.common.object.HasDisseminationHandler;
-import cz.cas.lib.proarc.common.object.HasMetadataHandler;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.ValueMap;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
+import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
+import cz.cas.lib.proarc.common.object.*;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
+
 
 /**
  * The plugin to support NDK Audio digital objects.
@@ -48,7 +48,7 @@ import java.util.List;
  * @author Lukas Sykora
  */
 public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition>,
-        HasDisseminationHandler {
+        HasDisseminationHandler, HasSearchViewHandler {
 
     /**
      * The plugin ID.
@@ -58,6 +58,9 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     public static final String MODEL_MUSICDOCUMENT = "model:ndkmusicdocument";
     public static final String MODEL_SONG = "model:ndksong";
     public static final String MODEL_TRACK = "model:ndktrack";
+    public static final String MODEL_PAGE = "model:ndkaudiopage";
+
+    private SoundrecordingSearchViewHandler searchViewHandler;
 
     @Override
     public String getId() {
@@ -69,20 +72,20 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         // for now it is read only repository
         List<MetaModel> models = new ArrayList<>();
         models.add(new MetaModel(MODEL_MUSICDOCUMENT, true, null,
-                Arrays.asList(new ElementType("NDK Music Document", "en"), new ElementType("NDK Zvukový dokument", "cs")),
+                Arrays.asList(new ElementType("NDK Sound Collectiont", "en"), new ElementType("NDK Zvukový dokument", "cs")),
                 ModsConstants.NS, MODEL_MUSICDOCUMENT, this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
         ));
         models.add(new MetaModel(MODEL_SONG, null, null,
-                Arrays.asList(new ElementType("NDK Song", "en"), new ElementType("NDK Skladba", "cs")),
+                Arrays.asList(new ElementType("NDK Sound Recording", "en"), new ElementType("NDK Skladba", "cs")),
                 ModsConstants.NS, MODEL_SONG, this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
         ));
         models.add(new MetaModel(MODEL_TRACK, null, null,
-               Arrays.asList(new ElementType("NDK Track", "en"), new ElementType("NDK Část skladby", "cs")),
+               Arrays.asList(new ElementType("NDK Sound Part", "en"), new ElementType("NDK Část skladby", "cs")),
                ModsConstants.NS, MODEL_TRACK, this,
                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
@@ -99,14 +102,13 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.ATM)
         ));
         models.add(new MetaModel(
-                NdkPlugin.MODEL_PAGE, null, true,
-                Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
+                MODEL_PAGE, null, true,
+                Arrays.asList(new ElementType("Soundrecording Page", "en"), new ElementType("Zvukova nahravka", "cs")),
                 ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PAGE,
+                MODEL_PAGE,
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
-        ).setPriority(2)) // override K4 plugin
-        ;
+        ));
 
 
         return models;
@@ -126,7 +128,42 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
 
     @Override
     public MetadataHandler<ModsDefinition> createMetadataHandler(DigitalObjectHandler handler) {
-        return new NdkMetadataHandler(handler);
+        return new NdkMetadataHandler(handler) {
+
+            @Override
+            public PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException {
+                String modelId = handler.relations().getModel();
+                if (modelId.equals(MODEL_PAGE)) {
+                    ModsDefinition mods = editor.read();
+                    NdkAudioPageMapper mapper = new NdkAudioPageMapper();
+                    Page page = mapper.toJsonObject(mods, new Context(handler));
+                    PageViewItem item = new PageViewItem();
+                    item.setPageIndex(page.getIndex());
+                    item.setPageNumber(page.getNumber());
+                    item.setPageType(page.getType());
+                    item.setPageTypeLabel(NdkAudioPageMapper.getPageTypeLabel(item.getPageType(), locale));
+                    return item;
+                } else {
+                    throw new DigitalObjectException(fobject.getPid(), "Unexpected model for oldprint page: " + modelId);
+                }
+            }
+
+            @Override
+            public void setPage(PageViewItem page, String message) throws DigitalObjectException {
+                String modelId = handler.relations().getModel();
+                if (modelId.equals(MODEL_PAGE)) {
+                    DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
+                    metadata.setTimestamp(editor.getLastModified());
+                    NdkAudioPageMapper mapper = new NdkAudioPageMapper();
+                    ModsDefinition mods = mapper.createPage(
+                            page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
+                    metadata.setIgnoreValidation(true);
+                    write(modelId, mods, metadata, message, "update");
+                } else {
+                    throw new DigitalObjectException(fobject.getPid(), "Unexpected model for oldprint page: " + modelId);
+                }
+            }
+        };
     }
 
     public DisseminationHandler createDisseminationHandler(String dsId, DigitalObjectHandler handler) {
@@ -135,6 +172,26 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
             return new BornDigitalDisseminationHandler(ddh);
         } else {
             return ddh;
+        }
+    }
+
+    @Override
+    public SearchViewHandler createSearchViewHandler() {
+        if (searchViewHandler == null) {
+            searchViewHandler = new SoundrecordingSearchViewHandler();
+        }
+        return searchViewHandler;
+    }
+
+    private static class SoundrecordingSearchViewHandler implements SearchViewHandler {
+
+        @Override
+        public String getObjectLabel(Item item, Locale locale) {
+            if (MODEL_PAGE.equals(item.getModel())) {
+                return PageView.resolveFedoraObjectLabel(
+                        item.getLabel(), NdkAudioPageMapper.getPageTypeLabels(locale));
+            }
+            return item.getLabel();
         }
     }
 }

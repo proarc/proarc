@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintMapperFactory;
@@ -177,6 +179,7 @@ public abstract class NdkMapper {
                 put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
                 put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
                 put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
+                put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
             }
         };
 
