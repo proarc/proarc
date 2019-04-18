@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -43,6 +44,7 @@ import org.apache.commons.lang.Validate;
  */
 public class NdkExport {
 
+    private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     protected final RemoteStorage rstorage;
     protected final NdkExportOptions options;
 
@@ -129,13 +131,18 @@ public class NdkExport {
         RemoteObject fo = rstorage.find(pid);
         MetsContext dc = buildContext(fo, null, target);
         try {
-            List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
-            for (String pspPid : PSPs) {
-                dc.resetContext();
-                DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
-                MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
-                mElm.accept(createMetsVisitor());
-                // XXX use relative path to users folder?
+            MetsElement metsElement = getMetsElement(fo, dc, hierarchy);
+            if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
+                metsElement.accept(new MetsElementVisitor());
+            } else {
+                List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+                for (String pspPid : PSPs) {
+                    dc.resetContext();
+                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
+                    MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                    mElm.accept(createMetsVisitor());
+                    // XXX use relative path to users folder?
+                }
             }
             storeExportResult(dc, target.toURI().toASCIIString(), log);
             return result;
@@ -151,6 +158,12 @@ public class NdkExport {
 
     protected IMetsElementVisitor createMetsVisitor() {
         return new MetsElementVisitor();
+    }
+
+    private MetsElement getMetsElement(RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+        dc.resetContext();
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+         return MetsElement.getElement(dobj, null, dc, hierarchy);
     }
 
     protected MetsContext buildContext(RemoteObject fo, String packageId, File targetFolder) {

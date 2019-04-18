@@ -30,5 +30,8 @@ public final class DeviceResourceApi {
     public static final String DEVICE_ITEM_LABEL = "label";
     public static final String DEVICE_ITEM_DESCRIPTION = "description";
     public static final String DEVICE_ITEM_TIMESTAMP = "timestamp";
+    public static final String DEVICE_ITEM_AUDIO_TIMESTAMP = "audiotimestamp";
+    public static final String DEVICE_ITEM_MODEL = "model";
+    public static final String DEVICE_ITEM_PREMIS = "audiodescription";
 
 }

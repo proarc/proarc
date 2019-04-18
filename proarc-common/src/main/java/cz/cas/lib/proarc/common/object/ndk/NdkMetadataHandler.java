@@ -183,6 +183,18 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
             }
+            title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+                defaultMods.getName().addAll(titleMods.getName());
+                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
+                defaultMods.getNote().addAll(titleMods.getNote());
+                defaultMods.getSubject().addAll(titleMods.getSubject());
+            }
         } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
             // issue 241
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHVOLUME);
@@ -215,6 +227,28 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal);
         } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
             copyEArticle(parent, defaultMods);
+        } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+                defaultMods.getName().addAll(titleMods.getName());
+                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
+                defaultMods.getNote().addAll(titleMods.getNote());
+                defaultMods.getSubject().addAll(titleMods.getSubject());
+            }
+        } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
+            DigitalObjectHandler prent1 = handler.getParameterParent();
+                if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parent.relations().getModel())) {
+                    DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
+                    modsCopyMusicDocument(title, defaultMods);
+                } else if (NdkAudioPlugin.MODEL_SONG.equals(parent.relations().getModel())) {
+                    DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_SONG);
+                    modsCopyMusicDocument(title, defaultMods);
+            }
         }
 
         return defaultMods;
@@ -258,10 +292,20 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
     }
 
+    public void modsCopyMusicDocument(DigitalObjectHandler title, ModsDefinition defaultMods) throws DigitalObjectException {
+        if (title != null) {
+            ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+            defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+            defaultMods.getName().addAll(titleMods.getName());
+            defaultMods.getTypeOfResource().addAll(titleMods.getTypeOfResource());
+            defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
+        }
+    }
+
     private void setRules(ModsDefinition mods) {
         StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
         String rules = appConfiguration.getRules();
-        descriptionStandard.setValue("aacr".equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+        descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
         RecordInfoDefinition recordInfo = new RecordInfoDefinition();
         recordInfo.getDescriptionStandard().add(0, descriptionStandard);
         mods.getRecordInfo().add(0, recordInfo);

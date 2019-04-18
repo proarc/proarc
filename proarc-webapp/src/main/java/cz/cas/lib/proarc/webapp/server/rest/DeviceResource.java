@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gwt.user.client.Window;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -26,10 +27,13 @@ import cz.cas.lib.proarc.common.device.DeviceNotFoundException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.premis.PremisComplexType;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -50,6 +54,11 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.stream.StreamResult;
 
 /**
  * Resource to manage devices producing digital objects.
@@ -113,19 +122,29 @@ public class DeviceResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Device> getDevices(
             @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id
-            ) throws DeviceException {
+            ) throws DeviceException, JAXBException {
 
         boolean fetchDescription = id != null && !id.isEmpty();
         List<Device> result = devRepo.find(id, fetchDescription);
         return new SmartGwtResponse<Device>(result);
     }
 
+
+
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Device> newDevice() {
+    public SmartGwtResponse<Device> newDevice(
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_ID) String id,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_LABEL) String label,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_MODEL) String model,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_DESCRIPTION) String description,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_PREMIS) String premis,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
+            ) {
         try {
             String owner = session.getUser().getUserName();
-            Device device = devRepo.addDevice(owner, "?", session.asFedoraLog());
+            Device device = devRepo.addDevice(owner, model, "?", session.asFedoraLog());
             return new SmartGwtResponse<Device>(device);
         } catch (DeviceException ex) {
             throw new WebApplicationException(ex);
@@ -137,22 +156,30 @@ public class DeviceResource {
     public SmartGwtResponse<Device> updateDevice(
             @FormParam(DeviceResourceApi.DEVICE_ITEM_ID) String id,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_LABEL) String label,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_MODEL) String model,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_DESCRIPTION) String description,
-            @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp
-            ) throws IOException {
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_PREMIS) String premis,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
+            @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
+            ) throws IOException, DeviceException {
 
-        if (id == null || label == null || label.isEmpty()) {
+        if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing device!");
         }
         Device update = new Device();
         update.setId(id);
         update.setLabel(label);
+        update.setModel(model);
         if (description != null && !description.isEmpty()) {
             ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
             Mix mix = jsMapper.readValue(description, Mix.class);
             update.setDescription(mix);
         }
+        if (premis != null && !premis.isEmpty()) {
+            update.create(premis);
+        }
         update.setTimestamp(timestamp);
+        update.setAudioTimestamp(audiotimestamp);
         try {
             Device updated = devRepo.update(update, session.asFedoraLog());
             return new SmartGwtResponse<Device>(updated);

@@ -30,6 +30,8 @@ public class ConfigurationProfile {
     public static final String DEFAULT = "profile.default";
     /** The ID of the default archive import profile that is based on {@code proarc.cfg}. */
     public static final String DEFAULT_ARCHIVE_IMPORT = "profile.default_archive_import";
+    /** The ID of the default soundrecording import profile that is based on (@code proarc.cfg]. */
+    public static final String DEFAULT_SOUNDRECORDING_IMPORT = "profile.soundrecording_import";
     /** The ID of the default kramerius import profile that is based on (@code proarc.cfg]. */
     public static final String DEFAULT_KRAMERIUS_IMPORT = "profile.default_kramerius_import";
     /** The ID of the ndk monograph kramerius import profile that is based on (@code proarc.cfg]. */

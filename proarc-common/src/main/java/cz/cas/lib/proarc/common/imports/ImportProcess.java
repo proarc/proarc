@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.imports.audio.WaveImporter;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -238,7 +239,7 @@ public final class ImportProcess implements Runnable {
         return importConfig.getBatch();
     }
 
-    static File createTargetFolder(File importFolder) throws IOException {
+    public static File createTargetFolder(File importFolder) throws IOException {
         File folder = getTargetFolder(importFolder);
         if (!folder.mkdir()) {
             throw new IOException("Import folder already exists: " + folder);
@@ -276,15 +277,17 @@ public final class ImportProcess implements Runnable {
      *
      * @return unmodifiable list of image consumers
      */
-    static List<ImageImporter> getConsumers() {
+    public static List<ImageImporter> getConsumers() {
         if (consumerRegistery == null) {
 
             TiffImporter tiffImporter = new TiffImporter(ImportBatchManager.getInstance());
+            WaveImporter waveImporter = new WaveImporter(ImportBatchManager.getInstance());
 
             ImageImporter[] importers = {
                     tiffImporter,
                     new TiffAsJpegImporter(tiffImporter),
-                    new TiffAsJp2Importer(tiffImporter)
+                    new TiffAsJp2Importer(tiffImporter),
+                    waveImporter
             };
 
             consumerRegistery = Collections.unmodifiableList(Arrays.asList(importers));
@@ -318,7 +321,7 @@ public final class ImportProcess implements Runnable {
         private JhoveContext jhoveContext;
         private ImportHandler importer;
 
-        ImportOptions(File importFolder, String device,
+        public ImportOptions(File importFolder, String device,
                 boolean generateIndices, UserProfile username,
                 ImportProfile profile
                 ) {
@@ -358,6 +361,10 @@ public final class ImportProcess implements Runnable {
 
         public String getModel() {
             return profile.getModelId();
+        }
+
+        public String getAudioModel() {
+            return profile.getAudioModelID();
         }
 
         public int getConsumedFileCounter() {

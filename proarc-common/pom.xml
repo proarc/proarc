@@ -205,6 +205,11 @@
             <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-aes57</artifactId>
+            <version>3.5-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>

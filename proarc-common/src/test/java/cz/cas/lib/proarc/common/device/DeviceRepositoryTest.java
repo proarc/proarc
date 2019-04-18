@@ -83,9 +83,10 @@ public class DeviceRepositoryTest {
 //        fedora.cleanUp();
         String owner = "junit";
         String log = "testAddDevice_log";
+        String model = "proarc:device";
         Device expected = new Device();
         expected.setLabel("testAddDevice");
-        Device result = repository.addDevice(owner, expected.getLabel(), log);
+        Device result = repository.addDevice(owner, model, expected.getLabel(), log);
 
         // test add result
         expected.setId(result.getId());
@@ -146,7 +147,7 @@ public class DeviceRepositoryTest {
     }
 
     private Device addTestDevice(String label) throws Exception {
-        Device result = repository.addDevice("junit", label, "addDevice");
+        Device result = repository.addDevice("junit", "proarc:device", label, "addDevice");
         return result;
     }
 

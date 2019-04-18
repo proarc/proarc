@@ -45,6 +45,15 @@ public class InputUtils {
     public static final byte[] TIFF_LE_MAGIC_NUMBER =
             DatatypeConverter.parseHexBinary("49492A00");
 
+    public static final byte[] WAVE_MAGIC_NUMBER =
+            DatatypeConverter.parseHexBinary("52494646");
+
+    public static final byte[] MP3_ID3V1_MAGIC_NUMBER =
+            DatatypeConverter.parseHexBinary("FFFB");
+
+    public static final byte[] MP3_ID3V2_MAGIC_NUMBER =
+            DatatypeConverter.parseHexBinary("494433");
+
     private static final Logger LOG = Logger.getLogger(InputUtils.class.getName());
 
     
@@ -62,6 +71,14 @@ public class InputUtils {
 
     public static boolean isTiff(File f) throws IOException {
         return hasMagicNumber(f, TIFF_LE_MAGIC_NUMBER, TIFF_BE_MAGIC_NUMBER);
+    }
+
+    public static boolean isWave(File f) throws IOException {
+        return hasMagicNumber(f, WAVE_MAGIC_NUMBER);
+    }
+
+    public static boolean isMp3(File f) throws IOException {
+        return hasMagicNumber(f, MP3_ID3V1_MAGIC_NUMBER, MP3_ID3V2_MAGIC_NUMBER);
     }
 
     /**
