@@ -16,6 +16,7 @@
 
 package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMonographVolumeMapper;
 import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
@@ -36,8 +37,8 @@ public class NdkEMonographVolumeMapper extends NdkMonographVolumeMapper {
 
     @Override
     protected void addGenre(ModsDefinition mods) {
-        //  mods/genre="electronic volume"
-        MapperUtils.addGenre(mods, "electronic volume");
+        //  mods/genre="electronic_volume"
+        MapperUtils.addGenre(mods, Const.GENRE_EVOLUME);
         mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getDigitalOrigin).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
     }
 }

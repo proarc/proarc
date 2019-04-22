@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.export.mockrepository.MockFedoraClient;
 import cz.cas.lib.proarc.common.export.mockrepository.MockSearchView;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.info.Info;
@@ -226,6 +227,14 @@ public class MetsUtilsTest {
             assertEquals(testElement.getNumberOfFiles(),
                     mets.getFileSec().getFileGrp().size());
             assertEquals(testElement.getType(), mets.getTYPE());
+
+            String expectedFileName = "txt_" + packageId + "_0001";
+            String actualFileName = ((FileType)(mets.getStructMap().get(1).getDiv().getDiv().get(0).getFptr().get(0).getFILEID())).getID();
+            assertEquals(expectedFileName, actualFileName);
+
+            String expectedFileHref = "txt/" + expectedFileName + ".txt";
+            String actualFileHref = mets.getFileSec().getFileGrp().get(0).getFile().get(0).getFLocat().get(0).getHref();
+            assertEquals(expectedFileHref, actualFileHref);
         }
     }
 

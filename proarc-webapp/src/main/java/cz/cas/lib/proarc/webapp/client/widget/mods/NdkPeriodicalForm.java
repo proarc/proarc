@@ -48,25 +48,25 @@ public class NdkPeriodicalForm {
 //        modsFields.add(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(Field.TEXT).createField());
 //        modsFields.add(new FieldBuilder("version").setTitle("Verze").setMaxOccurrences(1).setType(Field.TEXT).setReadOnly(true).createField());
 
-        modsFields.add(titleInfo());
+        modsFields.add(titleInfo(true));
         modsFields.add(name());
         modsFields.add(typeOfResource());
-        modsFields.add(genre());
-        modsFields.add(originInfo());
-        modsFields.add(language());
-        modsFields.add(physicalDescription());
+        modsFields.add(genre(true));
+        modsFields.add(originInfo(true));
+        modsFields.add(language(true));
+        modsFields.add(physicalDescription(true));
         modsFields.add(abstracts());
         modsFields.add(note());
         modsFields.add(subject());
         modsFields.add(classification());
-        modsFields.add(identifier());
-        modsFields.add(location());
+        modsFields.add(identifier(true));
+        modsFields.add(location(true));
         modsFields.add(recordInfo());
         modsFields.add(relatedItem());
         return f;
     }
 
-    protected Field titleInfo() {
+    protected Field titleInfo(boolean required) {
         // titleInfo, titleInfoDefinition
         return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
                 .setHint("Název titulu periodika.<p>Pro plnění použít katalogizační záznam."
@@ -86,7 +86,7 @@ public class NdkPeriodicalForm {
                 .createField()) // type
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required)
                         .setHint("Názvová informace - název titulu periodika.")
                     .createField()) // value
                     // lang, String
@@ -212,7 +212,7 @@ public class NdkPeriodicalForm {
         .createField(); // typeOfResource
     }
 
-    protected Field genre() {
+    protected Field genre(boolean required) {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
         return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(10)
                 .setHint("Bližší údaje o typu dokumentu.<p>Pro periodikum hodnota “title”.")
@@ -220,11 +220,11 @@ public class NdkPeriodicalForm {
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // XXX auto fill with issue
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required).createField())
         .createField(); // genre
     }
 
-    protected Field originInfo() {
+    protected Field originInfo(boolean required) {
         // originInfo, originInfoDefinition
         return new FieldBuilder("originInfo").setTitle("Origin Info - M").setMaxOccurrences(10)
                 .setHint("Informace o původu předlohy."
@@ -362,7 +362,7 @@ public class NdkPeriodicalForm {
                 // edition
                 // issuance, issuanceDefinition, enum
                 // XXX autofill "continuing"
-                .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(required)
                     .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
                     .addMapValue("continuing", "continuing")
                     .addMapValue("serial", "serial")
@@ -383,7 +383,7 @@ public class NdkPeriodicalForm {
         .createField(); // originInfo
     }
 
-    protected Field language() {
+    protected Field language(boolean required) {
         // language, languageDefinition
         return new FieldBuilder("language").setTitle("Languages - M").setMaxOccurrences(10)
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
@@ -395,7 +395,7 @@ public class NdkPeriodicalForm {
                     // @authorityURI, @valueURI
                     // @authority, enum
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1)
-                        .setType(Field.SELECT).setRequired(true)
+                        .setType(Field.SELECT).setRequired(required)
                         .setHint("Použít hodnotu „iso639-2b“.")
                         .addMapValue("iso639-2b", "ISO 639-2B")
                         .addMapValue("rfc3066", "RFC 3066")
@@ -405,19 +405,19 @@ public class NdkPeriodicalForm {
                     .createField()) // authority
                     // type, codeOrText('code', 'text')
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
-                        .setType(Field.SELECT).setRequired(true)
+                        .setType(Field.SELECT).setRequired(required)
                         .setHint("Typ popisu.")
                         .addMapValue("code", "code")
                         .addMapValue("text", "text")
                     .createField()) // type
-                    .addField(NdkForms.createLangTermValue()
+                    .addField(NdkForms.createLangTermValue(required)
                     .createField()) // value
                 .createField()) // languageTerm
                 // scriptTerm
         .createField(); // language
     }
 
-    protected Field physicalDescription() {
+    protected Field physicalDescription(boolean required) {
         // physicalDescription, physicalDescriptionDefinition
         return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu zdroje/předlohy.")
@@ -436,7 +436,7 @@ public class NdkPeriodicalForm {
                         .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
-                        .setType(Field.COMBO).setRequired(true).setHint("form").setDefaultValue("print")
+                        .setType(Field.COMBO).setRequired(required).setHint("form").setDefaultValue("print")
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
                             + "<p>Odpovídá hodnotě v poli 008/23")
                         .addMapValue("braille", "braille")
@@ -638,7 +638,7 @@ public class NdkPeriodicalForm {
         .createField(); // classification
     }
 
-    protected Field identifier() {
+    protected Field identifier(boolean required) {
         // identifier, identifierDefinition, [0,*]
         return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
@@ -650,7 +650,7 @@ public class NdkPeriodicalForm {
                 //   script, xs:string
                 //   transliteration, xs:string
                 //   type, xs:string
-                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(required)
                     .setHint("UUID - M - vygeneruje dodavatel"
                             + "<br>čČNB - MA - převzít z katalogizačního záznamu z pole 015, podpole „a“, „z“"
                             + "<br>ISSN - MA - převzít z katalogizačního záznamu"
@@ -670,7 +670,7 @@ public class NdkPeriodicalForm {
                     .addMapValue("uuid", "UUID")
                 .createField())
                 // stringPlusLanguage/value
-                .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required).createField())
                 // identifierDefinition
                 //   displayLabel, xs:string
                 //   typeURI, xs:anyURI
@@ -683,7 +683,7 @@ public class NdkPeriodicalForm {
         .createField(); // identifier
     }
 
-    protected Field location() {
+    protected Field location(boolean required) {
         // location, locationDefinition
         return new FieldBuilder("location").setTitle("Location - MA").setMaxOccurrences(10)
                 .setHint("Údaje o uložení popisovaného dokumentu, např. signatura, místo uložení apod.")
@@ -698,7 +698,7 @@ public class NdkPeriodicalForm {
                         .createField())
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @xlink:simpleLink, @displayLabel, @type
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required)
                         .setHint("Údaje o instituci, kde je fyzicky uložen popisovaný dokument. Např. NK ČR."
                             + "<p>Nutno použít kontrolovaný slovník - sigly knihovnen (ABA001 atd.)"
                             + "<p>Odpovídá poli 910 $a v MARC21."
@@ -708,7 +708,7 @@ public class NdkPeriodicalForm {
                 // shelfLocator, stringPlusLanguage
                 .addField(new FieldBuilder("shelfLocator").setTitle("Shelf Locator - M").setMaxOccurrences(10)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required)
                         .setHint("Signatura nebo lokační údaje o daném konkrétním dokumentu, který slouží jako předloha.")
                     .createField()) // value
                 .createField()) // shelfLocator
@@ -840,19 +840,19 @@ public class NdkPeriodicalForm {
                         .setHint("Autoritní záznam příbuzné položky").setType(Field.TEXT).createField())
                 .addField(new FieldBuilder("otherTypeAuthURI").setTitle("Other Type Auth URI - O").setMaxOccurrences(1)
                         .setHint("Odkaz na autoritní záznam příbuzné položky").setType(Field.TEXT).createField())
-                .addField(titleInfo())
+                .addField(titleInfo(false))
                 .addField(name())
                 .addField(typeOfResource())
-                .addField(genre())
-                .addField(originInfo())
-                .addField(language())
-                .addField(physicalDescription())
+                .addField(genre(false))
+                .addField(originInfo(false))
+                .addField(language(false))
+                .addField(physicalDescription(false))
                 .addField(abstracts())
                 .addField(note())
                 .addField(subject())
                 .addField(classification())
-                .addField(identifier())
-                .addField(location())
+                .addField(identifier(false))
+                .addField(location(false))
                 .addField(recordInfo())
                 .createField();
     }

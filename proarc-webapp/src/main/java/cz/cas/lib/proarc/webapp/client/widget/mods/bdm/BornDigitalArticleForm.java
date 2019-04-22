@@ -55,6 +55,7 @@ public final class BornDigitalArticleForm {
         modsFields.add(genre());
         modsFields.add(titleInfo(f.getItemWidth()));
         modsFields.add(name());
+        modsFields.add(part());
         modsFields.add(language());
         modsFields.add(physicalDescription());
         modsFields.add(abstracts());

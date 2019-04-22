@@ -219,8 +219,25 @@ public final class MapperUtils {
     static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {
         for (StringPlusLanguage modsValue : modsValues) {
             // XXX lang?
-            addElementType(dcElms, modsValue.getValue(), null);
+            if (modsValue.getValue().length() > 2700) {
+                List<String> splitValue = splitAfter2700Characters(modsValue.getValue());
+                for (String value : splitValue) {
+                    addElementType(dcElms, value, null);
+                }
+            } else {
+                addElementType(dcElms, modsValue.getValue(), null);
+            }
         }
+    }
+
+    private static List<String> splitAfter2700Characters(String value) {
+        List<String> tmp = new ArrayList<>();
+        int index = 0;
+        while (index < value.length()) {
+            tmp.add(value.substring(index, Math.min(index + 2700, value.length())));
+            index += 2700;
+        }
+        return tmp;
     }
 
     static void addName(List<NameDefinition> modsNames, List<ElementType> dcElms) {
@@ -232,7 +249,11 @@ public final class MapperUtils {
             for (NamePartDefinition namePart : name.getNamePart()) {
                 String type = namePart.getType();
                 if (type == null) {
-                    sbName.append(namePart.getValue()).append(' ');
+                    if (namePart.getValue().contains(", ")) {
+                        sbName.append(namePart.getValue());
+                    } else {
+                        sbName.append(namePart.getValue()).append(' ');
+                    }
                 } else if ("family".equals(type)) {
                     sbFamily.append(namePart.getValue()).append(' ');
                 } else if ("given".equals(type)) {

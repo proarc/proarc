@@ -301,7 +301,7 @@ public class NdkMonographVolumeForm {
                         .addMapValue("temper", "temper")
                         .addMapValue("w3cdtf", "W3CDTF")
                     .createField()) // @encoding
-                    .addField(new FieldBuilder("point").setTitle("Point - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                    .addField(new FieldBuilder("point").setTitle("Point - MA").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
                         .setHint("Hodnoty „start“ resp. „end“ jen u údaje z pole 008, pro rozmezí dat.")
                         .addMapValue("start", "start")
                         .addMapValue("end", "end")
@@ -702,7 +702,7 @@ public class NdkMonographVolumeForm {
                 .setHint("Popis části, pokud je svazek částí souboru.")
                 // @ID, @type, @order, @displayLabel, @altRepGroup
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
-                .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("volume")
+                .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.TEXT)
                     .setHint("Hodnota bude vždy „volume“.")
                 .createField()) // type
                 // detail, type="detailDefinition"

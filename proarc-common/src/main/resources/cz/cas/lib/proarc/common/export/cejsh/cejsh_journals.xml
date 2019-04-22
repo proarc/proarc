@@ -517,4 +517,130 @@
         <depositorName></depositorName>
         <emailAddress></emailAddress>
     </journal>
+    <journal issn="0323-1267">
+        <title>Archeologické rozhledy : informační orgán archeologických a příbuzných vědeckých ústavů v Československu</title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher>Praha : Archeologický ústav AV ČR.</publisher>
+        <journalId>be52bb47-3cfa-11e1-a1ea-005056a60003</journalId>
+        <publisherId></publisherId>
+        <journalFrequency>QUARTERLY</journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName></depositorName>
+        <emailAddress></emailAddress>
+    </journal>
+    <journal issn="0044-8699">
+        <title></title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher></publisher>
+        <journalId>c5ff669c-3e3e-11e1-8f8f-005056a60003</journalId>
+        <publisherId></publisherId>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName></depositorName>
+        <emailAddress></emailAddress>
+    </journal>
+    <journal issn="1214-7249">
+        <title></title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher></publisher>
+        <journalId>e77e12f8-0674-44e4-9549-6850f1e21db1</journalId>
+        <publisherId></publisherId>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName></depositorName>
+        <emailAddress></emailAddress>
+    </journal>
+    <journal issn="2570-7485">
+        <title></title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher></publisher>
+        <journalId>c77695e6-257c-43f0-9d9b-5e75146faffe</journalId>
+        <publisherId></publisherId>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName></depositorName>
+        <emailAddress></emailAddress>
+    </journal>
+    <journal issn="0029-5302">
+        <title></title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher></publisher>
+        <journalId>844ee080-4c6a-11e1-997c-005056a60003</journalId>
+        <publisherId></publisherId>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName></depositorName>
+        <emailAddress></emailAddress>
+    </journal>
+    <journal issn="1335-0668">
+        <title></title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher></publisher>
+        <journalId>37f95e06-979a-4a3c-bd47-c4d24e227b1c</journalId>
+        <publisherId></publisherId>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName></depositorName>
+        <emailAddress></emailAddress>
+    </journal>
+    <journal issn="1211-7250">
+        <title></title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher></publisher>
+        <journalId>f69d5c26-71c4-11e1-adb1-005056a60003</journalId>
+        <publisherId></publisherId>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName></depositorName>
+        <emailAddress></emailAddress>
+    </journal>
+    <journal issn="1210-7050">
+        <title></title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher></publisher>
+        <journalId>24c96048-39de-4402-94bb-1f415a9a69cf</journalId>
+        <publisherId></publisherId>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName></depositorName>
+        <emailAddress></emailAddress>
+    </journal>
+    <journal issn="0032-7786">
+        <title></title>
+        <discipline></discipline>
+        <publisherAddress></publisherAddress>
+        <publisher></publisher>
+        <journalId></journalId>
+        <publisherId></publisherId>
+        <journalFrequency></journalFrequency>
+        <journalWWW></journalWWW>
+        <institutionWWW></institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName>Czech Botanical Society</depositorName>
+        <emailAddress>dlib@lib.cas.cz</emailAddress>
+    </journal>
 </cejsh>

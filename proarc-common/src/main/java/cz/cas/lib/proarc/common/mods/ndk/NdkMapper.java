@@ -20,8 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintMapperFactory;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -52,6 +55,7 @@ public abstract class NdkMapper {
     private String modelId;
 
     private static final NdkMapperFactory ndkMapperFactory = new NdkMapperFactory();
+    private static final OldPrintMapperFactory oldprintMapperFacotry = new OldPrintMapperFactory();
 
     /**
      * Gets a NDK mapper for the given model ID.
@@ -60,9 +64,16 @@ public abstract class NdkMapper {
      */
     @Deprecated
     public static NdkMapper get(String modelId) {
-        NdkMapper mapper = ndkMapperFactory.get(modelId);
+        NdkMapper mapper;
+        if (isNdkModel(modelId)) {
+            mapper = ndkMapperFactory.get(modelId);
+        } else mapper = oldprintMapperFacotry.get(modelId);
         mapper.modelId = modelId;
         return mapper;
+    }
+
+    private static boolean isNdkModel(String modelId) {
+         return modelId != null && modelId.contains("ndk");
     }
 
     public String getModelId() {
@@ -158,6 +169,7 @@ public abstract class NdkMapper {
             {
                 put(NdkPlugin.MODEL_ARTICLE, "model:internalpart");
                 put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
+                put(NdkPlugin.MODEL_CHAPTER, "model:internalpart");
                 put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
                 put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
                 put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monographunit");
@@ -167,6 +179,7 @@ public abstract class NdkMapper {
                 put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
                 put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
                 put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
+                put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
             }
         };
 

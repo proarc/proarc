@@ -48,7 +48,7 @@ public final class SimpleCejshArticleForm {
         modsFields.add(language());
         modsFields.add(identifier());
         modsFields.add(physicalDescription());
-//        modsFields.add(part());
+        modsFields.add(part());
         modsFields.add(titleInfo(f.getItemWidth()));
         modsFields.add(name());
         modsFields.add(abstracts());

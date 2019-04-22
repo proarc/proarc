@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.oldprint;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
@@ -44,9 +45,14 @@ import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
+import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
 /**
  * The plug-in to support old print digital objects.
@@ -87,6 +93,14 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     public static final String MODEL_CHAPTER = "model:oldprintchapter";
 
     private OldPrintSearchViewHandler searchViewHandler;
+
+    public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_VOLUME, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_SUPPLEMENT, Const.SUPPLEMENT);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHTITLE, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_CHAPTER, Const.CHAPTER);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_PAGE, Const.PAGE);
+    }});
 
     @Override
     public String getId() {
@@ -242,7 +256,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                     ModsDefinition mods = mapper.createPage(
                             page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
                     metadata.setIgnoreValidation(true);
-                    write(modelId, mods, metadata, message);
+                    write(modelId, mods, metadata, message, "update");
                 } else {
                     throw new DigitalObjectException(fobject.getPid(), "Unexpected model for oldprint page: " + modelId);
                 }

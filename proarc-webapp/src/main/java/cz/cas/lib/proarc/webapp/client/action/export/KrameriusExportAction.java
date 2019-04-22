@@ -73,8 +73,14 @@ public final class KrameriusExportAction extends ExportAction {
             DigitalObject dobj = DigitalObject.createOrNull(record);
             if (dobj != null) {
                 MetaModelRecord model = dobj.getModel();
-
-                if (model != null && ModsConstants.NS.equals(model.getMetadataFormat()) && !model.getId().startsWith("model:ndke")) {
+                String modelId = dobj.getModelId();
+                if (modelId != null && (modelId.contains("ndkmusicdocument")
+                        || modelId.contains("ndksong")
+                        || modelId.contains("ndktrack") || modelId.contains("ndkaudiopage"))) {
+                    accept = false;
+                    continue;
+                }
+               if (model != null && ModsConstants.NS.equals(model.getMetadataFormat()) && !model.getId().startsWith("model:ndke")) {
                     accept = true;
                     continue;
                 }

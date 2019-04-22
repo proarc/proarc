@@ -16,7 +16,25 @@
 
 package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPeriodicalIssueMapper;
+import cz.cas.lib.proarc.mods.GenreDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 
 public class NdkEPeriodicalIssueMapper extends NdkPeriodicalIssueMapper {
+
+    /**
+     * Updates missing required attribute and elements.
+     */
+    @Override
+    public void createMods(ModsDefinition mods, Context ctx) {
+        super.createMods(mods, ctx);
+    }
+
+    @Override
+    protected GenreDefinition addGenre(ModsDefinition mods) {
+        //  mods/genre="electronic_issue"
+        return MapperUtils.addGenre(mods, Const.GENRE_EISSUE);
+    }
 }

@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.device;
 
+import cz.cas.lib.proarc.audiopremis.AudioPremisUtils;
+import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
 
 /**
@@ -27,8 +29,41 @@ public class Device {
 
     private String id;
     private String label;
+    private String model;
     private Mix description;
+    private Mets audioDescription;
+    private Long audioTimestamp;
     private Long timestamp;
+
+    public Mets getAudioDescription() {
+        return audioDescription;
+    }
+
+    public void setAudioDescription(Mets audioDescription) {
+        this.audioDescription = audioDescription;
+    }
+
+
+    public void create(String audioDescription) throws DeviceException{
+        try {
+            AudioPremisUtils audioPremisUtils = new AudioPremisUtils(id, label, model, audioDescription);
+            audioPremisUtils.createAudioDescription(audioDescription);
+            this.audioDescription = audioPremisUtils.getMets();
+        } catch (Exception e) {
+            throw new DeviceException("Error while generating agent node in premis data", e);
+        }
+
+    }
+
+
+    public Long getAudioTimestamp() {
+        return audioTimestamp;
+    }
+
+    public void setAudioTimestamp(Long audioTimestamp) {
+        this.audioTimestamp = audioTimestamp;
+    }
+
 
     public Device() {
     }
@@ -65,10 +100,18 @@ public class Device {
         this.timestamp = timestamp;
     }
 
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
     @Override
     public String toString() {
         return "Device{" + "id=" + id + ", label=" + label
-                 + ", timestamp=" + timestamp+ ", description=" + description + '}';
+                 + ", timestamp=" + timestamp+ ", description=" + description + ", audiodescription=" + audioDescription + '}';
     }
 
 

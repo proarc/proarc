@@ -357,7 +357,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         @Override
         public boolean accept(ActionEvent event) {
             BatchRecord record = getSelectedBatch();
-            if (record != null && !record.isArchive()) {
+            if (record != null && !record.isArchive() && !record.isKrameirus()) {
                 return record.getState() == ImportBatchDataSource.State.LOADED;
             }
             return false;
@@ -414,7 +414,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         @Override
         public boolean accept(ActionEvent event) {
             BatchRecord batch = getSelectedBatch();
-            return batch != null && batch.getParentPid() != null && !batch.isArchive();
+            return batch != null && batch.getParentPid() != null && !batch.isArchive() && !batch.isKrameirus();
         }
 
         @Override

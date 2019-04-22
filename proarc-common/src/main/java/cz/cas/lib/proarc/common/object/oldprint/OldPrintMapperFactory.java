@@ -18,6 +18,10 @@ package cz.cas.lib.proarc.common.object.oldprint;
 
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * It is expected to handle MODS of old prints the same way like NDK.
@@ -26,21 +30,20 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
  */
 public class OldPrintMapperFactory extends NdkMapperFactory {
 
+    private static final Map<String, Supplier<NdkMapper>> mappers = new HashMap<>();
+
+    static {
+        mappers.put(OldPrintPlugin.MODEL_PAGE, OldPrintPageMapper::new);
+        mappers.put(OldPrintPlugin.MODEL_VOLUME, OldPrintVolumeMapper::new);
+        mappers.put(OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintSupplementMapper::new);
+        mappers.put(OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintMonographTitleMapper::new);
+        mappers.put(OldPrintPlugin.MODEL_CHAPTER, OldPrintChapterMapper::new);
+    }
+
     @Override
     public NdkMapper get(String modelId) {
-        if (OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
-            return new OldPrintPageMapper();
-        } else if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
-            return new OldPrintVolumeMapper();
-        } else if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
-            return new OldPrintSupplementMapper();
-        } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
-            return new OldPrintMonographTitleMapper();
-        } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
-            return new OldPrintChapterMapper();
-        } else {
-            throw new IllegalStateException("Unsupported model: " + modelId);
-        }
+        Optional<Supplier<NdkMapper>> ndkMapper = Optional.ofNullable(mappers.get(modelId));
+        return ndkMapper.map(s -> s.get()).orElseThrow(() -> new IllegalStateException("Unsupported model: " + modelId));
     }
 
 }

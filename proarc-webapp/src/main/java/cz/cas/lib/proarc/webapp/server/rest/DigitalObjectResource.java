@@ -935,9 +935,9 @@ public class DigitalObjectResource {
         dMetadata.setIgnoreValidation(ignoreValidation);
         try {
             if (isJsonData) {
-                mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog());
+                mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), "update");
             } else {
-                mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog());
+                mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), "update");
             }
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);

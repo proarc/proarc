@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.device;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
@@ -33,10 +34,15 @@ import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.mets.AmdSecType;
+import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import cz.cas.lib.proarc.premis.AgentComplexType;
+import cz.cas.lib.proarc.premis.PremisComplexType;
+import cz.cas.lib.proarc.premis.PremisUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,8 +50,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
+import org.w3c.dom.Element;
 
 /**
  * The repository of devices producing digital objects.
@@ -59,18 +73,28 @@ public final class DeviceRepository {
      */
     public static final String DESCRIPTION_DS_ID = "DESCRIPTION";
 
+    public static final String AUDIODESCRIPTION_DS_ID = "AUDIODESCRIPTION";
+
     /**
      * The default label of {@link #DESCRIPTION_DS_ID the description datastream}.
      */
     public static final String DESCRIPTION_DS_LABEL = "The device description";
 
+    public static final String AUDIO_DESCRIPTION_DS_LABEL = "The audio device description";
+
     /**
      * PID of the device model.
      */
     public static final String METAMODEL_ID = "proarc:device";
+    public static final String METAMODEL_AUDIODEVICE_ID = "proarc:audiodevice";
     private static final String DEVICE_ID_PREFIX = "device:";
 
+    public static final String METAMODEL_ID_LABEL = "Skener";
+    public static final String METAMODEL_AUDIODEVICE_ID_LABEL = "Audio linka";
+
     private final RemoteStorage remoteStorage;
+
+    private final Logger LOG = Logger.getLogger(DeviceRepository.class.getName());
 
     public DeviceRepository(RemoteStorage remoteStorage) {
         if (remoteStorage == null) {
@@ -87,11 +111,11 @@ public final class DeviceRepository {
      * @return the device
      * @throws DeviceException failure
      */
-    public Device addDevice(String owner, String label, String log) throws DeviceException {
+    public Device addDevice(String owner, String model, String label, String log) throws DeviceException {
         UUID uuid = UUID.randomUUID();
         String pid = DEVICE_ID_PREFIX + uuid.toString();
         try {
-            return addDevice(pid, owner, label, log);
+            return addDevice(pid, owner, model, label, log);
         } catch (DigitalObjectException ex) {
             throw new DeviceException(pid, ex);
         }
@@ -192,15 +216,35 @@ public final class DeviceRepository {
         try {
             RemoteObject robj = remoteStorage.find(id);
             XmlStreamEditor editor = getMixDescriptionEditor(robj);
+            XmlStreamEditor audioeditor = getPremisDescriptionEditor(robj);
             Source src = editor.read();
+            Source audiosrc = audioeditor.read();
+            Mets audiodesc;
+            PremisComplexType premis;
             Mix desc;
             if (src != null) {
                 desc = MixUtils.unmarshal(src, Mix.class);
             } else {
                 desc = new Mix();
             }
+            if (audiosrc != null) {
+
+                try {
+                    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
+                    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+                    audiodesc = (Mets)unmarshaller.unmarshal(audiosrc);
+                    audiodesc = repairNkComplexType(audiodesc);
+                } catch (JAXBException e) {
+                    LOG.log(Level.SEVERE, "Unable get Mets metadata");
+                    audiodesc = new Mets();
+                }
+            } else {
+                audiodesc = new Mets();
+            }
             device.setDescription(desc);
+            device.setAudioDescription(audiodesc);
             device.setTimestamp(editor.getLastModified());
+            device.setAudioTimestamp(audioeditor.getLastModified());
             return device;
         } catch (DigitalObjectNotFoundException ex) {
             return null;
@@ -219,11 +263,12 @@ public final class DeviceRepository {
     public Device update(Device update, String log) throws DeviceException {
         String id = update.getId();
         String label = update.getLabel();
+        String model = transformModel(update.getModel());
         checkDeviceId(id);
         try {
             RemoteObject robj = remoteStorage.find(id);
 
-            updateDc(robj, id, label, log);
+            updateDc(robj, id, model, label, log);
 
             XmlStreamEditor descriptionEditor = getMixDescriptionEditor(robj);
             Source oldDescSrc = descriptionEditor.read();
@@ -239,14 +284,38 @@ public final class DeviceRepository {
                 descriptionEditor.write(result, update.getTimestamp(), log);
             }
 
+            XmlStreamEditor audiodescriptionEditor = getPremisDescriptionEditor(robj);
+            Source oldAudioDescSrc = audiodescriptionEditor.read();
+            if (oldAudioDescSrc == null) {
+                update.setAudioTimestamp(audiodescriptionEditor.getLastModified());
+            }
+            if (oldAudioDescSrc != null && update.getAudioDescription() == null) {
+                update.setAudioDescription(new Mets());
+            }
+            if (update.getAudioDescription() != null) {
+                try {
+                    EditorResult result = audiodescriptionEditor.createResult();
+                    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
+                    Marshaller marshaller = jaxbContext.createMarshaller();
+                    marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+                    marshaller.marshal(update.getAudioDescription(), result);
+                    audiodescriptionEditor.write(result, update.getAudioTimestamp(), log);
+                } catch (JAXBException e) {
+                    LOG.log(Level.SEVERE, "Unable to unmarshall audiodescription");
+                }
+            }
+
             robj.setLabel(label);
             robj.flush();
 
             Device device = new Device();
             device.setId(id);
+            device.setModel(model);
             device.setLabel(label);
             device.setDescription(update.getDescription());
+            device.setAudioDescription(update.getAudioDescription());
             device.setTimestamp(descriptionEditor.getLastModified());
+            device.setAudioTimestamp(audiodescriptionEditor.getLastModified());
             return device;
         } catch (DigitalObjectConcurrentModificationException ex) {
             // XXX handle concurrency
@@ -256,15 +325,15 @@ public final class DeviceRepository {
         }
     }
 
-    private Device addDevice(String pid, String owner, String label, String log)
+    private Device addDevice(String pid, String owner, String model, String label, String log)
             throws DigitalObjectException {
 
         LocalObject lobject = new LocalStorage().create(pid);
         lobject.setLabel(label);
         lobject.setOwner(owner);
-        updateDc(lobject, pid, label, log);
+        updateDc(lobject, pid, model, label, log);
         RelationEditor relationEditor = new RelationEditor(lobject);
-        relationEditor.setModel(METAMODEL_ID);
+        relationEditor.setModel(model);
         relationEditor.write(relationEditor.getLastModified(), log);
         lobject.flush();
 
@@ -272,16 +341,19 @@ public final class DeviceRepository {
         Device device = new Device();
         device.setId(pid);
         device.setLabel(label);
+        device.setModel(model);
         return device;
     }
 
     private List<Device> findAllDevices() throws IOException, FedoraClientException {
         List<Item> items = remoteStorage.getSearch().findByModel(METAMODEL_ID);
+        items.addAll(remoteStorage.getSearch().findByModel(METAMODEL_AUDIODEVICE_ID));
         return objectAsDevice(items, null);
     }
 
     private List<Device> findDevice(String... pids) throws IOException, FedoraClientException {
         List<Item> items = remoteStorage.getSearch().findByModel(METAMODEL_ID);
+        items.addAll(remoteStorage.getSearch().findByModel(METAMODEL_AUDIODEVICE_ID));
         return objectAsDevice(items, new HashSet<String>(Arrays.asList(pids)));
     }
 
@@ -290,23 +362,40 @@ public final class DeviceRepository {
         for (Item item : items) {
             String label = item.getLabel();
             String pid = item.getPid();
+            String model = item.getModel();
             if (includes == null || includes.contains(pid)) {
                 Device device = new Device();
                 device.setId(pid);
                 device.setLabel(label);
+                device.setModel(transformModel(model));
                 devices.add(device);
             }
         }
         return devices;
     }
 
-    private void updateDc(FedoraObject robj, String id, String label, String log) throws DigitalObjectException {
+    private String transformModel(String model) {
+        if (model != null && !model.isEmpty()) {
+            if (METAMODEL_ID.equals(model)) {
+                return METAMODEL_ID_LABEL;
+            } else if (METAMODEL_AUDIODEVICE_ID.equals(model)) {
+                return METAMODEL_AUDIODEVICE_ID_LABEL;
+            } else if (METAMODEL_ID_LABEL.equals(model)) {
+                return METAMODEL_ID;
+            } else if (METAMODEL_AUDIODEVICE_ID_LABEL.equals(model)) {
+                return METAMODEL_AUDIODEVICE_ID;
+            }
+        }
+        return null;
+    }
+
+    private void updateDc(FedoraObject robj, String id, String model, String label, String log) throws DigitalObjectException {
         DcStreamEditor dcEditor = new DcStreamEditor(robj);
         DublinCoreRecord dcr = dcEditor.read();
         OaiDcType dc = new OaiDcType();
         dc.getTitles().add(new ElementType(label, null));
         dc.getIdentifiers().add(new ElementType(id, null));
-        dc.getTypes().add(new ElementType(METAMODEL_ID, null));
+        dc.getTypes().add(new ElementType(model, null));
         dcr.setDc(dc);
         dcEditor.write(dcr, log);
     }
@@ -329,6 +418,14 @@ public final class DeviceRepository {
         return editor;
     }
 
+    public static XmlStreamEditor getPremisDescriptionEditor(FedoraObject robj) {
+        DatastreamProfile dProfile = FoxmlUtils.managedProfile(
+                AUDIODESCRIPTION_DS_ID, PremisUtils.NS, AUDIO_DESCRIPTION_DS_LABEL);
+        XmlStreamEditor editor = robj.getEditor(dProfile);
+        return editor;
+    }
+
+
     /**
      * Gets a datastream editor for MIX format.
      *
@@ -343,4 +440,54 @@ public final class DeviceRepository {
         return getMixDescriptionEditor(robj);
     }
 
+    public Mets repairNkComplexType(Mets mets) {
+        for (AmdSecType amdSec : mets.getAmdSec()) {
+            AgentComplexType agent = null;
+            try {
+                agent = ((PremisComplexType) ((JAXBElement) amdSec.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue()).getAgent().get(0);
+            } catch (ClassCastException e) {
+                LOG.log(Level.SEVERE, "Can not get Premis Tupe from AmdSec");
+                return mets;
+            }
+            Element extension = (Element) agent.getAgentExtension().get(0).getAny().get(0);
+            agent.getAgentExtension().get(0).getAny().clear();
+            NkComplexType nk = new NkComplexType();
+            agent.getAgentExtension().get(0).getAny().add(nk);
+            String manufacturer = "";
+            String serialNumber = "";
+            String settings = "";
+
+            if (extension != null) {
+                try {
+                    if ("manufacturer".equals(extension.getFirstChild().getLocalName())) {
+                        manufacturer =  extension.getFirstChild().getFirstChild().getNodeValue();
+                    } else if ("serialNumber".equals(extension.getFirstChild().getLocalName())) {
+                        serialNumber = extension.getFirstChild().getFirstChild().getNodeValue();
+                    } else if ("settings".equals(extension.getFirstChild().getLocalName()))
+                        settings = extension.getFirstChild().getFirstChild().getNodeValue();
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
+                }
+                try {
+                    if ("serialNumber".equals(extension.getFirstChild().getNextSibling().getLocalName())) {
+                        serialNumber = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
+                    } else if ("settings".equals(extension.getFirstChild().getNextSibling().getLocalName()))
+                        settings = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
+                }
+                try {
+                    if ("settings".equals(extension.getFirstChild().getNextSibling().getNextSibling().getLocalName()))
+                        settings = extension.getFirstChild().getNextSibling().getNextSibling().getFirstChild().getNodeValue();
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
+                }
+            }
+            nk.setManufacturer(manufacturer);
+            nk.setSerialNumber(serialNumber);
+            nk.setSettings(settings);
+        }
+        return mets;
+
+    }
 }

@@ -25,13 +25,12 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
-
-import org.apache.commons.configuration.Configuration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.configuration.Configuration;
 
 /**
  * Checks RDA rules.
@@ -52,6 +51,7 @@ public class RdaRules {
                     NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_SHEETMUSIC,
                     OldPrintPlugin.MODEL_VOLUME)));
 
+    public static final String ERR_NDK_RDA_EMPTYEVENTTYPE ="Err_Ndk_Rda_EmptyEventType";
     public static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
     public static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
     public static final String ERR_NDK_DESCRIPTIONSTANDARD = "Err_Ndk_DescriptionStandard";
@@ -130,34 +130,74 @@ public class RdaRules {
         }
         List<StringPlusLanguagePlusAuthority> descriptionStandards = mods.getRecordInfo().get(0).getDescriptionStandard();
         String descriptionStandard = descriptionStandards.isEmpty() ? null : descriptionStandards.get(0).getValue();
-        if (descriptionStandard == null) {
-            StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
-            description.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
-            if (mods.getRecordInfo().get(0) == null) {
-                RecordInfoDefinition recordInfoDefinition = new RecordInfoDefinition();
-                recordInfoDefinition.getDescriptionStandard().add(description);
-                mods.getRecordInfo().add(recordInfoDefinition);
-            } else {
-                mods.getRecordInfo().get(0).getDescriptionStandard().add(description);
-            }
-        } else if (!ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA.equalsIgnoreCase(descriptionStandard)
-                && !ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(descriptionStandard)) {
+        if (isDescriptionStandardNull(descriptionStandard)) {
+            setDescriptionStandard(mods);
+        } else if (unallowedValueinDescriptionStandard(descriptionStandard)) {
             exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD);
         }
-        List<OriginInfoDefinition> originInfoDefinitions = mods.getOriginInfo();
-        List<PhysicalDescriptionDefinition> physicalDescriptions = mods.getPhysicalDescription();
         if (ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(descriptionStandard)) {
-            for (OriginInfoDefinition oi : originInfoDefinitions) {
-                if (oi.getEventType() != null) {
-                    exception.addValidation("RDA rules", ERR_NDK_AACR_EMPTYVALUE);
+            checkAACR(mods);
+        } else if (ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA.equalsIgnoreCase(descriptionStandard)) {
+            checkRDA(mods);
+        }
+    }
+
+    /** Check rules for descriptionStandard=RDA */
+    private void checkRDA(ModsDefinition mods) {
+        boolean fillEventType = false;      //true only when eventType="publication" or "production"
+        if (mods.getOriginInfo().size() == 0) {
+            fillEventType = true;
+        } else {
+            for (OriginInfoDefinition oi : mods.getOriginInfo()) {
+                if (ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(oi.getEventType())
+                        || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION.equals(oi.getEventType())) {
+                    fillEventType = true;
                 }
             }
-            for (PhysicalDescriptionDefinition pd : physicalDescriptions) {
-                String authority = pd.getForm().isEmpty() ? null : pd.getForm().get(0).getAuthority();
-                if ("rdamedia".equals(authority) || "rdacarrier".equals(authority)) {
-                    exception.addValidation("RDA rules", ERR_NDK_AACR_INVALIDVALUE);
-                }
+        }
+        if (!fillEventType) {
+            exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYEVENTTYPE);
+        }
+    }
+
+    /** Check rules for descriptionStandard=AACR */
+    private void checkAACR(ModsDefinition mods) {
+        for (OriginInfoDefinition oi : mods.getOriginInfo()) {
+            if (oi.getEventType() != null) {
+                exception.addValidation("RDA rules", ERR_NDK_AACR_EMPTYVALUE);
             }
+        }
+        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+            String authority = pd.getForm().isEmpty() ? null : pd.getForm().get(0).getAuthority();
+            if ("rdamedia".equals(authority) || "rdacarrier".equals(authority)) {
+                exception.addValidation("RDA rules", ERR_NDK_AACR_INVALIDVALUE);
+            }
+        }
+    }
+
+    /** Compare if descriptionStandard has only allowed value
+     *  Allowed value are RDA or AACR
+     */
+    private boolean unallowedValueinDescriptionStandard(String descriptionStandard) {
+        return !ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA.equalsIgnoreCase(descriptionStandard)
+                && !ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(descriptionStandard);
+    }
+
+    /** @return true when String is null, otherwise @return false */
+    private boolean isDescriptionStandardNull(String descriptionStandard) {
+        return descriptionStandard == null;
+    }
+
+    /** Sets value AACR in descriptionStandard */
+    private void setDescriptionStandard(ModsDefinition mods) {
+        StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
+        description.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
+        if (mods.getRecordInfo().get(0) == null) {
+            RecordInfoDefinition recordInfoDefinition = new RecordInfoDefinition();
+            recordInfoDefinition.getDescriptionStandard().add(description);
+            mods.getRecordInfo().add(recordInfoDefinition);
+        } else {
+            mods.getRecordInfo().get(0).getDescriptionStandard().add(description);
         }
     }
 

@@ -53,7 +53,7 @@ public class NdkExportAction extends ExportAction {
         boolean accept = false;
         if (selection != null && selection instanceof Record[]) {
             Record[] records = (Record[]) selection;
-            accept = acceptNdk(records);
+            accept = acceptRecord(records);
         }
         return accept;
     }
@@ -65,7 +65,7 @@ public class NdkExportAction extends ExportAction {
         askForExportOptions(pids);
     }
 
-    private boolean acceptNdk(Record[] records) {
+    protected boolean acceptRecord(Record[] records) {
         boolean accept = false;
         for (Record record : records) {
             DigitalObject dobj = DigitalObject.createOrNull(record);
@@ -74,7 +74,7 @@ public class NdkExportAction extends ExportAction {
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
                 // XXX hack; it needs support to query model/object for action availability
-                if (modelId != null && modelId.startsWith("model:ndk") && !modelId.startsWith("model:ndke")) {
+                if (isAcceptableModel(modelId)) {
                     accept = true;
                     continue;
                 }
@@ -85,12 +85,27 @@ public class NdkExportAction extends ExportAction {
         return accept;
     }
 
+    protected boolean isAcceptableModel(String modelId) {
+        return modelId != null && isNdkModel(modelId, false);
+    }
+
+
+    private boolean isNdkModel(String modelId, boolean withNdkEbornDocuments) {
+        if (modelId.startsWith("model:ndk")) {
+            if (withNdkEbornDocuments == true && modelId.startsWith("model:nkde")) {
+                return true;
+            } else if (withNdkEbornDocuments == false && !modelId.startsWith("model:ndke")) {
+                return true;
+            }
+        } return false;
+    }
+
     private void askForExportOptions(String[] pids) {
         if (pids == null || pids.length == 0) {
             return ;
         }
         Record export = new Record();
-        export.setAttribute(ExportResourceApi.NDK_PID_PARAM, pids);
+        setAttributes(export, pids);
 //        ExportOptionsWidget.showOptions(export, new Callback<Record, Void>() {
 //
 //            @Override
@@ -106,7 +121,11 @@ public class NdkExportAction extends ExportAction {
         exportOrValidate(export);
     }
 
-    private void exportOrValidate(final Record export) {
+    protected void setAttributes(Record export, String[] pids) {
+        export.setAttribute(ExportResourceApi.NDK_PID_PARAM, pids);
+    }
+
+    protected void exportOrValidate(final Record export) {
         DSRequest dsRequest = new DSRequest();
         //dsRequest.setPromptStyle(PromptStyle.DIALOG);
         //dsRequest.setPrompt(i18n.KrameriusExportAction_Add_Msg());

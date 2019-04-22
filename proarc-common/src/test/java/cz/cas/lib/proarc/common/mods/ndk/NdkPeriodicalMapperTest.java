@@ -34,9 +34,9 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -78,7 +78,7 @@ public class NdkPeriodicalMapperTest {
         assertEquals("text", mods.getTypeOfResource().get(0).getValue());
 
         assertEquals(1, mods.getGenre().size());
-        assertEquals("volume", mods.getGenre().get(0).getValue());
+        assertEquals("title", mods.getGenre().get(0).getValue());
 
         assertEquals(1, mods.getOriginInfo().size());
         assertEquals(1, mods.getOriginInfo().get(0).getIssuance().size());
@@ -113,7 +113,7 @@ public class NdkPeriodicalMapperTest {
         assertEquals("text", mods.getTypeOfResource().get(0).getValue());
 
         assertEquals(1, mods.getGenre().size());
-        assertEquals("volume", mods.getGenre().get(0).getValue());
+        assertEquals("title", mods.getGenre().get(0).getValue());
 
         assertEquals(1, mods.getOriginInfo().size());
         assertEquals(1, mods.getOriginInfo().get(0).getIssuance().size());

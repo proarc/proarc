@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
@@ -33,6 +33,15 @@ import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
+
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
 /**
  *
@@ -58,8 +67,7 @@ public class NdkChapterMapper extends NdkMapper {
                 }
             }
         }
-        // genre="picture"
-        addGenre(mods, "chapter");
+        addGenre(mods);
         addNameWithEtal(mods);
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
@@ -78,6 +86,11 @@ public class NdkChapterMapper extends NdkMapper {
         }
 
         fillRecordInfo(mods);
+    }
+
+    protected void addGenre(ModsDefinition mods) {
+        //  mods/genre="chapter"
+        MapperUtils.addGenre(mods, Const.GENRE_CHAPTER);
     }
 
     @Override
@@ -103,6 +116,7 @@ public class NdkChapterMapper extends NdkMapper {
                 addStringPlusLanguage(dc.getSubjects(), subjectName.getNamePart());
             }
         }
+        addElementType(dc.getTypes(), getDcType());
         addStringPlusLanguage(dc.getSubjects(), mods.getClassification());
         for (PartDefinition part : mods.getPart()) {
             for (ExtentDefinition extent : part.getExtent()) {

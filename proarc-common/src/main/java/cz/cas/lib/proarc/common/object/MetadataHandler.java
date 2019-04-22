@@ -38,7 +38,7 @@ public interface MetadataHandler<T> {
      * @param message log message
      * @throws DigitalObjectException failure
      */
-    void setMetadata(DescriptionMetadata<T> data, String message) throws DigitalObjectException;
+    void setMetadata(DescriptionMetadata<T> data, String message, String typeRecord) throws DigitalObjectException;
 
     /**
      * Sets new description metadata as JSON text.
@@ -49,7 +49,7 @@ public interface MetadataHandler<T> {
      * @param message log message
      * @throws DigitalObjectException failure
      */
-    void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException;
+    void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message, String typeRecord) throws DigitalObjectException;
 
     /**
      * Sets new description metadata as XML text.
@@ -60,7 +60,7 @@ public interface MetadataHandler<T> {
      * @param message log message
      * @throws DigitalObjectException failure
      */
-    void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException;
+    void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message, String typeRecord) throws DigitalObjectException;
 
     DescriptionMetadata<T> getMetadata() throws DigitalObjectException;
 

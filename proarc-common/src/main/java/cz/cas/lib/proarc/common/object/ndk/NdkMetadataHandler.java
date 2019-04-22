@@ -63,6 +63,7 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
@@ -94,7 +95,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
     public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
-    public static final String DEFAULT_PAGE_TYPE = "NormalPage";
+    public static final String DEFAULT_PAGE_TYPE = "normalPage";
 
     /**
      * The set of model IDs that should be checked for connected members.
@@ -130,13 +131,13 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     @Override
-    public void setMetadata(DescriptionMetadata<ModsDefinition> data, String message) throws DigitalObjectException {
+    public void setMetadata(DescriptionMetadata<ModsDefinition> data, String message, String typeRecord) throws DigitalObjectException {
         ModsDefinition mods = data.getData();
         String modelId = handler.relations().getModel();
         if (mods == null) {
             mods = createDefault(modelId);
         }
-        write(modelId, mods, data, message);
+        write(modelId, mods, data, message, typeRecord);
     }
 
     /**
@@ -182,6 +183,18 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
             }
+            title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+                defaultMods.getName().addAll(titleMods.getName());
+                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
+                defaultMods.getNote().addAll(titleMods.getNote());
+                defaultMods.getSubject().addAll(titleMods.getSubject());
+            }
         } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
             // issue 241
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHVOLUME);
@@ -199,15 +212,100 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
             }
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
+            // issue 124
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritLocation(defaultMods, titleMods.getLocation());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+            }
+            String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
+            String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
+            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal);
+        } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
+            copyEArticle(parent, defaultMods);
+        } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+                defaultMods.getName().addAll(titleMods.getName());
+                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
+                defaultMods.getNote().addAll(titleMods.getNote());
+                defaultMods.getSubject().addAll(titleMods.getSubject());
+            }
+        } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
+            DigitalObjectHandler prent1 = handler.getParameterParent();
+                if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parent.relations().getModel())) {
+                    DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
+                    modsCopyMusicDocument(title, defaultMods);
+                } else if (NdkAudioPlugin.MODEL_SONG.equals(parent.relations().getModel())) {
+                    DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_SONG);
+                    modsCopyMusicDocument(title, defaultMods);
+            }
         }
 
         return defaultMods;
     }
 
+    private void copyEArticle(DigitalObjectHandler parent, ModsDefinition defaultMods) throws DigitalObjectException {
+        // issue 859
+        RelatedItemDefinition relatedItem = new RelatedItemDefinition();
+        defaultMods.getRelatedItem().add(relatedItem);
+        DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
+        if (title != null) {
+            ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+            if (titleMods.getTitleInfo().size() != 0) {
+                relatedItem.getTitleInfo().add(titleMods.getTitleInfo().get(0));
+            }
+            relatedItem.getName().addAll(titleMods.getName());
+            copyIdentifier(relatedItem, titleMods, "issn");
+        }
+        DigitalObjectHandler issue = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICALISSUE);
+        if (issue != null) {
+            ModsDefinition issueMods = issue.<ModsDefinition>metadata().getMetadata().getData();
+            if (relatedItem.getTitleInfo().size() != 0
+                    && issueMods.getTitleInfo().size() != 0
+                    && issueMods.getTitleInfo().get(0).getPartNumber().size() != 0) {
+                relatedItem.getTitleInfo().get(0).getPartNumber().add(issueMods.getTitleInfo().get(0).getPartNumber().get(0));
+            }
+            copyIdentifier(relatedItem, issueMods, "uuid");
+        }
+    }
+
+    private void copyIdentifier(RelatedItemDefinition relatedItem, ModsDefinition mods, String key) {
+        List<IdentifierDefinition> identifiers = mods.getIdentifier();
+        if (key == null) {
+            return;
+        }
+        for (IdentifierDefinition identifier : identifiers) {
+            if (key.equals(identifier.getType())) {
+                relatedItem.getIdentifier().add(identifier);
+            }
+        }
+
+    }
+
+    public void modsCopyMusicDocument(DigitalObjectHandler title, ModsDefinition defaultMods) throws DigitalObjectException {
+        if (title != null) {
+            ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+            defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+            defaultMods.getName().addAll(titleMods.getName());
+            defaultMods.getTypeOfResource().addAll(titleMods.getTypeOfResource());
+            defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
+        }
+    }
+
     private void setRules(ModsDefinition mods) {
         StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
         String rules = appConfiguration.getRules();
-        descriptionStandard.setValue("aacr".equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+        descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
         RecordInfoDefinition recordInfo = new RecordInfoDefinition();
         recordInfo.getDescriptionStandard().add(0, descriptionStandard);
         mods.getRecordInfo().add(0, recordInfo);
@@ -313,7 +411,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     @Override
-    public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message) throws DigitalObjectException {
+    public void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message, String typeRecord) throws DigitalObjectException {
         String json = jsonData.getData();
         String modelId = handler.getModel().getPid();
         ModsDefinition mods;
@@ -330,11 +428,11 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 throw new DigitalObjectException(fobject.getPid(), null, ModsStreamEditor.DATASTREAM_ID, null, ex);
             }
         }
-        write(modelId, mods, jsonData, message);
+        write(modelId, mods, jsonData, message, typeRecord);
     }
 
     @Override
-    public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message) throws DigitalObjectException {
+    public void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message, String typeRecord) throws DigitalObjectException {
         ModsDefinition mods;
         String modelId = handler.getModel().getPid();
         if (xmlData.getData() != null) {
@@ -357,7 +455,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         } else {
             mods = createDefault(modelId);
         }
-        write(modelId, mods, xmlData, message);
+        write(modelId, mods, xmlData, message, typeRecord);
     }
 
     private void checkValidation(ValidationErrorHandler errHandler, DescriptionMetadata<String> xmlData)
@@ -443,7 +541,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             ModsDefinition mods = mapper.createPage(
                     page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
             metadata.setIgnoreValidation(true);
-            write(modelId, mods, metadata, message);
+            write(modelId, mods, metadata, message, "update");
         } else {
             throw new DigitalObjectException(fobject.getPid(), "Unexpected model for NDK page: " + modelId);
         }
@@ -530,7 +628,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     protected void write(String modelId, ModsDefinition mods,
-            DescriptionMetadata<?> options, String message) throws DigitalObjectException {
+            DescriptionMetadata<?> options, String message, String typeRecord) throws DigitalObjectException {
         ModsDefinition oldMods = null;
         long timestamp = options.getTimestamp();
         if (timestamp < 0) {
@@ -540,7 +638,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (timestamp > 0) {
             oldMods = editor.read();
         }
-        checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
+        if (!"new".equals(typeRecord)) {
+            checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
+        }
         NdkMapper mapper = mapperFactory.get(modelId);
         mapper.setModelId(modelId);
         Context context = new Context(handler);

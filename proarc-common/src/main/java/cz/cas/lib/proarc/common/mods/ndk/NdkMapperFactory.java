@@ -46,7 +46,7 @@ public class NdkMapperFactory {
         mappers.put(ModsCutomEditorType.EDITOR_PAGE, NdkPageMapper::new);
         mappers.put(NdkPlugin.MODEL_NDK_PAGE, NdkPageMapper::new);
         mappers.put(NdkPlugin.MODEL_PERIODICAL, NdkPeriodicalMapper::new);
-        mappers.put(NdkPlugin.MODEL_PERIODICALVOLUME, NdkPeriodicalMapper::new);
+        mappers.put(NdkPlugin.MODEL_PERIODICALVOLUME, NdkPeriodicalVolumeMapper::new);
         mappers.put(NdkPlugin.MODEL_PERIODICALISSUE, NdkPeriodicalIssueMapper::new);
         mappers.put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPeriodicalSupplementMapper::new);
         mappers.put(NdkPlugin.MODEL_ARTICLE, NdkArticleMapper::new);
@@ -57,9 +57,9 @@ public class NdkMapperFactory {
         mappers.put(NdkPlugin.MODEL_CHAPTER, NdkChapterMapper::new);
         mappers.put(NdkPlugin.MODEL_CARTOGRAPHIC, NdkCartographicMapper::new);
         mappers.put(NdkPlugin.MODEL_SHEETMUSIC, NdkSheetMusicMapper::new);
-        mappers.put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkMusicDocumentMapper::new);
-        mappers.put(NdkAudioPlugin.MODEL_SONG, NdkSongMapper::new);
-        mappers.put(NdkAudioPlugin.MODEL_TRACK, NdkTrackMapper::new);
+        mappers.put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkSoundCollectionMapper::new);
+        mappers.put(NdkAudioPlugin.MODEL_SONG, NdkSoundRecordingMapper::new);
+        mappers.put(NdkAudioPlugin.MODEL_TRACK, NdkSoundPartMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEMonographVolumeMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEMonographTitleMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_ECHAPTER, NdkEChapterMapper::new);
