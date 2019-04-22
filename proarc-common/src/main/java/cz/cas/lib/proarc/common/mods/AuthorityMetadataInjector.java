@@ -40,6 +40,6 @@ public class AuthorityMetadataInjector implements MetadataInjector {
         DescriptionMetadata<ModsDefinition> metadata = metadataHandler.getMetadata();
         metadata.getData().getName().addAll(authority.getData().getName());
         metadata.setTimestamp(-1);
-        metadataHandler.setMetadata(metadata, "authority added");
+        metadataHandler.setMetadata(metadata, "authority added", "update");
     }
 }

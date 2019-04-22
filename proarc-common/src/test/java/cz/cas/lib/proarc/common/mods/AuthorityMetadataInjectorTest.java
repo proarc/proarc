@@ -71,7 +71,7 @@ public class AuthorityMetadataInjectorTest {
 
         new Verifications() {{
             DescriptionMetadata<ModsDefinition> metadata;
-            metadataHandler.setMetadata(metadata = withCapture(), anyString); minTimes=0;
+            metadataHandler.setMetadata(metadata = withCapture(), anyString, "update"); minTimes=0;
             assertNotNull(metadata.getData());
             ModsDefinition mods = metadata.getData();
             assertEquals("", 6, mods.getName().size());
