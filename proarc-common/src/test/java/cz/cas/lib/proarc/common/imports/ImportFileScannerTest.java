@@ -186,6 +186,30 @@ public class ImportFileScannerTest {
         assertArrayEquals(new Object[] {f2}, asFiles(fs2.getFiles()));
     }
 
+    @Test
+    public void testRepairFilename() throws Exception {
+        File co1 = tmpFolder.newFile("CO_007.ext1");
+        File co2 = tmpFolder.newFile("CO_007.ext2");
+        File co3 = tmpFolder.newFile("CO_007.ext3");
+        File audio1 = tmpFolder.newFile("MCA_007.ext1");
+        File audio2 = tmpFolder.newFile("SA_007.ext2");
+        File audio3 = tmpFolder.newFile("uca_007.ext3");
+        ImportFileScanner instance = new ImportFileScanner();
+        List<File> files = instance.findDigitalContent(tmpFolder.getRoot());
+        assertEquals(6, files.size());
+        List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
+        assertNotNull(fileSets);
+        assertEquals(2, fileSets.size());
+
+        FileSet co = fileSets.get(0);
+        assertEquals("CO_007", co.getName());
+        assertArrayEquals(new Object[] {co1, co2, co3}, asFiles(co.getFiles()));
+
+        FileSet audio = fileSets.get(1);
+        assertEquals("SA_007", audio.getName());
+        assertArrayEquals(new Object[] {audio1, audio2, audio3}, asFiles(audio.getFiles()));
+    }
+
     private static File[] asFiles(List<FileEntry> entries) {
         if (entries == null) {
             return null;

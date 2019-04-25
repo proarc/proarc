@@ -20,6 +20,9 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.export.archive.ArchiveImport;
+import cz.cas.lib.proarc.common.imports.audio.SoundRecordingImport;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.imports.kramerius.FileReader;
 import cz.cas.lib.proarc.common.imports.kramerius.KrameriusImport;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
@@ -40,6 +43,7 @@ public final class ImportProfile {
 
     public static final String ALTO_SUFFIX = "import.alto.file.suffix";
     public static final String MODEL_ID = "import.page.modelId";
+    public static final String MODEL_AUDIO_ID="import.ndkaudiopage.modelId";
     public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
     public static final String NDK_ARCHIVAL_SUFFIX = "import.ndk_archival.file.suffix";
     public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
@@ -60,6 +64,8 @@ public final class ImportProfile {
     public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
     public static final String OCR_GEN_PROCESSOR = "import.ocr_generator.processor";
     public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
+    public static final String NDK_ARCHOVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
+    public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
 
 
     private final Configuration config;
@@ -79,6 +85,23 @@ public final class ImportProfile {
     }
 
     public ImportHandler createImporter() {
+        switch(getProfileId()) {
+            case ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT:
+                return new ArchiveImport();
+            case ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.K4_MAP);
+            case ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.NDK_MONOGRAPH_MAP);
+            case ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.NDK_PERIODICAL_MAP);
+            case ConfigurationProfile.STT_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.STT_MAP);
+            case ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT:
+                return new SoundRecordingImport();
+            default:
+                return new FileSetImport();
+        }
+        /*
         if (ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(getProfileId())) {
             return new ArchiveImport();
         } else if(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT.equals(getProfileId())) {
@@ -86,10 +109,16 @@ public final class ImportProfile {
         } else {
             return new FileSetImport();
         }
+        */
     }
 
     public String getModelId() {
         String val = config.getString(MODEL_ID, NdkPlugin.MODEL_PAGE);
+        return val;
+    }
+
+    public String getAudioModelID() {
+        String val = config.getString(MODEL_AUDIO_ID, NdkAudioPlugin.MODEL_PAGE);
         return val;
     }
 
@@ -128,8 +157,18 @@ public final class ImportProfile {
         return suffix.toLowerCase();
     }
 
+    public String getNdkArchivalAudioFileSuffix() {
+        String suffix = config.getString(NDK_ARCHOVAL_AUDIO_SUFFIX, ".ac.wav");
+        return suffix.toLowerCase();
+    }
+
     public String getNdkUserFileSuffix() {
         String suffix = config.getString(NDK_USER_SUFFIX, ".uc.jp2");
+        return suffix.toLowerCase();
+    }
+
+    public String getNdkUserAudioFileSuffix() {
+        String suffix = config.getString(NDK_USER_AUDIO_SUFFIX, ".uc.mp3");
         return suffix.toLowerCase();
     }
 

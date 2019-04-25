@@ -5,11 +5,28 @@
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+    <dependencies>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-mets</artifactId>
+            <version>3.5-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-mets</artifactId>
+            <version>3.5-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cas.lib.proarc</groupId>
+            <artifactId>proarc-mets</artifactId>
+            <version>3.5-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>3.5.7</version>
+        <version>3.5.8</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

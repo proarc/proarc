@@ -224,7 +224,7 @@ public final class FedoraImport {
         if (lobj.isRemoteCopy()) {
             RemoteObject rObj = fedora.find(item.getPid());
             RelationEditor localRelEditor = new RelationEditor(lobj);
-            if (!DeviceRepository.METAMODEL_ID.equals(localRelEditor.getModel())) {
+            if (!DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(localRelEditor.getModel()) || !DeviceRepository.METAMODEL_ID.equals(localRelEditor.getModel())) {
                 List<String> members = localRelEditor.getMembers();
                 RelationEditor remoteRelEditor = new RelationEditor(rObj);
                 List<String> oldMembers = remoteRelEditor.getMembers();

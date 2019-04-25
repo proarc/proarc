@@ -56,6 +56,7 @@ public final class FedoraStorageInitializer {
         ArrayList<String> modelPids = new ArrayList<String>();
         modelPids.add("model:proarcobject");
         modelPids.add("proarc:device");
+        modelPids.add("proarc:audiodevice");
         modelPids.add("proarc:group");
         modelPids.add("proarc:user");
         for (MetaModel model : models) {

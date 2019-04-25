@@ -35,6 +35,11 @@ import java.util.List;
 public class KrameriusImport implements ImportHandler {
 
     private ImportSession isession;
+    private String type;
+
+    public KrameriusImport(String type) {
+        this.type = type;
+    }
 
     @Override
     public boolean isImportable(File folder) {
@@ -84,7 +89,7 @@ public class KrameriusImport implements ImportHandler {
 
     private void consumeKrameriusFile(File file, ImportOptions ctx, int index) {
         File targetFolder = ctx.getTargetFolder();
-        FileReader reader = new FileReader(targetFolder, isession);
+        FileReader reader = new FileReader(targetFolder, isession, type);
         reader.read(file, ctx, index);
     }
 

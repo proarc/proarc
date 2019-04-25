@@ -132,6 +132,7 @@ public final class ImportFileScanner {
         TreeMap<String, FileSet> items = new TreeMap<String, FileSet>(createCzechCollator());
         for (File file : files) {
             String filename = getName(file);
+            filename = repairFilename(filename);
             FileSet itemFiles = items.get(filename);
             if (itemFiles == null) {
                 itemFiles = new FileSet(filename);
@@ -140,6 +141,16 @@ public final class ImportFileScanner {
             itemFiles.getFiles().add(new FileEntry(file));
         }
         return new ArrayList<FileSet>(items.values());
+    }
+
+    private static String repairFilename(String filename) {
+        if (filename.startsWith("mca_") || filename.startsWith("MCA_") ||
+                filename.startsWith("uca_") || filename.startsWith("UCA_")) {
+            return  "SA_" + filename.substring(4);
+        } else if (filename.startsWith("sa_") || filename.startsWith("SA_")) {
+            return "SA_" + filename.substring(3);
+        }
+        return filename;
     }
 
     static String getName(File f) {

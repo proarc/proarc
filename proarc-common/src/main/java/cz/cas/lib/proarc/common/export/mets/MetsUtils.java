@@ -555,6 +555,45 @@ public class MetsUtils {
 
     /**
      *
+     * Inits the audio file groups in mets
+     *
+     * @param mets
+     * @return
+     */
+    public static HashMap<String, FileGrp> initAudioFileGroups() {
+        return initAudioFileGroups(null);
+    }
+
+    /**
+     *
+     * Inits the audio file groups in mets
+     *
+     * @param mets
+     * @return
+     */
+    public static HashMap<String, FileGrp> initAudioFileGroups(HashMap<String, FileGrp> fileGrpMap) {
+        if (fileGrpMap == null) {
+            fileGrpMap = initFileGroups();
+        }
+        FileGrp MCaudioGRP = new FileGrp();
+        MCaudioGRP.setID(Const.AUDIO_MC_GRP_ID);
+        MCaudioGRP.setUSE("master");
+
+        FileGrp UCaudioGrp = new FileGrp();
+        UCaudioGrp.setID(Const.AUDIO_UC_GRP_ID);
+        UCaudioGrp.setUSE("user");
+
+        FileGrp SAaudioGrp = new FileGrp();
+        SAaudioGrp.setID(Const.AUDIO_RAW_GRP_ID);
+        SAaudioGrp.setUSE("raw");
+
+        fileGrpMap.put(Const.AUDIO_RAW_GRP_ID, SAaudioGrp);
+        fileGrpMap.put(Const.AUDIO_MC_GRP_ID, MCaudioGRP);
+        fileGrpMap.put(Const.AUDIO_UC_GRP_ID, UCaudioGrp);
+        return fileGrpMap;
+    }
+    /**
+     *
      * Reads and unmarshalls Digital Object
      *
      * @param path

@@ -59,7 +59,7 @@ public class ImportBatchManager {
     private static final Logger LOG = Logger.getLogger(ImportBatchManager.class.getName());
     private static ImportBatchManager INSTANCE;
     public static final String ROOT_ITEM_PID = "proarc:root_item";
-    static final String ROOT_ITEM_FILENAME = ".proarc_root.foxml";
+    public static final String ROOT_ITEM_FILENAME = ".proarc_root.foxml";
 
     private AppConfiguration appConfig;
     private final DaoFactory daos;
@@ -82,7 +82,7 @@ public class ImportBatchManager {
     }
 
     /** package private for unit tests */
-    ImportBatchManager(AppConfiguration appConfig, DaoFactory daos) {
+    public ImportBatchManager(AppConfiguration appConfig, DaoFactory daos) {
         if (appConfig == null) {
             throw new NullPointerException("appConfig");
         }
@@ -483,7 +483,7 @@ public class ImportBatchManager {
         return result;
     }
 
-    boolean addChildRelation(Batch batch, String parentPid, String childPid) throws DigitalObjectException {
+    public boolean addChildRelation(Batch batch, String parentPid, String childPid) throws DigitalObjectException {
         if (batch == null) {
             throw new NullPointerException("batch");
         }
