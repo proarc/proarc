@@ -9,17 +9,17 @@
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-mets</artifactId>
-            <version>3.5-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-mets</artifactId>
-            <version>3.5-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-mets</artifactId>
-            <version>3.5-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
