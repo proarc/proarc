@@ -45,6 +45,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -101,6 +102,7 @@ public class NdkPeriodicalIssueMapper extends NdkMapper {
                 break;
             }
         }
+        fillAbstract(mods);
     }
 
     protected GenreDefinition addGenre(ModsDefinition mods) {

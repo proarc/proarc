@@ -49,6 +49,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
@@ -147,6 +148,7 @@ public class NdkCartographicMapper extends RdaNdkMapper {
                 part.setType("volume");
             }
         }
+        fillAbstract(mods);
         fillRecordInfo(mods);
     }
 
