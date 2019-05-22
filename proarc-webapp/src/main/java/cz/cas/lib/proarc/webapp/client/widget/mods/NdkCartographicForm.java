@@ -427,7 +427,7 @@ public final class NdkCartographicForm {
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA).setLength(229)
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA).setLength(2700)
                     .setHint("Shrnutí obsahu jako celku. Odpovídá poli 520 MARC21")
                 .createField()) // value
         .createField()); // abstract
