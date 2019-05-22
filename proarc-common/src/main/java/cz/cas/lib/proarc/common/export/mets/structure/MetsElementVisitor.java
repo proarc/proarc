@@ -1680,7 +1680,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
         } else {
             file.mkdir();
-            createDirectoryStructure((IMetsElement) metsElement.getMetsContext());
+            createDirectoryStructure(metsElement);
             return file;
         }
     }
