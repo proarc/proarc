@@ -39,6 +39,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -84,7 +85,7 @@ public class NdkChapterMapper extends NdkMapper {
         for (ClassificationDefinition classification : classifications) {
             repairAuthorityInClassification(classification);
         }
-
+        fillAbstract(mods);
         fillRecordInfo(mods);
     }
 

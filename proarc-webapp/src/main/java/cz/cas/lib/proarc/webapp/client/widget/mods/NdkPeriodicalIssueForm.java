@@ -462,7 +462,7 @@ public class NdkPeriodicalIssueForm {
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA).setLength(2700)
                     .setHint("Shrnutí obsahu dokumentu. Zvláště pro ročenky, zvláštní vydání a tematická čísla."
                         + "<p>Plnit pouze v případech, že se liší od abstraktu na úrovni titulu."
                         + "<p>Odpovídá hodnotě 520 MARC21.")
