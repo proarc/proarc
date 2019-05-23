@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 
 /**
  *
@@ -35,6 +36,7 @@ public class NdkMonographTitleMapper extends NdkMapper {
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
         addGenre(mods);
+        fillAbstract(mods);
     }
 
 

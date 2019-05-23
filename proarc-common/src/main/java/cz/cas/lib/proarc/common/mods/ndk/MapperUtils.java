@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.mods.AbstractDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -214,6 +215,25 @@ public final class MapperUtils {
             recordInfo.getRecordInfoNote().add(note);
             recordInfo.getRecordOrigin().get(0).setValue("machine generated");
         }
+    }
+
+    static void fillAbstract(ModsDefinition mods) {
+        List<AbstractDefinition> abstracts = mods.getAbstract();
+        List<AbstractDefinition> newAbstract = new ArrayList<>();
+        for (AbstractDefinition abs : abstracts) {
+            if (abs.getValue().length() > 2700) {
+                List<String> splitedValues = splitAfter2700Characters(abs.getValue());
+                for (String value : splitedValues) {
+                    AbstractDefinition abstractDefinition = new AbstractDefinition();
+                    abstractDefinition.setValue(value);
+                    newAbstract.add(abstractDefinition);
+                }
+            } else {
+                newAbstract.add(abs);
+            }
+        }
+        mods.getAbstract().clear();
+        mods.getAbstract().addAll(newAbstract);
     }
 
     static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {

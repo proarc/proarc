@@ -249,7 +249,7 @@ public final class NdkPictureForm {
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA).setLength(2700)
                     .setHint("Shrnutí obsahu vnitřní části.")
                 .createField()) // value
         .createField()); // abstract
