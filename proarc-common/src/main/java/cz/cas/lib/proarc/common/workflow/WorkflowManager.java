@@ -280,24 +280,30 @@ public class WorkflowManager {
             pm.setField001(view.getField001());
             String newMetadata = view.getMetadata();
             String oldMetadata = pm.getMetadata();
-            if (newMetadata == null ? oldMetadata != null : !newMetadata.equals(oldMetadata)) {
-                PhysicalMaterial t = new PhysicalMaterialBuilder().setMetadata(newMetadata).build();
-                pm.setMetadata(t.getMetadata());
-                pm.setLabel(t.getLabel());
-                jobLabel = pm.getLabel();
-            }
+
             pm.setRdczId(view.getRdczId());
             pm.setSource(view.getSource());
             pm.setSignature(view.getSignature());
-            if (jobLabel == null ? job.getLabel() != null : !jobLabel.equals(job.getLabel())) {
-                job.setLabel(jobLabel);
-                jobDao.update(job);
-            }
             pm.setDetail(view.getDetail());
             pm.setIssue(view.getIssue());
             pm.setSigla(view.getSigla());
             pm.setVolume(view.getVolume());
             pm.setYear(view.getYear());
+
+            if (newMetadata == null ? oldMetadata != null : !newMetadata.equals(oldMetadata)) {
+                PhysicalMaterial t = new PhysicalMaterialBuilder().setMetadata(newMetadata).build();
+                pm.setMetadata(t.getMetadata());
+                pm.setSignature(t.getSignature());
+                pm.setSigla(t.getSigla());
+                pm.setIssue(t.getIssue());
+                pm.setVolume(t.getVolume());
+                pm.setLabel(t.getLabel());
+                jobLabel = pm.getLabel();
+            }
+            if (jobLabel == null ? job.getLabel() != null : !jobLabel.equals(job.getLabel())) {
+                job.setLabel(jobLabel);
+                jobDao.update(job);
+            }
         }
         dao.update(m);
         return m;
