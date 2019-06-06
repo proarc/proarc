@@ -21,7 +21,6 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
@@ -29,7 +28,6 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.WorkflowTaskDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
@@ -108,12 +106,13 @@ public class WorkflowJobsEditor {
                     boolean statusOk = RestConfig.isStatusOk(dsResponse);
                     if (statusOk) {
                         StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
-                        view.refreshState();
+                        //view.refreshState();
                         // invalidate the task cache as it may contain an outdated job name
-                        DSResponse resetCache = new DSResponse();
-                        resetCache.setInvalidateCache(true);
-                        resetCache.setOperationType(DSOperationType.UPDATE);
-                        WorkflowTaskDataSource.getInstance().updateCaches(resetCache);
+                        //DSResponse resetCache = new DSResponse();
+                        //resetCache.setInvalidateCache(true);
+                        //resetCache.setOperationType(DSOperationType.UPDATE);
+                       // WorkflowTaskDataSource.getInstance().updateCaches(resetCache);
+                        jobFormView.refresh();
                     } else if (RestConfig.isConcurrentModification(dsResponse)) {
                         SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), new BooleanCallback() {
 
