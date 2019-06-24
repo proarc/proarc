@@ -23,19 +23,19 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.math.BigDecimal;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.IOException;
-import java.io.StringReader;
-import java.math.BigDecimal;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -93,17 +93,20 @@ class PhysicalMaterialBuilder {
             Document modsDom = db.parse(new InputSource(new StringReader(modsXml)));
             Element modsElm = (Element) xpath.evaluate(
                     "m:mods | m:modsCollection/m:mods", modsDom, XPathConstants.NODE);
-            String barcode = xpath.evaluate(
-                    "m:identifier[@type='barcode' and not(@invalid)]", modsElm);
+            String barcode = xpath.evaluate("m:identifier[@type='barcode' and not(@invalid)]", modsElm);
             String sigla = xpath.evaluate("m:location/m:physicalLocation", modsElm);
             String signature = xpath.evaluate("m:location/m:shelfLocator", modsElm);
             String field001 = xpath.evaluate("m:recordInfo/m:recordIdentifier", modsElm);
+            String dateIssued = xpath.evaluate("m:originInfo/m:dateIssued", modsElm);
+            String partNumber = xpath.evaluate("m:titleInfo/m:partNumber", modsElm);
             StringBuilder label = getTitle(new StringBuilder(), modsElm);
             m.setMetadata(modsXml);
             m.setBarcode(barcode);
             m.setSigla(sigla);
             m.setSignature(signature);
             m.setField001(field001);
+            m.setYear(dateIssued);
+            m.setIssue(partNumber);
             m.setLabel(label.length() == 0
                     ? "?"
                     : label.length() > 2000
