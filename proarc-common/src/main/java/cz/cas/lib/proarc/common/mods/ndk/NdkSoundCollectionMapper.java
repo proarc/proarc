@@ -116,7 +116,9 @@ public class NdkSoundCollectionMapper extends RdaNdkMapper {
         }
 
         addName(mods.getName(), dc.getCreators());
-        addElementType(dc.getTypes(), mods.getTypeOfResource().get(0).getValue());
+        if (mods.getTypeOfResource() != null && mods.getTypeOfResource().size()>0) {
+            addElementType(dc.getTypes(), mods.getTypeOfResource().get(0).getValue());
+        }
         addElementType(dc.getTypes(), getDcType());
         addOriginInfo(mods.getOriginInfo(), dc);
 
