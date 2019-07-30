@@ -146,18 +146,18 @@ import cz.cas.lib.proarc.premis.RelationshipComplexType;
 
 public class MetsElementVisitor implements IMetsElementVisitor {
     private final Logger LOG = Logger.getLogger(MetsElementVisitor.class.getName());
-    private Mets mets;
-    private StructMapType logicalStruct;
-    private StructMapType physicalStruct;
+    protected Mets mets;
+    protected StructMapType logicalStruct;
+    protected StructMapType physicalStruct;
     private HashMap<String, FileGrp> fileGrpMap;
-    private final Map<StructLinkMapping, String> pageOrderToDivMap = new HashMap<StructLinkMapping, String>();
+    protected final Map<StructLinkMapping, String> pageOrderToDivMap = new HashMap<StructLinkMapping, String>();
     private final Map<StructLinkMapping, String> audioPageOrderToDivMap = new HashMap<StructLinkMapping, String>();
     private final Map<String, List<StructLinkMapping>> structToPageMap = new HashMap<String, List<StructLinkMapping>>();
     private final Map<String, List<StructLinkMapping>> structToAudioPageMap = new HashMap<String, List<StructLinkMapping>>();
     int pageCounter = 0;
     int articleCounter = 0;
-    int chapterCounter = 0;
-    int titleCounter = 1;
+    protected int chapterCounter = 0;
+    protected int titleCounter = 1;
     int audioPageCounter = 0;
 
     /**
@@ -266,7 +266,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /** Prepares the generic mets information */
-    private Mets prepareMets(IMetsElement metsElement) throws MetsExportException {
+    protected Mets prepareMets(IMetsElement metsElement) throws MetsExportException {
         Mets mets = new Mets();
         logicalStruct = new StructMapType();
         logicalStruct.setTYPE("LOGICAL");
@@ -286,7 +286,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param outputFile
      * @throws MetsExportException
      */
-    private void saveMets(Mets mets, File outputFile, IMetsElement metsElement) throws MetsExportException {
+    protected void saveMets(Mets mets, File outputFile, IMetsElement metsElement) throws MetsExportException {
         String fileMd5Name;
         try {
             addFileGrpToMets(fileGrpMap);
@@ -390,7 +390,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      *
      * @param metsElement
      */
-    private void addDmdSec(IMetsElement metsElement) {
+    protected void addDmdSec(IMetsElement metsElement) {
         // MODS
         if (metsElement.getModsStream() != null) {
             MdSecType modsMdSecType = new MdSecType();
@@ -443,7 +443,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param pageDiv
      * @throws MetsExportException
      */
-    private void fillPageIndexOrder(IMetsElement metsElement, DivType pageDiv) throws MetsExportException {
+    protected void fillPageIndexOrder(IMetsElement metsElement, DivType pageDiv) throws MetsExportException {
         Node partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "*[local-name()='modsCollection']/*[local-name()='mods']/*[local-name()='part']");
         if (partNode == null) {
             partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "*[local-name()='mods']/*[local-name()='part']");
@@ -1582,9 +1582,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         return Const.mandatoryStreams.contains(streamName);
     }
 
-    class StructLinkMapping {
-        String pageDiv;
-        BigInteger pageOrder;
+    public class StructLinkMapping {
+        public String pageDiv;
+        public BigInteger pageOrder;
 
         @Override
         public int hashCode() {
@@ -1666,7 +1666,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @return
      * @throws MetsExportException
      */
-    private File createPackageDir(IMetsElement metsElement) throws MetsExportException {
+    protected File createPackageDir(IMetsElement metsElement) throws MetsExportException {
         if (metsElement.getMetsContext().getPackageID() == null) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Package ID is null", false, null);
         }
@@ -1740,7 +1740,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param isMultiPartMonograph
      * @throws MetsExportException
      */
-    private void insertVolume(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, boolean isMultiPartMonograph) throws MetsExportException {
+    protected void insertVolume(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, boolean isMultiPartMonograph) throws MetsExportException {
         addDmdSec(metsElement);
         DivType divType = new DivType();
         divType.setID(metsElement.getElementID());
@@ -1795,7 +1795,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      * @throws MetsExportException
      */
-    private void insertMonograph(IMetsElement metsElement) throws MetsExportException {
+    protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
         mets.setTYPE("Monograph");
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
@@ -1857,7 +1857,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
-    private void insertMonographTitle(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, int counter) throws MetsExportException {
+    protected void insertMonographTitle(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, int counter) throws MetsExportException {
         metsElement.setModsElementID("TITLE_000" + counter);
         addDmdSec(metsElement);
         DivType divType = new DivType();
@@ -2090,7 +2090,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param counterIntPart
      * @throws MetsExportException
      */
-    private void insertChapter(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, int counterIntPart) throws MetsExportException {
+    protected void insertChapter(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement, int counterIntPart) throws MetsExportException {
         if (!Const.CHAPTER.equals(metsElement.getElementType())) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Expected chapter got " + metsElement.getElementType(), false, null);
         }
