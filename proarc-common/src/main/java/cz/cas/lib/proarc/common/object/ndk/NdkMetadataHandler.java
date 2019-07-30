@@ -242,12 +242,14 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             }
         } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
             DigitalObjectHandler prent1 = handler.getParameterParent();
+            if (parent != null) {
                 if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parent.relations().getModel())) {
                     DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
                     modsCopyMusicDocument(title, defaultMods);
                 } else if (NdkAudioPlugin.MODEL_SONG.equals(parent.relations().getModel())) {
                     DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_SONG);
                     modsCopyMusicDocument(title, defaultMods);
+                }
             }
         }
 

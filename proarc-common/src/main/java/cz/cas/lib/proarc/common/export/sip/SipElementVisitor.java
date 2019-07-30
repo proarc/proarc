@@ -20,25 +20,30 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.export.mets.*;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.mets.*;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.w3c.dom.Element;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import static cz.cas.lib.proarc.common.export.mets.Const.ARTICLE;
 import static cz.cas.lib.proarc.common.export.mets.Const.CHAPTER;
@@ -48,7 +53,7 @@ import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_UNIT;
 import static cz.cas.lib.proarc.common.export.mets.Const.PERIODICAL_TITLE;
 import static cz.cas.lib.proarc.common.export.mets.Const.PERIODICAL_VOLUME;
 
-class SipElementVisitor implements IMetsElementVisitor {
+class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisitor {
 
     private static final Logger LOG = Logger.getLogger(SipElementVisitor.class.getName());
 
@@ -59,15 +64,24 @@ class SipElementVisitor implements IMetsElementVisitor {
     @Override
     public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
         Objects.requireNonNull(metsElement, "metsElement can not be null");
+        mets = prepareMets(metsElement);
+        initHeader(metsElement);
+        LOG.log(Level.FINE, "Inserting into Mets:" + metsElement.getOriginalPid() + "(" + metsElement.getElementType() + ")");
+        IMetsElement rootElement = metsElement.getMetsContext().getRootElement();
 
         Collection<Path> packageFiles = new ArrayList<>();
         metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
-        IMetsElement rootElement = metsElement.getMetsContext().getRootElement();
-        Path packageRoot = createPackageDir(rootElement);
+        Path packageRoot = createPackageDirection(rootElement);
 
-
+        boolean saveMets = false;
         switch (rootElement.getElementType()) {
             case MONOGRAPH_UNIT:
+                insertMonograph(rootElement);
+                if (metsElement.getMetsContext().getPackageDir() == null) {
+                    File packageDirFile = createPackageDir(metsElement);
+                    metsElement.getMetsContext().setPackageDir(packageDirFile);
+                }
+                saveMets = true;
                 packageFiles.addAll(saveStreams(metsElement, packageRoot));
                 for (IMetsElement childElement: metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
@@ -75,6 +89,12 @@ class SipElementVisitor implements IMetsElementVisitor {
                 break;
             case MONOGRAPH_MULTIPART:
                 packageFiles.addAll(saveStreams(metsElement, packageRoot));
+                insertMonograph(rootElement);
+                if (metsElement.getMetsContext().getPackageDir() == null) {
+                    File packageDirFile = createPackageDir(metsElement);
+                    metsElement.getMetsContext().setPackageDir(packageDirFile);
+                }
+                saveMets = true;
                 for (IMetsElement childElement: metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
                 }
@@ -114,8 +134,31 @@ class SipElementVisitor implements IMetsElementVisitor {
                     return new FileMD5Info(filePath.toString(), md5, size);
                 }).collect(Collectors.toList()));
 
+        if (saveMets) {
+            saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator +"mets_"+ MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
+        }
+
+        repairPath(metsElement);
         saveInfoFile(packageRoot, metsElement);
 
+    }
+
+    private void repairPath(IMetsElement metsElement) {
+
+        for (FileMD5Info file : metsElement.getMetsContext().getFileList()) {
+            String[] fileName = file.getFileName().split("\\\\");
+            if (fileName.length == 1) {
+                fileName = file.getFileName().split("/");
+            }
+            String name;
+            if (fileName.length == 2) {
+                name = File.separator + fileName[fileName.length-1];
+                file.setFileName(name);
+            } else if (fileName.length > 2){
+                name =  File.separator + fileName[fileName.length-2] + File.separator + fileName[fileName.length-1];
+                file.setFileName(name);
+            }
+        }
     }
 
     private void saveInfoFile(Path packageRoot, IMetsElement metsElement) throws MetsExportException {
@@ -129,7 +172,7 @@ class SipElementVisitor implements IMetsElementVisitor {
      * @return path of package
      * @throws MetsExportException translated from IOException
      */
-    private Path createPackageDir(IMetsElement metsElement) throws MetsExportException {
+    protected Path createPackageDirection(IMetsElement metsElement) throws MetsExportException {
         if (metsElement.getMetsContext().getPackageID() == null) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Package ID is null", false, null);
         }
@@ -137,8 +180,7 @@ class SipElementVisitor implements IMetsElementVisitor {
             Path path = Paths.get(metsElement.getMetsContext().getOutputPath()).resolve(metsElement.getMetsContext().getPackageID());
             Path packageDir = Files.createDirectories(path);
             Files.createDirectory(packageDir.resolve("original"));
-            Files.createDirectory(packageDir.resolve("metadata"));
-
+            //Files.createDirectory(packageDir.resolve("metadata"));
             return packageDir;
         } catch (IOException e) {
             MetsExportException ex = new MetsExportException(e.getMessage());
@@ -156,7 +198,9 @@ class SipElementVisitor implements IMetsElementVisitor {
             if (rawDatastream.isPresent()) {
                 GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
                 InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                Path originalPathDoc = packageDir.resolve("original").resolve("oc_" + metsElement.getMetsContext().getPackageID() + ".pdf");
+                String name = "original/oc_" + metsElement.getMetsContext().getPackageID() + ".pdf";
+                Path originalPathDoc = packageDir.resolve(name);
+
                 // check null
                 if (Files.copy(dsStream, originalPathDoc) == 0) {
                     throw new MetsExportException("empty RAW datastream " + metsElement.getOriginalPid());
@@ -168,7 +212,7 @@ class SipElementVisitor implements IMetsElementVisitor {
                 }
             }
 
-            Optional<DatastreamType> modsDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "BIBLIO_MODS".equalsIgnoreCase(stream.getID())).findFirst();
+            /*Optional<DatastreamType> modsDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "BIBLIO_MODS".equalsIgnoreCase(stream.getID())).findFirst();
             if (modsDatastream.isPresent()) {
                 GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "BIBLIO_MODS");
                 InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
@@ -204,13 +248,66 @@ class SipElementVisitor implements IMetsElementVisitor {
                 Path metadataPathDoc = packageDir.resolve("metadata").resolve(modsName);
                 Files.copy(dsStream, metadataPathDoc);
                 packageFiles.add(metadataPathDoc);
-            }
+            }*/
 
             return Collections.unmodifiableList(packageFiles);
         } catch (FedoraClientException | IOException e) {
             MetsExportException ex = new MetsExportException(e.getMessage());
             ex.addException(e.getMessage(), true, e);
             throw ex;
+        }
+    }
+
+    protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
+        mets.setTYPE("Monograph");
+        DivType logicalDiv = new DivType();
+        logicalStruct.setDiv(logicalDiv);
+        DivType physicalDiv = new DivType();
+        physicalStruct.setDiv(physicalDiv);
+
+        boolean containsUnit = false;
+        if (Const.MONOGRAPH_MULTIPART.equalsIgnoreCase(metsElement.getElementType())) {
+            containsUnit = true;
+        }
+        for (IMetsElement childMetsElement : metsElement.getChildren()) {
+            if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
+                containsUnit = true;
+                break;
+            }
+        }
+        if (!containsUnit) {
+            logicalDiv.setLabel3(metsElement.getLabel());
+            logicalDiv.setTYPE("VOLUME");
+            logicalDiv.setID("MONOGRAPH_0001");
+            physicalDiv.setLabel3(metsElement.getLabel());
+            physicalDiv.setID("DIV_P_0000");
+            physicalDiv.setTYPE("VOLUME");
+            metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
+            insertVolume(logicalDiv, physicalDiv, metsElement, false);
+        } else {
+            metsElement.setModsElementID("TITLE_0001");
+            titleCounter++;
+            addDmdSec(metsElement);
+            logicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+            physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+            for (IMetsElement childMetsElement : metsElement.getChildren()) {
+                if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
+                    continue;
+                } else if (Const.CHAPTER.equals(childMetsElement.getElementType())) {
+                    insertChapter(logicalDiv, physicalDiv, childMetsElement, chapterCounter);
+                    chapterCounter++;
+                } else if (Const.MONOGRAPH_MULTIPART.equals(childMetsElement.getElementType())) {
+                    insertMonographTitle(logicalDiv, physicalDiv, childMetsElement, titleCounter);
+                    titleCounter++;
+                } else
+                    throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Supplement, Monograph unit, Monograph Title, Chapter or Page, got:" + childMetsElement.getElementType(), false, null);
+            }
+        }
+        for (IMetsElement childMetsElement : metsElement.getChildren()) {
+            if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
+                childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
+                insertVolume(logicalDiv, physicalDiv, childMetsElement, true);
+            }
         }
     }
 }

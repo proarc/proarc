@@ -510,7 +510,7 @@ public final class DeviceManager {
                 @Override
                 public boolean accept(ActionEvent event) {
                     Object[] selection = Actions.getSelection(event);
-                    return selection != null && selection.length > 0;
+                    return selection != null && selection.length >= 0;
                 }
 
                 @Override
