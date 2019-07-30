@@ -339,6 +339,24 @@ Author Miroslav Pavelka
                         </xsl:element>
                     </xsl:if>
 
+                    <xsl:variable name="start_page_part" select="./mods:part/mods:extent/mods:start" />
+                    <xsl:variable name="end_page_part" select="./mods:part/mods:extent/mods:end" />
+
+                    <xsl:if test="$start_page_part or $end_page_part">
+                        <xsl:element name="pages">
+                            <xsl:if test="$start_page_part">
+                                <xsl:element name="first_page">
+                                    <xsl:value-of select="$start_page_part"/>
+                                </xsl:element>
+                            </xsl:if>
+                            <xsl:if test="$end_page_part">
+                                <xsl:element name="last_page">
+                                    <xsl:value-of select="$end_page_part"/>
+                                </xsl:element>
+                            </xsl:if>
+                        </xsl:element>
+                    </xsl:if>
+
                     <xsl:element name="doi_data">
                         <xsl:if test="./mods:identifier[@type='doi']">
                             <xsl:element name="doi">
