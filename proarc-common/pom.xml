@@ -10,6 +10,7 @@
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
         <version>3.6-SNAPSHOT</version>
+        <!-- fill version in MetsElementVisitor in factory.createCreatingApplicationVersion -->
         <relativePath>../pom.xml</relativePath>
     </parent>
 
