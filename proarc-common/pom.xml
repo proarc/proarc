@@ -9,7 +9,8 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>3.5.10</version>
+        <version>3.5.11</version>
+        <!-- fill version in MetsElementVisitor in factory.createCreatingApplicationVersion -->
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -208,7 +209,7 @@
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-aes57</artifactId>
-            <version>${project.version}</version>
+            <version>3.5-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
