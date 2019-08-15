@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEMonographVolumeMapper;
 import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalIssueMapper;
 import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalMapper;
 import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalVolumeMapper;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -60,6 +61,7 @@ public class NdkMapperFactory {
         mappers.put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkSoundCollectionMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_SONG, NdkSoundRecordingMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_TRACK, NdkSoundPartMapper::new);
+        mappers.put(NdkAudioPlugin.MODEL_PAGE, NdkAudioPageMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEMonographVolumeMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEMonographTitleMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_ECHAPTER, NdkEChapterMapper::new);
