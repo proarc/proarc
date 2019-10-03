@@ -752,9 +752,14 @@ public class MetsUtils {
         return output;
     }
 
-    private static void addModsIdentifiersRecursive(IMetsElement element, Info infoJaxb) throws MetsExportException {
+    private static void addModsIdentifiersRecursive(IMetsElement element, Info infoJaxb, String rootElementModel) throws MetsExportException {
         Map<String, String> identifiers = element.getModsIdentifiers();
-        for (String type : identifiers.keySet()) {
+        if (rootElementModel.contains(Const.NDK_EBORN_MODELS_IDENTIFIER)) {
+            addAllModsIdentifiersRecursive(Const.allowedNdkEbornIdentifiers, identifiers, infoJaxb);
+        } else {
+            addAllModsIdentifiersRecursive(Const.allowedNdkIdentifiers, identifiers, infoJaxb);
+        }
+        /*for (String type : identifiers.keySet()) {
             if (Const.allowedIdentifiers.contains(type)) {
                 boolean alreadyAdded = false;
                 for (Titleid titleId : infoJaxb.getTitleid()) {
@@ -770,10 +775,30 @@ public class MetsUtils {
                     infoJaxb.getTitleid().add(titleId);
                 }
             }
-        }
+        }*/
 
         for (IMetsElement child : element.getChildren()) {
-            addModsIdentifiersRecursive(child, infoJaxb);
+            addModsIdentifiersRecursive(child, infoJaxb, rootElementModel);
+        }
+    }
+
+    private static void addAllModsIdentifiersRecursive(List<String> allowedIdentifiers, Map<String, String> identifiers, Info infoJaxb) {
+        for (String type : identifiers.keySet()) {
+            if (allowedIdentifiers.contains(type)) {
+                boolean alreadyAdded = false;
+                for (Titleid titleId : infoJaxb.getTitleid()) {
+                    if ((titleId.getType().equals(type)) && (titleId.getValue().equals(identifiers.get(type)))) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    Titleid titleId = new Titleid();
+                    titleId.setType(type);
+                    titleId.setValue(identifiers.get(type));
+                    infoJaxb.getTitleid().add(titleId);
+                }
+            }
         }
     }
 
@@ -806,7 +831,7 @@ public class MetsUtils {
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
         }
-        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb);
+        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb, metsContext.getRootElement().getModel());
         Validation validation = new Validation();
         validation.setValue("W3C-XML");
         validation.setVersion(0.0f);
@@ -1061,5 +1086,15 @@ public class MetsUtils {
             }
         }
         folder.delete();
+    }
+
+    public static HashMap<String, FileGrp> initEbornFileGroups() {
+        FileGrp OpebgrfGRP = new FileGrp();
+        OpebgrfGRP.setID(Const.OC_GRP_ID);
+        OpebgrfGRP.setUSE("master");
+
+        HashMap<String, FileGrp> fileGrpMap = new HashMap<>();
+        fileGrpMap.put(Const.OC_GRP_ID, OpebgrfGRP);
+        return fileGrpMap;
     }
 }
