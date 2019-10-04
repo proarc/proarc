@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.chronicle.ChronicleMapperFactory;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
@@ -56,6 +57,7 @@ public abstract class NdkMapper {
 
     private static final NdkMapperFactory ndkMapperFactory = new NdkMapperFactory();
     private static final OldPrintMapperFactory oldprintMapperFacotry = new OldPrintMapperFactory();
+    private static final ChronicleMapperFactory chronicleMapperFactory = new ChronicleMapperFactory();
 
     /**
      * Gets a NDK mapper for the given model ID.
@@ -67,9 +69,17 @@ public abstract class NdkMapper {
         NdkMapper mapper;
         if (isNdkModel(modelId)) {
             mapper = ndkMapperFactory.get(modelId);
-        } else mapper = oldprintMapperFacotry.get(modelId);
+        } else if (isChronicleModel(modelId)) {
+            mapper = chronicleMapperFactory.get(modelId);
+        } else {
+            mapper = oldprintMapperFacotry.get(modelId);
+        }
         mapper.modelId = modelId;
         return mapper;
+    }
+
+    private static boolean isChronicleModel(String modelId) {
+        return modelId != null && modelId.contains("chronicle");
     }
 
     private static boolean isNdkModel(String modelId) {

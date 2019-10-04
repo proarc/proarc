@@ -8,3 +8,4 @@ cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin
 cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin
 cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin
 cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin
+cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin
