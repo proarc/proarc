@@ -58,7 +58,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
-import com.hp.hpl.jena.graph.query.SimpleQueryEngine;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -950,13 +949,18 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
         RelationshipComplexType relationShip = new RelationshipComplexType();
 
-        if (!("RAW").equals(datastream)) {
+        if (!(Const.RAW_GRP_ID).equals(datastream)) {
             relationShip.setRelationshipType("derivation");
             relationShip.setRelationshipSubType("created from");
             RelatedObjectIdentificationComplexType relatedObject = new RelatedObjectIdentificationComplexType();
             relationShip.getRelatedObjectIdentification().add(relatedObject);
             relatedObject.setRelatedObjectIdentifierType("ProArc_URI");
-            relatedObject.setRelatedObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get("RAW"));
+            if (Const.MC_GRP_ID.equals(datastream)) {
+                relatedObject.setRelatedObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(Const.RAW_GRP_ID));
+            } else {
+                relatedObject.setRelatedObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(Const.MC_GRP_ID));
+            }
+
             RelatedEventIdentificationComplexType eventObject = new RelatedEventIdentificationComplexType();
             relationShip.getRelatedEventIdentification().add(eventObject);
             eventObject.setRelatedEventIdentifierType("ProArc_EventID");
@@ -1071,12 +1075,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if (md5InfosMap.get(Const.ALTO_GRP_ID) != null) {
             addPremisNodeToMets(getPremisEvent(metsElement, Const.ALTO_GRP_ID, md5InfosMap.get(Const.ALTO_GRP_ID), "capture/XML_creation"), amdSec, "EVT_003", true, amdSecFileGrpMap);
         }
-        if(md5InfosMap.get(Const.UC_GRP_ID) != null){
+        /*if(md5InfosMap.get(Const.UC_GRP_ID) != null){
             addPremisNodeToMets(getPremisEvent(metsElement, Const.UC_GRP_ID, md5InfosMap.get(Const.UC_GRP_ID), "derivation/UC_creation"), amdSec, "EVT_004", true, amdSecFileGrpMap);
         }
         if (md5InfosMap.get(Const.TXT_GRP_ID) != null){
             addPremisNodeToMets(getPremisEvent(metsElement, Const.TXT_GRP_ID, md5InfosMap.get(Const.TXT_GRP_ID), "capture/TXT_creation"), amdSec, "EVT_005", true, amdSecFileGrpMap);
-        }
+        }*/
 
         if (mets != null) {
             for (AmdSecType amd : mets.getAmdSec()) {
