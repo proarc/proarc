@@ -1027,8 +1027,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         toGenerate.put("OBJ_001", Const.RAW_GRP_ID);
         toGenerate.put("OBJ_002", Const.MC_GRP_ID);
         toGenerate.put("OBJ_003", Const.ALTO_GRP_ID);
-        toGenerate.put("OBJ_004", Const.UC_GRP_ID);
-        toGenerate.put("OBJ_005", Const.TXT_GRP_ID);
+       // toGenerate.put("OBJ_004", Const.UC_GRP_ID);
+       // toGenerate.put("OBJ_005", Const.TXT_GRP_ID);
         toGenerate.put("OBJ_006", Const.AUDIO_RAW_GRP_ID);
         toGenerate.put("OBJ_007", Const.AUDIO_MC_GRP_ID);
         int seqEvent = 1;
