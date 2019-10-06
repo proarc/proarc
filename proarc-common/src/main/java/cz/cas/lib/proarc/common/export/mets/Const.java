@@ -168,6 +168,7 @@ public class Const {
         mimeToFmtMap.put("image/tiff", "fmt/353");
         mimeToFmtMap.put("image/jp2", "fmt/151");
         mimeToFmtMap.put("text/xml", "fmt/101");
+        mimeToFmtMap.put("text/plain", "fmt/611");
         mimeToFmtMap.put("application/pdf", "fmt/18");
         mimeToFmtMap.put("image/jpeg", "fmt/44");
         mimeToFmtMap.put("audio/wav", "fmt/141");
