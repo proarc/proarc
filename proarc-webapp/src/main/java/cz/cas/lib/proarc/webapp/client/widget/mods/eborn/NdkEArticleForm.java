@@ -183,11 +183,12 @@ public class NdkEArticleForm extends NdkArticleForm {
                                 .setHint("Název části článku.")
                                 .createField()) // value
                         .createField()) // partName
-                .addField(new FieldBuilder("nonSort").setTitle("Non sort - R").setMaxOccurrences(1)
-                        .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
-                        .setType(Field.TEXT)
-                        .createField())
-                // nonSort, type="stringPlusLanguage"
+                .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Non sort - O").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
+                                .createField()) // value
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .createField()) // nonSort
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
                 .createField(); // titleInfo
     }

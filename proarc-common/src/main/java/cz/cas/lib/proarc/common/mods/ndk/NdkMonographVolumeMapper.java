@@ -18,6 +18,8 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
@@ -194,8 +196,11 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
 
         if (ctx != null && ctx.getParentModel() != null && Const.MONOGRAPH_MULTIPART.equals(ctx.getParentModel())) {
             addElementType(dc.getTypes(), getDcType());
-        } else {
+        } else if (getModelId().equals(NdkPlugin.MODEL_MONOGRAPHVOLUME)){
             addElementType(dc.getTypes(), "model:monograph");
+        } else if (getModelId().equals(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME)) {
+            addElementType(dc.getTypes(), "model:electronicmonograph");
+
         }
 
         addOriginInfo(mods.getOriginInfo(), dc);

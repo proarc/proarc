@@ -66,10 +66,12 @@ public class NdkEPeriodicalIssueForm extends NdkPeriodicalIssueForm {
                         // script, String
                         // transliteration, String
                         .createField()) // title
-                .addField(new FieldBuilder("nonSort").setTitle("Non sort - O").setMaxOccurrences(1)
-                        .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
-                        .setType(Field.TEXT)
-                        .createField())
+                .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Non sort - O").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
+                                .createField()) // value
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .createField()) // nonSort
                 // subTitle, type="stringPlusLanguage"
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
                         .addField(new FieldBuilder("value").setTitle("Subtitle - O").setMaxOccurrences(1).setType(Field.TEXT)

@@ -42,6 +42,7 @@ public final class ImportProfile {
     public static final String PROFILES = "import.profiles";
 
     public static final String ALTO_SUFFIX = "import.alto.file.suffix";
+    public static final String ALTO_VERSION = "import.alto.file.version";
     public static final String MODEL_ID = "import.page.modelId";
     public static final String MODEL_AUDIO_ID="import.ndkaudiopage.modelId";
     public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
@@ -65,6 +66,7 @@ public final class ImportProfile {
     public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
     public static final String NDK_ARCHOVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
     public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
+
 
 
     private final Configuration config;
@@ -134,6 +136,11 @@ public final class ImportProfile {
     public String getAltoFileSuffix() {
         String suffix = config.getString(ALTO_SUFFIX, ".ocr.xml");
         return suffix.toLowerCase();
+    }
+
+    public String getAltoFileVersion() {
+        String version = config.getString(ALTO_VERSION, "2.1");
+        return version.toLowerCase();
     }
 
     public Configuration getNdkUserProcessor() {

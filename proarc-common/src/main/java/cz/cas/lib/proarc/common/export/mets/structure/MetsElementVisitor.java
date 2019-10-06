@@ -58,7 +58,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
-import com.hp.hpl.jena.graph.query.SimpleQueryEngine;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -149,7 +148,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     protected Mets mets;
     protected StructMapType logicalStruct;
     protected StructMapType physicalStruct;
-    private HashMap<String, FileGrp> fileGrpMap;
+    protected HashMap<String, FileGrp> fileGrpMap;
     protected final Map<StructLinkMapping, String> pageOrderToDivMap = new HashMap<StructLinkMapping, String>();
     private final Map<StructLinkMapping, String> audioPageOrderToDivMap = new HashMap<StructLinkMapping, String>();
     private final Map<String, List<StructLinkMapping>> structToPageMap = new HashMap<String, List<StructLinkMapping>>();
@@ -202,12 +201,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
         mets.setLabel1(getTitle(metsElement) + metsElement.getLabel());
         mets.setMetsHdr(createMetsHdr(metsElement));
-        fileGrpMap = MetsUtils.initFileGroups();
 
         if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())
                 || Const.SOUND_RECORDING.equals(metsElement.getElementType())
                 || Const.SOUND_PART.equals(metsElement.getElementType())) {
             fileGrpMap = MetsUtils.initAudioFileGroups(fileGrpMap);
+        } else if (metsElement.getModel().contains(Const.NDK_EBORN_MODELS_IDENTIFIER)) {
+            fileGrpMap = MetsUtils.initEbornFileGroups();
+        } else {
+            fileGrpMap = MetsUtils.initFileGroups();
         }
     }
 
@@ -499,7 +501,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsStreamName
      * @return
      */
-    private FileType prepareFileType(int seq, String metsStreamName, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, IMetsElement metsElement, HashMap<String, String> outputFileNames, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
+    protected FileType prepareFileType(int seq, String metsStreamName, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, IMetsElement metsElement, HashMap<String, String> outputFileNames, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
         // String streamName = Const.streamMapping.get(metsStreamName);
         MetsContext metsContext = metsElement.getMetsContext();
         FileType fileType = new FileType();
@@ -827,7 +829,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         return node;
     }
 
-    private Node getAgent(IMetsElement metsElement) throws MetsExportException {
+    protected Node getAgent(IMetsElement metsElement) throws MetsExportException {
         try {
             return getAgent(null, metsElement);
         } catch (Exception e) {
@@ -882,7 +884,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         return linkingAgent;
     }
 
-    private Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
+    protected Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
         try {
             return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail);
         } catch (Exception e) {
@@ -950,13 +952,18 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
         RelationshipComplexType relationShip = new RelationshipComplexType();
 
-        if (!("RAW").equals(datastream)) {
+        if (!(Const.RAW_GRP_ID).equals(datastream)) {
             relationShip.setRelationshipType("derivation");
             relationShip.setRelationshipSubType("created from");
             RelatedObjectIdentificationComplexType relatedObject = new RelatedObjectIdentificationComplexType();
             relationShip.getRelatedObjectIdentification().add(relatedObject);
             relatedObject.setRelatedObjectIdentifierType("ProArc_URI");
-            relatedObject.setRelatedObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get("RAW"));
+            if (Const.MC_GRP_ID.equals(datastream)) {
+                relatedObject.setRelatedObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(Const.RAW_GRP_ID));
+            } else {
+                relatedObject.setRelatedObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(Const.MC_GRP_ID));
+            }
+
             RelatedEventIdentificationComplexType eventObject = new RelatedEventIdentificationComplexType();
             relationShip.getRelatedEventIdentification().add(eventObject);
             eventObject.setRelatedEventIdentifierType("ProArc_EventID");
@@ -995,7 +1002,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
-    private void addPremisNodeToMets(Node premisNode, AmdSecType amdSec, String Id, boolean isDigiprov, HashMap<String, FileGrp> amdSecFileGrpMap) {
+    protected void addPremisNodeToMets(Node premisNode, AmdSecType amdSec, String Id, boolean isDigiprov, HashMap<String, FileGrp> amdSecFileGrpMap) {
         MdSecType mdSec = new MdSecType();
         mdSec.setID(Id);
         MdWrap mdWrap = new MdWrap();
@@ -1027,8 +1034,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         toGenerate.put("OBJ_001", Const.RAW_GRP_ID);
         toGenerate.put("OBJ_002", Const.MC_GRP_ID);
         toGenerate.put("OBJ_003", Const.ALTO_GRP_ID);
-        toGenerate.put("OBJ_004", Const.UC_GRP_ID);
-        toGenerate.put("OBJ_005", Const.TXT_GRP_ID);
+       // toGenerate.put("OBJ_004", Const.UC_GRP_ID);
+       // toGenerate.put("OBJ_005", Const.TXT_GRP_ID);
         toGenerate.put("OBJ_006", Const.AUDIO_RAW_GRP_ID);
         toGenerate.put("OBJ_007", Const.AUDIO_MC_GRP_ID);
         int seqEvent = 1;
@@ -1071,14 +1078,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if (md5InfosMap.get(Const.ALTO_GRP_ID) != null) {
             addPremisNodeToMets(getPremisEvent(metsElement, Const.ALTO_GRP_ID, md5InfosMap.get(Const.ALTO_GRP_ID), "capture/XML_creation"), amdSec, "EVT_003", true, amdSecFileGrpMap);
         }
-        if(md5InfosMap.get(Const.UC_GRP_ID) != null){
+        /*if(md5InfosMap.get(Const.UC_GRP_ID) != null){
             addPremisNodeToMets(getPremisEvent(metsElement, Const.UC_GRP_ID, md5InfosMap.get(Const.UC_GRP_ID), "derivation/UC_creation"), amdSec, "EVT_004", true, amdSecFileGrpMap);
         }
         if (md5InfosMap.get(Const.TXT_GRP_ID) != null){
             addPremisNodeToMets(getPremisEvent(metsElement, Const.TXT_GRP_ID, md5InfosMap.get(Const.TXT_GRP_ID), "capture/TXT_creation"), amdSec, "EVT_005", true, amdSecFileGrpMap);
-        }
+        }*/
 
-        if (mets != null) {
+        if (mets != null && mets.getAmdSec().size() != 0) {
             for (AmdSecType amd : mets.getAmdSec()) {
                 try {
                     addPremisNodeToMets(getAgent(amd, metsElement), amdSec, "AGENT_" + String.format("%03d", seqAgent), true, null);
