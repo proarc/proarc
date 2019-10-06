@@ -38,7 +38,8 @@ public class Const {
     public final static String FEDORAPREFIX = "info:fedora/";
     public static HashMap<String, List<String>> streamMapping;
     public static HashMap<String, List<String>> audioStremMapping;
-    public static List<String> allowedIdentifiers = new ArrayList<String>();
+    public static List<String> allowedNdkIdentifiers = new ArrayList<String>();
+    public static List<String> allowedNdkEbornIdentifiers = new ArrayList<String>();
     public static ArrayList<String> mandatoryStreams = new ArrayList<String>();
     public static ArrayList<String> audioMandatoryStreams = new ArrayList<String>();
     public static ArrayList<String> canContainPage = new ArrayList<String>();
@@ -82,11 +83,12 @@ public class Const {
     public final static String GENRE_TITLE = "title";
     public final static String GENRE_VOLUME = "volume";
 
-    public final static String GENRE_EARTICLE = "electronic_article";
-    public final static String GENRE_ECHAPTER = "electronic_chapter";
-    public final static String GENRE_EISSUE = "electronic_issue";
-    public final static String GENRE_ETITLE = "electronic_title";
-    public final static String GENRE_EVOLUME = "electronic_volume";
+    public static final String NDK_EBORN_MODELS_IDENTIFIER = "ndke";
+    public final static String GENRE_EARTICLE = "electronic article";
+    public final static String GENRE_ECHAPTER = "electronic chapter";
+    public final static String GENRE_EISSUE = "electronic issue";
+    public final static String GENRE_ETITLE = "electronic title";
+    public final static String GENRE_EVOLUME = "electronic volume";
 
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
@@ -137,6 +139,9 @@ public class Const {
     public static final String AUDIO_RAW_GRP_ID = "SA_AUDIOGRP";
     public static final String AUDIO_MC_GRP_ID = "MC_AUDIOGRP";
     public static final String AUDIO_UC_GRP_ID = "UC_AUDIOGRP";
+    public static final String OC_GRP_ID = "OC_EBGRP";
+    public static final String OC_GRP_ID_CREATION = "OC_EBGRP_CREATION";
+    public static final String OC_GRP_ID_VALIDATION = "OC_EBGRP_VALIDATION";
     //public
     public static final String TECHMDGRP = "TECHMDGRP";
 
@@ -154,10 +159,12 @@ public class Const {
 
 
     static {
-        allowedIdentifiers.add("isbn");
-        allowedIdentifiers.add("issn");
-        allowedIdentifiers.add("ccnb");
-        allowedIdentifiers.add("urnnbn");
+        allowedNdkIdentifiers.add("isbn");
+        allowedNdkIdentifiers.add("issn");
+        allowedNdkIdentifiers.add("ccnb");
+        allowedNdkIdentifiers.add("urnnbn");
+        allowedNdkEbornIdentifiers.addAll(allowedNdkIdentifiers);
+        allowedNdkEbornIdentifiers.add("uuid");
         mimeToFmtMap.put("image/tiff", "fmt/353");
         mimeToFmtMap.put("image/jp2", "fmt/151");
         mimeToFmtMap.put("text/xml", "fmt/101");
@@ -278,12 +285,16 @@ public class Const {
         dataStreamToModel.put(ALTO_GRP_ID, AltoDatastream.ALTO_ID);
         dataStreamToModel.put(UC_GRP_ID, BinaryEditor.NDK_USER_ID);
         dataStreamToModel.put(TXT_GRP_ID, StringEditor.OCR_ID);
+        dataStreamToModel.put(OC_GRP_ID_CREATION, "PDF");
+        dataStreamToModel.put(OC_GRP_ID_VALIDATION, "PDF");
 
         dataStreamToEvent.put(RAW_GRP_ID, "digitization_001");
         dataStreamToEvent.put(MC_GRP_ID, "MC_creation_001");
         dataStreamToEvent.put(ALTO_GRP_ID, "XML_creation_001");
         dataStreamToEvent.put(UC_GRP_ID, "UC_creation_001");
         dataStreamToEvent.put(TXT_GRP_ID, "TXT_creation_001");
+        dataStreamToEvent.put(OC_GRP_ID_VALIDATION, "PDF_validation_001");
+        dataStreamToEvent.put(OC_GRP_ID_CREATION, "PDF_Creation_001");
 
     }
 }

@@ -149,7 +149,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     protected Mets mets;
     protected StructMapType logicalStruct;
     protected StructMapType physicalStruct;
-    private HashMap<String, FileGrp> fileGrpMap;
+    protected HashMap<String, FileGrp> fileGrpMap;
     protected final Map<StructLinkMapping, String> pageOrderToDivMap = new HashMap<StructLinkMapping, String>();
     private final Map<StructLinkMapping, String> audioPageOrderToDivMap = new HashMap<StructLinkMapping, String>();
     private final Map<String, List<StructLinkMapping>> structToPageMap = new HashMap<String, List<StructLinkMapping>>();
@@ -202,12 +202,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
         mets.setLabel1(getTitle(metsElement) + metsElement.getLabel());
         mets.setMetsHdr(createMetsHdr(metsElement));
-        fileGrpMap = MetsUtils.initFileGroups();
 
         if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())
                 || Const.SOUND_RECORDING.equals(metsElement.getElementType())
                 || Const.SOUND_PART.equals(metsElement.getElementType())) {
             fileGrpMap = MetsUtils.initAudioFileGroups(fileGrpMap);
+        } else if (metsElement.getModel().contains(Const.NDK_EBORN_MODELS_IDENTIFIER)) {
+            fileGrpMap = MetsUtils.initEbornFileGroups();
+        } else {
+            fileGrpMap = MetsUtils.initFileGroups();
         }
     }
 
@@ -499,7 +502,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsStreamName
      * @return
      */
-    private FileType prepareFileType(int seq, String metsStreamName, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, IMetsElement metsElement, HashMap<String, String> outputFileNames, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
+    protected FileType prepareFileType(int seq, String metsStreamName, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, IMetsElement metsElement, HashMap<String, String> outputFileNames, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
         // String streamName = Const.streamMapping.get(metsStreamName);
         MetsContext metsContext = metsElement.getMetsContext();
         FileType fileType = new FileType();
@@ -827,7 +830,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         return node;
     }
 
-    private Node getAgent(IMetsElement metsElement) throws MetsExportException {
+    protected Node getAgent(IMetsElement metsElement) throws MetsExportException {
         try {
             return getAgent(null, metsElement);
         } catch (Exception e) {
@@ -882,7 +885,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         return linkingAgent;
     }
 
-    private Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
+    protected Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
         try {
             return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail);
         } catch (Exception e) {
@@ -995,7 +998,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
-    private void addPremisNodeToMets(Node premisNode, AmdSecType amdSec, String Id, boolean isDigiprov, HashMap<String, FileGrp> amdSecFileGrpMap) {
+    protected void addPremisNodeToMets(Node premisNode, AmdSecType amdSec, String Id, boolean isDigiprov, HashMap<String, FileGrp> amdSecFileGrpMap) {
         MdSecType mdSec = new MdSecType();
         mdSec.setID(Id);
         MdWrap mdWrap = new MdWrap();
