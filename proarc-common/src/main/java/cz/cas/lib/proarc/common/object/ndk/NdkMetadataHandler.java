@@ -201,7 +201,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             if (title != null) {
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
             }
         } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
