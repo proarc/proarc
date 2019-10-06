@@ -1082,7 +1082,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             addPremisNodeToMets(getPremisEvent(metsElement, Const.TXT_GRP_ID, md5InfosMap.get(Const.TXT_GRP_ID), "capture/TXT_creation"), amdSec, "EVT_005", true, amdSecFileGrpMap);
         }*/
 
-        if (mets != null) {
+        if (mets != null && mets.getAmdSec().size() != 0) {
             for (AmdSecType amd : mets.getAmdSec()) {
                 try {
                     addPremisNodeToMets(getAgent(amd, metsElement), amdSec, "AGENT_" + String.format("%03d", seqAgent), true, null);
