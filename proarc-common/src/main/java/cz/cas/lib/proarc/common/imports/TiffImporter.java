@@ -205,7 +205,8 @@ public class TiffImporter implements ImageImporter {
 
         if (altoEntry != null) {
             URI altoUri = altoEntry.getFile().toURI();
-            AltoDatastream.importAlto(fo, altoUri, null);
+            AltoDatastream altoDatastrem = new AltoDatastream(config);
+            altoDatastrem.importAlto(fo, altoUri, null);
         } else if (requiredDatastreamId.contains(AltoDatastream.ALTO_ID)) {
             throw new FileNotFoundException("Missing ALTO: " + new File(tempBatchFolder.getParent(),
                     originalFilename + config.getAltoFileSuffix()).toString());

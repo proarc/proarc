@@ -96,7 +96,7 @@ public final class MapperUtils {
      * @param ti MODS titleInfo
      * @return string for DC title
      */
-    static String createTitleString(TitleInfoDefinition ti) {
+    public static String createTitleString(TitleInfoDefinition ti) {
         StringBuilder title = new StringBuilder();
         addNonSort(title, ti);
         addTitle(title, ti);
@@ -150,7 +150,7 @@ public final class MapperUtils {
 
     // mods/language/languageTerm @type=code, @authority="iso639‐2b"
     // XXX should it be really checked?
-    static void fillLanguage(ModsDefinition mods) {
+    public static void fillLanguage(ModsDefinition mods) {
 //        fillLanguage(mods.getLanguage());
     }
 
@@ -340,7 +340,7 @@ public final class MapperUtils {
         }
     }
 
-    static void addLanguage(List<LanguageDefinition> modsLanguages, OaiDcType dc) {
+    public static void addLanguage(List<LanguageDefinition> modsLanguages, OaiDcType dc) {
         for (LanguageDefinition language : modsLanguages) {
             for (LanguageTermDefinition languageTerm : language.getLanguageTerm()) {
                 CodeOrText type = languageTerm.getType();
@@ -351,7 +351,7 @@ public final class MapperUtils {
         }
     }
 
-    static List<ElementType> addElementType(List<ElementType> dcElms, String value) {
+    public static List<ElementType> addElementType(List<ElementType> dcElms, String value) {
         return addElementType(dcElms, value, null);
     }
 
