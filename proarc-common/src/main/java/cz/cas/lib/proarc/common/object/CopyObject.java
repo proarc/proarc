@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;

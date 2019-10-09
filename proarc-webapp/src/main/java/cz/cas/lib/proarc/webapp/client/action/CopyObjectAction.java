@@ -16,41 +16,16 @@
  */
 package cz.cas.lib.proarc.webapp.client.action;
 
-import com.google.gwt.core.client.Callback;
-import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.Alignment;
-import com.smartgwt.client.types.PromptStyle;
-import com.smartgwt.client.types.SelectionStyle;
-import com.smartgwt.client.types.TextAreaWrap;
-import com.smartgwt.client.util.BooleanCallback;
-import com.smartgwt.client.util.SC;
-import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.Window;
-import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.FormItemValueFormatter;
-import com.smartgwt.client.widgets.form.fields.FormItem;
-import com.smartgwt.client.widgets.form.fields.TextAreaItem;
-import com.smartgwt.client.widgets.grid.ListGrid;
-import com.smartgwt.client.widgets.grid.ListGridField;
-import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
-import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
-import com.smartgwt.client.widgets.layout.VLayout;
-import cz.cas.lib.proarc.common.object.CopyObject;
-import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.*;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
-import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 import java.util.*;
 
@@ -124,15 +99,6 @@ public class CopyObjectAction extends AbstractAction {
         }
         return accept;
     }
-
-   /* private void copyObject(String[] pids) {
-        if (pids == null || pids.length == 0) {
-            return;
-        }
-        final Record record = new Record();
-        record.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
-        register(pidOld, pidNew, modelId);
-    }*/
 
     private void register(String pidOld, String pidNew, String modelId, Record record) {
         DSRequest dsRequest = new DSRequest();

@@ -16,16 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import com.google.gwt.core.client.Callback;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
-import com.smartgwt.client.rpc.RPCResponse;
-import com.smartgwt.client.types.PromptStyle;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
-import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 
 /**
  *
@@ -53,47 +45,5 @@ public class CopyObjectDataSource extends ProarcDataSource {
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         setFields(pidold, pidnew, model);
         setOperationBindings(RestConfig.createAddOperation());
-    }
-
-    public void copyObject(String modelId, String pidOld, String pidNew, Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject> callback) {
-        Record r = new Record();
-        DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
-        if (modelId != null && !modelId.isEmpty()) {
-            r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
-        }
-        if (pidOld != null && !pidOld.isEmpty()) {
-            r.setAttribute(CopyObjectDataSource.FIELD_PIDOLD, pidOld);
-        }
-        if (pidNew != null && !pidNew.isEmpty()) {
-            r.setAttribute(CopyObjectDataSource.FIELD_PIDNEW, pidNew);
-        }
-            DSRequest dsRequest = new DSRequest();
-            dsRequest.setWillHandleError(true);
-            ds.addData(r, new DSCallback() {
-                @Override
-                public void execute(DSResponse response, Object rawData, DSRequest request) {
-                    /*if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
-                        DigitalObjectDataSource.ErrorSavingDigitalObject validationError = DigitalObjectDataSource.ErrorSavingDigitalObject.VALIDATION_ERROR;
-                        validationError.setValidationErrors(response.getErrors());
-                        callback.onFailure(validationError);
-                        request.setWillHandleError(true);
-                    } else */{
-                        Record[] data = response.getData();
-                        if (data != null && data.length > 0) {
-                            String pid = data[0].getAttribute(DigitalObjectDataSource.FIELD_PID);
-                            callback.onSuccess(pid);
-                            CopyObjectDataSource.this.updateCaches(response, request);
-                            SearchDataSource.getInstance().updateCaches(response, request);
-                            RelationDataSource.getInstance().updateCaches(response, request);
-                        } else {
-                            callback.onFailure(DigitalObjectDataSource.ErrorSavingDigitalObject.ERROR_SAVING_DIGITAL_OBJECT);
-                        }
-                    }
-                }
-            }, dsRequest);
-
-    }
-
-    public void copyObject(String modelId, String pidOld, String pidNew, DSCallback dsCallback, DSRequest dsRequest) {
     }
 }
