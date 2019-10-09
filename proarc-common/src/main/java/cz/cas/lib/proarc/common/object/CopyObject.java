@@ -20,7 +20,13 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.*;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -59,7 +65,7 @@ public class CopyObject {
                 "Copy Object", "Copy Object validation", null);
     }
 
-    public List<SearchView.Item> copy() throws  DigitalObjectException {
+    public List<SearchView.Item> copy() throws DigitalObjectException {
         checkValues();
         try {
             RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);

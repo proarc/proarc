@@ -23,8 +23,11 @@ import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ds.*;
+import cz.cas.lib.proarc.webapp.client.ds.CopyObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 
 import java.util.*;
