@@ -35,17 +35,9 @@ import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
-import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
-import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.*;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
-import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
-import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
-import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
-import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
-import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
-import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CrossrefExportAction;
@@ -98,6 +90,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction childrenEditAction;
     private DigitalObjectEditAction atmEditAction;
     private UrnNbnAction registerUrnNbnAction;
+    private CopyObjectAction copyObjectAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -245,6 +238,7 @@ public final class DigitalObjectManager {
                 null,
                 DatastreamEditorType.ATM, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
+        copyObjectAction = new CopyObjectAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -298,6 +292,7 @@ public final class DigitalObjectManager {
         toolbar.addMember(btnExport);
         toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
         toolbar.addMember(Actions.asIconButton(registerUrnNbnAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(copyObjectAction, actionSource));
         if (menuType == MenuType.TREE_VIEW) {
             toolbar.addMember(Actions.asIconButton(expandTreeAction, actionSource));
         }
@@ -327,6 +322,7 @@ public final class DigitalObjectManager {
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(deleteAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(registerUrnNbnAction, actionSource, true));
+        //menu.addItem(Actions.asMenuItem(copyObjectAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(expandTreeAction, actionSource, true));
     }
 
