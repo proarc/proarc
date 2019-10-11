@@ -46,6 +46,8 @@ import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+
+import cz.cas.lib.proarc.common.object.CopyObject;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -68,10 +70,6 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
-import cz.cas.lib.proarc.common.workflow.WorkflowManager;
-import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
-import cz.cas.lib.proarc.common.workflow.model.MaterialType;
-import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
@@ -1438,6 +1436,26 @@ public class DigitalObjectResource {
             }
         }
         return new SmartGwtResponse<UrnNbnResult>(result);
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.COPYOBJECT_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> copyObject(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pidOld,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDNEW) String pidNew,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+        CopyObject copyObject = new CopyObject(appConfig, user, pidOld, modelId);
+        try {
+            copyObject.copy();
+            copyObject.copyMods();
+        } catch (DigitalObjectValidationException ex) {
+            return toError(ex);
+        }
+
+        return new SmartGwtResponse<>();
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
