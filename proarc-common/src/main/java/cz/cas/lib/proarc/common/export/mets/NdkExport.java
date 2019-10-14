@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 import org.apache.commons.lang.Validate;
 
@@ -136,6 +137,9 @@ public class NdkExport {
                 metsElement.accept(new MetsElementVisitor());
             } else {
                 List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+                if (PSPs.size() == 0) {
+                    throw new MetsExportException(pid   , "Pod tímto modelem je očekáván model s přiděleným urn:nbn. Tento model chybí. Opravte a poté znovu exportujte.", false, null);
+                }
                 for (String pspPid : PSPs) {
                     dc.resetContext();
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
@@ -151,7 +155,9 @@ public class NdkExport {
                 throw new ExportException(pid, ex);
             }
             return result.setValidationError(ex);
-        } catch (Throwable ex) {
+        } catch (NoSuchElementException exel) {
+            return result.setValidationError(new MetsExportException(pid, "Model obsahuje neočekávaný element {" + exel.getMessage() +"}.", false, null));
+        }catch (Throwable ex) {
             throw new ExportException(pid, ex);
         }
     }

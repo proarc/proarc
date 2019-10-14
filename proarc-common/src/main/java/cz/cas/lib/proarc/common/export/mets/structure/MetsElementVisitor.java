@@ -1455,6 +1455,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
 
+        containChildren(metsElement);
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PAGE.equals(element.getElementType())) {
                 insertPage(physicalDiv, element, pageCounter, metsElement);
@@ -1716,6 +1717,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.setTYPE(transformSupplement(Const.typeNameMap.get(metsElement.getElementType())));
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
+        containChildren(metsElement);
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PAGE.equals(element.getElementType())) {
                 insertPage(physicalDiv, element, pageCounter, metsElement);
@@ -1770,6 +1772,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
+        containChildren(metsElement);
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.ISSUE.equals(element.getElementType())) {
                 element.getMetsContext().setPackageID(MetsUtils.getPackageID(element));
@@ -1783,6 +1786,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 insertSupplement(divType, physicalDiv, element);
             } else
             if (Const.PAGE.equals(element.getElementType())) {
+                if (Const.PERIODICAL_VOLUME.equals(metsElement.getElementType())) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Moodel " + metsElement.getElementType() + " nesmí mít přímo pod sebou model strana.", false, null);
+                }
                 insertPage(physicalDiv, element, pageCounter, metsElement);
                 pageCounter++;
                 continue;
@@ -1794,6 +1800,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
             else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Issue, Supplement, Picture or Page, got:" + element.getElementType(), false, null);
+        }
+    }
+
+    private void containChildren(IMetsElement metsElement) throws MetsExportException {
+        if (metsElement.getChildren().size() == 0) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Moodel " + metsElement.getElementType() + " s identifikátorem " + metsElement.getOriginalPid() + " neobsahuje žádné navázané objekty, proto nebyl export úspěšný.", false, null);
         }
     }
 
@@ -1835,6 +1847,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             addDmdSec(metsElement);
             logicalDiv.getDMDID().add(metsElement.getModsMetsElement());
             physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+            containChildren(metsElement);
             for (IMetsElement childMetsElement : metsElement.getChildren()) {
                 if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
                     continue;
@@ -1878,6 +1891,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
 
+        containChildren(metsElement);
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
                 continue;
@@ -1985,6 +1999,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.setTYPE(metsElement.getElementType());
         divType.getDMDID().add(metsElement.getModsMetsElement());
 
+        containChildren(metsElement);
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.PERIODICAL_VOLUME.equals(childMetsElement.getElementType())) {
                 insertVolume(divType, physicalDiv, childMetsElement, false);
