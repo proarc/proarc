@@ -226,6 +226,7 @@ class CejshBuilder {
         if (getIssue() != null) {
             bwmetaXsl.setParameter("issue", getIssue().getIssueNumber());
             bwmetaXsl.setParameter("issueId", getIssue().getIssueId());
+            bwmetaXsl.setParameter("date", getIssue().getDateIssued());
         }
         try {
             tranformationErrorHandler.reset();
@@ -468,6 +469,7 @@ class CejshBuilder {
                 Issue result = new Issue();
                 result.setIssueId(FoxmlUtils.pidAsUuid(issue.getPid()));
                 result.setIssueNumber(getPartNumberPath().evaluate(modsDom));
+                result.setDateIssued(getDateIssuedPath().evaluate(modsDom));
                 if (result.getIssueNumber() == null || result.getIssueNumber().isEmpty()) {
                     result.setIssueNumber("NA");
                 }
@@ -596,7 +598,15 @@ class CejshBuilder {
         private String issueNumber;
         private String issueId;
         private String issn;
-//        private String year;
+        private String dateIssued;
+
+        public String getDateIssued() {
+            return dateIssued;
+        }
+
+        public void setDateIssued(String dateIssued) {
+            this.dateIssued = dateIssued;
+        }
 
         public String getIssueNumber() {
             return issueNumber;
