@@ -433,7 +433,7 @@ public final class NdkCartographicForm {
         .createField()); // abstract
 
         // note, noteDefinition extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        modsFields.add(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(30)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
@@ -444,7 +444,7 @@ public final class NdkCartographicForm {
         .createField()); // note
 
         // subject, subjectDefinition
-        modsFields.add(new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        modsFields.add(new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(30)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"
