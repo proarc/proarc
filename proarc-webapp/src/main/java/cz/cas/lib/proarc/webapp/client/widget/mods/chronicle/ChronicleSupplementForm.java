@@ -456,7 +456,7 @@ public final class ChronicleSupplementForm {
 
     private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(30)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)

@@ -261,7 +261,7 @@ public final class NdkChapterForm {
         .createField()); // abstract
 
         // note, noteDefinition extends stringPlusLanguage
-        modsFields.add(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        modsFields.add(new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(30)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)

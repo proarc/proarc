@@ -500,7 +500,7 @@ public class NdkPeriodicalForm {
 
     protected Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(30)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.TEXT)
