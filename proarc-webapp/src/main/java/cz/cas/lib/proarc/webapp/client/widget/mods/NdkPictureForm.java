@@ -265,7 +265,7 @@ public final class NdkPictureForm {
         .createField()); // note
 
         // subject, subjectDefinition
-        modsFields.add(new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        modsFields.add(new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(30)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"
