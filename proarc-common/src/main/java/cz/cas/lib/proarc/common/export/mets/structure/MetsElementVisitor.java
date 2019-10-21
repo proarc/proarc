@@ -1592,7 +1592,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         structLinkMapping.pageOrder = pageDiv.getORDER();
         pageOrderToDivMap.put(structLinkMapping, ID);
         for (IMetsElement sourceElement : sourceElements) {
-            addMappingPageStruct(structLinkMapping, sourceElement.getModsElementID());
+            addMappingPageStruct(structLinkMapping, transformSupplementId(sourceElement.getModsElementID()));
         }
     }
 
@@ -1771,7 +1771,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         DivType divType = new DivType();
-        divType.setID(metsElement.getModsElementID());
+        divType.setID(transformSupplementId(metsElement.getModsElementID()));
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
         divType.setTYPE(transformSupplement(Const.typeNameMap.get(metsElement.getElementType())));
         divType.getDMDID().add(metsElement.getModsMetsElement());
@@ -1787,6 +1787,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Page or Picture, got:" + element.getElementType(), false, null);
         }
+    }
+
+    private String transformSupplementId(String modsElementID) {
+        if (modsElementID != null && !modsElementID.isEmpty() && modsElementID.startsWith(Const.MODS_SUPPLEMENT)) {
+            modsElementID = Const.SUPPLEMENT + "_" + modsElementID.substring(6);
+        }
+        return modsElementID;
     }
 
 
