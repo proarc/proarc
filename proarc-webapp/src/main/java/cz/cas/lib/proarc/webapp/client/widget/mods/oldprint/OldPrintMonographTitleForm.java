@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods.oldprint;
 
+import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -34,13 +35,17 @@ public final class OldPrintMonographTitleForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        f.getFields().add(NdkForms.descriptionRadioButton());
+
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods);
+        List<Field> modsFields = mods.getFields();
 
         modsFields.add(titleInfo());
         modsFields.add(originInfo());
         modsFields.add(genre());
         modsFields.add(identifier());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }

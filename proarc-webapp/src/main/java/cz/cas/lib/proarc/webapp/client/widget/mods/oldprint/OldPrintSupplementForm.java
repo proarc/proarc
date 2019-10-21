@@ -44,8 +44,11 @@ public final class OldPrintSupplementForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        f.getFields().add(NdkForms.descriptionRadioButton());
+
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods);
+        List<Field> modsFields = mods.getFields();
 
         modsFields.add(titleInfo());
         modsFields.add(name());
@@ -59,6 +62,7 @@ public final class OldPrintSupplementForm {
         modsFields.add(subject());
         modsFields.add(classification());
         modsFields.add(identifier());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }

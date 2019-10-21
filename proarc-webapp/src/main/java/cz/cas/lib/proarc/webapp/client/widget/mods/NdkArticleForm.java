@@ -48,7 +48,7 @@ public class NdkArticleForm {
         modsFields.add(classification());
         modsFields.add(identifier());
         modsFields.add(part());
-        modsFields.add(recordInfo());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }
@@ -483,53 +483,6 @@ public class NdkArticleForm {
                 // date
                 // text
             .createField(); // part
-    }
-
-    private Field recordInfo() {
-        // recordInfo, recordInfoDefinition
-        return new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
-                .setHint("Údaje o metadatovém záznamu - jeho vzniku, změnách apod.")
-                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
-                // @displayLabel, @altRepGroup
-                // recordContentSource, stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("recordContentSource").setTitle("Record Content Source - R").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("marcorg").createField())
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Kód nebo jméno instituce, která záznam vytvořila nebo změnila.")
-                    .createField()) // value
-                .createField()) // recordContentSource
-                // recordCreationDate, dateDefinition
-                .addField(new FieldBuilder("recordCreationDate").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // @encoding, @qualifier, @point, @keyDate
-                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                    .addField(new FieldBuilder("value").setTitle("Record Creation Date - M").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                .createField()) // recordCreationDate
-                // recordChangeDate, dateDefinition
-                .addField(new FieldBuilder("recordChangeDate").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // @encoding, @qualifier, @point, @keyDate
-                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                    .addField(new FieldBuilder("value").setTitle("Record Change Date - R").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                .createField()) // recordChangeDate
-                // recordIdentifier
-                // languageOfCataloging
-                // recordOrigin, extends stringPlusLanguage
-                .addField(new FieldBuilder("recordOrigin").setMaxOccurrences(1)
-                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Record Origin - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
-                        .setHint("Údaje o vzniku záznamu.")
-                        .addMapValue("machine generated", "machine generated")
-                        .addMapValue("human prepared", "human prepared")
-                    .createField()) // value
-                .createField()) // recordOrigin
-                .addField(new FieldBuilder("recordInfoNote").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Record Info Note - O").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
-                        .setHint("Poznámka k záznamu").createField())
-                    .createField()) //recordInfoNote
-                // descriptionStandard
-        .createField(); // recordInfo
     }
 
     private Field nameInSubject() {

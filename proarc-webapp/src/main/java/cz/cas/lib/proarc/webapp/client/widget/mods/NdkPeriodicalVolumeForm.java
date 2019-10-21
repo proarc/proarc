@@ -33,8 +33,11 @@ public class NdkPeriodicalVolumeForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        f.getFields().add(NdkForms.descriptionRadioButton());
+
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods);
+        List<Field> modsFields = mods.getFields();
 
         modsFields.add(titleInfo());
         modsFields.add(genre());
@@ -42,6 +45,7 @@ public class NdkPeriodicalVolumeForm {
         modsFields.add(name());
         modsFields.add(physicalDescription());
         modsFields.add(identifier());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }

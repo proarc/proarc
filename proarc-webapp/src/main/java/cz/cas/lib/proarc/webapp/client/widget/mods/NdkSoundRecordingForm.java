@@ -34,15 +34,10 @@ public final class NdkSoundRecordingForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true).setDefaultValue("true")
-                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
-                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
-                .createField());
+        f.getFields().add(NdkForms.descriptionRadioButton());
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);
-
         List<Field> modsFields = mods.getFields();
 
 //        modsFields.add(new FieldBuilder("ID").setTitle("ID").setMaxOccurrences(1).setType(Field.TEXT).createField());
@@ -64,7 +59,7 @@ public final class NdkSoundRecordingForm {
         // relatedItem
         modsFields.add(identifier());
         // modsFields.add(location());
-        modsFields.add(recordInfo());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }
@@ -543,82 +538,6 @@ public final class NdkSoundRecordingForm {
                 // holdingSimple
                 // holdingExternal
                 .createField(); // location
-    }
-
-    private Field recordInfo() {
-        // recordInfo, recordInfoDefinition
-        return new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
-                .setHint("Údaje o metadatovém záznamu - jeho vzniku, změnách apod.")
-                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
-                // @displayLabel, @altRepGroup
-                // recordContentSource, stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("recordContentSource").setTitle("Record Content Source - R").setMaxOccurrences(1)
-                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                        .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("marcorg").createField())
-                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
-                                .setHint("Kód nebo jméno instituce, která záznam vytvořila nebo změnila.")
-                                .createField()) // value
-                        .createField()) // recordContentSource
-                // recordCreationDate, dateDefinition
-                .addField(new FieldBuilder("recordCreationDate").setMaxOccurrences(1)
-                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                        // @encoding, @qualifier, @point, @keyDate
-                        .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                        .addField(new FieldBuilder("value").setTitle("Record Creation Date - M").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                        .createField()) // recordCreationDate
-                // recordChangeDate, dateDefinition
-                .addField(new FieldBuilder("recordChangeDate").setMaxOccurrences(1)
-                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                        // @encoding, @qualifier, @point, @keyDate
-                        .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                        .addField(new FieldBuilder("value").setTitle("Record Change Date - MA").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                        .createField()) // recordChangeDate
-                // recordIdentifier, type="recordIdentifierDefinition" extends stringPlusLanguage
-                .addField(new FieldBuilder("recordIdentifier").setTitle("Record Identifier - R").setMaxOccurrences(1)
-                        // lang, String
-                        // xmlLang, lang
-                        // script, String
-                        // transliteration, String
-                        // @source, string
-                        .addField(new FieldBuilder("source").setTitle("Source - R").setMaxOccurrences(1).setType(Field.TEXT).createField())
-                        .addField(new FieldBuilder("value").setTitle("Identifier - R").setMaxOccurrences(1).setType(Field.TEXT)
-                                .setHint("Identifikátor záznamu v katalogu, přebírá se z pole 001.")
-                                .createField())
-                        .createField()) // recordIdentifier
-                // recordOrigin, extends stringPlusLanguage
-                .addField(new FieldBuilder("recordOrigin").setMaxOccurrences(1)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("value").setTitle("Record Origin - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
-                                .setHint("Údaje o vzniku záznamu.")
-                                .addMapValue("machine generated", "machine generated")
-                                .addMapValue("human prepared", "human prepared")
-                                .createField()) // value
-                        .createField()) // recordOrigin
-                // languageOfCataloging, languageDefinition
-                .addField(new FieldBuilder("languageOfCataloging").setTitle("Language of Cataloging - R").setMaxOccurrences(10)
-                        // @objectPart, @displayLabel, @altRepGroup, @usage
-                        // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
-                        // languageTerm, languageTermDefinition
-                        .addField(new FieldBuilder("languageTerm").setMaxOccurrences(1)
-                                // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                                // @authorityURI, @valueURI
-                                // @authority, enum
-                                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.SELECT)
-                                        .addMapValue("iso639-2b", "ISO 639-2B")
-                                        .createField()) // authority
-                                // type, codeOrText('code', 'text')
-                                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
-                                        .addMapValue("code", "code")
-                                        .addMapValue("text", "text")
-                                        .createField()) // type
-                                .addField(NdkForms.createLangTermValue()
-                                        .setTitle("Language - R").setRequired(Boolean.FALSE)
-                                        .createField()) // value
-                                .createField()) // languageTerm
-                        // scriptTerm
-                        .createField()) // languageOfCataloging
-                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField()) //descriptionStandard
-                .createField(); // recordInfo
     }
 
     private Field nameInSubject() {
