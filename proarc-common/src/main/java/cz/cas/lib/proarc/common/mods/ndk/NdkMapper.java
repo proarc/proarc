@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.chronicle.ChronicleMapperFactory;
@@ -102,6 +103,16 @@ public abstract class NdkMapper {
         mods.setVersion(ModsUtils.VERSION);
         if (ctx.getPid() != null) {
             addPid(mods, ctx.getPid());
+            checkUuidIdentifier(mods, ctx.getPid());
+        }
+    }
+
+    private void checkUuidIdentifier(ModsDefinition mods, String pid) {
+        String uuid = FoxmlUtils.pidAsUuid(pid);
+        for (IdentifierDefinition id : mods.getIdentifier()) {
+            if ("uuid".equals(id.getType()) && !uuid.equals(id.getValue())) {
+                id.setInvalid("yes");
+            }
         }
     }
 
