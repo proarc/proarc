@@ -951,7 +951,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         CreatingApplicationComplexType creatingApplication = new CreatingApplicationComplexType();
         characteristics.getCreatingApplication().add(creatingApplication);
         creatingApplication.getContent().add(factory.createCreatingApplicationName("ProArc"));
-        creatingApplication.getContent().add(factory.createCreatingApplicationVersion("3.5.12"));
+        creatingApplication.getContent().add(factory.createCreatingApplicationVersion("3.5.13"));
 
         //creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
         creatingApplication.getContent().add(factory.createDateCreatedByApplication(MetsUtils.getCurrentDate().toXMLFormat()));
