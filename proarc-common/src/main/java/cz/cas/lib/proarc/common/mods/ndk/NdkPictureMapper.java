@@ -48,7 +48,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
  *
  * @author Jan Pokorsky
  */
-public final class NdkPictureMapper extends NdkMapper {
+public final class NdkPictureMapper extends RdaNdkMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {

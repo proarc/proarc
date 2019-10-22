@@ -58,6 +58,14 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.mods.DetailDefinition;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -898,8 +906,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      * @param datastream
      * @param md5Info
-     * @param created
-     * @param formatVersion
      * @return
      * @throws MetsExportException
      */
@@ -945,7 +951,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         CreatingApplicationComplexType creatingApplication = new CreatingApplicationComplexType();
         characteristics.getCreatingApplication().add(creatingApplication);
         creatingApplication.getContent().add(factory.createCreatingApplicationName("ProArc"));
-        creatingApplication.getContent().add(factory.createCreatingApplicationVersion("3.5.12"));
+        creatingApplication.getContent().add(factory.createCreatingApplicationVersion("3.5.13"));
 
         //creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
         creatingApplication.getContent().add(factory.createDateCreatedByApplication(MetsUtils.getCurrentDate().toXMLFormat()));
@@ -1103,7 +1109,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * Fixes PS Mix
      *
      * @param jHoveOutputRaw
-     * @param metsElement
+     * @param originalPid
      * @param rawCreated
      */
     public static void fixPSMix(JHoveOutput jHoveOutputRaw, String originalPid, XMLGregorianCalendar rawCreated) {
@@ -1117,7 +1123,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * Fixes MC Mix
      *
      * @param jHoveOutputMC
-     * @param metsElement
+     * @param originalPid
      * @param mcCreated
      * @param originalFile
      * @param photometricInterpretation
@@ -1136,7 +1142,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      * @param fileNames
      * @param seq
-     * @param fileTypes
+     * @param fileGrpPage
      * @param mimeTypes
      * @param pageDiv
      * @throws MetsExportException
@@ -1455,9 +1461,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
 
+        containChildren(metsElement);
+        int pageIndex = 1;
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PAGE.equals(element.getElementType())) {
-                insertPage(physicalDiv, element, pageCounter, metsElement);
+                insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
                 continue;
             }
@@ -1519,13 +1527,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param sourceElement
      * @throws MetsExportException
      */
-    private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, IMetsElement sourceElement) throws MetsExportException {
+    private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, IMetsElement sourceElement, int pageIndex) throws MetsExportException {
         List<IMetsElement> sourceElements = new ArrayList<IMetsElement>();
         if (metsElement.getModel().contains(NdkPlugin.MODEL_NDK_PAGE)) {
             addDmdSec(metsElement);
         }
         sourceElements.add(sourceElement);
-        insertPage(physicalDiv, metsElement, pageCounter, sourceElements);
+        insertPage(physicalDiv, metsElement, pageCounter, sourceElements, pageIndex);
     }
 
     /**
@@ -1534,10 +1542,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param physicalDiv
      * @param metsElement
      * @param pageCounter
-     * @param sourceElement
+     * @param sourceElements
+     * @param pageIndex
      * @throws MetsExportException
      */
-    private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, List<IMetsElement> sourceElements) throws MetsExportException {
+    private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, List<IMetsElement> sourceElements, int pageIndex) throws MetsExportException {
         if (metsElement.getMetsContext().getPackageDir() == null) {
             File packageDir = createPackageDir(metsElement);
             metsElement.getMetsContext().setPackageDir(packageDir);
@@ -1550,6 +1559,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         HashMap<String, FileGrp> fileGrpPage = MetsUtils.initFileGroups();
         DivType pageDiv = new DivType();
         physicalDiv.getDiv().add(pageDiv);
+        validatePageIndexAndNumber(metsElement, pageIndex);
         fillPageIndexOrder(metsElement, pageDiv);
         String ID = "DIV_P_PAGE_" + metsElement.getElementID().replace("PAGE_", "");
         pageDiv.setID(ID);
@@ -1582,7 +1592,57 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         structLinkMapping.pageOrder = pageDiv.getORDER();
         pageOrderToDivMap.put(structLinkMapping, ID);
         for (IMetsElement sourceElement : sourceElements) {
-            addMappingPageStruct(structLinkMapping, sourceElement.getModsElementID());
+            addMappingPageStruct(structLinkMapping, transformSupplementId(sourceElement.getModsElementID()));
+        }
+    }
+
+    private void validatePageIndexAndNumber(IMetsElement metsElement, int pageIndexExpected) throws MetsExportException {
+        ModsDefinition mods = getMods(metsElement);
+        int pageIndex = getPageIndex(mods);
+        if (!containPageNumber(mods)) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Strana nemá vyplněný číslo stránky.", false, null);
+        }
+        if (pageIndexExpected != pageIndex) {
+            if (pageIndex == -1) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Strana nemá vyplněný index strany. Očekávaná hodnota " + pageIndexExpected + ".", false, null);
+            } else {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Strana má neočekávaný index strany. Očekávaná hodnota " + pageIndexExpected + ", ale byl nalezen index "+ pageIndex + ".", false, null);
+            }
+        }
+    }
+
+    private int getPageIndex(ModsDefinition mods) {
+        if (mods.getPart().size() > 0) {
+            for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
+                if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                    return Integer.valueOf(detail.getNumber().get(0).getValue());
+                }
+            }
+        }
+        return -1;
+    }
+
+    private boolean containPageNumber(ModsDefinition mods) {
+        if (mods.getPart().size() > 0) {
+            for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
+                if ("pageNumber".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                    return !detail.getNumber().get(0).getValue().isEmpty();
+                }
+            }
+        }
+        return false;
+    }
+
+    private ModsDefinition getMods(IMetsElement metsElement) throws MetsExportException {
+        try {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            FedoraObject foNew = dom.find(metsElement.getOriginalPid(), null);
+            XmlStreamEditor streamEditorNew = foNew.getEditor(FoxmlUtils.inlineProfile(
+                    MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+            ModsStreamEditor modsStreamEditorNew = new ModsStreamEditor(streamEditorNew, foNew);
+            return modsStreamEditorNew.read();
+        } catch (DigitalObjectException ex) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Nepodařilo se zkontrolovat index a pořadí strany", false, null);
         }
     }
 
@@ -1711,20 +1771,29 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         DivType divType = new DivType();
-        divType.setID(metsElement.getModsElementID());
+        divType.setID(transformSupplementId(metsElement.getModsElementID()));
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
         divType.setTYPE(transformSupplement(Const.typeNameMap.get(metsElement.getElementType())));
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
+        int pageIndex = 1;
+        containChildren(metsElement);
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PAGE.equals(element.getElementType())) {
-                insertPage(physicalDiv, element, pageCounter, metsElement);
+                insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
             } else if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(divType, physicalDiv, element);
             } else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Page or Picture, got:" + element.getElementType(), false, null);
         }
+    }
+
+    private String transformSupplementId(String modsElementID) {
+        if (modsElementID != null && !modsElementID.isEmpty() && modsElementID.startsWith(Const.MODS_SUPPLEMENT)) {
+            modsElementID = Const.SUPPLEMENT + "_" + modsElementID.substring(6);
+        }
+        return modsElementID;
     }
 
 
@@ -1744,7 +1813,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param logicalDiv
      * @param physicalDiv
      * @param metsElement
-     * @param volumeCounter
      * @param isMultiPartMonograph
      * @throws MetsExportException
      */
@@ -1770,6 +1838,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
+        int pageIndex = 1;
+        containChildren(metsElement);
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.ISSUE.equals(element.getElementType())) {
                 element.getMetsContext().setPackageID(MetsUtils.getPackageID(element));
@@ -1783,7 +1853,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 insertSupplement(divType, physicalDiv, element);
             } else
             if (Const.PAGE.equals(element.getElementType())) {
-                insertPage(physicalDiv, element, pageCounter, metsElement);
+
+                if (Const.PERIODICAL_VOLUME.equals(metsElement.getElementType())) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Moodel " + metsElement.getElementType() + " nesmí mít přímo pod sebou model strana.", false, null);
+                }
+                insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
                 continue;
             } else if (Const.CHAPTER.equals(element.getElementType())) {
@@ -1794,6 +1868,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
             else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Issue, Supplement, Picture or Page, got:" + element.getElementType(), false, null);
+        }
+    }
+
+    private void containChildren(IMetsElement metsElement) throws MetsExportException {
+        if (metsElement.getChildren().size() == 0) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Moodel " + metsElement.getElementType() + " s identifikátorem " + metsElement.getOriginalPid() + " neobsahuje žádné navázané objekty, proto nebyl export úspěšný.", false, null);
         }
     }
 
@@ -1835,6 +1915,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             addDmdSec(metsElement);
             logicalDiv.getDMDID().add(metsElement.getModsMetsElement());
             physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
+            containChildren(metsElement);
+            int pageIndex = 1;
             for (IMetsElement childMetsElement : metsElement.getChildren()) {
                 if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
                     continue;
@@ -1845,7 +1927,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 } else
                 if (Const.PAGE.equals(childMetsElement.getElementType())) {
                     pageCounter++;
-                    insertPage(physicalDiv, childMetsElement, pageCounter, metsElement);
+                    insertPage(physicalDiv, childMetsElement, pageCounter, metsElement, pageIndex++);
                 } else if (Const.CHAPTER.equals(childMetsElement.getElementType())) {
                     insertChapter(logicalDiv, physicalDiv, childMetsElement, chapterCounter);
                     chapterCounter++;
@@ -1877,7 +1959,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
-
+        containChildren(metsElement);
+        int pageIndex = 1;
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
                 continue;
@@ -1888,7 +1971,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else
             if (Const.PAGE.equals(childMetsElement.getElementType())) {
                 pageCounter++;
-                insertPage(physicalDiv, childMetsElement, pageCounter, metsElement);
+                insertPage(physicalDiv, childMetsElement, pageCounter, metsElement, pageIndex++);
             } else if (Const.CHAPTER.equals(childMetsElement.getElementType())) {
                 insertChapter(divType, physicalDiv, childMetsElement, chapterCounter);
                 chapterCounter++;
@@ -1985,6 +2068,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.setTYPE(metsElement.getElementType());
         divType.getDMDID().add(metsElement.getModsMetsElement());
 
+        containChildren(metsElement);
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.PERIODICAL_VOLUME.equals(childMetsElement.getElementType())) {
                 insertVolume(divType, physicalDiv, childMetsElement, false);
@@ -2005,7 +2089,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param logicalDiv
      * @param physicalDiv
      * @param metsElement
-     * @param counterIntPart
      * @throws MetsExportException
      */
     private void insertPicture(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement) throws MetsExportException {
@@ -2197,12 +2280,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         logicalDiv.getDMDID().add(metsElement.getModsMetsElement());
         physicalDiv.getDMDID().add(metsElement.getModsMetsElement());
         metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
-
+        int pageIndex = 1;
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.SOUND_RECORDING.equals(childMetsElement.getElementType())) {
                 insertSoundRecording(logicalDiv, physicalDiv, childMetsElement);
             } else if (Const.PAGE.equals(childMetsElement.getElementType())) {
-                insertPage(physicalDiv, childMetsElement, pageCounter, metsElement);
+                insertPage(physicalDiv, childMetsElement, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
             } else if (Const.SUPPLEMENT.equals(childMetsElement.getElementType())) {
                 insertAudioSupplement(logicalDiv, physicalDiv, childMetsElement);
@@ -2229,13 +2312,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.setTYPE(metsElement.getElementType());
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
-
+        int pageIndex = 1;
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.SOUND_PAGE.equals(element.getElementType())){
                 insertAudioPage(physicalDiv, element, audioPageCounter, metsElement);
                 audioPageCounter++;
             } else if (Const.PAGE.equals(element.getElementType())) {
-                insertPage(physicalDiv, element, pageCounter, metsElement);
+                insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
             } else if (Const.SOUND_PART.equals(element.getElementType())) {
                 insertSoundPart(logicalDiv, physicalDiv, element);
@@ -2422,13 +2505,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.setTYPE(metsElement.getElementType());
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
-
+        int pageIndex = 1;
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.SOUND_PAGE.equals(element.getElementType())) {
                 insertAudioPage(physicalDiv, element, pageCounter, metsElement);
                 audioPageCounter++;
             } else if (Const.PAGE.equals(element.getElementType())) {
-                insertPage(physicalDiv, element, pageCounter, metsElement);
+                insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
             } else if (Const.SUPPLEMENT.equals(element.getElementType())) {
                 insertAudioSupplement(logicalDiv, physicalDiv, element);
@@ -2454,9 +2537,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.setTYPE(Const.typeNameMap.get(metsElement.getElementType()));
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
+        int pageIndex = 1;
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PAGE.equals(element.getElementType())) {
-                insertPage(physicalDiv, element, pageCounter, metsElement);
+                insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
             } else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Page, got:" + element.getElementType(), false, null);

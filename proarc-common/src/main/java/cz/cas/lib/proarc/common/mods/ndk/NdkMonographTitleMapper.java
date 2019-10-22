@@ -25,18 +25,20 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
  * @author Jan Pokorsky
  */
-public class NdkMonographTitleMapper extends NdkMapper {
+public class NdkMonographTitleMapper extends RdaNdkMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
         addGenre(mods);
         fillAbstract(mods);
+        fillRecordInfo(mods);
     }
 
 

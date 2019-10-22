@@ -32,15 +32,10 @@ public class NdkEPeriodicalForm extends NdkPeriodicalForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true)
-                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
-                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
-                .createField());
+        f.getFields().add(NdkForms.descriptionRadioButton());
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);
-
         List<Field> modsFields = mods.getFields();
 
 
@@ -55,7 +50,7 @@ public class NdkEPeriodicalForm extends NdkPeriodicalForm {
         modsFields.add(classification());
         modsFields.add(identifier(true));
         modsFields.add(location(true));
-        modsFields.add(recordInfo());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }

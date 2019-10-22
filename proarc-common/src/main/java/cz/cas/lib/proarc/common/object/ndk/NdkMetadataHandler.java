@@ -150,6 +150,13 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (RdaRules.HAS_MEMBER_RDA_VALIDATION_MODELS.contains(modelId)) {
             setRules(defaultMods);
         }
+        if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            }
+        }
         if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
             // issue 124
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
@@ -157,8 +164,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                 inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 inheritLocation(defaultMods, titleMods.getLocation());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
             }
             String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
             String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
@@ -170,7 +178,8 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)) {
             // issue 240
@@ -179,9 +188,10 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
                 inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
             title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
             if (title != null) {
@@ -194,6 +204,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
                 defaultMods.getNote().addAll(titleMods.getNote());
                 defaultMods.getSubject().addAll(titleMods.getSubject());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
             // issue 241
@@ -203,6 +214,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
             //issue 540
@@ -211,6 +223,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
             // issue 124
@@ -220,7 +233,8 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritLocation(defaultMods, titleMods.getLocation());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
             String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
             String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
@@ -239,16 +253,21 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
                 defaultMods.getNote().addAll(titleMods.getNote());
                 defaultMods.getSubject().addAll(titleMods.getSubject());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
             DigitalObjectHandler prent1 = handler.getParameterParent();
             if (parent != null) {
                 if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parent.relations().getModel())) {
                     DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
+                    ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                     modsCopyMusicDocument(title, defaultMods);
+                    inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 } else if (NdkAudioPlugin.MODEL_SONG.equals(parent.relations().getModel())) {
                     DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_SONG);
+                    ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                     modsCopyMusicDocument(title, defaultMods);
+                    inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 }
             }
         }
@@ -396,6 +415,18 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 ti.getPartName().clear();
                 ti.getNonSort().clear();
                 mods.getTitleInfo().add(ti);
+            }
+        }
+    }
+
+    protected void inheritRecordInfo(ModsDefinition mods, List<RecordInfoDefinition> recordInfos) {
+        for (RecordInfoDefinition recordInfo : recordInfos) {
+            if (recordInfo.getDescriptionStandard().size() > 0 && recordInfo.getDescriptionStandard().get(0).getValue() != null) {
+                RecordInfoDefinition ri = new RecordInfoDefinition();
+                mods.getRecordInfo().add(ri);
+                StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
+                description.setValue(recordInfo.getDescriptionStandard().get(0).getValue());
+                ri.getDescriptionStandard().add(description);
             }
         }
     }

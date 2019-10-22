@@ -27,13 +27,14 @@ import java.util.List;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 /**
  *
  * @author Jan Pokorsky
  */
-public class NdkPeriodicalVolumeMapper extends NdkMapper {
+public class NdkPeriodicalVolumeMapper extends RdaNdkMapper {
 
     /**
      * Updates missing required attribute and elements.
@@ -45,6 +46,7 @@ public class NdkPeriodicalVolumeMapper extends NdkMapper {
         //  mods/genre="volume"
         addGenre(mods);
         fillAbstract(mods);
+        fillRecordInfo(mods);
     }
 
     protected void addGenre(ModsDefinition mods) {

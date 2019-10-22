@@ -205,6 +205,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
                         inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                         inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                     }
                 } else if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
                     //issue 540
@@ -213,6 +214,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                         defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                         defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                     }
                 } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
                     // issue 241
@@ -222,6 +224,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         defaultMods.getLanguage().addAll(titleMods.getLanguage());
                         inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
                         inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                     }
                 }
 

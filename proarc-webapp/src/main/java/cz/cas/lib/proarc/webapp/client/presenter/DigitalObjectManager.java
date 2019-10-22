@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.CopyObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
@@ -101,6 +102,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction childrenEditAction;
     private DigitalObjectEditAction atmEditAction;
     private UrnNbnAction registerUrnNbnAction;
+    private CopyObjectAction copyObjectAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -250,6 +252,7 @@ public final class DigitalObjectManager {
                 null,
                 DatastreamEditorType.ATM, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
+        copyObjectAction = new CopyObjectAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -305,6 +308,7 @@ public final class DigitalObjectManager {
         toolbar.addMember(btnExport);
         toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
         toolbar.addMember(Actions.asIconButton(registerUrnNbnAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(copyObjectAction, actionSource));
         if (menuType == MenuType.TREE_VIEW) {
             toolbar.addMember(Actions.asIconButton(expandTreeAction, actionSource));
         }
@@ -336,6 +340,7 @@ public final class DigitalObjectManager {
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(deleteAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(registerUrnNbnAction, actionSource, true));
+        //menu.addItem(Actions.asMenuItem(copyObjectAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(expandTreeAction, actionSource, true));
     }
 
