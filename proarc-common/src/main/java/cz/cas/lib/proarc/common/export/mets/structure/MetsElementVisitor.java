@@ -2106,7 +2106,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         elementDivType.setLabel3(metsElement.getLabel());
-        elementDivType.setTYPE(metsElement.getModsElementID());
+        elementDivType.setTYPE(metsElement.getElementType());
         elementDivType.getDMDID().add(metsElement.getModsMetsElement());
 
         logicalDiv.getDiv().add(elementDivType);
