@@ -81,6 +81,7 @@ import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectFormValidateAction.ValidatableList;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectNavigateAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectNavigateAction.ChildSelector;
+import cz.cas.lib.proarc.webapp.client.action.DigitalObjectReindexMetadataAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
@@ -307,6 +308,7 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
                     new ValidatableList(childrenListGrid)),
             Actions.asIconButton(new UrnNbnAction(i18n), actionSource),
             Actions.asIconButton(new DigitalObjectCopyMetadataAction(i18n), actionSource),
+            Actions.asIconButton(new DigitalObjectReindexMetadataAction(i18n), actionSource),
             saveActionButton = Actions.asIconButton(saveAction, this),
         };
     }
