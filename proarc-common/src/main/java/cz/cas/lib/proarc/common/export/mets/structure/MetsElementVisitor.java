@@ -1839,7 +1839,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
         int pageIndex = 1;
-        containChildren(metsElement);
+        if (!metsElement.getModel().contains(Const.NDK_EBORN_MODELS_IDENTIFIER)) {
+            containChildren(metsElement);
+        }
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.ISSUE.equals(element.getElementType())) {
                 element.getMetsContext().setPackageID(MetsUtils.getPackageID(element));
