@@ -883,7 +883,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         } catch (Exception ex) {
             identifierType = "ProArc_AgentID";
             identifierValue = "ProArc";
-            role = "role";
+            role = "software";
         }
         LinkingAgentIdentifierComplexType linkingAgent = new LinkingAgentIdentifierComplexType();
         linkingAgent.setLinkingAgentIdentifierType(identifierType);
