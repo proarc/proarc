@@ -328,7 +328,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
         }
     }
 
-    private static class LangComparator implements Comparator<LangTermValue> {
+    public static class LangComparator implements Comparator<LangTermValue> {
 
         private final Collator collator;
 

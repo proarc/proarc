@@ -33,8 +33,11 @@ public class NdkPeriodicalIssueForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        f.getFields().add(NdkForms.descriptionRadioButton());
+
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods);
+        List<Field> modsFields = mods.getFields();
 
         // the field order specified by issue 225
         modsFields.add(titleInfo());
@@ -49,6 +52,7 @@ public class NdkPeriodicalIssueForm {
         modsFields.add(abstracts());
         modsFields.add(note());
         modsFields.add(subject());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }
@@ -472,7 +476,7 @@ public class NdkPeriodicalIssueForm {
 
     private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(30)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)

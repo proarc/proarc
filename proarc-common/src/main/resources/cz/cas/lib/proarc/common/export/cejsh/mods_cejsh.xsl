@@ -25,6 +25,8 @@ Author Miroslav Pavelka
     <xsl:param name="issue"/>
     <!-- issue UUID - mods/identifier[type="uuid"] -->
     <xsl:param name="issueId"/>
+    <!-- issue date - mods/originInfo/dateIssued[0] -->
+    <xsl:param name="date"/>
     <!-- title issn - mods/identifier[type="issn"][0] -->
     <xsl:param name="issn"/>
     <!-- supplement UUID - mods/identifier[type="uuid"] -->
@@ -148,6 +150,12 @@ Author Miroslav Pavelka
                         <xsl:element name="name">
                             <xsl:value-of select="$issue"/>
                         </xsl:element>
+                        <xsl:if test="$date">
+                            <xsl:element name="date">
+                                <xsl:attribute name="type">issued</xsl:attribute>
+                                <xsl:value-of select="$date"/>
+                            </xsl:element>
+                        </xsl:if>
                         <xsl:element name="hierarchy">
                             <xsl:attribute name="class">bwmeta1.hierarchy-class.hierarchy_Journal</xsl:attribute>
                             <xsl:attribute name="level">bwmeta1.level.hierarchy_Journal_Number</xsl:attribute>

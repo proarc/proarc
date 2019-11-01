@@ -32,15 +32,10 @@ public class NdkEPeriodicalForm extends NdkPeriodicalForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true)
-                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
-                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
-                .createField());
+        f.getFields().add(NdkForms.descriptionRadioButton());
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);
-
         List<Field> modsFields = mods.getFields();
 
 
@@ -55,7 +50,7 @@ public class NdkEPeriodicalForm extends NdkPeriodicalForm {
         modsFields.add(classification());
         modsFields.add(identifier(true));
         modsFields.add(location(true));
-        modsFields.add(recordInfo());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }
@@ -87,10 +82,12 @@ public class NdkEPeriodicalForm extends NdkPeriodicalForm {
                         // script, String
                         // transliteration, String
                         .createField()) // title
-                .addField(new FieldBuilder("nonSort").setTitle("Non sort - O").setMaxOccurrences(1)
-                        .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
-                        .setType(Field.TEXT)
-                        .createField())
+                .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Non sort - O").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
+                                .createField()) // value
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .createField()) // nonSort
                 // subTitle, type="stringPlusLanguage"
                 .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
                         .addField(new FieldBuilder("value").setTitle("Subtitle - MA").setMaxOccurrences(1).setType(Field.TEXT)

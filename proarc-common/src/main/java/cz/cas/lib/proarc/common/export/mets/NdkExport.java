@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ItemList;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
@@ -33,8 +34,13 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.logging.Logger;
+import cz.cas.lib.proarc.mets.info.Info;
 import org.apache.commons.lang.Validate;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.
@@ -86,18 +92,79 @@ public class NdkExport {
                 Result r = export(target, pid, hierarchy, keepResult, log);
                 results.add(r);
                 deleteUnnecessaryFolder(target);
+                Info info = getInfo(getInfoFile(target));
+                if (info != null) {
+                    logItem.getItemList().add(new ItemList(getTotalSize(info), getFileSize(info, "alto"), getFileSize(info, "txt"),
+                            getFileSize(info, "usercopy"),getFileSize(info, "mastercopy"),getFileSize(info, "amdsec")));
+                }
                 logResult(r, logItem);
             } catch (ExportException ex) {
                 logItem.setStatus(ResultStatus.FAILED);
                 logItem.getError().add(new ResultError(null, ex));
                 ExportUtils.writeExportResult(target, reslog);
                 throw ex;
+            } catch (JAXBException ex) {
+                logItem.setStatus(ResultStatus.FAILED);
+                logItem.getError().add(new ResultError(null, ex));
+                ExportUtils.writeExportResult(target, reslog);
+                throw new ExportException(ex);
             } finally {
                 logItem.setEnd();
             }
         }
         ExportUtils.writeExportResult(target, reslog);
         return results;
+    }
+
+    private String getFileSize(Info info, String value) {
+        int values = 0;
+        if (info.getItemlist() != null) {
+            for (String path : info.getItemlist().getItem()) {
+                if (path.contains(value)) {
+                    values++;
+                }
+            }
+        }
+        if (values == 0) {
+            return "Nepodarilo se spocitat " + value + " soubory.";
+        } else {
+            return String.valueOf(values);
+        }
+    }
+
+    private String getTotalSize(Info info) {
+        if (info.getItemlist() != null) {
+            return info.getItemlist().getItemtotal().toString();
+        }
+        return "nepodarilo se spocitat";
+    }
+
+    private Info getInfo(File infoFile) throws JAXBException {
+        if (infoFile == null) {
+            return null;
+        }
+        JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        return (Info) unmarshaller.unmarshal(infoFile);
+    }
+
+
+    private File getInfoFile(File target) {
+        if (target.isFile() && target.getName().startsWith("info_")) {
+            return target;
+        }
+        if (target.isFile()) {
+            return null;
+        }
+        if (target.isDirectory()){
+            for (File file : target.listFiles()) {
+                File fileInfo = getInfoFile(file);
+                if (fileInfo != null) {
+                    return fileInfo;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -136,6 +203,9 @@ public class NdkExport {
                 metsElement.accept(new MetsElementVisitor());
             } else {
                 List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+                if (PSPs.size() == 0) {
+                    throw new MetsExportException(pid   , "Pod tímto modelem je očekáván model s přiděleným urn:nbn. Tento model chybí. Opravte a poté znovu exportujte.", false, null);
+                }
                 for (String pspPid : PSPs) {
                     dc.resetContext();
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
@@ -151,7 +221,9 @@ public class NdkExport {
                 throw new ExportException(pid, ex);
             }
             return result.setValidationError(ex);
-        } catch (Throwable ex) {
+        } catch (NoSuchElementException exel) {
+            return result.setValidationError(new MetsExportException(pid, "Model obsahuje neočekávaný element {" + exel.getMessage() +"}.", false, null));
+        }catch (Throwable ex) {
             throw new ExportException(pid, ex);
         }
     }
