@@ -116,7 +116,7 @@ public final class NdkSoundRecordingForm {
                 .setHint("Údaje o odpovědnosti za skladby.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
-                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
                         .setHint("<dl>"
                                 + "<dt>personal</dt><dd>celé jméno osoby</dd>"
                                 + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
@@ -146,7 +146,7 @@ public final class NdkSoundRecordingForm {
                                 .createField()) // @type
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                         .addField(new FieldBuilder("value").setTitle("Name Part - MA").setMaxOccurrences(1)
-                                .setType(Field.TEXT).setRequired(true)
+                                .setType(Field.TEXT).setRequired(false)
                                 .setHint("Údaje o křestním jméně, příjmení apod."
                                         + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
                                         + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
@@ -164,7 +164,7 @@ public final class NdkSoundRecordingForm {
                         .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                         // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
                         .addField(NdkForms.roleTerm(
-                                "Role Term - MA", true, "Authority - MA", true, "Type - M", true
+                                "Role Term - MA", false, "Authority - MA", false, "Type - M", false
                         )) // roleTerm
                         .createField()) // role
                 // description
@@ -314,9 +314,12 @@ public final class NdkSoundRecordingForm {
                 // internetMediaType
                 // digitalOrigin
                 // extent, stringPlusLanguagePlusSupplied
-                .addField(new FieldBuilder("extent").setTitle("Extent - M").setMaxOccurrences(5).setType(Field.TEXT)
-                        .setHint("Údaje o rozsahu.")
-                        .createField()) // extent
+                .addField(new FieldBuilder("extent").setTitle("Extent - M").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setType(Field.TEXT).setRequired(true)
+                                .setHint("Údaje o rozsahu.")
+                                .createField())
+                        .createField())// extent
                 // note, physicalDescriptionNote extends stringPlusLanguage
                 .createField(); // physicalDescription
     }
