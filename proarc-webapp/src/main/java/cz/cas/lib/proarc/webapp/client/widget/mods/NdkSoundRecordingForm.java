@@ -298,9 +298,9 @@ public final class NdkSoundRecordingForm {
                                 .addMapValue("text", "text")
                                 .createField()) // type
                         //objectPart
-                        .createField()) // languageTerm
-                .addField(NdkForms.createLangTermValue()
+                        .addField(NdkForms.createLangTermValue()
                         .createField()) // value
+                        .createField())
                 // scriptTerm
                 .createField(); // language
     }
