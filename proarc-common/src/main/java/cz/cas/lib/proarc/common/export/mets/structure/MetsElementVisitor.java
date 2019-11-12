@@ -1335,14 +1335,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (outputFileNames.get(Const.ALTO_GRP_ID) != null) {
                 File altoFile = new File(outputFileNames.get(Const.ALTO_GRP_ID));
                 if (altoFile.exists()) {
-                    Schema altoSchema;
+                    List<Schema> altoSchemas;
                     try {
-                        altoSchema = AltoDatastream.getSchema();
+                        altoSchemas = AltoDatastream.getSchemas();
                     } catch (SAXException e) {
                         throw new MetsExportException("Unable to get ALTO schema", false);
                     }
                     try {
-                        altoSchema.newValidator().validate(new StreamSource(altoFile));
+                        validateAlto(altoSchemas, altoFile);
                     } catch (Exception exSax) {
                         throw new MetsExportException(metsElement.getOriginalPid(), "Invalid ALTO", false, exSax);
                     }
@@ -1358,6 +1358,24 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             Fptr fptr = new Fptr();
             fptr.setFILEID(fileType);
             pageDiv.getFptr().add(fptr);
+        }
+    }
+
+    private void validateAlto(List<Schema> altoSchemas, File altoFile) throws IOException, SAXException {
+        Boolean valid = false;
+        SAXException exeption = new SAXException();
+        for (Schema altoSchema : altoSchemas) {
+            try {
+                altoSchema.newValidator().validate(new StreamSource(altoFile));
+                valid = true;
+                break;
+            } catch (SAXException ex) {
+                valid = false;
+                exeption = ex;
+            }
+        }
+        if (valid = false) {
+            throw exeption;
         }
     }
 

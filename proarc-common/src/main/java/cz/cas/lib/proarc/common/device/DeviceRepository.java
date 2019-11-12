@@ -466,7 +466,7 @@ public final class DeviceRepository {
                     } else if ("settings".equals(extension.getFirstChild().getLocalName()))
                         settings = extension.getFirstChild().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
+                    LOG.log(Level.INFO, "Error in premis:agentExtension");
                 }
                 try {
                     if ("serialNumber".equals(extension.getFirstChild().getNextSibling().getLocalName())) {
@@ -474,13 +474,13 @@ public final class DeviceRepository {
                     } else if ("settings".equals(extension.getFirstChild().getNextSibling().getLocalName()))
                         settings = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
+                    LOG.log(Level.INFO, "Error in premis:agentExtension");
                 }
                 try {
                     if ("settings".equals(extension.getFirstChild().getNextSibling().getNextSibling().getLocalName()))
                         settings = extension.getFirstChild().getNextSibling().getNextSibling().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
+                    LOG.log(Level.INFO, "Error in premis:agentExtension");
                 }
             }
             nk.setManufacturer(manufacturer);
