@@ -374,7 +374,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
             physicalDiv.setTYPE("TITLE");
             metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
             insertVolume(logicalDiv, physicalDiv, metsElement, false);
-            createStructureMap(metsElement, true);
+            createStructureMap(metsElement, false);
         } else {
             metsElement.setModsElementID("TITLE_0001");
             titleCounter++;
