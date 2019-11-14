@@ -104,6 +104,8 @@ public final class AltoDatastream {
                 case "3.0":
                     ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_30));
                     break;
+                default:
+                    ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_30));
             }
         } else {
             ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21));
