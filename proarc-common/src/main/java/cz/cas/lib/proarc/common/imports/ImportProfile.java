@@ -66,6 +66,7 @@ public final class ImportProfile {
     public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
     public static final String NDK_ARCHOVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
     public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
+    public static final String CREATE_MODELS_HIERARCHY = "import.create.models_hierarchy";
 
 
 
@@ -191,6 +192,11 @@ public final class ImportProfile {
     public Configuration getConvertorTiffToJpgProcessor () {
         String processor = config.getString(CONVERTOR_TIFF_JPG_PROCESSOR, "-");
         return config.subset(PROCESSOR + "." + processor);
+    }
+
+    public Boolean getCreateModelsHierarchy() {
+        String createHierarchy = config.getString(CREATE_MODELS_HIERARCHY, "false");
+        return  Boolean.parseBoolean(createHierarchy);
     }
 
     public boolean isTiffToJpgDefined() {
