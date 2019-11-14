@@ -91,24 +91,24 @@ public final class AltoDatastream {
     }
 
     public static Schema getSchema() throws SAXException {
-        if (ALTO_SCHEMA == null) {
-            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            schemaFactory.setResourceResolver(MetsLSResolver.getInstance());
-            if (config != null) {
-                switch (config.getAltoFileVersion()) {
-                    case "2.0":
-                        ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_20));
-                        break;
-                    case "2.1":
-                        ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21));
-                        break;
-                    case "3.0":
-                        ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_30));
-                        break;
-                }
-            } else {
-                ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21));
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        schemaFactory.setResourceResolver(MetsLSResolver.getInstance());
+        if (config != null) {
+            switch (config.getAltoFileVersion()) {
+                case "2.0":
+                    ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_20));
+                    break;
+                case "2.1":
+                    ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21));
+                    break;
+                case "3.0":
+                    ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_30));
+                    break;
+                default:
+                    ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_30));
             }
+        } else {
+            ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21));
         }
         return ALTO_SCHEMA;
     }
