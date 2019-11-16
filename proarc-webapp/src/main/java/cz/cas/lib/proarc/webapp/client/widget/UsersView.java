@@ -48,6 +48,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.mods.IdentifierDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.util.logging.Logger;
 
@@ -166,7 +167,7 @@ public final class UsersView implements RefreshAction.Refreshable {
     }
 
     private DynamicForm getProfileEditor(ListGridRecord record) {
-        final DynamicForm form = createUserEditor(record == null, i18n);
+        final DynamicForm form = createUserEditor(record == null, true, i18n);
 
         FormItem cancel = form.getField("cancel");
         cancel.addClickHandler(new com.smartgwt.client.widgets.form.fields.events.ClickHandler() {
@@ -196,7 +197,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         return form;
     }
 
-    static DynamicForm createUserEditor(final boolean isNewUser, ClientMessages i18n) {
+    static DynamicForm createUserEditor(final boolean isNewUser, final boolean admin, ClientMessages i18n) {
         final DynamicForm form = new DynamicForm();
         form.setMargin(15);
         form.setDataSource(UserDataSource.getInstance());
@@ -221,6 +222,11 @@ public final class UsersView implements RefreshAction.Refreshable {
         TextItem surname = new TextItem(UserResourceApi.USER_SURNAME);
         TextItem forename = new TextItem(UserResourceApi.USER_FORENAME);
         forename.setStartRow(true);
+        TextItem organization = new TextItem(UserResourceApi.USER_ORGANIZATION);
+        organization.setCanEdit(admin);
+        TextItem role = new TextItem(UserResourceApi.USER_ROLE);
+        role.setCanEdit(admin);
+        role.setOptionDataSource(IdentifierDataSource.getInstance());
         TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
         email.setColSpan("*");
         email.setWidth(300);
@@ -262,7 +268,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         cancel.setStartRow(false);
 
         form.setFields(username, password, forename, surname, email,
-                remoteName, remoteType, home,
+                remoteName, remoteType, organization, role, home,
                 new RowSpacerItem(), submit, cancel);
 
         return form;

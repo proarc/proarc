@@ -54,7 +54,7 @@ public class UserInfoView {
         this.widget = vLayout;
         widget.setStyleName("pickListMenuBody");
         widget.setShowShadow(true);
-        form = UsersView.createUserEditor(false, i18n);
+        form = UsersView.createUserEditor(false, false, i18n);
         form.addSubmitValuesHandler(new SubmitValuesHandler() {
 
             @Override

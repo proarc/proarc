@@ -68,6 +68,14 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract String getForename();
 
+    @XmlElement(name = UserResourceApi.USER_ORGANIZATION)
+    @Override
+    public abstract String getOrganization();
+
+    @XmlElement(name = UserResourceApi.USER_ROLE)
+    @Override
+    public abstract String getRole();
+
     @XmlElement(name = UserResourceApi.USER_SURNAME)
     @Override
     public abstract String getSurname();

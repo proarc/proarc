@@ -43,6 +43,8 @@ public class UserProfile {
     private transient String userPasswordDigest;
     private String surname;
     private String forename;
+    private String organization;
+    private String role;
     private String email;
     private Date created;
     private Date lastLogin;
@@ -188,6 +190,22 @@ public class UserProfile {
 
     public void setForename(String forename) {
         this.forename = forename;
+    }
+
+    public String getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(String organization) {
+        this.organization = organization;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public String getSurname() {
