@@ -317,7 +317,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                 form = new BornDigitalForms(i18n).getForm(model, getFormPrefix());
             }
             if (form == null) {
-                form = new ChronicleForms(i18n).getForm(model);
+                form = new ChronicleForms(i18n).getForm(model, getFormPrefix());
             }
             if (form == null) {
                 form = new OldPrintForms(i18n).getForm(model);

@@ -13,4 +13,8 @@ public class ChronicleVolumeMapper extends NdkMonographVolumeMapper {
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
     }
+
+    @Override
+    protected void addGenre(ModsDefinition mods) {
+    }
 }

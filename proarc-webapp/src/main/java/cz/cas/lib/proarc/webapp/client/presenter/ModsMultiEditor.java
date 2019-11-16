@@ -27,6 +27,7 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
+import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -274,6 +275,27 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
                 }, actionSource, false));
         customEditorButton2 = menuMods.getItem(1);
+        menuMods.addItem(Actions.asMenuItem(
+                new SwitchAction(modsCustomEditor,
+                        i18n.ModsMultiEditor_TabComplex_Title(),
+                        Page.getAppDir() + "images/silk/16/application_form_edit.png",
+                        i18n.ModsMultiEditor_TabComplex_Hint()
+                        ) {
+                    @Override
+                    boolean accept(DigitalObject obj) {
+                        return ChroniclePlugin.MODEL_CHRONICLETITLE.equals(obj.getModelId())
+                                || ChroniclePlugin.MODEL_CHRONICLEVOLUME.equals(obj.getModelId())
+                                || ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT.equals(obj.getModelId());
+                    }
+
+                    @Override
+                    public void performAction(ActionEvent event) {
+                        modsCustomEditor.setFormPrefix("complex:");
+                        super.performAction(event);
+                    }
+
+                }, actionSource, false));
+        customEditorButton2 = menuMods.getItem(2);
 
         menuMods.addItem(Actions.asMenuItem(
                 new SwitchAction(modsSourceEditor,
