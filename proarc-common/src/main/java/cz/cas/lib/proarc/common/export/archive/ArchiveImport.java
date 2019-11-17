@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.export.archive;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.export.archive.PackageReader.ImportSession;
@@ -68,7 +70,8 @@ public class ArchiveImport implements ImportHandler {
     public void ingest(ImportOptions importConfig) throws Exception {
         ImportBatchManager ibm = ImportBatchManager.getInstance();
         Batch batch = importConfig.getBatch();
-        FedoraImport ingest = new FedoraImport(RemoteStorage.getInstance(), ibm);
+        AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
+        FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(), ibm, null);
         ingest.importBatch(batch, importConfig.getUsername(), null);
     }
 
