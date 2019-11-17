@@ -26,6 +26,7 @@ public final class DigitalObjectResourceApi {
     public static final String PATH = "object";
 
     public static final String DIGITALOBJECT_PID = "pid";
+    public static final String DIGITALOBJECT_PIDNEW = "pidNew";
     public static final String DIGITALOBJECT_MODEL = "model";
     public static final String BATCHID_PARAM = "batchId";
     public static final String TIMESTAMP_PARAM = "timestamp";
@@ -169,8 +170,10 @@ public final class DigitalObjectResourceApi {
 
     /** Resource /object/thumb */
     public static final String URNNBN_PATH = "urnnbn";
+    public static final String COPYOBJECT_PATH = "copyObject";
     public static final String URNNBN_HIERARCHY = "hierarchy";
     public static final String URNNBN_RESOLVER = "resolverId";
+    public static final String REINDEX_PATH = "reindexObjects";
 
     public static final String URNNBN_ITEM_URNNBN = "urnnbn";
     public static final String URNNBN_ITEM_MESSAGE = "message";

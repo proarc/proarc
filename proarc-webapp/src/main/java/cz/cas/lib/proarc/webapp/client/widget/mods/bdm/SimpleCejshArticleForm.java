@@ -33,12 +33,8 @@ public final class SimpleCejshArticleForm {
     public Form build() {
         Form f = new Form();
 
-        // CEJSH, issue 234
-        f.getFields().add(new FieldBuilder("reviewed").setTitle("Status recenzování - M").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true)
-                .addMapValue("true", "recenzovaný článek")
-                .addMapValue("false", "nerecenzovaný článek")
-                .createField());
+        f.getFields().add(NdkForms.descriptionRadioButton());
+        f.getFields().add(NdkForms.reviewRadioButton("Status recenzování - M"));
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);

@@ -31,6 +31,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.UrnNbnResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
@@ -80,6 +81,11 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_THUMBNAIL = path(URL_DIGOBJECT, DigitalObjectResourceApi.THUMB_PATH);
     public static final String URL_DIGOBJECT_URNNBN =  path(
             URL_DIGOBJECT, DigitalObjectResourceApi.URNNBN_PATH);
+    public static final String URL_URNNBN_RESOLVER = path(URL_ROOT, UrnNbnResourceApi.PATH);
+    public static final String URL_DIGOBJECT_COPYOBJECT = path(
+            URL_DIGOBJECT, DigitalObjectResourceApi.COPYOBJECT_PATH);
+    public static final String URL_DIGOBJEKT_REINDEX_OBJECTS = path(
+            URL_DIGOBJECT, DigitalObjectResourceApi.REINDEX_PATH);
     public static final String URL_LOCALIZATION =  path(URL_ROOT, LocalizationResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG =  path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG_QUERY =  path(

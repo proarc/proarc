@@ -125,6 +125,34 @@ public class NdkEntityFactory {
         return imp;
     }
 
+    public Import createMusicDocumentImport(ModsDefinition documentMods, ErrorHandler status)
+            throws SAXException {
+
+        Monograph m = new Monograph();
+        m.setOtherOriginator(ResolverUtils.getOriginator("personal", false, documentMods));
+        m.setPrimaryOriginator(ResolverUtils.getPrimaryOriginator(documentMods));
+        m.setPublication(ResolverUtils.getPublication(documentMods));
+
+        // required
+        Monograph.TitleInfo titleInfo = new Monograph.TitleInfo();
+        TitleInfoDefinition modsTitle = ResolverUtils.getTitleInfo(documentMods);
+        if (modsTitle != null) {
+            titleInfo.setTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getTitle()));
+            titleInfo.setSubTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getSubTitle()));
+        }
+        m.setTitleInfo(titleInfo);
+
+        Import imp = new Import();
+        imp.setMonograph(m);
+        DigitalDocument digitalDocument;
+        digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", documentMods)).build();
+        imp.setDigitalDocument(digitalDocument);
+        debugXml(imp);
+        ResolverXmlUtils.validate(imp, status);
+        return imp;
+    }
+
+
     public Import createPeriodicalIssueImport(
             ModsDefinition titleMods, ModsDefinition volumeMods,
             ModsDefinition issueMods, MixType mix, ErrorHandler status, boolean eBorn

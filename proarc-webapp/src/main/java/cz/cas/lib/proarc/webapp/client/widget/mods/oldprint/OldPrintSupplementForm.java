@@ -44,8 +44,11 @@ public final class OldPrintSupplementForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("mods").setMaxOccurrences(1).createField()); // mods
-        List<Field> modsFields = f.getFields().get(0).getFields();
+        f.getFields().add(NdkForms.descriptionRadioButton());
+
+        Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
+        f.getFields().add(mods);
+        List<Field> modsFields = mods.getFields();
 
         modsFields.add(titleInfo());
         modsFields.add(name());
@@ -59,6 +62,7 @@ public final class OldPrintSupplementForm {
         modsFields.add(subject());
         modsFields.add(classification());
         modsFields.add(identifier());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }
@@ -432,7 +436,7 @@ public final class OldPrintSupplementForm {
 
     private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(30)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
@@ -443,7 +447,7 @@ public final class OldPrintSupplementForm {
 
     private Field subject() {
         // subject, subjectDefinition
-        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(30)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)

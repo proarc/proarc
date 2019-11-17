@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.export.DesaExport.Result;
 import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
+import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
@@ -36,6 +37,7 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.export.mets.NdkSttExport;
 import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -389,8 +391,10 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
         ExportResult result = new ExportResult();
         ArchiveProducer export = new ArchiveProducer();
+        File targetFolder = ExportUtils.createFolder(exportFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
         try {
-            File targetFolder = export.archive(pids, exportFolder);
+            //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
+            targetFolder = export.archive(pids, targetFolder);
             if (targetFolder != null) {
                 result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
             }
@@ -401,11 +405,18 @@ public class ExportResource {
         result.setErrors(new ArrayList<>());
         for (ExportResultLog.ExportResult logResult : reslog.getExports()) {
             for (ResultError error : logResult.getError()) {
+                if (isMissingURNNBN(error) && appConfig.isDeletePackage()) {
+                   MetsUtils.deleteFolder(targetFolder);
+                }
                 result.getErrors().add(new ExportError(
                         error.getPid(), error.getMessage(), false, error.getDetails()));
             }
         }
         return new SmartGwtResponse<>(result);
+    }
+
+    private boolean isMissingURNNBN(ResultError error) {
+        return "URNNBN identifier is missing".equals(error.getMessage());
     }
 
     /**

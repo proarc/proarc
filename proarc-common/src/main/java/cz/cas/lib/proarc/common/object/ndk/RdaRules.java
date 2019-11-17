@@ -39,33 +39,33 @@ import org.apache.commons.configuration.Configuration;
  */
 public class RdaRules {
 
-    String modelId;
-    ModsDefinition mods;
-    DigitalObjectValidationException exception;
-    static final String PROP_MODS_RULES = "metadata.mods.rules";
+    private String modelId;
+    private ModsDefinition mods;
+    private DigitalObjectValidationException exception;
+    private static final String PROP_MODS_RULES = "metadata.mods.rules";
     private String rdaRules;
 
 
-    public static final Set<String> HAS_MEMBER_RDA_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
+    static final Set<String> HAS_MEMBER_RDA_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
                     NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_SHEETMUSIC,
                     OldPrintPlugin.MODEL_VOLUME)));
 
-    public static final String ERR_NDK_RDA_EMPTYEVENTTYPE ="Err_Ndk_Rda_EmptyEventType";
-    public static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
-    public static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
-    public static final String ERR_NDK_DESCRIPTIONSTANDARD = "Err_Ndk_DescriptionStandard";
-    public static final String ERR_NDK_AACR_EMPTYVALUE = "Err_Ndk_Aacr_EmptyValue";
-    public static final String ERR_NDK_AACR_INVALIDVALUE = "Err_Ndk_Aacr_InvalidValue";
-    public static final String ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE ="Err_Ndk_OriginInfo_EventType_WrongValue";
+    private static final String ERR_NDK_RDA_EMPTYEVENTTYPE ="Err_Ndk_Rda_EmptyEventType";
+    private static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
+    private static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
+    private static final String ERR_NDK_DESCRIPTIONSTANDARD = "Err_Ndk_DescriptionStandard";
+    private static final String ERR_NDK_AACR_EMPTYVALUE = "Err_Ndk_Aacr_EmptyValue";
+    private static final String ERR_NDK_AACR_INVALIDVALUE = "Err_Ndk_Aacr_InvalidValue";
+    private static final String ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE ="Err_Ndk_OriginInfo_EventType_WrongValue";
 
-    public RdaRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex) {
+    RdaRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex) {
         this.modelId = modelId;
         this.mods = mods;
         this.exception = ex;
     }
 
-    public RdaRules() {}
+    private RdaRules() {}
 
     public void check() throws DigitalObjectValidationException{
         if (HAS_MEMBER_RDA_VALIDATION_MODELS.contains(modelId)) {
@@ -80,22 +80,25 @@ public class RdaRules {
     }
 
     /** Checks if the correct fields are filled depending on eventType */
-    protected void checkOriginInfoRdaRules(OriginInfoDefinition oi) {
+    private void checkOriginInfoRdaRules(OriginInfoDefinition oi) {
         String eventType = oi.getEventType();
         if (eventType == null || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(eventType)) {
             checkDateNull(oi.getCopyrightDate(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, false);
             checkDateNull(oi.getDateOther(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
-            checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
-            checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
+            if (!checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true)) {
+                checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
+            }
         } else if (ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION.equals(eventType)
                 || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION.equals(eventType)
                 || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE.equals(eventType)) {
             checkDateNull(oi.getCopyrightDate(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, false);
-            checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
-            checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
+            if (!checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false)) {
+                checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
+            }
         } else if (ModsConstants.VALUE_ORIGININFO_EVENTTYPE_COPYRIGHT.equals(eventType)) {
-            checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
-            checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
+            if (!checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false)) {
+                checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
+            }
             checkDateNull(oi.getDateOther(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
         } else {
             exception.addValidation("RDA rules", ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE, eventType);
@@ -115,16 +118,19 @@ public class RdaRules {
     }
 
     /** Checks if the list is empty */
-    private void checkDateEmpty(List dates, String event, String element, boolean mustBeFill) {
+    private boolean checkDateEmpty(List dates, String event, String element, boolean mustBeFill) {
         if (mustBeFill && dates.isEmpty()) {
             exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, element, event);
+            return true;
         } else if (!mustBeFill && !dates.isEmpty()) {
             exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYVALUE, element, event);
+            return true;
         }
+        return false;
     }
 
     /** Checks if the correct fields are filled depending on eventType */
-    protected void checkAndRepairRules(ModsDefinition mods) {
+    private void checkAndRepairRules(ModsDefinition mods) {
         if (mods.getRecordInfo().isEmpty()) {
             return;
         }
@@ -211,7 +217,7 @@ public class RdaRules {
         return options;
     }
 
-    public void setModsRules(String modsRules) {
+    private void setModsRules(String modsRules) {
         this.rdaRules = modsRules;
     }
 

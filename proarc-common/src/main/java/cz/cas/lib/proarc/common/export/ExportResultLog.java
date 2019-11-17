@@ -96,6 +96,9 @@ public class ExportResultLog {
         private String inputPid;
 
         @XmlElement(namespace = ProarcXmlUtils.NS_EXPORT)
+        private List<ItemList> itemList;
+
+        @XmlElement(namespace = ProarcXmlUtils.NS_EXPORT)
         private List<ResultError> error;
 
         public ExportResult() {
@@ -138,6 +141,17 @@ public class ExportResultLog {
             this.inputPid = inputPid;
         }
 
+        public List<ItemList> getItemList() {
+            if (itemList == null) {
+                itemList = new ArrayList<>();
+            }
+            return itemList;
+        }
+
+        public void setItemList(List<ItemList> itemList) {
+            this.itemList = itemList;
+        }
+
         public List<ResultError> getError() {
             if (error == null) {
                 error = new ArrayList<>();
@@ -147,6 +161,137 @@ public class ExportResultLog {
 
         public void setError(List<ResultError> error) {
             this.error = error;
+        }
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class ItemList {
+
+        @XmlAttribute
+        private String itemTotal;
+
+        @XmlAttribute
+        private String altoFiles;
+
+        @XmlAttribute
+        private String txtFiles;
+
+        @XmlAttribute
+        private String usercopyFiles;
+
+        @XmlAttribute
+        private String mastercopyFiles;
+
+        @XmlAttribute
+        private String amdsecFiles;
+
+        @XmlAttribute
+        private String originalScan;
+
+        @XmlAttribute
+        private String metsFile;
+
+        @XmlAttribute
+        private String md5File;
+
+        @XmlAttribute
+        private String infoFile;
+
+        public ItemList(String itemTotal, String altoFiles, String txtFiles, String usercopyFiles, String mastercopyFiles, String amdsecFiles, String originalScan) {
+            this(itemTotal, altoFiles, txtFiles, usercopyFiles, mastercopyFiles, amdsecFiles, originalScan, "1", "1", "1");
+        }
+
+        public ItemList(String itemTotal, String altoFiles, String txtFiles, String usercopyFiles, String mastercopyFiles, String amdsecFiles, String originalScan, String metsFile, String md5File, String inofFile) {
+            this.itemTotal = itemTotal;
+            this.altoFiles = altoFiles;
+            this.txtFiles = txtFiles;
+            this.usercopyFiles = usercopyFiles;
+            this.mastercopyFiles = mastercopyFiles;
+            this.amdsecFiles = amdsecFiles;
+            this.originalScan = originalScan;
+            this.metsFile = metsFile;
+            this.md5File = md5File;
+            this.infoFile = inofFile;
+        }
+
+        public String getItemTotal() {
+            return itemTotal;
+        }
+
+        public void setItemTotal(String itemTotal) {
+            this.itemTotal = itemTotal;
+        }
+
+        public String getAltoFiles() {
+            return altoFiles;
+        }
+
+        public void setAltoFiles(String altoFiles) {
+            this.altoFiles = altoFiles;
+        }
+
+        public String getTxtFiles() {
+            return txtFiles;
+        }
+
+        public void setTxtFiles(String txtFiles) {
+            this.txtFiles = txtFiles;
+        }
+
+        public String getUsercopyFiles() {
+            return usercopyFiles;
+        }
+
+        public void setUsercopyFiles(String usercopyFiles) {
+            this.usercopyFiles = usercopyFiles;
+        }
+
+        public String getMastercopyFiles() {
+            return mastercopyFiles;
+        }
+
+        public void setMastercopyFiles(String mastercopyFiles) {
+            this.mastercopyFiles = mastercopyFiles;
+        }
+
+        public String getAmdsecFiles() {
+            return amdsecFiles;
+        }
+
+        public void setAmdsecFiles(String amdsecFiles) {
+            this.amdsecFiles = amdsecFiles;
+        }
+
+        public String getOriginalScan() {
+            return originalScan;
+        }
+
+        public void setOriginalScan(String originalScan) {
+            this.originalScan = originalScan;
+        }
+
+        public String getMetsFile() {
+            return metsFile;
+        }
+
+        public void setMetsFile(String metsFile) {
+            this.metsFile = metsFile;
+        }
+
+        public String getMd5File() {
+            return md5File;
+        }
+
+        public void setMd5File(String md5File) {
+            this.md5File = md5File;
+        }
+
+        public String getInfoFile() {
+            return infoFile;
+        }
+
+        public void setInfoFile(String infoFile) {
+            this.infoFile = infoFile;
         }
     }
 

@@ -34,11 +34,7 @@ public final class NdkPeriodicalSupplementForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true)
-                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
-                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
-                .createField());
+        f.getFields().add(NdkForms.descriptionRadioButton());
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);
@@ -56,6 +52,7 @@ public final class NdkPeriodicalSupplementForm {
         modsFields.add(subject());
         modsFields.add(classification());
         modsFields.add(identifier());
+        modsFields.add(NdkForms.recordInfo());
 
         return f;
     }
@@ -481,7 +478,7 @@ public final class NdkPeriodicalSupplementForm {
 
     private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(30)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
@@ -492,7 +489,7 @@ public final class NdkPeriodicalSupplementForm {
 
     private Field subject() {
         // subject, subjectDefinition
-        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(30)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"

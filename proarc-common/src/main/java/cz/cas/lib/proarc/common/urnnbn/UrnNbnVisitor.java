@@ -31,6 +31,7 @@ import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.VisitorException;
 import cz.cas.lib.proarc.common.object.ndk.DefaultNdkVisitor;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.Status;
@@ -88,7 +89,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkEbornPlugin.MODEL_ECHAPTER,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE,
             NdkEbornPlugin.MODEL_EARTICLE,
-            NdkEbornPlugin.MODEL_EPERIODICALVOLUME
+            NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
+            NdkAudioPlugin.MODEL_MUSICDOCUMENT
             ));
     private static final Logger LOG = Logger.getLogger(UrnNbnVisitor.class.getName());
 
@@ -356,6 +358,50 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         MixType mix = getMix(elm, p);
         if (mix != null) {
             throw new StopOnFirstMixException(mix);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitNdkMusicDocument(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The NDK Music Document under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            return processNdkMusicDocument(elm, p);
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    private Void processNdkMusicDocument(DigitalObjectElement elm, UrnNbnContext p) throws DigitalObjectException {
+        final DigitalObjectHandler handler = elm.getHandler();
+        final MetadataHandler<ModsDefinition> modsHandler = handler.<ModsDefinition>metadata();
+        final DescriptionMetadata<ModsDefinition> documentDescription = modsHandler.getMetadata();
+        ModsDefinition documentMods = documentDescription.getData();
+        String urnnbn = ResolverUtils.getIdentifier("urnnbn", documentMods);
+        if (urnnbn != null) {
+            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists. " + urnnbn);
+            return null;
+        }
+        try {
+            Import document;
+            ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+            document = resolverEntities.createMusicDocumentImport(documentMods, xmlHandler);
+            if (!validateEntity(xmlHandler, elm, p)) {
+                return null;
+            }
+            UrnNbn urnNbnResponse = registerEntity(document, elm, p);
+            updateModsWithUrnNbn(urnNbnResponse, documentMods, documentDescription, modsHandler, elm, p);
+        } catch (SAXException ex) {
+            // registration request not valid
+            p.getStatus().error(elm, ex);
         }
         return null;
     }
