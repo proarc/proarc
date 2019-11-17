@@ -67,6 +67,9 @@ public final class ImportProfile {
     public static final String NDK_ARCHOVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
     public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
     public static final String CREATE_MODELS_HIERARCHY = "import.create.models_hierarchy";
+    public static final String DEFAULT_ALTO = "import.default_alto.file";
+    public static final String DEFAULT_OCR = "import.default_ocr.file";
+    public static final String DEFAULT_ALTO_AND_OCR = "import.default_alto_and_ocr";
 
 
 
@@ -172,6 +175,21 @@ public final class ImportProfile {
     public String getNdkUserAudioFileSuffix() {
         String suffix = config.getString(NDK_USER_AUDIO_SUFFIX, ".uc.mp3");
         return suffix.toLowerCase();
+    }
+
+    public String getDefaultOcr() {
+        String path = config.getString(DEFAULT_OCR);
+        return path.toLowerCase();
+    }
+
+    public String getDefaultAlto() {
+        String path = config.getString(DEFAULT_ALTO);
+        return path.toLowerCase();
+    }
+
+    public boolean getDefaultAltoAndOcr() {
+        String value = config.getString(DEFAULT_ALTO_AND_OCR);
+        return "true".equals(value);
     }
 
     public Configuration getConvertorJpgSmallProcessor() {
