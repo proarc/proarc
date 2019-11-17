@@ -20,8 +20,15 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.user.UserProfile;
+
 import static cz.cas.lib.proarc.common.imports.ImportProcess.getConsumers;
 import java.io.File;
 import java.io.IOException;
@@ -81,9 +88,20 @@ public class FileSetImport implements ImportHandler {
         importConfig.setJhoveContext(JhoveUtility.createContext());
         try {
             consumeFileSets(batch, fileSets, importConfig);
+            if("profile.chronicle".equals(importConfig.getConfig().getProfileId())
+                    && importConfig.getConfig().getCreateModelsHierarchy()) {
+                createObject(ChroniclePlugin.MODEL_CHRONICLEVOLUME, importConfig.getUser());
+            }
         } finally {
             importConfig.getJhoveContext().destroy();
         }
+    }
+
+    private void createObject(String model, UserProfile user) throws DigitalObjectException {
+        String pid = FoxmlUtils.createPid();
+        DigitalObjectManager dom  = DigitalObjectManager.getDefault();
+        DigitalObjectManager.CreateHandler handler = dom.create(model, pid, null, user, null, "create new object with pid: " + pid);
+        handler.create();
     }
 
     private void consumeFileSets(Batch batch, List<FileSet> fileSets, ImportOptions ctx) throws InterruptedException {
