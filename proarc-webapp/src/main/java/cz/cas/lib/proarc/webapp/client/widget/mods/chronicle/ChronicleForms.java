@@ -104,4 +104,20 @@ public class ChronicleForms {
                 .createField(); // roleTerm
     }
 
+    public static Field part() {
+        return new FieldBuilder("part").setTitle("Vypůjčení").setMaxOccurrences(10)
+                .setHint("Popis půčování.")
+                .addField(new FieldBuilder("extent").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("start").setMaxOccurrences(1)
+                                .addField(new FieldBuilder("value").setTitle("Vypůjčení").setMaxOccurrences(1).setType(Field.TEXT)
+                                        .createField()) // value
+                                .createField()) // start
+                        .addField(new FieldBuilder("end").setMaxOccurrences(1)
+                                .addField(new FieldBuilder("value").setTitle("Vrácení").setMaxOccurrences(1).setType(Field.TEXT)
+                                        .createField()) // value
+                                .createField()) // end
+                        .createField()) // extent
+                .createField(); // part
+    }
+
 }

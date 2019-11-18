@@ -69,6 +69,7 @@ public final class ImportProfile {
     public static final String CREATE_MODELS_HIERARCHY = "import.create.models_hierarchy";
     public static final String DEFAULT_ALTO = "import.default_alto.file";
     public static final String DEFAULT_OCR = "import.default_ocr.file";
+    public static final String DEFAULT_CATALOG = "import.catalog.file";
     public static final String DEFAULT_ALTO_AND_OCR = "import.default_alto_and_ocr";
 
 
@@ -184,6 +185,11 @@ public final class ImportProfile {
 
     public String getDefaultAlto() {
         String path = config.getString(DEFAULT_ALTO);
+        return path.toLowerCase();
+    }
+
+    public String getDefaultCatalog() {
+        String path = config.getString(DEFAULT_CATALOG);
         return path.toLowerCase();
     }
 

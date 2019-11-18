@@ -143,6 +143,8 @@ public final class SimpleChronicleTitleForm {
                         + " mezinárodní nebo lokální."
                         + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
                 .addField(new FieldBuilder("type").setTitle("Typ").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                        .addMapValue("id", "Id")
+                        .addMapValue("localId", "LocalId")
                         .addMapValue("signature1", "Signatura přidělená původcem")
                         .addMapValue("signature2", "Signatura přidělená při zpracování archiválie")
                         .addMapValue("officialNumber", "Číslo vložky úřední desky")

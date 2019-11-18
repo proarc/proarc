@@ -28,6 +28,8 @@ public class SimpleChronicleVolumeForm {
         modsFields.add(abstracts());
         modsFields.add(note());
         modsFields.add(location());
+        //modsFields.add(ChronicleForms.physicalDescription());
+        modsFields.add(ChronicleForms.part());
         modsFields.add(identifier());
         return f;
     }
@@ -58,7 +60,7 @@ public class SimpleChronicleVolumeForm {
     }
 
     private Field name() {
-        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Osoby,které se podíleli na vzniku")
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Osoby, které se podílely na vzniku")
                 .setHint("Údaje o odpovědnosti za svazek."
                         + "<p>Pokud má kronika autora a ilustrátora, element &lt;name> se opakuje s různými rolemi.")
                 .addField(new FieldBuilder("role").setMaxOccurrences(1)
@@ -210,6 +212,8 @@ public class SimpleChronicleVolumeForm {
                         + " mezinárodní nebo lokální."
                         + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
                 .addField(new FieldBuilder("type").setTitle("Typ").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                        .addMapValue("id", "Id")
+                        .addMapValue("localId", "LocalId")
                         .addMapValue("signature1", "Signatura přidělená původcem")
                         .addMapValue("signature2", "Signatura přidělená při zpracování archiválie")
                         .addMapValue("officialNumber", "Číslo vložky úřední desky")
@@ -229,7 +233,7 @@ public class SimpleChronicleVolumeForm {
         return new FieldBuilder("location").setTitle("Umístění").setMaxOccurrences(10)
                 .setHint("Údaje o uložení popisovaného dokumentu, např. signatura, místo uložení apod.")
                 .addField(new FieldBuilder("physicalLocation").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("authority").setTitle("Číslo archivu").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addField(new FieldBuilder("value").setTitle("Číslo archivu").setMaxOccurrences(1).setType(Field.COMBO)
                                 .addMapValue("226102010","SOkA Jihlava")
                                 .addMapValue("226103010","SOkA Pelhřimov")
                                 .addMapValue("226101010","SOkA Havlíčkův Brod")
@@ -237,7 +241,7 @@ public class SimpleChronicleVolumeForm {
                                 .addMapValue("226105010","SOkA Žďár nad Sázavou")
                                 .createField())
                         .addField(new FieldBuilder("authorityURI").setTitle("Číslo fondu uložené").setMaxOccurrences(1).setType(Field.TEXT).createField())
-                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Název fondu").setType(Field.TEXT).createField()) // value
+                        .addField(new FieldBuilder("authority").setMaxOccurrences(1).setTitle("Název fondu").setType(Field.TEXT).createField()) // value
                         .createField()) // physicalLocation
                 .createField(); // location
     }
