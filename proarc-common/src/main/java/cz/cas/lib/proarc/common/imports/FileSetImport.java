@@ -19,9 +19,41 @@ package cz.cas.lib.proarc.common.imports;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.chronicle.ChronicleMapperFactory;
+import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.ExtentDefinition;
+import cz.cas.lib.proarc.mods.FormDefinition;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.LocationDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
 import static cz.cas.lib.proarc.common.imports.ImportProcess.getConsumers;
 import java.io.File;
 import java.io.IOException;
@@ -72,7 +104,7 @@ public class FileSetImport implements ImportHandler {
     }
 
     @Override
-    public void start(ImportOptions importConfig) throws Exception {
+    public void start(ImportOptions importConfig, ImportBatchManager batchManager) throws Exception {
         File importFolder = importConfig.getImportFolder();
         Batch batch = importConfig.getBatch();
         ImportFileScanner scanner = new ImportFileScanner();
@@ -81,9 +113,130 @@ public class FileSetImport implements ImportHandler {
         importConfig.setJhoveContext(JhoveUtility.createContext());
         try {
             consumeFileSets(batch, fileSets, importConfig);
+            if("profile.chronicle".equals(importConfig.getConfig().getProfileId())
+                    && importConfig.getConfig().getCreateModelsHierarchy()) {
+                createObject(fileSets, ChroniclePlugin.MODEL_CHRONICLEVOLUME, batchManager, importConfig);
+            }
         } finally {
             importConfig.getJhoveContext().destroy();
         }
+    }
+
+    private void createObject(List<FileSet> fileSets, String model, ImportBatchManager batchManager, ImportOptions importConfig) throws DigitalObjectException, JAXBException {
+        String pid = FoxmlUtils.createPid();
+        DigitalObjectManager dom  = DigitalObjectManager.getDefault();
+        DigitalObjectManager.CreateHandler handler = dom.create(model, pid, null, importConfig.getUser(), null, "create new object with pid: " + pid);
+        handler.create();
+
+        ImportCatalog catalog = createCatalog(batchManager, importConfig);
+        String fileName = getFileName(fileSets);
+        String[] name = fileName.split("_");
+        String id = "";
+        if (name.length > 3) {
+            id = name[0] + "_" + name[1] + "_" + name[2];
+        } else {
+            id = fileName;
+        }
+        for (ImportCatalog.Kronika chronicle : catalog.getKronika()) {
+            if (chronicle.getLocalId() != null && id != null) {
+                if (chronicle.getLocalId().contains(id)) {
+                    fillMetadata(chronicle, pid);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void fillMetadata(ImportCatalog.Kronika chronicle, String pid) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fo = dom.find(pid, null);
+        XmlStreamEditor streamEditor = fo.getEditor(FoxmlUtils.inlineProfile(
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStream = new ModsStreamEditor(streamEditor, fo);
+        ModsDefinition mods = modsStream.read();
+        //repair Mods
+        repairMods(chronicle, mods);
+        modsStream.write(mods, modsStream.getLastModified(), null);
+
+        //repair DcDatastream
+        DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
+        ChronicleMapperFactory mapperFactory = new ChronicleMapperFactory();
+        NdkMapper mapper = mapperFactory.get(ChroniclePlugin.MODEL_CHRONICLEVOLUME);
+        mapper.setModelId(ChroniclePlugin.MODEL_CHRONICLEVOLUME);
+        NdkMapper.Context context = new NdkMapper.Context(handler);
+        OaiDcType dc = mapper.toDc(mods, context);
+        DcStreamEditor dcEditor = handler.objectMetadata();
+        DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+        dcr.setDc(dc);
+        dcEditor.write(handler, dcr, null);
+
+        //repair Label
+        String label = mapper.toLabel(mods);
+        fo.setLabel(label);
+        fo.flush();
+    }
+
+    private void repairMods(ImportCatalog.Kronika chronicle, ModsDefinition mods) {
+        StringPlusLanguage title = new StringPlusLanguage();
+        title.setValue(chronicle.getNazev());
+        TitleInfoDefinition titleInfo = new TitleInfoDefinition();
+        titleInfo.getTitle().add(title);
+        mods.getTitleInfo().add(titleInfo);
+
+        IdentifierDefinition identifierLocalId = new IdentifierDefinition();
+        identifierLocalId.setType("localId");
+        identifierLocalId.setValue(chronicle.getLocalId());
+        mods.getIdentifier().add(identifierLocalId);
+
+        IdentifierDefinition identifierId = new IdentifierDefinition();
+        identifierId.setType("id");
+        identifierId.setValue(chronicle.getId());
+        mods.getIdentifier().add(identifierId);
+
+        DateDefinition dateCreated = new DateDefinition();
+        dateCreated.setQualifier("approximate");
+        dateCreated.setValue(chronicle.getObdobi());
+        OriginInfoDefinition originInfo = new OriginInfoDefinition();
+        originInfo.getDateIssued().add(dateCreated);
+        mods.getOriginInfo().add(originInfo);
+
+        PhysicalLocationDefinition physicalLocation = new PhysicalLocationDefinition();
+        physicalLocation.setValue(chronicle.getMistoUlozeni());
+        LocationDefinition location = new LocationDefinition();
+        location.getPhysicalLocation().add(physicalLocation);
+        mods.getLocation().add(location);
+
+        FormDefinition form = new FormDefinition();
+        form.setType("PocetSnimku");
+        form.setValue(chronicle.getPocetSnimku());
+        PhysicalDescriptionDefinition description = new PhysicalDescriptionDefinition();
+        description.getForm().add(form);
+
+        ExtentDefinition extent = new ExtentDefinition();
+        StringPlusLanguage start = new StringPlusLanguage();
+        start.setValue(chronicle.getPrijeti());
+        extent.setStart(start);
+        StringPlusLanguage end = new StringPlusLanguage();
+        end.setValue(chronicle.getVraceni());
+        extent.setEnd(end);
+        PartDefinition part = new PartDefinition();
+        part.getExtent().add(extent);
+        mods.getPart().add(part);
+
+        NoteDefinition note = new NoteDefinition();
+        note.setValue(chronicle.getPoznamka());
+        mods.getNote().add(note);
+    }
+
+    private String getFileName(List<FileSet> fileSets) {
+        return fileSets.get(0).getName();
+    }
+
+    private ImportCatalog createCatalog(ImportBatchManager batchManager, ImportOptions importConfig) throws JAXBException {
+        File catalogFile = new File(batchManager.getAppConfig().getConfigHome().toURI().resolve(importConfig.getConfig().getDefaultCatalog()));
+        JAXBContext jaxbContext = JAXBContext.newInstance(ImportCatalog.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        return (ImportCatalog) unmarshaller.unmarshal(catalogFile);
     }
 
     private void consumeFileSets(Batch batch, List<FileSet> fileSets, ImportOptions ctx) throws InterruptedException {

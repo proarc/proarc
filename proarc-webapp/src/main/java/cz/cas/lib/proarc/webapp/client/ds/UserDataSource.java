@@ -76,6 +76,14 @@ public final class UserDataSource extends ProarcDataSource {
         DataSourceTextField forename = new DataSourceTextField(UserResourceApi.USER_FORENAME);
         forename.setTitle(i18n.UsersView_ListHeader_Forename_Title());
 
+        DataSourceTextField organization = new DataSourceTextField(UserResourceApi.USER_ORGANIZATION);
+        organization.setTitle(i18n.UsersView_ListHeader_Organization_Title());
+        organization.setReadOnlyEditorProperties(new StaticTextItem());
+
+        DataSourceTextField role = new DataSourceTextField(UserResourceApi.USER_ROLE);
+        role.setTitle(i18n.UsersView_ListHeader_Role_Title());
+        role.setReadOnlyEditorProperties(new StaticTextItem());
+
         DataSourceTextField email = new DataSourceTextField(UserResourceApi.USER_EMAIL);
         email.setTitle(i18n.UsersView_ListHeader_Email_Title());
 
@@ -100,7 +108,7 @@ public final class UserDataSource extends ProarcDataSource {
         remoteType.setCanEdit(false);
         remoteType.setHidden(true);
 
-        setFields(userId, userName, passwd, surname, forename, email, created, remoteName, remoteType, home);
+        setFields(userId, userName, passwd, surname, forename, organization, role, email, created, remoteName, remoteType, home);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));

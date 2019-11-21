@@ -37,6 +37,8 @@ public final class UserResourceApi {
     public static final String USER_EMAIL = "email";
     public static final String USER_FORENAME = "forename";
     public static final String USER_SURNAME = "surname";
+    public static final String USER_ORGANIZATION = "organization";
+    public static final String USER_ROLE = "role";
     public static final String USER_LASTLOGIN = "lastLogin";
     public static final String USER_STATUS = "status";
     public static final String USER_DEFAULTGROUP = "defaultGroup";

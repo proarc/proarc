@@ -186,28 +186,32 @@ public class ExportResultLog {
         private String amdsecFiles;
 
         @XmlAttribute
+        private String originalScan;
+
+        @XmlAttribute
         private String metsFile;
 
         @XmlAttribute
         private String md5File;
 
         @XmlAttribute
-        private String inofFile;
+        private String infoFile;
 
-        public ItemList(String itemTotal, String altoFiles, String txtFiles, String usercopyFiles, String mastercopyFiles, String amdsecFiles) {
-            this(itemTotal, altoFiles, txtFiles, usercopyFiles, mastercopyFiles, amdsecFiles, "1", "1", "1");
+        public ItemList(String itemTotal, String altoFiles, String txtFiles, String usercopyFiles, String mastercopyFiles, String amdsecFiles, String originalScan) {
+            this(itemTotal, altoFiles, txtFiles, usercopyFiles, mastercopyFiles, amdsecFiles, originalScan, "1", "1", "1");
         }
 
-        public ItemList(String itemTotal, String altoFiles, String txtFiles, String usercopyFiles, String mastercopyFiles, String amdsecFiles, String metsFile, String md5File, String inofFile) {
+        public ItemList(String itemTotal, String altoFiles, String txtFiles, String usercopyFiles, String mastercopyFiles, String amdsecFiles, String originalScan, String metsFile, String md5File, String inofFile) {
             this.itemTotal = itemTotal;
             this.altoFiles = altoFiles;
             this.txtFiles = txtFiles;
             this.usercopyFiles = usercopyFiles;
             this.mastercopyFiles = mastercopyFiles;
             this.amdsecFiles = amdsecFiles;
+            this.originalScan = originalScan;
             this.metsFile = metsFile;
             this.md5File = md5File;
-            this.inofFile = inofFile;
+            this.infoFile = inofFile;
         }
 
         public String getItemTotal() {
@@ -258,6 +262,14 @@ public class ExportResultLog {
             this.amdsecFiles = amdsecFiles;
         }
 
+        public String getOriginalScan() {
+            return originalScan;
+        }
+
+        public void setOriginalScan(String originalScan) {
+            this.originalScan = originalScan;
+        }
+
         public String getMetsFile() {
             return metsFile;
         }
@@ -274,12 +286,12 @@ public class ExportResultLog {
             this.md5File = md5File;
         }
 
-        public String getInofFile() {
-            return inofFile;
+        public String getInfoFile() {
+            return infoFile;
         }
 
-        public void setInofFile(String inofFile) {
-            this.inofFile = inofFile;
+        public void setInfoFile(String infoFile) {
+            this.infoFile = infoFile;
         }
     }
 

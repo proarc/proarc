@@ -49,7 +49,7 @@ import java.util.List;
  */
 public final class MapperUtils {
 
-    static ModsDefinition addPid(ModsDefinition mods, String pid) {
+    public static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
             if (uuid.equals(id.getValue()) && "uuid".equals(id.getType())) {

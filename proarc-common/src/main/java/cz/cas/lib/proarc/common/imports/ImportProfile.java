@@ -66,6 +66,11 @@ public final class ImportProfile {
     public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
     public static final String NDK_ARCHOVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
     public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
+    public static final String CREATE_MODELS_HIERARCHY = "import.create.models_hierarchy";
+    public static final String DEFAULT_ALTO = "import.default_alto.file";
+    public static final String DEFAULT_OCR = "import.default_ocr.file";
+    public static final String DEFAULT_CATALOG = "import.catalog.file";
+    public static final String DEFAULT_ALTO_AND_OCR = "import.default_alto_and_ocr";
 
 
 
@@ -173,6 +178,26 @@ public final class ImportProfile {
         return suffix.toLowerCase();
     }
 
+    public String getDefaultOcr() {
+        String path = config.getString(DEFAULT_OCR);
+        return path.toLowerCase();
+    }
+
+    public String getDefaultAlto() {
+        String path = config.getString(DEFAULT_ALTO);
+        return path.toLowerCase();
+    }
+
+    public String getDefaultCatalog() {
+        String path = config.getString(DEFAULT_CATALOG);
+        return path.toLowerCase();
+    }
+
+    public boolean getDefaultAltoAndOcr() {
+        String value = config.getString(DEFAULT_ALTO_AND_OCR);
+        return "true".equals(value);
+    }
+
     public Configuration getConvertorJpgSmallProcessor() {
         String processor = config.getString(CONVERTOR_JPG_SMALL_PROCESSOR, "-");
         return config.subset(PROCESSOR + "." + processor);
@@ -191,6 +216,11 @@ public final class ImportProfile {
     public Configuration getConvertorTiffToJpgProcessor () {
         String processor = config.getString(CONVERTOR_TIFF_JPG_PROCESSOR, "-");
         return config.subset(PROCESSOR + "." + processor);
+    }
+
+    public Boolean getCreateModelsHierarchy() {
+        String createHierarchy = config.getString(CREATE_MODELS_HIERARCHY, "false");
+        return  Boolean.parseBoolean(createHierarchy);
     }
 
     public boolean isTiffToJpgDefined() {

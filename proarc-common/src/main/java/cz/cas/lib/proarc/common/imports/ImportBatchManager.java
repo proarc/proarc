@@ -64,6 +64,12 @@ public class ImportBatchManager {
     private AppConfiguration appConfig;
     private final DaoFactory daos;
 
+
+    public AppConfiguration getAppConfig(){
+        return appConfig;
+    }
+
+
     /** XXX replace with guice */
     public static void setInstance(AppConfiguration config, DaoFactory daos) {
         INSTANCE = new ImportBatchManager(config, daos);

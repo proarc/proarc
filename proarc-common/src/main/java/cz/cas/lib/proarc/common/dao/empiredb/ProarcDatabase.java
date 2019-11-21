@@ -54,7 +54,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 5;
+    public static final int VERSION = 6;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -182,6 +182,8 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn created;
         public final DBTableColumn lastLogin;
         public final DBTableColumn home;
+        public final DBTableColumn organization;
+        public final DBTableColumn role;
         /** group to use as owner for newly created objects */
         public final DBTableColumn defaultGroup;
         /** group that can contain single member; it can hold overridden permissions */
@@ -214,6 +216,8 @@ public class ProarcDatabase extends DBDatabase {
             remoteName = addColumn("REMOTE_NAME", DataType.TEXT, 255, false);
             remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
             timestamp = addTimestampColumn("TIMESTAMP");
+            organization = addColumn("ORGANIZATION", DataType.TEXT, 100, false);
+            role = addColumn("ROLE", DataType.TEXT, 100, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
@@ -528,7 +532,7 @@ public class ProarcDatabase extends DBDatabase {
         try {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
-                schemaVersion = ProarcDatabaseV4.upgradeToVersion5(
+                schemaVersion = ProarcDatabaseV5.upgradeToVersion6(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);
