@@ -91,7 +91,9 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_PASSWORD) String passwd,
             @FormParam(UserResourceApi.USER_SURNAME) String surname,
             @FormParam(UserResourceApi.USER_FORENAME) String forename,
-            @FormParam(UserResourceApi.USER_EMAIL) String email
+            @FormParam(UserResourceApi.USER_EMAIL) String email,
+            @FormParam(UserResourceApi.USER_ORGANIZATION) String organization,
+            @FormParam(UserResourceApi.USER_ROLE) String role
             ) {
 
         checkAccess(session.getUser(), Permissions.ADMIN, Permissions.USERS_CREATE);
@@ -112,6 +114,8 @@ public final class UserResource {
         newProfile.setSurname(surname);
         newProfile.setUserName(userName);
         newProfile.setUserPassword(passwd);
+        newProfile.setOrganization(organization);
+        newProfile.setRole(role);
         newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
                 session.getUser().getUserName(), session.asFedoraLog());
         return new SmartGwtResponse<UserProfile>(newProfile);
@@ -124,7 +128,9 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_PASSWORD) String passwd,
             @FormParam(UserResourceApi.USER_SURNAME) String surname,
             @FormParam(UserResourceApi.USER_FORENAME) String forename,
-            @FormParam(UserResourceApi.USER_EMAIL) String email
+            @FormParam(UserResourceApi.USER_EMAIL) String email,
+            @FormParam(UserResourceApi.USER_ORGANIZATION) String organization,
+            @FormParam(UserResourceApi.USER_ROLE) String role
             ) {
 
         UserProfile sessionUser = session.getUser();
@@ -149,6 +155,8 @@ public final class UserResource {
         if (fullUpdate) {
             update.setEmail(email);
             update.setForename(forename);
+            update.setOrganization(organization);
+            update.setRole(role);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.USER_SURNAME, "Required!").build();

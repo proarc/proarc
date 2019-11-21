@@ -26,19 +26,26 @@ public class ChronicleForms {
 
     private final ClientMessages i18n;
     private final String activeLocale;
+    private final String prefix = "complex:";
 
     public ChronicleForms(ClientMessages i18n) {
         this.i18n = i18n;
         activeLocale = LanguagesDataSource.activeLocale();
     }
-    public DynamicForm getForm(MetaModelDataSource.MetaModelRecord model) {
-        String modelId = model.getId();
+    public DynamicForm getForm(MetaModelDataSource.MetaModelRecord model, String prefix) {
+        String modelId = prefix + model.getId();
         Form f;
         if (ChroniclePlugin.MODEL_CHRONICLETITLE.equals(modelId)) {
-            f = new ChronicleTitleForm().build();
+            f = new SimpleChronicleTitleForm().build();
         } else if (ChroniclePlugin.MODEL_CHRONICLEVOLUME.equals(modelId)) {
-            f = new ChronicleVolumeForm().build();
+            f = new SimpleChronicleVolumeForm().build();
         } else if (ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT.equals(modelId)) {
+            f = new SimpleChronicleSupplementForm().build();
+        } else if ((this.prefix + ChroniclePlugin.MODEL_CHRONICLETITLE).equals(modelId)) {
+            f = new ChronicleTitleForm().build();
+        } else if ((this.prefix + ChroniclePlugin.MODEL_CHRONICLEVOLUME).equals(modelId)) {
+            f = new ChronicleVolumeForm().build();
+        } else if ((this.prefix + ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT).equals(modelId)) {
             f = new ChronicleSupplementForm().build();
         } else if (ChroniclePlugin.MODEL_PAGE.equals(modelId)) {
             return new PageForm(i18n);
@@ -95,6 +102,22 @@ public class ChronicleForms {
                                 + "<p>K popisu výše uvedeného MARC seznamu nutno uvést authority=“marcrelator“.")
                         .createField()) // authority
                 .createField(); // roleTerm
+    }
+
+    public static Field part() {
+        return new FieldBuilder("part").setTitle("Vypůjčení").setMaxOccurrences(10)
+                .setHint("Popis půčování.")
+                .addField(new FieldBuilder("extent").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("start").setMaxOccurrences(1)
+                                .addField(new FieldBuilder("value").setTitle("Vypůjčení").setMaxOccurrences(1).setType(Field.TEXT)
+                                        .createField()) // value
+                                .createField()) // start
+                        .addField(new FieldBuilder("end").setMaxOccurrences(1)
+                                .addField(new FieldBuilder("value").setTitle("Vrácení").setMaxOccurrences(1).setType(Field.TEXT)
+                                        .createField()) // value
+                                .createField()) // end
+                        .createField()) // extent
+                .createField(); // part
     }
 
 }

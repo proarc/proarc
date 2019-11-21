@@ -47,8 +47,9 @@ public interface ImportHandler {
      * The import implementation. It can just load items or load and ingest
      * items in one step.
      * @param importConfig the settings
+     * @param batchManager
      * @throws Exception failure
      */
-    void start(ImportOptions importConfig) throws Exception;
+    void start(ImportOptions importConfig, ImportBatchManager batchManager) throws Exception;
 
 }

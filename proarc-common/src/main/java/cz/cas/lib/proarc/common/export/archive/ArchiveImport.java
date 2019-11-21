@@ -52,7 +52,7 @@ public class ArchiveImport implements ImportHandler {
     }
 
     @Override
-    public void start(ImportOptions importConfig) throws Exception {
+    public void start(ImportOptions importConfig, ImportBatchManager batchManager) throws Exception {
         isession = new ImportSession(ImportBatchManager.getInstance(), importConfig);
         load(importConfig);
         ingest(importConfig);
