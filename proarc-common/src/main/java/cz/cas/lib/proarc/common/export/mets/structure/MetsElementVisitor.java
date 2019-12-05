@@ -2528,7 +2528,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         int pageIndex = 1;
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.SOUND_PAGE.equals(element.getElementType())) {
-                insertAudioPage(physicalDiv, element, pageCounter, metsElement);
+                insertAudioPage(physicalDiv, element, audioPageCounter, metsElement);
                 audioPageCounter++;
             } else if (Const.PAGE.equals(element.getElementType())) {
                 insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
