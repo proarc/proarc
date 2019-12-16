@@ -843,9 +843,9 @@ public class MetsUtils {
             infoJaxb.setMetadataversion(metsContext.getPackageVersion().get());
         } else {
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
-                infoJaxb.setMetadataversion(1.6f);
+                infoJaxb.setMetadataversion(1.8f);
             } else {
-                infoJaxb.setMetadataversion(1.2f);
+                infoJaxb.setMetadataversion(1.4f);
             }
         }
 
