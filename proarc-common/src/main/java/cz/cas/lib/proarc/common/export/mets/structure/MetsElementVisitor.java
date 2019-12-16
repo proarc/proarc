@@ -951,7 +951,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         CreatingApplicationComplexType creatingApplication = new CreatingApplicationComplexType();
         characteristics.getCreatingApplication().add(creatingApplication);
         creatingApplication.getContent().add(factory.createCreatingApplicationName("ProArc"));
-        creatingApplication.getContent().add(factory.createCreatingApplicationVersion("3.5.12"));
+        creatingApplication.getContent().add(factory.createCreatingApplicationVersion("3.6.SNAPSHOT"));
 
         //creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
         creatingApplication.getContent().add(factory.createDateCreatedByApplication(MetsUtils.getCurrentDate().toXMLFormat()));
@@ -986,6 +986,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+        String extension = Const.mimeToExtensionMap.get(md5Info.getMimeType());
+        int position = originalFile.indexOf(".");
+        originalFile = originalFile.substring(0, position) + extension;
         OriginalNameComplexType originalName = factory.createOriginalNameComplexType();
         originalName.setValue(originalFile);
         file.setOriginalName(originalName);
