@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -261,6 +262,21 @@ public class ImportResource {
                 // batch was imported by different user (store metadata editor userid instead)
                 File batchDir = new File(appConfig.getDefaultUsersHome(), batch.getFolder() + "/" + ImportProcess.TMP_DIR_NAME);
                 File [] batchFiles = batchDir.listFiles((dir, name) -> name.endsWith(".foxml") && !name.startsWith(".proarc"));
+
+                if (batchFiles == null) {
+                    LOG.log(Level.INFO, "BatchFiles is null, trying to get batchFiles again. BatchId: "
+                            + batchId + ", parentPid: " + parentPid + ", profileId: " + profileId + ", state: "
+                            + state.toString() + " batchDir: " + batchDir + ".");
+
+                    FilenameFilter filter = new FilenameFilter() {
+                        @Override
+                        public boolean accept(File dir, String name) {
+                            return  (name.endsWith(".foxml") && !name.startsWith(".proarc"));
+                        }
+                    };
+
+                    batchFiles = batchDir.listFiles(filter);
+                }
 
                 for (File batchFile : batchFiles) {
                     String fileContents = IOUtils.toString(new FileInputStream(batchFile), Charset.defaultCharset());
