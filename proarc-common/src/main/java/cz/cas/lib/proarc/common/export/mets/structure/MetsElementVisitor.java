@@ -939,7 +939,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         characteristics.getFormat().add(format);
         FormatDesignationComplexType formatDesignation = new FormatDesignationComplexType();
         formatDesignation.setFormatName(md5Info.getMimeType());
-        formatDesignation.setFormatVersion(md5Info.getFormatVersion());
+        if (!md5Info.getMimeType().equals(md5Info.getFormatVersion())) {
+            formatDesignation.setFormatVersion(md5Info.getFormatVersion());
+        } else {
+            formatDesignation.setFormatVersion("1.0");
+        }
         JAXBElement<FormatDesignationComplexType> jaxbDesignation = factory.createFormatDesignation(formatDesignation);
         format.getContent().add(jaxbDesignation);
         FormatRegistryComplexType formatRegistry = new FormatRegistryComplexType();
