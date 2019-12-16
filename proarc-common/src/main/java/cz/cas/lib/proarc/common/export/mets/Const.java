@@ -167,7 +167,7 @@ public class Const {
         allowedNdkEbornIdentifiers.addAll(allowedNdkIdentifiers);
         allowedNdkEbornIdentifiers.add("uuid");
         mimeToFmtMap.put("image/tiff", "fmt/353");
-        mimeToFmtMap.put("image/jp2", "fmt/151");
+        mimeToFmtMap.put("image/jp2", "x-fmt/392");
         mimeToFmtMap.put("text/xml", "fmt/101");
         mimeToFmtMap.put("text/plain", "fmt/611");
         mimeToFmtMap.put("application/pdf", "fmt/18");
