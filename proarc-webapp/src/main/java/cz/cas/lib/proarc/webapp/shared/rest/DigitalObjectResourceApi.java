@@ -182,6 +182,9 @@ public final class DigitalObjectResourceApi {
     public static final String URNNBN_ITEM_LOG = "log";
     public static final String WORKFLOW_JOB_ID = "wfJobId";
 
+    public static final String GENERATE_JP2_PATH = "generateJp2";
+    public static final String GENERATE_TYPE = "generateType";
+
     public enum SearchType {
         
         LAST_CREATED(SEARCH_TYPE_PARAM_DEFAULT),

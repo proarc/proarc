@@ -47,6 +47,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CrossrefExportAction;
@@ -100,6 +101,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction atmEditAction;
     private UrnNbnAction registerUrnNbnAction;
     private CopyObjectAction copyObjectAction;
+    private GenerateMasterCopyAction generateMasterCopyAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -248,6 +250,7 @@ public final class DigitalObjectManager {
                 DatastreamEditorType.ATM, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
         copyObjectAction = new CopyObjectAction(i18n);
+        generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -286,6 +289,31 @@ public final class DigitalObjectManager {
         menuExport.addItem(Actions.asMenuItem(rawDataStreamExportAction, actionSource, false));
         btnExport.setMenu(menuExport);
 
+
+        final AbstractAction administrationMenuAction = new AbstractAction(
+                i18n.AdministrationAction_Title(), "[SKIN]/headerIcons/settings_Over.png", null) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                if (!Editor.getInstance().hasPermission("proarc.permission.admin")) {
+                    return false;
+                } else {
+                    Object[] selection = Actions.getSelection(event);
+                    return selection != null && selection.length > 0;
+                }
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                // choose default action iff supported
+            }
+        };
+
+        IconMenuButton btnAdministration = Actions.asIconMenuButton(administrationMenuAction, actionSource);
+        Menu menuAdministration = Actions.createMenu();
+        menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        btnAdministration.setMenu(menuAdministration);
+
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n),
                 new RefreshableView((Refreshable) actionSource.getSource())));
         toolbar.addSeparator();
@@ -302,6 +330,7 @@ public final class DigitalObjectManager {
         toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
         toolbar.addMember(Actions.asIconButton(registerUrnNbnAction, actionSource));
         toolbar.addMember(Actions.asIconButton(copyObjectAction, actionSource));
+        toolbar.addMember(btnAdministration);
         if (menuType == MenuType.TREE_VIEW) {
             toolbar.addMember(Actions.asIconButton(expandTreeAction, actionSource));
         }

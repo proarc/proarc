@@ -117,6 +117,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -1445,7 +1446,6 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> copyObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pidOld,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDNEW) String pidNew,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
@@ -1456,6 +1456,19 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
+
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.GENERATE_JP2_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> generateJp2(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.GENERATE_TYPE) String type,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
 
         return new SmartGwtResponse<>();
     }
