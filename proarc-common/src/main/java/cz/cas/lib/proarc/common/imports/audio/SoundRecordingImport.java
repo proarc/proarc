@@ -78,7 +78,7 @@ public class SoundRecordingImport extends FileSetImport {
     }
 
     @Override
-    public void start(ImportProcess.ImportOptions importConfig) throws Exception {
+    public void start(ImportProcess.ImportOptions importConfig, ImportBatchManager batchManager) throws Exception {
         File importFolder = importConfig.getImportFolder();
         Batch batch = importConfig.getBatch();
         ImportFileScanner scanner = new ImportFileScanner();

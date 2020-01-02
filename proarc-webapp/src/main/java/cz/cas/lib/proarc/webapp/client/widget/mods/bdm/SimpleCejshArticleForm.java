@@ -34,6 +34,7 @@ public final class SimpleCejshArticleForm {
         Form f = new Form();
 
         f.getFields().add(NdkForms.descriptionRadioButton());
+        f.getFields().add(NdkForms.reviewRadioButton("Status recenzování - M"));
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);

@@ -38,11 +38,7 @@ public final class BornDigitalArticleForm {
         f.getFields().add(NdkForms.descriptionRadioButton());
 
         // CEJSH, issue 234
-        f.getFields().add(new FieldBuilder("reviewed").setTitle("Peer Review").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true)
-                .addMapValue("true", "recenzovaný článek")
-                .addMapValue("false", "nerecenzovaný článek")
-                .createField());
+        f.getFields().add(NdkForms.reviewRadioButton("Peer Review - M"));
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);

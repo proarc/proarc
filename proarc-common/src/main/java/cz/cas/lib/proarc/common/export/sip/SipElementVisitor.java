@@ -367,13 +367,14 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         }
         if (!containsUnit) {
             logicalDiv.setLabel3(metsElement.getLabel());
-            logicalDiv.setTYPE("VOLUME");
+            logicalDiv.setTYPE("TITLE");
             logicalDiv.setID("MONOGRAPH_0001");
             physicalDiv.setLabel3(metsElement.getLabel());
             physicalDiv.setID("DIV_P_0000");
-            physicalDiv.setTYPE("VOLUME");
+            physicalDiv.setTYPE("TITLE");
             metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
             insertVolume(logicalDiv, physicalDiv, metsElement, false);
+            createStructureMap(metsElement, false);
         } else {
             metsElement.setModsElementID("TITLE_0001");
             titleCounter++;
@@ -397,9 +398,104 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
             if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
                 childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
                 insertVolume(logicalDiv, physicalDiv, childMetsElement, true);
+                createStructureMap(metsElement, true);
             }
         }
+    }
 
+    private void createStructureMap(IMetsElement metsElement, boolean isMultiPartMonograph) {
+        StructMapType logicalMap = null;
+        for (StructMapType structureMap : mets.getStructMap()) {
+            if ("LOGICAL".equals(structureMap.getTYPE())) {
+                logicalMap = structureMap;
+                break;
+            }
+        }
+        if (logicalMap != null) {
+            mets.getStructMap().clear();
+            StructMapType map = copyMap(logicalMap, metsElement, isMultiPartMonograph);
+            mets.getStructMap().add(map);
+        }
+    }
 
+    private StructMapType copyMap(StructMapType logicalMap, IMetsElement metsElement, boolean isMultiPartMonograph) {
+        StructMapType map = new StructMapType();
+        if (isMultiPartMonograph) {
+            DivType divTitle = new DivType();
+            map.setDiv(divTitle);
+
+            if (logicalMap.getDiv() != null) {
+                DivType divOriginalTitle = logicalMap.getDiv();
+                copyDiv(divTitle, divOriginalTitle, false, true);
+                for (DivType divOriginalVolume : divOriginalTitle.getDiv()) {
+                    DivType divVolume = new DivType();
+                    copyDiv(divVolume, divOriginalVolume, true, false);
+                    divTitle.getDiv().add(divVolume);
+                    if (divOriginalVolume.getDiv().isEmpty()) {
+                        createDivDocument(divVolume, metsElement);
+                    }
+                }
+            }
+        } else {
+            if (logicalMap.getDiv() != null) {
+                DivType divOriginalTitle = logicalMap.getDiv();
+                for (DivType divOriginalVolume : divOriginalTitle.getDiv()) {
+                    DivType divVolume = new DivType();
+                    map.setDiv(divVolume);
+                    copyDiv(divVolume, divOriginalVolume, true, true);
+                    if (divOriginalVolume.getDiv().isEmpty()) {
+                        createDivDocument(divVolume, metsElement);
+                    }
+                }
+            }
+
+        }
+        return map;
+    }
+
+    private void copyDiv(DivType divDestination, DivType divSource, boolean dmdid, boolean label) {
+        divDestination.setID(divSource.getID());
+        divDestination.setTYPE(divSource.getTYPE());
+        if (dmdid) {
+            divDestination.getDMDID().addAll(divSource.getDMDID());
+        }
+        if (label) {
+            divDestination.setLabel3(divSource.getLabel3());
+        }
+    }
+
+    private void createDivDocument(DivType divVolume, IMetsElement metsElement) {
+        DivType divDocument = new DivType();
+        divVolume.getDiv().add(divDocument);
+
+        String fileName = "oc_" + metsElement.getMetsContext().getPackageID();
+
+        divDocument.setID("DOCUMENT_0001");
+        divDocument.setLabel3(fileName);
+        divDocument.setTYPE("DOCUMENT");
+
+        createDivFile(divDocument, fileName);
+    }
+
+    private void createDivFile(DivType divDocument, String fileName) {
+        DivType divFile = new DivType();
+        divDocument.getDiv().add(divFile);
+        divFile.setID("FILE_0001");
+        divFile.setTYPE("FILE");
+
+        DivType.Fptr ftprFile = new DivType.Fptr();
+        divFile.getFptr().add(ftprFile);
+
+        FileType fileType = new FileType();
+        ftprFile.setFILEID(fileType);
+        fileType.setCHECKSUMTYPE("MD5");
+        fileType.setMIMETYPE("pdf");
+        fileType.setID(fileName);
+
+        FileType.FLocat fLocat = new FileType.FLocat();
+        fLocat.setLOCTYPE("URL");
+        URI uri = URI.create(fileName);
+        fLocat.setHref(uri.toASCIIString());
+        fileType.getFLocat().add(fLocat);
     }
 }

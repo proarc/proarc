@@ -243,4 +243,12 @@ public final class NdkForms {
                 .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
                 .createField();
     }
+
+    public static Field reviewRadioButton(String title) {
+        return new FieldBuilder("reviewed").setTitle(title).setMaxOccurrences(1)
+                .setType(Field.RADIOGROUP).setRequired(true)
+                .addMapValue("true", "recenzovaný článek")
+                .addMapValue("false", "nerecenzovaný článek")
+                .createField();
+    }
 }

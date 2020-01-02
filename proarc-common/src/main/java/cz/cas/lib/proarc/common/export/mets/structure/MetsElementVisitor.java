@@ -883,7 +883,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         } catch (Exception ex) {
             identifierType = "ProArc_AgentID";
             identifierValue = "ProArc";
-            role = "role";
+            role = "software";
         }
         LinkingAgentIdentifierComplexType linkingAgent = new LinkingAgentIdentifierComplexType();
         linkingAgent.setLinkingAgentIdentifierType(identifierType);
@@ -1335,14 +1335,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (outputFileNames.get(Const.ALTO_GRP_ID) != null) {
                 File altoFile = new File(outputFileNames.get(Const.ALTO_GRP_ID));
                 if (altoFile.exists()) {
-                    Schema altoSchema;
+                    List<Schema> altoSchemas;
                     try {
-                        altoSchema = AltoDatastream.getSchema();
+                        altoSchemas = AltoDatastream.getSchemas();
                     } catch (SAXException e) {
                         throw new MetsExportException("Unable to get ALTO schema", false);
                     }
                     try {
-                        altoSchema.newValidator().validate(new StreamSource(altoFile));
+                        validateAlto(altoSchemas, altoFile);
                     } catch (Exception exSax) {
                         throw new MetsExportException(metsElement.getOriginalPid(), "Invalid ALTO", false, exSax);
                     }
@@ -1358,6 +1358,24 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             Fptr fptr = new Fptr();
             fptr.setFILEID(fileType);
             pageDiv.getFptr().add(fptr);
+        }
+    }
+
+    private void validateAlto(List<Schema> altoSchemas, File altoFile) throws IOException, SAXException {
+        Boolean valid = false;
+        SAXException exeption = new SAXException();
+        for (Schema altoSchema : altoSchemas) {
+            try {
+                altoSchema.newValidator().validate(new StreamSource(altoFile));
+                valid = true;
+                break;
+            } catch (SAXException ex) {
+                valid = false;
+                exeption = ex;
+            }
+        }
+        if (valid = false) {
+            throw exeption;
         }
     }
 
@@ -1839,7 +1857,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
         int pageIndex = 1;
-        containChildren(metsElement);
+        if (!metsElement.getModel().contains(Const.NDK_EBORN_MODELS_IDENTIFIER)) {
+            containChildren(metsElement);
+        }
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.ISSUE.equals(element.getElementType())) {
                 element.getMetsContext().setPackageID(MetsUtils.getPackageID(element));
@@ -2106,7 +2126,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         elementDivType.setLabel3(metsElement.getLabel());
-        elementDivType.setTYPE(metsElement.getModsElementID());
+        elementDivType.setTYPE(metsElement.getElementType());
         elementDivType.getDMDID().add(metsElement.getModsMetsElement());
 
         logicalDiv.getDiv().add(elementDivType);

@@ -209,7 +209,7 @@ public final class ImportProcess implements Runnable {
             }
             File targetFolder = createTargetFolder(importFolder);
             importConfig.setTargetFolder(targetFolder);
-            importConfig.getImporter().start(importConfig);
+            importConfig.getImporter().start(importConfig, batchManager);
             if (batch.getState() == Batch.State.LOADING) {
                 batch.setState(Batch.State.LOADED);
             }

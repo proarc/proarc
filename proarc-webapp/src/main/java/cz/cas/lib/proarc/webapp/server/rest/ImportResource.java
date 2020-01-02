@@ -272,7 +272,7 @@ public class ImportResource {
                 }
             }
 
-            batch = new FedoraImport(RemoteStorage.getInstance(appConfig), importManager)
+            batch = new FedoraImport(appConfig, RemoteStorage.getInstance(appConfig), importManager, user)
                     .importBatch(batch, user.getUserName(), session.asFedoraLog());
         } else if (state == Batch.State.LOADING_FAILED) {
             Batch.State realState = batch.getState();

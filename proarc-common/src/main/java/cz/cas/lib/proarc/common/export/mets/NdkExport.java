@@ -95,7 +95,7 @@ public class NdkExport {
                 Info info = getInfo(getInfoFile(target));
                 if (info != null) {
                     logItem.getItemList().add(new ItemList(getTotalSize(info), getFileSize(info, "alto"), getFileSize(info, "txt"),
-                            getFileSize(info, "usercopy"),getFileSize(info, "mastercopy"),getFileSize(info, "amdsec")));
+                            getFileSize(info, "usercopy"),getFileSize(info, "mastercopy"),getFileSize(info, "amdsec"), getFileSize(info, "original")));
                 }
                 logResult(r, logItem);
             } catch (ExportException ex) {
@@ -126,7 +126,7 @@ public class NdkExport {
             }
         }
         if (values == 0) {
-            return "Nepodarilo se spocitat " + value + " soubory.";
+            return null;
         } else {
             return String.valueOf(values);
         }
@@ -204,7 +204,7 @@ public class NdkExport {
             } else {
                 List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
                 if (PSPs.size() == 0) {
-                    throw new MetsExportException(pid   , "Pod tímto modelem je očekáván model s přiděleným urn:nbn. Tento model chybí. Opravte a poté znovu exportujte.", false, null);
+                    throw new MetsExportException(pid, "Pod tímto modelem je očekáván model s přiděleným urn:nbn. Tento model chybí. Opravte a poté znovu exportujte.", false, null);
                 }
                 for (String pspPid : PSPs) {
                     dc.resetContext();

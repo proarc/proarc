@@ -17,10 +17,13 @@
 package cz.cas.lib.proarc.common.imports;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -29,6 +32,9 @@ import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,11 +54,15 @@ public final class FedoraImport {
     private final LocalStorage localStorage;
     private final ImportBatchManager ibm;
     private final SearchView search;
+    private final UserProfile user;
+    private final AppConfiguration config;
 
-    public FedoraImport(RemoteStorage fedora, ImportBatchManager ibm) {
+    public FedoraImport(AppConfiguration config, RemoteStorage fedora, ImportBatchManager ibm, UserProfile user) {
+        this.config = config;
         this.fedora = fedora;
         this.search = fedora.getSearch();
         this.ibm = ibm;
+        this.user = user;
         this.localStorage = new LocalStorage();
     }
 
@@ -72,7 +82,7 @@ public final class FedoraImport {
         ArrayList<String> ingestedPids = new ArrayList<String>();
         try {
             boolean itemFailed = importItems(batch, importer, ingestedPids, repair);
-            addParentMembers(parentPid, ingestedPids, message);
+            addParentMembers(batch, parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
@@ -248,10 +258,89 @@ public final class FedoraImport {
         return item;
     }
 
-    private void addParentMembers(String parent, List<String> pids, String message) throws DigitalObjectException {
+    private void addParentMembers(Batch batch, String parent, List<String> pids, String message) throws DigitalObjectException {
         if (parent == null || pids.isEmpty()) {
             return ;
         }
+        ConfigurationProfile profile = findImportProfile(batch.getId(), batch.getProfileId());
+        ImportProfile importProfile = profile != null ? config.getImportConfiguration(profile) : config.getImportConfiguration();
+        if (ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT.equals(batch.getProfileId()) &&
+                importProfile.getCreateModelsHierarchy()) {
+            createHierarchy(batch, pids, parent, message);
+        }
+        if (pids.size()!= 0){
+            setParent(parent, pids, message);
+        }
+    }
+
+    private ConfigurationProfile findImportProfile(Integer batchId, String profileId) {
+        ConfigurationProfile profile = config.getProfiles().getProfile(ImportProfile.PROFILES, profileId);
+        if (profile == null) {
+            LOG.log(Level.SEVERE,"Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
+                    new Object[]{ImportProfile.PROFILES, profileId, batchId});
+            return null;
+        }
+        return profile;
+    }
+
+    private void createHierarchy(Batch batch, List<String> pids, String documentPid, String message) {
+        List<BatchItemObject> batchItems = ibm.findBatchObjects(batch.getId(), null);
+        ArrayList<Hierarchy> songsPid = new ArrayList<>();
+        ArrayList<ArrayList<Hierarchy>> tracksPid = new ArrayList<>();
+
+        boolean hierarchyCreated = createPidHierarchy(batchItems, documentPid, songsPid, tracksPid, pids);
+
+        if (!hierarchyCreated) {
+            return;
+        }
+        try {
+            if (tracksPid.size() == 0) {
+                createModels(documentPid, songsPid, message);
+            } else if (tracksPid.size() != 0) {
+                createModels(documentPid, songsPid, tracksPid, message);
+            }
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.WARNING, "Nepodarilo se automaticky vytvorit hierarchii objektu, protoze se nepodarilo vytvorit objekt " + ex.getPid());
+            return;
+        }
+        return;
+    }
+
+    private void createModels(String documentPid, ArrayList<Hierarchy> songsPid, String message)  throws  DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        String pid = "";
+        for (Hierarchy song : songsPid) {
+            if (pid != song.getParent()) {
+                pid = song.getParent();
+                DigitalObjectManager.CreateHandler songHandler = dom.create(NdkAudioPlugin.MODEL_SONG, pid, documentPid, user, null, "create new object with pid: " + songsPid.get(0));
+                songHandler.create();
+            }
+            List<String> songList = new ArrayList<>();
+            songList.add(song.getChild());
+            setParent(song.getParent(), songList, message);
+        }
+    }
+
+    private void createModels(String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, String message) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        for (int tmp = 0; tmp < songsPid.size(); tmp++) {
+            String songPid = songsPid.get(tmp).getParent();
+            DigitalObjectManager.CreateHandler songHandler = dom.create(NdkAudioPlugin.MODEL_SONG, songPid, documentPid, user, null,  "create new object with pid: " + songsPid.get(0));
+            songHandler.create();
+
+            for (Hierarchy track : tracksPid.get(tmp)) {
+                DigitalObjectManager.CreateHandler trackHandler = dom.create(NdkAudioPlugin.MODEL_TRACK, track.getParent(), songPid, user, null,  "create new object with pid: " + songsPid.get(0));
+                trackHandler.create();
+
+                List<String> trackList = new ArrayList<>();
+                trackList.add(track.getChild());
+                setParent(track.getParent(), trackList, message);
+            }
+        }
+
+    }
+
+    private void setParent(String parent, List<String> pids, String message) throws DigitalObjectException {
         RemoteObject remote = fedora.find(parent);
         RelationEditor editor = new RelationEditor(remote);
         List<String> members = editor.getMembers();
@@ -259,6 +348,66 @@ public final class FedoraImport {
         editor.setMembers(members);
         editor.write(editor.getLastModified(), message);
         remote.flush();
+    }
+
+    private boolean createPidHierarchy(List<BatchItemObject> batchItems, String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, List<String> pids) {
+        pids.clear();
+        String pid = "";
+        int pidObjektu = 0;
+        for (BatchItemObject batchItem : batchItems) {
+            String name = nameWithoutExtention(batchItem.getFile().getName(), ".foxml");
+            String[] splitName = name.split("-");
+
+            try {
+                int disc = Integer.valueOf(splitName[splitName.length-3]);
+                int song = Integer.valueOf(splitName[splitName.length-2]);
+                int track = Integer.valueOf(splitName[splitName.length-1]);
+
+                if (splitName[splitName.length-3].length() == 2) {
+                    if (disc < 1 || song < 1 || track < 1) {
+                        LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
+                        return false;
+                    }
+                    if (songsPid.size() < song) {
+                        pid = FoxmlUtils.createPid();
+                        Hierarchy songHierarchy = new Hierarchy(pid, null);
+                        songsPid.add(song - 1, songHierarchy);
+                        tracksPid.add(song - 1, new ArrayList<>());
+                    }
+                    if (tracksPid.get(song - 1).size() < track) {
+                        pid = FoxmlUtils.createPid();
+                        Hierarchy trackHierarchy = new Hierarchy(pid, batchItem.getPid());
+                        tracksPid.get(song - 1).add(track - 1, trackHierarchy);
+                    }
+                } else {
+                    int id = Integer.valueOf(splitName[splitName.length-3]);
+                    int deskaPid = Integer.valueOf(splitName[splitName.length-2]);
+                    int songPid = Integer.valueOf(splitName[splitName.length-1]);
+
+                    if (id < 1 || deskaPid < 1 || songPid < 1) {
+                        LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
+                        return false;
+                    }
+
+                    if (pidObjektu != songPid) {
+                        pid = FoxmlUtils.createPid();
+                        pidObjektu = songPid;
+                    }
+                    Hierarchy songHierarchy = new Hierarchy(pid, batchItem.getPid());
+                    songsPid.add(songHierarchy);
+                }
+
+            } catch (NumberFormatException ex) {
+                pids.add(batchItem.getPid());
+                continue;
+            }
+
+        }
+        return true;
+    }
+
+    private String nameWithoutExtention(String name, String extension) {
+        return name.substring(0, name.length() - extension.length());
     }
 
     private void checkParent(String parent) throws DigitalObjectException {
@@ -269,5 +418,32 @@ public final class FedoraImport {
         RelationEditor editor = new RelationEditor(remote);
         editor.getModel();
     }
+
+    class Hierarchy {
+        String parent;
+        String child;
+
+        public Hierarchy(String parent, String child) {
+            this.parent = parent;
+            this.child = child;
+        }
+
+        public String getParent() {
+            return parent;
+        }
+
+        public void setParent(String parent) {
+            this.parent = parent;
+        }
+
+        public String getChild() {
+            return child;
+        }
+
+        public void setChild(String child) {
+            this.child = child;
+        }
+    }
+
 
 }
