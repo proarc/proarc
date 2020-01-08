@@ -1,5 +1,6 @@
 package cz.cas.lib.proarc.common.object.chronicle;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
@@ -18,6 +19,8 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 
 import java.util.*;
+
+import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
 /**
  *
@@ -38,6 +41,13 @@ public class ChroniclePlugin implements DigitalObjectPlugin, HasMetadataHandler<
     public static final String MODEL_PAGE = "model:page";
 
     private ChronicleSearchViewHandler searchViewHandler;
+
+    public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
+        put(FEDORAPREFIX + ChroniclePlugin.MODEL_CHRONICLETITLE, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT, Const.SUPPLEMENT);
+        put(FEDORAPREFIX + ChroniclePlugin.MODEL_CHRONICLEVOLUME, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + ChroniclePlugin.MODEL_PAGE, Const.PAGE);
+    }});
 
     @Override
     public String getId() {
