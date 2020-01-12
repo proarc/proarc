@@ -264,6 +264,9 @@ public class ExportResource {
             case "STT":
                 export = new NdkSttExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
                 break;
+            case "CHRONICLE":
+                export = new NdkExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported type of package");
         }

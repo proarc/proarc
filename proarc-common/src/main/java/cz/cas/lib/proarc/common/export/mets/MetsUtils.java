@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -187,6 +188,13 @@ public class MetsUtils {
             List<OldPrintPlugin> oldPrintPlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
                     .filter(plugin -> plugin instanceof OldPrintPlugin).map(plugin -> ((OldPrintPlugin) plugin)).collect(Collectors.toList());
             for (OldPrintPlugin plugin : oldPrintPlugins) {
+                if (plugin.TYPE_MAP.containsKey(model)) {
+                    return plugin.TYPE_MAP.get(model);
+                }
+            }
+            List<ChroniclePlugin> chroniclePlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                    .filter(plugin -> plugin instanceof ChroniclePlugin).map(plugin -> ((ChroniclePlugin) plugin)).collect(Collectors.toList());
+            for (ChroniclePlugin plugin : chroniclePlugins) {
                 if (plugin.TYPE_MAP.containsKey(model)) {
                     return plugin.TYPE_MAP.get(model);
                 }
@@ -906,7 +914,7 @@ public class MetsUtils {
         if (identifiersMap.containsKey(Const.URNNBN)) {
             String urnnbn = identifiersMap.get(Const.URNNBN);
             return urnnbn.substring(urnnbn.lastIndexOf(":") + 1);
-        } else if (element.getMetsContext().isAllowMissingURNNBN() || isOldPrintPlugin(element)){
+        } else if (element.getMetsContext().isAllowMissingURNNBN() || isOldPrintPlugin(element) || isChroniclePlugin(element)){
             // if missing URNNBN is allowed, then try to use UUID - otherwise
             // throw an exception
             element.getMetsContext().getMetsExportException().addException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
@@ -919,6 +927,10 @@ public class MetsUtils {
             // URNNBN is mandatory
             throw new MetsExportException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
         }
+    }
+
+    private static boolean isChroniclePlugin(IMetsElement element) {
+        return element.getModel() != null && element.getModel().contains("chronicle");
     }
 
     private static boolean isOldPrintPlugin(IMetsElement element) {
