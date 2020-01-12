@@ -26,11 +26,9 @@ import org.apache.commons.configuration.Configuration;
 public class NdkExportOptions {
     static final String PROP_NDK_AGENT_ARCHIVIST = "export.ndk.agent.archivist";
     static final String PROP_NDK_AGENT_CREATOR = "export.ndk.agent.creator";
-    static final String PROP_DELETE_PACKAGE = "export.ndk.deletePackageIfUrnNbnIsMissing";
     static final String PROP_PROARC_VERSION = "proarc.version";
     private String archivist;
     private String creator;
-    private boolean deletePackage;
     private String version;
 
     public static NdkExportOptions getOptions(Configuration config) {
@@ -45,9 +43,6 @@ public class NdkExportOptions {
         if (archivist != null && !archivist.isEmpty()) {
             options.setArchivist(archivist);
         }
-
-        String deletePackage = config.getString(PROP_DELETE_PACKAGE);
-        options.setDeletePackage(Boolean.parseBoolean(deletePackage));
 
         String version = config.getString(PROP_PROARC_VERSION);
         if (version != null && !version.isEmpty()) {
@@ -75,16 +70,6 @@ public class NdkExportOptions {
     /** Sets the archivist organization */
     public void setArchivist(String archivist) {
         this.archivist = archivist;
-    }
-
-    /** Returns value of deleting package - used for unsuccesfull export */
-    public boolean isDeletePackage() {
-        return deletePackage;
-    }
-
-    /** Sets value of deleting package */
-    public void setDeletePackage(boolean deletePackage) {
-        this.deletePackage = deletePackage;
     }
 
     /** Returns value of version*/

@@ -16,9 +16,9 @@
 
 package cz.cas.lib.proarc.common.export.sip;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
-import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import java.io.File;
@@ -30,8 +30,8 @@ import java.io.File;
 public class NdkSipExport extends NdkExport {
     private static final float PACKAGE_VERSION = 2.2f;
 
-    public NdkSipExport(RemoteStorage rstorage, NdkExportOptions options) {
-        super(rstorage, options);
+    public NdkSipExport(RemoteStorage rstorage, AppConfiguration appConfiguration) {
+        super(rstorage, appConfiguration);
     }
 
     @Override

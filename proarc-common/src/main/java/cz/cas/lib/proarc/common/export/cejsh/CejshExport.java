@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.export.cejsh;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.cejsh.CejshBuilder.Article;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -50,16 +52,18 @@ public class CejshExport {
 
     private DigitalObjectManager dom;
     private final RemoteStorage remotes;
-    private final CejshConfig config;
+    private final CejshConfig cejshConfig;
+    private final ExportOptions options;
 
-    public CejshExport(DigitalObjectManager dom, RemoteStorage remotes, CejshConfig config) {
+    public CejshExport(DigitalObjectManager dom, RemoteStorage remotes, AppConfiguration appConfig) {
         this.dom = dom;
         this.remotes = remotes;
-        this.config = config;
+        this.cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
+        this.options = appConfig.getExportOptions();
     }
 
     public CejshStatusHandler export(File outputFolder, List<String> pids) {
-        return export(outputFolder, pids, new CejshStatusHandler(config.getLogLevel()));
+        return export(outputFolder, pids, new CejshStatusHandler(cejshConfig.getLogLevel()));
     }
 
     /**
@@ -91,12 +95,12 @@ public class CejshExport {
             status.error((String) null, "Nothing to export. Missing input PID!", null);
             return status;
         }
-        output = ExportUtils.createFolder(output, "cejsh_" + FoxmlUtils.pidAsUuid(pids.get(0)));
+        output = ExportUtils.createFolder(output, "cejsh_" + FoxmlUtils.pidAsUuid(pids.get(0)), options.isOverwritePackage());
         status.setTargetFolder(output);
         final DigitalObjectCrawler crawler = new DigitalObjectCrawler(dom, remotes.getSearch());
         CejshContext ctx;
         try {
-            ctx = new CejshContext(output, status, config);
+            ctx = new CejshContext(output, status, cejshConfig, options);
         } catch (Exception ex) {
             status.error(pids.get(0), "Broken context!", ex);
             return status;

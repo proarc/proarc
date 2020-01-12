@@ -159,7 +159,7 @@ public class Kramerius4ExportTest {
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
-        Kramerius4Export instance = new Kramerius4Export(storage, config.getKramerius4Export());
+        Kramerius4Export instance = new Kramerius4Export(storage, config);
         File target = instance.export(output, hierarchy, "export status", pids);
         assertNotNull(target);
         File foxml = ExportUtils.pidAsXmlFile(target, pids[0]);
@@ -183,7 +183,7 @@ public class Kramerius4ExportTest {
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
-        Kramerius4Export instance = new Kramerius4Export(storage, config.getKramerius4Export());
+        Kramerius4Export instance = new Kramerius4Export(storage, config);
         File target = instance.export(output, hierarchy, "export status", pids);
         assertNotNull(target);
 

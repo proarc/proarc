@@ -85,7 +85,7 @@ public class NdkEbornArchivalTest {
         List<String> pids = Arrays.asList("uuid:26342028-12c8-4446-9217-d3c9f249bd13"); //etitle
 
         try {
-            File target = ExportUtils.createFolder(folder.getRoot(), "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
+            File target = ExportUtils.createFolder(folder.getRoot(), "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)), appConfig.getExportOptions().isOverwritePackage());
             export.archive(pids, target);
         } catch (IllegalStateException ex) {
             collector.addError(ex.getCause());
