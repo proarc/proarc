@@ -17,7 +17,9 @@
 package cz.cas.lib.proarc.common.export.mets;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportException;
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ItemList;
@@ -52,11 +54,13 @@ public class NdkExport {
 
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     protected final RemoteStorage rstorage;
-    protected final NdkExportOptions options;
+    protected final NdkExportOptions ndkExportOptions;
+    protected final ExportOptions exportOptions;
 
-    public NdkExport(RemoteStorage rstorage, NdkExportOptions options) {
+    public NdkExport(RemoteStorage rstorage, AppConfiguration config) {
         this.rstorage = rstorage;
-        this.options = options;
+        this.ndkExportOptions = config.getNdkExportOptions();
+        this.exportOptions = config.getExportOptions();
     }
 
     /**
@@ -82,7 +86,7 @@ public class NdkExport {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
-        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)));
+        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), exportOptions.isOverwritePackage());
         List<Result> results = new ArrayList<>(pids.size());
         for (String pid : pids) {
             ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
@@ -246,7 +250,7 @@ public class NdkExport {
         mc.setOutputPath(targetFolder.getAbsolutePath());
         mc.setAllowNonCompleteStreams(false);
         mc.setAllowMissingURNNBN(false);
-        mc.setConfig(options);
+        mc.setConfig(ndkExportOptions);
         return mc;
     }
 

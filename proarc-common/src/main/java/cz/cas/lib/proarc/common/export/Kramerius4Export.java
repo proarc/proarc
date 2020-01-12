@@ -22,6 +22,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
@@ -97,24 +98,26 @@ public final class Kramerius4Export {
     /** PIDs scheduled for export */
     private Queue<String> toExport = new LinkedList<String>();
     
-    private final Kramerius4ExportOptions options;
+    private final Kramerius4ExportOptions kramerius4ExportOptions;
+    private final ExportOptions exportOptions;
 
     private final String policy;
 
-    public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options) {
-        this(rstorage, options, options.getPolicy());
+    public Kramerius4Export(RemoteStorage rstorage, AppConfiguration configuration) {
+        this(rstorage, configuration, configuration.getKramerius4Export().getPolicy());
     }
 
-    public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options, String policy) {
+    public Kramerius4Export(RemoteStorage rstorage, AppConfiguration appConfiguration, String policy) {
         this.rstorage = rstorage;
-        this.options = options;
+        this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
+        this.exportOptions = appConfiguration.getExportOptions();
         this.search = rstorage.getSearch();
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
 
         if (Arrays.asList(ALLOWED_POLICY).contains(policy)) {
             this.policy = policy;
         } else {
-            this.policy = options.getPolicy();
+            this.policy = kramerius4ExportOptions.getPolicy();
         }
     }
 
@@ -131,7 +134,7 @@ public final class Kramerius4Export {
         result.setInputPid(pids[0]);
         reslog.getExports().add(result);
 
-        File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]));
+        File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]), exportOptions.isOverwritePackage());
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
         toExport.addAll(selectedPids);
         try {
@@ -191,7 +194,7 @@ public final class Kramerius4Export {
                 DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext(); ) {
                     DatastreamType datastream = it.next();
-                    if (options.getExcludeDatastreams().contains(datastream.getID())) {
+                    if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                         // use RAW if FULL is not available
                         if (rawDs != datastream) {
                             it.remove();
@@ -225,7 +228,7 @@ public final class Kramerius4Export {
                         .execute(client).getEntity(DigitalObject.class);
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
                     DatastreamType datastream = it.next();
-                    if (options.getExcludeDatastreams().contains(datastream.getID())) {
+                    if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                         it.remove();
                         continue;
                     }
@@ -391,7 +394,7 @@ public final class Kramerius4Export {
         DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
-            if (options.getExcludeDatastreams().contains(datastream.getID())) {
+            if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 // use RAW if FULL is not available
                 if (rawDs != datastream ) {
                     it.remove();
@@ -412,7 +415,7 @@ public final class Kramerius4Export {
         RelationEditor editor = new RelationEditor(local);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
-            if (options.getExcludeDatastreams().contains(datastream.getID())) {
+            if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 it.remove();
                 continue;
             }
@@ -436,7 +439,7 @@ public final class Kramerius4Export {
 
     private void renameDatastream(DatastreamType datastream) {
         String id = datastream.getID();
-        String newId = options.getDsIdMap().get(id);
+        String newId = kramerius4ExportOptions.getDsIdMap().get(id);
         if (newId != null) {
             datastream.setID(newId);
             for (DatastreamVersionType version : datastream.getDatastreamVersion()) {
@@ -471,7 +474,7 @@ public final class Kramerius4Export {
             if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type))) {
                 k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
-                k4ModelId = options.getModelMap().get(type);
+                k4ModelId = kramerius4ExportOptions.getModelMap().get(type);
             }
             if (k4ModelId != null) {
                 typeElm.setTextContent(k4ModelId);
@@ -597,7 +600,7 @@ public final class Kramerius4Export {
             if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) || OldPrintPlugin.MODEL_VOLUME.equals(modelId))) {
                 k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
-                k4ModelId = options.getModelMap().get(modelId);
+                k4ModelId = kramerius4ExportOptions.getModelMap().get(modelId);
             }
             k4ModelId = k4ModelId == null ? modelId : k4ModelId;
             editor.setModel(k4ModelId);
@@ -611,7 +614,7 @@ public final class Kramerius4Export {
                 if (includePids != null && !includePids.contains(childPid)) {
                     continue;
                 }
-                String krelation = options.getRelationMap().get(desc.getModel());
+                String krelation = kramerius4ExportOptions.getRelationMap().get(desc.getModel());
                 if (krelation == null) {
                     throw new IllegalStateException(String.format(
                             "Cannot map to Kramerius relation! Child: %s, model: %s, parent: %s ",

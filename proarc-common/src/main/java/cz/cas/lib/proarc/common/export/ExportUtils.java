@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -46,7 +47,7 @@ public final class ExportUtils {
      * @param name name of the new folder
      * @return the new folder
      */
-    public static File createFolder(File parent, String name) {
+    public static File createFolder(File parent, String name, boolean overwrite) {
         if (name == null || name.contains(":")) {
             throw new IllegalArgumentException(name);
         }
@@ -54,8 +55,15 @@ public final class ExportUtils {
             throw new NullPointerException("parent");
         }
         File folder = new File(parent, name);
-        for (int i = 1; !folder.mkdir(); i++) {
-            folder = new File(parent, name + '_' + i);
+        if (overwrite) {
+            if (!folder.mkdir()) {
+                MetsUtils.deleteFolder(folder);
+                folder.mkdir();
+            }
+        } else {
+            for (int i = 1; !folder.mkdir(); i++) {
+                folder = new File(parent, name + '_' + i);
+            }
         }
         return folder;
     }

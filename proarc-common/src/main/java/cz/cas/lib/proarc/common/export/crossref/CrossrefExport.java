@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.export.crossref;
 
 import cz.cas.lib.proarc.common.export.ExportException;
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -37,10 +38,12 @@ public class CrossrefExport {
 
     private DigitalObjectManager dom;
     private final RemoteStorage remotes;
+    private final ExportOptions options;
 
-    public CrossrefExport(DigitalObjectManager dom, RemoteStorage remotes) {
+    public CrossrefExport(DigitalObjectManager dom, RemoteStorage remotes, ExportOptions options) {
         this.dom = dom;
         this.remotes = remotes;
+        this.options = options;
     }
 
     public void export(File output, List<String> pids, CejshStatusHandler status) {
@@ -88,7 +91,7 @@ public class CrossrefExport {
         if (pids == null || pids.isEmpty()) {
             throw new ExportException(null, "Nothing to export. Missing input PID!", null, null);
         }
-        return ExportUtils.createFolder(output, folderName);
+        return ExportUtils.createFolder(output, folderName, options.isOverwritePackage());
     }
 
     private void exportPackage(

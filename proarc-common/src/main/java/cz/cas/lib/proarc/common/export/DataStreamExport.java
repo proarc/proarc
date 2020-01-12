@@ -57,9 +57,11 @@ public final class DataStreamExport {
     /** PIDs scheduled for export */
     private Queue<String> toExport = new LinkedList<String>();
     private byte[] buffer = new byte[10*1024];
+    private final ExportOptions options;
 
-    public DataStreamExport(RemoteStorage rstorage) {
+    public DataStreamExport(RemoteStorage rstorage, ExportOptions options) {
         this.rstorage = rstorage;
+        this.options = options;
     }
 
     public File export(File output, boolean hierarchy, List<String> pids, List<String> dsIds) throws ExportException {
@@ -70,7 +72,7 @@ public final class DataStreamExport {
             throw new IllegalArgumentException();
         }
 
-        File target = ExportUtils.createFolder(output, filename(pids.get(0), dsIds.get(0)));
+        File target = ExportUtils.createFolder(output, filename(pids.get(0), dsIds.get(0)), options.isOverwritePackage());
         toExport.addAll(pids);
         for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
             exportPid(target, hierarchy, pid, dsIds);
