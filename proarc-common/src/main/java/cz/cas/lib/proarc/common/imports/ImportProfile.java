@@ -71,6 +71,7 @@ public final class ImportProfile {
     public static final String DEFAULT_OCR = "import.default_ocr.file";
     public static final String DEFAULT_CATALOG = "import.catalog.file";
     public static final String DEFAULT_ALTO_AND_OCR = "import.default_alto_and_ocr";
+    public static final String DELETE_PACKAGE_IMPORT = "import.delete_package";
 
 
 
@@ -195,6 +196,11 @@ public final class ImportProfile {
 
     public boolean getDefaultAltoAndOcr() {
         String value = config.getString(DEFAULT_ALTO_AND_OCR);
+        return "true".equals(value);
+    }
+
+    public boolean getDeletePackageImport() {
+        String value = config.getString(DELETE_PACKAGE_IMPORT);
         return "true".equals(value);
     }
 

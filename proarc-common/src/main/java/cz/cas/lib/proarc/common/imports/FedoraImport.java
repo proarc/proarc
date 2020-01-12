@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
@@ -84,6 +85,7 @@ public final class FedoraImport {
             boolean itemFailed = importItems(batch, importer, ingestedPids, repair);
             addParentMembers(batch, parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
+            deleteImportFolder(batch);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
             batch.setState(Batch.State.INGESTING_FAILED);
@@ -94,6 +96,16 @@ public final class FedoraImport {
                     new Object[]{System.currentTimeMillis() - startTime, ingestedPids.size(), batch});
         }
         return batch;
+    }
+
+    private void deleteImportFolder(Batch batch) throws IOException {
+        ConfigurationProfile profile = findImportProfile(batch.getId(), batch.getProfileId());
+        ImportProfile importProfile = profile != null ? config.getImportConfiguration(profile) : config.getImportConfiguration();
+        if (importProfile.getDeletePackageImport()) {
+            File file = new File(config.getDefaultUsersHome(), batch.getFolder() + "/" + ImportProcess.TMP_DIR_NAME);
+            LOG.log(Level.INFO, "Smazani importni slozky "+ file.getName());
+            MetsUtils.deleteFolder(file);
+        }
     }
 
     private boolean importItems(Batch batch, String importer, List<String> ingests, boolean repair)
