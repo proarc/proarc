@@ -22,7 +22,7 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.chronicle.ChronicleMapperFactory;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsMapperFactory;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
@@ -60,6 +60,7 @@ public abstract class NdkMapper {
     private static final NdkMapperFactory ndkMapperFactory = new NdkMapperFactory();
     private static final OldPrintMapperFactory oldprintMapperFacotry = new OldPrintMapperFactory();
     private static final ChronicleMapperFactory chronicleMapperFactory = new ChronicleMapperFactory();
+    private static final CollectionOfClippingsMapperFactory clippingMapperFactory = new CollectionOfClippingsMapperFactory();
 
     /**
      * Gets a NDK mapper for the given model ID.
@@ -73,11 +74,17 @@ public abstract class NdkMapper {
             mapper = ndkMapperFactory.get(modelId);
         } else if (isChronicleModel(modelId)) {
             mapper = chronicleMapperFactory.get(modelId);
+        } else if (isClippingsModel(modelId)) {
+            mapper = clippingMapperFactory.get(modelId);
         } else {
             mapper = oldprintMapperFacotry.get(modelId);
         }
         mapper.modelId = modelId;
         return mapper;
+    }
+
+    private static boolean isClippingsModel(String modelId) {
+        return modelId != null && modelId.contains("clipping");
     }
 
     private static boolean isChronicleModel(String modelId) {
