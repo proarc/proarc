@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -44,7 +45,7 @@ public final class PageView {
     private LocalStorage storage = new LocalStorage();
 
     public List<Item> list(int batchId, Collection<BatchItemObject> imports, Locale locale) throws DigitalObjectException {
-        ArrayList<Item> result = new ArrayList<Item>(imports.size());
+        ArrayList<Item> result = new ArrayList<>(imports.size());
         for (BatchItemObject imp : imports) {
             ObjectState objectState = imp.getState();
             if (objectState == ObjectState.LOADING || objectState == ObjectState.LOADING_FAILED) {

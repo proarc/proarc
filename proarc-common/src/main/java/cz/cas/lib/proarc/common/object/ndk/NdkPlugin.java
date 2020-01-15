@@ -94,7 +94,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     @Override
     public Collection<MetaModel> getModel() {
         // for now it is read only repository
-        List<MetaModel> models = new ArrayList<MetaModel>();
+        List<MetaModel> models = new ArrayList<>();
         models.add(new MetaModel(
                 MODEL_PERIODICAL, true, null,
                 Arrays.asList(new ElementType("NDK Periodical", "en"), new ElementType("NDK Periodikum", "cs")),
@@ -234,7 +234,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 MODEL_NDK_PAGE, null, true,
                 Arrays.asList(new ElementType("Ndk Page", "en"), new ElementType("NDK Strana", "cs")),
                 ModsConstants.NS,
-                ModsCutomEditorType.EDITOR_PAGE,
+                MODEL_NDK_PAGE,
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
                 new RelationCriteria[] {

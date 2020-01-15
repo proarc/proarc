@@ -45,7 +45,7 @@ public class NdkMapperFactory {
     static {
         mappers.put(NdkPlugin.MODEL_PAGE, NdkPageMapper::new);
         mappers.put(ModsCutomEditorType.EDITOR_PAGE, NdkPageMapper::new);
-        mappers.put(NdkPlugin.MODEL_NDK_PAGE, NdkPageMapper::new);
+        mappers.put(NdkPlugin.MODEL_NDK_PAGE, NdkNewPageMapper::new);
         mappers.put(NdkPlugin.MODEL_PERIODICAL, NdkPeriodicalMapper::new);
         mappers.put(NdkPlugin.MODEL_PERIODICALVOLUME, NdkPeriodicalVolumeMapper::new);
         mappers.put(NdkPlugin.MODEL_PERIODICALISSUE, NdkPeriodicalIssueMapper::new);

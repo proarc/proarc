@@ -67,11 +67,10 @@ public class NdkPageMapper extends NdkMapper {
     public static final String RESOURCE_TYPE_TEXT = "text";
 
     public static ResourceBundle getPageTypeLabels(Locale locale) {
-        ResourceBundle rb = ResourceBundle.getBundle(
+        return ResourceBundle.getBundle(
                 BundleName.MODS_PAGE_TYPES.toString(),
                 locale,
                 ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES));
-        return rb;
     }
 
     public static String getPageTypeLabel(String pageType, Locale locale) {
@@ -332,7 +331,7 @@ public class NdkPageMapper extends NdkMapper {
             if (page.getNumber() != null) {
                 DcUtils.addTitle(dc, page.getNumber());
             }
-            DcUtils.addElementType(dc.getTypes(), "Text");
+            DcUtils.addElementType(dc.getTypes(), "text");
         }
         return dc;
     }
@@ -383,7 +382,7 @@ public class NdkPageMapper extends NdkMapper {
     }
 
     private List<IdentifierItem> getIdentifierItems(List<IdentifierDefinition> ids) {
-        List<IdentifierItem> iis = new ArrayList<IdentifierItem>(ids.size());
+        List<IdentifierItem> iis = new ArrayList<>(ids.size());
         for (IdentifierDefinition id : ids) {
             iis.add(new IdentifierItem(id.getType(), id.getValue()));
         }
@@ -394,7 +393,7 @@ public class NdkPageMapper extends NdkMapper {
         if (iis == null) {
             return Collections.emptyList();
         }
-        ArrayList<IdentifierDefinition> ids = new ArrayList<IdentifierDefinition>(iis.size());
+        ArrayList<IdentifierDefinition> ids = new ArrayList<>(iis.size());
         for (IdentifierItem ii : iis) {
             String iiValue = MapperUtils.toValue(ii.getValue());
             if (iiValue != null) {
