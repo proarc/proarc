@@ -297,4 +297,35 @@ public abstract class NdkMapper {
             this.rdaRules = rdaRules;
         }
     }
+
+    public static class PageModsWrapper extends RdaModsWrapper {
+
+        private String type;
+        private String pageIndex;
+        private String pageNumber;
+
+        public String getPageNumber() {
+            return pageNumber;
+        }
+
+        public void setPageNumber(String pageNumber) {
+            this.pageNumber = pageNumber;
+        }
+
+        public String getPageIndex() {
+            return pageIndex;
+        }
+
+        public void setPageIndex(String pageIndex) {
+            this.pageIndex = pageIndex;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+    }
 }
