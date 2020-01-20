@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.object.HasMetadataHandler;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.mods.CodeOrText;
@@ -263,6 +264,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
+                        new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID)
                 }
                 ).setPriority(3)) // override K4 plugin
                 ;
