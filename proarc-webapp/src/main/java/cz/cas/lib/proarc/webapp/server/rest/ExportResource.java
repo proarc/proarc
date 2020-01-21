@@ -110,7 +110,7 @@ public class ExportResource {
         if (dsIds.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
-        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig));
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig.getExportOptions());
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
@@ -131,7 +131,7 @@ public class ExportResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
         Kramerius4Export export = new Kramerius4Export(
-                RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export(), policy);
+                RemoteStorage.getInstance(appConfig), appConfig, policy);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
@@ -165,7 +165,7 @@ public class ExportResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
         DesaExport export = new DesaExport(RemoteStorage.getInstance(appConfig),
-                appConfig.getDesaServices(), MetaModelRepository.getInstance());
+                appConfig.getDesaServices(), MetaModelRepository.getInstance(), appConfig.getExportOptions());
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         List<ExportResult> result = new ArrayList<>(pids.size());
@@ -256,22 +256,25 @@ public class ExportResource {
 
         switch (typeOfPackage) {
             case "PSP":
-                export = new NdkExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
+                export = new NdkExport(RemoteStorage.getInstance(), appConfig);
                 break;
             case "SIP":
-                export = new NdkSipExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
+                export = new NdkSipExport(RemoteStorage.getInstance(), appConfig);
                 break;
             case "STT":
-                export = new NdkSttExport(RemoteStorage.getInstance(), appConfig.getNdkExportOptions());
+                export = new NdkSttExport(RemoteStorage.getInstance(), appConfig);
+                break;
+            case "CHRONICLE":
+                export = new NdkExport(RemoteStorage.getInstance(), appConfig);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported type of package");
         }
 
-        List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, session.asFedoraLog());
+        List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, null, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
             if (r.getValidationError() != null) {
-                if (isMissingURNNBN(r) && appConfig.isDeletePackage()) {
+                if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
                     MetsUtils.deleteFolder(r.getTargetFolder());
                 }
                 result.add(new ExportResult(r.getValidationError().getExceptions()));
@@ -314,7 +317,7 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
         CejshConfig cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
         CejshExport export = new CejshExport(
-                DigitalObjectManager.getDefault(), RemoteStorage.getInstance(), cejshConfig);
+                DigitalObjectManager.getDefault(), RemoteStorage.getInstance(), appConfig);
         CejshStatusHandler status = export.export(exportFolder, pids);
         File targetFolder = status.getTargetFolder();
         ExportResult result = new ExportResult();
@@ -352,7 +355,7 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
 //        CejshConfig cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
         CrossrefExport export = new CrossrefExport(
-                DigitalObjectManager.getDefault(), RemoteStorage.getInstance());
+                DigitalObjectManager.getDefault(), RemoteStorage.getInstance(), appConfig.getExportOptions());
         CejshStatusHandler status = new CejshStatusHandler();
         export.export(exportFolder, pids, status);
         File targetFolder = status.getTargetFolder();
@@ -382,7 +385,7 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newArchive(
             @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids
-            ) {
+            ) throws ExportException {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.ARCHIVE_PID_PARAM);
@@ -390,8 +393,9 @@ public class ExportResource {
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         ExportResult result = new ExportResult();
-        ArchiveProducer export = new ArchiveProducer();
-        File targetFolder = ExportUtils.createFolder(exportFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
+        List<ExportResult> resultList = new ArrayList<>();
+        ArchiveProducer export = new ArchiveProducer(appConfig);
+        File targetFolder = ExportUtils.createFolder(exportFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)), appConfig.getExportOptions().isOverwritePackage());
         try {
             //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
             targetFolder = export.archive(pids, targetFolder);
@@ -405,14 +409,38 @@ public class ExportResource {
         result.setErrors(new ArrayList<>());
         for (ExportResultLog.ExportResult logResult : reslog.getExports()) {
             for (ResultError error : logResult.getError()) {
-                if (isMissingURNNBN(error) && appConfig.isDeletePackage()) {
+                if (isMissingURNNBN(error) && appConfig.getExportOptions().isDeletePackage()) {
                    MetsUtils.deleteFolder(targetFolder);
                 }
                 result.getErrors().add(new ExportError(
                         error.getPid(), error.getMessage(), false, error.getDetails()));
             }
         }
-        return new SmartGwtResponse<>(result);
+        resultList.add(result);
+        NdkExport exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
+        File target = null;
+        for (File file : targetFolder.listFiles()) {
+            if (file.isDirectory()) {
+                target = ExportUtils.createFolder(file, "NDK", false);
+                continue;
+            }
+        }
+        if (target == null) {
+            target = targetFolder;
+        }
+        List<NdkExport.Result> ndkResults = exportNdk.export(target, pids, true, true, true, session.asFedoraLog());
+        for (NdkExport.Result r : ndkResults) {
+            if (r.getValidationError() != null) {
+                if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
+                    //MetsUtils.deleteFolder(r.getTargetFolder());
+                }
+                resultList.add(new ExportResult(r.getValidationError().getExceptions()));
+            } else {
+                // XXX not used for now
+                resultList.add(new ExportResult((Integer) null, "done"));
+            }
+        }
+        return new SmartGwtResponse<>(resultList);
     }
 
     private boolean isMissingURNNBN(ResultError error) {

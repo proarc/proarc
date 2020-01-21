@@ -62,9 +62,10 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         BatchDatastreamEditor, Refreshable, Selectable<DigitalObject> {
 
     private static final Logger LOG = Logger.getLogger(ModsMultiEditor.class.getName());
-    private static final HashSet<String> ACCEPT_BATCH_MODELS = new HashSet<String>();
+    private static final HashSet<String> ACCEPT_BATCH_MODELS = new HashSet<>();
     static {
         ACCEPT_BATCH_MODELS.add("model:page");
+        ACCEPT_BATCH_MODELS.add("model:ndkpage");
         ACCEPT_BATCH_MODELS.add("model:oldprintpage");
     }
 
@@ -183,13 +184,12 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
      * Notifies other data sources to update its caches with object label.
      */
     private BooleanCallback wrapSaveCallback(final BooleanCallback callback) {
-        BooleanCallback bc = (Boolean value) -> {
+        return (Boolean value) -> {
             if (value != null && value) {
                 RelationDataSource.getInstance().fireRelationChange(digitalObjects[0].getPid());
             }
             callback.execute(value);
         };
-        return bc;
     }
 
     @Override

@@ -49,6 +49,7 @@ import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.ChronicleExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CrossrefExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.DataStreamExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.DesaExportAction;
@@ -83,6 +84,7 @@ public final class DigitalObjectManager {
     private KrameriusExportAction krameriusExportAction;
     private NdkExportAction ndkExportAction;
     private NdkSipExportAction ndkSipExportAction;
+    private ChronicleExportAction chronicleExportAction;
     private NdkOldPrintExportAction ndkOldPrintExportAction;
     private CejshExportAction cejshExportAction;
     private CrossrefExportAction crossrefExportAction;
@@ -212,6 +214,7 @@ public final class DigitalObjectManager {
         ndkExportAction = new NdkExportAction(i18n);
         ndkOldPrintExportAction = new NdkOldPrintExportAction(i18n);
         ndkSipExportAction = new NdkSipExportAction(i18n);
+        chronicleExportAction = new ChronicleExportAction(i18n);
         cejshExportAction = new CejshExportAction(i18n);
         crossrefExportAction = new CrossrefExportAction(i18n);
         desaExportAction = DesaExportAction.export(i18n);
@@ -277,6 +280,7 @@ public final class DigitalObjectManager {
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkSipExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(chronicleExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkOldPrintExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(crossrefExportAction, actionSource, false));

@@ -939,7 +939,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         characteristics.getFormat().add(format);
         FormatDesignationComplexType formatDesignation = new FormatDesignationComplexType();
         formatDesignation.setFormatName(md5Info.getMimeType());
-        formatDesignation.setFormatVersion(md5Info.getFormatVersion());
+        if (!md5Info.getMimeType().equals(md5Info.getFormatVersion())) {
+            formatDesignation.setFormatVersion(md5Info.getFormatVersion());
+        } else {
+            formatDesignation.setFormatVersion("1.0");
+        }
         JAXBElement<FormatDesignationComplexType> jaxbDesignation = factory.createFormatDesignation(formatDesignation);
         format.getContent().add(jaxbDesignation);
         FormatRegistryComplexType formatRegistry = new FormatRegistryComplexType();
@@ -951,7 +955,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         CreatingApplicationComplexType creatingApplication = new CreatingApplicationComplexType();
         characteristics.getCreatingApplication().add(creatingApplication);
         creatingApplication.getContent().add(factory.createCreatingApplicationName("ProArc"));
-        creatingApplication.getContent().add(factory.createCreatingApplicationVersion("3.5.13"));
+        creatingApplication.getContent().add(factory.createCreatingApplicationVersion
+                (metsElement.getMetsContext().getOptions().getVersion()));
 
         //creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
         creatingApplication.getContent().add(factory.createDateCreatedByApplication(MetsUtils.getCurrentDate().toXMLFormat()));
@@ -986,6 +991,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+        String extension = Const.mimeToExtensionMap.get(md5Info.getMimeType());
+        int position = originalFile.indexOf(".");
+        originalFile = originalFile.substring(0, position) + extension;
         OriginalNameComplexType originalName = factory.createOriginalNameComplexType();
         originalName.setValue(originalFile);
         file.setOriginalName(originalName);
@@ -2528,7 +2536,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         int pageIndex = 1;
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.SOUND_PAGE.equals(element.getElementType())) {
-                insertAudioPage(physicalDiv, element, pageCounter, metsElement);
+                insertAudioPage(physicalDiv, element, audioPageCounter, metsElement);
                 audioPageCounter++;
             } else if (Const.PAGE.equals(element.getElementType())) {
                 insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);

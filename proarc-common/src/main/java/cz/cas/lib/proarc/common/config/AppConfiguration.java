@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.config;
 
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
@@ -172,8 +173,8 @@ public final class AppConfiguration {
         return RdaRules.getOptions(config).getRules();
     }
 
-    public Boolean isDeletePackage() {
-        return NdkExportOptions.getOptions(config).isDeletePackage();
+    public ExportOptions getExportOptions() {
+        return ExportOptions.getOptions(config);
     }
 
     public Configuration getAuthenticators() {

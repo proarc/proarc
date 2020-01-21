@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.archive;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
@@ -41,10 +42,12 @@ public class ArchiveProducer {
     private static final Logger LOG = Logger.getLogger(ArchiveProducer.class.getName());
     private final DigitalObjectCrawler crawler;
     private ExportResultLog reslog;
+    private AppConfiguration appConfig;
 
-    public ArchiveProducer() {
+    public ArchiveProducer(AppConfiguration appConfiguration) {
         this.crawler = new DigitalObjectCrawler(
                 DigitalObjectManager.getDefault(), RemoteStorage.getInstance().getSearch());
+        this.appConfig = appConfiguration;
     }
 
     /**
@@ -76,7 +79,7 @@ public class ArchiveProducer {
     private void archiveImpl(List<String> pids, File archiveRootFolder) {
         List<List<DigitalObjectElement>> objectPaths = selectObjects(pids);
 
-        ArchiveObjectProcessor processor = new ArchiveObjectProcessor(crawler, archiveRootFolder);
+        ArchiveObjectProcessor processor = new ArchiveObjectProcessor(crawler, archiveRootFolder, appConfig);
         for (List<DigitalObjectElement> path : objectPaths) {
             ExportResult result = new ExportResult();
             DigitalObjectElement dobj = path.get(0);
