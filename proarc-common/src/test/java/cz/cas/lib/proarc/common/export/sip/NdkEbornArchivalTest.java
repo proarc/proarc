@@ -80,7 +80,7 @@ public class NdkEbornArchivalTest {
      * {@see cz.cas.lib.proarc.common.export.archive.ArchiveObjectSelector#searchPath(List)}
      */
     public void ebornExportArchivalTest() {
-        ArchiveProducer export = new ArchiveProducer();
+        ArchiveProducer export = new ArchiveProducer(appConfig);
 
         List<String> pids = Arrays.asList("uuid:26342028-12c8-4446-9217-d3c9f249bd13"); //etitle
 

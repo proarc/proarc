@@ -342,7 +342,7 @@ public class DigitalObjectResource {
         int count = items.size();
         int endRow = startRow + count - 1;
         int total = count == 0 ? startRow : endRow + page;
-        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
+        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, count, items);
     }
 
     private String filterOwnObjects(UserProfile user) {

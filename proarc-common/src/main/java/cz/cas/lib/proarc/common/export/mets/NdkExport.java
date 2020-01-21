@@ -81,12 +81,17 @@ public class NdkExport {
      *             unexpected failure
      */
     public List<Result> export(File exportsFolder, List<String> pids,
-            boolean hierarchy, boolean keepResult, String log
-            ) throws ExportException {
+            boolean hierarchy, boolean keepResult, Boolean overwrite,
+            String log) throws ExportException {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
-        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), exportOptions.isOverwritePackage());
+        File target;
+        if (exportsFolder != null && "NDK".equals(exportsFolder.getName())) {
+            target = exportsFolder;
+        } else {
+            target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, exportOptions.isOverwritePackage()));
+        }
         List<Result> results = new ArrayList<>(pids.size());
         for (String pid : pids) {
             ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
@@ -118,6 +123,13 @@ public class NdkExport {
         }
         ExportUtils.writeExportResult(target, reslog);
         return results;
+    }
+
+    private boolean overwrite(Boolean overwrite_constant, Boolean overwrite_config) {
+        if (overwrite_constant != null) {
+            return overwrite_constant;
+        }
+        return overwrite_config;
     }
 
     private String getFileSize(Info info, String value) {

@@ -271,7 +271,7 @@ public class ExportResource {
                 throw new IllegalArgumentException("Unsupported type of package");
         }
 
-        List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, session.asFedoraLog());
+        List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, null, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
             if (r.getValidationError() != null) {
                 if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
@@ -385,7 +385,7 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newArchive(
             @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids
-            ) {
+            ) throws ExportException {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.ARCHIVE_PID_PARAM);
@@ -393,7 +393,8 @@ public class ExportResource {
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         ExportResult result = new ExportResult();
-        ArchiveProducer export = new ArchiveProducer();
+        List<ExportResult> resultList = new ArrayList<>();
+        ArchiveProducer export = new ArchiveProducer(appConfig);
         File targetFolder = ExportUtils.createFolder(exportFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)), appConfig.getExportOptions().isOverwritePackage());
         try {
             //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
@@ -415,7 +416,31 @@ public class ExportResource {
                         error.getPid(), error.getMessage(), false, error.getDetails()));
             }
         }
-        return new SmartGwtResponse<>(result);
+        resultList.add(result);
+        NdkExport exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
+        File target = null;
+        for (File file : targetFolder.listFiles()) {
+            if (file.isDirectory()) {
+                target = ExportUtils.createFolder(file, "NDK", false);
+                continue;
+            }
+        }
+        if (target == null) {
+            target = targetFolder;
+        }
+        List<NdkExport.Result> ndkResults = exportNdk.export(target, pids, true, true, true, session.asFedoraLog());
+        for (NdkExport.Result r : ndkResults) {
+            if (r.getValidationError() != null) {
+                if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
+                    //MetsUtils.deleteFolder(r.getTargetFolder());
+                }
+                resultList.add(new ExportResult(r.getValidationError().getExceptions()));
+            } else {
+                // XXX not used for now
+                resultList.add(new ExportResult((Integer) null, "done"));
+            }
+        }
+        return new SmartGwtResponse<>(resultList);
     }
 
     private boolean isMissingURNNBN(ResultError error) {

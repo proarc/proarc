@@ -169,7 +169,7 @@ public class PackageReader {
             LocalObject lObj = iSession.findLocalObject(importItem);
             boolean isNewObject = lObj == null;
             if (lObj == null) {
-                File objFile = new File(targetFolder, getFoxmlFilename(divIndex, pid, DeviceRepository.METAMODEL_ID));
+                File objFile = new File(targetFolder, getFoxmlFilename("DESCRIPTION", divIndex, pid, DeviceRepository.METAMODEL_ID));
                 RemoteObject remote = iSession.getRemotes().find(pid);
                 DigitalObject dObj = null;
                 try {
@@ -214,7 +214,7 @@ public class PackageReader {
         LocalObject lObj = iSession.findLocalObject(importItem);
         boolean isNewObject = lObj == null;
         if (lObj == null) {
-            File objFile = new File(targetFolder, getFoxmlFilename(divIndex, pid, modelId));
+            File objFile = new File(targetFolder, getFoxmlFilename("FOXML", divIndex, pid, modelId));
             DigitalObject dObj = null;
             if (isParentObject) {
                 RemoteObject remote = iSession.getRemotes().find(pid);
@@ -519,8 +519,8 @@ public class PackageReader {
         return new StructMapType();
     }
 
-    private static String getFoxmlFilename(int index, String pid, String model) {
-        return PackageBuilder.getFilename(index,
+    private static String getFoxmlFilename(String datastream, int index, String pid, String model) {
+        return PackageBuilder.getFilename(datastream, index,
                 PackageBuilder.getObjectId(model),
                 PackageBuilder.getObjectId(pid),
                 "xml");
