@@ -72,6 +72,7 @@ public final class Kramerius4ExportOptions {
     private Map<String, String> relationMap = new HashMap<String, String>() {
         {
             put(NdkPlugin.MODEL_PAGE, "hasPage");
+            put(NdkPlugin.MODEL_NDK_PAGE, "hasPage");
             put(K4Plugin.MODEL_MONOGRAPHUNIT, "hasUnit");
             put(K4Plugin.MODEL_PERIODICALVOLUME, "hasVolume");
             put(K4Plugin.MODEL_PERIODICALITEM, "hasItem");
