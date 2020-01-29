@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
@@ -48,6 +49,18 @@ public class NdkNewPageMapper extends NdkMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
+
+        // kvuli zmene je nutne smazat prazdne DetailDefinition
+        for (PartDefinition part : mods.getPart()) {
+            List<DetailDefinition> detail = new ArrayList<>();
+            detail.addAll(part.getDetail());
+            part.getDetail().clear();
+            for (DetailDefinition detailDefinition : detail) {
+                if (detailDefinition.getNumber().size() > 0) {
+                    part.getDetail().add(detailDefinition);
+                }
+            }
+        }
     }
 
     @Override
@@ -120,8 +133,22 @@ public class NdkNewPageMapper extends NdkMapper {
         if (mods.getPart().get(0).getDetail().isEmpty()) {
             return wrapper;
         }
-        String pageIndex = getNumber(getDetail(mods.getPart().get(0).getDetail(), NUMBER_TYPE_PAGE_INDEX));
-        setNumber(getDetail(mods.getPart().get(0).getDetail(), NUMBER_TYPE_PAGE_INDEX), null);
+        String pageIndex;
+        if (mods.getPart().size() > 1) {
+            if (mods.getPart().get(1).getDetail().isEmpty()) {
+                mods.getPart().get(1).getDetail().add(new DetailDefinition());
+            }
+            if (mods.getPart().get(1).getDetail().get(0).getNumber().isEmpty()) {
+                mods.getPart().get(1).getDetail().get(0).getNumber().add(new StringPlusLanguage());
+            }
+            pageIndex = mods.getPart().get(1).getDetail().get(0).getNumber().get(0).getValue();
+            setNumber(getDetail(mods.getPart().get(1).getDetail(), NUMBER_TYPE_PAGE_INDEX), null);
+            mods.getPart().remove(1);
+        } else {
+            pageIndex = getNumber(getDetail(mods.getPart().get(0).getDetail(), NUMBER_TYPE_PAGE_INDEX));
+            setNumber(getDetail(mods.getPart().get(0).getDetail(), NUMBER_TYPE_PAGE_INDEX), null);
+        }
+
 
         String pageNumber = getNumber(getDetail(mods.getPart().get(0).getDetail(), NUMBER_TYPE_PAGE_NUMBER));
         setNumber(getDetail(mods.getPart().get(0).getDetail(), NUMBER_TYPE_PAGE_NUMBER), null);
@@ -197,11 +224,15 @@ public class NdkNewPageMapper extends NdkMapper {
                 PartDefinition part = new PartDefinition();
                 mods.getPart().add(part);
             }
-            DetailDefinition detail = getDetail(mods.getPart().get(0).getDetail(), NUMBER_TYPE_PAGE_INDEX);
+            if (mods.getPart().size() <= 1) {
+                PartDefinition part = new PartDefinition();
+                mods.getPart().add(part);
+            }
+            DetailDefinition detail = getDetail(mods.getPart().get(1).getDetail(), NUMBER_TYPE_PAGE_INDEX);
             if (detail == null) {
                 detail = new DetailDefinition();
                 detail.setType(NUMBER_TYPE_PAGE_INDEX);
-                mods.getPart().get(0).getDetail().add(detail);
+                mods.getPart().get(1).getDetail().add(detail);
             }
             setNumber(detail, index);
         }
