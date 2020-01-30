@@ -138,6 +138,7 @@ public class NdkPageMapper extends NdkMapper {
         if (!mods.getPart().isEmpty()) {
             String pageIndex = null;
             String pageNumber = null;
+            String pageType = null;
             for (PartDefinition part : mods.getPart()) {
                 if (pageIndex == null) {
                     pageIndex = getNumber(getDetail(part.getDetail(), NUMBER_TYPE_PAGE_INDEX)); 
@@ -145,12 +146,16 @@ public class NdkPageMapper extends NdkMapper {
                 if (pageNumber == null) {
                     pageNumber = getNumber(getDetail(part.getDetail(), NUMBER_TYPE_PAGE_NUMBER));
                 }
-                if (part.getType() == null) {
-                    page.setType(PAGE_TYPE_NORMAL);
-                } else {
-                    page.setType(part.getType());
+                if (pageType == null) {
+                    if (part.getType() != null) {
+                        pageType = part.getType();
+                    }
                 }
             }
+            if (pageType == null) {
+                pageType = PAGE_TYPE_NORMAL;
+            }
+            page.setType(pageType);
             page.setNumber(pageNumber);
             page.setIndex(pageIndex);
         } else {
@@ -239,83 +244,8 @@ public class NdkPageMapper extends NdkMapper {
         return mods;
     }
 
-    private void setNdkPageMods(Page page, ModsDefinition mods) {
-        if (page.getTitle() != null || page.getSubtitle() != null) {
-            TitleInfoDefinition titleInfo = new TitleInfoDefinition();
-            mods.getTitleInfo().add(titleInfo);
 
-            setTitle(page, titleInfo);
-            setSubtitle(page, titleInfo);
-        }
 
-        setPhysicalDescription(page, mods);
-        setGenre(page, mods);
-        setNote(page, mods);
-        setTypeOfResource(page, mods);
-        setExtent(page, mods);
-    }
-
-    private void setExtent(Page page, ModsDefinition mods) {
-        PartDefinition part = mods.getPart().get(0);
-        if (page.getExtent() != null && part != null) {
-            ExtentDefinition extentDefinition = new ExtentDefinition();
-            extentDefinition.setUnit("pages");
-            StringPlusLanguage extent = new StringPlusLanguage();
-            extent.setValue(page.getExtent());
-            extentDefinition.setStart(extent);
-            part.getExtent().add(extentDefinition);
-        }
-    }
-
-    private void setTypeOfResource(Page page, ModsDefinition mods) {
-        if (page.getTypeOfResource() != null) {
-            TypeOfResourceDefinition typeOfResource = new TypeOfResourceDefinition();
-            typeOfResource.setValue(page.getTypeOfResource());
-            mods.getTypeOfResource().add(typeOfResource);
-        }
-    }
-
-    private void setNote(Page page, ModsDefinition mods) {
-        if (page.getNote() != null) {
-            NoteDefinition noteDefinition = new NoteDefinition();
-            noteDefinition.setValue(page.getNote());
-            mods.getNote().add(noteDefinition);
-        }
-    }
-
-    private void setGenre(Page page, ModsDefinition mods) {
-        if (page.getGenre() != null) {
-            GenreDefinition genreDefinition = new GenreDefinition();
-            mods.getGenre().add(genreDefinition);
-            genreDefinition.setValue(page.getGenre());
-        }
-    }
-
-    private void setPhysicalDescription(Page page, ModsDefinition mods) {
-        if (page.getPhysicalDescription() != null) {
-            PhysicalDescriptionDefinition physicalDescription = new PhysicalDescriptionDefinition();
-            mods.getPhysicalDescription().add(physicalDescription);
-            PhysicalDescriptionNote phNote = new PhysicalDescriptionNote();
-            phNote.setValue(page.getPhysicalDescription());
-            physicalDescription.getNote().add(phNote);
-        }
-    }
-
-    private void setSubtitle(Page page, TitleInfoDefinition titleInfo) {
-        if (page.getSubtitle() != null) {
-            StringPlusLanguage subtitle = new StringPlusLanguage();
-            subtitle.setValue(page.getSubtitle());
-            titleInfo.getSubTitle().add(subtitle);
-        }
-    }
-
-    private void setTitle(Page page, TitleInfoDefinition titleInfo) {
-        if (page.getTitle() != null) {
-            StringPlusLanguage title = new StringPlusLanguage();
-            title.setValue(page.getTitle());
-            titleInfo.getTitle().add(title);
-        }
-    }
 
     @Override
     protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
@@ -358,16 +288,7 @@ public class NdkPageMapper extends NdkMapper {
         return sb.toString();
     }
 
-    private void addDetailNumber(String number, String type, PartDefinition part) {
-        if (number != null) {
-            DetailDefinition detail = new DetailDefinition();
-            detail.setType(type);
-            StringPlusLanguage splNumber = new StringPlusLanguage();
-            splNumber.setValue(number);
-            detail.getNumber().add(splNumber);
-            part.getDetail().add(detail);
-        }
-    }
+
 
     private DetailDefinition getDetail(List<DetailDefinition> details, String type) {
         for (DetailDefinition detail : details) {
@@ -396,23 +317,7 @@ public class NdkPageMapper extends NdkMapper {
         return iis;
     }
 
-    private List<IdentifierDefinition> getIdentifierDefinition(List<IdentifierItem> iis) {
-        if (iis == null) {
-            return Collections.emptyList();
-        }
-        ArrayList<IdentifierDefinition> ids = new ArrayList<>(iis.size());
-        for (IdentifierItem ii : iis) {
-            String iiValue = MapperUtils.toValue(ii.getValue());
-            if (iiValue != null) {
-                IdentifierDefinition id = new IdentifierDefinition();
-                id.setType(ii.getType());
-                id.setValue(iiValue);
-                ids.add(id);
-            }
-        }
 
-        return ids;
-    }
 
     @XmlRootElement(name = "page")
     @XmlAccessorType(XmlAccessType.FIELD)

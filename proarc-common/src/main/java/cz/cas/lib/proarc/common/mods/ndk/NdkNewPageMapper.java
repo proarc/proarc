@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.Text;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
@@ -130,9 +131,6 @@ public class NdkNewPageMapper extends NdkMapper {
         mods.getPart().get(0).setType(null);
         wrapper.setType(pageType);
 
-        if (mods.getPart().get(0).getDetail().isEmpty()) {
-            return wrapper;
-        }
         String pageIndex;
         if (mods.getPart().size() > 1) {
             if (mods.getPart().get(1).getDetail().isEmpty()) {
@@ -258,5 +256,51 @@ public class NdkNewPageMapper extends NdkMapper {
             detail.getNumber().get(0).setValue(number);
         }
     }
+
+    public ModsDefinition createPage(String pageIndex, String pageNumber, String pageType, Context ctx) {
+        NdkPageMapper.Page page = new NdkPageMapper.Page();
+        page.setType(pageType);
+        page.setIndex(pageIndex);
+        page.setNumber(pageNumber);
+        return toMods(page, ctx);
+    }
+
+    public ModsDefinition toMods(NdkPageMapper.Page page, Context ctx) {
+        ModsDefinition mods = new ModsDefinition();
+        toMods(page, mods);
+        // ensure the MODS is complete
+        createMods(mods, ctx);
+        return mods;
+    }
+
+    public ModsDefinition toMods(NdkPageMapper.Page page, ModsDefinition mods) {
+        String pageType = page.getType();
+
+        String pageIndex = page.getIndex();
+        String pageNumber = page.getNumber();
+        String pageNote = page.getPhysicalDescription();
+
+        if (pageType != null || pageNumber != null || pageNote != null) {
+            PartDefinition part = new PartDefinition();
+            if (pageType != null) {
+                part.setType(pageType);
+            }
+            addDetailNumber(pageNumber, NUMBER_TYPE_PAGE_NUMBER, part);
+            if (pageNote != null) {
+                Text text = new Text();
+                text.setValue(pageNote);
+                part.getText().add(text);
+            }
+            mods.getPart().add(part);
+        }
+        if (pageIndex != null) {
+            PartDefinition part = new PartDefinition();
+            mods.getPart().add(part);
+            addDetailNumber(pageIndex, NUMBER_TYPE_PAGE_INDEX, part);
+        }
+        mods.getIdentifier().addAll(getIdentifierDefinition(page.getIdentifiers()));
+        return mods;
+    }
+
 
 }

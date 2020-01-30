@@ -44,6 +44,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
+import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
@@ -567,10 +568,18 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public void setPage(PageViewItem page, String message) throws DigitalObjectException {
         String modelId = handler.relations().getModel();
-        if (modelId.equals(NdkPlugin.MODEL_PAGE) || modelId.equals(NdkPlugin.MODEL_NDK_PAGE)) {
+        if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
             DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
             metadata.setTimestamp(editor.getLastModified());
             NdkPageMapper mapper = new NdkPageMapper();
+            ModsDefinition mods = mapper.createPage(
+                    page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
+            metadata.setIgnoreValidation(true);
+            write(modelId, mods, metadata, message, "update");
+        } else if (NdkPlugin.MODEL_NDK_PAGE.equals(modelId)) {
+            DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
+            metadata.setTimestamp(editor.getLastModified());
+            NdkNewPageMapper mapper = new NdkNewPageMapper();
             ModsDefinition mods = mapper.createPage(
                     page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
             metadata.setIgnoreValidation(true);
