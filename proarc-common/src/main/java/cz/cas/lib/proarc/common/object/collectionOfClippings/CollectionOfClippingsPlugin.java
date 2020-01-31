@@ -58,6 +58,7 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
      */
     public static final String ID = "collectionOfClippings";
     public static final String MODEL_COLLECTION_OF_CLIPPINGS_VOLUME = "model:clippingsvolume";
+    public static final String MODEL_COLLECTION_OF_CLIPPINGS_TITLE = "model:clippingstitle";
     public static final String MODEL_PAGE = "model:page";
 
     private ClippingsSearchViewHandler searchViewHandler;
@@ -82,15 +83,28 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
         // for now it is read only repository
         List<MetaModel> models = new ArrayList<MetaModel>();
         models.add(new MetaModel(
-                MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, true, null,
+                MODEL_COLLECTION_OF_CLIPPINGS_TITLE, true, null,
                 Arrays.asList(new ElementType("Collection of clippings", "en"), new ElementType("Sb\u00edrka v\u00fdst\u0159i\u017ek\u016f", "cs")),
+                ModsConstants.NS,
+                MODEL_COLLECTION_OF_CLIPPINGS_TITLE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {}
+        ));
+        models.add(new MetaModel(
+                MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, true, null,
+                Arrays.asList(new ElementType("Clipping", "en"), new ElementType("V\u00fdst\u0159i\u017eek", "cs")),
                 ModsConstants.NS,
                 MODEL_COLLECTION_OF_CLIPPINGS_VOLUME,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {}
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_COLLECTION_OF_CLIPPINGS_TITLE, RelationCriteria.Type.PID)
+                }
         ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
@@ -100,7 +114,7 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
                 new RelationCriteria[]{
-                        new RelationCriteria(MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID)
                 }
         ).setPriority(2)) // override K4 plugin
         ;

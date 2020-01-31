@@ -28,6 +28,7 @@ import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -285,7 +286,9 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                     boolean accept(DigitalObject obj) {
                         return ChroniclePlugin.MODEL_CHRONICLETITLE.equals(obj.getModelId())
                                 || ChroniclePlugin.MODEL_CHRONICLEVOLUME.equals(obj.getModelId())
-                                || ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT.equals(obj.getModelId());
+                                || ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT.equals(obj.getModelId())
+                                || CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME.equals(obj.getModelId())
+                                || CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE.equals(obj.getModelId());
                     }
 
                     @Override
