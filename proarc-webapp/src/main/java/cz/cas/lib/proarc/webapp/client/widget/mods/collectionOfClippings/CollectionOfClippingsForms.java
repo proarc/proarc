@@ -29,18 +29,25 @@ public class CollectionOfClippingsForms {
 
     private final ClientMessages i18n;
     private final String activeLocale;
+    private final String prefix = "complex:";
 
     public CollectionOfClippingsForms(ClientMessages i18n) {
         this.i18n = i18n;
         activeLocale = LanguagesDataSource.activeLocale();
     }
 
-    public DynamicForm getForm(MetaModelDataSource.MetaModelRecord model) {
-        String modelId = model.getId();
+    public DynamicForm getForm(MetaModelDataSource.MetaModelRecord model, String prefix) {
+        String modelId = prefix + model.getId();
         Form f;
-        if (CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME.equals(modelId)) {
-            f = new CollectionOfClippingsVolumeForm().build();
+        if ((this.prefix + CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME).equals(modelId)) {
+            f = new CollectionOfClippingsVolumeForm().buildComplexForm();
             f.setItemWidth("800");
+        } else if (CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME.equals(modelId)) {
+            f = new CollectionOfClippingsVolumeForm().build();
+        } else if ((this.prefix + CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE).equals(modelId)) {
+            f = new CollectionOfClippingsTitleForm().buildComplexForm();
+        } else if (CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE.equals(modelId)) {
+            f = new CollectionOfClippingsTitleForm().build();
         } else if (CollectionOfClippingsPlugin.MODEL_PAGE.equals(modelId)) {
             return new PageForm(i18n);
         } else {

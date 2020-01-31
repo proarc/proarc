@@ -324,7 +324,7 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
                 form = new OldPrintForms(i18n).getForm(model);
             }
             if (form == null) {
-                form = new CollectionOfClippingsForms(i18n).getForm(model);
+                form = new CollectionOfClippingsForms(i18n).getForm(model, getFormPrefix());
             }
             if (form == null) {
                 // obsolete K4 forms as a fallback
