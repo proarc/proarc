@@ -242,7 +242,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (partNode == null){
                 throw new MetsExportException("Error - missing title. Please insert title.");
             }
-            return partNode.getTextContent() + " ";
+            return partNode.getTextContent() + ", ";
         }
         return "";
     }
@@ -252,7 +252,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     public boolean isIssue(IMetsElement metsElement) throws MetsExportException {
         String type = MetsUtils.xPathEvaluateString(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='part']/@type");
-        return type.equals("issue");
+        if (!type.isEmpty()) {
+            return type.equals("issue");
+        }
+        return metsElement.getModel().contains("issue");
     }
 
 
