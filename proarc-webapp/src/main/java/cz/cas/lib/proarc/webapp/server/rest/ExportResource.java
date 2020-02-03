@@ -411,12 +411,16 @@ public class ExportResource {
             for (ResultError error : logResult.getError()) {
                 if (isMissingURNNBN(error) && appConfig.getExportOptions().isDeletePackage()) {
                    MetsUtils.deleteFolder(targetFolder);
+                   error.setDetails(null);
                 }
                 result.getErrors().add(new ExportError(
                         error.getPid(), error.getMessage(), false, error.getDetails()));
             }
         }
         resultList.add(result);
+        if (resultList.size() > 0) {
+            return new SmartGwtResponse<>(resultList);
+        }
         NdkExport exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
         File target = null;
         for (File file : targetFolder.listFiles()) {
