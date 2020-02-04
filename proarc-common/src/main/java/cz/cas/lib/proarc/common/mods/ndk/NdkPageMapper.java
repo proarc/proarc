@@ -326,6 +326,8 @@ public class NdkPageMapper extends NdkMapper {
         private List<IdentifierItem> identifiers;
         @XmlElement(name = ModsConstants.FIELD_PAGE_NUMBER)
         private String number;
+        @XmlElement(name = ModsConstants.FIELD_PAGE_NUMBER_SPLIT)
+        private String pageNumber;
         @XmlElement(name = ModsConstants.FIELD_PAGE_INDEX)
         private String index;
         @XmlElement(name = ModsConstants.FIELD_PAGE_TYPE)
@@ -365,7 +367,7 @@ public class NdkPageMapper extends NdkMapper {
         }
 
         public String getNumber() {
-            return number;
+            return number == null ? pageNumber : number;
         }
 
         public void setNumber(String pageNumber) {
@@ -434,6 +436,10 @@ public class NdkPageMapper extends NdkMapper {
 
         public void setTypeOfResource(String typeOfResource) {
             this.typeOfResource = typeOfResource;
+        }
+
+        public String getPageNumber() {
+            return pageNumber;
         }
     }
 

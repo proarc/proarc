@@ -17,16 +17,15 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
+import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
-import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.Text;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -42,7 +41,7 @@ public class NdkNewPageMapper extends NdkMapper {
     /** {@code /mods/part/detail@type} */
     private static final String NUMBER_TYPE_PAGE_INDEX = "pageIndex";
     /** {@code /mods/part/detail@type} */
-    private static final String NUMBER_TYPE_PAGE_NUMBER = "pageNumber";
+    private static final String NUMBER_TYPE_PAGE_NUMBER = "page number";
     /** {@code /mods/part@type} */
     public static final String PAGE_TYPE_NORMAL = "normalPage";
 
@@ -61,6 +60,39 @@ public class NdkNewPageMapper extends NdkMapper {
                     part.getDetail().add(detailDefinition);
                 }
             }
+        }
+        String index = null;
+        if (mods.getPart().size() > 1
+                && !mods.getPart().get(1).getDetail().isEmpty()
+                && !mods.getPart().get(1).getDetail().get(0).getNumber().isEmpty()) {
+            index = mods.getPart().get(1).getDetail().get(0).getNumber().get(0).getValue();
+        }
+        // set part:extent
+        if (index != null) {
+            if (mods.getPart().isEmpty()) {
+                mods.getPart().add(new PartDefinition());
+            }
+            PartDefinition part = mods.getPart().get(0);
+            if (part.getExtent().isEmpty()) {
+                part.getExtent().add(new ExtentDefinition());
+            }
+            ExtentDefinition extent = part.getExtent().get(0);
+            extent.setUnit("pages");
+            StringPlusLanguage start = new StringPlusLanguage();
+            extent.setStart(start);
+            start.setValue(index);
+        }
+        String type = PAGE_TYPE_NORMAL;
+        if (!mods.getPart().isEmpty()) {
+            type = mods.getPart().get(0).getType();
+        }
+        if (mods.getGenre().isEmpty()) {
+            mods.getGenre().add(new GenreDefinition());
+        }
+        GenreDefinition genre = mods.getGenre().get(0);
+        genre.setType(type);
+        if (genre.getValue() == null || genre.getValue().isEmpty()) {
+            genre.setValue("page");
         }
     }
 
@@ -124,11 +156,17 @@ public class NdkNewPageMapper extends NdkMapper {
     }
 
     @Override
-    public final RdaModsWrapper toJsonObject(ModsDefinition mods, NdkMapper.Context ctx) {
+    public final NdkMetadataHandler.ModsWrapper toJsonObject(ModsDefinition mods, NdkMapper.Context ctx) {
         NdkMapper.PageModsWrapper wrapper = new NdkMapper.PageModsWrapper();
         wrapper.setMods(mods);
+        if (mods.getPart().isEmpty()) {
+            mods.getPart().add(new PartDefinition());
+        }
         String pageType = mods.getPart().get(0).getType();
         mods.getPart().get(0).setType(null);
+        if (pageType == null) {
+            pageType = PAGE_TYPE_NORMAL;
+        }
         wrapper.setType(pageType);
 
         String pageIndex;
@@ -152,7 +190,7 @@ public class NdkNewPageMapper extends NdkMapper {
         setNumber(getDetail(mods.getPart().get(0).getDetail(), NUMBER_TYPE_PAGE_NUMBER), null);
         wrapper.setPageNumber(pageNumber);
         wrapper.setPageIndex(pageIndex);
-        if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {
+        /*if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {
             return wrapper;
         }
         String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
@@ -164,7 +202,7 @@ public class NdkNewPageMapper extends NdkMapper {
         }
         if (mods.getPart().isEmpty()) {
             return wrapper;
-        }
+        }*/
 
         return wrapper;
 
@@ -178,7 +216,7 @@ public class NdkNewPageMapper extends NdkMapper {
 
         NdkPageMapper.Page page = jsMapper.readValue(json, NdkPageMapper.Page.class);
 
-        StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
+        /*StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
         if (wrapper.getRdaRules() != null && wrapper.getRdaRules()) {
             descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
         } else {
@@ -190,7 +228,7 @@ public class NdkNewPageMapper extends NdkMapper {
             mods.getRecordInfo().add(0, recordInfo);
         } else {
             mods.getRecordInfo().get(0).getDescriptionStandard().add(0, descriptionStandard);
-        }
+        }*/
 
         String number = getValue(wrapper.getPageNumber(), page.getNumber());
         String index = getValue(wrapper.getPageIndex(), page.getIndex());
@@ -302,5 +340,31 @@ public class NdkNewPageMapper extends NdkMapper {
         return mods;
     }
 
+    public String getNumber(ModsDefinition mods) {
+        return getNumberOrIndex(mods, NUMBER_TYPE_PAGE_NUMBER);
+    }
 
+    public String getIndex(ModsDefinition mods) {
+        return getNumberOrIndex(mods, NUMBER_TYPE_PAGE_INDEX);
+    }
+
+    public String getNumberOrIndex(ModsDefinition mods, String type) {
+        for (PartDefinition part : mods.getPart()) {
+            for (DetailDefinition detail : part.getDetail()) {
+                if (type.equals(detail.getType())) {
+                    for (StringPlusLanguage index : detail.getNumber()) {
+                        return index.getValue();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public String getType(ModsDefinition mods) {
+        for (PartDefinition part : mods.getPart()) {
+            return part.getType();
+        }
+        return null;
+    }
 }

@@ -34,6 +34,7 @@ public interface ModsConstants {
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_INDEX = "pageIndex";
     public static final String FIELD_PAGE_NUMBER = "pageNumber";
+    public static final String FIELD_PAGE_NUMBER_SPLIT = "page number";
     public static final String FIELD_PAGE_TITLE = "pageTitle";
     public static final String FIELD_PAGE_SUBTITLE = "pageSubTitle";
     public static final String FIELD_PAGE_EXTENT = "pageExtent";

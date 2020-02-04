@@ -417,7 +417,7 @@ public abstract class NdkMapper {
         }
     }
 
-    public static class PageModsWrapper extends RdaModsWrapper {
+    public static class PageModsWrapper extends ModsWrapper {
 
         private String type;
         private String pageIndex;
