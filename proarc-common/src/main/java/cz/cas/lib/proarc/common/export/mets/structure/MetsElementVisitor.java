@@ -1657,6 +1657,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 if ("pageNumber".equals(detail.getType()) && detail.getNumber().size() > 0) {
                     return !detail.getNumber().get(0).getValue().isEmpty();
                 }
+                if ("page number".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                    return !detail.getNumber().get(0).getValue().isEmpty();
+                }
             }
         }
         return false;

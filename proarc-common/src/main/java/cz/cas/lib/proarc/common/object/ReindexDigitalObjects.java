@@ -114,13 +114,20 @@ public class ReindexDigitalObjects {
         for (IMetsElement childElement : parentElement.getChildren()) {
             if (Const.PAGE.equals(childElement.getElementType())) {
                 String pid = childElement.getOriginalPid();
-                reindex(pageIndex++, pid, NdkPlugin.MODEL_PAGE);
+                reindex(pageIndex++, pid, fixModel(childElement.getModel()));
             }
             if (Const.SOUND_PAGE.equals(childElement.getElementType())) {
                 String pid = childElement.getOriginalPid();
-                reindex(audioPageIndex++, pid, NdkAudioPlugin.MODEL_PAGE);
+                reindex(audioPageIndex++, pid, fixModel(childElement.getModel()));
             }
         }
+    }
+
+    private String fixModel(String model) {
+        if (model.startsWith("info:fedora/")) {
+            return model.substring(12);
+        }
+        return model;
     }
 
     private void reindex(int index, String pid, String model) throws DigitalObjectException {
@@ -162,15 +169,17 @@ public class ReindexDigitalObjects {
                         }
                     }
                 }
-                if (detailDefinition == null) {
-                    detailDefinition = new DetailDefinition();
-                    part.getDetail().add(detailDefinition);
-                    detailDefinition.setType("pageIndex");
+                if (part.getType() == null) {
+                    if (detailDefinition == null) {
+                        detailDefinition = new DetailDefinition();
+                        part.getDetail().add(detailDefinition);
+                        detailDefinition.setType("pageIndex");
+                    }
+                    detailDefinition.getNumber().clear();
+                    StringPlusLanguage number = new StringPlusLanguage();
+                    number.setValue(String.valueOf(index));
+                    detailDefinition.getNumber().add(number);
                 }
-                detailDefinition.getNumber().clear();
-                StringPlusLanguage number = new StringPlusLanguage();
-                number.setValue(String.valueOf(index));
-                detailDefinition.getNumber().add(number);
             }
         }
     }
