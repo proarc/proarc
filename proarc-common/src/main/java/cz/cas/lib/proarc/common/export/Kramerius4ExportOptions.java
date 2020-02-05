@@ -78,6 +78,7 @@ public final class Kramerius4ExportOptions {
             put(K4Plugin.MODEL_PERIODICALVOLUME, "hasVolume");
             put(K4Plugin.MODEL_PERIODICALITEM, "hasItem");
             put(NdkPlugin.MODEL_ARTICLE, "hasIntCompPart");
+            put(NdkPlugin.MODEL_CHAPTER, "hasIntCompPart");
             put(NdkPlugin.MODEL_CARTOGRAPHIC, "hasUnit");
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "hasIntCompPart");
             put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "hasUnit");
