@@ -233,6 +233,18 @@ public class WorkflowManager {
         }
     }
 
+    public Job getJobs(BigDecimal id) {
+        Transaction tx = daoFactory.createTransaction();
+        try {
+            WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
+            dao.setTransaction(tx);
+            Material m = dao.find(id);
+            return dao.findJob(m);
+        }  finally {
+            tx.close();
+        }
+
+    }
 
     private Material updateMaterial(MaterialView view, Transaction tx) throws ConcurrentModificationException, WorkflowException, IOException, FedoraClientException {
         WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
