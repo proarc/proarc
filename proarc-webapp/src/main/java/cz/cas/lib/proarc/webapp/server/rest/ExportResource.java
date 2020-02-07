@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -32,25 +33,42 @@ import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
 import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.export.crossref.CrossrefExport;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.export.mets.NdkSttExport;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -62,6 +80,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -84,13 +103,16 @@ public class ExportResource {
     private final AppConfiguration appConfig;
     private final UserProfile user;
     private final SessionContext session;
+    private final HttpHeaders httpHeaders;
 
     public ExportResource(
             @Context SecurityContext securityCtx,
-            @Context HttpServletRequest httpRequest
+            @Context HttpServletRequest httpRequest,
+            @Context HttpHeaders httpHeaders
             ) throws AppConfigurationException {
 
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        this.httpHeaders = httpHeaders;
         session = SessionContext.from(httpRequest);
         user = session.getUser();
     }
@@ -136,6 +158,14 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
         URI targetPath = user.getUserHomeUri().relativize(target.toURI());
+
+        for (String pid : pids) {
+            try {
+                setWorkflowExport("task.exportK4", getRoot(pid, exportFolder));
+            } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
+                throw new IOException(e);
+            }
+        }
         return new SmartGwtResponse<>(new ExportResult(targetPath));
     }
 
@@ -283,7 +313,90 @@ public class ExportResource {
                 result.add(new ExportResult((Integer) null, "done"));
             }
         }
+        if ("done".equals(result.get(0).getTarget())) {
+            for (String pid : pids) {
+                try {
+                    setWorkflowExport("task.exportNdkPsp", getRoot(pid, exportFolder));
+                } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
+                    result.clear();
+                    result.add(new ExportResult(null, "Vyexportovano ale nepodarilo se propojit s RDflow."));
+                }
+            }
+        }
+
         return new SmartGwtResponse<>(result);
+    }
+
+    private IMetsElement getRoot(String pid, File exportFolder) throws MetsExportException {
+            RemoteStorage rstorage = RemoteStorage.getInstance();
+            RemoteStorage.RemoteObject fo = rstorage.find(pid);
+            MetsContext mc = buildContext(rstorage, fo, null, exportFolder);
+            IMetsElement element = getMetsElement(fo, mc, true);
+            return element.getMetsContext().getRootElement();
+    }
+
+    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+        dc.resetContext();
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+        return MetsElement.getElement(dobj, null, dc, hierarchy);
+    }
+
+    private MetsContext buildContext(RemoteStorage rstorage, RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(targetFolder.getAbsolutePath());
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(appConfig.getNdkExportOptions());
+        return mc;
+    }
+
+    private void setWorkflowExport(String type, IMetsElement root) throws DigitalObjectException, WorkflowException {
+       if (root != null) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            DigitalObjectManager.CreateHandler handler = dom.create(root.getModel(), root.getOriginalPid(), null, user, null, session.asFedoraLog());
+            Locale locale = session.getLocale(httpHeaders);
+            Job job = handler.getWfJob(root.getOriginalPid(), locale);
+            if (job == null) {
+                return;
+            }
+            List<TaskView> tasks = handler.getTask(job.getId(), locale);
+            Task editedTask = null;
+            for (TaskView task : tasks) {
+                if (type.equals(task.getTypeRef())) {
+                    editedTask = task;
+                    break;
+                }
+            }
+            if (editedTask != null) {
+                editedTask.setOwnerId(new BigDecimal(session.getUser().getId()));
+                editedTask.setState(Task.State.FINISHED);
+                WorkflowProfiles workflowProfiles = WorkflowProfiles.getInstance();
+                WorkflowDefinition workflow = workflowProfiles.getProfiles();
+                WorkflowManager workflowManager = WorkflowManager.getInstance();
+
+                try {
+                    TaskFilter taskFilter = new TaskFilter();
+                    taskFilter.setId(editedTask.getId());
+                    taskFilter.setLocale(locale);
+                    Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
+                            .findFirst().get().getState();
+                    workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
+                    List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+
+                    if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
+                        WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, locale);
+                        workflowActionHandler.runAction(editedTask);
+                    }
+                } catch (IOException e) {
+                    throw new DigitalObjectException(e.getMessage());
+                }
+
+
+            }
+        }
     }
 
     /**
@@ -418,7 +531,7 @@ public class ExportResource {
             }
         }
         resultList.add(result);
-        if (resultList.size() > 0) {
+        if (!result.getErrors().isEmpty()) {
             return new SmartGwtResponse<>(resultList);
         }
         NdkExport exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
@@ -442,6 +555,36 @@ public class ExportResource {
             } else {
                 // XXX not used for now
                 resultList.add(new ExportResult((Integer) null, "done"));
+            }
+        }
+
+        boolean errors = false;
+        for (ExportResource.ExportResult log: resultList) {
+            if (log.getErrors() == null || log.getErrors().isEmpty()) {
+                errors = false;
+            } else {
+                errors = true;
+                break;
+            }
+        }
+
+        if (!errors) {
+            for (String pid : pids) {
+                try {
+                    setWorkflowExport("task.exportArchive", getRoot(pid, exportFolder));
+                } catch (MetsExportException | DigitalObjectException e) {
+                    resultList.clear();
+                    resultList.clear();
+                    resultList.add(new ExportResult(null, "Vyexportovano ale nepodarilo se propojit s RDflow."));
+                } catch (WorkflowException e) {
+                    if ("Task is blocked by other tasks!".equals(e.getMessage())) {
+                        String targetLog = resultList.get(0).getTarget() + ", ale zapsan\u00ed \u00fakolu je blokov\u00e1no!";
+                        resultList.get(0).setTarget(targetLog);
+                    } else {
+                        resultList.clear();
+                        resultList.add(new ExportResult(null, "Vyexportovano ale nepodarilo se propojit s RDflow."));
+                    }
+                }
             }
         }
         return new SmartGwtResponse<>(resultList);
