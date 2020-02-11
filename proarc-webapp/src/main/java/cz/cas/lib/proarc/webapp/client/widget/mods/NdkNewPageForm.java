@@ -165,11 +165,11 @@ public class NdkNewPageForm {
     }
 
     private Field genre(boolean required) {
-        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1).setRequired(true)
+        return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(1)
                 .setHint("Bližší údaje o typu dokumentu.<p>Pro NDK stranu hodnota “page” nebo “reprePage”.")
                 //.addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
                 //        .createField())
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true).setDefaultValue("page")
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.COMBO).setRequired(required).setDefaultValue("page")
                         .addMapValue("page", "Strana")
                         .addMapValue("reprePage", "Reprezentativní strana")
                         .createField())
