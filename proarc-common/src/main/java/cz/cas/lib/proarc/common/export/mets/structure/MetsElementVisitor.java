@@ -66,6 +66,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -475,6 +476,30 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
                 if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageIndex")) {
                     pageDiv.setORDER(new BigInteger(numberNode.getNodeValue()));
+                }
+            }
+        }
+        if (pageDiv.getORDER() == null || pageDiv.getORDERLABEL() == null || pageDiv.getTYPE() == null) {
+            ModsDefinition mods = getMods(metsElement);
+            for (PartDefinition part : mods.getPart()) {
+                if (pageDiv.getTYPE() == null) {
+                    pageDiv.setTYPE(part.getType());
+                }
+                for (DetailDefinition detail : part.getDetail()) {
+                    if (pageDiv.getORDERLABEL() == null) {
+                        if ("page number".equals(detail.getType()) || "pageNumber".equals(detail.getType())) {
+                            if (!detail.getNumber().isEmpty()) {
+                                pageDiv.setORDERLABEL(detail.getNumber().get(0).getValue());
+                            }
+                        }
+                    }
+                    if (pageDiv.getORDER() == null) {
+                        if ("pageIndex".equals(detail.getType())) {
+                            if (!detail.getNumber().isEmpty()) {
+                                pageDiv.setORDER(new BigInteger(detail.getNumber().get(0).getValue()));
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1642,9 +1667,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
     private int getPageIndex(ModsDefinition mods) {
         if (mods.getPart().size() > 0) {
-            for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
-                if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
-                    return Integer.valueOf(detail.getNumber().get(0).getValue());
+            for (PartDefinition part : mods.getPart()) {
+                for (DetailDefinition detail : part.getDetail()) {
+                    if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                        return Integer.valueOf(detail.getNumber().get(0).getValue());
+                    }
                 }
             }
         }
