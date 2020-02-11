@@ -31,6 +31,7 @@ import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -314,6 +315,9 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         DynamicForm form = null;
         if (ModsConstants.NS.equals(metadataFormat)) {
             form = new NdkForms(i18n).getForm(model);
+            if (NdkPlugin.MODEL_NDK_PAGE.equals(model.getId())) {
+                form.setSaveOnEnter(true);
+            }
             if (form == null) {
                 form = new BornDigitalForms(i18n).getForm(model, getFormPrefix());
             }
