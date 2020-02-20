@@ -37,7 +37,7 @@ public class BatchViewFilter {
     private Timestamp modifiedTo;
     private String sortBy;
     private int offset = 0;
-    private int maxCount = 100;
+    private int maxCount = Integer.MAX_VALUE;
 
     public Integer getUserId() {
         return userId;

@@ -306,11 +306,18 @@ public class DigitalObjectResource {
             ) throws FedoraClientException, IOException {
 
         Locale locale = session.getLocale(httpHeaders);
-        SearchView search = RemoteStorage.getInstance(appConfig).getSearch(locale);
+        RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+        SearchView search = remote.getSearch(locale);
+
         List<Item> items;
+        int total = 0;
         int page = 20;
         switch (type) {
             case LAST_MODIFIED:
+                if (!remote.getObjects().containsKey(queryModel)) {
+                    remote.getObjects().put(queryModel, search.findLastModified(0, queryModel, filterOwnObjects(user), Integer.MAX_VALUE).size());
+                }
+                total = remote.getObjects().get(queryModel);
                 items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100);
                 break;
             case QUERY:
@@ -318,10 +325,12 @@ public class DigitalObjectResource {
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
                         .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
                         .setHasOwners(filterGroups(user)));
+                total = items.size();
                 page = 1;
                 break;
             case PIDS:
                 items = search.find(pids);
+                total = items.size();
                 page = 1;
                 break;
             case PHRASE:
@@ -330,19 +339,25 @@ public class DigitalObjectResource {
                     throw new WebApplicationException(Status.FORBIDDEN);
                 }
                 items = search.findPhrase(phrase);
+                total = items.size();
                 page = 1;
                 break;
             case PARENT:
                 items = searchParent(batchId, pids, search);
+                total = items.size();
                 page = 1;
                 break;
             default:
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user));
+                if (!remote.getObjects().containsKey(queryModel)) {
+                    remote.getObjects().put(queryModel, search.findLastCreated(0, queryModel, filterOwnObjects(user), Integer.MAX_VALUE).size());
+                }
+                total = remote.getObjects().get(queryModel);
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), 100);
         }
         int count = items.size();
         int endRow = startRow + count - 1;
-        int total = count == 0 ? startRow : endRow + page;
-        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, count, items);
+        //int total = count == 0 ? startRow : endRow + page;
+        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
     }
 
     private String filterOwnObjects(UserProfile user) {

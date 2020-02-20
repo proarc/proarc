@@ -128,9 +128,13 @@ public class ImportResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ImportFolder> listFolder(
             @QueryParam(ImportResourceApi.IMPORT_FOLDER_PARENT_PARAM) @DefaultValue("") String parent,
-            @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
-            ) throws FileNotFoundException, URISyntaxException {
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @QueryParam(ImportResourceApi.IMPORT_START_ROW_PARAM) @DefaultValue("-1") int startRow
 
+            ) throws IOException, URISyntaxException {
+
+        int endRow = 0;
+        int total = 0;
         String parentPath = validateParentPath(parent);
         ImportProfile importProfile;
         if (profileId == null || profileId.isEmpty()) {
@@ -149,15 +153,36 @@ public class ImportResource {
 
         ImportFileScanner scanner = new ImportFileScanner();
         List<Folder> subfolders = scanner.findSubfolders(new File(path), importProfile.createImporter());
-        List<ImportFolder> result = new ArrayList<ImportFolder>(subfolders.size());
+        List<ImportFolder> result = new ArrayList<ImportFolder>();
+        if (startRow < 0) {
+            result = setResult(result, subfolders, userRoot, parentPath);
+            startRow = 0;
+            total = subfolders.size();
+            endRow =  startRow + total -1;
+        } else {
+            int size = 100;
+            List<Folder> selectedSubfolders = new ArrayList<>();
+            for (int i = startRow; i < startRow + size; i++) {
+                if (subfolders.size() - 1 < i) {
+                    break;
+                }
+                selectedSubfolders.add(subfolders.get(i));
+            }
+            result = setResult(result, selectedSubfolders, userRoot, parentPath);
+            total = subfolders.size();
+            endRow = startRow + total - 1;
+        }
+        return new SmartGwtResponse<ImportFolder>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, result);
+    }
+
+    private List<ImportFolder> setResult(List<ImportFolder> result, List<Folder> subfolders, URI userRoot, String parentPath) {
         for (Folder subfolder : subfolders) {
             String subfolderName = subfolder.getHandle().getName();
             String subfolderStatus = subfolder.getStatus().name();
             String subfolderPath = userRoot.relativize(subfolder.getHandle().toURI()).getPath();
             result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath));
         }
-
-        return new SmartGwtResponse<ImportFolder>(result);
+        return result;
     }
 
     @POST
@@ -215,9 +240,27 @@ public class ImportResource {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_DESCRIPTION) String filePattern,
             @QueryParam("_startRow") int startRow,
             @QueryParam("_sortBy") String sortBy
-            ) {
+            ) throws IOException {
 
+        RemoteStorage remote = RemoteStorage.getInstance(appConfig);
         int pageSize = 100;
+
+        if (!remote.getObjects().containsKey("batch-" + batchState.toString())) {
+            BatchViewFilter filterAll = new BatchViewFilter()
+                    .setBatchId(batchId)
+                    .setUserId(user.getId() == 1 ? null : user.getId())
+                    .setState(batchState)
+                    .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
+                    .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
+                    .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
+                    .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
+                    .setFilePattern(filePattern)
+                    .setOffset(startRow).setMaxCount(100000)
+                    .setSortBy(sortBy);
+            List<BatchView> batches = importManager.viewBatch(filterAll);
+            remote.getObjects().put("batch-"+batchState.toString(), batches.size());
+        }
+
         BatchViewFilter filter = new BatchViewFilter()
                 .setBatchId(batchId)
                 // admin may see all users; XXX use permissions for this!
@@ -233,8 +276,8 @@ public class ImportResource {
                 ;
         List<BatchView> batches = importManager.viewBatch(filter);
         int batchSize = batches.size();
-        int endRow = startRow + batchSize;
-        int total = (batchSize != pageSize) ? endRow: endRow + 1;
+        int endRow = startRow + batchSize - 1;
+        int total = remote.getObjects().get("batch-" + batchState.toString());
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
     }
 
