@@ -200,7 +200,7 @@ public class NdkNewPageForm {
     }
 
     public static Field pageType() {
-        return new FieldBuilder("type").setTitle("Typ strany - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+        return new FieldBuilder("pageType").setTitle("Typ strany - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
                 .setDefaultValue("normalPage").setWidth("400")
                 .setHint("Vybrat jednu z hodnot.")
                 .addMapValue("bibliography", "Bibliografie (Bibliography)")

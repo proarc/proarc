@@ -84,11 +84,15 @@ public final class UserResource {
         }
         List<UserProfile> findAll = userManager.findAll();
         List<UserProfile> selectedUsers = new ArrayList<>();
-        for (int i = startRow; i < startRow + 100; i++) {
-            if (findAll.size() - 1 < i) {
-                break;
+        if (startRow < 0) {
+            selectedUsers.addAll(findAll);
+        } else {
+            for (int i = startRow; i < startRow + 100; i++) {
+                if (findAll.size() - 1 < i) {
+                    break;
+                }
+                selectedUsers.add(findAll.get(i));
             }
-            selectedUsers.add(findAll.get(i));
         }
         int endRow = startRow + selectedUsers.size() - 1;
         int total = findAll.size();

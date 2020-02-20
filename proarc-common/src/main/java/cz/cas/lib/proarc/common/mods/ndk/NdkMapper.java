@@ -419,7 +419,7 @@ public abstract class NdkMapper {
 
     public static class PageModsWrapper extends ModsWrapper {
 
-        private String type;
+        private String pageType;
         private String pageIndex;
         private String pageNumber;
 
@@ -439,12 +439,12 @@ public abstract class NdkMapper {
             this.pageIndex = pageIndex;
         }
 
-        public String getType() {
-            return type;
+        public String getPageType() {
+            return pageType;
         }
 
-        public void setType(String type) {
-            this.type = type;
+        public void setPageType(String pageType) {
+            this.pageType = pageType;
         }
     }
 }
