@@ -59,6 +59,7 @@ public final class ImportResourceApi {
     public static final String IMPORT_BATCH_FAILURE = "failure";
     public static final String IMPORT_BATCH_ITEMS = "items";
     public static final String IMPORT_BATCH_PROFILE = "profile";
+    public static final String IMPORT_START_ROW_PARAM = "_startRow";
 
     // resource /import/batch/item
     public static final String BATCHITEM_PATH = "item";

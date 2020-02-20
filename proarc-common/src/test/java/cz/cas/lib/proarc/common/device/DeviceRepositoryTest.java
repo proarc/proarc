@@ -140,7 +140,7 @@ public class DeviceRepositoryTest {
         assertEquals("ScannerManufacturer", resultDescription.getImageCaptureMetadata().getScannerCapture().getScannerManufacturer().getValue());
 
         // test storage content
-        List<Device> found = repository.find(update.getId(), true);
+        List<Device> found = repository.find(update.getId(), true, 0);
         assertDeviceEquals(update, found);
         resultDescription = found.get(0).getDescription();
         assertEquals(device.getId(), "ScannerManufacturer", resultDescription.getImageCaptureMetadata().getScannerCapture().getScannerManufacturer().getValue());

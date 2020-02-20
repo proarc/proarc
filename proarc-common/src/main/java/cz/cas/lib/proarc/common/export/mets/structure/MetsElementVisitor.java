@@ -768,7 +768,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         String deviceId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
         List<Device> deviceList;
         try {
-            deviceList = deviceRepository.find(deviceId, true);
+            deviceList = deviceRepository.find(deviceId, true, 0);
         } catch (DeviceException e) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info", false, e);
         }

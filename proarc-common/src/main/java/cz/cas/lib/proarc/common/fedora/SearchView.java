@@ -56,6 +56,7 @@ public final class SearchView {
 
     private static final String QUERY_LAST_CREATED = readQuery("lastCreated.itql");
     private static final String QUERY_FIND_BY_MODEL = readQuery("findByModel.itql");
+    private static final String QUERY_FIND_BY_MODELS = readQuery("findByModels.itql");
     private static final String QUERY_FIND_MEMBERS = readQuery("findMembers.itql");
     private static final String QUERY_FIND_MEMBER_HIERARCHY = readQuery("findMemberHierarchy.itql");
     private static final String QUERY_FIND_PIDS = readQuery("findPids.itql");
@@ -69,7 +70,7 @@ public final class SearchView {
     private ObjectMapper mapper;
 
     SearchView(RemoteStorage storage) {
-        this(storage, 100);
+        this(storage, Integer.MAX_VALUE);
     }
 
     SearchView(RemoteStorage storage, int maxLimit) {
@@ -342,7 +343,7 @@ public final class SearchView {
     }
 
     public List<Item> findLastCreated(int offset, String model, String user) throws FedoraClientException, IOException {
-        return findLastCreated(offset, model, user, 100);
+        return findLastCreated(offset, model, user, Integer.MAX_VALUE);
     }
     
     public List<Item> findLastCreated(int offset, String model, String user, int limit) throws FedoraClientException, IOException {
@@ -383,6 +384,24 @@ public final class SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
+    public List<Item> findByModel(String modelId) throws  IOException, FedoraClientException {
+        return findByModel(0, modelId);
+    }
+
+    public List<Item> findByModel(int offset, String modelId) throws IOException, FedoraClientException {
+        return findByModel(offset, modelId, "$created desc");
+    }
+
+    public List<Item> findByModel(int offset, String modelId, String orderBy) throws IOException, FedoraClientException {
+        String query = QUERY_FIND_BY_MODEL;
+        query = query.replace("${metaModelPid}", modelId);
+        query = query.replace("${OFFSET}", String.valueOf(offset));
+        query = query.replace("${ORDERBY}", orderBy);
+        RiSearch search = buildSearch(query);
+        search.limit(1000);
+        return consumeSearch(search.execute(fedora));
+    }
+
     /**
      * Find objects that have the given model.
      * @param modelId model PID to query
@@ -390,8 +409,20 @@ public final class SearchView {
      * @throws IOException
      * @throws FedoraClientException
      */
-    public List<Item> findByModel(String modelId) throws IOException, FedoraClientException {
-        String query = QUERY_FIND_BY_MODEL.replace("${metaModelPid}", modelId);
+    public List<Item> findByModels(String modelId1, String modelId2) throws  IOException, FedoraClientException {
+        return findByModel(0, modelId1, modelId2);
+    }
+
+    public List<Item> findByModels(int offset, String modelId1, String modelId2) throws IOException, FedoraClientException {
+        return findByModels(offset, modelId1, modelId2, "$created desc");
+    }
+
+    public List<Item> findByModels(int offset, String modelId1, String modelId2, String orderBy) throws IOException, FedoraClientException {
+        String query = QUERY_FIND_BY_MODELS;
+        query = query.replace("${metaModelPid1}", modelId1);
+        query = query.replace("${metaModelPid2}", modelId2);
+        query = query.replace("${OFFSET}", String.valueOf(offset));
+        query = query.replace("${ORDERBY}", orderBy);
         RiSearch search = buildSearch(query);
         search.limit(1000);
         return consumeSearch(search.execute(fedora));
