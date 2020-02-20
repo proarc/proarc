@@ -167,7 +167,7 @@ public class NdkNewPageMapper extends NdkMapper {
         if (pageType == null) {
             pageType = PAGE_TYPE_NORMAL;
         }
-        wrapper.setType(pageType);
+        wrapper.setPageType(pageType);
 
         String pageIndex;
         if (mods.getPart().size() > 1) {
@@ -232,7 +232,7 @@ public class NdkNewPageMapper extends NdkMapper {
 
         String number = getValue(wrapper.getPageNumber(), page.getNumber());
         String index = getValue(wrapper.getPageIndex(), page.getIndex());
-        String type = getValueRevers(wrapper.getType(), page.getType());
+        String type = getValueRevers(wrapper.getPageType(), page.getType());
 
         if (type != null) {
             if (mods.getPart().isEmpty()) {
