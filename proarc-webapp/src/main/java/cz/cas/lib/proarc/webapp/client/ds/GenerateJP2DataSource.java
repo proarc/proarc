@@ -23,25 +23,27 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
  *
  * @author Lukas Sykora
  */
-public class CopyObjectDataSource extends ProarcDataSource {
-    
-    public static final String FIELD_PIDOLD = DigitalObjectResourceApi.DIGITALOBJECT_PID;
+public class GenerateJP2DataSource extends ProarcDataSource {
+
+    public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
+   //public static final String FIELD_TYPE = DigitalObjectResourceApi.GENERATE_TYPE;
 
-    private static CopyObjectDataSource INSTANCE;
+    private static GenerateJP2DataSource INSTANCE;
 
-    public static CopyObjectDataSource getInstance() {
+    public static GenerateJP2DataSource getInstance(String type) {
         if (INSTANCE == null) {
-            INSTANCE = new CopyObjectDataSource();
+            INSTANCE = new GenerateJP2DataSource(type);
         }
         return INSTANCE;
     }
 
-    public CopyObjectDataSource() {
-        setDataURL(RestConfig.URL_DIGOBJECT_COPYOBJECT);
-        DataSourceTextField pidold = new DataSourceTextField(FIELD_PIDOLD);
+    public GenerateJP2DataSource(String type) {
+        setDataURL(RestConfig.URL_GENERATE_JP2);
+        DataSourceTextField pid = new DataSourceTextField(FIELD_PID);
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
-        setFields(pidold, model);
+        DataSourceTextField typeField = new DataSourceTextField(type);
+        setFields(pid, typeField, model);
         setOperationBindings(RestConfig.createAddOperation());
     }
 }
