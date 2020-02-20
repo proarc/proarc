@@ -1517,6 +1517,7 @@ public class DigitalObjectResource {
             this.message = me.getMessage();
             this.type = me.getStatus().name();
             this.warning = warning;
+            this.urnnbn = me.getUrnNbn();
             if (elm != null) {
                 this.modelId = elm.getModel();
                 this.label = elm.getLabel();
