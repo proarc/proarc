@@ -47,6 +47,8 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangePageToNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
@@ -104,6 +106,8 @@ public final class DigitalObjectManager {
     private UrnNbnAction registerUrnNbnAction;
     private CopyObjectAction copyObjectAction;
     private GenerateMasterCopyAction generateMasterCopyAction;
+    private ChangePageToNdkPageAction changePageToNdkPageAction;
+    private ChangeNdkPageToPageAction changeNdkPageToPageAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -254,6 +258,8 @@ public final class DigitalObjectManager {
         registerUrnNbnAction = new UrnNbnAction(i18n);
         copyObjectAction = new CopyObjectAction(i18n);
         generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
+        changePageToNdkPageAction = new ChangePageToNdkPageAction(i18n);
+        changeNdkPageToPageAction = new ChangeNdkPageToPageAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -315,8 +321,13 @@ public final class DigitalObjectManager {
 
         IconMenuButton btnAdministration = Actions.asIconMenuButton(administrationMenuAction, actionSource);
         Menu menuAdministration = Actions.createMenu();
-        menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        menuAdministration.addItem(new MenuItemSeparator());
+        menuAdministration.addItem(Actions.asMenuItem(changePageToNdkPageAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToPageAction, actionSource, false));
         btnAdministration.setMenu(menuAdministration);
+
+
 
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n),
                 new RefreshableView((Refreshable) actionSource.getSource())));

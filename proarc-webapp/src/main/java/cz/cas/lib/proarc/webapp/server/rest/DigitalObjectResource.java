@@ -18,6 +18,8 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.actions.ChangeModels;
+import cz.cas.lib.proarc.common.actions.RepairMetadata;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -48,7 +50,7 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 
-import cz.cas.lib.proarc.common.object.CopyObject;
+import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -57,9 +59,10 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.ReindexDigitalObjects;
+import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration.ResolverConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnService;
@@ -117,7 +120,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -1487,6 +1489,48 @@ public class DigitalObjectResource {
 
         return new SmartGwtResponse<>();
     }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changePageToNdkPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_NDK_PAGE, pids);
+        repairMetadata.repair();
+        return new SmartGwtResponse<>();
+    }
+
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkPageToPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_PAGE, pids);
+        repairMetadata.repair();
+        return new SmartGwtResponse<>();
+    }
+
 
     @PUT
     @Path(DigitalObjectResourceApi.REINDEX_PATH)
