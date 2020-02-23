@@ -55,6 +55,7 @@ public final class SearchView {
     private static final Logger LOG = Logger.getLogger(SearchView.class.getName());
 
     private static final String QUERY_LAST_CREATED = readQuery("lastCreated.itql");
+    private static final String QUERY_COUNT_MODELS = readQuery("countModels.itql");
     private static final String QUERY_FIND_BY_MODEL = readQuery("findByModel.itql");
     private static final String QUERY_FIND_BY_MODELS = readQuery("findByModels.itql");
     private static final String QUERY_FIND_MEMBERS = readQuery("findMembers.itql");
@@ -375,6 +376,25 @@ public final class SearchView {
             limit = Math.min(limit, maxLimit);
             search.limit(limit);
         }
+        return consumeSearch(search.execute(fedora));
+    }
+
+    public List<Item> countModels(String model, String user) throws FedoraClientException, IOException {
+        String modelFilter = "";
+        String ownerFilter = "";
+        if (model != null && !model.isEmpty()) {
+            modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
+        }
+        if (user != null) {
+            ownerFilter = String.format("and        $pid     <http://proarc.lib.cas.cz/relations#hasOwner>        $group\n"
+                    + "and        <info:fedora/%s>     <info:fedora/fedora-system:def/relations-external#isMemberOf>        $group", user);
+        }
+        String query = QUERY_COUNT_MODELS;
+        query = query.replace("${MODEL_FILTER}", modelFilter);
+        query = query.replace("${OWNER_FILTER}", ownerFilter);
+        LOG.fine(query);
+        RiSearch search = buildSearch(query);
+
         return consumeSearch(search.execute(fedora));
     }
 
