@@ -244,9 +244,7 @@ public class ImportResource {
 
         RemoteStorage remote = RemoteStorage.getInstance(appConfig);
         int pageSize = 100;
-
-        if (!remote.getObjects().containsKey("batch-" + batchState.toString())) {
-            BatchViewFilter filterAll = new BatchViewFilter()
+        BatchViewFilter filterAll = new BatchViewFilter()
                     .setBatchId(batchId)
                     .setUserId(user.getId() == 1 ? null : user.getId())
                     .setState(batchState)
@@ -257,9 +255,8 @@ public class ImportResource {
                     .setFilePattern(filePattern)
                     .setOffset(startRow).setMaxCount(100000)
                     .setSortBy(sortBy);
-            List<BatchView> batches = importManager.viewBatch(filterAll);
-            remote.getObjects().put("batch-"+batchState.toString(), batches.size());
-        }
+        List<BatchView> allBatches = importManager.viewBatch(filterAll);
+
 
         BatchViewFilter filter = new BatchViewFilter()
                 .setBatchId(batchId)
@@ -277,7 +274,7 @@ public class ImportResource {
         List<BatchView> batches = importManager.viewBatch(filter);
         int batchSize = batches.size();
         int endRow = startRow + batchSize - 1;
-        int total = remote.getObjects().get("batch-" + batchState.toString());
+        int total = allBatches.size();
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
     }
 

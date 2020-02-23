@@ -71,7 +71,6 @@ public final class RemoteStorage {
     private static final Logger LOG = Logger.getLogger(RemoteStorage.class.getName());
     private static final Pattern RE_OBJECT_EXISTS = Pattern.compile("WebApplicationException.*status: 500, message:.*already exists");
     private static RemoteStorage INSTANCE;
-    private static HashMap<String, Integer> objects;
 
     private final FedoraClient client;
     private DescribeRepositoryResponse fedoraDescription;
@@ -123,16 +122,6 @@ public final class RemoteStorage {
         return sv;
     }
 
-    public HashMap<String, Integer> getObjects() {
-        if (objects == null) {
-            objects = new HashMap<>();
-        }
-        return objects;
-    }
-
-    public void setObjects(HashMap<String, Integer> objects) {
-        RemoteStorage.objects = objects;
-    }
 
     public SearchView getSearch() {
         return getSearch(null);

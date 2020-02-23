@@ -317,10 +317,7 @@ public class DigitalObjectResource {
         int page = 20;
         switch (type) {
             case LAST_MODIFIED:
-                if (!remote.getObjects().containsKey(queryModel)) {
-                    remote.getObjects().put(queryModel, search.findLastModified(0, queryModel, filterOwnObjects(user), Integer.MAX_VALUE).size());
-                }
-                total = remote.getObjects().get(queryModel);
+                total = search.countModels(queryModel, filterOwnObjects(user)).size();
                 items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100);
                 break;
             case QUERY:
@@ -351,10 +348,7 @@ public class DigitalObjectResource {
                 page = 1;
                 break;
             default:
-                if (!remote.getObjects().containsKey(queryModel)) {
-                    remote.getObjects().put(queryModel, search.findLastCreated(0, queryModel, filterOwnObjects(user), Integer.MAX_VALUE).size());
-                }
-                total = remote.getObjects().get(queryModel);
+                total = search.countModels(queryModel, filterOwnObjects(user)).size();
                 items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), 100);
         }
         int count = items.size();
