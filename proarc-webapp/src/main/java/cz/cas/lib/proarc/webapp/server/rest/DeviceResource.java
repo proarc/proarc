@@ -132,10 +132,7 @@ public class DeviceResource {
         List<Device> result = new ArrayList<>();
 
         if (id == null) {
-            if (!remote.getObjects().containsKey("devices")) {
-                remote.getObjects().put("devices", devRepo.findAllDevices(0).size());
-            }
-            total = remote.getObjects().get("devices");
+            total = devRepo.findAllDevices(0).size();
             result = devRepo.findAllDevices(startRow);
         } else {
             result = devRepo.find(id, fetchDescription, startRow);
