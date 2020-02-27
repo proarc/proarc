@@ -1373,7 +1373,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 if (altoFile.exists()) {
                     List<Schema> altoSchemas;
                     try {
-                        altoSchemas = AltoDatastream.getSchemas();
+                        altoSchemas = AltoDatastream.getSchemasList();
                     } catch (SAXException e) {
                         throw new MetsExportException("Unable to get ALTO schema", false);
                     }

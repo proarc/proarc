@@ -253,7 +253,7 @@ public class ImportResource {
                     .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
                     .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                     .setFilePattern(filePattern)
-                    .setOffset(startRow).setMaxCount(100000)
+                    .setMaxCount(100000)
                     .setSortBy(sortBy);
         List<BatchView> allBatches = importManager.viewBatch(filterAll);
 
