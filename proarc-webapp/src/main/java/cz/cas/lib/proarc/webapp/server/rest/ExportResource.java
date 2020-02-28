@@ -545,7 +545,7 @@ public class ExportResource {
         if (target == null) {
             target = targetFolder;
         }
-        List<NdkExport.Result> ndkResults = exportNdk.export(target, pids, true, true, true, session.asFedoraLog());
+        List<NdkExport.Result> ndkResults = exportNdk.exportNdkArchive(targetFolder, pids, true, true, true, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
             if (r.getValidationError() != null) {
                 if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {

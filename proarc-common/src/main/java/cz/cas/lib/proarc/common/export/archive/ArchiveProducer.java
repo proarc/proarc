@@ -86,6 +86,7 @@ public class ArchiveProducer {
             result.setInputPid(dobj.getPid());
             reslog.getExports().add(result);
             try {
+                processor.getDevicePids().clear();
                 processor.process(path);
                 result.setStatus(ResultStatus.OK);
             } catch (MetsExportException ex) {
