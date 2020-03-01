@@ -24,23 +24,35 @@ import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -53,6 +65,16 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.SubjectTitleInfoDefinition;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import cz.cas.lib.proarc.urnnbn.model.registration.MonographVolume;
+import cz.cas.lib.proarc.urnnbn.model.registration.OriginatorTypeType;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
@@ -154,6 +176,7 @@ public class FileReader {
         LocalObject lObj = iSession.findLocalObject(importItem);
         DigitalObject dObj = null;
         boolean isNewObject = lObj == null;
+        String model = null;
 
         if (lObj == null) {
             File objFile = new File(targetFolder, getFoxmlFilename(index, pid));
@@ -182,8 +205,92 @@ public class FileReader {
             throw new DigitalObjectException("The object with pid: "+ pid + " was already imported!");
         }
         lObj.flush();
+        //modifyMetadataStreams(lObj.getPid(), model);
         importItem.setState(BatchItem.ObjectState.LOADED);
         iSession.getImportManager().update(importItem);
+    }
+
+    private void removePart(ModsDefinition mods, String model) {
+        if (!(NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model))) {
+            mods.getPart().clear();
+        }
+    }
+
+    private void setRdaRules(ModsDefinition mods, String model) {
+        if (!(NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model))) {
+            if (mods.getRecordInfo().isEmpty()) {
+                mods.getRecordInfo().add(new RecordInfoDefinition());
+            }
+            if (mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {
+                StringPlusLanguagePlusAuthority rdaRules = new StringPlusLanguagePlusAuthority();
+                rdaRules.setValue("aacr");
+                mods.getRecordInfo().get(0).getDescriptionStandard().add(rdaRules);
+            }
+        }
+    }
+
+    private void setOriginDate(ModsDefinition mods) {
+        String date = null;
+        if (!checkOriginDate(mods)) {
+            for (PartDefinition partDefinition : mods.getPart()) {
+                for (DateDefinition dateDefinition : partDefinition.getDate()) {
+                    date = dateDefinition.getValue();
+                    dateDefinition.setValue(null);
+                    break;
+                }
+                if (date != null) {
+                    break;
+                }
+            }
+
+            if (date != null) {
+                if (mods.getOriginInfo().isEmpty()) {
+                    mods.getOriginInfo().add(new OriginInfoDefinition());
+                }
+
+                DateDefinition dateDefinition = new DateDefinition();
+                dateDefinition.setValue(date);
+                mods.getOriginInfo().get(0).getDateIssued().add(dateDefinition);
+            }
+        }
+    }
+
+    private boolean checkOriginDate(ModsDefinition mods) {
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            if (!originInfo.getDateIssued().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void setDefualtTitle(ModsDefinition mods) {
+        String DEFAULT_NAME = "Nový model (imporován " + getTimestamp() +").";
+        boolean emptyTitle = true;
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            if (!titleInfo.getTitle().isEmpty()) {
+                emptyTitle = false;
+                break;
+            }
+        }
+        if (emptyTitle) {
+            StringPlusLanguage title = new StringPlusLanguage();
+            title.setValue(DEFAULT_NAME);
+
+            if (mods.getTitleInfo().isEmpty()) {
+                TitleInfoDefinition titleInfo = new TitleInfoDefinition();
+                mods.getTitleInfo().add(titleInfo);
+            }
+
+            //mods.getTitleInfo().get(0).getTitle().add(title);
+            mods.getTitleInfo().get(0).getPartNumber().add(title);
+        }
+    }
+
+    private String getTimestamp() {
+        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
+        Date date = new Date(System.currentTimeMillis());
+        return formatter.format(date);
     }
 
     private void setDateAndUser(DigitalObject dObj) {
@@ -306,9 +413,14 @@ public class FileReader {
         return ndkUser;
     }
 
-    private LocalObject updateLocalObject(LocalObject localObject, ImportOptions ctx) throws DigitalObjectException {
+    private void updateLocalObject(LocalObject localObject, ImportOptions ctx) throws DigitalObjectException {
+        String modelId = null;
+        RelationEditor relationEditor = new RelationEditor(localObject);
+        ModsStreamEditor modsStreamEditor = new ModsStreamEditor(localObject);
+        DigitalObjectHandler handler = new DigitalObjectHandler(localObject, MetaModelRepository.getInstance());
+
         try {
-            RelationEditor relationEditor = new RelationEditor(localObject);
+            ModsDefinition mods = modsStreamEditor.read();
 
             // set device
             if (isPage(relationEditor)) {
@@ -316,7 +428,7 @@ public class FileReader {
             }
 
             //repair mapping
-            repairModelMapping(relationEditor);
+            modelId = repairModelMapping(relationEditor, mods);
 
             //set members
             List<String> members = getMembers(relationEditor);
@@ -329,15 +441,39 @@ public class FileReader {
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Element RELS-EXT can not be override." + localObject.getPid());
         }
+
         try {
-            ModsStreamEditor modsStreamEditor = new ModsStreamEditor(localObject);
-            ModsDefinition mods = modsStreamEditor.read();
+            NdkMapperFactory mapperFactory = new NdkMapperFactory();
+            NdkMapper mapper = mapperFactory.get(modelId);
+            mapper.setModelId(modelId);
+            NdkMapper.Context context = new NdkMapper.Context(handler);
+
+            //repair Mods
+            ModsStreamEditor modsStream = new ModsStreamEditor(localObject);
+            ModsDefinition mods = modsStream.read();
             repairModsIdentifier(mods.getIdentifier());
-            modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
+            setDefualtTitle(mods);
+            setOriginDate(mods);
+            setRdaRules(mods, modelId);
+            removePart(mods, modelId);
+            mapper.createMods(mods, context);
+            modsStream.write(mods, modsStream.getLastModified(), null);
+
+            //repair Dc
+            //repair DcDatastream
+            OaiDcType dc = mapper.toDc(mods, context);
+            DcStreamEditor dcEditor = handler.objectMetadata();
+            DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+            dcr.setDc(dc);
+            dcEditor.write(handler, dcr, null);
+
+            //repair Label
+            String label = mapper.toLabel(mods);
+            localObject.setLabel(label);
+            localObject.flush();
         } catch (Exception ex){
             LOG.log(Level.SEVERE, "Stream Mods can not be override. " + localObject.getPid());
         }
-        return localObject;
     }
 
     private void repairModsIdentifier(List<IdentifierDefinition> identifiers) {
@@ -367,7 +503,7 @@ public class FileReader {
         return members;
     }
 
-    private void repairModelMapping(RelationEditor relationEditor) throws DigitalObjectException {
+    private String repairModelMapping(RelationEditor relationEditor, ModsDefinition mods) throws DigitalObjectException {
         String oldModelId = relationEditor.getModel();
         if (oldModelId != null && !NdkPlugin.MODEL_PAGE.equals(oldModelId)) {
             String newModelId = "";
@@ -389,8 +525,22 @@ public class FileReader {
             if (newModelId == null) {
                 newModelId = oldModelId;
             }
+            if (NdkPlugin.MODEL_PERIODICALISSUE.equals(newModelId)) {
+                newModelId = checkModelInMods(newModelId, mods);
+            }
             relationEditor.setModel(newModelId);
+            return newModelId;
         }
+        return oldModelId;
+    }
+
+    private String checkModelInMods(String newModelId, ModsDefinition mods) {
+        for (PartDefinition part : mods.getPart()) {
+            if ("PeriodicalSupplement".equals(part.getType())) {
+                return NdkPlugin.MODEL_PERIODICALSUPPLEMENT;
+            }
+        }
+        return newModelId;
     }
 
     private static String getFoxmlFilename(int index, String pid) {
