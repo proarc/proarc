@@ -35,6 +35,7 @@ public class CollectionOfClippingsMapperFactory extends NdkMapperFactory{
     private static final Map<String, Supplier<NdkMapper>> mappers = new HashMap<>();
 
     static {
+        mappers.put(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, CollectionOfClippingsTitleMapper::new);
         mappers.put(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, CollectionOfClippingsVolumeMapper::new);
         mappers.put(CollectionOfClippingsPlugin.MODEL_PAGE, NdkPageMapper::new);
         mappers.put(ModsCutomEditorType.EDITOR_PAGE, NdkPageMapper::new);

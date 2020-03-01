@@ -70,6 +70,11 @@ public class ArchiveObjectProcessor {
     private final LocalStorage ls = new LocalStorage();
     private PackageBuilder builder;
     private final File targetFolder;
+
+    public HashSet<String> getDevicePids() {
+        return devicePids;
+    }
+
     private final HashSet<String> devicePids = new HashSet<String>();
     private AppConfiguration appConfig;
 
@@ -134,7 +139,11 @@ public class ArchiveObjectProcessor {
             String dsId = dt.getID();
             if (ModsStreamEditor.DATASTREAM_ID.equals(dsId)) {
                 // XXX might not be mods! It should rather go to fileGrp.
-                checkUrnNbn(cache);
+
+                if (!(parentElm != null &&  NdkPlugin.MODEL_PERIODICALISSUE.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))) {
+                    checkUrnNbn(cache);
+                }
+
                 builder.addStreamAsMdSec(siblingIdx, dt, cache.getPid(), elm.getModelId(), MdType.MODS);
             } else if (DcStreamEditor.DATASTREAM_ID.equals(dsId)) {
                 Element dcElm = dt.getDatastreamVersion().get(0).getXmlContent().getAny().get(0);

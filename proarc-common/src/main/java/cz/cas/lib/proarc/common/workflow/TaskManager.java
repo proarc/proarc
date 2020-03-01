@@ -276,7 +276,7 @@ public class TaskManager {
                 jobTask.setState(newState);
                 continue;
             }
-            if (jobTask.getState() == State.WAITING) {
+            if (jobTask.getState() == State.WAITING)  {
                 boolean blocked = isBlocked(getStepDefinition(job, jobTask.getTypeRef()), sortedTasks);
                 if (!blocked) {
                     jobTask.setState(State.READY);

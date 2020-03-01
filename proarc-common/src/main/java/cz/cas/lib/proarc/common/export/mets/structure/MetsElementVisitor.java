@@ -66,6 +66,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -242,7 +243,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (partNode == null){
                 throw new MetsExportException("Error - missing title. Please insert title.");
             }
-            return partNode.getTextContent() + " ";
+            return partNode.getTextContent() + ", ";
         }
         return "";
     }
@@ -252,7 +253,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     public boolean isIssue(IMetsElement metsElement) throws MetsExportException {
         String type = MetsUtils.xPathEvaluateString(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='part']/@type");
-        return type.equals("issue");
+        if (!type.isEmpty()) {
+            return type.equals("issue");
+        }
+        return metsElement.getModel().contains("issue");
     }
 
 
@@ -472,6 +476,30 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
                 if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageIndex")) {
                     pageDiv.setORDER(new BigInteger(numberNode.getNodeValue()));
+                }
+            }
+        }
+        if (pageDiv.getORDER() == null || pageDiv.getORDERLABEL() == null || pageDiv.getTYPE() == null) {
+            ModsDefinition mods = getMods(metsElement);
+            for (PartDefinition part : mods.getPart()) {
+                if (pageDiv.getTYPE() == null) {
+                    pageDiv.setTYPE(part.getType());
+                }
+                for (DetailDefinition detail : part.getDetail()) {
+                    if (pageDiv.getORDERLABEL() == null) {
+                        if ("page number".equals(detail.getType()) || "pageNumber".equals(detail.getType())) {
+                            if (!detail.getNumber().isEmpty()) {
+                                pageDiv.setORDERLABEL(detail.getNumber().get(0).getValue());
+                            }
+                        }
+                    }
+                    if (pageDiv.getORDER() == null) {
+                        if ("pageIndex".equals(detail.getType())) {
+                            if (!detail.getNumber().isEmpty()) {
+                                pageDiv.setORDER(new BigInteger(detail.getNumber().get(0).getValue()));
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -740,7 +768,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         String deviceId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
         List<Device> deviceList;
         try {
-            deviceList = deviceRepository.find(deviceId, true);
+            deviceList = deviceRepository.find(deviceId, true, 0);
         } catch (DeviceException e) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info", false, e);
         }
@@ -1345,7 +1373,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 if (altoFile.exists()) {
                     List<Schema> altoSchemas;
                     try {
-                        altoSchemas = AltoDatastream.getSchemas();
+                        altoSchemas = AltoDatastream.getSchemasList();
                     } catch (SAXException e) {
                         throw new MetsExportException("Unable to get ALTO schema", false);
                     }
@@ -1639,9 +1667,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
     private int getPageIndex(ModsDefinition mods) {
         if (mods.getPart().size() > 0) {
-            for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
-                if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
-                    return Integer.valueOf(detail.getNumber().get(0).getValue());
+            for (PartDefinition part : mods.getPart()) {
+                for (DetailDefinition detail : part.getDetail()) {
+                    if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                        return Integer.valueOf(detail.getNumber().get(0).getValue());
+                    }
                 }
             }
         }
@@ -1652,6 +1682,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if (mods.getPart().size() > 0) {
             for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
                 if ("pageNumber".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                    return !detail.getNumber().get(0).getValue().isEmpty();
+                }
+                if ("page number".equals(detail.getType()) && detail.getNumber().size() > 0) {
                     return !detail.getNumber().get(0).getValue().isEmpty();
                 }
             }

@@ -44,6 +44,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
+import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
@@ -549,7 +550,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException {
         String modelId = handler.relations().getModel();
-        if (modelId.equals(NdkPlugin.MODEL_PAGE) || modelId.equals(NdkPlugin.MODEL_NDK_PAGE)) {
+        if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
             ModsDefinition mods = editor.read();
             NdkPageMapper mapper = new NdkPageMapper();
             Page page = mapper.toJsonObject(mods, new Context(handler));
@@ -557,6 +558,15 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             item.setPageIndex(page.getIndex());
             item.setPageNumber(page.getNumber());
             item.setPageType(page.getType());
+            item.setPageTypeLabel(NdkPageMapper.getPageTypeLabel(item.getPageType(), locale));
+            return item;
+        } else if (NdkPlugin.MODEL_NDK_PAGE.equals(modelId)) {
+            ModsDefinition mods = editor.read();
+            NdkNewPageMapper mapper = new NdkNewPageMapper();
+            PageViewItem item = new PageViewItem();
+            item.setPageIndex(mapper.getIndex(mods));
+            item.setPageNumber(mapper.getNumber(mods));
+            item.setPageType(mapper.getType(mods));
             item.setPageTypeLabel(NdkPageMapper.getPageTypeLabel(item.getPageType(), locale));
             return item;
         } else {
@@ -567,10 +577,18 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     @Override
     public void setPage(PageViewItem page, String message) throws DigitalObjectException {
         String modelId = handler.relations().getModel();
-        if (modelId.equals(NdkPlugin.MODEL_PAGE) || modelId.equals(NdkPlugin.MODEL_NDK_PAGE)) {
+        if (modelId.equals(NdkPlugin.MODEL_PAGE)) {
             DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
             metadata.setTimestamp(editor.getLastModified());
             NdkPageMapper mapper = new NdkPageMapper();
+            ModsDefinition mods = mapper.createPage(
+                    page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
+            metadata.setIgnoreValidation(true);
+            write(modelId, mods, metadata, message, "update");
+        } else if (NdkPlugin.MODEL_NDK_PAGE.equals(modelId)) {
+            DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
+            metadata.setTimestamp(editor.getLastModified());
+            NdkNewPageMapper mapper = new NdkNewPageMapper();
             ModsDefinition mods = mapper.createPage(
                     page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
             metadata.setIgnoreValidation(true);

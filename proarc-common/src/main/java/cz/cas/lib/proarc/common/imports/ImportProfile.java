@@ -145,7 +145,7 @@ public final class ImportProfile {
     }
 
     public String getAltoFileVersion() {
-        String version = config.getString(ALTO_VERSION, "2.1");
+        String version = config.getString(ALTO_VERSION, null);
         return version.toLowerCase();
     }
 

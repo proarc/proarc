@@ -93,7 +93,7 @@ class PhysicalMaterialBuilder {
             Document modsDom = db.parse(new InputSource(new StringReader(modsXml)));
             Element modsElm = (Element) xpath.evaluate(
                     "m:mods | m:modsCollection/m:mods", modsDom, XPathConstants.NODE);
-            String barcode = xpath.evaluate("m:identifier[@type='barcode' and not(@invalid)]", modsElm);
+            String barcode = xpath.evaluate("m:identifier[@type='barcode']", modsElm);
             String sigla = xpath.evaluate("m:location/m:physicalLocation", modsElm);
             String signature = xpath.evaluate("m:location/m:shelfLocator", modsElm);
             String field001 = xpath.evaluate("m:recordInfo/m:recordIdentifier", modsElm);

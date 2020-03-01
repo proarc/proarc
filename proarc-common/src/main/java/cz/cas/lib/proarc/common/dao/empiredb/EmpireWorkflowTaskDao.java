@@ -65,6 +65,7 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         }
         r.setBeanValues(task);
         try {
+            r.setModified(tableTask.state, true);
             r.update(c);
         } catch (RecordUpdateInvalidException ex) {
             throw new ConcurrentModificationException(ex);
