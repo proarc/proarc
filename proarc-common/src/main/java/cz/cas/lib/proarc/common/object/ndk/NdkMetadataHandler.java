@@ -660,7 +660,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 String doi = idDef.getValue();
                 if (doi != null && !doi.isEmpty()) {
                     try {
-                        List<Item> results = search.findQuery(new Query().setIdentifier(doi));
+                        List<Item> results = search.findQuery(new Query().setIdentifier(doi), "active");
                         if (!results.isEmpty()) {
                             if (results.size() == 1 && results.get(0).getPid().equals(fobject.getPid())) {
                                 // ignore the self-reference

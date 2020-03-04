@@ -88,14 +88,14 @@ public final class SearchView {
     }
 
     /**
-     * @see #findQuery(cz.cas.lib.proarc.common.fedora.SearchView.Query)
+     * @see #findQuery(cz.cas.lib.proarc.common.fedora.SearchView.Query, String)
      */
     public List<Item> findQuery(String title, String label, String identifier, String owner, String model, Collection<String> hasOwners)
             throws FedoraClientException, IOException {
 
         return findQuery(new Query().setTitle(title).setLabel(label)
                 .setIdentifier(identifier).setOwner(owner).setModel(model)
-                .setHasOwners(hasOwners));
+                .setHasOwners(hasOwners), "active");
     }
 
     /**
@@ -106,9 +106,10 @@ public final class SearchView {
      * @return limited list of objects.
      * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Basic+Search'>Fedora Basic Search</a>
      */
-    public List<Item> findQuery(Query q)
+    public List<Item> findQuery(Query q, String status)
             throws FedoraClientException, IOException {
 
+        boolean active =  "active".equals(status) ? true : false;
         final int objectsLimit = 80;
         StringBuilder query = new StringBuilder();
         if (q.getModel() != null && !q.getModel().isEmpty()) {
@@ -123,6 +124,9 @@ public final class SearchView {
         buildQuery(query, "identifier", q.getIdentifier());
         buildQuery(query, "ownerId", q.getOwner());
         buildQuery(query, "creator", q.getCreator());
+        if (!active) {
+            buildQuery(query, "State", "D");
+        }
         final String queryString = query.toString().trim();
         LOG.fine(queryString);
         FindObjectsResponse response = FedoraClient.findObjects().query(queryString).resultFormat("xml")
@@ -136,7 +140,12 @@ public final class SearchView {
 
         List<Item> result = new ArrayList<Item>();
         while (!pids.isEmpty()) {
-            List<Item> items = find(pids.toArray(new String[pids.size()]));
+            List<Item> items = new ArrayList<>();
+            if (active) {
+                items = find(pids.toArray(new String[pids.size()]));
+            } else {
+                items = findDeleted(pids.toArray(new String[pids.size()]));
+            }
             result.addAll(items);
             String token = response.getToken();
             if (token == null || result.size() + objectsLimit > maxLimit) {
@@ -230,6 +239,10 @@ public final class SearchView {
         return find(Arrays.asList(pids), onlyActive);
     }
 
+    public List<Item> findDeleted(String... pids) throws IOException, FedoraClientException {
+        return find(Arrays.asList(pids), false);
+    }
+
     /**
      * Finds active descriptors of passed PIDs.
      *
@@ -300,7 +313,7 @@ public final class SearchView {
      * Finds children of the passed remote object. The result list is sorted
      * using RELS-EXT stream.
      * 
-     * @param parent PID of parent to query
+     * @param parentPid PID of parent to query
      * @return the sorted list
      * @throws FedoraClientException
      * @throws IOException
@@ -424,7 +437,8 @@ public final class SearchView {
 
     /**
      * Find objects that have the given model.
-     * @param modelId model PID to query
+     * @param modelId1 model PID to query
+     * @param modelId2 model PID to query
      * @return list of objects
      * @throws IOException
      * @throws FedoraClientException

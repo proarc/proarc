@@ -193,7 +193,8 @@ public final class DigitalObjectResourceApi {
         PARENT("parent"),
         PIDS("pids"),
         PHRASE("phrase"),
-        QUERY("query");
+        QUERY("query"),
+        DELETED("deleted");
         
         public static final String DEFAULT = "lastCreated";
         private String external;

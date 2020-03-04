@@ -322,7 +322,7 @@ public class DigitalObjectResource {
                 items = search.findQuery(new Query().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
                         .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
-                        .setHasOwners(filterGroups(user)));
+                        .setHasOwners(filterGroups(user)), "active");
                 total = items.size();
                 page = 1;
                 break;
@@ -342,6 +342,14 @@ public class DigitalObjectResource {
                 break;
             case PARENT:
                 items = searchParent(batchId, pids, search);
+                total = items.size();
+                page = 1;
+                break;
+            case DELETED:
+                items = search.findQuery(new Query().setTitle(queryTitle)
+                        .setLabel(queryLabel).setIdentifier(queryIdentifier)
+                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
+                        .setHasOwners(filterGroups(user)), "deleted");;
                 total = items.size();
                 page = 1;
                 break;
@@ -530,7 +538,6 @@ public class DigitalObjectResource {
 
     /**
      * Fetches object descriptions from the index. Useful to check whether object exists.
-     * @param searchIndex index
      * @param pids object IDs to search
      * @return the map of found PIDs and descriptions
      */
