@@ -134,7 +134,7 @@ public final class SearchView {
             LOG.fine("pids count: " + pids.size() + ", token: " + response.getToken() + ", pids: " + pids.toString());
         }
 
-        List<Item> result = new ArrayList<Item>(maxLimit);
+        List<Item> result = new ArrayList<Item>();
         while (!pids.isEmpty()) {
             List<Item> items = find(pids.toArray(new String[pids.size()]));
             result.addAll(items);
@@ -173,7 +173,7 @@ public final class SearchView {
         if (LOG.isLoggable(Level.FINE)) {
             LOG.fine("pids count: " + pids.size() + ", token: " + response.getToken() + ", pids: " + pids.toString());
         }
-        List<Item> result = new ArrayList<Item>(maxLimit);
+        List<Item> result = new ArrayList<Item>();
         while (!pids.isEmpty()) {
             List<Item> items = find(true, pids.toArray(new String[pids.size()]));
             result.addAll(items);
