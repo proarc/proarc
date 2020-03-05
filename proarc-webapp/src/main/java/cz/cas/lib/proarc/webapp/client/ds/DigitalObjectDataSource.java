@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction.Deletable;
+import cz.cas.lib.proarc.webapp.client.action.RestoreAction.Restorable;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
@@ -41,7 +42,6 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  *
@@ -92,6 +92,25 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
                 if (items != null && items.length > 0) {
                     String[] pids = ClientUtils.toFieldValues((Record[]) items, DigitalObjectDataSource.FIELD_PID);
                     DigitalObjectDataSource.getInstance().delete(pids,
+                            options != null ? options.toMap() : Collections.emptyMap());
+                }
+            }
+        };
+    }
+
+    public static Restorable<Record> createRestorable() {
+        return new Restorable<Record>() {
+
+            @Override
+            public void restore(Object[] items) {
+                restore(items, null);
+            }
+
+            @Override
+            public void restore(Object[] items, Record options) {
+                if (items != null && items.length > 0) {
+                    String[] pids = ClientUtils.toFieldValues((Record[]) items, DigitalObjectDataSource.FIELD_PID);
+                    DigitalObjectDataSource.getInstance().restore(pids,
                             options != null ? options.toMap() : Collections.emptyMap());
                 }
             }
@@ -187,6 +206,35 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
                     StatusView.getInstance().show(i18n.DeleteAction_Done_Msg());
+                    DigitalObjectDataSource.this.updateCaches(response, request);
+                    SearchDataSource.getInstance().updateCaches(response, request);
+                    RelationDataSource.getInstance().updateCaches(response, request);
+                }
+            }
+        }, dsRequest);
+    }
+
+    public void restore(String[] pids, Map<?,?> options) {
+        final ClientMessages i18n = GWT.create(ClientMessages.class);
+        HashMap<String, String> deleteParams = new HashMap<String, String>();
+        deleteParams.put(DigitalObjectResourceApi.DELETE_RESTORE_PARAM,
+                option(options.get(DigitalObjectResourceApi.DELETE_RESTORE_PARAM), Boolean.TRUE.toString()));
+        deleteParams.put(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM,
+                option(options.get(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM), Boolean.FALSE.toString()));
+        deleteParams.put(DigitalObjectResourceApi.DELETE_PURGE_PARAM,
+                option(options.get(DigitalObjectResourceApi.DELETE_PURGE_PARAM), Boolean.FALSE.toString()));
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setPromptStyle(PromptStyle.DIALOG);
+        dsRequest.setPrompt(i18n.RestoreDeletedObjectsAction_Msg());
+        dsRequest.setParams(deleteParams);
+        Record query = new Record();
+        query.setAttribute(FIELD_PID, pids);
+        DigitalObjectDataSource.getInstance().removeData(query, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    StatusView.getInstance().show(i18n.RestoreDeletedObjectsAction_Msg());
                     DigitalObjectDataSource.this.updateCaches(response, request);
                     SearchDataSource.getInstance().updateCaches(response, request);
                     RelationDataSource.getInstance().updateCaches(response, request);

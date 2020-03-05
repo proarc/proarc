@@ -308,6 +308,20 @@ public final class RemoteStorage {
             }
         }
 
+        public void restore(String logMessage) throws DigitalObjectException {
+            try {
+                FedoraClient.modifyObject(getPid()).state(StateType.A.value())
+                        .logMessage(qpEncode(logMessage))
+                        .execute(client);
+            } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                } else {
+                    throw new DigitalObjectException(getPid(), ex);
+                }
+            }
+        }
+
         public void purge(String logMessage) throws DigitalObjectException {
             try {
                 FedoraClient.purgeObject(getPid()).logMessage(qpEncode(logMessage)).execute(client);
