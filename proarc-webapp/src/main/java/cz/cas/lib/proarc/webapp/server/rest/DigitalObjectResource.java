@@ -270,7 +270,9 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
             @DefaultValue("true") boolean hierarchy,
             @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
-            @DefaultValue("false") boolean purge
+            @DefaultValue("false") boolean purge,
+            @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
+            @DefaultValue("false") boolean restore
             ) throws IOException, PurgeException {
 
         RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
@@ -279,6 +281,8 @@ public class DigitalObjectResource {
         if (purge) {
             session.requirePermission(Permissions.ADMIN);
             service.purge(pids, hierarchy, session.asFedoraLog());
+        } else if (restore){
+            service.restore(pids, session.asFedoraLog());
         } else {
             service.delete(pids, hierarchy, session.asFedoraLog());
         }
