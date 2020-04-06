@@ -19,19 +19,27 @@ public class SimpleChronicleVolumeForm {
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);
         List<Field> modsFields = mods.getFields();
-
-        modsFields.add(titleInfo());
-        modsFields.add(name());
-        modsFields.add(originInfo());
-        modsFields.add(genre());
-        modsFields.add(language());
-        modsFields.add(abstracts());
-        modsFields.add(note());
         modsFields.add(location());
+        modsFields.add(relatedItem(f.getItemWidth()));
+        //modsFields.add(identifier());
+        modsFields.add(titleInfo());
+        modsFields.add(genre());
+        modsFields.add(abstracts());
+        modsFields.add(language());
+        modsFields.add(originInfo());
+        modsFields.add(name());
+        modsFields.add(note());
         //modsFields.add(ChronicleForms.physicalDescription());
-        modsFields.add(ChronicleForms.part());
-        modsFields.add(identifier());
+        //modsFields.add(ChronicleForms.part());
+
         return f;
+    }
+
+
+    private Field relatedItem(String width) {
+        return new FieldBuilder("relatedItem").setTitle("Identifikátory").setMaxOccurrences(1)
+                .addField(identifier())
+                .createField();
     }
 
     private Field titleInfo() {
@@ -67,6 +75,7 @@ public class SimpleChronicleVolumeForm {
                         .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
                         .addField(new FieldBuilder("roleTerm").setMaxOccurrences(1)
                                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Role").setType(Field.SELECT)
+                                        .addMapValue("ann","Kronikář")
                                         .addMapValue("aut", "Autor")
                                         .addMapValue("dub", "Domnělý (pochybný) autor")
                                         .addMapValue("edt", "Editor")
@@ -82,15 +91,15 @@ public class SimpleChronicleVolumeForm {
                 .addField(new FieldBuilder("namePart").setTitle("Jméno osoby").setMaxOccurrences(5)
                         .addField(new FieldBuilder("type").setTitle("Typ").setMaxOccurrences(1).setType(Field.SELECT)
                                 .setHint("<dl>"
-                                        + "<dt>date</dt><dd>RA - datum</dd>"
+                                        + "<dt>date</dt><dd>RA - datum činnosti</dd>"
                                         + "<dt>family</dt><dd>MA -příjmení </dd>"
                                         + "<dt>given</dt><dd>MA - jméno/křestní jméno</dd>"
-                                        + "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
+                                        //+ "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
                                         + "</dl>")
-                                .addMapValue("date", "datum")
+                                .addMapValue("date", "datum činnosti")
                                 .addMapValue("family", "příjmení")
                                 .addMapValue("given", "křestní jméno")
-                                .addMapValue("termsOfAddress", "tituly a jiné označení")
+                                //.addMapValue("termsOfAddress", "tituly a jiné označení")
                                 .createField()) // @type
                         .addField(new FieldBuilder("value").setTitle("Hodnota").setMaxOccurrences(1)
                                 .setType(Field.TEXT)
@@ -115,6 +124,7 @@ public class SimpleChronicleVolumeForm {
                         .addMapValue("ukn", "Úřední kniha")
                         .addMapValue("rkp", "Rukopis")
                         .createField())
+                .addField(new FieldBuilder("lang").setTitle("Číslo").setMaxOccurrences(1).setType(Field.TEXT).setRequired(false).createField())
                 .addField(new FieldBuilder("type").setTitle("Typ obsahu - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
                         .addMapValue("skolniKronika","Školní kronika")
                         .addMapValue("obecniKronika","Obecní kronika")
@@ -135,7 +145,7 @@ public class SimpleChronicleVolumeForm {
                 .addField(new FieldBuilder("place").setTitle("Místo vzniku").setMaxOccurrences(10)
                         .setHint("Údaje o místě spojeném s vydáním, výrobou nebo původem popisovaného dokumentu.")
                         .addField(new FieldBuilder("placeTerm").setMaxOccurrences(1)
-                                .addField(new FieldBuilder("type").setTitle("Typ").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
+                               /* .addField(new FieldBuilder("type").setTitle("Typ").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
                                         .setHint("Typ popisu místa. Kódem nebo textově.")
                                         .addMapValue("code", "code")
                                         .addMapValue("text", "text").setHidden(true)
@@ -144,7 +154,7 @@ public class SimpleChronicleVolumeForm {
                                         .setHint("Hodnota “marccountry” jen u údaje z pole 008")
                                         .addMapValue("marccountry", "marccountry").setHidden(true)
                                         .createField()) // @authority
-                                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
+                                */.addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
                                         .setHint("Konkrétní určení místa a země vydání, např. Praha resp. xr pro ČR."
                                                 + "<p>Odpovídá hodnotám z katalogizačního záznamu, pole 260, podpole „a“ resp. pole 008/15-17.")
                                         .createField()) // value
@@ -152,7 +162,7 @@ public class SimpleChronicleVolumeForm {
                         .createField()) // place
                 .addField(new FieldBuilder("dateIssued").setTitle("Datum vzniku").setMaxOccurrences(10)
                         .setHint("Datum vydání kroniky.")
-                        .addField(new FieldBuilder("encoding").setTitle("Encoding - R").setMaxOccurrences(1).setType(Field.SELECT)
+                        /*.addField(new FieldBuilder("encoding").setTitle("Encoding - R").setMaxOccurrences(1).setType(Field.SELECT)
                                 .setHint("Kódování - hodnota „marc“ jen u údaje z pole 008.")
                                 .addMapValue("iso8601", "ISO 8601").setHidden(true)
                                 .createField()) // @encoding
@@ -161,6 +171,7 @@ public class SimpleChronicleVolumeForm {
                                 .addMapValue("start", "Od")
                                 .addMapValue("end", "Do")
                                 .createField()) // @point
+                         */
                         .addField(new FieldBuilder("qualifier").setTitle("Odhad").setMaxOccurrences(1).setType(Field.SELECT)
                                 .setHint("Možnost dalšího upřesnění, hodnota „přibližne“ pro data, kde nevíme přesný údaj.")
                                 .addMapValue("approximate", "přibližně")
@@ -173,7 +184,7 @@ public class SimpleChronicleVolumeForm {
     }
 
     private Field language() {
-        return new FieldBuilder("language").setMaxOccurrences(1).setTitle("Jazyk")
+        return new FieldBuilder("language").setMaxOccurrences(10).setTitle("Jazyk")
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
                 .addField(new FieldBuilder("languageTerm").setMaxOccurrences(1)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
@@ -201,6 +212,9 @@ public class SimpleChronicleVolumeForm {
 
     private Field note() {
         return new FieldBuilder("note").setTitle("Poznámka").setMaxOccurrences(30)
+                .addField(new FieldBuilder("type").setMaxOccurrences(1).setType(Field.COMBO).setDefaultValue("public")
+                    .addMapValue("public", "veřejná")
+                    .addMapValue("private", "nepublikovatelná").createField())
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
                         .setHint("Obecná poznámka k titulu jako celku.").createField()) // value
                 .createField(); // note
@@ -212,14 +226,14 @@ public class SimpleChronicleVolumeForm {
                         + " mezinárodní nebo lokální."
                         + "<p>Uvádějí se i neplatné resp. zrušené identifikátory - atribut invalid=“yes“.")
                 .addField(new FieldBuilder("type").setTitle("Typ").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
-                        .addMapValue("id", "Id")
-                        .addMapValue("localId", "LocalId")
+                        //.addMapValue("id", "Id")
+                        //.addMapValue("localId", "LocalId")
                         .addMapValue("signature1", "Signatura přidělená původcem")
                         .addMapValue("signature2", "Signatura přidělená při zpracování archiválie")
                         .addMapValue("officialNumber", "Číslo vložky úřední desky")
                         .addMapValue("inventaryNumber", "Inventární číslo")
                         .addMapValue("OtherNumber", "Přírůstkové číslo")
-                        .addMapValue("uuid", "UUID")
+                        //.addMapValue("uuid", "UUID")
                         .createField())
                 .addField(new FieldBuilder("value").setTitle("Hodnota").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
                 .addField(new FieldBuilder("invalid").setTitle("Platnost").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("yes")
@@ -233,15 +247,15 @@ public class SimpleChronicleVolumeForm {
         return new FieldBuilder("location").setTitle("Umístění").setMaxOccurrences(10)
                 .setHint("Údaje o uložení popisovaného dokumentu, např. signatura, místo uložení apod.")
                 .addField(new FieldBuilder("physicalLocation").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("value").setTitle("Číslo archivu").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addField(new FieldBuilder("type").setTitle("Název archivu").setMaxOccurrences(1).setType(Field.COMBO)
                                 .addMapValue("226102010","SOkA Jihlava")
                                 .addMapValue("226103010","SOkA Pelhřimov")
                                 .addMapValue("226101010","SOkA Havlíčkův Brod")
                                 .addMapValue("226104010","SOkA Třebíč")
                                 .addMapValue("226105010","SOkA Žďár nad Sázavou")
                                 .createField())
-                        .addField(new FieldBuilder("authorityURI").setTitle("Číslo fondu uložené").setMaxOccurrences(1).setType(Field.TEXT).createField())
-                        .addField(new FieldBuilder("authority").setMaxOccurrences(1).setTitle("Název fondu").setType(Field.TEXT).createField()) // value
+                        //.addField(new FieldBuilder("authorityURI").setTitle("Číslo fondu uložené").setMaxOccurrences(1).setType(Field.TEXT).createField())
+                        .addField(new FieldBuilder("displayLabel").setMaxOccurrences(1).setTitle("Název fondu").setType(Field.TEXT).createField()) // value
                         .createField()) // physicalLocation
                 .createField(); // location
     }

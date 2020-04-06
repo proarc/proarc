@@ -37,14 +37,12 @@ import cz.cas.lib.proarc.common.object.chronicle.ChronicleMapperFactory;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mods.DateDefinition;
-import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
-import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
@@ -53,14 +51,13 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-
-import static cz.cas.lib.proarc.common.imports.ImportProcess.getConsumers;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static cz.cas.lib.proarc.common.imports.ImportProcess.getConsumers;
 
 /**
  * Imports files grouped to {@link FileSet file sets}.
@@ -113,7 +110,8 @@ public class FileSetImport implements ImportHandler {
         importConfig.setJhoveContext(JhoveUtility.createContext());
         try {
             consumeFileSets(batch, fileSets, importConfig);
-            if("profile.chronicle".equals(importConfig.getConfig().getProfileId())
+            if(batch.getState().equals(Batch.State.LOADING)
+                    && "profile.chronicle".equals(importConfig.getConfig().getProfileId())
                     && importConfig.getConfig().getCreateModelsHierarchy()) {
                 createObject(fileSets, ChroniclePlugin.MODEL_CHRONICLEVOLUME, batchManager, importConfig);
             }
@@ -129,25 +127,41 @@ public class FileSetImport implements ImportHandler {
         handler.create();
 
         ImportCatalog catalog = createCatalog(batchManager, importConfig);
+        ImportArchiveCatalog archiveCatalog = createArchiveCatalog(batchManager, importConfig);
         String fileName = getFileName(fileSets);
-        String[] name = fileName.split("_");
+        String[] fileNameSplit = fileName.split(" ");
+        String[] name = fileNameSplit[0].split("_");
         String id = "";
+        String id2 = "";
         if (name.length > 3) {
             id = name[0] + "_" + name[1] + "_" + name[2];
+            id2 = name[0] + "_" + name[1] + "_ic" + name[2];
         } else {
             id = fileName;
+            id2 = fileName;
         }
+        ImportArchiveCatalog.Archiv archiv = getArchiveName(archiveCatalog, name[0], name[1]);
         for (ImportCatalog.Kronika chronicle : catalog.getKronika()) {
-            if (chronicle.getLocalId() != null && id != null) {
-                if (chronicle.getLocalId().contains(id)) {
-                    fillMetadata(chronicle, pid);
+            if (chronicle.getLocalId() != null && id != null && id2 != null) {
+                if (chronicle.getLocalId().contains(id) || chronicle.getLocalId().contains(id2)) {
+                    fillMetadata(chronicle, archiv, pid);
                     break;
                 }
             }
         }
     }
 
-    private void fillMetadata(ImportCatalog.Kronika chronicle, String pid) throws DigitalObjectException {
+    private ImportArchiveCatalog.Archiv getArchiveName(ImportArchiveCatalog archiveCatalog, String organization, String name) {
+        String id = organization + "_" + name;
+        for (ImportArchiveCatalog.Archiv archiv : archiveCatalog.getArchivy()) {
+            if (id.equalsIgnoreCase(archiv.getId())) {
+                return archiv;
+            }
+        }
+        return null;
+    }
+
+    private void fillMetadata(ImportCatalog.Kronika chronicle, ImportArchiveCatalog.Archiv archiv, String pid) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fo = dom.find(pid, null);
         XmlStreamEditor streamEditor = fo.getEditor(FoxmlUtils.inlineProfile(
@@ -155,7 +169,7 @@ public class FileSetImport implements ImportHandler {
         ModsStreamEditor modsStream = new ModsStreamEditor(streamEditor, fo);
         ModsDefinition mods = modsStream.read();
         //repair Mods
-        repairMods(chronicle, mods);
+        repairMods(chronicle, archiv, mods);
         modsStream.write(mods, modsStream.getLastModified(), null);
 
         //repair DcDatastream
@@ -176,7 +190,7 @@ public class FileSetImport implements ImportHandler {
         fo.flush();
     }
 
-    private void repairMods(ImportCatalog.Kronika chronicle, ModsDefinition mods) {
+    private void repairMods(ImportCatalog.Kronika chronicle, ImportArchiveCatalog.Archiv archiv, ModsDefinition mods) {
         StringPlusLanguage title = new StringPlusLanguage();
         title.setValue(chronicle.getNazev());
         TitleInfoDefinition titleInfo = new TitleInfoDefinition();
@@ -194,14 +208,18 @@ public class FileSetImport implements ImportHandler {
         mods.getIdentifier().add(identifierId);
 
         DateDefinition dateCreated = new DateDefinition();
-        dateCreated.setQualifier("approximate");
+        //dateCreated.setQualifier("approximate");
         dateCreated.setValue(chronicle.getObdobi());
         OriginInfoDefinition originInfo = new OriginInfoDefinition();
         originInfo.getDateIssued().add(dateCreated);
         mods.getOriginInfo().add(originInfo);
 
         PhysicalLocationDefinition physicalLocation = new PhysicalLocationDefinition();
-        physicalLocation.setValue(chronicle.getMistoUlozeni());
+        physicalLocation.setType(chronicle.getMistoUlozeni());
+        if (archiv != null) {
+            physicalLocation.setValue(archiv.getId());
+            physicalLocation.setDisplayLabel(archiv.getValue());
+        }
         LocationDefinition location = new LocationDefinition();
         location.getPhysicalLocation().add(physicalLocation);
         mods.getLocation().add(location);
@@ -211,17 +229,6 @@ public class FileSetImport implements ImportHandler {
         form.setValue(chronicle.getPocetSnimku());
         PhysicalDescriptionDefinition description = new PhysicalDescriptionDefinition();
         description.getForm().add(form);
-
-        ExtentDefinition extent = new ExtentDefinition();
-        StringPlusLanguage start = new StringPlusLanguage();
-        start.setValue(chronicle.getPrijeti());
-        extent.setStart(start);
-        StringPlusLanguage end = new StringPlusLanguage();
-        end.setValue(chronicle.getVraceni());
-        extent.setEnd(end);
-        PartDefinition part = new PartDefinition();
-        part.getExtent().add(extent);
-        mods.getPart().add(part);
 
         NoteDefinition note = new NoteDefinition();
         note.setValue(chronicle.getPoznamka());
@@ -237,6 +244,13 @@ public class FileSetImport implements ImportHandler {
         JAXBContext jaxbContext = JAXBContext.newInstance(ImportCatalog.class);
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         return (ImportCatalog) unmarshaller.unmarshal(catalogFile);
+    }
+
+    private ImportArchiveCatalog createArchiveCatalog(ImportBatchManager batchManager, ImportOptions importConfig) throws JAXBException {
+        File catalogFile = new File(batchManager.getAppConfig().getConfigHome().toURI().resolve(importConfig.getConfig().getArchiveCatalog()));
+        JAXBContext jaxbContext = JAXBContext.newInstance(ImportArchiveCatalog.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        return (ImportArchiveCatalog) unmarshaller.unmarshal(catalogFile);
     }
 
     private void consumeFileSets(Batch batch, List<FileSet> fileSets, ImportOptions ctx) throws InterruptedException {
