@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
@@ -27,7 +26,7 @@ import java.io.IOException;
 public class RdaNdkMapper extends NdkMapper {
 
     @Override
-    public final RdaModsWrapper toJsonObject(ModsDefinition mods, NdkMapper.Context ctx) {
+    public  RdaModsWrapper toJsonObject(ModsDefinition mods, NdkMapper.Context ctx) {
         NdkMapper.RdaModsWrapper wrapper = new NdkMapper.RdaModsWrapper();
         wrapper.setMods(mods);
         if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {

@@ -37,21 +37,11 @@ import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import javax.xml.XMLConstants;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import org.apache.commons.io.FileUtils;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
@@ -60,12 +50,23 @@ import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.xml.sax.InputSource;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -157,7 +158,7 @@ public class TiffImporterTest {
     @Test
     public void testConsume() throws Exception {
         temp.setDeleteOnExit(true);
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot());
+        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration());
         assertTrue(targetFolder.exists());
 
         String mimetype = ImportProcess.findMimeType(tiff1);
@@ -231,7 +232,7 @@ public class TiffImporterTest {
         assertTrue(alto1.delete());
         assertTrue(config.getImportConfiguration().getRequiredDatastreamId().contains(AltoDatastream.ALTO_ID));
 
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot());
+        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration());
         assertTrue(targetFolder.exists());
 
         String mimetype = ImportProcess.findMimeType(tiff1);
