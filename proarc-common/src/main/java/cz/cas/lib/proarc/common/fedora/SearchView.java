@@ -356,16 +356,20 @@ public final class SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
-    public List<Item> findLastCreated(int offset, String model, String user) throws FedoraClientException, IOException {
-        return findLastCreated(offset, model, user, Integer.MAX_VALUE);
+    public List<Item> findLastCreated(int offset, String model, String user, String sort) throws FedoraClientException, IOException {
+        return findLastCreated(offset, model, user, Integer.MAX_VALUE, sort);
     }
     
-    public List<Item> findLastCreated(int offset, String model, String user, int limit) throws FedoraClientException, IOException {
-        return findLast(offset, model, user, limit, "$created desc");
+    public List<Item> findLastCreated(int offset, String model, String user, int limit, String sort) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, limit, "$created " + sort);
     }
 
-    public List<Item> findLastModified(int offset, String model, String user, int limit) throws FedoraClientException, IOException {
-        return findLast(offset, model, user, limit, "$modified desc");
+    public List<Item> findAlphabetical(int offset, String model, String user, int limit, String sort) throws IOException, FedoraClientException {
+        return findLast(offset, model, user, limit, "$label " + sort);
+    }
+
+    public List<Item> findLastModified(int offset, String model, String user, int limit, String sort) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, limit, "$modified " + sort);
     }
 
     private List<Item> findLast(int offset, String model, String user, int limit, String orderBy) throws FedoraClientException, IOException {

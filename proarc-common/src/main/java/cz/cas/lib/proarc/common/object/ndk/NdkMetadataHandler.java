@@ -69,6 +69,10 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import org.xml.sax.SAXException;
+import javax.xml.bind.DataBindingException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -80,10 +84,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.xml.bind.DataBindingException;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Validator;
-import org.xml.sax.SAXException;
 
 /**
  * Handles description metadata in the NDK format.
