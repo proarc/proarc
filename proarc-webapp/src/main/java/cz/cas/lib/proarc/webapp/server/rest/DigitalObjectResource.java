@@ -47,7 +47,6 @@ import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-
 import cz.cas.lib.proarc.common.object.CopyObject;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
@@ -77,26 +76,11 @@ import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.MissingResourceException;
-import java.util.Set;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
+import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -117,14 +101,29 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import org.apache.commons.io.FileUtils;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.MissingResourceException;
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Resource to manage digital objects.
@@ -307,7 +306,9 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM) String queryTitle,
-            @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow
+            @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow,
+            @DefaultValue(SearchSort.DEFAULT_DESC)
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort
             ) throws FedoraClientException, IOException {
 
         Locale locale = session.getLocale(httpHeaders);
@@ -318,9 +319,13 @@ public class DigitalObjectResource {
         int total = 0;
         int page = 20;
         switch (type) {
+            case ALPHABETICAL:
+                total = search.countModels(queryModel, filterOwnObjects(user)).size();
+                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
+                break;
             case LAST_MODIFIED:
                 total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100);
+                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
@@ -359,7 +364,7 @@ public class DigitalObjectResource {
                 break;
             default:
                 total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), 100);
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
         }
         int count = items.size();
         int endRow = startRow + count - 1;
