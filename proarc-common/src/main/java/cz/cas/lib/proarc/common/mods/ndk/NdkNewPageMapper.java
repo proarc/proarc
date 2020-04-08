@@ -39,9 +39,9 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 public class NdkNewPageMapper extends NdkMapper {
 
     /** {@code /mods/part/detail@type} */
-    private static final String NUMBER_TYPE_PAGE_INDEX = "pageIndex";
+    public static final String NUMBER_TYPE_PAGE_INDEX = "pageIndex";
     /** {@code /mods/part/detail@type} */
-    private static final String NUMBER_TYPE_PAGE_NUMBER = "page number";
+    public static final String NUMBER_TYPE_PAGE_NUMBER = "page number";
     /** {@code /mods/part@type} */
     public static final String PAGE_TYPE_NORMAL = "normalPage";
 

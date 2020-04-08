@@ -190,6 +190,9 @@ public final class DigitalObjectResourceApi {
     public static final String GENERATE_JP2_PATH = "generateJp2";
     public static final String GENERATE_TYPE = "generateType";
 
+    public static final String CHANGE_PAGE_TO_NDK_PAGE = "changePageToNdkPage";
+    public static final String CHANGE_NDK_PAGE_TO_PAGE = "changeNdkPageToPage";
+
     public enum SearchType {
         
         LAST_CREATED(SEARCH_TYPE_PARAM_DEFAULT),
