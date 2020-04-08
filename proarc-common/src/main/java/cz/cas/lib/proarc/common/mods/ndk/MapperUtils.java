@@ -388,7 +388,7 @@ public final class MapperUtils {
         return null;
     }
 
-    static String toValue(String s) {
+    public static String toValue(String s) {
         if (s != null) {
             s = s.trim();
         }

@@ -21,14 +21,14 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.export.archive.ArchiveImport;
 import cz.cas.lib.proarc.common.imports.audio.SoundRecordingImport;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.imports.kramerius.FileReader;
 import cz.cas.lib.proarc.common.imports.kramerius.KrameriusImport;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
-import java.util.List;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConversionException;
+import java.util.List;
 
 /**
  * The import configuration. There can be several versions declared
@@ -42,6 +42,7 @@ public final class ImportProfile {
     public static final String PROFILES = "import.profiles";
 
     public static final String ALTO_SUFFIX = "import.alto.file.suffix";
+    public static final String ALTO_FILE_PATH = "import.alto.file.path";
     public static final String ALTO_VERSION = "import.alto.file.version";
     public static final String MODEL_ID = "import.page.modelId";
     public static final String MODEL_AUDIO_ID="import.ndkaudiopage.modelId";
@@ -50,6 +51,8 @@ public final class ImportProfile {
     public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
     public static final String NDK_USER_SUFFIX = "import.ndk_user.file.suffix";
     public static final String PLAIN_OCR_CHARSET = "import.text_ocr.file.charset";
+    public static final String PLAIN_OCR_FILE_PATH = "import.text_ocr.file.path";
+    public static final String OCRALTO_LAST_FOLDER_PATH = "import.ocralto.last.folder.path";
     public static final String PLAIN_OCR_SUFFIX = "import.text_ocr.file.suffix";
     public static final String PREVIEW_JAVA_SCALING = "import.image.preview.java.scalingMethod";
     public static final String PREVIEW_MAX_HEIGHT = "import.image.preview.maxHeight";
@@ -70,8 +73,11 @@ public final class ImportProfile {
     public static final String DEFAULT_ALTO = "import.default_alto.file";
     public static final String DEFAULT_OCR = "import.default_ocr.file";
     public static final String DEFAULT_CATALOG = "import.catalog.file";
+    public static final String DEFAULT_ARCHIVE_CATALOG = "import.archive.catalog.file";
     public static final String DEFAULT_ALTO_AND_OCR = "import.default_alto_and_ocr";
     public static final String DELETE_PACKAGE_IMPORT = "import.delete_package";
+    public static final String DEFAULT_IMPORT_FOLDER = "import.folder.default";
+    public static final String IMPORT_FOLDER_PATH = "import.folder.path";
 
 
 
@@ -139,8 +145,23 @@ public final class ImportProfile {
         return suffix.toLowerCase();
     }
 
+    public String getPlainOcrFilePath() {
+        String suffix = config.getString(PLAIN_OCR_FILE_PATH);
+        return suffix.toLowerCase();
+    }
+
+    public int getOcrAltoFolderPath() {
+        int value = config.getInt(OCRALTO_LAST_FOLDER_PATH, 2);
+        return value;
+    }
+
     public String getAltoFileSuffix() {
         String suffix = config.getString(ALTO_SUFFIX, ".ocr.xml");
+        return suffix.toLowerCase();
+    }
+
+    public String getAltoFilePath() {
+        String suffix = config.getString(ALTO_FILE_PATH);
         return suffix.toLowerCase();
     }
 
@@ -194,6 +215,11 @@ public final class ImportProfile {
         return path.toLowerCase();
     }
 
+    public String getArchiveCatalog() {
+        String path = config.getString(DEFAULT_ARCHIVE_CATALOG);
+        return path.toLowerCase();
+    }
+
     public boolean getDefaultAltoAndOcr() {
         String value = config.getString(DEFAULT_ALTO_AND_OCR);
         return "true".equals(value);
@@ -202,6 +228,20 @@ public final class ImportProfile {
     public boolean getDeletePackageImport() {
         String value = config.getString(DELETE_PACKAGE_IMPORT);
         return "true".equals(value);
+    }
+
+    public boolean getDefaultImportFolder() {
+        String value = config.getString(DEFAULT_IMPORT_FOLDER);
+        if (!(value == null || value.isEmpty() || "true".equals(value))) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public String getImportFolderPath() {
+        String value = config.getString(IMPORT_FOLDER_PATH);
+        return value;
     }
 
     public Configuration getConvertorJpgSmallProcessor() {

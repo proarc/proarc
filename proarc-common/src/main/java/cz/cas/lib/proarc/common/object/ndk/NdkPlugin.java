@@ -244,7 +244,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         new RelationCriteria(MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID)
+                        new RelationCriteria(MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID)
                 }
         ));
         models.add(new MetaModel(

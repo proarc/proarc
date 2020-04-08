@@ -1,6 +1,4 @@
-<xsd:schema xmlns="http://www.aes.org/audioObject" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:aes60="urn:ebu:metadata-schema:ebuCore_2010" targetNamespace="http://www.aes.org/audioObject" elementFormDefault="qualified" attributeFormDefault="unqualified">
-    <xsd:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.loc.gov/standards/xlink/xlink.xsd"/>
-    <xsd:import namespace="urn:ebu:metadata-schema:ebuCore_2010" schemaLocation="http://www.aes.org/standards/schemas/aes60-2010.xsd"/>
+<xsd:schema xmlns="http://www.aes.org/audioObject" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" targetNamespace="http://www.aes.org/audioObject" elementFormDefault="qualified" attributeFormDefault="unqualified">
     <xsd:element name="audioObject" type="audioObjectType"/>
     <xsd:complexType name="objectType" abstract="true">
         <xsd:attribute name="ID" type="xsd:ID" use="required"/>
@@ -23,7 +21,6 @@
                     <xsd:element name="secondaryIdentifier" type="identifierType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="fileChecksum" type="checksumType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="soundDataChecksum" type="checksumType" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="objectLink" type="locStringType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="face" type="faceType" minOccurs="1" maxOccurs="unbounded"/>
                     <xsd:element name="formatList" type="formatRegionListType" minOccurs="1" maxOccurs="1"/>
                     <xsd:element name="objectCreationDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1"/>
@@ -185,7 +182,6 @@
         <xsd:complexContent>
             <xsd:extension base="objectType">
                 <xsd:sequence>
-                    <xsd:element name="timeline" type="timeRangeType" minOccurs="1" maxOccurs="1"/>
                     <xsd:element name="region" type="faceRegionType" minOccurs="1" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="direction" type="directionType" use="required"/>
@@ -198,7 +194,6 @@
         <xsd:complexContent>
             <xsd:extension base="objectType">
                 <xsd:sequence>
-                    <xsd:element name="timeRange" type="timeRangeType" minOccurs="1" maxOccurs="1"/>
                     <xsd:element name="numChannels" type="xsd:nonNegativeInteger" minOccurs="1" maxOccurs="1"/>
                     <xsd:element name="conditionNote" type="conditionNoteType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="securityNote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
@@ -453,19 +448,9 @@
             <xsd:enumeration value="SHA-1"/>
         </xsd:restriction>
     </xsd:simpleType>
-    <xsd:complexType name="locStringType">
-        <xsd:attributeGroup ref="xlink:simpleLink"/>
-    </xsd:complexType>
-    <xsd:complexType name="timeRangeType">
-        <xsd:sequence>
-            <xsd:element name="startTime" type="aes60:editUnitNumberType"/>
-            <xsd:element name="duration" type="aes60:editUnitNumberType"/>
-        </xsd:sequence>
-    </xsd:complexType>
     <xsd:complexType name="conditionNoteType">
         <xsd:sequence>
             <xsd:element name="note" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="timeRange" type="timeRangeType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="creationDate" type="xsd:dateTime" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>

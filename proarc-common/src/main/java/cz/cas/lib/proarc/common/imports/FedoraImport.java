@@ -38,10 +38,12 @@ import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static cz.cas.lib.proarc.common.imports.ImportProcess.getTargetFolder;
 
 /**
  * XXX write result to proarc_import_status.log
@@ -102,9 +104,11 @@ public final class FedoraImport {
         ConfigurationProfile profile = findImportProfile(batch.getId(), batch.getProfileId());
         ImportProfile importProfile = profile != null ? config.getImportConfiguration(profile) : config.getImportConfiguration();
         if (importProfile.getDeletePackageImport()) {
-            File file = new File(config.getDefaultUsersHome(), batch.getFolder() + "/" + ImportProcess.TMP_DIR_NAME);
-            LOG.log(Level.INFO, "Smazani importni slozky "+ file.getName());
-            MetsUtils.deleteFolder(file);
+            File target = getTargetFolder(resolveBatchFile(batch.getFolder()), importProfile);
+            //File file = new File(config.getDefaultUsersHome(), batch.getFolder() + "/" + ImportProcess.TMP_DIR_NAME);
+            LOG.log(Level.INFO, "Smazani importni slozky "+ target.getName());
+            //MetsUtils.deleteFolder(file);
+            MetsUtils.deleteFolder(target);
         }
     }
 
@@ -419,6 +423,19 @@ public final class FedoraImport {
             }
         }
         return true;
+    }
+
+    public File resolveBatchFile(String file) {
+        URI uri = getBatchRoot().resolve(file);
+        return new File(uri);
+    }
+
+    URI getBatchRoot() {
+        try {
+            return config.getDefaultUsersHome().toURI();
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 
     private String nameWithoutExtention(String name, String extension) {

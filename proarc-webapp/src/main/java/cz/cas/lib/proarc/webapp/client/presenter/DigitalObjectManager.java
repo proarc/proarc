@@ -45,8 +45,11 @@ import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.action.RestoreAction;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangePageToNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
@@ -94,6 +97,7 @@ public final class DigitalObjectManager {
     private DataStreamExportAction fullDataStreamExportAction;
     private DataStreamExportAction rawDataStreamExportAction;
     private DeleteAction deleteAction;
+    private RestoreAction restoreAction;
     private DigitalObjectEditAction ocrEditAction;
     private DigitalObjectEditAction noteEditAction;
     private DigitalObjectEditAction modsEditAction;
@@ -104,6 +108,8 @@ public final class DigitalObjectManager {
     private UrnNbnAction registerUrnNbnAction;
     private CopyObjectAction copyObjectAction;
     private GenerateMasterCopyAction generateMasterCopyAction;
+    private ChangePageToNdkPageAction changePageToNdkPageAction;
+    private ChangeNdkPageToPageAction changeNdkPageToPageAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -225,6 +231,7 @@ public final class DigitalObjectManager {
         rawDataStreamExportAction = DataStreamExportAction.raw(i18n);
         deleteAction = new DeleteAction(DigitalObjectDataSource.createDeletable(),
                 DigitalObjectDataSource.createDeleteOptionsForm(), i18n);
+        restoreAction = new RestoreAction(DigitalObjectDataSource.createRestorable(), i18n);
         ocrEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabOcr_Title(), DatastreamEditorType.OCR, i18n);
         noteEditAction = new DigitalObjectEditAction(
@@ -254,6 +261,8 @@ public final class DigitalObjectManager {
         registerUrnNbnAction = new UrnNbnAction(i18n);
         copyObjectAction = new CopyObjectAction(i18n);
         generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
+        changePageToNdkPageAction = new ChangePageToNdkPageAction(i18n);
+        changeNdkPageToPageAction = new ChangeNdkPageToPageAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -315,8 +324,15 @@ public final class DigitalObjectManager {
 
         IconMenuButton btnAdministration = Actions.asIconMenuButton(administrationMenuAction, actionSource);
         Menu menuAdministration = Actions.createMenu();
-        menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(restoreAction, actionSource, false));
+        //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        menuAdministration.addItem(new MenuItemSeparator());
+        menuAdministration.addItem(Actions.asMenuItem(changePageToNdkPageAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToPageAction, actionSource, false));
         btnAdministration.setMenu(menuAdministration);
+
+
 
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n),
                 new RefreshableView((Refreshable) actionSource.getSource())));

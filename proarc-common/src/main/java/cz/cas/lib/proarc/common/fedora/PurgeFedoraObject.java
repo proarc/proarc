@@ -59,11 +59,11 @@ public final class PurgeFedoraObject {
     }
 
     public void delete(String pid, boolean hierarchy, String message) throws PurgeException {
-        process(Collections.singletonList(pid), hierarchy, true, message);
+        process(Collections.singletonList(pid), hierarchy, true, false, message);
     }
 
     public void delete(List<String> pids, boolean hierarchy, String message) throws PurgeException {
-        process(pids, hierarchy, true, message);
+        process(pids, hierarchy, true, false, message);
     }
 
     public void purge(String pid, boolean hierarchy, String message) throws PurgeException {
@@ -71,10 +71,22 @@ public final class PurgeFedoraObject {
     }
 
     public void purge(List<String> pids, boolean hierarchy, String message) throws PurgeException {
-        process(pids, hierarchy, false, message);
+        process(pids, hierarchy, false, false, message);
     }
-    
-    private void process(List<String> pids, boolean hierarchy, boolean setDeleted, String message) throws PurgeException {
+
+    public void restore(String pid, String message) throws PurgeException {
+        restore(Collections.singletonList(pid), false, false, true, message);
+    }
+
+    public void restore(List<String> pids, String message) throws PurgeException {
+        restore(pids, false, false, true, message);
+    }
+
+    private void restore(List<String> pids, boolean hierarchy, boolean setDeleted, boolean isRestore, String message) throws PurgeException {
+        process(pids, hierarchy, setDeleted, isRestore, message);
+    }
+
+    private void process(List<String> pids, boolean hierarchy, boolean setDeleted, boolean isRestore, String message) throws PurgeException {
         toPurge.clear();
         toUpdate.clear();
         this.logMessage = message;
@@ -88,6 +100,8 @@ public final class PurgeFedoraObject {
         }
         if (setDeleted) {
             setDeleted(toPurge);
+        } else if (isRestore) {
+            setRestore(toPurge);
         } else {
             purge(toPurge);
         }
@@ -196,6 +210,22 @@ public final class PurgeFedoraObject {
             throw new PurgeException(pid, ex);
         }
     }
+
+    private void setRestore(Set<String> pids) throws PurgeException {
+        for (String pid : pids) {
+            setRestore(pid);
+        }
+    }
+
+    private void setRestore(String pid) throws PurgeException {
+        try {
+            RemoteObject remote = storage.find(pid);
+            remote.restore(logMessage);
+        } catch (DigitalObjectException ex) {
+            throw new PurgeException(pid, ex);
+        }
+    }
+
 
     public static class PurgeException extends Exception {
 
