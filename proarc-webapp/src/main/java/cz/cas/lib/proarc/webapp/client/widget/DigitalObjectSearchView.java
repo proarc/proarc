@@ -254,7 +254,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM,
                         i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
                 createModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Title(), showIfCreatedModifiedQuery),
-                createSortItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfAplhabetical),
+                createSortItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfCreatedModifiedQuery),
                 createRememberModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Remember_Title(), showIfCreatedModifiedQuery),
                 createSpacerItem("100%", showIfCreatedModifiedQuery),
                 submit);

@@ -19,6 +19,8 @@ package cz.cas.lib.proarc.webapp.server.rest;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
+import cz.cas.lib.proarc.common.actions.CopyObject;
+import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.RepairMetadata;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
@@ -49,8 +51,6 @@ import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-
-import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -59,7 +59,6 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -79,8 +78,8 @@ import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
-import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -1499,6 +1498,47 @@ public class DigitalObjectResource {
     ) throws DigitalObjectException {
 
 
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changePageToNdkPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_NDK_PAGE, pids);
+        repairMetadata.repair();
+        return new SmartGwtResponse<>();
+    }
+
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkPageToPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_PAGE, pids);
+        repairMetadata.repair();
         return new SmartGwtResponse<>();
     }
 
