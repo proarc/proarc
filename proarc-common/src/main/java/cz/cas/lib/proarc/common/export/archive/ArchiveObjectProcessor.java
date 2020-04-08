@@ -44,6 +44,12 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ReadonlyDisseminationHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import org.w3c.dom.Element;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,13 +57,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
-import cz.cas.lib.proarc.common.ocr.AltoDatastream;
-import cz.cas.lib.proarc.mods.IdentifierDefinition;
-import cz.cas.lib.proarc.mods.ModsDefinition;
-import org.w3c.dom.Element;
 
 /**
  * Processes a path of digital objects to build a package.
@@ -70,6 +69,11 @@ public class ArchiveObjectProcessor {
     private final LocalStorage ls = new LocalStorage();
     private PackageBuilder builder;
     private final File targetFolder;
+
+    public HashSet<String> getDevicePids() {
+        return devicePids;
+    }
+
     private final HashSet<String> devicePids = new HashSet<String>();
     private AppConfiguration appConfig;
 
@@ -134,7 +138,14 @@ public class ArchiveObjectProcessor {
             String dsId = dt.getID();
             if (ModsStreamEditor.DATASTREAM_ID.equals(dsId)) {
                 // XXX might not be mods! It should rather go to fileGrp.
-                checkUrnNbn(cache);
+
+                if (!(parentElm != null &&
+                        ((NdkPlugin.MODEL_PERIODICALISSUE.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))
+                        || (NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))
+                        || (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))))) {
+                    checkUrnNbn(cache);
+                }
+
                 builder.addStreamAsMdSec(siblingIdx, dt, cache.getPid(), elm.getModelId(), MdType.MODS);
             } else if (DcStreamEditor.DATASTREAM_ID.equals(dsId)) {
                 Element dcElm = dt.getDatastreamVersion().get(0).getXmlContent().getAny().get(0);
