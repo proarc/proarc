@@ -113,14 +113,16 @@ public class FileSetImport implements ImportHandler {
             if(batch.getState().equals(Batch.State.LOADING)
                     && "profile.chronicle".equals(importConfig.getConfig().getProfileId())
                     && importConfig.getConfig().getCreateModelsHierarchy()) {
-                createObject(fileSets, ChroniclePlugin.MODEL_CHRONICLEVOLUME, batchManager, importConfig);
+                String pid = createObject(fileSets, ChroniclePlugin.MODEL_CHRONICLEVOLUME, batchManager, importConfig);
+                batch.setParentPid(pid);
+                batchManager.update(batch);
             }
         } finally {
             importConfig.getJhoveContext().destroy();
         }
     }
 
-    private void createObject(List<FileSet> fileSets, String model, ImportBatchManager batchManager, ImportOptions importConfig) throws DigitalObjectException, JAXBException {
+    private String createObject(List<FileSet> fileSets, String model, ImportBatchManager batchManager, ImportOptions importConfig) throws DigitalObjectException, JAXBException {
         String pid = FoxmlUtils.createPid();
         DigitalObjectManager dom  = DigitalObjectManager.getDefault();
         DigitalObjectManager.CreateHandler handler = dom.create(model, pid, null, importConfig.getUser(), null, "create new object with pid: " + pid);
@@ -149,6 +151,7 @@ public class FileSetImport implements ImportHandler {
                 }
             }
         }
+        return pid;
     }
 
     private ImportArchiveCatalog.Archiv getArchiveName(ImportArchiveCatalog archiveCatalog, String organization, String name) {
