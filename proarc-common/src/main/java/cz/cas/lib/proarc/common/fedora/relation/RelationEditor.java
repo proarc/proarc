@@ -24,11 +24,11 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import org.w3c.dom.Element;
+import javax.xml.transform.Source;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.xml.transform.Source;
-import org.w3c.dom.Element;
 
 /**
  * RDF relations editor.
@@ -76,6 +76,25 @@ public final class RelationEditor {
     public String getModel() throws DigitalObjectException {
         Rdf rdf = getRdf();
         return RdfRelation.toPid(rdf.getDescription().getModel());
+    }
+
+    /**
+     * @param organization of model
+     */
+    public void setOrganization(String organization) throws DigitalObjectException {
+        if (organization == null) {
+            organization = ".";
+        }
+        Rdf rdf = getRdf();
+        rdf.getDescription().setOrganization(RdfRelation.fromPid(organization));
+    }
+
+    /**
+     * @return organization of model
+     */
+    public String getOrganization() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getOrganization());
     }
 
     /**

@@ -441,6 +441,7 @@ public class DigitalObjectManager {
 
             RelationEditor relations = doHandler.relations();
             relations.setModel(modelId);
+            relations.setOrganization(user.getOrganization());
             if (getUserGroup() != null) {
                 String grpPid = getUserGroup().getName();
                 relations.setOwners(Collections.singletonList(grpPid));

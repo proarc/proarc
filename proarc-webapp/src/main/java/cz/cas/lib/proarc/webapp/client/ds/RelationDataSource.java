@@ -67,6 +67,7 @@ public class RelationDataSource extends ProarcDataSource {
     public static final String FIELD_CREATED = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED;
     public static final String FIELD_MODIFIED = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED;
     public static final String FIELD_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_EXPORT;
+    public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.MEMBERS_ITEM_ORGANIZATION;
 
     /**
      * Attribute holding PIDs of the reorder update {@link #reorderChildren operation}.
@@ -100,8 +101,9 @@ public class RelationDataSource extends ProarcDataSource {
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
         modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         DataSourceField export = new DataSourceField(FIELD_EXPORT, FieldType.TEXT);
+        DataSourceField organization = new DataSourceField(FIELD_ORGANIZATION, FieldType.TEXT);
 
-        setFields(pid, parent, label, model, created, modified, owner, export);
+        setFields(pid, parent, label, model, created, modified, owner, export, organization);
         setTitleField(FIELD_LABEL);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));

@@ -16,14 +16,14 @@
  */
 package cz.cas.lib.proarc.common.fedora.relation;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.w3c.dom.Element;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import org.w3c.dom.Element;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * RDF description of given object.
@@ -32,6 +32,9 @@ import org.w3c.dom.Element;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RdfDescription {
+
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private RdfRelation organization;
 
     @XmlAttribute(namespace = Relations.RDF_NS)
     private RelationResource about;
@@ -207,4 +210,11 @@ public class RdfDescription {
         this.hasExport = hasExport;
     }
 
+    public RdfRelation getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(RdfRelation organization) {
+        this.organization = organization;
+    }
 }

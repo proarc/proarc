@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.RepairMetadata;
+import cz.cas.lib.proarc.common.actions.UpdateObjects;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -75,6 +76,7 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -317,18 +319,19 @@ public class DigitalObjectResource {
         Locale locale = session.getLocale(httpHeaders);
         RemoteStorage remote = RemoteStorage.getInstance(appConfig);
         SearchView search = remote.getSearch(locale);
+        String organization = user.getRole() == null || user.getRole().isEmpty() || UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getOrganization();
 
         List<Item> items;
         int total = 0;
         int page = 20;
         switch (type) {
             case ALPHABETICAL:
-                total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization).size();
+                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, 100, sort.toString());
                 break;
             case LAST_MODIFIED:
-                total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization).size();
+                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
@@ -365,14 +368,27 @@ public class DigitalObjectResource {
                 total = items.size();
                 page = 1;
                 break;
+            case ALL:
+                items = search.findAllObjects();
+                total = items.size();
+                break;
             default:
-                total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization).size();
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, 100, sort.toString());
         }
+        repairItemsModel(items);
         int count = items.size();
         int endRow = startRow + count - 1;
         //int total = count == 0 ? startRow : endRow + page;
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
+    }
+
+    private void repairItemsModel(List<Item> items) {
+        for (Item item : items) {
+            if (item.getOrganization().startsWith("info:fedora/")) {
+                item.setOrganization(item.getOrganization().substring(12));
+            }
+        }
     }
 
     private String filterOwnObjects(UserProfile user) {
@@ -1403,7 +1419,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) Set<String> pids,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
-            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization
             ) throws IOException, DigitalObjectException {
 
         ArrayList<AtmItem> result = new ArrayList<AtmItem>(pids.size());
@@ -1413,8 +1430,9 @@ public class DigitalObjectResource {
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, session.asFedoraLog());
+            editor.write(deviceId, organization, session.asFedoraLog(), user.getRole());
             fobject.flush();
+            editor.setChildOrganization(pid, organization, appConfig, search, session.asFedoraLog());
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);
             result.add(atm);
@@ -1552,6 +1570,21 @@ public class DigitalObjectResource {
         ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, user, pid, modelId);
         IMetsElement parentElement = reindexObjects.getParentElement();
         reindexObjects.reindex(parentElement);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_ALL_OBJECTS_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> updateAllObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException, IOException, FedoraClientException {
+        Locale locale = session.getLocale(httpHeaders);
+        UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
+        List<Item> objects = updateObjects.findAllObjects();
+        //Map<String, Integer> map = updateObjects.countObjects(objects);
+        updateObjects.setOrganization(objects);
         return new SmartGwtResponse<>();
     }
 

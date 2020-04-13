@@ -86,6 +86,8 @@ public final class RestConfig {
             URL_DIGOBJECT, DigitalObjectResourceApi.COPYOBJECT_PATH);
     public static final String URL_DIGOBJEKT_REINDEX_OBJECTS = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.REINDEX_PATH);
+    public static final String URL_DIGOBJEKT_UPDATE_ALL_OBJECTS = path(
+            URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_ALL_OBJECTS_PATH);
     public static final String URL_GENERATE_JP2 = path(URL_DIGOBJECT, DigitalObjectResourceApi.GENERATE_JP2_PATH);
     public static final String URL_CHANGE_PAGE_TO_NDK_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE);
     public static final String URL_CHANGE_NDK_PAGE_TO_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE);

@@ -22,6 +22,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.layout.VLayout;
@@ -241,7 +242,12 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             export.setWidth("*");
             export.setCanEdit(Boolean.FALSE);
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export);
+            ComboBoxItem organization = new ComboBoxItem(DigitalObjectAdministrationDataSource.FIELD_ORGANIZATION,
+                    i18n.UsersView_ListHeader_Organization_Title());
+            organization.setWidth(250);
+            organization.setValueMap(Organization.getMap());
+
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export, organization);
             widget.setMembers(form);
         }
 

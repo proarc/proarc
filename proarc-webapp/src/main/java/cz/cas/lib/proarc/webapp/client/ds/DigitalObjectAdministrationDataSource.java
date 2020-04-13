@@ -43,6 +43,7 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
     public static final String FIELD_DEVICE = DigitalObjectResourceApi.ATM_ITEM_DEVICE;
     public static final String FIELD_FILENAME = DigitalObjectResourceApi.ATM_ITEM_FILENAME;
     public static final String FIELD_EXPORT = DigitalObjectResourceApi.ATM_ITEM_EXPORTRESULT;
+    public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION;
 
 
     public static DigitalObjectAdministrationDataSource getInstance() {
@@ -67,8 +68,9 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
         DataSourceTextField owner = new DataSourceTextField(FIELD_OWNER);
         DataSourceTextField state = new DataSourceTextField(FIELD_STATE);
         DataSourceTextField export = new DataSourceTextField(FIELD_EXPORT);
+        DataSourceTextField organization = new DataSourceTextField(FIELD_ORGANIZATION);
 
-        setFields(pid, model, state, owner, created, modified, device, filename, export);
+        setFields(pid, model, state, owner, created, modified, device, filename, export, organization);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

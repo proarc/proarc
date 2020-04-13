@@ -104,6 +104,10 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                 i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
         TreeGridField export = new TreeGridField(SearchDataSource.FIELD_EXPORT,
                 i18n.DigitalObjectSearchView_ListHeaderExport_Title(), 100);
+        ListGridField organization = new ListGridField(SearchDataSource.FIELD_ORGANIZATION,
+                i18n.DigitalObjectSearchView_ListHeaderOrganization_Title(), 100);
+        organization.setHidden(true);
+        organization.setValueMap(Organization.getMap());
         export.setCellFormatter(new CellFormatter() {
 
             @Override
@@ -113,7 +117,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, export);
+        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, export, organization);
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18n.DigitalObjectTreeView_EmptySelection_Msg());

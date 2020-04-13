@@ -148,6 +148,9 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         ListGridField state = new ListGridField(SearchDataSource.FIELD_STATE,
                 i18n.DigitalObjectSearchView_ListHeaderState_Title(), 100);
         state.setHidden(true);
+        ListGridField organization = new ListGridField(SearchDataSource.FIELD_ORGANIZATION,
+                i18n.DigitalObjectSearchView_ListHeaderOrganization_Title(), 100);
+        organization.setHidden(true);
         ListGridField export = new ListGridField(SearchDataSource.FIELD_EXPORT,
                 i18n.DigitalObjectSearchView_ListHeaderExport_Title(), 100);
         export.setCellFormatter(new CellFormatter() {
@@ -159,7 +162,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        grid.setFields(label, model, pid, created, modified, owner, state, export);
+        grid.setFields(label, model, pid, created, modified, owner, state, export, organization);
         grid.setContextMenu(Actions.createMenu());
         grid.addSelectionUpdatedHandler((event) -> {
             selectionCache.setSelection();

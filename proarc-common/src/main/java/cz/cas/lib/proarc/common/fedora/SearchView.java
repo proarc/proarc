@@ -63,6 +63,7 @@ public final class SearchView {
     private static final String QUERY_FIND_PIDS = readQuery("findPids.itql");
     private static final String QUERY_FIND_REFERRERS = readQuery("findReferrers.itql");
     private static final String QUERY_FIND_DEVICE_REFERRERS = readQuery("findDeviceReferrers.itql");
+    private static final String QUERY_FIND_ALL_OBJECTS = readQuery("findAll.itql");
 
     private final FedoraClient fedora;
     private final int maxLimit;
@@ -277,10 +278,17 @@ public final class SearchView {
             int endOffset = Math.min(size, startOffset + queryPageSize);
             List<String> subList = pids.subList(startOffset, endOffset);
             List<Item> members = findImpl(subList, onlyActive);
+            repairItemsModel(members);
             startOffset = endOffset;
             result.addAll(members);
         }
         return result;
+    }
+
+    private void repairItemsModel(List<Item> members) {
+        for (Item item : members) {
+            item.setOrganization(item.getOrganization().substring(12));
+        }
     }
 
     List<Item> findImpl(List<String> pids, boolean onlyActive) throws FedoraClientException, IOException {
@@ -357,24 +365,25 @@ public final class SearchView {
     }
 
     public List<Item> findLastCreated(int offset, String model, String user, String sort) throws FedoraClientException, IOException {
-        return findLastCreated(offset, model, user, Integer.MAX_VALUE, sort);
+        return findLastCreated(offset, model, user, null, Integer.MAX_VALUE, sort);
     }
     
-    public List<Item> findLastCreated(int offset, String model, String user, int limit, String sort) throws FedoraClientException, IOException {
-        return findLast(offset, model, user, limit, "$created " + sort);
+    public List<Item> findLastCreated(int offset, String model, String user, String organization, int limit, String sort) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, organization, limit, "$created " + sort);
     }
 
-    public List<Item> findAlphabetical(int offset, String model, String user, int limit, String sort) throws IOException, FedoraClientException {
-        return findLast(offset, model, user, limit, "$label " + sort);
+    public List<Item> findAlphabetical(int offset, String model, String user, String organization, int limit, String sort) throws IOException, FedoraClientException {
+        return findLast(offset, model, user, organization, limit, "$label " + sort);
     }
 
-    public List<Item> findLastModified(int offset, String model, String user, int limit, String sort) throws FedoraClientException, IOException {
-        return findLast(offset, model, user, limit, "$modified " + sort);
+    public List<Item> findLastModified(int offset, String model, String user, String organization, int limit, String sort) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, organization, limit, "$modified " + sort);
     }
 
-    private List<Item> findLast(int offset, String model, String user, int limit, String orderBy) throws FedoraClientException, IOException {
+    private List<Item> findLast(int offset, String model, String user, String organization, int limit, String orderBy) throws FedoraClientException, IOException {
         String modelFilter = "";
         String ownerFilter = "";
+        String organizationFilter = "";
         if (model != null && !model.isEmpty()) {
             modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
         }
@@ -382,10 +391,14 @@ public final class SearchView {
             ownerFilter = String.format("and        $pid     <http://proarc.lib.cas.cz/relations#hasOwner>        $group\n"
                     + "and        <info:fedora/%s>     <info:fedora/fedora-system:def/relations-external#isMemberOf>        $group", user);
         }
+        if (organization != null) {
+            organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
+        }
         String query = QUERY_LAST_CREATED.replace("${OFFSET}", String.valueOf(offset));
         query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${OWNER_FILTER}", ownerFilter);
         query = query.replace("${ORDERBY}", orderBy);
+        query = query.replace("${ORGANIZATION}", organizationFilter);
         LOG.fine(query);
         RiSearch search = buildSearch(query);
 
@@ -396,9 +409,10 @@ public final class SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
-    public List<Item> countModels(String model, String user) throws FedoraClientException, IOException {
+    public List<Item> countModels(String model, String user, String organization) throws FedoraClientException, IOException {
         String modelFilter = "";
         String ownerFilter = "";
+        String organizationFilter = "";
         if (model != null && !model.isEmpty()) {
             modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
         }
@@ -406,12 +420,23 @@ public final class SearchView {
             ownerFilter = String.format("and        $pid     <http://proarc.lib.cas.cz/relations#hasOwner>        $group\n"
                     + "and        <info:fedora/%s>     <info:fedora/fedora-system:def/relations-external#isMemberOf>        $group", user);
         }
+        if (organization != null) {
+            organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
+        }
         String query = QUERY_COUNT_MODELS;
         query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${OWNER_FILTER}", ownerFilter);
+        query = query.replace("${ORGANIZATION}", organizationFilter);
         LOG.fine(query);
         RiSearch search = buildSearch(query);
 
+        return consumeSearch(search.execute(fedora));
+    }
+
+    public List<Item> findAllObjects() throws FedoraClientException, IOException {
+        String query = QUERY_FIND_ALL_OBJECTS;
+        LOG.fine(query);
+        RiSearch search = buildSearch(query);
         return consumeSearch(search.execute(fedora));
     }
 
@@ -581,12 +606,21 @@ public final class SearchView {
          *      Count Function</a>
          */
         private String k0;
+        private String organization;
 
         public Item() {
         }
 
         public Item(String pid) {
             this.pid = pid;
+        }
+
+        public String getOrganization() {
+            return organization;
+        }
+
+        public void setOrganization(String organization) {
+            this.organization = organization;
         }
 
         public String getCreated() {
@@ -705,6 +739,17 @@ public final class SearchView {
         private String owner;
         private String model;
         private Collection<String> hasOwners;
+
+        public String getOrganization() {
+            return organization;
+        }
+
+        public Query setOrganization(String organization) {
+            this.organization = organization;
+            return this;
+        }
+
+        private String organization;
 
         public String getTitle() {
             return title;
