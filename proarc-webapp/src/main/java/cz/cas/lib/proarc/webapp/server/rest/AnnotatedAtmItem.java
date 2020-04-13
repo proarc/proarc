@@ -72,4 +72,8 @@ public abstract class AnnotatedAtmItem extends AtmItem {
     @Override
     public abstract String getExport();
 
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION)
+    @Override
+    public abstract String getOrganization();
+
 }

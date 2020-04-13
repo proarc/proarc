@@ -390,6 +390,10 @@ public final class ImportProcess implements Runnable {
             return user != null ? user.getUserName() : null;
         }
 
+        public String getOrganization() {
+            return user != null ? user.getOrganization() : null;
+        }
+
         public UserProfile getUser() {
             return user;
         }

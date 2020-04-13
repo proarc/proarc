@@ -30,6 +30,7 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.FieldType;
+import cz.cas.lib.proarc.webapp.client.widget.Organization;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.HashMap;
@@ -50,6 +51,7 @@ public final class SearchDataSource extends ProarcDataSource {
     public static final String FIELD_CREATED = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED;
     public static final String FIELD_MODIFIED = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED;
     public static final String FIELD_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_EXPORT;
+    public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.MEMBERS_ITEM_ORGANIZATION;
 
     public SearchDataSource() {
         setID(ID);
@@ -71,11 +73,12 @@ public final class SearchDataSource extends ProarcDataSource {
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
         modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         DataSourceField export = new DataSourceField(FIELD_EXPORT, FieldType.TEXT);
-
+        DataSourceField organization = new DataSourceField(FIELD_ORGANIZATION, FieldType.TEXT);
+        organization.setValueMap(Organization.getMap());
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         model.setForeignKey(MetaModelDataSource.ID + '.' + MetaModelDataSource.FIELD_PID);
 
-        setFields(label, model, pid, created, modified, owner, state, export);
+        setFields(label, model, pid, created, modified, owner, state, export, organization);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 

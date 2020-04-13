@@ -152,6 +152,7 @@ public class TiffImporter implements ImageImporter {
         RelationEditor relEditor = objHandler.relations();
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
+        relEditor.setOrganization(ctx.getOrganization());
         relEditor.setImportFile(f.getName());
         relEditor.write(0, null);
         // XXX use fedora-model:downloadFilename in RELS-INT or label of datastream to specify filename
@@ -221,10 +222,18 @@ public class TiffImporter implements ImageImporter {
     }
 
     private boolean existsFile(File originalPath, String filename, String path, String suffix, int lastFolder) {
-        return createFile(originalPath, filename, path, suffix, lastFolder).exists();
+        File file = createFile(originalPath, filename, path, suffix, lastFolder);
+        if (file == null) {
+            return false;
+        } else {
+            return file.exists();
+        }
     }
 
     private File createFile(File originalPath, String filename, String path, String suffix, int lastFolder) {
+        if (path == null || path.isEmpty() || path.equals("null")) {
+            return null;
+        }
         StringBuilder pathValue = new StringBuilder();
         pathValue.append(path).append("/");
         String value = getOriginalPath(originalPath, lastFolder);

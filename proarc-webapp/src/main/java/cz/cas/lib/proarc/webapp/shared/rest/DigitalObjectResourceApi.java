@@ -89,6 +89,7 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_ITEM_MODIFIED = "modified";
     public static final String MEMBERS_ITEM_PARENT = "parent";
     public static final String MEMBERS_ITEM_EXPORT = "export";
+    public static final String MEMBERS_ITEM_ORGANIZATION = "organization";
 
     public static final String MEMBERS_ROOT_PARAM = "root";
 
@@ -166,6 +167,7 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_CREATED = MEMBERS_ITEM_CREATED;
     public static final String ATM_ITEM_DEVICE = "device";
     public static final String ATM_ITEM_EXPORTRESULT = "exportResult";
+    public static final String ATM_ITEM_ORGANIZATION = "organization";
     public static final String ATM_ITEM_FILENAME = "filename";
     public static final String ATM_ITEM_MODEL = DIGITALOBJECT_MODEL;
     public static final String ATM_ITEM_MODIFIED = MEMBERS_ITEM_MODIFIED;
@@ -179,6 +181,7 @@ public final class DigitalObjectResourceApi {
     public static final String URNNBN_HIERARCHY = "hierarchy";
     public static final String URNNBN_RESOLVER = "resolverId";
     public static final String REINDEX_PATH = "reindexObjects";
+    public static final String UPDATE_ALL_OBJECTS_PATH = "updateAllObjectsObjects";
 
     public static final String URNNBN_ITEM_URNNBN = "urnnbn";
     public static final String URNNBN_ITEM_MESSAGE = "message";
@@ -203,7 +206,8 @@ public final class DigitalObjectResourceApi {
         PHRASE("phrase"),
         QUERY("query"),
         DELETED("deleted"),
-        ALPHABETICAL("alphabetical");
+        ALPHABETICAL("alphabetical"),
+        ALL("all");
         
         public static final String DEFAULT = "lastCreated";
         private String external;
