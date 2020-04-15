@@ -109,6 +109,11 @@ public class NdkNewPageMapper extends NdkMapper {
             for (ExtentDefinition extent : part.getExtent()) {
                 addElementType(dc.getCoverages(), extent.getStart().getValue());
             }
+            for (DetailDefinition detail : part.getDetail()) {
+                if (NUMBER_TYPE_PAGE_INDEX.equals(detail.getType()) && !detail.getNumber().isEmpty()) {
+                    addElementType(dc.getCoverages(), detail.getNumber().get(0).getValue());
+                }
+            }
         }
         addElementType(dc.getTypes(), "model:page");
         for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
