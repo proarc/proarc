@@ -228,7 +228,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED);
         FormItemIfFunction showIfPhrase = new StringMatchFunction(filterType, FILTER_PHRASE);
         FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ALPHABETICAL);
-        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_ALPHABETICAL);
+        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL);
 
         final TextItem phrase = createAdvancedItem(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM,
                 i18n.DigitalObjectSearchView_FilterPhrase_Title(), showIfPhrase);
@@ -257,7 +257,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM,
                         i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
                 createModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Title(), showIfCreatedModifiedQuery),
-                createSortItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfCreatedModifiedQuery),
+                createSortItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfAplhabetical),
                 createRememberModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Remember_Title(), showIfCreatedModifiedQuery),
                 createSpacerItem("100%", showIfCreatedModifiedQuery),
                 submit);
@@ -281,7 +281,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         LinkedHashMap<String, String> valueMap = new LinkedHashMap();
         valueMap.put("asc", i18n.DigitalObjectSearchView_FilterAsc_Title());
         valueMap.put("desc", i18n.DigitalObjectSearchView_FilterDesc_Title());
-        item.setDefaultValue("asc");
+        item.setDefaultValue("desc");
         item.setValueMap(valueMap);
         if (showIf != null) {
             item.setShowIfCondition(showIf);
