@@ -377,10 +377,31 @@ public class DigitalObjectResource {
                 items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, 100, sort.toString());
         }
         repairItemsModel(items);
+        items = sortItems(items);
         int count = items.size();
         int endRow = startRow + count - 1;
         //int total = count == 0 ? startRow : endRow + page;
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
+    }
+
+    private List<Item> sortItems(List<Item> items) {
+        List<Item> normal = new ArrayList<>();
+        List<Item> lower = new ArrayList<>();
+        List<Item> upper = new ArrayList<>();
+        for (Item item : items) {
+            if (item.getLabel() != null && item.getLabel().startsWith("\"")) {
+                upper.add(item);
+            } else if (item.getLabel() != null && item.getLabel().startsWith("„")) {
+                lower.add(item);
+            } else {
+                normal.add(item);
+            }
+        }
+        items.clear();
+        items.addAll(lower);
+        items.addAll(upper);
+        items.addAll(normal);
+        return items;
     }
 
     private void repairItemsModel(List<Item> items) {
