@@ -385,7 +385,7 @@ public class DigitalObjectResource {
 
     private void repairItemsModel(List<Item> items) {
         for (Item item : items) {
-            if (item.getOrganization().startsWith("info:fedora/")) {
+            if (item.getOrganization() != null && item.getOrganization().startsWith("info:fedora/")) {
                 item.setOrganization(item.getOrganization().substring(12));
             }
         }
