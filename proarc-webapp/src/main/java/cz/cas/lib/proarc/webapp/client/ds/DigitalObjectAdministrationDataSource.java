@@ -43,6 +43,10 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
     public static final String FIELD_DEVICE = DigitalObjectResourceApi.ATM_ITEM_DEVICE;
     public static final String FIELD_FILENAME = DigitalObjectResourceApi.ATM_ITEM_FILENAME;
     public static final String FIELD_EXPORT = DigitalObjectResourceApi.ATM_ITEM_EXPORTRESULT;
+    public static final String FIELD_NDK_EXPORT = DigitalObjectResourceApi.ATM_ITEM_NDK_EXPORT;
+    public static final String FIELD_ARCHIVE_EXPORT = DigitalObjectResourceApi.ATM_ITEM_ARCHIVE_EXPORT;
+    public static final String FIELD_KRAMERIUS_EXPORT = DigitalObjectResourceApi.ATM_ITEM_KRAMERIUS_EXPORT;
+    public static final String FIELD_CROSSREF_EXPORT = DigitalObjectResourceApi.ATM_ITEM_CROSSREF_EXPORT;
     public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION;
 
 
@@ -68,9 +72,13 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
         DataSourceTextField owner = new DataSourceTextField(FIELD_OWNER);
         DataSourceTextField state = new DataSourceTextField(FIELD_STATE);
         DataSourceTextField export = new DataSourceTextField(FIELD_EXPORT);
+        DataSourceTextField ndkExport = new DataSourceTextField(FIELD_NDK_EXPORT);
+        DataSourceTextField archiveExport = new DataSourceTextField(FIELD_ARCHIVE_EXPORT);
+        DataSourceTextField krameriusExport = new DataSourceTextField(FIELD_KRAMERIUS_EXPORT);
+        DataSourceTextField crossrefExport = new DataSourceTextField(FIELD_CROSSREF_EXPORT);
         DataSourceTextField organization = new DataSourceTextField(FIELD_ORGANIZATION);
 
-        setFields(pid, model, state, owner, created, modified, device, filename, export, organization);
+        setFields(pid, model, state, owner, created, modified, device, filename, export, organization, ndkExport, archiveExport, krameriusExport, crossrefExport);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

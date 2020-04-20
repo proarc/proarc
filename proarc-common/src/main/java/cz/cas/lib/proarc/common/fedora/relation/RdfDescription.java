@@ -76,6 +76,51 @@ public class RdfDescription {
     private String hasExport;
 
     /**
+     * RDF relation defines existence of NDK export.
+     *
+     * <p/>{@code <proarc-rels:hasNdkExport>1234<hasNdkExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasNdkExport;
+
+    /**
+     * RDF relation defines existence of Kramerius export.
+     *
+     * <p/>{@code <proarc-rels:hasKrameriusExport>1234<hasKrameriusExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasKrameriusExport;
+
+    /**
+     * RDF relation defines existence of Archive export.
+     *
+     * <p/>{@code <proarc-rels:hasArchiveExport>1234<hasArchiveExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasArchiveExport;
+
+    /**
+     * RDF relation defines existence of Cejsch export.
+     *
+     * <p/>{@code <proarc-rels:hasCejschExport>1234<hasCejschExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasCejschExport;
+
+    /**
+     * RDF relation defines existence of Crossref export.
+     *
+     * <p/>{@code <proarc-rels:hasCrossrefExport>1234<hasCrossrefExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasCrossrefExport;
+
+    /**
      * RDF relation referencing members of the digital object.
      *
      * <p/>{@code <fedora-rels-ext:hasMember rdf:resource="info:fedora/uuid:ebbd1d68-f5e0-4074-a2a6-19ecef6a6759"/>}
@@ -216,5 +261,45 @@ public class RdfDescription {
 
     public void setOrganization(RdfRelation organization) {
         this.organization = organization;
+    }
+
+    public String getHasNdkExport() {
+        return hasNdkExport;
+    }
+
+    public void setHasNdkExport(String hasNdkExport) {
+        this.hasNdkExport = hasNdkExport;
+    }
+
+    public String getHasKrameriusExport() {
+        return hasKrameriusExport;
+    }
+
+    public void setHasKrameriusExport(String hasKrameriusExport) {
+        this.hasKrameriusExport = hasKrameriusExport;
+    }
+
+    public String getHasArchiveExport() {
+        return hasArchiveExport;
+    }
+
+    public void setHasArchiveExport(String hasArchiveExport) {
+        this.hasArchiveExport = hasArchiveExport;
+    }
+
+    public String getHasCejschExport() {
+        return hasCejschExport;
+    }
+
+    public void setHasCejschExport(String hasCejschExport) {
+        this.hasCejschExport = hasCejschExport;
+    }
+
+    public String getHasCrossrefExport() {
+        return hasCrossrefExport;
+    }
+
+    public void setHasCrossrefExport(String hasCrossrefExport) {
+        this.hasCrossrefExport = hasCrossrefExport;
     }
 }
