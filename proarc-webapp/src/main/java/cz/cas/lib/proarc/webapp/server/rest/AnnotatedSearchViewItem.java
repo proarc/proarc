@@ -73,6 +73,22 @@ public abstract class AnnotatedSearchViewItem extends Item {
     @Override
     public abstract String getK0();
 
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_ARCHIVE_EXPORT)
+    @Override
+    public abstract Integer getHasArchiveExport();
+
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_KRAMERIUS_EXPORT)
+    @Override
+    public abstract Integer getHasKrameriusExport();
+
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_NDK_EXPORT)
+    @Override
+    public abstract Integer getHasNdkExport();
+
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_CROSSREF_EXPORT)
+    @Override
+    public abstract Integer getHasCrossrefExport();
+
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_EXPORT)
     @Override
     public abstract Integer getHasExport();

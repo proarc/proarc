@@ -132,6 +132,10 @@ public final class AtmEditor {
         atm.model = relationEditor.getModel();
         atm.export = relationEditor.getExportResult();
         atm.organization = relationEditor.getOrganization();
+        atm.archiveExport = relationEditor.getArchiveExportResult();
+        atm.krameriusExport = relationEditor.getKrameriusExportResult();
+        atm.ndkExport = relationEditor.getNdkExportResult();
+        atm.crossrefExport = relationEditor.getCrossrefExportResult();
         return atm;
     }
 
@@ -209,6 +213,10 @@ public final class AtmEditor {
         private String importFile;
         private String export;
         private String organization;
+        private String ndkExport;
+        private String krameriusExport;
+        private String archiveExport;
+        private String crossrefExport;
 
         public AtmItem() {
         }
@@ -259,6 +267,22 @@ public final class AtmEditor {
 
         public String getOrganization() {
             return organization;
+        }
+
+        public String getNdkExport() {
+            return ndkExport;
+        }
+
+        public String getKrameriusExport() {
+            return krameriusExport;
+        }
+
+        public String getArchiveExport() {
+            return archiveExport;
+        }
+
+        public String getCrossrefExport() {
+            return crossrefExport;
         }
     }
 

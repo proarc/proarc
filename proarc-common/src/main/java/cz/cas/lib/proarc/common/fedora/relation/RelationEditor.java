@@ -147,6 +147,78 @@ public final class RelationEditor {
     }
 
     /**
+     * Sets some identifier of the Ndk export action.
+     * @param result e.g. SIP ID or folder
+     * @throws DigitalObjectException failure
+     */
+    public void setNdkExportResult(String result) throws DigitalObjectException {
+        getRdf().getDescription().setHasNdkExport(result);
+    }
+
+    /**
+     * Gets a NDK export identifier.
+     * @return the identifier
+     * @throws DigitalObjectException  failure
+     */
+    public String getNdkExportResult() throws DigitalObjectException {
+        return getRdf().getDescription().getHasNdkExport();
+    }
+
+    /**
+     * Sets some identifier of the Kramerius export action.
+     * @param result e.g. SIP ID or folder
+     * @throws DigitalObjectException failure
+     */
+    public void setKrameriusExportResult(String result) throws DigitalObjectException {
+        getRdf().getDescription().setHasKrameriusExport(result);
+    }
+
+    /**
+     * Gets a Kramerius export identifier.
+     * @return the identifier
+     * @throws DigitalObjectException  failure
+     */
+    public String getKrameriusExportResult() throws DigitalObjectException {
+        return getRdf().getDescription().getHasKrameriusExport();
+    }
+
+    /**
+     * Sets some identifier of the Archive export action.
+     * @param result e.g. SIP ID or folder
+     * @throws DigitalObjectException failure
+     */
+    public void setArchiveExportResult(String result) throws DigitalObjectException {
+        getRdf().getDescription().setHasArchiveExport(result);
+    }
+
+    /**
+     * Gets a Archice export identifier.
+     * @return the identifier
+     * @throws DigitalObjectException  failure
+     */
+    public String getArchiveExportResult() throws DigitalObjectException {
+        return getRdf().getDescription().getHasArchiveExport();
+    }
+
+    /**
+     * Sets some identifier of the Ndk export action.
+     * @param result e.g. SIP ID or folder
+     * @throws DigitalObjectException failure
+     */
+    public void setCrossrefExportResult(String result) throws DigitalObjectException {
+        getRdf().getDescription().setHasCrossrefExport(result);
+    }
+
+    /**
+     * Gets a NDK export identifier.
+     * @return the identifier
+     * @throws DigitalObjectException  failure
+     */
+    public String getCrossrefExportResult() throws DigitalObjectException {
+        return getRdf().getDescription().getHasCrossrefExport();
+    }
+
+    /**
      * Relations defining object hierarchy graph.
      *
      * @return list of PIDs.

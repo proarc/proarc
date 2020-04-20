@@ -607,6 +607,10 @@ public final class SearchView {
          */
         private String k0;
         private String organization;
+        private String k1;
+        private String k2;
+        private String k3;
+        private String k4;
 
         public Item() {
         }
@@ -707,6 +711,82 @@ public final class SearchView {
             if (k0 != null && !k0.isEmpty()) {
                 try {
                     return Integer.parseInt(k0);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
+        public String getK1() {
+            return k1;
+        }
+
+        public void setK1(String k1) {
+            this.k1 = k1;
+        }
+
+        public Integer getHasNdkExport() {
+            if (k1 != null && !k1.isEmpty()) {
+                try {
+                    return Integer.parseInt(k1);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
+        public String getK2() {
+            return k2;
+        }
+
+        public void setK2(String k2) {
+            this.k2 = k2;
+        }
+
+        public Integer getHasKrameriusExport() {
+            if (k2 != null && !k2.isEmpty()) {
+                try {
+                    return Integer.parseInt(k2);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
+        public String getK3() {
+            return k3;
+        }
+
+        public void setK3(String k3) {
+            this.k3 = k3;
+        }
+
+        public Integer getHasArchiveExport() {
+            if (k3 != null && !k3.isEmpty()) {
+                try {
+                    return Integer.parseInt(k3);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
+        public String getK4() {
+            return k4;
+        }
+
+        public void setK4(String k4) {
+            this.k4 = k4;
+        }
+
+        public Integer getHasCrossrefExport() {
+            if (k4 != null && !k4.isEmpty()) {
+                try {
+                    return Integer.parseInt(k4);
                 } catch (NumberFormatException ex) {
                     // ignore
                 }

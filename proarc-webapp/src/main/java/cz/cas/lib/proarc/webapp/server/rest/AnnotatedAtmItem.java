@@ -76,4 +76,19 @@ public abstract class AnnotatedAtmItem extends AtmItem {
     @Override
     public abstract String getOrganization();
 
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_NDK_EXPORT)
+    @Override
+    public abstract String getNdkExport();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_KRAMERIUS_EXPORT)
+    @Override
+    public abstract  String getKrameriusExport();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_ARCHIVE_EXPORT)
+    @Override
+    public abstract  String getArchiveExport();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_CROSSREF_EXPORT)
+    @Override
+    public abstract String getCrossrefExport();
 }

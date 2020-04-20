@@ -67,6 +67,10 @@ public class RelationDataSource extends ProarcDataSource {
     public static final String FIELD_CREATED = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED;
     public static final String FIELD_MODIFIED = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED;
     public static final String FIELD_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_EXPORT;
+    public static final String FIELD_NDK_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_NDK_EXPORT;
+    public static final String FIELD_ARCHIVE_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_ARCHIVE_EXPORT;
+    public static final String FIELD_KRAMERIUS_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_KRAMERIUS_EXPORT;
+    public static final String FIELD_CROSSREF_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_CROSSREF_EXPORT;
     public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.MEMBERS_ITEM_ORGANIZATION;
 
     /**
@@ -101,9 +105,13 @@ public class RelationDataSource extends ProarcDataSource {
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
         modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         DataSourceField export = new DataSourceField(FIELD_EXPORT, FieldType.TEXT);
+        DataSourceField ndkExport = new DataSourceField(FIELD_NDK_EXPORT, FieldType.TEXT);
+        DataSourceField archiveExport = new DataSourceField(FIELD_ARCHIVE_EXPORT, FieldType.TEXT);
+        DataSourceField krameriusExport = new DataSourceField(FIELD_KRAMERIUS_EXPORT, FieldType.TEXT);
+        DataSourceField crossrefExport = new DataSourceField(FIELD_CROSSREF_EXPORT, FieldType.TEXT);
         DataSourceField organization = new DataSourceField(FIELD_ORGANIZATION, FieldType.TEXT);
 
-        setFields(pid, parent, label, model, created, modified, owner, export, organization);
+        setFields(pid, parent, label, model, created, modified, owner, export, ndkExport, archiveExport, krameriusExport, crossrefExport, organization);
         setTitleField(FIELD_LABEL);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));

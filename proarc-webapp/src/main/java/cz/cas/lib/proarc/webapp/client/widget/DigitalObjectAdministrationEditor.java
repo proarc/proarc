@@ -242,12 +242,32 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             export.setWidth("*");
             export.setCanEdit(Boolean.FALSE);
 
+            TextItem ndkExport = new TextItem(DigitalObjectAdministrationDataSource.FIELD_NDK_EXPORT,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Ndk_Export_Title());
+            ndkExport.setWidth("*");
+            ndkExport.setCanEdit(Boolean.FALSE);
+
+            TextItem archiveExport = new TextItem(DigitalObjectAdministrationDataSource.FIELD_ARCHIVE_EXPORT,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Archive_Export_Title());
+            archiveExport.setWidth("*");
+            archiveExport.setCanEdit(Boolean.FALSE);
+
+            TextItem krameriusExport = new TextItem(DigitalObjectAdministrationDataSource.FIELD_KRAMERIUS_EXPORT,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Kramerius_Export_Title());
+            krameriusExport.setWidth("*");
+            krameriusExport.setCanEdit(Boolean.FALSE);
+
+            TextItem crossrefExport = new TextItem(DigitalObjectAdministrationDataSource.FIELD_CROSSREF_EXPORT,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Crossref_Export_Title());
+            crossrefExport.setWidth("*");
+            crossrefExport.setCanEdit(Boolean.FALSE);
+
             ComboBoxItem organization = new ComboBoxItem(DigitalObjectAdministrationDataSource.FIELD_ORGANIZATION,
                     i18n.UsersView_ListHeader_Organization_Title());
             organization.setWidth(250);
             organization.setValueMap(Organization.getMap());
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export, organization);
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization);
             widget.setMembers(form);
         }
 
