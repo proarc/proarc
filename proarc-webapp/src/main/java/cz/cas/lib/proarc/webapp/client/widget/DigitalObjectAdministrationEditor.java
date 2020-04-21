@@ -36,6 +36,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectAdministrationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
@@ -267,7 +268,14 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             organization.setWidth(250);
             organization.setValueMap(Organization.getMap());
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization);
+            ComboBoxItem user = new ComboBoxItem(DigitalObjectAdministrationDataSource.FIELD_USER,
+                    i18n.UsersView_ListHeader_Proccesor_Title());
+            user.setWidth(250);
+            user.setOptionDataSource(UserDataSource.getInstance());
+            user.setValueField(UserDataSource.FIELD_USERNAME);
+            user.setDisplayField(UserDataSource.FIELD_USERNAME);
+
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user);
             widget.setMembers(form);
         }
 

@@ -36,6 +36,9 @@ public class RdfDescription {
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private RdfRelation organization;
 
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private RdfRelation user;
+
     @XmlAttribute(namespace = Relations.RDF_NS)
     private RelationResource about;
 
@@ -261,6 +264,14 @@ public class RdfDescription {
 
     public void setOrganization(RdfRelation organization) {
         this.organization = organization;
+    }
+
+    public RdfRelation getUser() {
+        return user;
+    }
+
+    public void setUser(RdfRelation user) {
+        this.user = user;
     }
 
     public String getHasNdkExport() {

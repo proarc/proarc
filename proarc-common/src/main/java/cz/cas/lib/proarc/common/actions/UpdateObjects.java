@@ -51,7 +51,15 @@ public class UpdateObjects {
             FedoraObject fo = dom.find(pid, null);
             DigitalObjectHandler doh = dom.createHandler(fo);
             RelationEditor relations = doh.relations();
-            relations.setOrganization(user.getOrganization());
+            if (relations.getOrganization() != null && relations.getUser() != null) {
+                return;
+            }
+            if (relations.getOrganization() == null) {
+                relations.setOrganization(user.getOrganization());
+            }
+            if (relations.getUser() == null) {
+                relations.setUser("all");
+            }
             relations.write(relations.getLastModified(), "Add organization to foxml");
             doh.commit();
         } catch (DigitalObjectException ex)  {

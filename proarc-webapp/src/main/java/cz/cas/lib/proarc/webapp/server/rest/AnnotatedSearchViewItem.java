@@ -97,4 +97,8 @@ public abstract class AnnotatedSearchViewItem extends Item {
     @Override
     public abstract String getOrganization();
 
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_USER)
+    @Override
+    public abstract String getUser();
+
 }

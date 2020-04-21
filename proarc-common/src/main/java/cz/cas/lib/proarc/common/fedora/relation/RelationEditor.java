@@ -98,6 +98,25 @@ public final class RelationEditor {
     }
 
     /**
+     * @return user of model
+     */
+    public String getUser() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getUser());
+    }
+
+    /**
+     * @param user of model
+     */
+    public void setUser(String user) throws DigitalObjectException {
+        if (user == null) {
+            user = "all";
+        }
+        Rdf rdf = getRdf();
+        rdf.getDescription().setUser(RdfRelation.fromPid(user));
+    }
+
+    /**
      * @param device PID of the device
      */
     public void setDevice(String device) throws DigitalObjectException {

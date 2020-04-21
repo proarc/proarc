@@ -288,6 +288,7 @@ public final class SearchView {
     private void repairItemsModel(List<Item> members) {
         for (Item item : members) {
             item.setOrganization(item.getOrganization().substring(12));
+            item.setUser(item.getUser().substring(12));
         }
     }
 
@@ -365,25 +366,26 @@ public final class SearchView {
     }
 
     public List<Item> findLastCreated(int offset, String model, String user, String sort) throws FedoraClientException, IOException {
-        return findLastCreated(offset, model, user, null, Integer.MAX_VALUE, sort);
+        return findLastCreated(offset, model, user, null, null, Integer.MAX_VALUE, sort);
     }
     
-    public List<Item> findLastCreated(int offset, String model, String user, String organization, int limit, String sort) throws FedoraClientException, IOException {
-        return findLast(offset, model, user, organization, limit, "$created " + sort);
+    public List<Item> findLastCreated(int offset, String model, String user, String organization, String username, int limit, String sort) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, organization, username, limit, "$created " + sort);
     }
 
-    public List<Item> findAlphabetical(int offset, String model, String user, String organization, int limit, String sort) throws IOException, FedoraClientException {
-        return findLast(offset, model, user, organization, limit, "$label " + sort);
+    public List<Item> findAlphabetical(int offset, String model, String user, String organization, String userName, int limit, String sort) throws IOException, FedoraClientException {
+        return findLast(offset, model, user, organization, userName, limit, "$label " + sort);
     }
 
-    public List<Item> findLastModified(int offset, String model, String user, String organization, int limit, String sort) throws FedoraClientException, IOException {
-        return findLast(offset, model, user, organization, limit, "$modified " + sort);
+    public List<Item> findLastModified(int offset, String model, String user, String organization, String username, int limit, String sort) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, organization, username, limit, "$modified " + sort);
     }
 
-    private List<Item> findLast(int offset, String model, String user, String organization, int limit, String orderBy) throws FedoraClientException, IOException {
+    private List<Item> findLast(int offset, String model, String user, String organization, String username, int limit, String orderBy) throws FedoraClientException, IOException {
         String modelFilter = "";
         String ownerFilter = "";
         String organizationFilter = "";
+        String userFilter = "";
         if (model != null && !model.isEmpty()) {
             modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
         }
@@ -394,11 +396,16 @@ public final class SearchView {
         if (organization != null) {
             organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
         }
+        if (username != null) {
+            userFilter = String.format("and       ($pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/%s>\n"
+                    + "or        $pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/all>)", username);
+        }
         String query = QUERY_LAST_CREATED.replace("${OFFSET}", String.valueOf(offset));
         query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${OWNER_FILTER}", ownerFilter);
         query = query.replace("${ORDERBY}", orderBy);
         query = query.replace("${ORGANIZATION}", organizationFilter);
+        query = query.replace("${USERNAME}", userFilter);
         LOG.fine(query);
         RiSearch search = buildSearch(query);
 
@@ -409,10 +416,11 @@ public final class SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
-    public List<Item> countModels(String model, String user, String organization) throws FedoraClientException, IOException {
+    public List<Item> countModels(String model, String user, String organization, String username) throws FedoraClientException, IOException {
         String modelFilter = "";
         String ownerFilter = "";
         String organizationFilter = "";
+        String userFilter = "";
         if (model != null && !model.isEmpty()) {
             modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
         }
@@ -423,10 +431,15 @@ public final class SearchView {
         if (organization != null) {
             organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
         }
+        if (username != null) {
+            userFilter = String.format("and       ($pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/%s>\n"
+                    + "or        $pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/all>)", username);
+        }
         String query = QUERY_COUNT_MODELS;
         query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${OWNER_FILTER}", ownerFilter);
         query = query.replace("${ORGANIZATION}", organizationFilter);
+        query = query.replace("${USERNAME}", userFilter);
         LOG.fine(query);
         RiSearch search = buildSearch(query);
 
@@ -600,13 +613,14 @@ public final class SearchView {
         private String parent;
         /** batch import ID. Optional for some queries */
         private Integer batchId;
+        private String organization;
+        private String user;
         /**
          * Synthetic name of count query. count(hasExport)
          * @see <a href='http://docs.mulgara.org/itqlcommands/select.html#o194'>
          *      Count Function</a>
          */
         private String k0;
-        private String organization;
         private String k1;
         private String k2;
         private String k3;
@@ -626,6 +640,15 @@ public final class SearchView {
         public void setOrganization(String organization) {
             this.organization = organization;
         }
+
+        public String getUser() {
+            return user;
+        }
+
+        public void setUser(String user) {
+            this.user = user;
+        }
+
 
         public String getCreated() {
             return created;
