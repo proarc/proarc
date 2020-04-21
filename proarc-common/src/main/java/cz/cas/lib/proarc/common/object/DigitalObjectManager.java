@@ -63,6 +63,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import static cz.cas.lib.proarc.common.object.DigitalObjectState.STATUS_NEW;
 
 /**
  * The helper to access and manipulate digital objects.
@@ -442,6 +443,7 @@ public class DigitalObjectManager {
             RelationEditor relations = doHandler.relations();
             relations.setModel(modelId);
             relations.setOrganization(user.getOrganization());
+            relations.setStatus(STATUS_NEW);
             if ("user".equals(user.getRole())) {
                 relations.setUser(user.getUserName());
             } else {

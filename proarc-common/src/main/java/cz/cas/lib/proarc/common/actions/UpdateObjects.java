@@ -14,9 +14,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Map;
+import static cz.cas.lib.proarc.common.object.DigitalObjectState.STATUS_NEW;
 
 public class UpdateObjects {
 
@@ -51,7 +52,7 @@ public class UpdateObjects {
             FedoraObject fo = dom.find(pid, null);
             DigitalObjectHandler doh = dom.createHandler(fo);
             RelationEditor relations = doh.relations();
-            if (relations.getOrganization() != null && relations.getUser() != null) {
+            if (relations.getOrganization() != null && relations.getUser() != null && relations.getStatus() != null) {
                 return;
             }
             if (relations.getOrganization() == null) {
@@ -59,6 +60,9 @@ public class UpdateObjects {
             }
             if (relations.getUser() == null) {
                 relations.setUser("all");
+            }
+            if (relations.getStatus() == null) {
+                relations.setStatus(STATUS_NEW);
             }
             relations.write(relations.getLastModified(), "Add organization to foxml");
             doh.commit();

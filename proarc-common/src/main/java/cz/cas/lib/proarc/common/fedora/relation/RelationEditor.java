@@ -117,6 +117,22 @@ public final class RelationEditor {
     }
 
     /**
+     * @return state of model
+     */
+    public String getStatus() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getStatus());
+    }
+
+    /**
+     * @param status of model
+     */
+    public void setStatus(String status) throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setStatus(RdfRelation.fromPid(status));
+    }
+
+    /**
      * @param device PID of the device
      */
     public void setDevice(String device) throws DigitalObjectException {

@@ -1456,6 +1456,7 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_STATUS) String status,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName
             ) throws IOException, DigitalObjectException {
 
@@ -1466,9 +1467,9 @@ public class DigitalObjectResource {
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, organization, userName, session.asFedoraLog(), user.getRole());
+            editor.write(deviceId, organization, userName, status, session.asFedoraLog(), user.getRole());
             fobject.flush();
-            editor.setChild(pid, organization, userName, appConfig, search, session.asFedoraLog());
+            editor.setChild(pid, organization, userName, status, appConfig, search, session.asFedoraLog());
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);
             result.add(atm);
