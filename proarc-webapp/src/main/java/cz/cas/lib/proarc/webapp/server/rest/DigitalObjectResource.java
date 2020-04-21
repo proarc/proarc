@@ -320,18 +320,24 @@ public class DigitalObjectResource {
         RemoteStorage remote = RemoteStorage.getInstance(appConfig);
         SearchView search = remote.getSearch(locale);
         String organization = user.getRole() == null || user.getRole().isEmpty() || UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getOrganization();
+        String username = user.getRole() == null
+                || user.getRole().isEmpty()
+                || UserRole.ROLE_SUPERADMIN.equals(user.getRole())
+                || UserRole.ROLE_ADMIN.equals(user.getRole())
+                || !appConfig.getSearchOptions().getSearchFilterProcessor() ? null : user.getUserName();
 
         List<Item> items;
         int total = 0;
         int page = 20;
         switch (type) {
             case ALPHABETICAL:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization).size();
-                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
+                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
+                items = sortItems(items, sort);
                 break;
             case LAST_MODIFIED:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization).size();
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
+                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
@@ -373,18 +379,17 @@ public class DigitalObjectResource {
                 total = items.size();
                 break;
             default:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization).size();
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
         }
         repairItemsModel(items);
-        items = sortItems(items);
         int count = items.size();
         int endRow = startRow + count - 1;
         //int total = count == 0 ? startRow : endRow + page;
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
     }
 
-    private List<Item> sortItems(List<Item> items) {
+    private List<Item> sortItems(List<Item> items, SearchSort sort) {
         List<Item> normal = new ArrayList<>();
         List<Item> lower = new ArrayList<>();
         List<Item> upper = new ArrayList<>();
@@ -398,9 +403,15 @@ public class DigitalObjectResource {
             }
         }
         items.clear();
-        items.addAll(lower);
-        items.addAll(upper);
-        items.addAll(normal);
+        if (SearchSort.ASC.equals(sort)) {
+            items.addAll(lower);
+            items.addAll(upper);
+            items.addAll(normal);
+        } else {
+            items.addAll(normal);
+            items.addAll(upper);
+            items.addAll(lower);
+        }
         return items;
     }
 
@@ -408,6 +419,9 @@ public class DigitalObjectResource {
         for (Item item : items) {
             if (item.getOrganization() != null && item.getOrganization().startsWith("info:fedora/")) {
                 item.setOrganization(item.getOrganization().substring(12));
+            }
+            if (item.getUser() != null && item.getUser().startsWith("info:fedora/")) {
+                item.setUser(item.getUser().substring(12));
             }
         }
     }
@@ -1441,7 +1455,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId,
-            @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName
             ) throws IOException, DigitalObjectException {
 
         ArrayList<AtmItem> result = new ArrayList<AtmItem>(pids.size());
@@ -1451,9 +1466,9 @@ public class DigitalObjectResource {
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, organization, session.asFedoraLog(), user.getRole());
+            editor.write(deviceId, organization, userName, session.asFedoraLog(), user.getRole());
             fobject.flush();
-            editor.setChildOrganization(pid, organization, appConfig, search, session.asFedoraLog());
+            editor.setChild(pid, organization, userName, appConfig, search, session.asFedoraLog());
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);
             result.add(atm);

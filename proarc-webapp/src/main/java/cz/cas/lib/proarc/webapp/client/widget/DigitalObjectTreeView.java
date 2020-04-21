@@ -104,10 +104,6 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                 i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
         TreeGridField export = new TreeGridField(SearchDataSource.FIELD_EXPORT,
                 i18n.DigitalObjectSearchView_ListHeaderExport_Title(), 100);
-        ListGridField organization = new ListGridField(SearchDataSource.FIELD_ORGANIZATION,
-                i18n.DigitalObjectSearchView_ListHeaderOrganization_Title(), 100);
-        organization.setHidden(true);
-        organization.setValueMap(Organization.getMap());
         export.setCellFormatter(new CellFormatter() {
 
             @Override
@@ -117,7 +113,21 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-
+        ListGridField organization = new ListGridField(SearchDataSource.FIELD_ORGANIZATION,
+                i18n.DigitalObjectSearchView_ListHeaderOrganization_Title(), 100);
+        organization.setHidden(true);
+        organization.setValueMap(Organization.getMap());
+        ListGridField user = new ListGridField(SearchDataSource.FIELD_USER,
+                i18n.UsersView_ListHeader_Proccesor_Title(), 100);
+        user.setHidden(true);
+        user.setCellFormatter(new CellFormatter() {
+            @Override
+            public String format(Object value, ListGridRecord listGridRecord, int i, int i1) {
+                return value == null || "all".equals(value)
+                        ? i18n.UsersView_ListHeader_Proccesors_All_Title()
+                        : value.toString();
+                }
+            });
         ListGridField ndkExport = new ListGridField(SearchDataSource.FIELD_NDK_EXPORT,
                 i18n.DigitalObjectEditor_AdministrationEditor_Ndk_Export_Title(), 100);
         ndkExport.setHidden(true);
@@ -166,7 +176,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, export, ndkExport, archiveExport, krameriusExport, crossrefExport, organization);
+        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, export, ndkExport, archiveExport, krameriusExport, crossrefExport, organization, user);
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18n.DigitalObjectTreeView_EmptySelection_Msg());

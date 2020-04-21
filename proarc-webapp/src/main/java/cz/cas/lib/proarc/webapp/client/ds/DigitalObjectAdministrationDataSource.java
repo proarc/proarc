@@ -48,6 +48,7 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
     public static final String FIELD_KRAMERIUS_EXPORT = DigitalObjectResourceApi.ATM_ITEM_KRAMERIUS_EXPORT;
     public static final String FIELD_CROSSREF_EXPORT = DigitalObjectResourceApi.ATM_ITEM_CROSSREF_EXPORT;
     public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION;
+    public static final String FIELD_USER = DigitalObjectResourceApi.ATM_ITEM_USER;
 
 
     public static DigitalObjectAdministrationDataSource getInstance() {
@@ -77,8 +78,9 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
         DataSourceTextField krameriusExport = new DataSourceTextField(FIELD_KRAMERIUS_EXPORT);
         DataSourceTextField crossrefExport = new DataSourceTextField(FIELD_CROSSREF_EXPORT);
         DataSourceTextField organization = new DataSourceTextField(FIELD_ORGANIZATION);
+        DataSourceTextField user = new DataSourceTextField(FIELD_USER);
 
-        setFields(pid, model, state, owner, created, modified, device, filename, export, organization, ndkExport, archiveExport, krameriusExport, crossrefExport);
+        setFields(pid, model, state, owner, created, modified, device, filename, export, organization, user, ndkExport, archiveExport, krameriusExport, crossrefExport);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

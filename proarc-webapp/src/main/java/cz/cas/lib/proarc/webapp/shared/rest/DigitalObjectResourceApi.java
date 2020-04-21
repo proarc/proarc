@@ -94,6 +94,7 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_ITEM_KRAMERIUS_EXPORT = "krameriusExport";
     public static final String MEMBERS_ITEM_CROSSREF_EXPORT = "crossrefExport";
     public static final String MEMBERS_ITEM_ORGANIZATION = "organization";
+    public static final String MEMBERS_ITEM_USER = "processor";
 
     public static final String MEMBERS_ROOT_PARAM = "root";
 
@@ -176,6 +177,7 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_KRAMERIUS_EXPORT = "krameriusExportResult";
     public static final String ATM_ITEM_CROSSREF_EXPORT = "crossrefExportResult";
     public static final String ATM_ITEM_ORGANIZATION = "organization";
+    public static final String ATM_ITEM_USER = "userProcessor";
     public static final String ATM_ITEM_FILENAME = "filename";
     public static final String ATM_ITEM_MODEL = DIGITALOBJECT_MODEL;
     public static final String ATM_ITEM_MODIFIED = MEMBERS_ITEM_MODIFIED;

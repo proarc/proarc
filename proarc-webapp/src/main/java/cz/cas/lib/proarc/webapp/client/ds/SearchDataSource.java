@@ -56,6 +56,7 @@ public final class SearchDataSource extends ProarcDataSource {
     public static final String FIELD_KRAMERIUS_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_KRAMERIUS_EXPORT;
     public static final String FIELD_CROSSREF_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_CROSSREF_EXPORT;
     public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.MEMBERS_ITEM_ORGANIZATION;
+    public static final String FIELD_USER = DigitalObjectResourceApi.MEMBERS_ITEM_USER;
 
     public SearchDataSource() {
         setID(ID);
@@ -82,11 +83,12 @@ public final class SearchDataSource extends ProarcDataSource {
         DataSourceField krameriusExport = new DataSourceField(FIELD_KRAMERIUS_EXPORT, FieldType.TEXT);
         DataSourceField crossreffExport = new DataSourceField(FIELD_CROSSREF_EXPORT, FieldType.TEXT);
         DataSourceField organization = new DataSourceField(FIELD_ORGANIZATION, FieldType.TEXT);
+        DataSourceField user = new DataSourceField(FIELD_USER, FieldType.TEXT);
         organization.setValueMap(Organization.getMap());
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         model.setForeignKey(MetaModelDataSource.ID + '.' + MetaModelDataSource.FIELD_PID);
 
-        setFields(label, model, pid, created, modified, owner, state, export, ndkExport, archiveExport, krameriusExport, crossreffExport, organization);
+        setFields(label, model, pid, created, modified, owner, state, export, ndkExport, archiveExport, krameriusExport, crossreffExport, organization, user);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 

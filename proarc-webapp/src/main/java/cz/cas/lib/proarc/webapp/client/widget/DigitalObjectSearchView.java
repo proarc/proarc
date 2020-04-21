@@ -151,6 +151,17 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         ListGridField organization = new ListGridField(SearchDataSource.FIELD_ORGANIZATION,
                 i18n.DigitalObjectSearchView_ListHeaderOrganization_Title(), 100);
         organization.setHidden(true);
+        ListGridField user = new ListGridField(SearchDataSource.FIELD_USER,
+                i18n.UsersView_ListHeader_Proccesor_Title(), 100);
+        user.setHidden(true);
+        user.setCellFormatter(new CellFormatter() {
+            @Override
+            public String format(Object value, ListGridRecord listGridRecord, int i, int i1) {
+                return value == null || "all".equals(value)
+                        ? i18n.UsersView_ListHeader_Proccesors_All_Title()
+                        : value.toString();
+            }
+        });
         ListGridField export = new ListGridField(SearchDataSource.FIELD_EXPORT,
                 i18n.DigitalObjectSearchView_ListHeaderExport_Title(), 100);
         export.setCellFormatter(new CellFormatter() {
@@ -210,7 +221,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        grid.setFields(label, model, pid, created, modified, owner, state, export, ndkExport, krameriusExport, archiveExport,crossrefExport, organization);
+        grid.setFields(label, model, pid, created, modified, owner, state, export, ndkExport, krameriusExport, archiveExport,crossrefExport, organization, user);
         grid.setContextMenu(Actions.createMenu());
         grid.addSelectionUpdatedHandler((event) -> {
             selectionCache.setSelection();
