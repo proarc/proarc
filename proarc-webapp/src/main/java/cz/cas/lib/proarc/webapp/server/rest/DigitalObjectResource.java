@@ -423,6 +423,9 @@ public class DigitalObjectResource {
             if (item.getUser() != null && item.getUser().startsWith("info:fedora/")) {
                 item.setUser(item.getUser().substring(12));
             }
+            if (item.getStatus() != null && item.getStatus().startsWith("info:fedora/")) {
+                item.setStatus(item.getStatus().substring(12));
+            }
         }
     }
 

@@ -162,6 +162,10 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                         : value.toString();
             }
         });
+        ListGridField status = new ListGridField(SearchDataSource.FIELD_STATUS,
+                i18n.DigitalObjectEditor_AdministrationEditor_Status_Title(), 100);
+        status.setValueMap(DigitalObjectState.getMap(i18n));
+        status.setHidden(true);
         ListGridField export = new ListGridField(SearchDataSource.FIELD_EXPORT,
                 i18n.DigitalObjectSearchView_ListHeaderExport_Title(), 100);
         export.setCellFormatter(new CellFormatter() {
@@ -221,7 +225,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        grid.setFields(label, model, pid, created, modified, owner, state, export, ndkExport, krameriusExport, archiveExport,crossrefExport, organization, user);
+        grid.setFields(label, model, pid, created, modified, owner, state, organization, user, status, export, ndkExport, krameriusExport, archiveExport,crossrefExport);
         grid.setContextMenu(Actions.createMenu());
         grid.addSelectionUpdatedHandler((event) -> {
             selectionCache.setSelection();

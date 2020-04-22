@@ -73,6 +73,7 @@ public class RelationDataSource extends ProarcDataSource {
     public static final String FIELD_CROSSREF_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_CROSSREF_EXPORT;
     public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.MEMBERS_ITEM_ORGANIZATION;
     public static final String FIELD_USER = DigitalObjectResourceApi.MEMBERS_ITEM_USER;
+    public static final String FIELD_STATUS = DigitalObjectResourceApi.MEMBERS_ITEM_STATUS;
 
     /**
      * Attribute holding PIDs of the reorder update {@link #reorderChildren operation}.
@@ -112,8 +113,9 @@ public class RelationDataSource extends ProarcDataSource {
         DataSourceField crossrefExport = new DataSourceField(FIELD_CROSSREF_EXPORT, FieldType.TEXT);
         DataSourceField organization = new DataSourceField(FIELD_ORGANIZATION, FieldType.TEXT);
         DataSourceField user = new DataSourceField(FIELD_USER, FieldType.TEXT);
+        DataSourceField status = new DataSourceField(FIELD_STATUS, FieldType.TEXT);
 
-        setFields(pid, parent, label, model, created, modified, owner, export, ndkExport, archiveExport, krameriusExport, crossrefExport, organization, user);
+        setFields(pid, parent, label, model, created, modified, owner, export, ndkExport, archiveExport, krameriusExport, crossrefExport, organization, user, status);
         setTitleField(FIELD_LABEL);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
