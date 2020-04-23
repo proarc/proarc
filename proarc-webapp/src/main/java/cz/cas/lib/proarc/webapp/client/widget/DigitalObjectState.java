@@ -2,12 +2,12 @@ package cz.cas.lib.proarc.webapp.client.widget;
 
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import java.util.LinkedHashMap;
-import static cz.cas.lib.proarc.common.object.DigitalObjectState.STATUS_ASSIGN;
-import static cz.cas.lib.proarc.common.object.DigitalObjectState.STATUS_CONNECTED;
-import static cz.cas.lib.proarc.common.object.DigitalObjectState.STATUS_DESCRIBED;
-import static cz.cas.lib.proarc.common.object.DigitalObjectState.STATUS_EXPORTED;
-import static cz.cas.lib.proarc.common.object.DigitalObjectState.STATUS_NEW;
-import static cz.cas.lib.proarc.common.object.DigitalObjectState.STATUS_PROCESSING;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_ASSIGN;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_CONNECTED;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_DESCRIBED;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_PROCESSING;
 
 public class DigitalObjectState {
 

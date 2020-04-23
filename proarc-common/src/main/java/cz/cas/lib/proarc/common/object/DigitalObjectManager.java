@@ -63,7 +63,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import static cz.cas.lib.proarc.common.object.DigitalObjectState.STATUS_NEW;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
  * The helper to access and manipulate digital objects.

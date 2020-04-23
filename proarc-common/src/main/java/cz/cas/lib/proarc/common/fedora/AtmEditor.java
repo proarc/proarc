@@ -30,6 +30,11 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_ASSIGN;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_CONNECTED;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_DESCRIBED;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
  * Handles administrative and technical metadata of digital objects.
@@ -62,6 +67,7 @@ public final class AtmEditor {
      * @throws DigitalObjectException
      */
     public void write(String deviceId, String organization, String user, String status, String message, String role) throws DigitalObjectException {
+        boolean changedUser = false;
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
         // check deviceId exist
@@ -92,6 +98,7 @@ public final class AtmEditor {
                     throw new DigitalObjectException(fobject.getPid(), "Nemáte právo měnit zpracovatele záznamu.");
                 }
                 relationEditor.setUser(user);
+                changedUser = true;
                 write = true;
             }
         }
@@ -100,6 +107,9 @@ public final class AtmEditor {
             String newVal = NULL.equals(status) ? null : status;
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
                 relationEditor.setStatus(status);
+                write = true;
+            } else if (newVal.equals(oldVal) && changedUser){
+                relationEditor.setStatus(STATUS_ASSIGN);
                 write = true;
             }
         }
@@ -112,6 +122,7 @@ public final class AtmEditor {
      * Updates metadata.
      * @param organization  ID to update. Use {@link #NULL} for clearing
      * @param user  ID to update. Use {@link #NULL} for clearing
+     * @param status  ID to update. Use {@link #NULL} for clearing
      * @param message audit message
      * @throws DigitalObjectException
      */
@@ -135,16 +146,36 @@ public final class AtmEditor {
                 write = true;
             }
         }
+        if (STATUS_NEW.equals(status) || STATUS_DESCRIBED.equals(status) || STATUS_EXPORTED.equals(status) || STATUS_CONNECTED.equals(status)) {
+            if (status != null && !status.isEmpty()) {
+                String oldVal = relationEditor.getStatus();
+                String newVal = NULL.equals(status) ? null : status;
+                if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                    relationEditor.setStatus(status);
+                    write = true;
+                }
+            }
+        }
+        if (write) {
+            relationEditor.write(relationEditor.getLastModified(), message);
+        }
+    }
+
+    /**
+     * Updates metadata.
+     * @param status  ID to update. Use {@link #NULL} for clearing
+     * @param message audit message
+     * @throws DigitalObjectException
+     */
+    public void writeStatus(String status, String message) throws DigitalObjectException {
+        RelationEditor relationEditor = new RelationEditor(fobject);
         if (status != null && !status.isEmpty()) {
             String oldVal = relationEditor.getStatus();
             String newVal = NULL.equals(status) ? null : status;
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
                 relationEditor.setStatus(status);
-                write = true;
+                relationEditor.write(relationEditor.getLastModified(), message);
             }
-        }
-        if (write) {
-            relationEditor.write(relationEditor.getLastModified(), message);
         }
     }
 
