@@ -1,4 +1,4 @@
-select     $pid $model $owner $label $state $created $modified $organization $user
+select     $pid $model $owner $label $state $created $modified $organization $user $status
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasExport>       $export)
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasNdkExport>       $export)
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasArchiveExport>       $export)
@@ -19,5 +19,6 @@ and        $pid     <http://proarc.lib.cas.cz/relations#organization>     $organ
 ${ORGANIZATION}
 and        $pid     <http://proarc.lib.cas.cz/relations#user>     $user
 ${USERNAME}
+and        $pid     <http://proarc.lib.cas.cz/relations#status>     $status
 order by   ${ORDERBY}
 offset     ${OFFSET}

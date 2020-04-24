@@ -101,4 +101,8 @@ public abstract class AnnotatedSearchViewItem extends Item {
     @Override
     public abstract String getUser();
 
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_STATUS)
+    @Override
+    public abstract String getStatus();
+
 }

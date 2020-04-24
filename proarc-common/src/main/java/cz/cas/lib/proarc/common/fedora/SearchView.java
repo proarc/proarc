@@ -289,6 +289,7 @@ public final class SearchView {
         for (Item item : members) {
             item.setOrganization(item.getOrganization().substring(12));
             item.setUser(item.getUser().substring(12));
+            item.setStatus(item.getStatus().substring(12));
         }
     }
 
@@ -615,6 +616,7 @@ public final class SearchView {
         private Integer batchId;
         private String organization;
         private String user;
+        private String status;
         /**
          * Synthetic name of count query. count(hasExport)
          * @see <a href='http://docs.mulgara.org/itqlcommands/select.html#o194'>
@@ -649,6 +651,13 @@ public final class SearchView {
             this.user = user;
         }
 
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
 
         public String getCreated() {
             return created;

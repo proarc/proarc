@@ -95,4 +95,8 @@ public abstract class AnnotatedAtmItem extends AtmItem {
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_CROSSREF_EXPORT)
     @Override
     public abstract String getCrossrefExport();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_STATUS)
+    @Override
+    public abstract String getStatus();
 }

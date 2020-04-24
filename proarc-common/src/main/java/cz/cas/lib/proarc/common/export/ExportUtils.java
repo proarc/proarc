@@ -30,6 +30,7 @@ import java.io.StringWriter;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
 
 /**
  *
@@ -117,20 +118,24 @@ public final class ExportUtils {
             case "NDK":
                 relations.setNdkExportResult(target);
                 relations.setExportResult(target);
+                relations.setStatus(STATUS_EXPORTED);
                 break;
             case "KRAMERIUS":
                 relations.setKrameriusExportResult(target);
                 relations.setExportResult(target);
+                relations.setStatus(STATUS_EXPORTED);
                 break;
             case "ARCHIVE":
                 relations.setNdkExportResult(target);
                 String archiveTarget = createArchiveTarget(target);
                 relations.setArchiveExportResult(archiveTarget);
                 relations.setExportResult(archiveTarget);
+                relations.setStatus(STATUS_EXPORTED);
                 break;
             case "CROSREFF":
                 relations.setCrossrefExportResult(target);
                 relations.setExportResult(target);
+                relations.setStatus(STATUS_EXPORTED);
                 break;
         }
         relations.write(relations.getLastModified(), log);

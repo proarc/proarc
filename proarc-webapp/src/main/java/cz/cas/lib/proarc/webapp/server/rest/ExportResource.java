@@ -393,8 +393,6 @@ public class ExportResource {
                 } catch (IOException e) {
                     throw new DigitalObjectException(e.getMessage());
                 }
-
-
             }
         }
     }

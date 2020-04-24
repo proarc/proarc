@@ -275,7 +275,12 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             user.setValueField(UserDataSource.FIELD_USERNAME);
             user.setDisplayField(UserDataSource.FIELD_USERNAME);
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user);
+            ComboBoxItem status = new ComboBoxItem(DigitalObjectAdministrationDataSource.FIELD_STATUS,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Status_Title());
+            status.setWidth(250);
+            status.setValueMap(DigitalObjectState.getMap(i18n));
+
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status);
             widget.setMembers(form);
         }
 

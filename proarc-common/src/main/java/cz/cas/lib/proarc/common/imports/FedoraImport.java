@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
@@ -88,6 +89,8 @@ public final class FedoraImport {
             addParentMembers(batch, parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
             deleteImportFolder(batch);
+            DigitalObjectStatusUtils.setState(batch.getParentPid(), DigitalObjectStatusUtils.STATUS_CONNECTED);
+
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
             batch.setState(Batch.State.INGESTING_FAILED);

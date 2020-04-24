@@ -30,6 +30,11 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_ASSIGN;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_CONNECTED;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_DESCRIBED;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
  * Handles administrative and technical metadata of digital objects.
@@ -61,15 +66,17 @@ public final class AtmEditor {
      * @param role
      * @throws DigitalObjectException
      */
-    public void write(String deviceId, String organization, String user, String message, String role) throws DigitalObjectException {
+    public void write(String deviceId, String organization, String user, String status, String message, String role) throws DigitalObjectException {
+        boolean changedUser = false;
         RelationEditor relationEditor = new RelationEditor(fobject);
+        boolean write = false;
         // check deviceId exist
         if (deviceId != null && !deviceId.isEmpty()) {
             String oldVal = relationEditor.getDevice();
             String newVal = NULL.equals(deviceId) ? null : deviceId;
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
                 relationEditor.setDevice(newVal);
-                relationEditor.write(relationEditor.getLastModified(), message);
+                write = true;
             }
         }
         if (organization != null && !organization.isEmpty()) {
@@ -80,7 +87,7 @@ public final class AtmEditor {
                     throw new DigitalObjectException(fobject.getPid(), "Nemáte právo měnit organizaci záznamu.");
                 }
                 relationEditor.setOrganization(organization);
-                relationEditor.write(relationEditor.getLastModified(), message);
+                write = true;
             }
         }
         if (user != null && !user.isEmpty()) {
@@ -91,8 +98,23 @@ public final class AtmEditor {
                     throw new DigitalObjectException(fobject.getPid(), "Nemáte právo měnit zpracovatele záznamu.");
                 }
                 relationEditor.setUser(user);
-                relationEditor.write(relationEditor.getLastModified(), message);
+                changedUser = true;
+                write = true;
             }
+        }
+        if (status != null && !status.isEmpty()) {
+            String oldVal = relationEditor.getStatus();
+            String newVal = NULL.equals(status) ? null : status;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                relationEditor.setStatus(status);
+                write = true;
+            } else if (newVal.equals(oldVal) && changedUser){
+                relationEditor.setStatus(STATUS_ASSIGN);
+                write = true;
+            }
+        }
+        if (write) {
+            relationEditor.write(relationEditor.getLastModified(), message);
         }
     }
 
@@ -100,10 +122,11 @@ public final class AtmEditor {
      * Updates metadata.
      * @param organization  ID to update. Use {@link #NULL} for clearing
      * @param user  ID to update. Use {@link #NULL} for clearing
+     * @param status  ID to update. Use {@link #NULL} for clearing
      * @param message audit message
      * @throws DigitalObjectException
      */
-    public void writeOrganizationAndUser(String organization, String user, String message) throws DigitalObjectException {
+    public void writeOrganizationUserState(String organization, String user, String status, String message) throws DigitalObjectException {
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
         // check organization exist
@@ -123,8 +146,36 @@ public final class AtmEditor {
                 write = true;
             }
         }
+        if (STATUS_NEW.equals(status) || STATUS_DESCRIBED.equals(status) || STATUS_EXPORTED.equals(status) || STATUS_CONNECTED.equals(status)) {
+            if (status != null && !status.isEmpty()) {
+                String oldVal = relationEditor.getStatus();
+                String newVal = NULL.equals(status) ? null : status;
+                if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                    relationEditor.setStatus(status);
+                    write = true;
+                }
+            }
+        }
         if (write) {
             relationEditor.write(relationEditor.getLastModified(), message);
+        }
+    }
+
+    /**
+     * Updates metadata.
+     * @param status  ID to update. Use {@link #NULL} for clearing
+     * @param message audit message
+     * @throws DigitalObjectException
+     */
+    public void writeStatus(String status, String message) throws DigitalObjectException {
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (status != null && !status.isEmpty()) {
+            String oldVal = relationEditor.getStatus();
+            String newVal = NULL.equals(status) ? null : status;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                relationEditor.setStatus(status);
+                relationEditor.write(relationEditor.getLastModified(), message);
+            }
         }
     }
 
@@ -157,6 +208,7 @@ public final class AtmEditor {
         atm.export = relationEditor.getExportResult();
         atm.organization = relationEditor.getOrganization();
         atm.user = relationEditor.getUser();
+        atm.status = relationEditor.getStatus();
         atm.archiveExport = relationEditor.getArchiveExportResult();
         atm.krameriusExport = relationEditor.getKrameriusExportResult();
         atm.ndkExport = relationEditor.getNdkExportResult();
@@ -164,12 +216,12 @@ public final class AtmEditor {
         return atm;
     }
 
-    public void setChild(String parentPid, String organization, String user, AppConfiguration appConfig, SearchView search, String sessionLog) throws DigitalObjectException, IOException {
+    public void setChild(String parentPid, String organization, String user, String state, AppConfiguration appConfig, SearchView search, String sessionLog) throws DigitalObjectException, IOException {
         List<String> pids = findElements(parentPid, appConfig);
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, appConfig);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.writeOrganizationAndUser(organization, user, sessionLog);
+            editor.writeOrganizationUserState(organization, user, state, sessionLog);
             fobject.flush();
         }
     }
@@ -243,6 +295,7 @@ public final class AtmEditor {
         private String krameriusExport;
         private String archiveExport;
         private String crossrefExport;
+        private String status;
 
         public AtmItem() {
         }
@@ -313,6 +366,10 @@ public final class AtmEditor {
 
         public String getCrossrefExport() {
             return crossrefExport;
+        }
+
+        public String getStatus() {
+            return status;
         }
     }
 

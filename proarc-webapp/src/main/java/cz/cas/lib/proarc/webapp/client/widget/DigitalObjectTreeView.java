@@ -128,6 +128,10 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                         : value.toString();
                 }
             });
+        ListGridField status = new ListGridField(SearchDataSource.FIELD_STATUS,
+                i18n.DigitalObjectEditor_AdministrationEditor_Status_Title(), 100);
+        status.setValueMap(DigitalObjectState.getMap(i18n));
+        status.setHidden(true);
         ListGridField ndkExport = new ListGridField(SearchDataSource.FIELD_NDK_EXPORT,
                 i18n.DigitalObjectEditor_AdministrationEditor_Ndk_Export_Title(), 100);
         ndkExport.setHidden(true);
@@ -176,7 +180,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, export, ndkExport, archiveExport, krameriusExport, crossrefExport, organization, user);
+        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, organization, user, status, export, ndkExport, archiveExport, krameriusExport, crossrefExport);
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18n.DigitalObjectTreeView_EmptySelection_Msg());
