@@ -150,6 +150,7 @@ public class Const {
     public final static Map<String, String> typeMap = new HashMap<>();
     public final static Map<String, String> typeNameMap = new HashMap<>();
     public final static Map<String, String> mimeToFmtMap = new HashMap<>();
+    public final static Map<String, String> mimeToExtensionMap = new HashMap<>();
     // Tech MD creation constants
     public final static Map<String, String> dataStreamToModel = new HashMap<>();
     public final static Map<String, String> dataStreamToEvent = new HashMap<>();
@@ -166,13 +167,22 @@ public class Const {
         allowedNdkEbornIdentifiers.addAll(allowedNdkIdentifiers);
         allowedNdkEbornIdentifiers.add("uuid");
         mimeToFmtMap.put("image/tiff", "fmt/353");
-        mimeToFmtMap.put("image/jp2", "fmt/151");
+        mimeToFmtMap.put("image/jp2", "x-fmt/392");
         mimeToFmtMap.put("text/xml", "fmt/101");
         mimeToFmtMap.put("text/plain", "fmt/611");
         mimeToFmtMap.put("application/pdf", "fmt/18");
         mimeToFmtMap.put("image/jpeg", "fmt/44");
         mimeToFmtMap.put("audio/wav", "fmt/141");
         mimeToFmtMap.put("audio/mpeg", "fmt/134");
+
+        mimeToExtensionMap.put("image/tiff", ".tif");
+        mimeToExtensionMap.put("image/jp2", ".jp2");
+        mimeToExtensionMap.put("text/xml", ".xml");
+        mimeToExtensionMap.put("text/plain", ".txt");
+        mimeToExtensionMap.put("application/pdf", ".pdf");
+        mimeToExtensionMap.put("image/jpeg", ".jpeq");
+        mimeToExtensionMap.put("audio/wav", ".wav");
+        mimeToExtensionMap.put("audio/mpeg", ".mp3");
 
         PSPElements.add(Const.MONOGRAPH_UNIT);
         PSPElements.add(Const.ISSUE);

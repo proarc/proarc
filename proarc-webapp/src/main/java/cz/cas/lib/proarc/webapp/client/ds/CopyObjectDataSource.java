@@ -26,7 +26,6 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 public class CopyObjectDataSource extends ProarcDataSource {
     
     public static final String FIELD_PIDOLD = DigitalObjectResourceApi.DIGITALOBJECT_PID;
-    public static final String FIELD_PIDNEW = DigitalObjectResourceApi.DIGITALOBJECT_PIDNEW;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
 
     private static CopyObjectDataSource INSTANCE;
@@ -41,9 +40,8 @@ public class CopyObjectDataSource extends ProarcDataSource {
     public CopyObjectDataSource() {
         setDataURL(RestConfig.URL_DIGOBJECT_COPYOBJECT);
         DataSourceTextField pidold = new DataSourceTextField(FIELD_PIDOLD);
-        DataSourceTextField pidnew = new DataSourceTextField(FIELD_PIDNEW);
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
-        setFields(pidold, pidnew, model);
+        setFields(pidold, model);
         setOperationBindings(RestConfig.createAddOperation());
     }
 }

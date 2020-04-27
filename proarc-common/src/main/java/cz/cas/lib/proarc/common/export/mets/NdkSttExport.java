@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.mets;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.export.mets.structure.SttElementVisitor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -29,8 +30,8 @@ import java.io.File;
  */
 public class NdkSttExport extends NdkExport {
 
-    public NdkSttExport(RemoteStorage rstorage, NdkExportOptions options) {
-        super(rstorage, options);
+    public NdkSttExport(RemoteStorage rstorage, AppConfiguration appConfiguration) {
+        super(rstorage, appConfiguration);
     }
 
     @Override

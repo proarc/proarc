@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
@@ -112,7 +113,7 @@ public class PackageBuilder {
         }
     }
 
-    public void prepare(List<DigitalObjectElement> objectPath, LocalObject lobj) {
+    public void prepare(List<DigitalObjectElement> objectPath, LocalObject lobj, AppConfiguration appConfig) throws MetsExportException {
         DigitalObjectElement entry = objectPath.get(0);
 
         // create package folder
@@ -127,15 +128,17 @@ public class PackageBuilder {
         // XXX should we use rather actual date?
         // for now use modified date as create day to later decide whether fedora contains same or updated object
 //        metsHdr.setCREATEDATE(xmlTypes.newXMLGregorianCalendar());
-        metsHdr.setCREATEDATE(getXmlDate(digitalObject, FoxmlUtils.PROPERTY_LASTMODIFIED));
+        metsHdr.setCREATEDATE(getXmlDate(digitalObject, FoxmlUtils.PROPERTY_CREATEDATE));
 //        metsHdr.setCREATEDATE(getDate(digitalObject, FoxmlUtils.PROPERTY_CREATEDATE));
-//        metsHdr.setLASTMODDATE(getDate(digitalObject, FoxmlUtils.PROPERTY_LASTMODIFIED));
+        metsHdr.setLASTMODDATE(getXmlDate(digitalObject, FoxmlUtils.PROPERTY_LASTMODIFIED));
+        setAgent(metsHdr, "CREATOR", "ORGANIZATION", appConfig.getNdkExportOptions().getCreator());
+        setAgent(metsHdr, "ARCHIVIST", "ORGANIZATION", appConfig.getNdkExportOptions().getArchivist());
         Agent agent = new Agent();
         agent.setName("ProArc");
         agent.setROLE("CREATOR");
         agent.setTYPE("OTHER");
 //        agent.setTYPE("ORGANIZATION");
-        metsHdr.getAgent().add(agent);
+       // metsHdr.getAgent().add(agent);
 
         mets = new Mets();
 //        mets.setID(null);
@@ -144,6 +147,25 @@ public class PackageBuilder {
         mets.setTYPE(entry.getModelId());
 
         mets.setFileSec(new FileSec());
+    }
+
+    /**
+     * Agent setting - used in metsHeader
+     *
+     * @throws MetsExportException if Archivist/Creator in proarc.cfg is empty
+     */
+    private void setAgent(MetsHdr metsHdr, String role, String type, String name) throws MetsExportException {
+
+        if (name == null) {
+            throw new MetsExportException("Error - missing role. Please insert value in proarc.cfg into export.ndk.agent.creator and export.ndk.agent.archivist", false);
+        } else {
+
+            Agent agent = new Agent();
+            agent.setName(name);
+            agent.setROLE(role);
+            agent.setTYPE(type);
+            metsHdr.getAgent().add(agent);
+        }
     }
 
     public void build() {
@@ -218,7 +240,7 @@ public class PackageBuilder {
             String dsId = "FOXML";
             String modelName = getObjectId(modelId);
             File grpFile = getGroupFile(pkgFolder, dsId,
-                    getFilename(index, modelName, uuid, "xml"));
+                    getFilename(dsId, index, modelName, uuid, "xml"));
             DigitalObject dObj = obj.getDigitalObject();
             FoxmlUtils.marshal(new StreamResult(grpFile), dObj, true);
             FileMD5Info fileInfo = getDigest(new BufferedInputStream(new FileInputStream(grpFile)));
@@ -280,7 +302,7 @@ public class PackageBuilder {
         String mimetype = ds.getMIMETYPE();
         String ext = getMimeFileExtension(mimetype);
         String modelName = getObjectId(modelId);
-        File dsFile = getGroupFile(pkgFolder, dsId, getFilename(index, modelName, uuid, ext));
+        File dsFile = getGroupFile(pkgFolder, dsId, getFilename(dsId, index, modelName, uuid, ext));
         FileMD5Info fileInfo = copyStream(pid, dt, ds, dHandler, dsFile);
 
         // add to fileGrp
@@ -365,8 +387,8 @@ public class PackageBuilder {
         return dsFile;
     }
 
-    static String getFilename(int index, String model, String name, String ext) {
-        return String.format("%s_%04d_%s.%s", model, index, name, ext);
+    static String getFilename(String datastream, int index, String model, String name, String ext) {
+        return String.format("%s_%s_%04d_%s.%s", datastream.toLowerCase(), model, index, name, ext);
     }
 
     private static String getMimeFileExtension(String mime) {

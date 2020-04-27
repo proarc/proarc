@@ -87,6 +87,7 @@ public final class RestConfig {
             URL_DIGOBJECT, DigitalObjectResourceApi.COPYOBJECT_PATH);
     public static final String URL_DIGOBJEKT_REINDEX_OBJECTS = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.REINDEX_PATH);
+    public static final String URL_GENERATE_JP2 = path(URL_DIGOBJECT, DigitalObjectResourceApi.GENERATE_JP2_PATH);
     public static final String URL_LOCALIZATION =  path(URL_ROOT, LocalizationResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG =  path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG_QUERY =  path(

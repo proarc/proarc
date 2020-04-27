@@ -9,6 +9,7 @@
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
     MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 15.689) 20181116
 
+Revision 1.98.proarc.17.1054 - Changed handling of name:ValueURI
 Revision 1.98.proarc.16.884 - Changed handling 700: add @ind1=0
 Revision 1.98.proarc.15.689 - Changed handling 100: value is not split if @ind1=0
 Revision 1.98.proarc.14.704 - Repair mapping of 041$b to objectPart-summary
@@ -949,14 +950,26 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="xxx880"/>
                 <place>
                     <placeTerm type="text">
-                        <xsl:value-of select="marc:subfield[@code='a']"/>
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString">
+                                <xsl:value-of select="marc:subfield[@code='a']"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
                     </placeTerm>
                 </place>
                 <publisher>
-                    <xsl:value-of select="marc:subfield[@code='b']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='b']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </publisher>
                 <dateOther type="production">
-                    <xsl:value-of select="marc:subfield[@code='c']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='c']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </dateOther>
             </originInfo>
         </xsl:for-each>
@@ -966,14 +979,26 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="xxx880"/>
                 <place>
                     <placeTerm type="text">
-                        <xsl:value-of select="marc:subfield[@code='a']"/>
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString">
+                                <xsl:value-of select="marc:subfield[@code='a']"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
                     </placeTerm>
                 </place>
                 <publisher>
-                    <xsl:value-of select="marc:subfield[@code='b']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='b']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </publisher>
                 <dateIssued>
-                    <xsl:value-of select="marc:subfield[@code='c']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='c']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </dateIssued>
             </originInfo>
         </xsl:for-each>
@@ -983,14 +1008,26 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="xxx880"/>
                 <place>
                     <placeTerm type="text">
-                        <xsl:value-of select="marc:subfield[@code='a']"/>
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString">
+                                <xsl:value-of select="marc:subfield[@code='a']"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
                     </placeTerm>
                 </place>
                 <publisher>
-                    <xsl:value-of select="marc:subfield[@code='b']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='b']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </publisher>
                 <dateOther type="distribution">
-                    <xsl:value-of select="marc:subfield[@code='c']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='c']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </dateOther>
             </originInfo>
         </xsl:for-each>
@@ -1000,14 +1037,26 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="xxx880"/>
                 <place>
                     <placeTerm type="text">
-                        <xsl:value-of select="marc:subfield[@code='a']"/>
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString">
+                                <xsl:value-of select="marc:subfield[@code='a']"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
                     </placeTerm>
                 </place>
                 <publisher>
-                    <xsl:value-of select="marc:subfield[@code='b']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='b']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </publisher>
                 <dateOther type="manufacture">
-                    <xsl:value-of select="marc:subfield[@code='c']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='c']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </dateOther>
             </originInfo>
         </xsl:for-each>
@@ -1018,14 +1067,27 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="xxx880"/>
                 <place>
                     <placeTerm type="text">
-                        <xsl:value-of select="marc:subfield[@code='a']"/>
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString">
+                                <xsl:value-of select="marc:subfield[@code='a']"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
                     </placeTerm>
                 </place>
                 <publisher>
-                    <xsl:value-of select="marc:subfield[@code='b']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='b']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </publisher>
                 <copyrightDate>
-                    <xsl:value-of select="marc:subfield[@code='c']"/>
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString">
+                            <xsl:value-of select="marc:subfield[@code='c']"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
+
                 </copyrightDate>
             </originInfo>
         </xsl:for-each>
@@ -4455,10 +4517,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         <xsl:text>1</xsl:text>
                     </xsl:attribute>
                 </xsl:if>
-                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
+            <!--   <xsl:call-template name="createNameAuthorityIdFrom100_700"/>-->
                 <xsl:call-template name="nameABCDE"/>
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
+                <xsl:call-template name="nameIdentifier"/>
             </name>
         </xsl:if><xsl:if test="@ind1='1'">
             <name type="personal">
@@ -4471,10 +4534,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         <xsl:text>1</xsl:text>
                     </xsl:attribute>
                 </xsl:if>
-                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
+            <!--   <xsl:call-template name="createNameAuthorityIdFrom100_700"/>-->
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
+                <xsl:call-template name="nameIdentifier"/>
             </name>
         </xsl:if>
         <xsl:if test="@ind1='3'">
@@ -4488,11 +4552,22 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         <xsl:text>1</xsl:text>
                     </xsl:attribute>
                 </xsl:if>
-                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
+            <!--   <xsl:call-template name="createNameAuthorityIdFrom100_700"/>-->
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
+                <xsl:call-template name="nameIdentifier"/>
             </name>
+        </xsl:if>
+    </xsl:template>
+
+    <!--Revision 1.98.proarc.17.1054-->
+    <xsl:template name="nameIdentifier">
+        <xsl:variable name="subfiled7" select="marc:subfield[@code='7']"/>
+        <xsl:if test="$subfiled7">
+           <nameIdentifier>
+               <xsl:value-of select="$subfiled7"/>
+           </nameIdentifier>
         </xsl:if>
     </xsl:template>
 
@@ -4538,20 +4613,22 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
     <xsl:template name="createNameFrom700">
         <xsl:if test="@ind1='0' or @ind1='1'">
             <name type="personal">
-                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
+            <!--   <xsl:call-template name="createNameAuthorityIdFrom100_700"/>-->
                 <xsl:call-template name="xxx880"/>
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
+                <xsl:call-template name="nameIdentifier"/>
             </name>
         </xsl:if>
         <xsl:if test="@ind1='3'">
             <name type="family">
-                <xsl:call-template name="createNameAuthorityIdFrom100_700"/>
+            <!--   <xsl:call-template name="createNameAuthorityIdFrom100_700"/>-->
                 <xsl:call-template name="xxx880"/>
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
+                <xsl:call-template name="nameIdentifier"/>
             </name>
         </xsl:if>
     </xsl:template>

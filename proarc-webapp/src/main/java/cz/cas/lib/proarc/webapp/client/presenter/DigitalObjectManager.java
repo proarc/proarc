@@ -47,8 +47,10 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.ChronicleExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CrossrefExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.DataStreamExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.DesaExportAction;
@@ -85,6 +87,7 @@ public final class DigitalObjectManager {
     private KWISExportAction kwisExportAction;
     private NdkExportAction ndkExportAction;
     private NdkSipExportAction ndkSipExportAction;
+    private ChronicleExportAction chronicleExportAction;
     private NdkOldPrintExportAction ndkOldPrintExportAction;
     private CejshExportAction cejshExportAction;
     private CrossrefExportAction crossrefExportAction;
@@ -103,6 +106,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction atmEditAction;
     private UrnNbnAction registerUrnNbnAction;
     private CopyObjectAction copyObjectAction;
+    private GenerateMasterCopyAction generateMasterCopyAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -216,6 +220,7 @@ public final class DigitalObjectManager {
         ndkExportAction = new NdkExportAction(i18n);
         ndkOldPrintExportAction = new NdkOldPrintExportAction(i18n);
         ndkSipExportAction = new NdkSipExportAction(i18n);
+        chronicleExportAction = new ChronicleExportAction(i18n);
         cejshExportAction = new CejshExportAction(i18n);
         crossrefExportAction = new CrossrefExportAction(i18n);
         desaExportAction = DesaExportAction.export(i18n);
@@ -253,6 +258,7 @@ public final class DigitalObjectManager {
                 DatastreamEditorType.ATM, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
         copyObjectAction = new CopyObjectAction(i18n);
+        generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -282,6 +288,7 @@ public final class DigitalObjectManager {
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkSipExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(chronicleExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkOldPrintExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(crossrefExportAction, actionSource, false));
@@ -292,6 +299,31 @@ public final class DigitalObjectManager {
         menuExport.addItem(Actions.asMenuItem(ndkUserDataStreamExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(kwisExportAction, actionSource, false));
         btnExport.setMenu(menuExport);
+
+
+        final AbstractAction administrationMenuAction = new AbstractAction(
+                i18n.AdministrationAction_Title(), "[SKIN]/headerIcons/settings_Over.png", null) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                if (!Editor.getInstance().hasPermission("proarc.permission.admin")) {
+                    return false;
+                } else {
+                    Object[] selection = Actions.getSelection(event);
+                    return selection != null && selection.length > 0;
+                }
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                // choose default action iff supported
+            }
+        };
+
+        IconMenuButton btnAdministration = Actions.asIconMenuButton(administrationMenuAction, actionSource);
+        Menu menuAdministration = Actions.createMenu();
+        menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        btnAdministration.setMenu(menuAdministration);
 
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n),
                 new RefreshableView((Refreshable) actionSource.getSource())));
@@ -309,6 +341,7 @@ public final class DigitalObjectManager {
         toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
         toolbar.addMember(Actions.asIconButton(registerUrnNbnAction, actionSource));
         toolbar.addMember(Actions.asIconButton(copyObjectAction, actionSource));
+        toolbar.addMember(btnAdministration);
         if (menuType == MenuType.TREE_VIEW) {
             toolbar.addMember(Actions.asIconButton(expandTreeAction, actionSource));
         }

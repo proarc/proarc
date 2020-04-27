@@ -117,6 +117,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -306,11 +307,15 @@ public class DigitalObjectResource {
             ) throws FedoraClientException, IOException {
 
         Locale locale = session.getLocale(httpHeaders);
-        SearchView search = RemoteStorage.getInstance(appConfig).getSearch(locale);
+        RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+        SearchView search = remote.getSearch(locale);
+
         List<Item> items;
+        int total = 0;
         int page = 20;
         switch (type) {
             case LAST_MODIFIED:
+                total = search.countModels(queryModel, filterOwnObjects(user)).size();
                 items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100);
                 break;
             case QUERY:
@@ -318,10 +323,12 @@ public class DigitalObjectResource {
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
                         .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
                         .setHasOwners(filterGroups(user)));
+                total = items.size();
                 page = 1;
                 break;
             case PIDS:
                 items = search.find(pids);
+                total = items.size();
                 page = 1;
                 break;
             case PHRASE:
@@ -330,18 +337,21 @@ public class DigitalObjectResource {
                     throw new WebApplicationException(Status.FORBIDDEN);
                 }
                 items = search.findPhrase(phrase);
+                total = items.size();
                 page = 1;
                 break;
             case PARENT:
                 items = searchParent(batchId, pids, search);
+                total = items.size();
                 page = 1;
                 break;
             default:
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user));
+                total = search.countModels(queryModel, filterOwnObjects(user)).size();
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), 100);
         }
         int count = items.size();
         int endRow = startRow + count - 1;
-        int total = count == 0 ? startRow : endRow + page;
+        //int total = count == 0 ? startRow : endRow + page;
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
     }
 
@@ -1445,7 +1455,6 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> copyObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pidOld,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDNEW) String pidNew,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
@@ -1456,6 +1465,19 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
+
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.GENERATE_JP2_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> generateJp2(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.GENERATE_TYPE) String type,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
 
         return new SmartGwtResponse<>();
     }
@@ -1517,6 +1539,7 @@ public class DigitalObjectResource {
             this.message = me.getMessage();
             this.type = me.getStatus().name();
             this.warning = warning;
+            this.urnnbn = me.getUrnNbn();
             if (elm != null) {
                 this.modelId = elm.getModel();
                 this.label = elm.getLabel();

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -66,7 +67,8 @@ public final class UserResource {
     public SmartGwtResponse<UserProfile> find(
             @QueryParam(UserResourceApi.USER_ID) Integer userId,
             @QueryParam(UserResourceApi.USER_NAME) String userName,
-            @QueryParam(UserResourceApi.USER_WHOAMI_PARAM) Boolean whoAmI
+            @QueryParam(UserResourceApi.USER_WHOAMI_PARAM) Boolean whoAmI,
+            @QueryParam(UserResourceApi.USER_START_ROW_PARAM) @DefaultValue("-1") int startRow
             ) {
 
         if (whoAmI != null && whoAmI) {
@@ -81,7 +83,20 @@ public final class UserResource {
             return new SmartGwtResponse<UserProfile>(found);
         }
         List<UserProfile> findAll = userManager.findAll();
-        return new SmartGwtResponse<UserProfile>(findAll);
+        List<UserProfile> selectedUsers = new ArrayList<>();
+        if (startRow < 0) {
+            selectedUsers.addAll(findAll);
+        } else {
+            for (int i = startRow; i < startRow + 100; i++) {
+                if (findAll.size() - 1 < i) {
+                    break;
+                }
+                selectedUsers.add(findAll.get(i));
+            }
+        }
+        int endRow = startRow + selectedUsers.size() - 1;
+        int total = findAll.size();
+        return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, selectedUsers);
     }
 
     @POST

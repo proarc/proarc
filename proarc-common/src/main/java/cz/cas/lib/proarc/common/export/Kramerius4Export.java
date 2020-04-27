@@ -22,12 +22,17 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
@@ -36,19 +41,28 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.fedora.relation.Relations;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.K4Plugin;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.ExtentDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -97,7 +111,9 @@ public final class Kramerius4Export {
     /** PIDs scheduled for export */
     private Queue<String> toExport = new LinkedList<String>();
     
-    private final Kramerius4ExportOptions options;
+    private final Kramerius4ExportOptions kramerius4ExportOptions;
+    private AppConfiguration appConfig;
+    private final ExportOptions exportOptions;
 
     private final String policy;
 
@@ -106,10 +122,14 @@ public final class Kramerius4Export {
     public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options) {
         this(rstorage, options, options.getPolicy(), null);
     }
+    public Kramerius4Export(RemoteStorage rstorage, AppConfiguration configuration) {
+        this(rstorage, configuration, configuration.getKramerius4Export().getPolicy());
+    }
 
     public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options, String policy, String exportPageContext) {
         this.rstorage = rstorage;
-        this.options = options;
+        this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
+        this.exportOptions = appConfiguration.getExportOptions();
         this.search = rstorage.getSearch();
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
         this.exportPageContext = exportPageContext;
@@ -117,7 +137,23 @@ public final class Kramerius4Export {
         if (Arrays.asList(ALLOWED_POLICY).contains(policy)) {
             this.policy = policy;
         } else {
-            this.policy = options.getPolicy();
+            this.policy = kramerius4ExportOptions.getPolicy();
+        }
+    }
+
+    public Kramerius4Export(RemoteStorage rstorage, AppConfiguration appConfiguration, String policy) {
+        this.appConfig = appConfiguration;
+        this.rstorage = rstorage;
+        this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
+        this.exportOptions = appConfiguration.getExportOptions();
+        this.search = rstorage.getSearch();
+        this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
+        this.exportPageContext = exportPageContext;
+
+        if (Arrays.asList(ALLOWED_POLICY).contains(policy)) {
+            this.policy = policy;
+        } else {
+            this.policy = kramerius4ExportOptions.getPolicy();
         }
     }
 
@@ -134,7 +170,7 @@ public final class Kramerius4Export {
         result.setInputPid(pids[0]);
         reslog.getExports().add(result);
 
-        File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]));
+        File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]), exportOptions.isOverwritePackage());
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
         toExport.addAll(selectedPids);
         try {
@@ -194,7 +230,7 @@ public final class Kramerius4Export {
                 DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext(); ) {
                     DatastreamType datastream = it.next();
-                    if (options.getExcludeDatastreams().contains(datastream.getID())) {
+                    if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                         // use RAW if FULL is not available
                         if (rawDs != datastream) {
                             it.remove();
@@ -228,7 +264,7 @@ public final class Kramerius4Export {
                         .execute(client).getEntity(DigitalObject.class);
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
                     DatastreamType datastream = it.next();
-                    if (options.getExcludeDatastreams().contains(datastream.getID())) {
+                    if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                         it.remove();
                         continue;
                     }
@@ -394,7 +430,7 @@ public final class Kramerius4Export {
         DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
-            if (options.getExcludeDatastreams().contains(datastream.getID())) {
+            if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 // use RAW if FULL is not available
                 if (rawDs != datastream ) {
                     it.remove();
@@ -415,7 +451,7 @@ public final class Kramerius4Export {
         RelationEditor editor = new RelationEditor(local);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
-            if (options.getExcludeDatastreams().contains(datastream.getID())) {
+            if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 it.remove();
                 continue;
             }
@@ -439,7 +475,7 @@ public final class Kramerius4Export {
 
     private void renameDatastream(DatastreamType datastream) {
         String id = datastream.getID();
-        String newId = options.getDsIdMap().get(id);
+        String newId = kramerius4ExportOptions.getDsIdMap().get(id);
         if (newId != null) {
             datastream.setID(newId);
             for (DatastreamVersionType version : datastream.getDatastreamVersion()) {
@@ -474,7 +510,7 @@ public final class Kramerius4Export {
             if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type))) {
                 k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
-                k4ModelId = options.getModelMap().get(type);
+                k4ModelId = kramerius4ExportOptions.getModelMap().get(type);
             }
             if (k4ModelId != null) {
                 typeElm.setTextContent(k4ModelId);
@@ -600,7 +636,7 @@ public final class Kramerius4Export {
             if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) || OldPrintPlugin.MODEL_VOLUME.equals(modelId))) {
                 k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
-                k4ModelId = options.getModelMap().get(modelId);
+                k4ModelId = kramerius4ExportOptions.getModelMap().get(modelId);
             }
             k4ModelId = k4ModelId == null ? modelId : k4ModelId;
             editor.setModel(k4ModelId);
@@ -614,7 +650,7 @@ public final class Kramerius4Export {
                 if (includePids != null && !includePids.contains(childPid)) {
                     continue;
                 }
-                String krelation = options.getRelationMap().get(desc.getModel());
+                String krelation = kramerius4ExportOptions.getRelationMap().get(desc.getModel());
                 if (krelation == null) {
                     throw new IllegalStateException(String.format(
                             "Cannot map to Kramerius relation! Child: %s, model: %s, parent: %s ",
@@ -626,11 +662,156 @@ public final class Kramerius4Export {
                         RelationResource.fromPid(childPid).getResource());
                 relations.add(elm);
             }
+            if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
+                List<String> childrens = getChildren(pid);
+                for (String childrensPid : childrens) {
+                    String childKRelations = "isOnPage";
+                    Element childElement = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":" + childKRelations);
+                    childElement.setAttributeNS(Relations.RDF_NS, "rdf:resource", RelationResource.fromPid(childrensPid).getResource());
+                    relations.add(childElement);
+                }
+            }
             editor.setRelations(relations);
             editor.write(editor.getLastModified(), null);
         } catch (ParserConfigurationException ex) {
             throw new IllegalStateException(ex);
+        } catch (MetsExportException e) {
+            throw new IllegalStateException(e);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        } catch (FedoraClientException e) {
+            throw new IllegalStateException(e);
         }
+    }
+
+    private List<String> getChildren(String pid) throws DigitalObjectException, IOException, MetsExportException, FedoraClientException {
+        ModsDefinition mods = getMods(pid);
+        int pageIndexStart = Integer.MIN_VALUE + 1;
+        int pageIndexEnd = Integer.MAX_VALUE - 1;
+        int pageNumberStart = Integer.MIN_VALUE + 1;
+        int pageNumberEnd = Integer.MAX_VALUE - 1;
+        for (PartDefinition part : mods.getPart()) {
+            for (ExtentDefinition extent : part.getExtent()) {
+                if ("pageIndex".equals(extent.getUnit())) {
+                    if (pageIndexStart == Integer.MIN_VALUE + 1) {
+                        if (extent.getStart() != null) {
+                            pageIndexStart = Integer.parseInt(extent.getStart().getValue());
+                        }
+                    }
+                    if (pageIndexEnd == Integer.MAX_VALUE - 1) {
+                        if (extent.getEnd() != null) {
+                            pageIndexEnd = Integer.parseInt(extent.getEnd().getValue());
+                        }
+                    }
+                }
+                if ("pageNumber".equals(extent.getUnit())) {
+                    if (pageNumberStart == Integer.MIN_VALUE + 1) {
+                        if (extent.getStart() != null) {
+                            String value = extent.getStart().getValue();
+                            value = value.replaceAll("\\D+","");
+                            pageNumberStart = Integer.parseInt(value);
+                        }
+                    }
+                    if (pageNumberEnd == Integer.MAX_VALUE - 1) {
+                        if (extent.getEnd() != null) {
+                            String value = extent.getEnd().getValue();
+                            value = value.replaceAll("\\D+", "");
+                            pageNumberEnd = Integer.parseInt(value);
+                        }
+                    }
+                }
+            }
+        }
+        if (pageIndexStart >= 0) {
+            return getChildren("pageIndex", pageIndexStart, pageIndexEnd, getAllChildren(pid));
+        } else if (pageNumberStart >= 0) {
+            return getChildren("pageNumber", pageNumberStart, pageNumberEnd, getAllChildren(pid));
+        }
+        return new ArrayList<>();
+    }
+
+    private List<String> getChildren(String type, int start, int end, List<String> children) throws DigitalObjectException {
+        List<String> childrensPid = new ArrayList<>();
+        for (String pid : children) {
+            ModsDefinition mods = getMods(pid);
+            if ("pageIndex".equals(type)) {
+                int index = getNumber(type, mods);
+                if (start <= index && index <= end) {
+                    childrensPid.add(pid);
+                }
+            }
+            if ("pageNumber".equals(type)) {
+                int number = Integer.MIN_VALUE;
+                if (number == Integer.MIN_VALUE) {
+                    number = getNumber("pageNumber", mods);
+                }
+                if (number == Integer.MIN_VALUE) {
+                    number = getNumber("page number", mods);
+                }
+                if (start <= number && number <= end) {
+                    childrensPid.add(pid);
+                }
+            }
+        }
+        return childrensPid;
+    }
+
+    private int getNumber(String type, ModsDefinition mods) {
+        for (PartDefinition part : mods.getPart()) {
+            for (DetailDefinition detail : part.getDetail()) {
+                if (type.equals(detail.getType())) {
+                    for (StringPlusLanguage number : detail.getNumber()) {
+                        String value = number.getValue();
+                        value = value.replaceAll("\\D+", "");
+                        return Integer.parseInt(value);
+                    }
+                }
+            }
+        }
+        return Integer.MIN_VALUE;
+    }
+
+    private List<String> getAllChildren(String pid) throws IOException, MetsExportException, FedoraClientException {
+        String parentPid = getParentPid(pid);
+        List<Item> allChildrens = new ArrayList<>();
+        if (parentPid != null && !parentPid.isEmpty()) {
+            allChildrens = search.findChildren(parentPid);
+        }
+        List<String> children = new ArrayList<>();
+        for (Item child : allChildrens) {
+            if (NdkPlugin.MODEL_PAGE.equals(child.getModel()) || NdkPlugin.MODEL_NDK_PAGE.equals(child.getModel())) {
+                children.add(child.getPid());
+            }
+        }
+        return children;
+    }
+
+    private String getParentPid(String pid) throws IOException, MetsExportException {
+        RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+        RemoteStorage.RemoteObject robject = rstorage.find(pid);
+        MetsContext metsContext = buildContext(robject, null, null, rstorage);
+        return MetsUtils.getParent(pid, metsContext.getRemoteStorage());
+    }
+
+    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, File targetFolder, RemoteStorage rstorage) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(null);
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(null);
+        return mc;
+    }
+
+    private ModsDefinition getMods(String pid) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fo = dom.find(pid, null);
+        XmlStreamEditor streamEditorOld = fo.getEditor(FoxmlUtils.inlineProfile(
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStreamEditorOld = new ModsStreamEditor(streamEditorOld, fo);
+        return modsStreamEditorOld.read();
     }
 
     private static Item remove(String pid, List<Item> childDescriptors) {

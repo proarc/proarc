@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.export;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import java.io.File;
@@ -35,11 +37,13 @@ import org.junit.Test;
  * @author Jan Pokorsky
  */
 public class DataStreamExportTest {
-    
+
+    private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
 
-    public DataStreamExportTest() {
+    public DataStreamExportTest() throws Exception {
     }
 
     @BeforeClass
@@ -68,7 +72,7 @@ public class DataStreamExportTest {
         boolean hierarchy = true;
         List<String> pids = Arrays.asList("uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2");
         List<String> dsIds = Arrays.asList(StringEditor.OCR_ID, "PREVIEW");
-        DataStreamExport instance = new DataStreamExport(fedora.getRemoteStorage());
+        DataStreamExport instance = new DataStreamExport(fedora.getRemoteStorage(), appConfig.getExportOptions());
         File target = instance.export(output, hierarchy, pids, dsIds);
         assertNotNull(target);
 

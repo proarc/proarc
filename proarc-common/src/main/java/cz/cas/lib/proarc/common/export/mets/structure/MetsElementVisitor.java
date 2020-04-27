@@ -66,6 +66,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -242,7 +243,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (partNode == null){
                 throw new MetsExportException("Error - missing title. Please insert title.");
             }
-            return partNode.getTextContent() + " ";
+            return partNode.getTextContent() + ", ";
         }
         return "";
     }
@@ -252,7 +253,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     public boolean isIssue(IMetsElement metsElement) throws MetsExportException {
         String type = MetsUtils.xPathEvaluateString(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='part']/@type");
-        return type.equals("issue");
+        if (!type.isEmpty()) {
+            return type.equals("issue");
+        }
+        return metsElement.getModel().contains("issue");
     }
 
 
@@ -472,6 +476,30 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
                 if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageIndex")) {
                     pageDiv.setORDER(new BigInteger(numberNode.getNodeValue()));
+                }
+            }
+        }
+        if (pageDiv.getORDER() == null || pageDiv.getORDERLABEL() == null || pageDiv.getTYPE() == null) {
+            ModsDefinition mods = getMods(metsElement);
+            for (PartDefinition part : mods.getPart()) {
+                if (pageDiv.getTYPE() == null) {
+                    pageDiv.setTYPE(part.getType());
+                }
+                for (DetailDefinition detail : part.getDetail()) {
+                    if (pageDiv.getORDERLABEL() == null) {
+                        if ("page number".equals(detail.getType()) || "pageNumber".equals(detail.getType())) {
+                            if (!detail.getNumber().isEmpty()) {
+                                pageDiv.setORDERLABEL(detail.getNumber().get(0).getValue());
+                            }
+                        }
+                    }
+                    if (pageDiv.getORDER() == null) {
+                        if ("pageIndex".equals(detail.getType())) {
+                            if (!detail.getNumber().isEmpty()) {
+                                pageDiv.setORDER(new BigInteger(detail.getNumber().get(0).getValue()));
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -740,7 +768,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         String deviceId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
         List<Device> deviceList;
         try {
-            deviceList = deviceRepository.find(deviceId, true);
+            deviceList = deviceRepository.find(deviceId, true, 0);
         } catch (DeviceException e) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info", false, e);
         }
@@ -939,7 +967,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         characteristics.getFormat().add(format);
         FormatDesignationComplexType formatDesignation = new FormatDesignationComplexType();
         formatDesignation.setFormatName(md5Info.getMimeType());
-        formatDesignation.setFormatVersion(md5Info.getFormatVersion());
+        if (!md5Info.getMimeType().equals(md5Info.getFormatVersion())) {
+            formatDesignation.setFormatVersion(md5Info.getFormatVersion());
+        } else {
+            formatDesignation.setFormatVersion("1.0");
+        }
         JAXBElement<FormatDesignationComplexType> jaxbDesignation = factory.createFormatDesignation(formatDesignation);
         format.getContent().add(jaxbDesignation);
         FormatRegistryComplexType formatRegistry = new FormatRegistryComplexType();
@@ -951,7 +983,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         CreatingApplicationComplexType creatingApplication = new CreatingApplicationComplexType();
         characteristics.getCreatingApplication().add(creatingApplication);
         creatingApplication.getContent().add(factory.createCreatingApplicationName("ProArc"));
-        creatingApplication.getContent().add(factory.createCreatingApplicationVersion("3.5.13"));
+        creatingApplication.getContent().add(factory.createCreatingApplicationVersion
+                (metsElement.getMetsContext().getOptions().getVersion()));
 
         //creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
         creatingApplication.getContent().add(factory.createDateCreatedByApplication(MetsUtils.getCurrentDate().toXMLFormat()));
@@ -986,6 +1019,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+        String extension = Const.mimeToExtensionMap.get(md5Info.getMimeType());
+        int position = originalFile.indexOf(".");
+        originalFile = originalFile.substring(0, position) + extension;
         OriginalNameComplexType originalName = factory.createOriginalNameComplexType();
         originalName.setValue(originalFile);
         file.setOriginalName(originalName);
@@ -1337,7 +1373,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 if (altoFile.exists()) {
                     List<Schema> altoSchemas;
                     try {
-                        altoSchemas = AltoDatastream.getSchemas();
+                        altoSchemas = AltoDatastream.getSchemasList();
                     } catch (SAXException e) {
                         throw new MetsExportException("Unable to get ALTO schema", false);
                     }
@@ -1631,9 +1667,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
     private int getPageIndex(ModsDefinition mods) {
         if (mods.getPart().size() > 0) {
-            for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
-                if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
-                    return Integer.valueOf(detail.getNumber().get(0).getValue());
+            for (PartDefinition part : mods.getPart()) {
+                for (DetailDefinition detail : part.getDetail()) {
+                    if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                        return Integer.valueOf(detail.getNumber().get(0).getValue());
+                    }
                 }
             }
         }
@@ -1644,6 +1682,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if (mods.getPart().size() > 0) {
             for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
                 if ("pageNumber".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                    return !detail.getNumber().get(0).getValue().isEmpty();
+                }
+                if ("page number".equals(detail.getType()) && detail.getNumber().size() > 0) {
                     return !detail.getNumber().get(0).getValue().isEmpty();
                 }
             }
@@ -2528,7 +2569,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         int pageIndex = 1;
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.SOUND_PAGE.equals(element.getElementType())) {
-                insertAudioPage(physicalDiv, element, pageCounter, metsElement);
+                insertAudioPage(physicalDiv, element, audioPageCounter, metsElement);
                 audioPageCounter++;
             } else if (Const.PAGE.equals(element.getElementType())) {
                 insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);

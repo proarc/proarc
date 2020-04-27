@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.export;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
@@ -39,10 +41,12 @@ import org.junit.Test;
  */
 public class ExportUtilsTest {
 
+    private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
 
-    public ExportUtilsTest() {
+    public ExportUtilsTest() throws Exception {
     }
 
     @BeforeClass
@@ -66,11 +70,11 @@ public class ExportUtilsTest {
         File parent = temp.getRoot();
         String name = FoxmlUtils.pidAsUuid("uuid:0bcf9933-84e5-460f-9e94-d798b724d394");
         File expResult = new File(parent, name);
-        File result = ExportUtils.createFolder(parent, name);
+        File result = ExportUtils.createFolder(parent, name, appConfig.getExportOptions().isOverwritePackage());
         assertEquals(expResult, result);
 
         expResult = new File(parent, name + "_1");
-        result = ExportUtils.createFolder(parent, name);
+        result = ExportUtils.createFolder(parent, name, appConfig.getExportOptions().isOverwritePackage());
         assertEquals(expResult, result);
     }
 
@@ -78,7 +82,7 @@ public class ExportUtilsTest {
     public void testCreateFolderFailure() {
         File parent = temp.getRoot();
         String name = "uuid:0bcf9933-84e5-460f-9e94-d798b724d394";
-        ExportUtils.createFolder(parent, name);
+        ExportUtils.createFolder(parent, name, appConfig.getExportOptions().isOverwritePackage());
     }
 
     @Test

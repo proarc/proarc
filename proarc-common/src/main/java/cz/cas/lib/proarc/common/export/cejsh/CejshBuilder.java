@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.cejsh;
 
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -104,6 +105,7 @@ class CejshBuilder {
     private static Schema SCHEMA_BWMETA;
     private static Pattern SAFE_FILENAME_RE;
     private static final Logger LOG = Logger.getLogger(CejshBuilder.class.getName());
+    private final ExportOptions options;
 
     private final Transformer bwmetaXsl;
     private final TransformErrorListener tranformationErrorHandler;
@@ -119,9 +121,11 @@ class CejshBuilder {
     private Issue issue;
     private Level logLevel;
 
-    public CejshBuilder(CejshConfig config) throws TransformerConfigurationException, ParserConfigurationException, XPathExpressionException {
+    public CejshBuilder(CejshConfig config, ExportOptions options)
+            throws TransformerConfigurationException, ParserConfigurationException, XPathExpressionException {
         this.gcalendar = new GregorianCalendar(UTC);
         this.logLevel = config.getLogLevel();
+        this.options = options;
         TransformerFactory xslFactory = TransformerFactory.newInstance();
         tranformationErrorHandler = new TransformErrorListener();
         bwmetaXsl = xslFactory.newTransformer(new StreamSource(config.getCejshXslUrl()));
@@ -248,7 +252,7 @@ class CejshBuilder {
             Document doc = mergeElements(articles);
 
             String pkgName = createPackageName();
-            packageFolder = ExportUtils.createFolder(p.getOutput(), pkgName);
+            packageFolder = ExportUtils.createFolder(p.getOutput(), pkgName, options.isOverwritePackage());
             File importFolder = new File(packageFolder, IMPORTS_NEW_FILENAME);
             importFolder.mkdirs();
             writeProperties(packageFolder, articles.size());

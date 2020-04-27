@@ -86,34 +86,52 @@ public final class AltoDatastream {
      * @throws IOException failure
      */
     static boolean isAlto(URI alto) throws IOException, SAXException {
-        getSchema().newValidator().validate(new StreamSource(alto.toASCIIString()));
-        return true;
+        return validSchema(getSchemas(), alto);
+        //getSchema().newValidator().validate(new StreamSource(alto.toASCIIString()));
     }
 
-    public static Schema getSchema() throws SAXException {
+    private static boolean validSchema(List<Schema> schemas, URI alto) throws IOException, SAXException {
+        SAXException exception = new SAXException();
+
+        for (Schema schema : schemas) {
+            try {
+                schema.newValidator().validate(new StreamSource(alto.toASCIIString()));
+                return true;
+            } catch (SAXException ex) {
+                exception = ex;
+            }
+        }
+        if (!exception.getMessage().isEmpty()) {
+            throw exception;
+        }
+        return false;
+    }
+
+    public static List<Schema> getSchemas() throws SAXException {
+        List<Schema> schema = new ArrayList<>();
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         schemaFactory.setResourceResolver(MetsLSResolver.getInstance());
         if (config != null) {
             switch (config.getAltoFileVersion()) {
                 case "2.0":
-                    ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_20));
+                    schema.add(schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_20)));
                     break;
                 case "2.1":
-                    ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21));
+                    schema.add(schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21)));
                     break;
                 case "3.0":
-                    ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_30));
+                    schema.add(schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_30)));
                     break;
                 default:
-                    ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21));
+                    schema.addAll(getSchemasList());
             }
         } else {
-            ALTO_SCHEMA = schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21));
+            schema.addAll(getSchemasList());
         }
-        return ALTO_SCHEMA;
+        return schema;
     }
 
-    public static List<Schema> getSchemas() throws SAXException {
+    public static List<Schema> getSchemasList() throws SAXException {
         List <Schema> schemas = new ArrayList<>();
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         schemaFactory.setResourceResolver(MetsLSResolver.getInstance());

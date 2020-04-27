@@ -51,11 +51,13 @@ public final class DesaExport {
     private final RemoteStorage rstorage;
     private final DesaServices desaServices;
     private final MetaModelRepository models;
+    private final ExportOptions options;
 
-    public DesaExport(RemoteStorage rstorage, DesaServices desaServices, MetaModelRepository models) {
+    public DesaExport(RemoteStorage rstorage, DesaServices desaServices, MetaModelRepository models, ExportOptions options) {
         this.rstorage = rstorage;
         this.desaServices = desaServices;
         this.models = models;
+        this.options = options;
     }
 
     /**
@@ -128,7 +130,7 @@ public final class DesaExport {
             UserProfile user
             ) throws ExportException {
 
-        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid));
+        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid), options.isOverwritePackage());
         Result result = new Result();
         try {
             if (keepResult) {

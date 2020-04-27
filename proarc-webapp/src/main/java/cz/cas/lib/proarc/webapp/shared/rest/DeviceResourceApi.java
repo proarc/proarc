@@ -33,5 +33,6 @@ public final class DeviceResourceApi {
     public static final String DEVICE_ITEM_AUDIO_TIMESTAMP = "audiotimestamp";
     public static final String DEVICE_ITEM_MODEL = "model";
     public static final String DEVICE_ITEM_PREMIS = "audiodescription";
+    public static final String DEVICE_START_ROW_PARAM = "_startRow";
 
 }
