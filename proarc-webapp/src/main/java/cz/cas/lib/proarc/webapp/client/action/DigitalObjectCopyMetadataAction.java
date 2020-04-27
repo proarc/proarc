@@ -100,7 +100,7 @@ public class DigitalObjectCopyMetadataAction extends AbstractAction {
             DigitalObject dobj = DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if ("model:page".equals(modelId)) {
+                if ("model:page".equals(modelId) || "model:ndkpage".equals(modelId)) {
                     continue;
                 }
             }

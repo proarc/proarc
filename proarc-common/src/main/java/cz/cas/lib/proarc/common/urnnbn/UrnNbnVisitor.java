@@ -387,7 +387,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         ModsDefinition documentMods = documentDescription.getData();
         String urnnbn = ResolverUtils.getIdentifier("urnnbn", documentMods);
         if (urnnbn != null) {
-            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists. " + urnnbn);
+            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
         }
         try {
@@ -449,7 +449,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         // check URNNBN exists
         String urnnbn = ResolverUtils.getIdentifier("urnnbn", issueMods);
         if (urnnbn != null) {
-            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists. " + urnnbn);
+            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
         }
         Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
@@ -511,7 +511,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         // check URNNBN exists
         String urnnbn = ResolverUtils.getIdentifier("urnnbn", issueMods);
         if (urnnbn != null) {
-            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists. " + urnnbn);
+            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
         }
         Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
@@ -570,7 +570,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         // check URNNBN exists
         String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
         if (urnnbn != null) {
-            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists. " + urnnbn);
+            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
         }
         Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
@@ -622,7 +622,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         // check URNNBN exists
         String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
         if (urnnbn != null) {
-            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists. " + urnnbn);
+            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
         }
         try {
@@ -651,7 +651,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         // check URNNBN exists
         String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
         if (urnnbn != null) {
-            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists. " + urnnbn);
+            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
         }
 
@@ -685,7 +685,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         // check URNNBN exists
         String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
         if (urnnbn != null) {
-            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists. " + urnnbn);
+            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
         }
 
@@ -826,7 +826,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return stream;
             } else {
                 String msg = String.format("Missing expected datastream %s in \n%s", streamId, elm.toLog());
-                status.warning(registeringObject, Status.MISSING_DATASTREAM, msg);
+                status.warning(registeringObject, Status.MISSING_DATASTREAM, msg, null);
             }
         }
         return null;

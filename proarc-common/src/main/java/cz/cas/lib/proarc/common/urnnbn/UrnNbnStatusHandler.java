@@ -37,11 +37,11 @@ public class UrnNbnStatusHandler {
     public static final UrnNbnStatusHandler DEFAULT = new UrnNbnStatusHandler() {
 
         @Override
-        public void log(LogType logType, DigitalObjectElement elm, Status status, String msg) {
+        public void log(LogType logType, DigitalObjectElement elm, Status status, String msg, String urnNbn) {
         }
 
         @Override
-        public void log(LogType logType, String pid, Status status, String msg) {
+        public void log(LogType logType, String pid, Status status, String msg, String urnNbn) {
         }
 
         @Override
@@ -75,39 +75,39 @@ public class UrnNbnStatusHandler {
 
     @Deprecated
     public void error(String pid, Status status, String msg) {
-        log(LogType.ERROR, pid, status, msg);
+        log(LogType.ERROR, pid, status, msg, null);
     }
 
     public void error(DigitalObjectElement elm, Status status, String msg) {
-        log(LogType.ERROR, elm, status, msg);
+        log(LogType.ERROR, elm, status, msg, null);
     }
 
-    public void warning(DigitalObjectElement elm, Status status, String msg) {
-        log(LogType.WARNING, elm, status, msg);
+    public void warning(DigitalObjectElement elm, Status status, String msg, String urnNbn) {
+        log(LogType.WARNING, elm, status, msg, urnNbn);
     }
 
     @Deprecated
-    public void warning(String pid, Status status, String msg) {
-        log(LogType.WARNING, pid, status, msg);
+    public void warning(String pid, Status status, String msg, String urnNbn) {
+        log(LogType.WARNING, pid, status, msg, urnNbn);
     }
 
     public void ok(DigitalObjectElement elm, String urnNbn) {
         getEntry(elm.getPid()).setPid(elm.getItem()).ok(urnNbn);
     }
 
-    public void log(LogType logType, DigitalObjectElement elm, Status status, String msg) {
+    public void log(LogType logType, DigitalObjectElement elm, Status status, String msg, String urnNbn) {
         getEntry(elm.getPid())
                 .setPid(elm.getItem())
                 .getLogs(logType)
-                    .add(new StatusEntry(status, msg));
+                    .add(new StatusEntry(status, msg, urnNbn));
     }
 
-    public void log(LogType logType, String pid, Status status, String msg) {
+    public void log(LogType logType, String pid, Status status, String msg, String urnNbn) {
         PidResult entry = getEntry(pid);
         if (entry.getPid() == null) {
             entry.setPid(new Item(pid));
         }
-        entry.getLogs(logType).add(new StatusEntry(status, msg));
+        entry.getLogs(logType).add(new StatusEntry(status, msg, urnNbn));
     }
 
     public Map<String, PidResult> getPids() {
@@ -182,11 +182,17 @@ public class UrnNbnStatusHandler {
         private Status status;
         private String message;
         private String log;
+        private String urnNbn;
         private List<String> params;
 
-        public StatusEntry(Status status, String message) {
+        public StatusEntry(Status status, String message, String urnNbn) {
             this.status = status;
             this.message = message;
+            this.urnNbn = urnNbn;
+        }
+
+        public StatusEntry(Status status, String message) {
+            this(status, message, null);
         }
 
         public Status getStatus() {
@@ -197,6 +203,9 @@ public class UrnNbnStatusHandler {
             return message;
         }
 
+        public String getUrnNbn() {
+            return urnNbn;
+        }
     }
 
 }

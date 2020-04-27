@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
@@ -84,6 +85,7 @@ public final class FedoraImport {
             boolean itemFailed = importItems(batch, importer, ingestedPids, repair);
             addParentMembers(batch, parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
+            deleteImportFolder(batch);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
             batch.setState(Batch.State.INGESTING_FAILED);
@@ -94,6 +96,16 @@ public final class FedoraImport {
                     new Object[]{System.currentTimeMillis() - startTime, ingestedPids.size(), batch});
         }
         return batch;
+    }
+
+    private void deleteImportFolder(Batch batch) throws IOException {
+        ConfigurationProfile profile = findImportProfile(batch.getId(), batch.getProfileId());
+        ImportProfile importProfile = profile != null ? config.getImportConfiguration(profile) : config.getImportConfiguration();
+        if (importProfile.getDeletePackageImport()) {
+            File file = new File(config.getDefaultUsersHome(), batch.getFolder() + "/" + ImportProcess.TMP_DIR_NAME);
+            LOG.log(Level.INFO, "Smazani importni slozky "+ file.getName());
+            MetsUtils.deleteFolder(file);
+        }
     }
 
     private boolean importItems(Batch batch, String importer, List<String> ingests, boolean repair)
@@ -328,6 +340,12 @@ public final class FedoraImport {
             DigitalObjectManager.CreateHandler songHandler = dom.create(NdkAudioPlugin.MODEL_SONG, songPid, documentPid, user, null,  "create new object with pid: " + songsPid.get(0));
             songHandler.create();
 
+            if (songsPid.get(tmp).getChild() != null) {
+                List<String> songList = new ArrayList<>();
+                songList.add(songsPid.get(tmp).getChild());
+                setParent(songPid, songList, message);
+            }
+
             for (Hierarchy track : tracksPid.get(tmp)) {
                 DigitalObjectManager.CreateHandler trackHandler = dom.create(NdkAudioPlugin.MODEL_TRACK, track.getParent(), songPid, user, null,  "create new object with pid: " + songsPid.get(0));
                 trackHandler.create();
@@ -353,55 +371,52 @@ public final class FedoraImport {
     private boolean createPidHierarchy(List<BatchItemObject> batchItems, String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, List<String> pids) {
         pids.clear();
         String pid = "";
-        int pidObjektu = 0;
         for (BatchItemObject batchItem : batchItems) {
             String name = nameWithoutExtention(batchItem.getFile().getName(), ".foxml");
             String[] splitName = name.split("-");
 
             try {
-                int disc = Integer.valueOf(splitName[splitName.length-3]);
-                int song = Integer.valueOf(splitName[splitName.length-2]);
-                int track = Integer.valueOf(splitName[splitName.length-1]);
+                int length = splitName.length;
+                if (splitName[length-3].length() == 2 && splitName[length-2].length() == 2 && splitName[length-1].length() == 2) {
+                    int disc = Integer.valueOf(splitName[splitName.length-3]);
+                    int song = Integer.valueOf(splitName[splitName.length-2]);
+                    int track = Integer.valueOf(splitName[splitName.length-1]);
 
-                if (splitName[splitName.length-3].length() == 2) {
-                    if (disc < 1 || song < 1 || track < 1) {
+                    if (disc < 1 || song < 1) {
                         LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
                         return false;
                     }
-                    if (songsPid.size() < song) {
-                        pid = FoxmlUtils.createPid();
-                        Hierarchy songHierarchy = new Hierarchy(pid, null);
-                        songsPid.add(song - 1, songHierarchy);
-                        tracksPid.add(song - 1, new ArrayList<>());
-                    }
-                    if (tracksPid.get(song - 1).size() < track) {
-                        pid = FoxmlUtils.createPid();
-                        Hierarchy trackHierarchy = new Hierarchy(pid, batchItem.getPid());
-                        tracksPid.get(song - 1).add(track - 1, trackHierarchy);
+                    if (track > 0 ) {
+                        if (songsPid.size() < song) {
+                            pid = FoxmlUtils.createPid();
+                            Hierarchy songHierarchy = new Hierarchy(pid, null);
+                            songsPid.add(song - 1, songHierarchy);
+                            tracksPid.add(song - 1, new ArrayList<>());
+                        }
+                        if (tracksPid.get(song - 1).size() < track) {
+                            pid = FoxmlUtils.createPid();
+                            Hierarchy trackHierarchy = new Hierarchy(pid, batchItem.getPid());
+                            tracksPid.get(song - 1).add(track - 1, trackHierarchy);
+                        }
+                    } else if (track == 0) {
+                        if (songsPid.size() < song) {
+                            pid = FoxmlUtils.createPid();
+                            Hierarchy songHierarchy = new Hierarchy(pid, batchItem.getPid());
+                            songsPid.add(song - 1, songHierarchy);
+                            tracksPid.add(song - 1, new ArrayList<>());
+                        }
+                    } else {
+                        LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
+                        return false;
                     }
                 } else {
-                    int id = Integer.valueOf(splitName[splitName.length-3]);
-                    int deskaPid = Integer.valueOf(splitName[splitName.length-2]);
-                    int songPid = Integer.valueOf(splitName[splitName.length-1]);
-
-                    if (id < 1 || deskaPid < 1 || songPid < 1) {
-                        LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
-                        return false;
-                    }
-
-                    if (pidObjektu != songPid) {
-                        pid = FoxmlUtils.createPid();
-                        pidObjektu = songPid;
-                    }
-                    Hierarchy songHierarchy = new Hierarchy(pid, batchItem.getPid());
-                    songsPid.add(songHierarchy);
+                    pids.add(batchItem.getPid());
+                    continue;
                 }
-
             } catch (NumberFormatException ex) {
                 pids.add(batchItem.getPid());
                 continue;
             }
-
         }
         return true;
     }

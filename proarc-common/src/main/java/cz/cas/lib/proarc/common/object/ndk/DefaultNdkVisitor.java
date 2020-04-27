@@ -39,7 +39,7 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return null;
         }
         String model = elm.getItem().getModel();
-        if (NdkPlugin.MODEL_PAGE.equals(model)) {
+        if (NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
             return visitNdkPage(elm, p);
         } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(model)) {
             return visitNdkPeriodicalIssue(elm, p);

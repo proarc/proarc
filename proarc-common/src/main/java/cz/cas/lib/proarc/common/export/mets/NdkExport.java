@@ -17,7 +17,9 @@
 package cz.cas.lib.proarc.common.export.mets;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportException;
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ItemList;
@@ -52,11 +54,13 @@ public class NdkExport {
 
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     protected final RemoteStorage rstorage;
-    protected final NdkExportOptions options;
+    protected final NdkExportOptions ndkExportOptions;
+    protected final ExportOptions exportOptions;
 
-    public NdkExport(RemoteStorage rstorage, NdkExportOptions options) {
+    public NdkExport(RemoteStorage rstorage, AppConfiguration config) {
         this.rstorage = rstorage;
-        this.options = options;
+        this.ndkExportOptions = config.getNdkExportOptions();
+        this.exportOptions = config.getExportOptions();
     }
 
     /**
@@ -77,12 +81,17 @@ public class NdkExport {
      *             unexpected failure
      */
     public List<Result> export(File exportsFolder, List<String> pids,
-            boolean hierarchy, boolean keepResult, String log
-            ) throws ExportException {
+            boolean hierarchy, boolean keepResult, Boolean overwrite,
+            String log) throws ExportException {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
-        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)));
+        File target;
+        if (exportsFolder != null && "NDK".equals(exportsFolder.getName())) {
+            target = exportsFolder;
+        } else {
+            target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, exportOptions.isOverwritePackage()));
+        }
         List<Result> results = new ArrayList<>(pids.size());
         for (String pid : pids) {
             ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
@@ -114,6 +123,114 @@ public class NdkExport {
         }
         ExportUtils.writeExportResult(target, reslog);
         return results;
+    }
+
+    public List<Result> exportNdkArchive(File exportsFolder, List<String> pids,
+                                         boolean hierarchy, boolean keepResult, Boolean overwrite,
+                                         String log) throws ExportException {
+        Validate.notEmpty(pids, "Pids to export are empty");
+
+        ExportResultLog reslog = new ExportResultLog();
+        File target;
+        /*if (exportsFolder != null && "NDK".equals(exportsFolder.getName())) {
+            target = exportsFolder;
+        } else {
+            target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, exportOptions.isOverwritePackage()));
+        }*/
+        target=exportsFolder;
+        List<Result> results = new ArrayList<>(pids.size());
+        for (String pid : pids) {
+            ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
+            logItem.setInputPid(pid);
+            reslog.getExports().add(logItem);
+            try {
+                Result r = exportNdk(target, pid, hierarchy, keepResult, log);
+                target = r.getTargetFolder();
+                results.add(r);
+                deleteUnnecessaryFolder(target);
+                Info info = getInfo(getInfoFile(target));
+                if (info != null) {
+                    logItem.getItemList().add(new ItemList(getTotalSize(info), getFileSize(info, "alto"), getFileSize(info, "txt"),
+                            getFileSize(info, "usercopy"),getFileSize(info, "mastercopy"),getFileSize(info, "amdsec"), getFileSize(info, "original")));
+                }
+                logResult(r, logItem);
+            } catch (ExportException ex) {
+                logItem.setStatus(ResultStatus.FAILED);
+                logItem.getError().add(new ResultError(null, ex));
+                ExportUtils.writeExportResult(target, reslog);
+                throw ex;
+            } catch (JAXBException ex) {
+                logItem.setStatus(ResultStatus.FAILED);
+                logItem.getError().add(new ResultError(null, ex));
+                ExportUtils.writeExportResult(target, reslog);
+                throw new ExportException(ex);
+            } finally {
+                logItem.setEnd();
+            }
+        }
+        ExportUtils.writeExportResult(target, reslog);
+        return results;
+    }
+
+    private Result exportNdk(File target, String pid,
+                             boolean hierarchy, boolean keepResult, String log) throws ExportException {
+
+        Result result = new Result();
+
+        if (keepResult) {
+            result.setTargetFolder(target);
+        }
+        RemoteObject fo = rstorage.find(pid);
+        MetsContext dc = buildContext(fo, null, target);
+        File targetFolder = null;
+        try {
+            MetsElement metsElement = getMetsElement(fo, dc, hierarchy);
+            if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
+                metsElement.accept(new MetsElementVisitor());
+            } else {
+                List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+                if (PSPs.size() == 0) {
+                    throw new MetsExportException(pid, "Pod tímto modelem je očekáván model s přiděleným urn:nbn. Tento model chybí. Opravte a poté znovu exportujte.", false, null);
+                }
+                String output = dc.getOutputPath();
+                for (String pspPid : PSPs) {
+                    dc.resetContext();
+                    String outputPath = output + File.separator + getUuidName(pspPid) + File.separator + "NDK";
+                    targetFolder = new File(outputPath);
+                    dc.setOutputPath(outputPath);
+                    result.setTargetFolder(targetFolder);
+                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
+                    MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                    mElm.accept(createMetsVisitor());
+                    // XXX use relative path to users folder?
+                }
+            }
+            if (targetFolder == null) {
+                targetFolder = target;
+            }
+            storeExportResult(dc, targetFolder.toURI().toASCIIString(), log);
+            return result;
+        } catch (MetsExportException ex) {
+            if (ex.getExceptions().isEmpty()) {
+                throw new ExportException(pid, ex);
+            }
+            return result.setValidationError(ex);
+        } catch (NoSuchElementException exel) {
+            return result.setValidationError(new MetsExportException(pid, "Model obsahuje neočekávaný element {" + exel.getMessage() +"}.", false, null));
+        }catch (Throwable ex) {
+            throw new ExportException(pid, ex);
+        }
+    }
+
+    private String getUuidName(String name) {
+        return name.substring(5);
+    }
+
+    private boolean overwrite(Boolean overwrite_constant, Boolean overwrite_config) {
+        if (overwrite_constant != null) {
+            return overwrite_constant;
+        }
+        return overwrite_config;
     }
 
     private String getFileSize(Info info, String value) {
@@ -246,7 +363,7 @@ public class NdkExport {
         mc.setOutputPath(targetFolder.getAbsolutePath());
         mc.setAllowNonCompleteStreams(false);
         mc.setAllowMissingURNNBN(false);
-        mc.setConfig(options);
+        mc.setConfig(ndkExportOptions);
         return mc;
     }
 

@@ -140,6 +140,7 @@ public class TiffImporter implements ImageImporter {
             String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
             PageViewItem page = new PageViewItem();
             page.setPageIndex(pageIndex);
+            page.setPageType("normalPage");
             pvHandler.setPage(page, null);
         } else {
             throw new IllegalStateException("Unsupported metadata handler: " + mHandler);

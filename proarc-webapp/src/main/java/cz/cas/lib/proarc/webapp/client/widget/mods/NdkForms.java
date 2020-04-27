@@ -77,6 +77,7 @@ public final class NdkForms {
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, new NdkEPeriodicalIssueForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, new NdkEPeriodicalVolumeForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EARTICLE, new NdkEArticleForm()::build);
+        mappers.put(NdkPlugin.MODEL_NDK_PAGE, new NdkNewPageForm()::build);
     }
 
     public NdkForms(ClientMessages i18n) {
@@ -90,8 +91,8 @@ public final class NdkForms {
             return new PageForm(i18n);
         } else if ("model:ndkaudiopage".equals(modelId)) {
             return new NdkAudioPageForm(i18n, BundleName.MODS_AUDIO_PAGE_TYPES);
-        } else if (NdkPlugin.MODEL_NDK_PAGE.equals(modelId)) {
-            return new NdkPageForm(i18n);
+        //} else if (NdkPlugin.MODEL_NDK_PAGE.equals(modelId)) {
+        //    return new NdkPageForm(i18n);
         }
 
         return mappers.get(modelId) == null ? null : new NdkFormGenerator(mappers.get(modelId).get(), activeLocale).generateForm();

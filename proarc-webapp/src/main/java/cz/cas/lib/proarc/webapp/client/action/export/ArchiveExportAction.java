@@ -79,6 +79,10 @@ public class ArchiveExportAction extends ExportAction {
                     accept = false;
                     continue;
                 }
+                if (modelId != null && modelId.startsWith("model:ndke")) {
+                    accept = false;
+                    continue;
+                }
                 if (modelId != null && modelId.startsWith("model:ndk")) {
                     accept = true;
                     continue;

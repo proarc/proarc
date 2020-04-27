@@ -49,6 +49,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -120,6 +121,7 @@ public final class RemoteStorage {
         }
         return sv;
     }
+
 
     public SearchView getSearch() {
         return getSearch(null);

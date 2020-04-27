@@ -28,6 +28,7 @@ import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -62,9 +63,10 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         BatchDatastreamEditor, Refreshable, Selectable<DigitalObject> {
 
     private static final Logger LOG = Logger.getLogger(ModsMultiEditor.class.getName());
-    private static final HashSet<String> ACCEPT_BATCH_MODELS = new HashSet<String>();
+    private static final HashSet<String> ACCEPT_BATCH_MODELS = new HashSet<>();
     static {
         ACCEPT_BATCH_MODELS.add("model:page");
+        ACCEPT_BATCH_MODELS.add("model:ndkpage");
         ACCEPT_BATCH_MODELS.add("model:oldprintpage");
     }
 
@@ -183,13 +185,12 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
      * Notifies other data sources to update its caches with object label.
      */
     private BooleanCallback wrapSaveCallback(final BooleanCallback callback) {
-        BooleanCallback bc = (Boolean value) -> {
+        return (Boolean value) -> {
             if (value != null && value) {
                 RelationDataSource.getInstance().fireRelationChange(digitalObjects[0].getPid());
             }
             callback.execute(value);
         };
-        return bc;
     }
 
     @Override
@@ -285,7 +286,9 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                     boolean accept(DigitalObject obj) {
                         return ChroniclePlugin.MODEL_CHRONICLETITLE.equals(obj.getModelId())
                                 || ChroniclePlugin.MODEL_CHRONICLEVOLUME.equals(obj.getModelId())
-                                || ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT.equals(obj.getModelId());
+                                || ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT.equals(obj.getModelId())
+                                || CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME.equals(obj.getModelId())
+                                || CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE.equals(obj.getModelId());
                     }
 
                     @Override

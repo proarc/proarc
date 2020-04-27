@@ -18,18 +18,22 @@ package cz.cas.lib.proarc.common.export.archive;
 
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.archive.PackageBuilder.MdType;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
@@ -50,6 +54,7 @@ import java.util.Set;
 
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import org.w3c.dom.Element;
@@ -65,16 +70,23 @@ public class ArchiveObjectProcessor {
     private final LocalStorage ls = new LocalStorage();
     private PackageBuilder builder;
     private final File targetFolder;
+
+    public HashSet<String> getDevicePids() {
+        return devicePids;
+    }
+
     private final HashSet<String> devicePids = new HashSet<String>();
+    private AppConfiguration appConfig;
 
     public static final Set<String> ARCHIVE_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
                     NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_PERIODICALISSUE,
                     OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT)));
 
-    public ArchiveObjectProcessor(DigitalObjectCrawler crawler, File targetFolder) {
+    public ArchiveObjectProcessor(DigitalObjectCrawler crawler, File targetFolder, AppConfiguration appConfiguration) {
         this.crawler = crawler;
         this.targetFolder = targetFolder;
+        this.appConfig = appConfiguration;
     }
 
     /**
@@ -87,7 +99,7 @@ public class ArchiveObjectProcessor {
         DigitalObjectElement entry = objectPath.get(0);
         DigitalObjectHandler handler = entry.getHandler();
         LocalObject lobj = getLocalObject(handler.getFedoraObject());
-        builder.prepare(objectPath, lobj);
+        builder.prepare(objectPath, lobj, appConfig);
         processParents(objectPath);
         processObject(1, objectPath, lobj);
         builder.build();
@@ -127,7 +139,11 @@ public class ArchiveObjectProcessor {
             String dsId = dt.getID();
             if (ModsStreamEditor.DATASTREAM_ID.equals(dsId)) {
                 // XXX might not be mods! It should rather go to fileGrp.
-                checkUrnNbn(cache);
+
+                if (!(parentElm != null &&  NdkPlugin.MODEL_PERIODICALISSUE.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))) {
+                    checkUrnNbn(cache);
+                }
+
                 builder.addStreamAsMdSec(siblingIdx, dt, cache.getPid(), elm.getModelId(), MdType.MODS);
             } else if (DcStreamEditor.DATASTREAM_ID.equals(dsId)) {
                 Element dcElm = dt.getDatastreamVersion().get(0).getXmlContent().getAny().get(0);
@@ -138,6 +154,10 @@ public class ArchiveObjectProcessor {
                 builder.addStreamAsFile(siblingIdx, dt, cache.getPid(), elm.getModelId(), null);
             } else if (FoxmlUtils.DS_AUDIT_ID.equals(dsId)) {
                 builder.addStreamAsFile(siblingIdx, dt, cache.getPid(), elm.getModelId(), null);
+            } else if (AltoDatastream.ALTO_ID.equals(dsId) || BinaryEditor.NDK_ARCHIVAL_ID.equals(dsId)
+                    || MixEditor.NDK_ARCHIVAL_ID.equals(dsId) || BinaryEditor.NDK_USER_ID.equals(dsId)
+                    || StringEditor.OCR_ID.equals(dsId)){
+                //DO NOTHING - contains NDK folder
             } else {
                 builder.addStreamAsFile(siblingIdx, dt, cache.getPid(), elm.getModelId(), handler.dissemination(dsId));
             }

@@ -80,7 +80,7 @@ public final class UrnNbnService {
             ctx.getJhoveContext().destroy();
         }
         for (String pid : queue) {
-            statusHandler.warning(pid, Status.NOT_PROCESSED, "Not processed! \n" + pid);
+            statusHandler.warning(pid, Status.NOT_PROCESSED, "Not processed! \n" + pid, null);
         }
         return statusHandler;
     }
