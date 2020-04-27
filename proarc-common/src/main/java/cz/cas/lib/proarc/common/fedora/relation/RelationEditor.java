@@ -89,6 +89,15 @@ public final class RelationEditor {
         rdf.getDescription().setOrganization(RdfRelation.fromPid(organization));
     }
 
+
+    /**
+     * use for Kramerius Export
+     */
+    public void setEmptyOrganization() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setOrganization(RdfRelation.fromPid(null));
+    }
+
     /**
      * @return organization of model
      */
@@ -114,6 +123,14 @@ public final class RelationEditor {
         }
         Rdf rdf = getRdf();
         rdf.getDescription().setUser(RdfRelation.fromPid(user));
+    }
+
+    /**
+     * use for Kramerius Export
+     */
+    public void setEmptyUser() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setUser(RdfRelation.fromPid(null));
     }
 
     /**
