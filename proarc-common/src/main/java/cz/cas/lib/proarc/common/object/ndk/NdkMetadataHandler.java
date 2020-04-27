@@ -425,7 +425,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             RecordInfoDefinition recordInfo = recordInfos.get(i);
             if (recordInfo.getDescriptionStandard().size() > 0 && recordInfo.getDescriptionStandard().get(0).getValue() != null) {
                 RecordInfoDefinition ri;
-                if (mods.getRecordInfo().size() >= i) {
+                if (mods.getRecordInfo().size() != 0 && mods.getRecordInfo().size() >= i) {
                     ri = mods.getRecordInfo().get(i);
                     if (ri.getDescriptionStandard().size() != 0) {
                         ri.getDescriptionStandard().get(0).setValue(recordInfo.getDescriptionStandard().get(0).getValue());

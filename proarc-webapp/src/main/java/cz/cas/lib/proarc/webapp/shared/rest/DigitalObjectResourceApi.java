@@ -207,6 +207,8 @@ public final class DigitalObjectResourceApi {
 
     public static final String CHANGE_PAGE_TO_NDK_PAGE = "changePageToNdkPage";
     public static final String CHANGE_NDK_PAGE_TO_PAGE = "changeNdkPageToPage";
+    public static final String CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME = "changeClippingsVolumeToNdkMonographVolume";
+    public static final String CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = "changeClippingsTitleToNdkMonographTitle";
 
     public enum SearchType {
         

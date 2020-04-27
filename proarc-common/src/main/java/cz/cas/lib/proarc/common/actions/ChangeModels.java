@@ -48,6 +48,18 @@ public class ChangeModels {
         return pids;
     }
 
+    public String findRootObject() throws DigitalObjectException {
+        IMetsElement element = getElement();
+        if (element == null) {
+            throw new DigitalObjectException("Process: Changing models failed - impossimble to get element");
+        }
+        return getRootElement(element);
+    }
+
+    private String getRootElement(IMetsElement element) {
+        return element.getMetsContext().getRootElement().getOriginalPid();
+    }
+
     public void changeModels() throws DigitalObjectException {
         if (pids.isEmpty()) {
             throw new DigitalObjectException(pid, "Process: Changing models failed - no models found");

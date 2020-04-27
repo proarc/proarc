@@ -49,6 +49,8 @@ import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.UpdateAllObjectsAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsTitleToNdkMonographTitleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsVolumeToNdkMonographVolumeAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangePageToNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
@@ -112,6 +114,8 @@ public final class DigitalObjectManager {
     private GenerateMasterCopyAction generateMasterCopyAction;
     private ChangePageToNdkPageAction changePageToNdkPageAction;
     private ChangeNdkPageToPageAction changeNdkPageToPageAction;
+    private ChangeClippingsVolumeToNdkMonographVolumeAction changeClippingsVolumeToNdkMonographVolumeAction;
+    private ChangeClippingsTitleToNdkMonographTitleAction changeClippingsTitleToNdkMonographTitleAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -266,6 +270,8 @@ public final class DigitalObjectManager {
         generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
         changePageToNdkPageAction = new ChangePageToNdkPageAction(i18n);
         changeNdkPageToPageAction = new ChangeNdkPageToPageAction(i18n);
+        changeClippingsVolumeToNdkMonographVolumeAction = new ChangeClippingsVolumeToNdkMonographVolumeAction(i18n);
+        changeClippingsTitleToNdkMonographTitleAction = new ChangeClippingsTitleToNdkMonographTitleAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -334,6 +340,8 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(changePageToNdkPageAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToPageAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(changeClippingsVolumeToNdkMonographVolumeAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
         btnAdministration.setMenu(menuAdministration);
 
 

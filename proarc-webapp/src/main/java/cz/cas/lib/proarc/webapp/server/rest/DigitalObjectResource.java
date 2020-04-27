@@ -61,6 +61,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -1600,6 +1601,52 @@ public class DigitalObjectResource {
 
         RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_PAGE, pids);
         repairMetadata.repair();
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeClippingsVolumeToNdkMonographVolume(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
+        List<String> pids = changeModels.findObjects();
+        String parentPid = changeModels.findRootObject();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_MONOGRAPHVOLUME, pids);
+        repairMetadata.repair(parentPid);
+
+
+        return new SmartGwtResponse<>();
+    }
+
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeClippingsTitleToNdkMonographTitle(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, NdkPlugin.MODEL_MONOGRAPHTITLE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_MONOGRAPHTITLE, pids);
+        repairMetadata.repair();
+
+
         return new SmartGwtResponse<>();
     }
 

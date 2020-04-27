@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
@@ -43,5 +42,13 @@ public class ChangeModelsDataSource extends ProarcDataSource {
 
     public static ChangeModelsDataSource changeNdkPageToPage() {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_PAGE_TO_PAGE);
+    }
+
+    public static ChangeModelsDataSource changeClippingsVolumeToNdkMonographVolume() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME);
+    }
+
+    public static ChangeModelsDataSource changeClippingsTitleToNdkMonographTitle() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE);
     }
 }

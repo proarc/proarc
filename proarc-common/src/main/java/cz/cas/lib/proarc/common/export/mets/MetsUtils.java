@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
@@ -203,6 +204,13 @@ public class MetsUtils {
             List<ChroniclePlugin> chroniclePlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
                     .filter(plugin -> plugin instanceof ChroniclePlugin).map(plugin -> ((ChroniclePlugin) plugin)).collect(Collectors.toList());
             for (ChroniclePlugin plugin : chroniclePlugins) {
+                if (plugin.TYPE_MAP.containsKey(model)) {
+                    return plugin.TYPE_MAP.get(model);
+                }
+            }
+            List<CollectionOfClippingsPlugin> clippingsPlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                    .filter(plugin -> plugin instanceof CollectionOfClippingsPlugin).map(plugin -> ((CollectionOfClippingsPlugin) plugin)).collect(Collectors.toList());
+            for (CollectionOfClippingsPlugin plugin : clippingsPlugins) {
                 if (plugin.TYPE_MAP.containsKey(model)) {
                     return plugin.TYPE_MAP.get(model);
                 }

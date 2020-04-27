@@ -608,6 +608,12 @@ public final class Kramerius4Export {
             editor.setDevice(null);
             editor.setExportResult(null);
             editor.setKrameriusExportResult(null);
+            editor.setArchiveExportResult(null);
+            editor.setNdkExportResult(null);
+            editor.setCrossrefExportResult(null);
+            editor.setStatus(null);
+            editor.setEmptyUser();
+            editor.setEmptyOrganization();
             editor.setOwners(Collections.<String>emptyList());
             editor.setMembership(Collections.<String>emptyList());
 
