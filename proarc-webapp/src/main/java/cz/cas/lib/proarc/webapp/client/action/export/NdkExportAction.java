@@ -92,7 +92,7 @@ public class NdkExportAction extends ExportAction {
 
     private boolean isNdkModel(String modelId, boolean withNdkEbornDocuments) {
         if (modelId.startsWith("model:ndk")) {
-            if (withNdkEbornDocuments == true && modelId.startsWith("model:nkde")) {
+            if (withNdkEbornDocuments == true && modelId.startsWith("model:ndke")) {
                 return true;
             } else if (withNdkEbornDocuments == false && !modelId.startsWith("model:ndke")) {
                 return true;

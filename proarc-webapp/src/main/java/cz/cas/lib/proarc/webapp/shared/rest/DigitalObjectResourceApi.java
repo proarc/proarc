@@ -40,10 +40,13 @@ public final class DigitalObjectResourceApi {
     public static final String DELETE_HIERARCHY_PARAM = "hierarchy";
     public static final String DELETE_PID_PARAM = DIGITALOBJECT_PID;
     public static final String DELETE_PURGE_PARAM = "purge";
+    public static final String DELETE_RESTORE_PARAM = "restore";
+
 
     public static final String SEARCH_PATH = "search";
     public static final String SEARCH_OWNER_PARAM = "owner";
     public static final String SEARCH_START_ROW_PARAM = "_startRow";
+    public static final String SEARCH_SORT_PARAM = "_sort";
     public static final String SEARCH_PHRASE_PARAM = "phrase";
     public static final String SEARCH_PID_PARAM = "pid";
     public static final String SEARCH_BATCHID_PARAM = "batchId";
@@ -58,6 +61,8 @@ public final class DigitalObjectResourceApi {
      * field in enum's constant declaration.
      */
     private static final String SEARCH_TYPE_PARAM_DEFAULT = SearchType.DEFAULT;
+
+    private static final String SEARCH_SORT_PARAM_DEFAULT = SearchSort.DEFAULT_DESC;
 
     // resource /object/dc
     public static final String DC_PATH = "dc";
@@ -185,6 +190,9 @@ public final class DigitalObjectResourceApi {
     public static final String GENERATE_JP2_PATH = "generateJp2";
     public static final String GENERATE_TYPE = "generateType";
 
+    public static final String CHANGE_PAGE_TO_NDK_PAGE = "changePageToNdkPage";
+    public static final String CHANGE_NDK_PAGE_TO_PAGE = "changeNdkPageToPage";
+
     public enum SearchType {
         
         LAST_CREATED(SEARCH_TYPE_PARAM_DEFAULT),
@@ -193,7 +201,9 @@ public final class DigitalObjectResourceApi {
         PARENT("parent"),
         PIDS("pids"),
         PHRASE("phrase"),
-        QUERY("query");
+        QUERY("query"),
+        DELETED("deleted"),
+        ALPHABETICAL("alphabetical");
         
         public static final String DEFAULT = "lastCreated";
         private String external;
@@ -209,6 +219,34 @@ public final class DigitalObjectResourceApi {
 
         public static SearchType fromString(String external) {
             for (SearchType type : values()) {
+                if (type.external.equals(external)) {
+                    return type;
+                }
+            }
+            return null;
+        }
+
+    }
+
+    public enum SearchSort {
+
+        DESC(SEARCH_SORT_PARAM_DEFAULT),
+        ASC("asc");
+
+        public static final String DEFAULT_DESC = "desc";
+        private String external;
+
+        SearchSort(String external) {
+            this.external = external;
+        }
+
+        @Override
+        public String toString() {
+            return external;
+        }
+
+        public static SearchSort fromString(String external) {
+            for (SearchSort type : values()) {
                 if (type.external.equals(external)) {
                     return type;
                 }

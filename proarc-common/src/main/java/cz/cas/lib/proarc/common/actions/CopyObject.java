@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.object;
+package cz.cas.lib.proarc.common.actions;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -31,6 +31,9 @@ import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mods.*;

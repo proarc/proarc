@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchDao;
@@ -35,6 +36,7 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import javax.xml.bind.JAXB;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -47,8 +49,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXB;
 
 /**
  *
@@ -367,7 +369,7 @@ public class ImportBatchManager {
     public LocalObject getRootObject(Batch batch) {
         File folder = resolveBatchFile(batch.getFolder());
         LocalStorage storage = new LocalStorage();
-        File targetBatchFolder = ImportProcess.getTargetFolder(folder);
+        File targetBatchFolder = ImportProcess.getTargetFolder(folder, appConfig.getImportConfiguration(findImportProfile(batch.getId(), batch.getProfileId())));
         if (!targetBatchFolder.exists()) {
             throw new IllegalStateException(
                     String.format("Cannot resolve folder path: %s for %s!", targetBatchFolder, batch));
@@ -380,6 +382,16 @@ public class ImportBatchManager {
             loRoot = storage.create(ROOT_ITEM_PID, root);
         }
         return loRoot;
+    }
+
+    private ConfigurationProfile findImportProfile(Integer batchId, String profileId) {
+        ConfigurationProfile profile = appConfig.getProfiles().getProfile(ImportProfile.PROFILES, profileId);
+        if (profile == null) {
+            LOG.log(Level.SEVERE,"Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
+                    new Object[]{ImportProfile.PROFILES, profileId, batchId});
+            return null;
+        }
+        return profile;
     }
 
     public void addFileItem(int batchId, String pid, FileState state, List<FileEntry> files) {
