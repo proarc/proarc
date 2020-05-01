@@ -113,11 +113,11 @@ public final class Kramerius4Export {
     
     private final Kramerius4ExportOptions kramerius4ExportOptions;
     private AppConfiguration appConfig;
-    private final ExportOptions exportOptions;
+    private ExportOptions exportOptions;
 
     private final String policy;
 
-    private final String exportPageContext;
+    private String exportPageContext;
 
     public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options) {
         this(rstorage, options, options.getPolicy(), null);
@@ -128,8 +128,7 @@ public final class Kramerius4Export {
 
     public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options, String policy, String exportPageContext) {
         this.rstorage = rstorage;
-        this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
-        this.exportOptions = appConfiguration.getExportOptions();
+        this.kramerius4ExportOptions = options;
         this.search = rstorage.getSearch();
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
         this.exportPageContext = exportPageContext;
@@ -148,7 +147,6 @@ public final class Kramerius4Export {
         this.exportOptions = appConfiguration.getExportOptions();
         this.search = rstorage.getSearch();
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
-        this.exportPageContext = exportPageContext;
 
         if (Arrays.asList(ALLOWED_POLICY).contains(policy)) {
             this.policy = policy;

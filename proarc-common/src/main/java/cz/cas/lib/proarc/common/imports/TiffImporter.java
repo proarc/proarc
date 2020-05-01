@@ -44,17 +44,18 @@ import cz.cas.lib.proarc.common.process.TiffToJpgConvert;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
+import org.apache.commons.configuration.Configuration;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.ws.rs.core.MediaType;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.stream.FileImageOutputStream;
-import javax.ws.rs.core.MediaType;
-import org.apache.commons.configuration.Configuration;
 
 /**
  * Requires Java Advanced Imaging support.
@@ -195,6 +196,11 @@ public class TiffImporter implements ImageImporter {
 
         if (ocrEntry != null) {
             doOcrEditor(tempBatchFolder, originalFilename, ocrEntry.getFile(), config, fo);
+        } else if (existsFile(options.getImportFolder(), originalFilename, config.getPlainOcrFilePath(), config.getPlainOcrFileSuffix(), config.getOcrAltoFolderPath())) {
+            File ocr = createFile(options.getImportFolder(), originalFilename, config.getPlainOcrFilePath(), config.getPlainOcrFileSuffix(), config.getOcrAltoFolderPath());
+            if (ocr != null) {
+                doOcrEditor(tempBatchFolder, originalFilename, ocr, config, fo);
+            }
         } else if (config.getDefaultAltoAndOcr()) {
             File ocr = new File(ibm.getAppConfig().getConfigHome().toURI().resolve(config.getDefaultOcr()));
             if (ocr != null) {
@@ -208,6 +214,11 @@ public class TiffImporter implements ImageImporter {
 
         if (altoEntry != null) {
             URI altoUri = altoEntry.getFile().toURI();
+            AltoDatastream altoDatastrem = new AltoDatastream(config);
+            altoDatastrem.importAlto(fo, altoUri, null);
+        } else if (existsFile(options.getImportFolder(), originalFilename, config.getAltoFilePath(), config.getAltoFileSuffix(), config.getOcrAltoFolderPath())) {
+            File alto = createFile(options.getImportFolder(), originalFilename, config.getAltoFilePath(), config.getAltoFileSuffix(), config.getOcrAltoFolderPath());
+            URI altoUri = alto.toURI();
             AltoDatastream altoDatastrem = new AltoDatastream(config);
             altoDatastrem.importAlto(fo, altoUri, null);
         } else if (config.getDefaultAltoAndOcr()) {
@@ -234,6 +245,43 @@ public class TiffImporter implements ImageImporter {
             }
         }
     }
+
+    private boolean existsFile(File originalPath, String filename, String path, String suffix, int lastFolder) {
+        return createFile(originalPath, filename, path, suffix, lastFolder).exists();
+    }
+
+    private File createFile(File originalPath, String filename, String path, String suffix, int lastFolder) {
+        StringBuilder pathValue = new StringBuilder();
+        pathValue.append(path).append("/");
+        String value = getOriginalPath(originalPath, lastFolder);
+        pathValue.append(value);
+        pathValue.append(filename);
+        pathValue.append(suffix);
+        return new File(pathValue.toString());
+    }
+
+    private String getOriginalPath(File originalPath, int lastFolder) {
+        StringBuilder value = new StringBuilder();
+        List<String> folderName = new ArrayList<>();
+        getFolderName(originalPath, folderName);
+        if (folderName.size() > lastFolder - 1) {
+            for (int i = lastFolder - 1; i >= 0; i--) {
+                value.append(folderName.get(i)).append("/");
+            }
+            return value.toString();
+        }
+        return null;
+    }
+
+    private void getFolderName(File file, List<String> folderName) {
+        if (file != null) {
+            folderName.add(file.getName());
+            getFolderName(file.getParentFile(), folderName);
+        } else {
+            return;
+        }
+    }
+
 
     public void doOcrEditor(File tempBatchFolder, String originalFilename, File ocrEntry, ImportProfile config, FedoraObject fo) throws IOException, DigitalObjectException {
         File ocrFile = new File(tempBatchFolder, originalFilename + '.' + StringEditor.OCR_ID + ".txt");

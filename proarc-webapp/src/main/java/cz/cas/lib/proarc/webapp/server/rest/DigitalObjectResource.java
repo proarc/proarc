@@ -18,6 +18,10 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.actions.ChangeModels;
+import cz.cas.lib.proarc.common.actions.CopyObject;
+import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
+import cz.cas.lib.proarc.common.actions.RepairMetadata;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -47,8 +51,6 @@ import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-
-import cz.cas.lib.proarc.common.object.CopyObject;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -57,9 +59,9 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration.ResolverConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnService;
@@ -76,27 +78,12 @@ import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.MissingResourceException;
-import java.util.Set;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -121,10 +108,26 @@ import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import org.apache.commons.io.FileUtils;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.MissingResourceException;
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Resource to manage digital objects.
@@ -270,7 +273,9 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
             @DefaultValue("true") boolean hierarchy,
             @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
-            @DefaultValue("false") boolean purge
+            @DefaultValue("false") boolean purge,
+            @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
+            @DefaultValue("false") boolean restore
             ) throws IOException, PurgeException {
 
         RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
@@ -279,6 +284,8 @@ public class DigitalObjectResource {
         if (purge) {
             session.requirePermission(Permissions.ADMIN);
             service.purge(pids, hierarchy, session.asFedoraLog());
+        } else if (restore){
+            service.restore(pids, session.asFedoraLog());
         } else {
             service.delete(pids, hierarchy, session.asFedoraLog());
         }
@@ -303,7 +310,9 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM) String queryTitle,
-            @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow
+            @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow,
+            @DefaultValue(SearchSort.DEFAULT_DESC)
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort
             ) throws FedoraClientException, IOException {
 
         Locale locale = session.getLocale(httpHeaders);
@@ -314,15 +323,19 @@ public class DigitalObjectResource {
         int total = 0;
         int page = 20;
         switch (type) {
+            case ALPHABETICAL:
+                total = search.countModels(queryModel, filterOwnObjects(user)).size();
+                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
+                break;
             case LAST_MODIFIED:
                 total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100);
+                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
                         .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
-                        .setHasOwners(filterGroups(user)));
+                        .setHasOwners(filterGroups(user)), "active");
                 total = items.size();
                 page = 1;
                 break;
@@ -345,9 +358,17 @@ public class DigitalObjectResource {
                 total = items.size();
                 page = 1;
                 break;
+            case DELETED:
+                items = search.findQuery(new Query().setTitle(queryTitle)
+                        .setLabel(queryLabel).setIdentifier(queryIdentifier)
+                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
+                        .setHasOwners(filterGroups(user)), "deleted");;
+                total = items.size();
+                page = 1;
+                break;
             default:
                 total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), 100);
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
         }
         int count = items.size();
         int endRow = startRow + count - 1;
@@ -530,7 +551,6 @@ public class DigitalObjectResource {
 
     /**
      * Fetches object descriptions from the index. Useful to check whether object exists.
-     * @param searchIndex index
      * @param pids object IDs to search
      * @return the map of found PIDs and descriptions
      */
@@ -1479,6 +1499,47 @@ public class DigitalObjectResource {
     ) throws DigitalObjectException {
 
 
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changePageToNdkPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_NDK_PAGE, pids);
+        repairMetadata.repair();
+        return new SmartGwtResponse<>();
+    }
+
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkPageToPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_PAGE, pids);
+        repairMetadata.repair();
         return new SmartGwtResponse<>();
     }
 
