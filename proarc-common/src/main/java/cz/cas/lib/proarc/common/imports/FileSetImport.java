@@ -46,6 +46,8 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.SubjectDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import javax.xml.bind.JAXBContext;
@@ -227,6 +229,8 @@ public class FileSetImport implements ImportHandler {
         location.getPhysicalLocation().add(physicalLocation);
         mods.getLocation().add(location);
 
+        setGeoStorage(mods, chronicle.getMistoUlozeni());
+
         FormDefinition form = new FormDefinition();
         form.setType("PocetSnimku");
         form.setValue(chronicle.getPocetSnimku());
@@ -236,6 +240,122 @@ public class FileSetImport implements ImportHandler {
         NoteDefinition note = new NoteDefinition();
         note.setValue(chronicle.getPoznamka());
         mods.getNote().add(note);
+    }
+
+    private void setGeoStorage(ModsDefinition mods, String mistoUlozeni) {
+        switch (mistoUlozeni) {
+            case "226102010":       // SOkA Jihlava
+                setGeoStorageValue(mods, "Česká republika","Jihovýchod",
+                        "Kraj Vysočina","Jihlava",
+                        "Jihomoravský","Jihlava",
+                        "Jihlava","Jihlava",
+                        "Jihlava","Fritzova",
+                        "Fritzova 4800/19, 58601 Jihlava","1",
+                        "60","108",
+                        "3707","37",
+                        "1503","3018",
+                        "586846","412317",
+                        "170534","25038184");
+                break;
+            case "226103010":       // SOkA Pelhrimov
+                setGeoStorageValue(mods, "Česká republika","Jihovýchod",
+                        "Kraj Vysočina","Pelhřimov",
+                        "Jihočeský","Pelhřimov",
+                        "Pelhřimov","Pelhřimov",
+                        "Pelhřimov","Pražská",
+                        "Pražská 1883, 39301 Pelhřimov","1",
+                        "60","108",
+                        "3304","33",
+                        "388","809",
+                        "547492","404292",
+                        "381462","20147929");
+                break;
+            case "226101010":       // SOkA Havlickuv Brod
+                setGeoStorageValue(mods, "Česká republika","Jihovýchod",
+                        "Kraj Vysočina","Havlíčkův Brod",
+                        "Východočeský","Havlíčkův Brod",
+                        "Havlíčkův Brod","Havlíčkův Brod",
+                        "Havlíčkův Brod","Kyjovská",
+                        "Kyjovská 1125, 58001 Havlíčkův Brod","1",
+                        "60","108",
+                        "3601","36",
+                        "949","1996",
+                        "568414","409472",
+                        "111783","9599100");
+                break;
+            case "226104010":       //SOkA Trebic
+                setGeoStorageValue(mods, "Česká republika", "Jihovýchod",
+                        "Kraj Vysočina", "Třebíč",
+                        "Jihomoravský", "Třebíč",
+                        "Třebíč", "Třebíč",
+                        "Horka-Domky", "Na Potoce",
+                        "Na Potoce 60/23, Horka-Domky, 67401 Třebíč", "1",
+                        "60", "108",
+                        "3710", "37",
+                        "1597", "3204",
+                        "590266", "412538",
+                        "603554", "18772595");
+                break;
+            case "226105010":       // SOkA Zdar nad Sazavou
+                setGeoStorageValue(mods, "Česká republika", "Jihovýchod",
+                        "Kraj Vysočina", "Žďár nad Sázavou",
+                        "Jihomoravský", "Žďár nad Sázavou",
+                        "Žďár nad Sázavou", "Žďár nad Sázavou",
+                        "Žďár nad Sázavou 1", "U Malého lesa",
+                        "U Malého lesa 1445/4, Žďár nad Sázavou 1, 59101 Žďár nad Sázavou", "1",
+                        "60", "108",
+                        "3714", "37",
+                        "1708", "3417",
+                        "595209", "412805",
+                        "656097", "3401880");
+                break;
+        }
+    }
+
+    private void setGeoStorageValue(ModsDefinition mods, String name_stat, String name_kraj_1960,
+                                    String name_region_soudrznosti, String name_okres, String name_vusc,
+                                    String name_orp, String name_pou, String name_obec, String name_cast_obce,
+                                    String name_ulice, String name_adresni_misto, String code_stat,
+                                    String code_kraj_1960, String code_region_soudrznosti, String code_okres,
+                                    String code_vusc, String code_orp, String code_pou, String code_obec,
+                                    String code_cast_obce, String code_ulice, String code_adresni_misto) {
+        SubjectDefinition subject = new SubjectDefinition();
+        subject.setAuthority("geo:storage");
+        mods.getSubject().add(subject);
+
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:STAT", name_stat));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:KRAJ_1960", name_kraj_1960));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:REGION_SOUDRZNOSTI", name_region_soudrznosti));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:OKRES", name_okres));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:VUSC", name_vusc));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:ORP", name_orp));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:POU", name_pou));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:OBEC", name_obec));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:CAST_OBCE", name_cast_obce));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:ULICE", name_ulice));
+        subject.getGeographic().add(setGeographic("RUIAN_NAME:ADRESNI_MISTO", name_adresni_misto));
+
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:STAT", code_stat));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:KRAJ_1960", code_kraj_1960));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:REGION_SOUDRZNOSTI", code_region_soudrznosti));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:OKRES", code_okres));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:VUSC", code_vusc));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:ORP", code_orp));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:POU", code_pou));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:OBEC", code_obec));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:CAST_OBCE", code_cast_obce));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:ULICE", code_ulice));
+        subject.getGeographic().add(setGeographic("RUIAN_CODE:ADRESNI_MISTO", code_adresni_misto));
+    }
+
+    private StringPlusLanguagePlusAuthority setGeographic(String authority, String value) {
+        StringPlusLanguagePlusAuthority geographic = new StringPlusLanguagePlusAuthority();
+        geographic.setAuthority(authority);
+        geographic.setValue(value);
+        return geographic;
+    }
+
+    private void setGeoStorageValue(ModsDefinition mods) {
     }
 
     private String getFileName(List<FileSet> fileSets) {
