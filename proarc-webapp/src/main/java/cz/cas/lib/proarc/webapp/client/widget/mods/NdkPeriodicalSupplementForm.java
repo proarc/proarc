@@ -84,6 +84,12 @@ public final class NdkPeriodicalSupplementForm {
                     // script, String
                     // transliteration, String
                 .createField()) // title
+                .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Non sort - O").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
+                                .createField()) // value
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .createField()) // nonSort
                 // subTitle, type="stringPlusLanguage"
 //                .addField(new FieldBuilder("subTitle").setMaxOccurrences(1)
 //                    .addField(new FieldBuilder("value").setTitle("Podnázev").setMaxOccurrences(1).setType(Field.TEXT).createField())
@@ -219,12 +225,18 @@ public final class NdkPeriodicalSupplementForm {
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                .addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1)
+                /*.addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1)
+                        .setType(Field.SELECT).setRequired(true).setDefaultValue("supplement")
+                        .setHint("bližší údaje o typu dokumentu")
+                        .addMapValue("supplement", "Příloha")
+                        .createField()) // value
+                */
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
                     .setType(Field.SELECT).setRequired(true)
                     .setHint("bližší údaje o typu dokumentu")
                     .addMapValue("volume_supplement", "příloha k ročníku")
                     .addMapValue("issue_supplement", "příloha k číslu")
-                .createField()) // value
+                .createField()) // type
         .createField(); // genre
     }
 
@@ -425,7 +437,7 @@ public final class NdkPeriodicalSupplementForm {
                         .addMapValue("microfiche", "microfiche")
                         .addMapValue("print", "print")
                         .addMapValue("jiný", "jiný")
-                        .addMapValue("audio", "rdamedai - audio")
+                        .addMapValue("audio", "rdamedia - audio")
                         .addMapValue("počítač", "rdamedia - počítač")
                         .addMapValue("mikroforma", "rdamedia - mikroforma")
                         .addMapValue("mikroskop", "rdamedia - mikroskop")
