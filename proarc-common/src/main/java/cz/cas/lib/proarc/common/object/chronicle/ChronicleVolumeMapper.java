@@ -11,7 +11,6 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
-import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,8 +19,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
 /**
  *
@@ -132,11 +129,16 @@ public class ChronicleVolumeMapper extends NdkMonographVolumeMapper {
     @Override
     protected String createObjectLabel(ModsDefinition mods) {
         StringBuilder label = new StringBuilder();
-        for (TitleInfoDefinition ti : mods.getTitleInfo()) {
+        /*for (TitleInfoDefinition ti : mods.getTitleInfo()) {
             if (toValue(ti.getType()) != null) {
                 continue;
             }
             label.append(createTitleString(ti)).append(", ");
+        }*/
+        if (mods.getLocation().size() > 0 && mods.getLocation().get(0).getPhysicalLocation().size() > 0) {
+            String value = mods.getLocation().get(0).getPhysicalLocation().get(0).getDisplayLabel();
+            label.append(value != null ? value : "?");
+            label.append(", ");
         }
         if (mods.getOriginInfo().size() > 0 && mods.getOriginInfo().get(0).getDateIssued().size() > 0) {
             label.append(mods.getOriginInfo().get(0).getDateIssued().get(0).getValue());
