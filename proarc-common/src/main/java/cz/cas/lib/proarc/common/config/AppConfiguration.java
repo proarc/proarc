@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
+import cz.cas.lib.proarc.common.workflow.WorkflowOptions;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -180,6 +181,10 @@ public final class AppConfiguration {
 
     public ExportOptions getExportOptions() {
         return ExportOptions.getOptions(config);
+    }
+
+    public WorkflowOptions getWorkflowOptions() {
+        return WorkflowOptions.getOptions(config);
     }
 
     public Configuration getAuthenticators() {

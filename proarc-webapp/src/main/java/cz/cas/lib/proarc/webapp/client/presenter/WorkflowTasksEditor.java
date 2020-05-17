@@ -84,11 +84,11 @@ public class WorkflowTasksEditor {
                 public void execute(DSResponse dsResponse, Object data, DSRequest dsRequest) {
                     boolean statusOk = RestConfig.isStatusOk(dsResponse);
                     if (statusOk) {
-                        StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
                         view.refreshState();
                         String taskId = taskForm.getValueAsString(WorkflowTaskDataSource.FIELD_ID);
                         view.refreshParameters(taskId);
                         if (stateChanged) {
+                            StatusView.getInstance().show(i18n.SaveAction_Done_Msg());
                             DSResponse reset = new DSResponse();
                             reset.setOperationType(DSOperationType.UPDATE);
                             reset.setInvalidateCache(true);
