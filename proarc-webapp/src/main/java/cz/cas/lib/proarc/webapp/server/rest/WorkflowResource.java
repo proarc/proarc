@@ -209,7 +209,7 @@ public class WorkflowResource {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
         try {
-            Job job = workflowManager.addJob(profile, metadata, catalog, rdczId, session.getUser());
+            Job job = workflowManager.addJob(profile, metadata, catalog, rdczId, session.getUser(), appConfig);
             JobFilter filter = new JobFilter();
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(job.getId());
@@ -232,7 +232,7 @@ public class WorkflowResource {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
         try {
-            Job subjob = workflowManager.addSubjob(profile, parentId, session.getUser(), profiles);
+            Job subjob = workflowManager.addSubjob(profile, parentId, session.getUser(), profiles, appConfig);
             JobFilter filter = new JobFilter();
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(subjob.getId());
@@ -363,7 +363,7 @@ public class WorkflowResource {
             return profileError();
         }
         try {
-            Task updatedTask = workflowManager.tasks().addTask(jobId, taskName, workflow, session.getUser());
+            Task updatedTask = workflowManager.tasks().addTask(jobId, taskName, workflow, session.getUser(), appConfig);
             TaskFilter taskFilter = new TaskFilter();
             taskFilter.setId(updatedTask.getId());
             taskFilter.setLocale(session.getLocale(httpHeaders));
@@ -642,7 +642,8 @@ public class WorkflowResource {
                 LOG.log(Level.SEVERE, log, ex);
             }
         }
-        return SmartGwtResponse.asError(sb.toString());
+        SmartGwtResponse response = SmartGwtResponse.asError(sb.toString());
+        return response;
     }
 
 }

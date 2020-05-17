@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.workflow;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
@@ -58,7 +59,7 @@ import cz.cas.lib.proarc.common.workflow.profile.TaskDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
-
+import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -70,7 +71,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
 
 /**
  *
@@ -409,7 +409,7 @@ public class WorkflowManager {
     }
 
     public Job addJob(JobDefinition jobProfile, String xml,
-            CatalogConfiguration catalog, BigDecimal rdczId, UserProfile defaultUser
+            CatalogConfiguration catalog, BigDecimal rdczId, UserProfile defaultUser, AppConfiguration appConfiguration
     ) throws WorkflowException {
         Map<String, UserProfile> users = createUserMap();
         PhysicalMaterial physicalMaterial = new PhysicalMaterialBuilder()
@@ -435,7 +435,7 @@ public class WorkflowManager {
                 if (!step.isOptional()) {
                     Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser);
                     createTaskParams(paramDao, step, task);
-                    createMaterials(materialDao, step, task, materialCache, physicalMaterial);
+                    createMaterials(materialDao, step, task, materialCache, physicalMaterial, appConfiguration);
                 }
             }
             tx.commit();
@@ -450,7 +450,7 @@ public class WorkflowManager {
     }
 
     public Job addSubjob(JobDefinition jobProfile, BigDecimal parentId,
-            UserProfile defaultUser, WorkflowDefinition profiles
+            UserProfile defaultUser, WorkflowDefinition profiles, AppConfiguration appConfiguration
     ) throws WorkflowException {
         Objects.requireNonNull(jobProfile, "jobProfile");
         Objects.requireNonNull(parentId, "parentId");
@@ -521,7 +521,7 @@ public class WorkflowManager {
                 if (!step.isOptional()) {
                     Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser);
                     createTaskParams(paramDao, step, task);
-                    createMaterials(materialDao, step, task, materialCache, physicalMaterial);
+                    createMaterials(materialDao, step, task, materialCache, physicalMaterial, appConfiguration);
                 }
             }
             tx.commit();
@@ -598,7 +598,7 @@ public class WorkflowManager {
     }
 
     void createMaterials(WorkflowMaterialDao dao, StepDefinition step,
-            Task task, Map<String, Material> materialCache, PhysicalMaterial origin) {
+                         Task task, Map<String, Material> materialCache, PhysicalMaterial origin, AppConfiguration config) {
 
         TaskDefinition taskProfile = step.getTask();
         for (SetMaterialDefinition setter : taskProfile.getMaterialSetters()) {
@@ -609,6 +609,7 @@ public class WorkflowManager {
             if (m == null) {
                 if (mType == MaterialType.FOLDER) {
                     m = new FolderMaterial();
+                    setMaterialPath(m, mName, config);
                 } else if (mType == MaterialType.PHYSICAL_DOCUMENT) {
                     if (origin != null && origin.getId() == null) {
                         m = origin;
@@ -627,6 +628,33 @@ public class WorkflowManager {
             }
             dao.addTaskReference(m, task, setter.getWay());
         }
+    }
+
+    private void setMaterialPath(Material m, String mName, AppConfiguration config) {
+        String label = "";
+        switch (mName) {
+            case "material.folder.rawScan":
+                label = config.getWorkflowOptions().getRawScan();
+                setPath(m, label);
+                break;
+            case "material.folder.masterCopy":
+                label = config.getWorkflowOptions().getMasterCopy();
+                setPath(m, label);
+                break;
+            case "material.folder.ocr":
+                label = config.getWorkflowOptions().getOcr();
+                setPath(m, label);
+                break;
+            case "material.folder.OcrAndProcessedImages":
+                label = config.getWorkflowOptions().getOcrImage();
+                setPath(m, label);
+                break;
+        }
+    }
+
+    private void setPath(Material m, String path) {
+        ((FolderMaterial) m).setPath(path);
+        m.setLabel(path);
     }
 
     static BigDecimal resolveUserId(WorkerDefinition worker,
