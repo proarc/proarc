@@ -378,7 +378,7 @@ public class WorkflowResource {
     @PUT
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<TaskView> updateTask(TaskUpdate task) {
+    public SmartGwtResponse<TaskView> updateTask(TaskUpdate task) throws WorkflowException {
         if (task == null) {
             return SmartGwtResponse.asError("No task!");
         }
@@ -405,9 +405,9 @@ public class WorkflowResource {
             }
 
             return new SmartGwtResponse<TaskView>(result);
-        } catch (WorkflowException ex) {
+        } /*catch (WorkflowException ex) {
             return toError(ex, null);
-        } catch (IOException e) {
+        } */catch (IOException e) {
             return toError(new WorkflowException(e.getMessage()), null);
         }
     }
