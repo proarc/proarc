@@ -20,11 +20,18 @@ import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
+import cz.cas.lib.proarc.common.fedora.SearchOptions;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
+import cz.cas.lib.proarc.common.workflow.WorkflowOptions;
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,11 +45,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 
 /**
  * Server side configurations.
@@ -169,12 +171,20 @@ public final class AppConfiguration {
         return NdkExportOptions.getOptions(config);
     }
 
+    public SearchOptions getSearchOptions() {
+        return SearchOptions.getOptions(config);
+    }
+
     public String getRules() {
         return RdaRules.getOptions(config).getRules();
     }
 
     public ExportOptions getExportOptions() {
         return ExportOptions.getOptions(config);
+    }
+
+    public WorkflowOptions getWorkflowOptions() {
+        return WorkflowOptions.getOptions(config);
     }
 
     public Configuration getAuthenticators() {

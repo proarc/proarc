@@ -65,6 +65,7 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
 
     public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
         put(FEDORAPREFIX + CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, Const.MONOGRAPH_MULTIPART);
         put(FEDORAPREFIX + CollectionOfClippingsPlugin.MODEL_PAGE, Const.PAGE);
     }});
 

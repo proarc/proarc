@@ -29,6 +29,8 @@ import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.widget.Organization;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 
 /**
@@ -78,10 +80,12 @@ public final class UserDataSource extends ProarcDataSource {
 
         DataSourceTextField organization = new DataSourceTextField(UserResourceApi.USER_ORGANIZATION);
         organization.setTitle(i18n.UsersView_ListHeader_Organization_Title());
+        organization.setValueMap(Organization.getMap());
         organization.setReadOnlyEditorProperties(new StaticTextItem());
 
         DataSourceTextField role = new DataSourceTextField(UserResourceApi.USER_ROLE);
         role.setTitle(i18n.UsersView_ListHeader_Role_Title());
+        role.setValueMap(UserRole.getMap());
         role.setReadOnlyEditorProperties(new StaticTextItem());
 
         DataSourceTextField email = new DataSourceTextField(UserResourceApi.USER_EMAIL);

@@ -63,6 +63,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
  * The helper to access and manipulate digital objects.
@@ -387,7 +388,7 @@ public class DigitalObjectManager {
 
         public Job getWfJob(String pid, Locale locale) {
             WorkflowManager workflowManager = WorkflowManager.getInstance();
-            List<MaterialView> materials = findAllWorkflowJob(workflowManager, locale);
+            List<MaterialView> materials = findAllWorkflowJob(workflowManager, locale, 10000);
             for (MaterialView material : materials) {
                 if (pid.equals(material.getPid())) {
                     return workflowManager.getJobs(material.getId());
@@ -397,10 +398,11 @@ public class DigitalObjectManager {
 
         }
 
-        public List<MaterialView> findAllWorkflowJob(WorkflowManager workflowManager, Locale locale) {
+        public List<MaterialView> findAllWorkflowJob(WorkflowManager workflowManager, Locale locale, int maxCount) {
             MaterialFilter filter = new MaterialFilter();
             filter.setLocale(locale);
             filter.setType(MaterialType.DIGITAL_OBJECT);
+            filter.setMaxCount(maxCount);
             return workflowManager.findMaterial(filter);
         }
 
@@ -441,6 +443,13 @@ public class DigitalObjectManager {
 
             RelationEditor relations = doHandler.relations();
             relations.setModel(modelId);
+            relations.setOrganization(user.getOrganization());
+            relations.setStatus(STATUS_NEW);
+            if ("user".equals(user.getRole())) {
+                relations.setUser(user.getUserName());
+            } else {
+                relations.setUser("all");
+            }
             if (getUserGroup() != null) {
                 String grpPid = getUserGroup().getName();
                 relations.setOwners(Collections.singletonList(grpPid));

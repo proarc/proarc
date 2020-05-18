@@ -22,8 +22,8 @@ public class SimpleChronicleVolumeForm {
         modsFields.add(location());
         modsFields.add(relatedItem(f.getItemWidth()));
         //modsFields.add(identifier());
-        modsFields.add(titleInfo());
         modsFields.add(genre());
+        modsFields.add(titleInfo());
         modsFields.add(abstracts());
         modsFields.add(language());
         modsFields.add(originInfo());
@@ -118,7 +118,7 @@ public class SimpleChronicleVolumeForm {
     }
 
     private Field genre() {
-        return new FieldBuilder("genre").setTitle("Typ díla").setMaxOccurrences(10)
+        return new FieldBuilder("genre").setTitle("Charakter kroniky").setMaxOccurrences(10)
                 .setHint("Bližší údaje o typu dokumentu.<p>Pro svazek kroniky hodnota “kronika”.")
                 .addField(new FieldBuilder("value").setTitle("Žánr").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true).setDefaultValue("rkp")
                         .addMapValue("ukn", "Úřední kniha")

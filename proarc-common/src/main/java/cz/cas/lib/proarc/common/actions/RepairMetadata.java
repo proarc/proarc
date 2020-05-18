@@ -1,37 +1,32 @@
 package cz.cas.lib.proarc.common.actions;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
 import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
-import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,11 +45,17 @@ public class RepairMetadata {
 
     public void repair() throws DigitalObjectException {
         for (String pid : pids) {
-            repairObjects(pid);
+            repairObjects(pid, null);
         }
     }
 
-    private void repairObjects(String pid) throws DigitalObjectException {
+    public void repair(String parentPid) throws DigitalObjectException {
+        for (String pid : pids) {
+            repairObjects(pid, parentPid);
+        }
+    }
+
+    private void repairObjects(String pid, String parentPid) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fo = dom.find(pid, null);
         XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
@@ -62,7 +63,7 @@ public class RepairMetadata {
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
         ModsDefinition mods = modsStreamEditor.read();
-        fixMods(pid, mods);
+        fixMods(pid, mods, parentPid);
         modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
 
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
@@ -81,7 +82,17 @@ public class RepairMetadata {
         fo.flush();
     }
 
-    private void fixMods(String pid, ModsDefinition mods) throws DigitalObjectException {
+    private ModsDefinition getParentMods(String parentPid) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fo = dom.find(parentPid, null);
+        XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
+        return modsStreamEditor.read();
+    }
+
+    private void fixMods(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
         switch (model) {
             case NdkPlugin.MODEL_PAGE:
                 fixPageMods(mods);
@@ -89,9 +100,59 @@ public class RepairMetadata {
             case NdkPlugin.MODEL_NDK_PAGE:
                 fixNdkPageMods(mods);
                 break;
+            case NdkPlugin.MODEL_MONOGRAPHVOLUME:
+                fixNdkMonographVolumeMods(mods, parentPid);
+                break;
+            case NdkPlugin.MODEL_MONOGRAPHTITLE:
+                fixNdkMonographVolumeMods(mods, parentPid);
+                break;
             default:
-                throw new DigitalObjectException(pid, "Process: Repair metadata dailed - Unsupported model.");
+                throw new DigitalObjectException(pid, "Process: Repair metadata failed - Unsupported model.");
         }
+    }
+
+    private void fixNdkMonographVolumeMods(ModsDefinition mods, String parentPid) throws DigitalObjectException {
+        String title = null;
+        if (parentPid != null) {
+            title = getTitle(getParentMods(parentPid));
+        }
+        if (title != null) {
+            fixTitleInfo(title, mods);
+            fixOriginInfo(mods);
+        }
+        fixRecordInfo(mods);
+    }
+
+    private void fixOriginInfo(ModsDefinition mods) {
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            if (originInfo.getDateIssued().isEmpty()) {
+                originInfo.getDateIssued().add(new DateDefinition());
+            }
+            for (DateDefinition date : originInfo.getDateIssued()) {
+                date.setValue("20/21. století");
+            }
+        }
+    }
+
+    private void fixTitleInfo(String titleValue, ModsDefinition mods) {
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            titleInfo.getPartName().addAll(titleInfo.getTitle());
+            titleInfo.getTitle().clear();
+            StringPlusLanguage title = new StringPlusLanguage();
+            title.setValue(titleValue);
+            titleInfo.getTitle().add(title);
+        }
+    }
+
+    private String getTitle(ModsDefinition mods) {
+        if (mods != null) {
+            for (TitleInfoDefinition title : mods.getTitleInfo()) {
+                for (StringPlusLanguage titleInfo : title.getTitle()) {
+                    return titleInfo.getValue();
+                }
+            }
+        }
+        return null;
     }
 
     private void fixNdkPageMods(ModsDefinition mods) {
@@ -102,6 +163,18 @@ public class RepairMetadata {
     private void fixPageMods(ModsDefinition mods) {
         fixPartPage(mods);
         fixGenre(mods, null);
+    }
+
+    private void fixRecordInfo(ModsDefinition mods) {
+        for (RecordInfoDefinition recordInfo : mods.getRecordInfo()) {
+            if (recordInfo.getDescriptionStandard().size() == 0) {
+                StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
+                recordInfo.getDescriptionStandard().add(descriptionStandard);
+            }
+            for (StringPlusLanguagePlusAuthority descriptionStandard : recordInfo.getDescriptionStandard()) {
+                descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);
+            }
+        }
     }
 
     private void fixPartPage(ModsDefinition mods) {

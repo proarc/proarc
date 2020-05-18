@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.RepairMetadata;
+import cz.cas.lib.proarc.common.actions.UpdateObjects;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -56,9 +57,11 @@ import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -75,6 +78,7 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -127,6 +131,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_PROCESSING;
 
 /**
  * Resource to manage digital objects.
@@ -317,18 +322,25 @@ public class DigitalObjectResource {
         Locale locale = session.getLocale(httpHeaders);
         RemoteStorage remote = RemoteStorage.getInstance(appConfig);
         SearchView search = remote.getSearch(locale);
+        String organization = user.getRole() == null || user.getRole().isEmpty() || UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getOrganization();
+        String username = user.getRole() == null
+                || user.getRole().isEmpty()
+                || UserRole.ROLE_SUPERADMIN.equals(user.getRole())
+                || UserRole.ROLE_ADMIN.equals(user.getRole())
+                || !appConfig.getSearchOptions().getSearchFilterProcessor() ? null : user.getUserName();
 
         List<Item> items;
         int total = 0;
         int page = 20;
         switch (type) {
             case ALPHABETICAL:
-                total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
+                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
+                items = sortItems(items, sort);
                 break;
             case LAST_MODIFIED:
-                total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
+                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
@@ -365,14 +377,59 @@ public class DigitalObjectResource {
                 total = items.size();
                 page = 1;
                 break;
+            case ALL:
+                items = search.findAllObjects();
+                total = items.size();
+                break;
             default:
-                total = search.countModels(queryModel, filterOwnObjects(user)).size();
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
         }
+        repairItemsModel(items);
         int count = items.size();
         int endRow = startRow + count - 1;
         //int total = count == 0 ? startRow : endRow + page;
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
+    }
+
+    private List<Item> sortItems(List<Item> items, SearchSort sort) {
+        List<Item> normal = new ArrayList<>();
+        List<Item> lower = new ArrayList<>();
+        List<Item> upper = new ArrayList<>();
+        for (Item item : items) {
+            if (item.getLabel() != null && item.getLabel().startsWith("\"")) {
+                upper.add(item);
+            } else if (item.getLabel() != null && item.getLabel().startsWith("„")) {
+                lower.add(item);
+            } else {
+                normal.add(item);
+            }
+        }
+        items.clear();
+        if (SearchSort.ASC.equals(sort)) {
+            items.addAll(lower);
+            items.addAll(upper);
+            items.addAll(normal);
+        } else {
+            items.addAll(normal);
+            items.addAll(upper);
+            items.addAll(lower);
+        }
+        return items;
+    }
+
+    private void repairItemsModel(List<Item> items) {
+        for (Item item : items) {
+            if (item.getOrganization() != null && item.getOrganization().startsWith("info:fedora/")) {
+                item.setOrganization(item.getOrganization().substring(12));
+            }
+            if (item.getUser() != null && item.getUser().startsWith("info:fedora/")) {
+                item.setUser(item.getUser().substring(12));
+            }
+            if (item.getStatus() != null && item.getStatus().startsWith("info:fedora/")) {
+                item.setStatus(item.getStatus().substring(12));
+            }
+        }
     }
 
     private String filterOwnObjects(UserProfile user) {
@@ -973,6 +1030,7 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
+        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
@@ -1403,7 +1461,10 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) Set<String> pids,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
-            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_STATUS) String status,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName
             ) throws IOException, DigitalObjectException {
 
         ArrayList<AtmItem> result = new ArrayList<AtmItem>(pids.size());
@@ -1413,8 +1474,9 @@ public class DigitalObjectResource {
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, session.asFedoraLog());
+            editor.write(deviceId, organization, userName, status, session.asFedoraLog(), user.getRole());
             fobject.flush();
+            editor.setChild(pid, organization, userName, status, appConfig, search, session.asFedoraLog());
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);
             result.add(atm);
@@ -1542,6 +1604,52 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<>();
     }
 
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeClippingsVolumeToNdkMonographVolume(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
+        List<String> pids = changeModels.findObjects();
+        String parentPid = changeModels.findRootObject();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_MONOGRAPHVOLUME, pids);
+        repairMetadata.repair(parentPid);
+
+
+        return new SmartGwtResponse<>();
+    }
+
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeClippingsTitleToNdkMonographTitle(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, NdkPlugin.MODEL_MONOGRAPHTITLE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_MONOGRAPHTITLE, pids);
+        repairMetadata.repair();
+
+
+        return new SmartGwtResponse<>();
+    }
+
     @PUT
     @Path(DigitalObjectResourceApi.REINDEX_PATH)
     @Produces(MediaType.APPLICATION_JSON)
@@ -1552,6 +1660,21 @@ public class DigitalObjectResource {
         ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, user, pid, modelId);
         IMetsElement parentElement = reindexObjects.getParentElement();
         reindexObjects.reindex(parentElement);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_ALL_OBJECTS_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> updateAllObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException, IOException, FedoraClientException {
+        Locale locale = session.getLocale(httpHeaders);
+        UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
+        List<Item> objects = updateObjects.findAllObjects();
+        //Map<String, Integer> map = updateObjects.countObjects(objects);
+        updateObjects.setOrganization(objects);
         return new SmartGwtResponse<>();
     }
 

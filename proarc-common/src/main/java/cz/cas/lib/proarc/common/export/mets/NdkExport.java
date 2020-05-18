@@ -21,8 +21,8 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
-import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ItemList;
+import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
@@ -33,16 +33,16 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.logging.Logger;
 import cz.cas.lib.proarc.mets.info.Info;
 import org.apache.commons.lang.Validate;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.logging.Logger;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.
@@ -208,7 +208,7 @@ public class NdkExport {
             if (targetFolder == null) {
                 targetFolder = target;
             }
-            storeExportResult(dc, targetFolder.toURI().toASCIIString(), log);
+            storeExportResult(dc, targetFolder.toURI().toASCIIString(), "ARCHIVE", log);
             return result;
         } catch (MetsExportException ex) {
             if (ex.getExceptions().isEmpty()) {
@@ -331,7 +331,7 @@ public class NdkExport {
                     // XXX use relative path to users folder?
                 }
             }
-            storeExportResult(dc, target.toURI().toASCIIString(), log);
+            storeExportResult(dc, target.toURI().toASCIIString(), "NDK", log);
             return result;
         } catch (MetsExportException ex) {
             if (ex.getExceptions().isEmpty()) {
@@ -375,10 +375,10 @@ public class NdkExport {
      * @throws MetsExportException
      *             write failure
      */
-    private void storeExportResult(MetsContext metsContext, String target, String log) throws MetsExportException {
+    private void storeExportResult(MetsContext metsContext, String target, String type, String log) throws MetsExportException {
         for (String pid : metsContext.getPidElements().keySet()) {
             try {
-                ExportUtils.storeObjectExportResult(pid, target, log);
+                ExportUtils.storeObjectExportResult(pid, target, type, log);
             } catch (DigitalObjectException ex) {
                 throw new MetsExportException(pid, "Cannot store logs!", false, ex);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Lukas Sykora
+ * Copyright (C) 2020 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,35 +20,27 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
- *
  * @author Lukas Sykora
  */
-public class ChangeModelsDataSource extends ProarcDataSource {
+public class UpdateAllObjectsDataSource extends ProarcDataSource {
 
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
 
-    private ChangeModelsDataSource(String type) {
-        setDataURL(type);
+    private static UpdateAllObjectsDataSource INSTANCE;
+
+    public static UpdateAllObjectsDataSource getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new UpdateAllObjectsDataSource();
+        }
+        return INSTANCE;
+    }
+
+    private UpdateAllObjectsDataSource() {
+        setDataURL(RestConfig.URL_DIGOBJEKT_UPDATE_ALL_OBJECTS);
         DataSourceTextField pid = new DataSourceTextField(FIELD_PID);
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         setFields(pid, model);
         setOperationBindings(RestConfig.createAddOperation());
-    }
-
-    public static ChangeModelsDataSource changePageToNdkPage() {
-        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_PAGE_TO_NDK_PAGE);
-    }
-
-    public static ChangeModelsDataSource changeNdkPageToPage() {
-        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_PAGE_TO_PAGE);
-    }
-
-    public static ChangeModelsDataSource changeClippingsVolumeToNdkMonographVolume() {
-        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME);
-    }
-
-    public static ChangeModelsDataSource changeClippingsTitleToNdkMonographTitle() {
-        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE);
     }
 }

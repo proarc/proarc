@@ -17,12 +17,17 @@
 package cz.cas.lib.proarc.common.imports;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
@@ -34,13 +39,26 @@ import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static cz.cas.lib.proarc.common.imports.ImportProcess.getTargetFolder;
@@ -88,6 +106,14 @@ public final class FedoraImport {
             addParentMembers(batch, parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
             deleteImportFolder(batch);
+            DigitalObjectStatusUtils.setState(batch.getParentPid(), DigitalObjectStatusUtils.STATUS_CONNECTED);
+            try {
+                setWorkflowMetadataDescription("task.metadataDescriptionInProArc", getRoot(batch.getParentPid(), null));
+            } catch (MetsExportException e) {
+                e.printStackTrace();
+
+
+            }
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
             batch.setState(Batch.State.INGESTING_FAILED);
@@ -98,6 +124,76 @@ public final class FedoraImport {
                     new Object[]{System.currentTimeMillis() - startTime, ingestedPids.size(), batch});
         }
         return batch;
+    }
+
+    private void setWorkflowMetadataDescription(String type, IMetsElement root) throws DigitalObjectException, WorkflowException {
+        if (root != null) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            DigitalObjectManager.CreateHandler handler = dom.create(root.getModel(), root.getOriginalPid(), null, user, null, "Update task - metadata Description finish");
+            Locale locale = new Locale("cs");
+            Job job = handler.getWfJob(root.getOriginalPid(), locale);
+            if (job == null) {
+                return;
+            }
+            List<TaskView> tasks = handler.getTask(job.getId(), locale);
+            Task editedTask = null;
+            for (TaskView task : tasks) {
+                if (type.equals(task.getTypeRef())) {
+                    editedTask = task;
+                    break;
+                }
+            }
+            if (editedTask != null) {
+                editedTask.setOwnerId(new BigDecimal(user.getId()));
+                editedTask.setState(Task.State.FINISHED);
+                WorkflowProfiles workflowProfiles = WorkflowProfiles.getInstance();
+                WorkflowDefinition workflow = workflowProfiles.getProfiles();
+                WorkflowManager workflowManager = WorkflowManager.getInstance();
+
+                try {
+                    TaskFilter taskFilter = new TaskFilter();
+                    taskFilter.setId(editedTask.getId());
+                    taskFilter.setLocale(locale);
+                    Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
+                            .findFirst().get().getState();
+                    workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
+                    List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+
+                    if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
+                        WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, locale);
+                        workflowActionHandler.runAction(editedTask);
+                    }
+                } catch (IOException e) {
+                    throw new DigitalObjectException(e.getMessage());
+                }
+            }
+        }
+    }
+
+    private IMetsElement getRoot(String pid, File file) throws MetsExportException {
+        RemoteStorage rstorage = RemoteStorage.getInstance();
+        RemoteStorage.RemoteObject fo = rstorage.find(pid);
+        MetsContext mc = buildContext(rstorage, fo, null, file);
+        IMetsElement element = getMetsElement(fo, mc, true);
+        return element.getMetsContext().getRootElement();
+    }
+
+    private MetsContext buildContext(RemoteStorage rstorage, RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(targetFolder == null ? null : targetFolder.getAbsolutePath());
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(config.getNdkExportOptions());
+        return mc;
+    }
+
+    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+        dc.resetContext();
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+        return MetsElement.getElement(dobj, null, dc, hierarchy);
     }
 
     private void deleteImportFolder(Batch batch) throws IOException {

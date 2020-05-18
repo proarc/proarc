@@ -89,6 +89,13 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_ITEM_MODIFIED = "modified";
     public static final String MEMBERS_ITEM_PARENT = "parent";
     public static final String MEMBERS_ITEM_EXPORT = "export";
+    public static final String MEMBERS_ITEM_NDK_EXPORT = "ndkExport";
+    public static final String MEMBERS_ITEM_ARCHIVE_EXPORT = "archiveExport";
+    public static final String MEMBERS_ITEM_KRAMERIUS_EXPORT = "krameriusExport";
+    public static final String MEMBERS_ITEM_CROSSREF_EXPORT = "crossrefExport";
+    public static final String MEMBERS_ITEM_ORGANIZATION = "organization";
+    public static final String MEMBERS_ITEM_USER = "processor";
+    public static final String MEMBERS_ITEM_STATUS = "status";
 
     public static final String MEMBERS_ROOT_PARAM = "root";
 
@@ -166,6 +173,13 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_CREATED = MEMBERS_ITEM_CREATED;
     public static final String ATM_ITEM_DEVICE = "device";
     public static final String ATM_ITEM_EXPORTRESULT = "exportResult";
+    public static final String ATM_ITEM_NDK_EXPORT = "ndkExportResult";
+    public static final String ATM_ITEM_ARCHIVE_EXPORT = "archiveExportResult";
+    public static final String ATM_ITEM_KRAMERIUS_EXPORT = "krameriusExportResult";
+    public static final String ATM_ITEM_CROSSREF_EXPORT = "crossrefExportResult";
+    public static final String ATM_ITEM_STATUS = "status";
+    public static final String ATM_ITEM_ORGANIZATION = "organization";
+    public static final String ATM_ITEM_USER = "userProcessor";
     public static final String ATM_ITEM_FILENAME = "filename";
     public static final String ATM_ITEM_MODEL = DIGITALOBJECT_MODEL;
     public static final String ATM_ITEM_MODIFIED = MEMBERS_ITEM_MODIFIED;
@@ -179,6 +193,7 @@ public final class DigitalObjectResourceApi {
     public static final String URNNBN_HIERARCHY = "hierarchy";
     public static final String URNNBN_RESOLVER = "resolverId";
     public static final String REINDEX_PATH = "reindexObjects";
+    public static final String UPDATE_ALL_OBJECTS_PATH = "updateAllObjectsObjects";
 
     public static final String URNNBN_ITEM_URNNBN = "urnnbn";
     public static final String URNNBN_ITEM_MESSAGE = "message";
@@ -192,6 +207,8 @@ public final class DigitalObjectResourceApi {
 
     public static final String CHANGE_PAGE_TO_NDK_PAGE = "changePageToNdkPage";
     public static final String CHANGE_NDK_PAGE_TO_PAGE = "changeNdkPageToPage";
+    public static final String CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME = "changeClippingsVolumeToNdkMonographVolume";
+    public static final String CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = "changeClippingsTitleToNdkMonographTitle";
 
     public enum SearchType {
         
@@ -203,7 +220,8 @@ public final class DigitalObjectResourceApi {
         PHRASE("phrase"),
         QUERY("query"),
         DELETED("deleted"),
-        ALPHABETICAL("alphabetical");
+        ALPHABETICAL("alphabetical"),
+        ALL("all");
         
         public static final String DEFAULT = "lastCreated";
         private String external;

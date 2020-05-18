@@ -1,5 +1,9 @@
-select     $pid $model $owner $label $state $created $modified
+select     $pid $model $owner $label $state $created $modified $organization $user $status
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasExport>       $export)
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasNdkExport>       $export)
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasArchiveExport>       $export)
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasKrameriusExport>       $export)
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasCrossrefExport>       $export)
 from       <#ri>
 where      $pid     <info:fedora/fedora-system:def/model#hasModel>        $model
 and        $model   <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/model:proarcobject>
@@ -8,5 +12,8 @@ and        $pid     <info:fedora/fedora-system:def/view#lastModifiedDate> $modif
 and        $pid     <info:fedora/fedora-system:def/model#ownerId>         $owner
 and        $pid     <info:fedora/fedora-system:def/model#label>           $label
 and        $pid     <info:fedora/fedora-system:def/model#state>           $state
+and        $pid     <http://proarc.lib.cas.cz/relations#organization>     $organization
+and        $pid     <http://proarc.lib.cas.cz/relations#user>     $user
+and        $pid     <http://proarc.lib.cas.cz/relations#status>     $status
 and        (${pids.expression})
 ${includeActive}

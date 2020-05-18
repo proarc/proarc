@@ -113,7 +113,74 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, export);
+        ListGridField organization = new ListGridField(SearchDataSource.FIELD_ORGANIZATION,
+                i18n.DigitalObjectSearchView_ListHeaderOrganization_Title(), 100);
+        organization.setHidden(true);
+        organization.setValueMap(Organization.getMap());
+        ListGridField user = new ListGridField(SearchDataSource.FIELD_USER,
+                i18n.UsersView_ListHeader_Proccesor_Title(), 100);
+        user.setHidden(true);
+        user.setCellFormatter(new CellFormatter() {
+            @Override
+            public String format(Object value, ListGridRecord listGridRecord, int i, int i1) {
+                return value == null || "all".equals(value)
+                        ? i18n.UsersView_ListHeader_Proccesors_All_Title()
+                        : value.toString();
+                }
+            });
+        ListGridField status = new ListGridField(SearchDataSource.FIELD_STATUS,
+                i18n.DigitalObjectEditor_AdministrationEditor_Status_Title(), 100);
+        status.setValueMap(DigitalObjectState.getMap(i18n));
+        status.setHidden(true);
+        ListGridField ndkExport = new ListGridField(SearchDataSource.FIELD_NDK_EXPORT,
+                i18n.DigitalObjectEditor_AdministrationEditor_Ndk_Export_Title(), 100);
+        ndkExport.setHidden(true);
+        ndkExport.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        ListGridField archiveExport = new ListGridField(SearchDataSource.FIELD_ARCHIVE_EXPORT,
+                i18n.DigitalObjectEditor_AdministrationEditor_Archive_Export_Title(), 100);
+        archiveExport.setHidden(true);
+        archiveExport.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        ListGridField krameriusExport = new ListGridField(SearchDataSource.FIELD_KRAMERIUS_EXPORT,
+                i18n.DigitalObjectEditor_AdministrationEditor_Kramerius_Export_Title(), 100);
+        krameriusExport.setHidden(true);
+        krameriusExport.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        ListGridField crossrefExport = new ListGridField(SearchDataSource.FIELD_CROSSREF_EXPORT,
+                i18n.DigitalObjectEditor_AdministrationEditor_Crossref_Export_Title(), 100);
+        crossrefExport.setHidden(true);
+        crossrefExport.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, organization, user, status, export, ndkExport, archiveExport, krameriusExport, crossrefExport);
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18n.DigitalObjectTreeView_EmptySelection_Msg());

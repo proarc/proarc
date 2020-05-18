@@ -34,10 +34,10 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
+import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.io.FileUtils;
 
 /**
  * The exporter of digital objects. It can build and validate SIP in format
@@ -234,7 +234,7 @@ public final class DesaExport {
 
     void storeObjectExportResult(String pid, String idSIPVersion, String log) throws MetsExportException {
         try {
-            ExportUtils.storeObjectExportResult(pid, idSIPVersion, log);
+            ExportUtils.storeObjectExportResult(pid, idSIPVersion, "DESA", log);
         } catch (DigitalObjectException ex) {
             throw new MetsExportException(pid, "Cannot store SIP ID Version!", false, ex);
         }

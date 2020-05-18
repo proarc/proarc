@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.emods;
 
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.JsonValueMap;
@@ -37,8 +38,12 @@ import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
 /**
  * The plugin to handle materials that originate in a digital form and can be
@@ -49,6 +54,9 @@ import java.util.List;
 public class BornDigitalModsPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition>,
         HasDisseminationHandler {
 
+    public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
+        put(FEDORAPREFIX + BornDigitalModsPlugin.MODEL_ARTICLE, Const.ARTICLE);
+    }});
     /**
      * The plugin ID. Born-digital-MODS.
      */

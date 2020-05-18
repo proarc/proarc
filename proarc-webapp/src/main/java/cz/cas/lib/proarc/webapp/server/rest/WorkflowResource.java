@@ -54,18 +54,6 @@ import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -82,6 +70,18 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * It allows to manage workflow remotely.
@@ -209,7 +209,7 @@ public class WorkflowResource {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
         try {
-            Job job = workflowManager.addJob(profile, metadata, catalog, rdczId, session.getUser());
+            Job job = workflowManager.addJob(profile, metadata, catalog, rdczId, session.getUser(), appConfig);
             JobFilter filter = new JobFilter();
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(job.getId());
@@ -232,7 +232,7 @@ public class WorkflowResource {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
         try {
-            Job subjob = workflowManager.addSubjob(profile, parentId, session.getUser(), profiles);
+            Job subjob = workflowManager.addSubjob(profile, parentId, session.getUser(), profiles, appConfig);
             JobFilter filter = new JobFilter();
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(subjob.getId());
@@ -363,7 +363,7 @@ public class WorkflowResource {
             return profileError();
         }
         try {
-            Task updatedTask = workflowManager.tasks().addTask(jobId, taskName, workflow, session.getUser());
+            Task updatedTask = workflowManager.tasks().addTask(jobId, taskName, workflow, session.getUser(), appConfig);
             TaskFilter taskFilter = new TaskFilter();
             taskFilter.setId(updatedTask.getId());
             taskFilter.setLocale(session.getLocale(httpHeaders));
@@ -378,7 +378,7 @@ public class WorkflowResource {
     @PUT
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<TaskView> updateTask(TaskUpdate task) {
+    public SmartGwtResponse<TaskView> updateTask(TaskUpdate task) throws WorkflowException {
         if (task == null) {
             return SmartGwtResponse.asError("No task!");
         }
@@ -405,9 +405,9 @@ public class WorkflowResource {
             }
 
             return new SmartGwtResponse<TaskView>(result);
-        } catch (WorkflowException ex) {
+        } /*catch (WorkflowException ex) {
             return toError(ex, null);
-        } catch (IOException e) {
+        } */catch (IOException e) {
             return toError(new WorkflowException(e.getMessage()), null);
         }
     }
@@ -642,7 +642,8 @@ public class WorkflowResource {
                 LOG.log(Level.SEVERE, log, ex);
             }
         }
-        return SmartGwtResponse.asError(sb.toString());
+        SmartGwtResponse response = SmartGwtResponse.asError(sb.toString());
+        return response;
     }
 
 }

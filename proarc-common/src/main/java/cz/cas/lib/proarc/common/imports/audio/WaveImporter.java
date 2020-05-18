@@ -19,30 +19,37 @@ package cz.cas.lib.proarc.common.imports.audio;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
-import cz.cas.lib.proarc.common.export.mets.JhoveContext;
-import cz.cas.lib.proarc.common.fedora.*;
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewHandler;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.imports.*;
-import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.imports.FileSet;
 import cz.cas.lib.proarc.common.imports.FileSet.FileEntry;
+import cz.cas.lib.proarc.common.imports.ImageImporter;
+import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.imports.InputUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.ws.rs.core.MediaType;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.stream.FileImageOutputStream;
-import javax.ws.rs.core.MediaType;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 
 /**
@@ -163,6 +170,9 @@ public class WaveImporter implements ImageImporter {
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
         relEditor.setImportFile(f.getName());
+        relEditor.setOrganization(ctx.getOrganization());
+        relEditor.setUser("all");
+        relEditor.setStatus(STATUS_NEW);
         relEditor.write(0, null);
         // XXX use fedora-model:downloadFilename in RELS-INT or label of datastream to specify filename
     }

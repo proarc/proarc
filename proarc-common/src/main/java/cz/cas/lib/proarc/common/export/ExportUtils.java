@@ -23,13 +23,14 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import javax.xml.bind.JAXB;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXB;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
 
 /**
  *
@@ -108,14 +109,51 @@ public final class ExportUtils {
      * @param log fedora log message
      * @throws DigitalObjectException failure
      */
-    public static void storeObjectExportResult(String pid, String target, String log) throws DigitalObjectException {
+    public static void storeObjectExportResult(String pid, String target, String type, String log) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fo = dom.find(pid, null);
         DigitalObjectHandler doh = dom.createHandler(fo);
         RelationEditor relations = doh.relations();
-        relations.setExportResult(target);
+        switch(type) {
+            case "NDK":
+                relations.setNdkExportResult(target);
+                relations.setExportResult(target);
+                relations.setStatus(STATUS_EXPORTED);
+                break;
+            case "KRAMERIUS":
+                relations.setKrameriusExportResult(target);
+                relations.setExportResult(target);
+                relations.setStatus(STATUS_EXPORTED);
+                break;
+            case "ARCHIVE":
+                relations.setNdkExportResult(target);
+                String archiveTarget = createArchiveTarget(target);
+                relations.setArchiveExportResult(archiveTarget);
+                relations.setExportResult(archiveTarget);
+                relations.setStatus(STATUS_EXPORTED);
+                break;
+            case "CROSREFF":
+                relations.setCrossrefExportResult(target);
+                relations.setExportResult(target);
+                relations.setStatus(STATUS_EXPORTED);
+                break;
+        }
         relations.write(relations.getLastModified(), log);
         doh.commit();
+    }
+
+    private static String createArchiveTarget(String path) {
+        StringBuilder target = new StringBuilder();
+        String[] targetFolder = path.split("/");
+        for (int i = 0; i < targetFolder.length; i++) {
+            if (targetFolder[i].contains("archive_")) {
+                target.append(targetFolder[i]).append("/");
+                return target.toString();
+            } else {
+                target.append(targetFolder[i]).append("/");
+            }
+        }
+        return path;
     }
 
     public static String toString(Iterable<?> lines) {

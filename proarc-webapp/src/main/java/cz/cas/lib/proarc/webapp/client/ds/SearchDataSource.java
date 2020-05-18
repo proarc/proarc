@@ -30,6 +30,7 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.FieldType;
+import cz.cas.lib.proarc.webapp.client.widget.Organization;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.HashMap;
@@ -50,6 +51,13 @@ public final class SearchDataSource extends ProarcDataSource {
     public static final String FIELD_CREATED = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED;
     public static final String FIELD_MODIFIED = DigitalObjectResourceApi.MEMBERS_ITEM_MODIFIED;
     public static final String FIELD_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_EXPORT;
+    public static final String FIELD_NDK_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_NDK_EXPORT;
+    public static final String FIELD_ARCHIVE_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_ARCHIVE_EXPORT;
+    public static final String FIELD_KRAMERIUS_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_KRAMERIUS_EXPORT;
+    public static final String FIELD_CROSSREF_EXPORT = DigitalObjectResourceApi.MEMBERS_ITEM_CROSSREF_EXPORT;
+    public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.MEMBERS_ITEM_ORGANIZATION;
+    public static final String FIELD_USER = DigitalObjectResourceApi.MEMBERS_ITEM_USER;
+    public static final String FIELD_STATUS = DigitalObjectResourceApi.MEMBERS_ITEM_STATUS;
 
     public SearchDataSource() {
         setID(ID);
@@ -71,11 +79,18 @@ public final class SearchDataSource extends ProarcDataSource {
         DataSourceDateTimeField modified = new DataSourceDateTimeField(FIELD_MODIFIED);
         modified.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
         DataSourceField export = new DataSourceField(FIELD_EXPORT, FieldType.TEXT);
-
+        DataSourceField ndkExport = new DataSourceField(FIELD_NDK_EXPORT, FieldType.TEXT);
+        DataSourceField archiveExport = new DataSourceField(FIELD_ARCHIVE_EXPORT, FieldType.TEXT);
+        DataSourceField krameriusExport = new DataSourceField(FIELD_KRAMERIUS_EXPORT, FieldType.TEXT);
+        DataSourceField crossreffExport = new DataSourceField(FIELD_CROSSREF_EXPORT, FieldType.TEXT);
+        DataSourceField organization = new DataSourceField(FIELD_ORGANIZATION, FieldType.TEXT);
+        DataSourceField user = new DataSourceField(FIELD_USER, FieldType.TEXT);
+        DataSourceField status = new DataSourceField(FIELD_STATUS, FieldType.TEXT);
+        organization.setValueMap(Organization.getMap());
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         model.setForeignKey(MetaModelDataSource.ID + '.' + MetaModelDataSource.FIELD_PID);
 
-        setFields(label, model, pid, created, modified, owner, state, export);
+        setFields(label, model, pid, created, modified, owner, state, export, ndkExport, archiveExport, krameriusExport, crossreffExport, organization, user, status);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 
