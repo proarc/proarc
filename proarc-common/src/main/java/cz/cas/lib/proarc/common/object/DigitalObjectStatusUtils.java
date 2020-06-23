@@ -25,6 +25,9 @@ public class DigitalObjectStatusUtils {
     }
 
     public static void setState(String pid, String status) throws DigitalObjectException {
+        if (pid == null) {
+            return;
+        }
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fedoraObject = dom.find(pid, null);
         setState(fedoraObject, status);

@@ -646,6 +646,9 @@ public class MetsUtils {
      */
     public static DigitalObject readFoXML(String uuid, FedoraClient client) throws MetsExportException {
         DigitalObject foXMLObject = null;
+        if (uuid == null) {
+            return null;
+        }
         if (uuid.startsWith("info:fedora/")) {
             uuid = uuid.substring(uuid.indexOf("/") + 1);
         }
