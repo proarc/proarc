@@ -270,9 +270,16 @@ Author Miroslav Pavelka
                                         <xsl:value-of select="./mods:title"/>
                                     </xsl:when>
                                     <xsl:otherwise>
-                                        <xsl:if test="./mods:title!=''">
-                                            <xsl:value-of select="./mods:title"/>
-                                        </xsl:if>
+                                        <xsl:choose>
+                                            <xsl:when test="./mods:title!='' and ./mods:subTitle!=''">
+                                                <xsl:value-of select="concat(./mods:title, ': ', ./mods:subTitle)"/>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <xsl:if test="./mods:title!=''">
+                                                    <xsl:value-of select="./mods:title"/>
+                                                </xsl:if>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
                                     </xsl:otherwise>
                                 </xsl:choose>
                             </xsl:element>

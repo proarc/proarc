@@ -259,6 +259,9 @@ public final class AtmEditor {
             RemoteStorage.RemoteObject robject = rstorage.find(parentPid);
             MetsContext metsContext = buildContext(robject, null, rstorage);
             DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+            if (dobj == null) {
+                throw new DigitalObjectException("Process: Changing models failed - imposible to find element");
+            }
             return MetsElement.getElement(dobj, null, metsContext, true);
         } catch (IOException | MetsExportException ex) {
             throw new DigitalObjectException("Process: Changing models failed - imposible to find element");
