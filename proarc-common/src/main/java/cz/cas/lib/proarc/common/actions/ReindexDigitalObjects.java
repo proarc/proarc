@@ -27,7 +27,6 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -40,15 +39,12 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -87,6 +83,9 @@ public class ReindexDigitalObjects {
         RemoteStorage.RemoteObject robject = rstorage.find(parentPid);
         MetsContext metsContext = buildContext(robject, null, null, rstorage);
         DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+        if (dobj == null) {
+            return null;
+        }
         return MetsElement.getElement(dobj, null, metsContext, true);
     }
 

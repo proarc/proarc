@@ -140,6 +140,9 @@ public final class DesaExport {
             DesaContext dc = buildContext(fo, packageId, target);
             try {
                 DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+                if (dobj == null) {
+                    throw new ExportException(pid);
+                }
                 DesaElement dElm = DesaElement.getElement(dobj, null, dc, hierarchy);
                 DesaConfiguration desaCfg = transporterProperties(dryRun, dElm);
                 if (desaCfg != null) {
