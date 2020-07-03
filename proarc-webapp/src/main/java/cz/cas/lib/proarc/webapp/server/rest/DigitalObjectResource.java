@@ -314,9 +314,13 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM) String queryTitle,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_STATUS_PARAM) String queryStatus,
+            @QueryParam(DigitalObjectResourceApi.SEACH_ORGANIZATION_PARAM) String queryOrganization,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_PROCESSOR_PARAM) String queryProcessor,
             @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow,
             @DefaultValue(SearchSort.DEFAULT_DESC)
-            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM) String sortField
             ) throws FedoraClientException, IOException {
 
         Locale locale = session.getLocale(httpHeaders);
@@ -345,7 +349,7 @@ public class DigitalObjectResource {
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
+                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator).setStatus(queryStatus)
                         .setHasOwners(filterGroups(user)), "active");
                 total = items.size();
                 page = 1;
@@ -380,6 +384,19 @@ public class DigitalObjectResource {
             case ALL:
                 items = search.findAllObjects();
                 total = items.size();
+                break;
+            case ADVANCED:
+                if (username == null) {
+                    username = queryProcessor;
+                }
+                if (organization == null) {
+                    organization = queryOrganization;
+                }
+                total = search.findAdvancedSearch(queryIdentifier, queryLabel, queryStatus, organization, username, queryModel, queryCreator);
+                items = search.findAdvanced(queryIdentifier, queryLabel, queryStatus, organization, username, queryModel, queryCreator, sortField, sort.toString(), startRow, 100);
+                if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
+                    items = sortItems(items, sort);
+                }
                 break;
             default:
                 total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();

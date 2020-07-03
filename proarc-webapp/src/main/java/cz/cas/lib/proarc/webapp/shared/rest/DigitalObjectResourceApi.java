@@ -47,6 +47,7 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_OWNER_PARAM = "owner";
     public static final String SEARCH_START_ROW_PARAM = "_startRow";
     public static final String SEARCH_SORT_PARAM = "_sort";
+    public static final String SEARCH_SORT_FIELD_PARAM = "sortField";
     public static final String SEARCH_PHRASE_PARAM = "phrase";
     public static final String SEARCH_PID_PARAM = "pid";
     public static final String SEARCH_BATCHID_PARAM = "batchId";
@@ -57,6 +58,9 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_QUERY_MODEL_PARAM = "queryModel";
     public static final String SEARCH_QUERY_TITLE_PARAM = "queryTitle";
     public static final String SEARCH_TYPE_PARAM = "type";
+    public static final String SEARCH_STATUS_PARAM = "status";
+    public static final String SEACH_ORGANIZATION_PARAM = "organization";
+    public static final String SEARCH_PROCESSOR_PARAM = "processor";
     /** XXX workaround to fix GWT 2.5 compiler bug related to the use of enum's static
      * field in enum's constant declaration.
      */
@@ -221,6 +225,8 @@ public final class DigitalObjectResourceApi {
         QUERY("query"),
         DELETED("deleted"),
         ALPHABETICAL("alphabetical"),
+        ADVANCED("advanced"),
+        STATUS("status"),
         ALL("all");
         
         public static final String DEFAULT = "lastCreated";
