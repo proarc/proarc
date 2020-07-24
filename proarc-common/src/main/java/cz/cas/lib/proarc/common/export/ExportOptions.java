@@ -31,10 +31,10 @@ public class ExportOptions {
         ExportOptions options = new ExportOptions();
 
         String deletePackage = config.getString(PROP_DELETE_PACKAGE);
-        options.setDeletePackage(Boolean.parseBoolean(deletePackage));
+        options.setDeletePackage(Boolean.TRUE.equals(Boolean.parseBoolean(deletePackage)));
 
         String overwritePackage = config.getString(PROP_OVERWRITE_PACKAGE);
-        options.setOverwritePackage(Boolean.parseBoolean(overwritePackage));
+        options.setOverwritePackage(Boolean.TRUE.equals(Boolean.parseBoolean(overwritePackage)));
 
         return options;
     }

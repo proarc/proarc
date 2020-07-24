@@ -812,8 +812,7 @@ public class ExportResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
 
-        Kramerius4Export export = new Kramerius4Export(
-        RemoteStorage.getInstance(appConfig), appConfig.getKramerius4Export(), policy, exportPageContext);
+        Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(appConfig), appConfig, policy);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
