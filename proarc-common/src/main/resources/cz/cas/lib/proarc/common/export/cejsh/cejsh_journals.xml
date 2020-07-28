@@ -714,4 +714,60 @@
         <depositorName>Czech Botanical Society</depositorName>
         <emailAddress>dlib@lib.cas.cz</emailAddress>
     </journal>
+    <journal issn="0009-0468">
+        <title>Česká literatura: časopis pro literární vědu</title>
+        <discipline>Czech literature</discipline>
+        <publisherAddress>Ústav pro českou literaturu AV ČR, v.v.i., Na Florenci 1420/3, 110 00  Praha 1, Czech Republic</publisherAddress>
+        <journalId>f9f595d7-4116-11e1-99e8-005056a60003</journalId>
+        <publisherId></publisherId>
+        <publisher>Institute of Czech Literature, Academy of Sciences of the Czech Republic</publisher>
+        <journalFrequency>6x ročně</journalFrequency>
+        <journalWWW>https://www.ucl.cas.cz/cs/casopis-ceska-literatura</journalWWW>
+        <institutionWWW>http://www.ucl.cas.cz/cs/</institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName>Ústav pro českou literaturu AV ČR, v. v. i.</depositorName>
+        <emailAddress>dlib@lib.cas.cz</emailAddress>
+    </journal>
+    <journal issn="0015-1831">
+        <title>Filosofický časopis</title>
+        <discipline>Filozofie</discipline>
+        <publisherAddress>Filosofický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <journalId>c82a1017-48e1-11e1-9389-005056a60003</journalId>
+        <publisherId></publisherId>
+        <publisher>Institute of Philosophy, Academy of Sciences of the Czech Republic</publisher>
+        <journalFrequency></journalFrequency>
+        <journalWWW>http://filcasop.flu.cas.cz/</journalWWW>
+        <institutionWWW>http://www.flu.cas.cz/en/</institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName>Filosofický ústav AV ČR, v. v. i.</depositorName>
+        <emailAddress>dlib@lib.cas.cz</emailAddress>
+    </journal>
+    <journal issn="2570-7485">
+        <title>Kontradikce: časopis pro kritické myšlení</title>
+        <discipline>critical thinking</discipline>
+        <publisherAddress>Filosofický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <journalId>c77695e6-257c-43f0-9d9b-5e75146faffe</journalId>
+        <publisherId></publisherId>
+        <publisher>Institute of Philosophy, Academy of Sciences of the Czech Republic</publisher>
+        <journalFrequency>6x ročně</journalFrequency>
+        <journalWWW>http://kontradikce.flu.cas.cz/</journalWWW>
+        <institutionWWW>http://www.flu.cas.cz/en/</institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName>Filosofický ústav AV ČR, v. v. i.</depositorName>
+        <emailAddress>dlib@lib.cas.cz</emailAddress>
+    </journal>
+    <journal issn="1210-0250">
+        <title>Teorie vědy: časopis pro mezioborová zkoumání vědy</title>
+        <discipline>teorie vědy</discipline>
+        <publisherAddress>Filosofický ústav AV ČR, v.v.i., Jilská 1, 110 00 Praha 1, Czech Republic</publisherAddress>
+        <journalId>16ebeaab-2e83-11e2-b94f-005056a60003</journalId>
+        <publisherId></publisherId>
+        <publisher>Institute of Philosophy, Academy of Sciences of the Czech Republic</publisher>
+        <journalFrequency></journalFrequency>
+        <journalWWW>http://teorievedy.flu.cas.cz/index.php/tv</journalWWW>
+        <institutionWWW>http://www.flu.cas.cz/en/</institutionWWW>
+        <editorialOffice></editorialOffice>
+        <depositorName>Filosofický ústav AV ČR, v. v. i.</depositorName>
+        <emailAddress>dlib@lib.cas.cz</emailAddress>
+    </journal>
 </cejsh>
