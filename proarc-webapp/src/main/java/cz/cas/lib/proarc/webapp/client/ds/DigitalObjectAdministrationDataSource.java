@@ -43,6 +43,13 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
     public static final String FIELD_DEVICE = DigitalObjectResourceApi.ATM_ITEM_DEVICE;
     public static final String FIELD_FILENAME = DigitalObjectResourceApi.ATM_ITEM_FILENAME;
     public static final String FIELD_EXPORT = DigitalObjectResourceApi.ATM_ITEM_EXPORTRESULT;
+    public static final String FIELD_NDK_EXPORT = DigitalObjectResourceApi.ATM_ITEM_NDK_EXPORT;
+    public static final String FIELD_ARCHIVE_EXPORT = DigitalObjectResourceApi.ATM_ITEM_ARCHIVE_EXPORT;
+    public static final String FIELD_KRAMERIUS_EXPORT = DigitalObjectResourceApi.ATM_ITEM_KRAMERIUS_EXPORT;
+    public static final String FIELD_CROSSREF_EXPORT = DigitalObjectResourceApi.ATM_ITEM_CROSSREF_EXPORT;
+    public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION;
+    public static final String FIELD_STATUS = DigitalObjectResourceApi.ATM_ITEM_STATUS;
+    public static final String FIELD_USER = DigitalObjectResourceApi.ATM_ITEM_USER;
 
 
     public static DigitalObjectAdministrationDataSource getInstance() {
@@ -67,8 +74,15 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
         DataSourceTextField owner = new DataSourceTextField(FIELD_OWNER);
         DataSourceTextField state = new DataSourceTextField(FIELD_STATE);
         DataSourceTextField export = new DataSourceTextField(FIELD_EXPORT);
+        DataSourceTextField ndkExport = new DataSourceTextField(FIELD_NDK_EXPORT);
+        DataSourceTextField archiveExport = new DataSourceTextField(FIELD_ARCHIVE_EXPORT);
+        DataSourceTextField krameriusExport = new DataSourceTextField(FIELD_KRAMERIUS_EXPORT);
+        DataSourceTextField crossrefExport = new DataSourceTextField(FIELD_CROSSREF_EXPORT);
+        DataSourceTextField organization = new DataSourceTextField(FIELD_ORGANIZATION);
+        DataSourceTextField status = new DataSourceTextField(FIELD_STATUS);
+        DataSourceTextField user = new DataSourceTextField(FIELD_USER);
 
-        setFields(pid, model, state, owner, created, modified, device, filename, export);
+        setFields(pid, model, state, owner, created, modified, device, filename, export, organization, user, ndkExport, archiveExport, krameriusExport, crossrefExport, status);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

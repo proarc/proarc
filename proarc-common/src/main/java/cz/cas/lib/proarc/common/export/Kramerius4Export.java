@@ -60,6 +60,13 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,13 +82,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Exports digital object and transforms its data streams to Kramerius4 format.
@@ -371,7 +371,7 @@ public final class Kramerius4Export {
         for (String pid : exportedPids) {
             try {
                 File foxml = ExportUtils.pidAsXmlFile(output, pid);
-                ExportUtils.storeObjectExportResult(pid, foxml.toURI().toASCIIString(), log);
+                ExportUtils.storeObjectExportResult(pid, output.toURI().toASCIIString(), "KRAMERIUS", log);
             } catch (DigitalObjectException ex) {
                 throw new IllegalStateException(ex);
             }
@@ -626,6 +626,13 @@ public final class Kramerius4Export {
 
             editor.setDevice(null);
             editor.setExportResult(null);
+            editor.setKrameriusExportResult(null);
+            editor.setArchiveExportResult(null);
+            editor.setNdkExportResult(null);
+            editor.setCrossrefExportResult(null);
+            editor.setStatus(null);
+            editor.setEmptyUser();
+            editor.setEmptyOrganization();
             editor.setOwners(Collections.<String>emptyList());
             editor.setMembership(Collections.<String>emptyList());
 

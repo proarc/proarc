@@ -421,13 +421,26 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     protected void inheritRecordInfo(ModsDefinition mods, List<RecordInfoDefinition> recordInfos) {
-        for (RecordInfoDefinition recordInfo : recordInfos) {
+        for (int i = 0; i < recordInfos.size(); i++) {
+            RecordInfoDefinition recordInfo = recordInfos.get(i);
             if (recordInfo.getDescriptionStandard().size() > 0 && recordInfo.getDescriptionStandard().get(0).getValue() != null) {
-                RecordInfoDefinition ri = new RecordInfoDefinition();
-                mods.getRecordInfo().add(ri);
-                StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
-                description.setValue(recordInfo.getDescriptionStandard().get(0).getValue());
-                ri.getDescriptionStandard().add(description);
+                RecordInfoDefinition ri;
+                if (mods.getRecordInfo().size() != 0 && mods.getRecordInfo().size() >= i) {
+                    ri = mods.getRecordInfo().get(i);
+                    if (ri.getDescriptionStandard().size() != 0) {
+                        ri.getDescriptionStandard().get(0).setValue(recordInfo.getDescriptionStandard().get(0).getValue());
+                    } else {
+                        StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
+                        description.setValue(recordInfo.getDescriptionStandard().get(0).getValue());
+                        ri.getDescriptionStandard().add(description);
+                    }
+                } else {
+                    ri =new RecordInfoDefinition();
+                    mods.getRecordInfo().add(ri);
+                    StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
+                    description.setValue(recordInfo.getDescriptionStandard().get(0).getValue());
+                    ri.getDescriptionStandard().add(description);
+                }
             }
         }
     }

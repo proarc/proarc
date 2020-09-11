@@ -34,7 +34,7 @@ import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction.Deletable;
-import cz.cas.lib.proarc.webapp.client.action.RestoreAction.Restorable;
+import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction.Restorable;
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;

@@ -63,6 +63,7 @@ public final class SearchView {
     private static final String QUERY_FIND_PIDS = readQuery("findPids.itql");
     private static final String QUERY_FIND_REFERRERS = readQuery("findReferrers.itql");
     private static final String QUERY_FIND_DEVICE_REFERRERS = readQuery("findDeviceReferrers.itql");
+    private static final String QUERY_FIND_ALL_OBJECTS = readQuery("findAll.itql");
 
     private final FedoraClient fedora;
     private final int maxLimit;
@@ -277,10 +278,19 @@ public final class SearchView {
             int endOffset = Math.min(size, startOffset + queryPageSize);
             List<String> subList = pids.subList(startOffset, endOffset);
             List<Item> members = findImpl(subList, onlyActive);
+            repairItemsModel(members);
             startOffset = endOffset;
             result.addAll(members);
         }
         return result;
+    }
+
+    private void repairItemsModel(List<Item> members) {
+        for (Item item : members) {
+            item.setOrganization(item.getOrganization().substring(12));
+            item.setUser(item.getUser().substring(12));
+            item.setStatus(item.getStatus().substring(12));
+        }
     }
 
     List<Item> findImpl(List<String> pids, boolean onlyActive) throws FedoraClientException, IOException {
@@ -360,24 +370,26 @@ public final class SearchView {
         return findLastCreated(offset, model, user, "desc");
     }
     public List<Item> findLastCreated(int offset, String model, String user, String sort) throws FedoraClientException, IOException {
-        return findLastCreated(offset, model, user, Integer.MAX_VALUE, sort);
+        return findLastCreated(offset, model, user, null, null, Integer.MAX_VALUE, sort);
     }
     
-    public List<Item> findLastCreated(int offset, String model, String user, int limit, String sort) throws FedoraClientException, IOException {
-        return findLast(offset, model, user, limit, "$created " + sort);
+    public List<Item> findLastCreated(int offset, String model, String user, String organization, String username, int limit, String sort) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, organization, username, limit, "$created " + sort);
     }
 
-    public List<Item> findAlphabetical(int offset, String model, String user, int limit, String sort) throws IOException, FedoraClientException {
-        return findLast(offset, model, user, limit, "$label " + sort);
+    public List<Item> findAlphabetical(int offset, String model, String user, String organization, String userName, int limit, String sort) throws IOException, FedoraClientException {
+        return findLast(offset, model, user, organization, userName, limit, "$label " + sort);
     }
 
-    public List<Item> findLastModified(int offset, String model, String user, int limit, String sort) throws FedoraClientException, IOException {
-        return findLast(offset, model, user, limit, "$modified " + sort);
+    public List<Item> findLastModified(int offset, String model, String user, String organization, String username, int limit, String sort) throws FedoraClientException, IOException {
+        return findLast(offset, model, user, organization, username, limit, "$modified " + sort);
     }
 
-    private List<Item> findLast(int offset, String model, String user, int limit, String orderBy) throws FedoraClientException, IOException {
+    private List<Item> findLast(int offset, String model, String user, String organization, String username, int limit, String orderBy) throws FedoraClientException, IOException {
         String modelFilter = "";
         String ownerFilter = "";
+        String organizationFilter = "";
+        String userFilter = "";
         if (model != null && !model.isEmpty()) {
             modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
         }
@@ -385,10 +397,19 @@ public final class SearchView {
             ownerFilter = String.format("and        $pid     <http://proarc.lib.cas.cz/relations#hasOwner>        $group\n"
                     + "and        <info:fedora/%s>     <info:fedora/fedora-system:def/relations-external#isMemberOf>        $group", user);
         }
+        if (organization != null) {
+            organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
+        }
+        if (username != null) {
+            userFilter = String.format("and       ($pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/%s>\n"
+                    + "or        $pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/all>)", username);
+        }
         String query = QUERY_LAST_CREATED.replace("${OFFSET}", String.valueOf(offset));
         query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${OWNER_FILTER}", ownerFilter);
         query = query.replace("${ORDERBY}", orderBy);
+        query = query.replace("${ORGANIZATION}", organizationFilter);
+        query = query.replace("${USERNAME}", userFilter);
         LOG.fine(query);
         RiSearch search = buildSearch(query);
 
@@ -399,9 +420,11 @@ public final class SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
-    public List<Item> countModels(String model, String user) throws FedoraClientException, IOException {
+    public List<Item> countModels(String model, String user, String organization, String username) throws FedoraClientException, IOException {
         String modelFilter = "";
         String ownerFilter = "";
+        String organizationFilter = "";
+        String userFilter = "";
         if (model != null && !model.isEmpty()) {
             modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
         }
@@ -409,12 +432,28 @@ public final class SearchView {
             ownerFilter = String.format("and        $pid     <http://proarc.lib.cas.cz/relations#hasOwner>        $group\n"
                     + "and        <info:fedora/%s>     <info:fedora/fedora-system:def/relations-external#isMemberOf>        $group", user);
         }
+        if (organization != null) {
+            organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
+        }
+        if (username != null) {
+            userFilter = String.format("and       ($pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/%s>\n"
+                    + "or        $pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/all>)", username);
+        }
         String query = QUERY_COUNT_MODELS;
         query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${OWNER_FILTER}", ownerFilter);
+        query = query.replace("${ORGANIZATION}", organizationFilter);
+        query = query.replace("${USERNAME}", userFilter);
         LOG.fine(query);
         RiSearch search = buildSearch(query);
 
+        return consumeSearch(search.execute(fedora));
+    }
+
+    public List<Item> findAllObjects() throws FedoraClientException, IOException {
+        String query = QUERY_FIND_ALL_OBJECTS;
+        LOG.fine(query);
+        RiSearch search = buildSearch(query);
         return consumeSearch(search.execute(fedora));
     }
 
@@ -578,18 +617,49 @@ public final class SearchView {
         private String parent;
         /** batch import ID. Optional for some queries */
         private Integer batchId;
+        private String organization;
+        private String user;
+        private String status;
         /**
          * Synthetic name of count query. count(hasExport)
          * @see <a href='http://docs.mulgara.org/itqlcommands/select.html#o194'>
          *      Count Function</a>
          */
         private String k0;
+        private String k1;
+        private String k2;
+        private String k3;
+        private String k4;
 
         public Item() {
         }
 
         public Item(String pid) {
             this.pid = pid;
+        }
+
+        public String getOrganization() {
+            return organization;
+        }
+
+        public void setOrganization(String organization) {
+            this.organization = organization;
+        }
+
+        public String getUser() {
+            return user;
+        }
+
+        public void setUser(String user) {
+            this.user = user;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
         }
 
         public String getCreated() {
@@ -683,6 +753,82 @@ public final class SearchView {
             return null;
         }
 
+        public String getK1() {
+            return k1;
+        }
+
+        public void setK1(String k1) {
+            this.k1 = k1;
+        }
+
+        public Integer getHasNdkExport() {
+            if (k1 != null && !k1.isEmpty()) {
+                try {
+                    return Integer.parseInt(k1);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
+        public String getK2() {
+            return k2;
+        }
+
+        public void setK2(String k2) {
+            this.k2 = k2;
+        }
+
+        public Integer getHasKrameriusExport() {
+            if (k2 != null && !k2.isEmpty()) {
+                try {
+                    return Integer.parseInt(k2);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
+        public String getK3() {
+            return k3;
+        }
+
+        public void setK3(String k3) {
+            this.k3 = k3;
+        }
+
+        public Integer getHasArchiveExport() {
+            if (k3 != null && !k3.isEmpty()) {
+                try {
+                    return Integer.parseInt(k3);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
+        public String getK4() {
+            return k4;
+        }
+
+        public void setK4(String k4) {
+            this.k4 = k4;
+        }
+
+        public Integer getHasCrossrefExport() {
+            if (k4 != null && !k4.isEmpty()) {
+                try {
+                    return Integer.parseInt(k4);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
     }
 
     static class Result {
@@ -708,6 +854,17 @@ public final class SearchView {
         private String owner;
         private String model;
         private Collection<String> hasOwners;
+
+        public String getOrganization() {
+            return organization;
+        }
+
+        public Query setOrganization(String organization) {
+            this.organization = organization;
+            return this;
+        }
+
+        private String organization;
 
         public String getTitle() {
             return title;

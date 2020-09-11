@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
+import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
@@ -82,13 +83,28 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
                 }
             }
         }
+        fixAndAddGenre(mods);
         fillAbstract(mods);
         fillRecordInfo(mods);
     }
 
-    protected void addGenre(ModsDefinition mods) {
+    protected void fixAndAddGenre(ModsDefinition mods) {
+        for (GenreDefinition genre : mods.getGenre()) {
+            String type = null;
+            if (genre.getValue() == null || "".equals(genre.getValue())) {
+                genre.setValue(Const.GENRE_SUPPLEMENT);
+            } else if (genre.getValue() != null  && !Const.GENRE_SUPPLEMENT.equals(genre.getValue())) {
+                if ("volume_supplement".equals(genre.getValue()) || "issue_supplement".equals(genre.getValue())) {
+                    type = genre.getValue();
+                    if (genre.getType().isEmpty()) {
+                        genre.setType(type);
+                    }
+                }
+                genre.setValue(Const.GENRE_SUPPLEMENT);
+            }
+        }
         //  mods/genre="supplement"
-        MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
+        //MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
     }
 
     @Override

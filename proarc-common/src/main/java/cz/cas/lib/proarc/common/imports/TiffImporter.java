@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
  * Requires Java Advanced Imaging support.
@@ -153,6 +154,9 @@ public class TiffImporter implements ImageImporter {
         RelationEditor relEditor = objHandler.relations();
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
+        relEditor.setOrganization(ctx.getOrganization());
+        relEditor.setUser("all");
+        relEditor.setStatus(STATUS_NEW);
         relEditor.setImportFile(f.getName());
         relEditor.write(0, null);
         // XXX use fedora-model:downloadFilename in RELS-INT or label of datastream to specify filename
@@ -247,10 +251,18 @@ public class TiffImporter implements ImageImporter {
     }
 
     private boolean existsFile(File originalPath, String filename, String path, String suffix, int lastFolder) {
-        return createFile(originalPath, filename, path, suffix, lastFolder).exists();
+        File file = createFile(originalPath, filename, path, suffix, lastFolder);
+        if (file == null) {
+            return false;
+        } else {
+            return file.exists();
+        }
     }
 
     private File createFile(File originalPath, String filename, String path, String suffix, int lastFolder) {
+        if (path == null || path.isEmpty() || path.equals("null")) {
+            return null;
+        }
         StringBuilder pathValue = new StringBuilder();
         pathValue.append(path).append("/");
         String value = getOriginalPath(originalPath, lastFolder);

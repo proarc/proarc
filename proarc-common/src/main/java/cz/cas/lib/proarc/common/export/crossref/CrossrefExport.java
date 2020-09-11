@@ -20,12 +20,14 @@ import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,22 +41,35 @@ public class CrossrefExport {
     private DigitalObjectManager dom;
     private final RemoteStorage remotes;
     private final ExportOptions options;
+    private List<String> pids;
 
     public CrossrefExport(DigitalObjectManager dom, RemoteStorage remotes, ExportOptions options) {
         this.dom = dom;
         this.remotes = remotes;
         this.options = options;
+        this.pids = new ArrayList<>();
     }
 
     public void export(File output, List<String> pids, CejshStatusHandler status) {
         try {
             exportImpl(output, pids, status);
+            storeExportResult(output, "Export succesfull");
         } catch (ExportException ex) {
             status.error(ex);
         } finally {
             File targetFolder = status.getTargetFolder();
             if (targetFolder != null) {
                 ExportUtils.writeExportResult(targetFolder, status.getReslog());
+            }
+        }
+    }
+
+    private void storeExportResult(File output, String log) {
+        for (String pid : pids) {
+            try {
+                ExportUtils.storeObjectExportResult(pid, output.toURI().toASCIIString(), "CROSREFF", log);
+            } catch (DigitalObjectException ex) {
+                throw new IllegalStateException(ex);
             }
         }
     }
@@ -108,6 +123,7 @@ public class CrossrefExport {
             if (!articles.isEmpty()) {
                 aPackage.setArticles(articles);
                 crossRefBuilder.createPackage(aPackage);
+                addExportedPids(aPackage, articles);
             }
         } catch (ExportException ex) {
             status.error(ex);
@@ -115,6 +131,16 @@ public class CrossrefExport {
             status.error(elm, "Unexpected error!", ex);
         } finally {
             status.finishInput(elm);
+        }
+    }
+
+    private void addExportedPids(CrossrefPackage aPackage, List<DigitalObjectElement> articles) {
+        for (DigitalObjectElement obj : aPackage.getPath()) {
+            pids.add(obj.getPid());
+        }
+
+        for (DigitalObjectElement obj : articles) {
+            pids.add(obj.getPid());
         }
     }
 

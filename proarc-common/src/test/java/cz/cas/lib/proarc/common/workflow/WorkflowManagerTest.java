@@ -43,13 +43,6 @@ import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapSource;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
-import java.io.File;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -64,9 +57,19 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.Rule;
+import org.junit.Test;
+import java.io.File;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 /**
  *
@@ -162,7 +165,7 @@ public class WorkflowManagerTest {
             addProperty(CatalogConfiguration.PROPERTY_TYPE, Z3950Catalog.TYPE);
         }});
         String mods = IOUtils.toString(WorkflowManagerTest.class.getResource("rdczmods.xml"));
-        Job job = wm.addJob(jobProfile, mods, c, null, null);
+        Job job = wm.addJob(jobProfile, mods, c, null, null, null);
         assertNotNull(job);
 
         Job getJob = wm.getJob(job.getId());

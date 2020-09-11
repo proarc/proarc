@@ -24,11 +24,11 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import org.w3c.dom.Element;
+import javax.xml.transform.Source;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.xml.transform.Source;
-import org.w3c.dom.Element;
 
 /**
  * RDF relations editor.
@@ -79,6 +79,77 @@ public final class RelationEditor {
     }
 
     /**
+     * @param organization of model
+     */
+    public void setOrganization(String organization) throws DigitalObjectException {
+        if (organization == null) {
+            organization = ".";
+        }
+        Rdf rdf = getRdf();
+        rdf.getDescription().setOrganization(RdfRelation.fromPid(organization));
+    }
+
+
+    /**
+     * use for Kramerius Export
+     */
+    public void setEmptyOrganization() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setOrganization(RdfRelation.fromPid(null));
+    }
+
+    /**
+     * @return organization of model
+     */
+    public String getOrganization() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getOrganization());
+    }
+
+    /**
+     * @return user of model
+     */
+    public String getUser() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getUser());
+    }
+
+    /**
+     * @param user of model
+     */
+    public void setUser(String user) throws DigitalObjectException {
+        if (user == null) {
+            user = "all";
+        }
+        Rdf rdf = getRdf();
+        rdf.getDescription().setUser(RdfRelation.fromPid(user));
+    }
+
+    /**
+     * use for Kramerius Export
+     */
+    public void setEmptyUser() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setUser(RdfRelation.fromPid(null));
+    }
+
+    /**
+     * @return state of model
+     */
+    public String getStatus() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getStatus());
+    }
+
+    /**
+     * @param status of model
+     */
+    public void setStatus(String status) throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setStatus(RdfRelation.fromPid(status));
+    }
+
+    /**
      * @param device PID of the device
      */
     public void setDevice(String device) throws DigitalObjectException {
@@ -125,6 +196,78 @@ public final class RelationEditor {
      */
     public String getExportResult() throws DigitalObjectException {
         return getRdf().getDescription().getHasExport();
+    }
+
+    /**
+     * Sets some identifier of the Ndk export action.
+     * @param result e.g. SIP ID or folder
+     * @throws DigitalObjectException failure
+     */
+    public void setNdkExportResult(String result) throws DigitalObjectException {
+        getRdf().getDescription().setHasNdkExport(result);
+    }
+
+    /**
+     * Gets a NDK export identifier.
+     * @return the identifier
+     * @throws DigitalObjectException  failure
+     */
+    public String getNdkExportResult() throws DigitalObjectException {
+        return getRdf().getDescription().getHasNdkExport();
+    }
+
+    /**
+     * Sets some identifier of the Kramerius export action.
+     * @param result e.g. SIP ID or folder
+     * @throws DigitalObjectException failure
+     */
+    public void setKrameriusExportResult(String result) throws DigitalObjectException {
+        getRdf().getDescription().setHasKrameriusExport(result);
+    }
+
+    /**
+     * Gets a Kramerius export identifier.
+     * @return the identifier
+     * @throws DigitalObjectException  failure
+     */
+    public String getKrameriusExportResult() throws DigitalObjectException {
+        return getRdf().getDescription().getHasKrameriusExport();
+    }
+
+    /**
+     * Sets some identifier of the Archive export action.
+     * @param result e.g. SIP ID or folder
+     * @throws DigitalObjectException failure
+     */
+    public void setArchiveExportResult(String result) throws DigitalObjectException {
+        getRdf().getDescription().setHasArchiveExport(result);
+    }
+
+    /**
+     * Gets a Archice export identifier.
+     * @return the identifier
+     * @throws DigitalObjectException  failure
+     */
+    public String getArchiveExportResult() throws DigitalObjectException {
+        return getRdf().getDescription().getHasArchiveExport();
+    }
+
+    /**
+     * Sets some identifier of the Ndk export action.
+     * @param result e.g. SIP ID or folder
+     * @throws DigitalObjectException failure
+     */
+    public void setCrossrefExportResult(String result) throws DigitalObjectException {
+        getRdf().getDescription().setHasCrossrefExport(result);
+    }
+
+    /**
+     * Gets a NDK export identifier.
+     * @return the identifier
+     * @throws DigitalObjectException  failure
+     */
+    public String getCrossrefExportResult() throws DigitalObjectException {
+        return getRdf().getDescription().getHasCrossrefExport();
     }
 
     /**

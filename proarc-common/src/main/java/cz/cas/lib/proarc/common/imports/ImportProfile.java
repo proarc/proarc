@@ -147,8 +147,8 @@ public final class ImportProfile {
     }
 
     public String getPlainOcrFilePath() {
-        String suffix = config.getString(PLAIN_OCR_FILE_PATH);
-        return suffix.toLowerCase();
+        String path = config.getString(PLAIN_OCR_FILE_PATH, "null");
+        return path.toLowerCase();
     }
 
     public int getOcrAltoFolderPath() {
@@ -167,7 +167,7 @@ public final class ImportProfile {
     }
 
     public String getAltoFilePath() {
-        String suffix = config.getString(ALTO_FILE_PATH);
+        String suffix = config.getString(ALTO_FILE_PATH, "null");
         return suffix.toLowerCase();
     }
 
