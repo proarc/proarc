@@ -1660,7 +1660,9 @@ public class DigitalObjectResource {
     ) throws DigitalObjectException {
         ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, user, pid, modelId);
         IMetsElement parentElement = reindexObjects.getParentElement();
-        reindexObjects.reindex(parentElement);
+        if (parentElement != null) {
+            reindexObjects.reindex(parentElement);
+        }
         return new SmartGwtResponse<>();
     }
 

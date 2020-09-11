@@ -175,6 +175,9 @@ public final class FedoraImport {
         RemoteStorage.RemoteObject fo = rstorage.find(pid);
         MetsContext mc = buildContext(rstorage, fo, null, file);
         IMetsElement element = getMetsElement(fo, mc, true);
+        if (element == null) {
+            return null;
+        }
         return element.getMetsContext().getRootElement();
     }
 
@@ -193,6 +196,9 @@ public final class FedoraImport {
     private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
         dc.resetContext();
         DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+        if (dobj == null) {
+            return null;
+        }
         return MetsElement.getElement(dobj, null, dc, hierarchy);
     }
 

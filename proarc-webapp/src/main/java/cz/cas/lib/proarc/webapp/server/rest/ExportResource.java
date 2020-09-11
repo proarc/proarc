@@ -403,6 +403,9 @@ public class ExportResource {
     private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
         dc.resetContext();
         DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+        if (dobj == null) {
+            throw new MetsExportException("Missing uuid");
+        }
         return MetsElement.getElement(dobj, null, dc, hierarchy);
     }
 
