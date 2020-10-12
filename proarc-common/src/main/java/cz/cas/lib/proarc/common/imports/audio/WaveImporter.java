@@ -169,7 +169,11 @@ public class WaveImporter implements ImageImporter {
         RelationEditor relEditor = objHandler.relations();
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
-        relEditor.setImportFile(f.getName());
+        if (ctx.isPagePath()) {
+            relEditor.setImportFile(f.getAbsolutePath());
+        } else {
+            relEditor.setImportFile(f.getName());
+        }
         relEditor.setOrganization(ctx.getOrganization());
         relEditor.setUser("all");
         relEditor.setStatus(STATUS_NEW);
