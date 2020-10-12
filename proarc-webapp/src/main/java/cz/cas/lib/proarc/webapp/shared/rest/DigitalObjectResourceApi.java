@@ -26,6 +26,7 @@ public final class DigitalObjectResourceApi {
     public static final String PATH = "object";
 
     public static final String DIGITALOBJECT_PID = "pid";
+    public static final String DIGITALOBJECT_PIDS = "pids";
     public static final String DIGITALOBJECT_PIDNEW = "pidNew";
     public static final String DIGITALOBJECT_MODEL = "model";
     public static final String BATCHID_PARAM = "batchId";
@@ -47,6 +48,7 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_OWNER_PARAM = "owner";
     public static final String SEARCH_START_ROW_PARAM = "_startRow";
     public static final String SEARCH_SORT_PARAM = "_sort";
+    public static final String SEARCH_SORT_FIELD_PARAM = "sortField";
     public static final String SEARCH_PHRASE_PARAM = "phrase";
     public static final String SEARCH_PID_PARAM = "pid";
     public static final String SEARCH_BATCHID_PARAM = "batchId";
@@ -57,6 +59,9 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_QUERY_MODEL_PARAM = "queryModel";
     public static final String SEARCH_QUERY_TITLE_PARAM = "queryTitle";
     public static final String SEARCH_TYPE_PARAM = "type";
+    public static final String SEARCH_STATUS_PARAM = "status";
+    public static final String SEACH_ORGANIZATION_PARAM = "organization";
+    public static final String SEARCH_PROCESSOR_PARAM = "processor";
     /** XXX workaround to fix GWT 2.5 compiler bug related to the use of enum's static
      * field in enum's constant declaration.
      */
@@ -123,9 +128,20 @@ public final class DigitalObjectResourceApi {
     // resource /object/mods/custom
     public static final String MODS_CUSTOM_PATH = "custom";
     public static final String MODS_CUSTOM_EDITORID = "editorId";
+    public static final String MODS_CUSTOM_EDITOR_PAGES = "editorPages";
     public static final String MODS_CUSTOM_CUSTOMJSONDATA = "jsonData";
     public static final String MODS_CUSTOM_CUSTOMXMLDATA = "xmlData";
     public static final String MODS_CUSTOM_IGNOREVALIDATION = "ignoreValidation";
+
+    public static final String MODS_PAGE_RULES_APPLY_TO = "applyTo";
+    public static final String MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE = "applyToFirstPage";
+    public static final String MODS_PAGE_RULES_NUMBER_PREFIX = "prefix";
+    public static final String MODS_PAGE_RULES_NUMBER_SUFFIX = "suffix";
+    public static final String MODS_PAGE_RULES_NUMBER_SEQUENCE_TYPE = "sequence";
+    public static final String MODS_PAGE_RULES_NUMBER_START_NUMBER = "startNumber";
+    public static final String MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER = "incrementNumber";
+    public static final String MODS_PAGE_RULES_INDEX_START_NUMBER = "startIndex";
+    public static final String MODS_PAGE_RULES_TYPE_PAGE = "pageType";
 
     // CustomMods
     public static final String CUSTOMMODS_ELEMENT = "mods";
@@ -221,6 +237,8 @@ public final class DigitalObjectResourceApi {
         QUERY("query"),
         DELETED("deleted"),
         ALPHABETICAL("alphabetical"),
+        ADVANCED("advanced"),
+        STATUS("status"),
         ALL("all");
         
         public static final String DEFAULT = "lastCreated";

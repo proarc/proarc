@@ -64,6 +64,8 @@ public final class SearchView {
     private static final String QUERY_FIND_REFERRERS = readQuery("findReferrers.itql");
     private static final String QUERY_FIND_DEVICE_REFERRERS = readQuery("findDeviceReferrers.itql");
     private static final String QUERY_FIND_ALL_OBJECTS = readQuery("findAll.itql");
+    private static final String QUERY_ADVANCED_SEARCH = readQuery("advancedSearch.itql");
+    private static final String QUERY_ADVANCED_SEARCH_COUNT = readQuery("advancedSearchCount.itql");
 
     private final FedoraClient fedora;
     private final int maxLimit;
@@ -287,9 +289,15 @@ public final class SearchView {
 
     private void repairItemsModel(List<Item> members) {
         for (Item item : members) {
-            item.setOrganization(item.getOrganization().substring(12));
-            item.setUser(item.getUser().substring(12));
-            item.setStatus(item.getStatus().substring(12));
+            if (item.getOrganization() != null) {
+                item.setOrganization(item.getOrganization().substring(12));
+            }
+            if (item.getUser() != null) {
+                item.setUser(item.getUser().substring(12));
+            }
+            if (item.getStatus() != null) {
+                item.setStatus(item.getStatus().substring(12));
+            }
         }
     }
 
@@ -380,6 +388,185 @@ public final class SearchView {
 
     public List<Item> findLastModified(int offset, String model, String user, String organization, String username, int limit, String sort) throws FedoraClientException, IOException {
         return findLast(offset, model, user, organization, username, limit, "$modified " + sort);
+    }
+
+    public List<Item> findAdvanced(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator,  String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
+        sortField = createSortField(sortField);
+        sort = createSort(sort);
+        List<String> pids = findAdvancedPids(new Query().setLabel(label).setIdentifier(identifier).setModel(model).setCreator(creator).setOwner(owner));
+        return findAdvancedObjects(pids, status, organization, processor, sortField + " " + sort, offset, limit);
+    }
+
+
+    public int findAdvancedSearch(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator) throws FedoraClientException, IOException {
+        List<String> pids = findAdvancedPids(new Query().setLabel(label).setIdentifier(identifier).setModel(model).setCreator(creator).setOwner(owner));
+        return findAdvancedCountObjects(pids, status, organization, processor);
+    }
+
+    private List<String> findAdvancedPids(Query q) throws FedoraClientException {
+        List<String> objectsPid = new ArrayList<>();
+        List<String> pids = new ArrayList<>();
+        StringBuilder query = new StringBuilder();
+        if (q.getModel() != null && !q.getModel().isEmpty()) {
+            query.append("type~").append(q.getModel());
+        }
+        buildQuery(query, "label", q.getLabel());
+        buildQuery(query, "ownerId", q.getOwner());
+        buildQuery(query, "creator", q.getCreator());
+        buildQuery(query, "identifier", q.getIdentifier());
+
+        final String queryString = query.toString().trim();
+        LOG.fine(queryString);
+
+        FindObjectsResponse response = FedoraClient.findObjects().query(queryString).resultFormat("xml").pid().maxResults(100).execute(fedora);
+        pids.addAll(response.getPids());
+        objectsPid.addAll(pids);
+
+        while (!pids.isEmpty()) {
+            String token = response.getToken();
+            if (token == null) {
+                break;
+            }
+            response =FedoraClient.findObjects().query(queryString).resultFormat("xml").pid().maxResults(100).sessionToken(token).execute(fedora);
+            pids = response.getPids();
+            objectsPid.addAll(pids);
+        }
+        return objectsPid;
+
+    }
+
+
+    private List<Item> findAdvancedObjects(List<String> pids, String status, String organization, String processor, String orderBy, int offset, int limit) throws FedoraClientException, IOException {
+        String statusFilter = "";
+        String organizationFilter = "";
+        String processorFilter = "";
+        String pidsFilter = "";
+
+        StringBuilder expr = new StringBuilder();
+        for (String pid : pids) {
+            if (expr.length() > 0) {
+                expr.append("\n or ");
+            }
+            expr.append(String.format("$pid <http://mulgara.org/mulgara#is> <info:fedora/%s>", pid));
+        }
+        if (pids.size() > 0) {
+            pidsFilter = "and (" + expr.toString() + ")";
+        }
+
+        if (organization != null && !organization.isEmpty()) {
+            organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
+        }
+        if (processor != null && !processor.isEmpty()) {
+            processorFilter = String.format("and       ($pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/%s>\n"
+                    + "or        $pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/all>)", processor);
+        }
+        if (status != null && !status.isEmpty()) {
+            statusFilter = String.format("and   $pid    <http://proarc.lib.cas.cz/relations#status>     <info:fedora/%s>", status);
+        }
+        String query = QUERY_ADVANCED_SEARCH.replace("${OFFSET}", String.valueOf(offset));
+        query = query.replace("${ORGANIZATION_FILTER}", organizationFilter);
+        query = query.replace("${PROCESSOR_FILTER}", processorFilter);
+        query = query.replace("${STATUS_FILTER}", statusFilter);
+        query = query.replace("${PIDS_FILTER}", pidsFilter);
+
+        query = query.replace("${ORDERBY}", orderBy);
+
+        LOG.fine(query);
+
+        RiSearch search = buildSearch(query);
+        if (limit > 0) {
+            limit = Math.min(limit, maxLimit);
+            search.limit(limit);
+        }
+        if (pids.size() == 0) {
+            return new ArrayList<Item>();
+        } else {
+            return consumeSearch(search.execute(fedora));
+        }
+    }
+
+    private int findAdvancedCountObjects(List<String> pids, String status, String organization, String processor) throws FedoraClientException, IOException {
+        if (pids.size() == 0) {
+            return 0;
+        }
+
+        String statusFilter = "";
+        String organizationFilter = "";
+        String processorFilter = "";
+        String pidsFilter = "";
+
+        StringBuilder expr = new StringBuilder();
+        for (String pid : pids) {
+            if (expr.length() > 0) {
+                expr.append("\n or ");
+            }
+            expr.append(String.format("$pid <http://mulgara.org/mulgara#is> <info:fedora/%s>", pid));
+        }
+        if (pids.size() > 0) {
+            pidsFilter = "and (" + expr.toString() + ")";
+        }
+
+        if (organization != null && !organization.isEmpty()) {
+            organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
+        }
+        if (processor != null && !processor.isEmpty()) {
+            processorFilter = String.format("and       ($pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/%s>\n"
+                    + "or        $pid      <http://proarc.lib.cas.cz/relations#user>    <info:fedora/all>)", processor);
+        }
+        if (status != null && !status.isEmpty()) {
+            statusFilter = String.format("and   $pid    <http://proarc.lib.cas.cz/relations#status>     <info:fedora/%s>", status);
+        }
+        String query = QUERY_ADVANCED_SEARCH_COUNT;
+        query = query.replace("${ORGANIZATION_FILTER}", organizationFilter);
+        query = query.replace("${PROCESSOR_FILTER}", processorFilter);
+        query = query.replace("${STATUS_FILTER}", statusFilter);
+        query = query.replace("${PIDS_FILTER}", pidsFilter);
+
+
+        LOG.fine(query);
+
+        RiSearch search = buildSearch(query);
+        List<Item> items = consumeSearch(search.execute(fedora));
+        return items.size();
+    }
+
+    private String createSort(String sort) {
+        if (sort != null && sort.equalsIgnoreCase("desc")) {
+            return "desc";
+        } else {
+            return "asc";
+        }
+    }
+
+    private String createSortField(String sortField) {
+        if (sortField == null || sortField.isEmpty()) {
+            return "$label";
+        } else {
+            switch(sortField) {
+                case "created":
+                    return "$created";
+                case "label":
+                    return "$label";
+                case "pid":
+                    return "$pid";
+                case "model":
+                    return "$model";
+                case "owner":
+                    return "$owner";
+                case "state":
+                    return "$state";
+                case "organization":
+                    return "$organization";
+                case "user":
+                    return "$user";
+                case "status":
+                    return "$status";
+                case "modified":
+                    return "$modified";
+                default:
+                    return "$label";
+            }
+        }
     }
 
     private List<Item> findLast(int offset, String model, String user, String organization, String username, int limit, String orderBy) throws FedoraClientException, IOException {
@@ -850,6 +1037,7 @@ public final class SearchView {
         private String identifier;
         private String owner;
         private String model;
+        private String status;
         private Collection<String> hasOwners;
 
         public String getOrganization() {
@@ -926,6 +1114,14 @@ public final class SearchView {
             return this;
         }
 
+        public String getStatus() {
+            return status;
+        }
+
+        public Query setStatus(String status) {
+            this.status = status;
+            return this;
+        }
     }
 
 }

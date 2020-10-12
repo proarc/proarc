@@ -45,6 +45,9 @@ import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import cz.cas.lib.proarc.urnnbn.model.registration.Import;
 import cz.cas.lib.proarc.urnnbn.model.response.ErrorType;
 import cz.cas.lib.proarc.urnnbn.model.response.UrnNbn;
+import org.apache.commons.io.FileUtils;
+import org.xml.sax.SAXException;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayDeque;
@@ -56,9 +59,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response;
-import org.apache.commons.io.FileUtils;
-import org.xml.sax.SAXException;
 
 /**
  * Walks down the NDK hierarchy and registers missing URN:NBN with {@link ResolverClient}.
@@ -128,6 +128,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             return null;
         }
         try {
+            super.visitChildren(elm, p);
             registeringObject = elm;
             return processNdkPeriodicalIssue(elm, p);
         } catch (DigitalObjectException ex) {
@@ -169,7 +170,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
             String parentModelId = parent.getModelId();
-            if (parent == DigitalObjectElement.NULL || NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModelId)) {
+            if (parent == DigitalObjectElement.NULL || NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModelId)  || NdkPlugin.MODEL_PERIODICALISSUE.equals(parentModelId)) {
                 try {
                     registeringObject = elm;
                     return processNdkPeriodicalIssue(elm, p);

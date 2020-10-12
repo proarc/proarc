@@ -378,6 +378,10 @@ public final class ImportProcess implements Runnable {
             return profile.getAudioModelID();
         }
 
+        public boolean isPagePath() {
+            return profile.isPagePath();
+        }
+
         public int getConsumedFileCounter() {
             return consumedFileCounter;
         }

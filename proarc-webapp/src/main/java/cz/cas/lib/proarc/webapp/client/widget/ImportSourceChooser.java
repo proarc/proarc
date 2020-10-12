@@ -45,6 +45,7 @@ import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.Action;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -76,6 +77,7 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
     private ImportSourceChooserHandler viewHandler;
     private final ClientMessages i18n;
     private IconButton loadButton;
+    private IconButton reimportButton;
 
     public ImportSourceChooser(ClientMessages i18n) {
         this.i18n = i18n;
@@ -203,6 +205,7 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         lblCurrSelection.setContents(label);
         ImportRecord importRecord = selectedRecord == null ? null : new ImportRecord(selectedRecord);
         loadButton.setDisabled(importRecord == null || !importRecord.isNew());
+        reimportButton.setDisabled(importRecord != null || importRecord.isNew());
     }
 
     private ToolStrip createToolbar() {
@@ -220,6 +223,22 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         };
         loadButton = Actions.asIconButton(loadAction, this);
         t.addMember(loadButton);
+
+        Action reimportAction = new AbstractAction(i18n.ImportWizard_ButtonReimportFolder_Title(),
+                "[SKIN]/actions/undo.png", null) {
+            @Override
+            public boolean accept(ActionEvent event) {
+                return Editor.getInstance().hasPermission("proarc.permission.admin");
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                viewHandler.sourceSelected();
+            }
+        };
+        reimportButton = Actions.asIconButton(reimportAction, this);
+        t.addMember(reimportButton);
+
         return t;
     }
 

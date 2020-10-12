@@ -96,7 +96,7 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
             } else if (genre.getValue() != null  && !Const.GENRE_SUPPLEMENT.equals(genre.getValue())) {
                 if ("volume_supplement".equals(genre.getValue()) || "issue_supplement".equals(genre.getValue())) {
                     type = genre.getValue();
-                    if (genre.getType().isEmpty()) {
+                    if (genre.getType() == null || genre.getType().isEmpty()) {
                         genre.setType(type);
                     }
                 }
