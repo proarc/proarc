@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,6 +52,33 @@ public class HierarchyObjectVisitor<R, P> implements DigitalObjectVisitor<R, P> 
             }
             return last;
         } catch (DigitalObjectException ex) {
+            throw new VisitorException(elm.getPid(), ex);
+        }
+    }
+
+    public R visitChildrenOnlyIf(DigitalObjectElement elm, P p, String... models) throws  VisitorException {
+        List<String> modelsList = new ArrayList<>();
+        for (String model : models) {
+            modelsList.add(model);
+        }
+        try {
+            List<DigitalObjectElement> children = crawler.getChildren(elm.getPid());
+            R last = null;
+            for (DigitalObjectElement child : children) {
+                if (modelsList.contains(child.getItem().getModel())) {
+                    last = child.accept(this, p);
+                }
+            }
+            return last;
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(elm.getPid(), ex);
+        }
+    }
+
+    public DigitalObjectElement getParent(DigitalObjectElement elm) throws VisitorException {
+        try {
+            return crawler.getParent(elm.getPid());
+        } catch (DigitalObjectNotFoundException ex) {
             throw new VisitorException(elm.getPid(), ex);
         }
     }
