@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods.bdm;
 
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
