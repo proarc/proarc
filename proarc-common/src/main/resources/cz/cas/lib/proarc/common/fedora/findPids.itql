@@ -1,8 +1,8 @@
 select     $pid $model $owner $label $state $created $modified $organization $user $status
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasExport>       $export)
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasNdkExport>       $export)
-count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasArchiveExport>       $export)
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasKrameriusExport>       $export)
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasArchiveExport>       $export)
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasCrossrefExport>       $export)
 from       <#ri>
 where      $pid     <info:fedora/fedora-system:def/model#hasModel>        $model
