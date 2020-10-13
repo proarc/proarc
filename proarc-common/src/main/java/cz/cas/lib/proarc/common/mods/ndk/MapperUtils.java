@@ -239,7 +239,7 @@ public final class MapperUtils {
     static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {
         for (StringPlusLanguage modsValue : modsValues) {
             // XXX lang?
-            if (modsValue.getValue().length() > 2700) {
+            if (modsValue.getValue() != null && modsValue.getValue().length() > 2700) {
                 List<String> splitValue = splitAfter2700Characters(modsValue.getValue());
                 for (String value : splitValue) {
                     addElementType(dcElms, value, null);
