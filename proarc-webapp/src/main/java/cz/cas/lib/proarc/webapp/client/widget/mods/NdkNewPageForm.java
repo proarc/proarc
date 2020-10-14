@@ -131,7 +131,7 @@ public class NdkNewPageForm {
 
     private Field note() {
         return new FieldBuilder("note").setTitle("Note - O").setMaxOccurrences(30)
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.COMBO)
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("Označení pro pravou (right) či levou (left) stranu podle řazení v dokumentu; <p>" +
                                 "pro označení strany spojené z vice snímků stran pak singlePage.")
                         .addMapValue("left", "Levá (left)")
@@ -169,7 +169,7 @@ public class NdkNewPageForm {
                 .setHint("Bližší údaje o typu dokumentu.<p>Pro NDK stranu hodnota “page” nebo “reprePage”.")
                 //.addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
                 //        .createField())
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.COMBO).setRequired(required).setDefaultValue("page")
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.SELECT).setRequired(required).setDefaultValue("page")
                         .addMapValue("page", "Strana")
                         .addMapValue("reprePage", "Reprezentativní strana")
                         .createField())
@@ -200,7 +200,7 @@ public class NdkNewPageForm {
     }
 
     public static Field pageType() {
-        return new FieldBuilder("pageType").setTitle("Typ strany - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+        return new FieldBuilder("pageType").setTitle("Typ strany - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
                 .setDefaultValue("normalPage").setWidth("400")
                 .setHint("Vybrat jednu z hodnot.")
                 .addMapValue("bibliography", "Bibliografie (Bibliography)")
