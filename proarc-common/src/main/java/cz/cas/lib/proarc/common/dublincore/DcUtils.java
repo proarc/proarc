@@ -20,11 +20,6 @@ import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.oaidublincore.ObjectFactory;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.URL;
-import java.util.Collection;
-import java.util.List;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -39,6 +34,11 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 
 /**
  *
@@ -245,4 +245,14 @@ public final class DcUtils {
         }
     }
 
+    public static void removeDuplicatedType(OaiDcType dc) {
+        if (dc.getTypes() != null && dc.getTypes().size() > 1) {
+            List<ElementType> list = dc.getTypes();
+            for (ElementType elementType : list) {
+                if (elementType.getValue() != null && elementType.getValue().contains("model:ndk")) {
+                    list.remove(elementType);
+                }
+            }
+        }
+    }
 }
