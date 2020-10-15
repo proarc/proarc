@@ -88,6 +88,8 @@
     <entry key="physicalLocation">Physical Location</entry>
     <entry key="url">URL</entry>
     <entry key="recordOrigin">Origin of Record</entry>
+    <entry key="machine generated">Staženo z katalogu</entry>
+    <entry key="recordInfoNote">Poznámka k záznamu</entry>
     <entry key="termsOfAddress">Terms of Address</entry>
     <entry key="authority">Authority</entry>
     <entry key="cartographic">Cartographic</entry>
