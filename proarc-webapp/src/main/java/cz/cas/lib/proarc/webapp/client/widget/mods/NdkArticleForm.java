@@ -454,17 +454,21 @@ public class NdkArticleForm {
 
     protected Field part() {
         // part, type="partDefinition"
-        return new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(1)
+        return new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(10)
                 .setHint("Popis rozsahu.")
                 // @ID, @type, @order, @displayLabel, @altRepGroup
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // detail, type="detailDefinition"
                 // extent, type="extentDefinition"
-                .addField(new FieldBuilder("extent").setTitle("Extent - MA").setMaxOccurrences(10)
-                    .addField(new FieldBuilder("unit").setMaxOccurrences(1).setTitle("Unit - R").setType(Field.COMBO).setDefaultValue("pageIndex")
+                .addField(new FieldBuilder("type").setMaxOccurrences(1).setTitle("Type - R").setType(Field.COMBO).setDefaultValue("pageIndex")
                         .addMapValue("pageNumber", "Page Number")
                         .addMapValue("pageIndex", "Page Index")
                         .createField())
+                .addField(new FieldBuilder("extent").setTitle("Extent - MA").setMaxOccurrences(10)
+                //    .addField(new FieldBuilder("unit").setMaxOccurrences(1).setTitle("Unit - R").setType(Field.COMBO).setDefaultValue("pageIndex")
+                //        .addMapValue("pageNumber", "Page Number")
+                //        .addMapValue("pageIndex", "Page Index")
+                //        .createField())
                     // start, type="stringPlusLanguage"
                     .addField(new FieldBuilder("start").setMaxOccurrences(1)
                         .addField(new FieldBuilder("value").setTitle("Start - MA").setMaxOccurrences(1).setType(Field.TEXT)

@@ -33,7 +33,7 @@ import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
-
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDetailWithPageRangeToPart;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
@@ -88,6 +88,7 @@ public class NdkArticleMapper extends NdkMapper {
         }
         fillAbstract(mods);
         fillRecordInfo(mods);
+        addDetailWithPageRangeToPart(mods);
     }
 
 
