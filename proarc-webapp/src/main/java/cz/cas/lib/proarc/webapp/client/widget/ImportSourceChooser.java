@@ -237,7 +237,7 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
             }
         };
         reimportButton = Actions.asIconButton(reimportAction, this);
-        t.addMember(reimportButton);
+        //t.addMember(reimportButton);
 
         return t;
     }
