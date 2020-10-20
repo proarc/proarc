@@ -502,6 +502,11 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filterModel.setValue(modelId);
     }
 
+    public void setSort(Object sort) {
+        FormItem sortField = filters.getField(DigitalObjectResourceApi.SEARCH_SORT_PARAM);
+        sortField.setValue(sort);
+    }
+
     public void setModels(LinkedHashMap<?, ?> valueMap) {
         ListGridField field = foundGrid.getField(SearchDataSource.FIELD_MODEL);
         field.setValueMap(valueMap);
@@ -525,6 +530,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         if (checkbox.getValueAsBoolean()) {
             checkbox.setValue(false);
             Offline.put(sourceName, filters.getField(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM).getValue());
+            Offline.put(sourceName + "_sort", filters.getField(DigitalObjectResourceApi.SEARCH_SORT_PARAM).getValue());
         }
         Criteria valuesAsCriteria = filters.getValuesAsCriteria();
         foundGrid.deselectAllRecords();
