@@ -421,13 +421,13 @@ public final class NdkChapterForm {
         .createField()); // identifier
 
         // part, type="partDefinition"
-        modsFields.add(new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(1)
+        modsFields.add(new FieldBuilder("part").setTitle("Part - RA").setMaxOccurrences(10)
                 .setHint("Popis rozsahu.")
                 // @ID, @type, @order, @displayLabel, @altRepGroup
                 // @languageAttributeGroup(lang, XmlLang, script, transliteration)
                 // detail, type="detailDefinition"
                 // extent, type="extentDefinition"
-                .addField(new FieldBuilder("extent").setTitle("Extent - MA").setMaxOccurrences(10)
+                .addField(new FieldBuilder("extent").setTitle("Extent - MA").setMaxOccurrences(1)
                     .addField(new FieldBuilder("unit").setMaxOccurrences(1).setTitle("Unit - R").setType(Field.COMBO).setDefaultValue("pageIndex")
                         .addMapValue("pageNumber", "Page Number")
                         .addMapValue("pageIndex", "Page Index")

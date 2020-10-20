@@ -46,6 +46,7 @@ public final class ImportProfile {
     public static final String ALTO_VERSION = "import.alto.file.version";
     public static final String MODEL_ID = "import.page.modelId";
     public static final String MODEL_AUDIO_ID="import.ndkaudiopage.modelId";
+    public static final String PAGE_PATH="import.page.path";
     public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
     public static final String NDK_ARCHIVAL_SUFFIX = "import.ndk_archival.file.suffix";
     public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
@@ -133,6 +134,11 @@ public final class ImportProfile {
     public String getAudioModelID() {
         String val = config.getString(MODEL_AUDIO_ID, NdkAudioPlugin.MODEL_PAGE);
         return val;
+    }
+
+    public boolean isPagePath() {
+        String val = config.getString(PAGE_PATH, "false");
+        return Boolean.parseBoolean(val);
     }
 
     public String getPlainOcrCharset() {

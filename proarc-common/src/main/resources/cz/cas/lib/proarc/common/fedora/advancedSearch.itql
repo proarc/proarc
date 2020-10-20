@@ -12,8 +12,13 @@ and        $pid     <info:fedora/fedora-system:def/view#lastModifiedDate> $modif
 and        $pid     <info:fedora/fedora-system:def/model#ownerId>         $owner
 and        $pid     <info:fedora/fedora-system:def/model#label>           $label
 and        $pid     <info:fedora/fedora-system:def/model#state>           $state
+and        $pid     <info:fedora/fedora-system:def/model#state>           <info:fedora/fedora-system:def/model#Active>
 and        $pid     <http://proarc.lib.cas.cz/relations#organization>     $organization
+${ORGANIZATION_FILTER}
 and        $pid     <http://proarc.lib.cas.cz/relations#user>     $user
+${PROCESSOR_FILTER}
 and        $pid     <http://proarc.lib.cas.cz/relations#status>     $status
-and        (${pids.expression})
-${includeActive}
+${STATUS_FILTER}
+${PIDS_FILTER}
+order by   ${ORDERBY}
+offset     ${OFFSET}

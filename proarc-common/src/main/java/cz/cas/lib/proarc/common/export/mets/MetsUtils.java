@@ -23,6 +23,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -73,6 +74,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -1127,5 +1132,41 @@ public class MetsUtils {
         HashMap<String, FileGrp> fileGrpMap = new HashMap<>();
         fileGrpMap.put(Const.OC_GRP_ID, OpebgrfGRP);
         return fileGrpMap;
+    }
+
+    public static void renameFolder(File exportFolder, File targetFolder, File archiveTargetFolder) {
+        if (archiveTargetFolder != null) {
+            for (File file : targetFolder.listFiles()) {
+                if (file.isFile()) {
+                    deleteFolder(file);
+                }
+            }
+            for (File file : archiveTargetFolder.listFiles()) {
+                if (ExportUtils.PROARC_EXPORT_STATUSLOG.equals(file.getName())) {
+                    try {
+                        Files.move(Paths.get(file.toURI()), Paths.get(new File(targetFolder, ExportUtils.PROARC_EXPORT_STATUSLOG).toURI()));
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Cannot move " + file.getAbsolutePath() + " to " + targetFolder.getName());
+                    }
+                }
+            }
+
+        }
+        for (File file : targetFolder.listFiles()) {
+            if (file.isDirectory()) {
+                deleteFolder(file);
+            }
+        }
+
+        try {
+            File file = new File(exportFolder, "error_" + targetFolder.getName());
+            if (file.exists()) {
+                deleteFolder(file);
+            }
+            Path path = Paths.get(targetFolder.toURI());
+            Files.move(path, path.resolveSibling("error_" + targetFolder.getName()), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Cannot move " + targetFolder.getName() + "error_" + targetFolder.getName());
+        }
     }
 }

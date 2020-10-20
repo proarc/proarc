@@ -20,6 +20,8 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.mods.AbstractDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.LanguageDefinition;
@@ -29,6 +31,7 @@ import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.NamePartDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
@@ -239,7 +242,7 @@ public final class MapperUtils {
     static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {
         for (StringPlusLanguage modsValue : modsValues) {
             // XXX lang?
-            if (modsValue.getValue().length() > 2700) {
+            if (modsValue.getValue() != null && modsValue.getValue().length() > 2700) {
                 List<String> splitValue = splitAfter2700Characters(modsValue.getValue());
                 for (String value : splitValue) {
                     addElementType(dcElms, value, null);
@@ -299,6 +302,44 @@ public final class MapperUtils {
             }
             if (sbName.length() > 0) {
                 addElementType(dcElms, sbName.toString());
+            }
+        }
+    }
+
+    static void addDetailWithPageRangeToPart(ModsDefinition mods) {
+        List<ExtentDefinition> extents = new ArrayList<>();
+        for (PartDefinition part : mods.getPart()) {
+            if (part.getType() == null) {
+                for (ExtentDefinition extentDefinition : part.getExtent()) {
+                    extents.add(extentDefinition);
+                }
+            }
+        }
+        if (extents.size() > 0) {
+            mods.getPart().clear();
+
+            for (ExtentDefinition extentDefinition : extents) {
+
+                PartDefinition part = new PartDefinition();
+                part.getExtent().add(extentDefinition);
+                part.setType(extentDefinition.getUnit());
+                extentDefinition.setUnit("pages");
+                mods.getPart().add(part);
+            }
+
+            for (PartDefinition part : mods.getPart()) {
+                if (part.getExtent() != null && part.getExtent().size() != 0) {
+                    ExtentDefinition extent = part.getExtent().get(0);
+                    StringPlusLanguage start = extent.getStart();
+                    StringPlusLanguage end = extent.getEnd();
+                    DetailDefinition detail = new DetailDefinition();
+                    //        detail.setType(extent.getUnit());
+                    StringPlusLanguage detailNumber = new StringPlusLanguage();
+                    detailNumber.setValue(start.getValue() + "-" + end.getValue());
+                    detail.getNumber().add(detailNumber);
+                    part.getDetail().clear();
+                    part.getDetail().add(detail);
+                }
             }
         }
     }

@@ -260,7 +260,7 @@ public class RepairMetadata {
     private PartDefinition createPageNumberDetail(String pageType, String pageNumber) {
         PartDefinition part = new PartDefinition();
         part.setType(pageType);
-        part.getDetail().add(setValue("page number", pageNumber));
+        part.getDetail().add(setValue("pageNumber", pageNumber));
         return part;
     }
 

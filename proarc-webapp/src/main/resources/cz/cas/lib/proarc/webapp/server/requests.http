@@ -1,0 +1,22 @@
+PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&isc_metaDataPrefix=_&isc_dataFormat=json&pids=[uuid%3A3bd2ed5e-36f0-44d4-8f21-b7230e71ab61,uuid%3A83f5ac44-3a40-4953-8013-2e1c63e71ad8,uuid%3A59904a07-3f23-4518-ba70-24f16cdf27e4]&timestamp=1597146647990&editorId=model%3Andkpage&_operationType=update&_textMatchStyle=exact&_dataSource=ModsCustomDataSource&sequence=ALPHABET_LOWER_SERIES&applyTo=1&pageType=obituary&prefix=[[&suffix=]a]&startNumber=28&incrementNumber=1&applyTo=2}
+
+
+###
+
+PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&isc_metaDataPrefix=_&isc_dataFormat=json&pids=[uuid%3A341dfe44-2ba1-4ac6-a987-c2e49f148dde,uuid%3Af5a48346-c4b3-4e7d-a496-ce7f571d9aa0,uuid%3Af593ee5d-2941-44af-b3c8-8996d4fd87dd,uuid%3A7cef5162-b3ae-4017-9378-6bf80031b84a]&timestamp=1597146647990&editorId=model%3Andkpage&_operationType=update&_textMatchStyle=exact&_dataSource=ModsCustomDataSource&sequence=ALPHABET_LOWER_SERIES&applyTo=2&pageType=titlePage&prefix=[[&suffix=]a]&startNumber=28&incrementNumber=1&applyToFirstPage=true}
+
+###
+
+PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&pids=[uuid%3A341dfe44-2ba1-4ac6-a987-c2e49f148dde,uuid%3Af5a48346-c4b3-4e7d-a496-ce7f571d9aa0,uuid%3Af593ee5d-2941-44af-b3c8-8996d4fd87dd,uuid%3A7cef5162-b3ae-4017-9378-6bf80031b84a]&_operationType=update&_dataSource=ModsCustomDataSource&sequence=ALPHABET_LOWER_SERIES&applyTo=2&pageType=titlePage&prefix=[&suffix=]&startNumber=28&incrementNumber=1&applyToFirstPage=true}

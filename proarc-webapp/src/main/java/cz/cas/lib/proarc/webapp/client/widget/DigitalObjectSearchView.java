@@ -57,6 +57,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
 import cz.cas.lib.proarc.webapp.client.action.SelectionCache;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.Arrays;
@@ -78,6 +79,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private static final String FILTER_QUERY = SearchType.QUERY.toString();
     private static final String FILTER_DELETED = SearchType.DELETED.toString();
     private static final String FILTER_ALPHABETICAL = SearchType.ALPHABETICAL.toString();
+    private static final String FILTER_ADVANCED = SearchType.ADVANCED.toString();
 
     private final DynamicForm filters;
     private final Canvas rootWidget;
@@ -285,13 +287,16 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         if (Editor.getInstance().hasPermission("proarc.permission.admin")) {
             filterMap.put(FILTER_DELETED, i18n.DigitalObjectSearchView_FilterGroupDeleted_Title());
         }
+        filterMap.put(FILTER_ADVANCED, i18n.DigitalObjectSearchView_FilterGroupAdvancedSearch_Title());
         filterType.setValueMap(filterMap);
         filterType.setValue(FILTER_LAST_CREATED);
 
-        FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED);
+        FormItemIfFunction showIfQuery = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED);
         FormItemIfFunction showIfPhrase = new StringMatchFunction(filterType, FILTER_PHRASE);
-        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ALPHABETICAL);
-        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL);
+        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ALPHABETICAL, FILTER_ADVANCED);
+        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL, FILTER_ADVANCED);
+        FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_ADVANCED);
+        FormItemIfFunction showIfQueryOrAdvanced = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED, FILTER_ADVANCED);
 
         final TextItem phrase = createAdvancedItem(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM,
                 i18n.DigitalObjectSearchView_FilterPhrase_Title(), showIfPhrase);
@@ -310,19 +315,23 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         form.setFields(filterType, createSpacerItem("100%", null),
                 phrase,
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfQuery), createSpacerItem("100%", showIfQuery),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedIdentifier_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
-                createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedCreator_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedIdentifier_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQueryOrAdvanced),
+                //createOwnerItem(i18n.DigitalObjectSearchView_FilterAdvancedCreator_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQueryOrAdvanced),
+                createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM, i18n.DigitalObjectSearchView_FilterAdvancedCreator_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQuery),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
-                createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQueryOrAdvanced),
+                createOwnerItem(i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQuery),
+                //createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM, i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQuery),
+                createStatusItem(i18n.DigitalObjectSearchView_FilterGroupStatus_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                createOrganizationItem(i18n.DigitalObjectSearchView_ListHeaderOrganization_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                createProcessorItem(i18n.UsersView_ListHeader_Proccesor_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
                 createModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Title(), showIfCreatedModifiedQuery),
-                createSortItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfAplhabetical),
                 createRememberModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Remember_Title(), showIfCreatedModifiedQuery),
-                createSpacerItem("100%", showIfCreatedModifiedQuery),
+                createSortFieldItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfAdvanced),
+                createSortItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfAplhabetical),
+                //, createSpacerItem("100%", showIfCreatedModifiedQuery),
                 submit);
         
         form.addSubmitValuesHandler(new SubmitValuesHandler() {
@@ -337,15 +346,90 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         return form;
     }
 
+    private FormItem createOwnerItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM, title);
+        item.setWidth("100%");
+        item.setColSpan(3);
+        item.setAllowEmptyValue(true);
+        item.setOptionDataSource(UserDataSource.getInstance());
+        item.setValueField(UserDataSource.FIELD_USERNAME);
+        item.setDisplayField(UserDataSource.FIELD_USERNAME);
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private FormItem createSortFieldItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM, title);
+        item.setWidth(200);
+        item.setAllowEmptyValue(true);
+        LinkedHashMap<String, String> valueMap = new LinkedHashMap<>();
+        valueMap.put("pid", i18n.DigitalObjectSearchView_ListHeaderPid_Title());
+        valueMap.put("model", i18n.DigitalObjectSearchView_ListHeaderModel_Title());
+        valueMap.put("owner", i18n.DigitalObjectSearchView_ListHeaderOwner_Title());
+        valueMap.put("label", i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
+        valueMap.put("state", i18n.DigitalObjectSearchView_ListHeaderState_Title());
+        valueMap.put("created", i18n.DigitalObjectSearchView_ListHeaderCreated_Title());
+        valueMap.put("modified", i18n.DigitalObjectSearchView_ListHeaderModified_Title());
+        valueMap.put("organization", i18n.DigitalObjectSearchView_ListHeaderOrganization_Title());
+        valueMap.put("user", i18n.UsersView_ListHeader_Proccesor_Title());
+        valueMap.put("status", i18n.DigitalObjectSearchView_FilterGroupStatus_Title());
+        item.setValueMap(valueMap);
+        item.setDefaultValue("label");
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
     private FormItem createSortItem(String title, FormItemIfFunction showIf) {
         SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_SORT_PARAM, title);
-        item.setWidth(300);
+        item.setWidth(200);
         item.setAllowEmptyValue(false);
         LinkedHashMap<String, String> valueMap = new LinkedHashMap();
         valueMap.put("asc", i18n.DigitalObjectSearchView_FilterAsc_Title());
         valueMap.put("desc", i18n.DigitalObjectSearchView_FilterDesc_Title());
-        item.setDefaultValue("desc");
+        item.setDefaultValue("asc");
         item.setValueMap(valueMap);
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private FormItem createStatusItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_STATUS_PARAM, title);
+        item.setWidth("100%");
+        item.setColSpan(3);
+        item.setAllowEmptyValue(true);
+        item.setValueMap(DigitalObjectState.getMap(i18n));
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private FormItem createProcessorItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_PROCESSOR_PARAM, title);
+        item.setOptionDataSource(UserDataSource.getInstance());
+        item.setValueField(UserDataSource.FIELD_USERNAME);
+        item.setDisplayField(UserDataSource.FIELD_USERNAME);
+        item.setWidth("100%");
+        item.setColSpan(3);
+        item.setAllowEmptyValue(true);
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private FormItem createOrganizationItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEACH_ORGANIZATION_PARAM, title);
+        item.setWidth("100%");
+        item.setColSpan(3);
+        item.setAllowEmptyValue(true);
+        item.setValueMap(Organization.getMap());
         if (showIf != null) {
             item.setShowIfCondition(showIf);
         }
@@ -365,7 +449,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     private SelectItem createModelItem(String title, FormItemIfFunction showIf) {
         SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM, title);
-        item.setWidth(300);
+        item.setWidth(200);
         item.setAllowEmptyValue(true);
         item.setEmptyDisplayValue("<i>" + i18nSmartGwt.filterBuilder_matchAllTitle() + "</i>");
         // see setFilterModel
