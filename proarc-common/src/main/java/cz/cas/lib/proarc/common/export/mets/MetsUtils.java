@@ -23,6 +23,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -1133,7 +1134,24 @@ public class MetsUtils {
         return fileGrpMap;
     }
 
-    public static void renameFolder(File exportFolder, File targetFolder) {
+    public static void renameFolder(File exportFolder, File targetFolder, File archiveTargetFolder) {
+        if (archiveTargetFolder != null) {
+            for (File file : targetFolder.listFiles()) {
+                if (file.isFile()) {
+                    deleteFolder(file);
+                }
+            }
+            for (File file : archiveTargetFolder.listFiles()) {
+                if (ExportUtils.PROARC_EXPORT_STATUSLOG.equals(file.getName())) {
+                    try {
+                        Files.move(Paths.get(file.toURI()), Paths.get(new File(targetFolder, ExportUtils.PROARC_EXPORT_STATUSLOG).toURI()));
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Cannot move " + file.getAbsolutePath() + " to " + targetFolder.getName());
+                    }
+                }
+            }
+
+        }
         for (File file : targetFolder.listFiles()) {
             if (file.isDirectory()) {
                 deleteFolder(file);

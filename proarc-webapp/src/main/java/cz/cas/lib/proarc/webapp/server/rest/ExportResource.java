@@ -307,7 +307,7 @@ public class ExportResource {
                 if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
                     MetsUtils.deleteFolder(r.getTargetFolder());
                 } else {
-                    MetsUtils.renameFolder(exportFolder, r.getTargetFolder());
+                    MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
                 }
                 result.add(new ExportResult(r.getValidationError().getExceptions()));
             } else {
@@ -448,7 +448,7 @@ public class ExportResource {
                             error.getPid(), error.getMessage(), false, error.getDetails()));
                 }
             }
-            MetsUtils.renameFolder(exportFolder, targetFolder);
+            MetsUtils.renameFolder(exportFolder, targetFolder, null);
         }
         return new SmartGwtResponse<>(result);
     }
@@ -488,7 +488,7 @@ public class ExportResource {
                             error.getPid(), error.getMessage(), false, error.getDetails()));
                 }
             }
-            MetsUtils.renameFolder(exportFolder, targetFolder);
+            MetsUtils.renameFolder(exportFolder, targetFolder, null);
         }
         return new SmartGwtResponse<>(result);
     }
@@ -531,7 +531,7 @@ public class ExportResource {
                    MetsUtils.deleteFolder(targetFolder);
                    error.setDetails(null);
                 } else {
-                    MetsUtils.renameFolder(exportFolder, targetFolder);
+                    MetsUtils.renameFolder(exportFolder, targetFolder, null);
                 }
                 result.getErrors().add(new ExportError(
                         error.getPid(), error.getMessage(), false, error.getDetails()));
@@ -557,6 +557,8 @@ public class ExportResource {
             if (r.getValidationError() != null) {
                 if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
                     //MetsUtils.deleteFolder(r.getTargetFolder());
+                } else {
+                    MetsUtils.renameFolder(exportFolder, targetFolder, target);
                 }
                 resultList.add(new ExportResult(r.getValidationError().getExceptions()));
             } else {
