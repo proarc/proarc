@@ -19,15 +19,9 @@ package cz.cas.lib.proarc.common.catalog;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.xml.Transformers;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.logging.LoggingFeature;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -42,9 +36,15 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.logging.LoggingFeature;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The catalog can query OAI repositories with
@@ -198,7 +198,26 @@ public class OaiCatalog implements BibliographicCatalog {
                 new StreamSource(new ByteArrayInputStream(modsBytes)),
                 Transformers.Format.ModsAsTitle);
         return new MetadataItem(entryIdx, new String(modsBytes, "UTF-8"),
-                new String(modsHtmlBytes, "UTF-8"), new String(modsTitleBytes, "UTF-8"));
+                repairHtml(new String(modsHtmlBytes, "UTF-8")), new String(modsTitleBytes, "UTF-8"));
+    }
+
+    private String repairHtml(String s) {
+        s = s.replaceAll("\\n", "");
+        s = s.replaceAll("\\r", "");
+        s = replaceMoreSpace(s);
+        s = s.replace(") </b>", ") ");
+        s = s.replace("( ", "</b>( ");
+        s = s.replace("( ", " (");
+        s = s.replace("=\" ", " = ");
+        s = s.replace("\"", "");
+        return s;
+    }
+
+    private String replaceMoreSpace(String s) {
+        while (s.contains("  ")) {
+            s = s.replace("  ", " ");
+        }
+        return s;
     }
 
     private byte[] modsAsHtmlBytes(Source source, Locale locale) throws TransformerException {
