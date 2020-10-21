@@ -33,4 +33,9 @@ public class OldPrintVolumeMapper extends NdkMonographVolumeMapper {
 //        OldPrintMapperUtils.addTypeOfResource(mods);
     }
 
+    @Override
+    protected String createObjectLabel(ModsDefinition mods) {
+        return OldPrintMapperFactory.createObjectLabel(mods);
+    }
+
 }
