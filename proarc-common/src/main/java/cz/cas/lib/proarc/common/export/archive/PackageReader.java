@@ -49,6 +49,7 @@ import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
@@ -102,15 +103,15 @@ public class PackageReader {
         this.iSession = session;
     }
 
-    public void read(File metsFile) throws IllegalStateException {
+    public void read(File metsFile, ImportOptions ctx) throws IllegalStateException {
         try {
-            readImpl(metsFile);
+            readImpl(metsFile, ctx);
         } catch (Exception ex) {
             throw new IllegalStateException(metsFile.getAbsolutePath(), ex);
         }
     }
 
-    private void readImpl(File metsFile) throws DigitalObjectException {
+    private void readImpl(File metsFile, ImportOptions ctx) throws DigitalObjectException {
         this.metsFile = metsFile;
         this.metsUri = metsFile.toURI();
         this.mets = JAXB.unmarshal(metsFile, Mets.class);
@@ -121,14 +122,14 @@ public class PackageReader {
             throw new IllegalStateException("Unknown mets@TYPE:" + pkgModelId);
         }
         StructMapType otherMap = getStructMap(mets, PackageBuilder.STRUCTMAP_OTHERS_TYPE);
-        processDevices(otherMap);
+        processDevices(otherMap, ctx);
 
         StructMapType physicalMap = getStructMap(mets, PackageBuilder.STRUCTMAP_PHYSICAL_TYPE);
         DivType div = physicalMap.getDiv();
-        processObject(1, div, null);
+        processObject(1, div, null, ctx);
     }
 
-    private List<String> processChildObjects(List<DivType> divs) throws DigitalObjectException {
+    private List<String> processChildObjects(List<DivType> divs, ImportOptions ctx) throws DigitalObjectException {
         ArrayList<String> pids = new ArrayList<String>(100);
         for (DivType div : divs) {
             String pid = toPid(div);
@@ -144,7 +145,7 @@ public class PackageReader {
         }
         int childIndex = 1;
         for (DivType div : divs) {
-            processObject(childIndex++, div, newArchive);
+            processObject(childIndex++, div, newArchive, ctx);
         }
         return pids;
     }
@@ -168,7 +169,7 @@ public class PackageReader {
         return null;
     }
 
-    private void processDevices(StructMapType structMap) {
+    private void processDevices(StructMapType structMap, ImportOptions ctx) {
         DivType devicesDiv = null;
         if (structMap != null) {
             DivType div = structMap.getDiv();
@@ -179,12 +180,12 @@ public class PackageReader {
         if (devicesDiv != null) {
             int index = 1;
             for (DivType deviceDiv : devicesDiv.getDiv()) {
-                processDevice(index++, deviceDiv);
+                processDevice(index++, deviceDiv, ctx);
             }
         }
     }
 
-    private void processDevice(int divIndex, DivType deviceDiv) {
+    private void processDevice(int divIndex, DivType deviceDiv, ImportOptions ctx) {
         if (!DeviceRepository.METAMODEL_ID.equals(deviceDiv.getTYPE())) {
             throw new IllegalStateException("Unexpected type of device: " + toString(deviceDiv));
         }
@@ -218,7 +219,7 @@ public class PackageReader {
                 importItem = iSession.addObject(lObj, physicalPath.isEmpty());
 
                 if (isNewObject) {
-                    createDatastreams(lObj, deviceDiv, Collections.<String>emptyList(), null);
+                    createDatastreams(lObj, deviceDiv, Collections.<String>emptyList(), null, ctx);
                 }
                 lObj.flush();
                 importItem.setState(ObjectState.LOADED);
@@ -229,7 +230,7 @@ public class PackageReader {
         }
     }
 
-    private void processObject(int divIndex, DivType div, File ndkFolder) throws DigitalObjectException {
+    private void processObject(int divIndex, DivType div, File ndkFolder, ImportOptions ctx) throws DigitalObjectException {
         String modelId = div.getTYPE();
         boolean isPkgModel = pkgModelId.equals(modelId);
         String pid = toPid(div);
@@ -277,11 +278,10 @@ public class PackageReader {
                 iSession.checkObjectParent(physicalPath, pid);
             }
             physicalPath.add(pid);
-            List<String> childPids = processChildObjects(div.getDiv());
+            List<String> childPids = processChildObjects(div.getDiv(), ctx);
             physicalPath.remove(pid);
             if (isNewObject) {
-                createDatastreams(lObj, div, childPids, ndkFolder);
-
+                createDatastreams(lObj, div, childPids, ndkFolder, ctx);
             } else {
                 mergeDatastreams(lObj, div, childPids);
             }
@@ -339,13 +339,13 @@ public class PackageReader {
         }
     }
 
-    private void createDatastreams(LocalObject lObj, DivType objectDiv, List<String> childPids, File ndkFolder) throws DigitalObjectException {
+    private void createDatastreams(LocalObject lObj, DivType objectDiv, List<String> childPids, File ndkFolder, ImportOptions ctx) throws DigitalObjectException {
         List<Fptr> fPtrs = objectDiv.getFptr();
         for (Fptr fPtr : fPtrs) {
             Object fileid = fPtr.getFILEID();
             if (fileid instanceof FileType) {
                 FileType fileType = (FileType) fileid;
-                createDatastream(lObj, fileType, childPids);
+                createDatastream(lObj, fileType, childPids, ctx);
             } else {
                 throw new IllegalStateException(
                         "METS: Unexpected <fptr> " + fileid + ", div@id: " + objectDiv.getID());
@@ -395,21 +395,21 @@ public class PackageReader {
                 if (editor == null) {
                     editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(StringEditor.OCR_ID, mime, StringEditor.OCR_LABEL));
                 }
-                editor.write(file, 0, null);
+                editor.write(file, editor.getLastModified(), null);
             } else if (BinaryEditor.NDK_USER_ID.equals(dsId)) {
                 MediaType mime = MediaType.valueOf("image/jp2");
                 BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
                 if (editor == null) {
                     editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_USER_ID, mime, BinaryEditor.NDK_USER_LABEL));
                 }
-                editor.write(file, 0, null);
+                editor.write(file, editor.getLastModified(), null);
             } else if (BinaryEditor.NDK_ARCHIVAL_ID.equals(dsId)) {
                 MediaType mime = MediaType.valueOf("image/jp2");
                 BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
                 if (editor == null) {
                     editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_ARCHIVAL_ID, mime, BinaryEditor.NDK_ARCHIVAL_LABEL));
                 }
-                editor.write(file, 0, null);
+                editor.write(file, editor.getLastModified(), null);
             }
         } catch (IOException ex) {
             throw new DigitalObjectException(ex.getMessage(), ex);
@@ -442,7 +442,7 @@ public class PackageReader {
         }
     }
 
-    private void createDatastream(LocalObject lObj, FileType fileType, List<String> childPids) throws DigitalObjectException {
+    private void createDatastream(LocalObject lObj, FileType fileType, List<String> childPids, ImportOptions ctx) throws DigitalObjectException {
         File dsFile = toFile(fileType);
         URI dsUri = dsFile.toURI();
         String dsId = toValidDsId(fileType);
@@ -450,6 +450,15 @@ public class PackageReader {
             Rdf rdf = Relations.unmarshal(new StreamSource(dsFile), Rdf.class);
             RelationEditor relationEditor = new RelationEditor(lObj);
             relationEditor.setRdf(rdf);
+            if (relationEditor.getOrganization() == null) {
+                relationEditor.setOrganization(ctx.getOrganization());
+            }
+            if (relationEditor.getStatus() == null) {
+                relationEditor.setStatus(DigitalObjectStatusUtils.STATUS_EXPORTED);
+            }
+            if (relationEditor.getUser() == null) {
+                relationEditor.setUser("all");
+            }
 
             String modelId = relationEditor.getModel();
             MetaModel model = modelId == null ? null: MetaModelRepository.getInstance().find(modelId);
