@@ -5,7 +5,7 @@
                      xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
 
     <foxml:objectProperties>
-        <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+        <foxml:property  NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
         <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="Content Model Object for Page"/>
     </foxml:objectProperties>
     <foxml:datastream CONTROL_GROUP="X" ID="DC" STATE="A" VERSIONABLE="true">

@@ -739,7 +739,7 @@ public class PackageReader {
         public void checkRemote(List<String> pids) throws DigitalObjectException {
             List<Item> items;
             try {
-                items = search.find(pids, false);
+                items = search.find(false, pids);
             } catch (Exception ex) {
                 throw new DigitalObjectException(null, batch.getId(), null, null, ex);
             }
