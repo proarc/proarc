@@ -24,6 +24,8 @@ import cz.cas.lib.proarc.common.dao.empiredb.SqlTransaction;
 import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.sql.DbUtils;
+import org.apache.commons.io.FileUtils;
+import javax.sql.DataSource;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -31,8 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.sql.DataSource;
-import org.apache.commons.io.FileUtils;
 
 /**
  * Manages user stuff in RDBMS and the Fedora storage.
@@ -329,6 +329,19 @@ final class UserManagerSql implements UserManager {
             }
         } catch (SQLException ex) {
             throw new IllegalStateException(ex);
+        }
+    }
+
+    @Override
+    public String findUserRole(int userId) {
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
+        try {
+            UserProfile user = filter(users.find(userId));
+            return user.getRole();
+        } finally {
+            tx.close();
         }
     }
 

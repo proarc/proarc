@@ -44,6 +44,7 @@ public final class UserDataSource extends ProarcDataSource {
     public static final String FIELD_ID = UserResourceApi.USER_ID;
     public static final String FIELD_USERNAME = UserResourceApi.USER_NAME;
     public static final String FIELD_PASSWORD = UserResourceApi.USER_PASSWORD;
+    public static final String FIELD_ROLE = UserResourceApi.USER_ROLE;
     public static final String FIELD_WHOAMI = UserResourceApi.USER_WHOAMI_PARAM;
     private static UserDataSource INSTANCE;
 
@@ -83,7 +84,7 @@ public final class UserDataSource extends ProarcDataSource {
         organization.setValueMap(Organization.getMap());
         organization.setReadOnlyEditorProperties(new StaticTextItem());
 
-        DataSourceTextField role = new DataSourceTextField(UserResourceApi.USER_ROLE);
+        DataSourceTextField role = new DataSourceTextField(FIELD_ROLE);
         role.setTitle(i18n.UsersView_ListHeader_Role_Title());
         role.setValueMap(UserRole.getMap());
         role.setReadOnlyEditorProperties(new StaticTextItem());

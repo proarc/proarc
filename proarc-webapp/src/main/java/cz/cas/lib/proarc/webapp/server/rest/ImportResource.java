@@ -37,24 +37,10 @@ import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
+import org.apache.commons.io.IOUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -71,7 +57,22 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import org.apache.commons.io.IOUtils;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Resource to handle imports.
@@ -246,7 +247,7 @@ public class ImportResource {
         int pageSize = 100;
         BatchViewFilter filterAll = new BatchViewFilter()
                     .setBatchId(batchId)
-                    .setUserId(user.getId() == 1 ? null : user.getId())
+                    .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                     .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -261,7 +262,7 @@ public class ImportResource {
         BatchViewFilter filter = new BatchViewFilter()
                 .setBatchId(batchId)
                 // admin may see all users; XXX use permissions for this!
-                .setUserId(user.getId() == 1 ? null : user.getId())
+                .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                 .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
