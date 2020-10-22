@@ -86,6 +86,7 @@ import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
 import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
 import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
 import cz.cas.lib.proarc.webapp.client.widget.UserInfoView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -203,18 +204,36 @@ public class Editor implements EntryPoint {
 
     private void loadPermissions() {
         sweepTask.expect();
+        UserDataSource.getInstance().fetchData(null, new DSCallback() {
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                String role = "none";
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] data = response.getData();
+                    if (data.length > 1) {
+                        user = data[0];
+                        role = user.getAttribute(UserDataSource.FIELD_ROLE);
+                    }
+                    permissions.clear();
+                    permissions.add(role);
+                    sweepTask.release();
+                }
+            }
+        });
         UserPermissionDataSource.getInstance().fetchData(null, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
-                    permissions.clear();
+                    //permissions.clear();
                     permissions.addAll(UserPermissionDataSource.asPermissions(data));
                     sweepTask.release();
                 }
             }
         });
+
+
     }
 
     /**
@@ -381,7 +400,7 @@ public class Editor implements EntryPoint {
                 ),
                 createTreeNode("Devices", i18n.MainMenu_Devices_Title(), new DeviceManagerPlace()),
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
-                createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
+                createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin", UserRole.ROLE_SUPERADMIN)),
                 createProtectedTreeNode("Console", i18n.MainMenu_Console_Title(), Arrays.asList("proarc.permission.admin")),
                 createTreeNode("About", i18n.AboutWindow_Title()),
         };
@@ -443,14 +462,19 @@ public class Editor implements EntryPoint {
     }
 
     public boolean hasPermission(String permission) {
+
         return permissions.contains(permission);
     }
 
     private boolean checkCredentials(List<String> requires) {
-        if (requires != null && !permissions.containsAll(requires)) {
-            return true;
+        if (requires != null) {
+            for (String require : requires) {
+                if (permissions.contains(require)) {
+                    return false;
+                }
+            }
         }
-        return false;
+        return true;
     }
 
     private TreeNode createProtectedTreeNode(String name, String displayName, Place place, List<String> requires) {

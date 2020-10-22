@@ -69,6 +69,7 @@ import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectSearchView;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectTreeView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import java.util.LinkedHashMap;
 
 /**
@@ -323,7 +324,8 @@ public final class DigitalObjectManager {
 
             @Override
             public boolean accept(ActionEvent event) {
-                if (!Editor.getInstance().hasPermission("proarc.permission.admin")) {
+                if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN))) {
+                //if (!Editor.getInstance().hasPermission("proarc.permission.admin") || !Editor.getInstance().hasPermission("superAdmin") || !Editor.getInstance().hasPermission("test")) {
                     return false;
                 } else {
                     Object[] selection = Actions.getSelection(event);

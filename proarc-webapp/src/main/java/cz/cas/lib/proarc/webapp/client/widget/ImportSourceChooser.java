@@ -228,7 +228,7 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
                 "[SKIN]/actions/undo.png", null) {
             @Override
             public boolean accept(ActionEvent event) {
-                return Editor.getInstance().hasPermission("proarc.permission.admin");
+                return (Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN));
             }
 
             @Override
