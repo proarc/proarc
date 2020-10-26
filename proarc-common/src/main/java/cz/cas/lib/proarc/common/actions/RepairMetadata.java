@@ -79,7 +79,10 @@ public class RepairMetadata {
         dcEditor.write(handler, dcr, null);
 
         fo.setLabel(mapper.toLabel(mods));
-        fo.flush();
+
+        handler.commit();
+
+        //fo.flush();
     }
 
     private ModsDefinition getParentMods(String parentPid) throws DigitalObjectException {

@@ -128,13 +128,13 @@ public final class OldPrintMonographTitleForm {
                         .createField()) // eventType
 
                 // place, placeDefinition
-                .addField(new FieldBuilder("place").setTitle("Place - 0").setMaxOccurrences(10)
+                .addField(new FieldBuilder("place").setTitle("Place - O").setMaxOccurrences(10)
                         .setHint("Údaje o místě spojeném s vydáním, výrobou nebo původem popisovaného dokumentu.")
                         // @supplied
                         // placeTerm, placeTermDefinition extends stringPlusLanguage
                         .addField(new FieldBuilder("placeTerm").setMaxOccurrences(1)
                                 // type, codeOrText('code', 'text')
-                                .addField(new FieldBuilder("type").setTitle("Type - 0").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
+                                .addField(new FieldBuilder("type").setTitle("Type - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("text")
                                         .setHint("Typ popisu místa. Kódem nebo textově."
                                                 + "<p>Pokud má dokument více míst vydání v poli 260, podpole „a“, přebírají se ze záznamu všechna místa"
                                                 + "<li>“code” pro údaj z pole 008</li><li>“text” pro údaj z pole 260</li>")
@@ -142,12 +142,12 @@ public final class OldPrintMonographTitleForm {
                                         .addMapValue("text", "text")
                                         .createField()) // type
                                 // @authorityURI, @valueURI,@authority
-                                .addField(new FieldBuilder("authority").setTitle("Authority - 0").setMaxOccurrences(1).setType(Field.COMBO)
+                                .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.COMBO)
                                         .setHint("Hodnota “marccountry” jen u údaje z pole 008")
                                         .addMapValue("marccountry", "marccountry")
                                         .createField()) // @authority
                                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                                .addField(new FieldBuilder("value").setTitle("Place Term - 0").setMaxOccurrences(1).setType(Field.TEXT)
+                                .addField(new FieldBuilder("value").setTitle("Place Term - O").setMaxOccurrences(1).setType(Field.TEXT)
                                         .setHint("Konkrétní určení místa a země vydání, např. Praha resp. xr pro ČR."
                                                 + "<p>Odpovídá hodnotám z katalogizačního záznamu, pole 260, podpole „a“ resp. pole 008/15-17.")
                                         .createField()) // value
@@ -167,7 +167,7 @@ public final class OldPrintMonographTitleForm {
                                 + "<p>Odpovídá hodnotě z katalogizačního záznamu, pole 260, podpole „c“ a pole 008/07-10.")
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                         // @encoding(w3cdtf, iso8601, marc, temper, edtf), @qualifier, @point(start, end), @keyDate
-                        .addField(new FieldBuilder("encoding").setTitle("Encoding - 0").setMaxOccurrences(1).setType(Field.SELECT)
+                        .addField(new FieldBuilder("encoding").setTitle("Encoding - O").setMaxOccurrences(1).setType(Field.SELECT)
                                 .setHint("Kódování - hodnota „marc“ jen u údaje z pole 008.")
                                 .addMapValue("iso8601", "ISO 8601")
                                 .addMapValue("edtf", "EDTF")
@@ -175,17 +175,17 @@ public final class OldPrintMonographTitleForm {
                                 .addMapValue("temper", "temper")
                                 .addMapValue("w3cdtf", "W3CDTF")
                                 .createField()) // @encoding
-                        .addField(new FieldBuilder("point").setTitle("Point - 0").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
+                        .addField(new FieldBuilder("point").setTitle("Point - O").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
                                 .setHint("Hodnoty „start“ resp. „end“ jen u údaje z pole 008, pro rozmezí dat.")
                                 .addMapValue("start", "start")
                                 .addMapValue("end", "end")
                                 .createField()) // @point
-                        .addField(new FieldBuilder("qualifier").setTitle("Qualifier - 0").setMaxOccurrences(1).setType(Field.SELECT)
+                        .addField(new FieldBuilder("qualifier").setTitle("Qualifier - O").setMaxOccurrences(1).setType(Field.SELECT)
                                 .setHint("Možnost dalšího upřesnění, hodnota „approximate“ pro data, kde nevíme přesný údaj. Hodnota  „inferred“ pro odvozený nebo dopočítaný údaj")
                                 .addMapValue("approximate", "Approximate")
                                 .addMapValue("inferred", "Inferred")
                                 .createField()) // @qualifier
-                        .addField(new FieldBuilder("value").setTitle("Date - 0").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
+                        .addField(new FieldBuilder("value").setTitle("Date - O").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
                                 .setHint("Datum vydání předlohy."
                                         + "<p>Odpovídá hodnotě z katalogizačního záznamu, pole 260, podpole „c“ a pole 008/07-10.")
                                 .createField()) // value
@@ -203,13 +203,13 @@ public final class OldPrintMonographTitleForm {
                 // dateModified
                 // copyrightDate
                 .addField(new FieldBuilder("copyrightDate").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("value").setTitle("Copyright Date - 0").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setTitle("Copyright Date - O").setMaxOccurrences(1).setType(Field.TEXT)
                                 .setHint("Využije se pouze v případě výskuytu pole 264 s druhým indikátorem \"4\" a podpolem $c.")
                                 .createField()) // value
                         .createField()) // copyrightDate
                 // dateOther
                 .addField(new FieldBuilder("dateOther").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("value").setTitle("Date Other - 0").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setTitle("Date Other - O").setMaxOccurrences(1).setType(Field.TEXT)
                                 .setHint("Datum vytvoření, distribuce, výroby předlohy."
                                         + "<p>Tento element se využije v případě výskytu $c v:"
                                         + "<p>264_0 je production"

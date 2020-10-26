@@ -30,9 +30,7 @@ import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.ChangeModelsDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 
 /**
@@ -115,7 +113,7 @@ public class ChangeNdkPageToPageAction extends AbstractAction {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.ChangePageToNdkPageAction_FinishStep_Msg());
+                    StatusView.getInstance().show(i18n.ChangeNdkPageToPageAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);
