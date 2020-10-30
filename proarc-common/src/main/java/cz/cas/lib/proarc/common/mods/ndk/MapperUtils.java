@@ -378,6 +378,9 @@ public final class MapperUtils {
                     addElementType(dc.getDates(), date.getValue());
                 //}
             }
+            /*for (DateDefinition date : originInfo.getDateOther()) {
+                addElementType(dc.getDates(), date.getValue());
+            }*/
         }
     }
 

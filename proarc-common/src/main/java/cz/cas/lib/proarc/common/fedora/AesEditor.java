@@ -17,12 +17,13 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.mix.Mix;
-import cz.cas.lib.proarc.mix.MixType;
-import cz.cas.lib.proarc.mix.MixUtils;
+import org.aes.audioobject.AudioObject;
+import org.aes.audioobject.AudioObjectType;
 import javax.xml.transform.Source;
 import java.io.File;
 
@@ -31,41 +32,41 @@ import java.io.File;
  *
  * @author Jan Pokorsky
  */
-public class MixEditor {
+public class AesEditor {
 
-    public static final String NDK_ARCHIVAL_ID = "NDK_ARCHIVAL_MIX";
-    public static final String RAW_ID = "RAW_MIX";
-    private static final String MIX_FORMAT_URI = MixUtils.NS;
+    public static final String NDK_ARCHIVAL_ID = "NDK_ARCHIVAL_AES";
+    public static final String RAW_ID = "RAW_AES";
+    private static final String AES_FORMAT_URI = Aes57Utils.NS;
 
     private final XmlStreamEditor editor;
     private final FedoraObject object;
     private final DatastreamProfile profileTemplate;
 
     public static DatastreamProfile rawProfile() {
-        return FoxmlUtils.managedProfile(RAW_ID, MIX_FORMAT_URI, "Technical metadata for RAW stream.");
+        return FoxmlUtils.managedProfile(RAW_ID, AES_FORMAT_URI, "Technical metadata for RAW stream.");
     }
 
     public static DatastreamProfile ndkArchivalProfile() {
-        return FoxmlUtils.managedProfile(NDK_ARCHIVAL_ID, MIX_FORMAT_URI, "Technical metadata for NDK_ARCHIVAL stream.");
+        return FoxmlUtils.managedProfile(NDK_ARCHIVAL_ID, AES_FORMAT_URI, "Technical metadata for NDK_ARCHIVAL stream.");
     }
 
     /**
      * Gets editor to manage NDK_ARCHIVAL datastream metadata.
-     * MIX does not contain info about the scanner.
+     * AES does not contain info about the scanner.
      */
-    public static MixEditor ndkArchival(FedoraObject object) {
-        return new MixEditor(object, ndkArchivalProfile());
+    public static AesEditor ndkArchival(FedoraObject object) {
+        return new AesEditor(object, ndkArchivalProfile());
     }
 
     /**
-     * Gets editor to manage RAW datastream metadata. MIX does not contain info
+     * Gets editor to manage RAW datastream metadata. AES does not contain info
      * about the scanner.
      */
-    public static MixEditor raw(FedoraObject object) {
-        return new MixEditor(object, rawProfile());
+    public static AesEditor raw(FedoraObject object) {
+        return new AesEditor(object, rawProfile());
     }
 
-    public MixEditor(FedoraObject object, DatastreamProfile profile) {
+    public AesEditor(FedoraObject object, DatastreamProfile profile) {
         this.editor = object.getEditor(profile);
         this.object = object;
         this.profileTemplate = profile;
@@ -80,38 +81,46 @@ public class MixEditor {
      * @return MIX or {@code null}
      * @throws DigitalObjectException failure
      */
-    public MixType read() throws DigitalObjectException {
+    public AudioObjectType read() throws DigitalObjectException {
         Source src = editor.read();
-        MixType result = null;
+        AudioObjectType result = null;
         if (src != null) {
-            result = MixUtils.unmarshal(src, MixType.class);
+            result = Aes57Utils.unmarshal(src, AudioObjectType.class);
         }
         return result;
     }
 
     /**
      * Gets persisted MIX as {@link Mix} class.
-     * @return MIX or {@code null}
+     * @return AES or {@code null}
      * @throws DigitalObjectException failure
      */
-    public Mix readMix() throws DigitalObjectException {
+    public AudioObject readAes() throws DigitalObjectException {
         Source src = editor.read();
-        Mix result = null;
+        AudioObject result = null;
         if (src != null) {
-            result = MixUtils.unmarshal(src, Mix.class);
+            result = Aes57Utils.unmarshal(src, AudioObject.class);
         }
         return result;
     }
 
-    public void write(MixType mix, long timestamp, String msg) throws DigitalObjectException {
+    public String readAsString() throws DigitalObjectException {
+        AudioObject aes = readAes();
+        if (aes != null) {
+            return Aes57Utils.toXml(aes, true);
+        }
+        return null;
+    }
+
+    public void write(AudioObject aes, long timestamp, String msg) throws DigitalObjectException {
         EditorResult result = editor.createResult();
-        MixUtils.marshal(result, mix, true);
+        Aes57Utils.marshal(result, aes, true);
         editor.write(result, timestamp, msg);
     }
 
     /**
      * Generates and writes MIX for the passed content.
-     * 
+     *
      * @param content file containing e.g. an image
      * @param jhoveCtx jHove context
      * @param timestamp timestamp
@@ -120,26 +129,18 @@ public class MixEditor {
      */
     public void write(File content, JhoveContext jhoveCtx, long timestamp, String msg) throws DigitalObjectException {
         try {
-            Mix mix = JhoveUtility.getMix(content, jhoveCtx, null, null, null).getMix();
-            if (mix == null) {
+            AudioObject aes = JhoveUtility.getAes(content, jhoveCtx, null, null, null).getAes();
+            if (aes == null) {
                 throw new DigitalObjectException(
-                    object.getPid(), null, profileTemplate.getDsID(), "jHove cannot generate MIX for " + content.toString(), null);
+                        object.getPid(), null, profileTemplate.getDsID(), "jHove cannot generate AES for " + content.toString(), null);
             }
-            write(mix, timestamp, msg);
+            write(aes, timestamp, msg);
         } catch (DigitalObjectException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new DigitalObjectException(
                     object.getPid(), null, profileTemplate.getDsID(), null, ex);
         }
-    }
-
-    public String readAsString() throws DigitalObjectException {
-        Mix mix = readMix();
-        if (mix != null) {
-            return MixUtils.toXml(mix, true);
-        }
-        return null;
     }
 
 //    public void generate(String dsId, JhoveContext jhoveCtx) {

@@ -228,6 +228,7 @@ public abstract class NdkMapper {
                 put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
                 put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
                 put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
+                put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
                 put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "model:electronicmonograph");
                 put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "model:electronicmonographunit");
                 put(NdkEbornPlugin.MODEL_ECHAPTER, "model:internalpart");

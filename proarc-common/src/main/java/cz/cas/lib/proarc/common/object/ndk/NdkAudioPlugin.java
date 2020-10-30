@@ -59,6 +59,7 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     public static final String MODEL_SONG = "model:ndksong";
     public static final String MODEL_TRACK = "model:ndktrack";
     public static final String MODEL_PAGE = "model:ndkaudiopage";
+    public static final String MODEL_PHONOGRAPH = "model:ndkphonographcylinder";
 
     private SoundrecordingSearchViewHandler searchViewHandler;
 
@@ -71,6 +72,13 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     public Collection<MetaModel> getModel() {
         // for now it is read only repository
         List<MetaModel> models = new ArrayList<>();
+        models.add(new MetaModel(MODEL_PHONOGRAPH, true, null,
+                Arrays.asList(new ElementType("NDK Phonograph cylinder", "en"), new ElementType("NDK Fonografický váleček", "cs")),
+                ModsConstants.NS, MODEL_PHONOGRAPH, this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+        ));
         models.add(new MetaModel(MODEL_MUSICDOCUMENT, true, null,
                 Arrays.asList(new ElementType("NDK Sound Collectiont", "en"), new ElementType("NDK Zvukový dokument", "cs")),
                 ModsConstants.NS, MODEL_MUSICDOCUMENT, this,

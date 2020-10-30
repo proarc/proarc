@@ -79,7 +79,7 @@ public class UrnNbnAction extends AbstractAction {
                     NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
                     NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME,
                     NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, NdkEbornPlugin.MODEL_ECHAPTER,
-                    NdkAudioPlugin.MODEL_MUSICDOCUMENT
+                    NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH
                     )));
 
     public UrnNbnAction(ClientMessages i18n) {

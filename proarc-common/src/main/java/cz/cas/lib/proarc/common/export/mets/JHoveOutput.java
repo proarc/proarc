@@ -17,12 +17,12 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
-import javax.xml.transform.dom.DOMResult;
-
-import org.w3c.dom.Node;
-
+import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
+import org.aes.audioobject.AudioObject;
+import org.w3c.dom.Node;
+import javax.xml.transform.dom.DOMResult;
 
 public class JHoveOutput {
     String formatVersion;
@@ -57,5 +57,29 @@ public class JHoveOutput {
 
     public void setMix(Mix mix) {
         this.mix = mix;
+    }
+
+    Node aesNode;
+    AudioObject aes;
+
+    public Node getAesNode() {
+        if (this.aes != null) {
+            DOMResult result = new DOMResult();
+            Aes57Utils.marshal(result, aes, true);
+            return result.getNode().getFirstChild();
+        }
+        return null;
+    }
+
+    public void setAesNode(Node aesNode) {
+        this.aesNode = aesNode;
+    }
+
+    public AudioObject getAes() {
+        return  aes;
+    }
+
+    public void setAes(AudioObject aes) {
+        this.aes = aes;
     }
 }

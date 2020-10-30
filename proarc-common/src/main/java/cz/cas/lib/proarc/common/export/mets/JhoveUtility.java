@@ -17,40 +17,19 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
-import java.io.File;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URL;
-import java.util.Calendar;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathFactory;
-
-import org.apache.commons.io.FileUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
+import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.Compression;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.ObjectIdentifier;
 import cz.cas.lib.proarc.mix.BasicImageInformationType;
 import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics.PhotometricInterpretation;
 import cz.cas.lib.proarc.mix.ChangeHistoryType;
 import cz.cas.lib.proarc.mix.ChangeHistoryType.ImageProcessing;
-import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
 import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixType;
@@ -63,8 +42,29 @@ import edu.harvard.hul.ois.jhove.App;
 import edu.harvard.hul.ois.jhove.JhoveBase;
 import edu.harvard.hul.ois.jhove.Module;
 import edu.harvard.hul.ois.jhove.OutputHandler;
-
+import org.aes.audioobject.AudioObject;
+import org.aes.audioobject.AudioObjectType;
+import org.apache.commons.io.FileUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+import java.io.File;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.URL;
+import java.util.Calendar;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Robert Simonovsky
@@ -170,6 +170,25 @@ public class JhoveUtility {
     }
 
     /**
+     * Gets AES of a source image file.
+     *
+     * @param sourceFile image file to describe with AES
+     * @param tempFolder workspace for JHove
+     * @param aesDevice optional device description
+     * @param dateCreated optional date of creation of the source
+     * @param originalFileName optional image file name
+     * @return the MIX description
+     * @throws MetsExportException failure
+     */
+    public static JHoveOutput getAes(File sourceFile, File tempFolder,
+                                     AudioObjectType aesDevice, XMLGregorianCalendar dateCreated, String originalFileName
+    ) throws MetsExportException {
+
+        JhoveContext ctx = createContext(tempFolder);
+        return getAes(sourceFile, ctx, aesDevice, dateCreated, null);
+    }
+
+    /**
      *
      * Returns the MIX data for fiven element
      *
@@ -185,6 +204,24 @@ public class JhoveUtility {
         initJhove(metsContext);
         JhoveContext jhoveContext = metsContext.getJhoveContext();
         return getMix(targetFile, jhoveContext, deviceMix, dateCreated, originalFileName);
+    }
+
+    /**
+     *
+     * Returns the AES data for fiven element
+     *
+     * @param targetFile
+     * @param metsContext
+     * @param deviceMix
+     * @param dateCreated
+     * @param originalFileName
+     * @return
+     * @throws MetsExportException
+     */
+    public static JHoveOutput getAes(File targetFile, MetsContext metsContext, AudioObjectType aes, XMLGregorianCalendar dateCreated, String originalFileName) throws MetsExportException {
+        initJhove(metsContext);
+        JhoveContext jhoveContext = metsContext.getJhoveContext();
+        return getAes(targetFile, jhoveContext, aes, dateCreated, originalFileName);
     }
 
     /**
@@ -233,6 +270,53 @@ public class JhoveUtility {
         jhoveOutput.setFormatVersion(mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName().getValue());
         return jhoveOutput;
     }
+
+    /**
+     * Returns the AES information from the fedoraStream
+     *
+     * @param metsElement
+     * @param streamName
+     * @return
+     * @throws MetsExportException
+     */
+    public static JHoveOutput getAesFromFedora(IMetsElement metsElement, String streamName) throws MetsExportException {
+//        Document document = null;
+        // hotfix of issue 250
+        JHoveOutput jhoveOutput = new JHoveOutput();
+        AesEditor aesEditor;
+        RemoteObject fObj = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        if (AesEditor.RAW_ID.equals(streamName)) {
+            aesEditor = AesEditor.raw(fObj);
+        } else if (MixEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
+            aesEditor = AesEditor.ndkArchival(fObj);
+        } else {
+            return null;
+        }
+        AudioObject aes;
+        try {
+            aes = aesEditor.readAes();
+            if (aes == null) {
+                return null;
+            }
+        } catch (DigitalObjectException ex) {
+            throw new MetsExportException(metsElement.getOriginalPid(), ex.getMessage(), false, ex);
+        }
+//        if (FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName) != null) {
+//            List<Element> streamContent = MetsUtils.getDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement.getOriginalPid(), streamName);
+//            if (streamContent == null) {
+//                return null;
+//            }
+//            document = MetsUtils.getDocumentFromList(streamContent);
+//        }
+//        if (document == null) {
+//            return null;
+//        }
+//        DOMSource domSource = new DOMSource(document);
+//        MixType mix = MixUtils.unmarshal(domSource, MixType.class);
+        jhoveOutput.setAes(aes);
+        return jhoveOutput;
+    }
+
 
     /**
      * Merges the mix from the device and from the image
@@ -410,6 +494,66 @@ public class JhoveUtility {
                 mix.getBasicDigitalObjectInformation().getCompression().add(compression);
             }
             jhoveOutput.setMix(mix);
+        } catch (Exception e) {
+            throw new MetsExportException("Error inspecting file '" + sourceFile + "' - " + e.getMessage(), false, e);
+        }
+        return jhoveOutput;
+    }
+
+    /**
+     * Gets Aes of a source image file.
+     *
+     * @param sourceFile image file to describe with AES
+     * @param jhoveContext JHove
+     * @param aesDevice optional device description
+     * @param dateCreated optional date of creation of the source
+     * @param originalFileName optional image file name
+     * @return the MIX description
+     * @throws MetsExportException failure
+     */
+    public static JHoveOutput getAes(File sourceFile, JhoveContext jhoveContext,
+                                     AudioObjectType  aesDevice, XMLGregorianCalendar dateCreated, String originalFileName
+    ) throws MetsExportException {
+
+        JHoveOutput jhoveOutput = new JHoveOutput();
+
+        if (sourceFile == null || !sourceFile.isFile() || !sourceFile.exists()) {
+            LOG.log(Level.SEVERE, "target file '" + sourceFile + "' cannot be found.");
+            throw new MetsExportException("target file '" + sourceFile + "' cannot be found.", false, null);
+        }
+        try {
+            JhoveBase jhoveBase = jhoveContext.getJhoveBase();
+            File outputFile = File.createTempFile("jhove", "output");
+            LOG.log(Level.FINE, "JHOVE output file " + outputFile);
+            Module module = jhoveBase.getModule(null);
+            OutputHandler aboutHandler = jhoveBase.getHandler(null);
+            OutputHandler xmlHandler = jhoveBase.getHandler("XML");
+            LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + sourceFile);
+            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { sourceFile.getAbsolutePath() });
+            DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+            builderFactory.setNamespaceAware(true);
+            DocumentBuilder builder = builderFactory.newDocumentBuilder();
+            Document jHoveDoc = builder.parse(outputFile);
+
+            outputFile.delete();
+            Node node = getNodeRecursive(jHoveDoc, "audioObject");
+            if (node == null) {
+                return jhoveOutput;
+            }
+            AudioObject aes = Aes57Utils.unmarshal(new DOMSource(node), AudioObject.class);
+
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String formatVersion = xpath.compile("*[local-name()='jhove']/*[local-name()='repInfo']/*[local-name()='version']").evaluate(jHoveDoc);
+            if ((formatVersion == null) || ("0".equals(formatVersion)) || (formatVersion.trim().length() == 0)) {
+                formatVersion = "1.0";
+            }
+            String formatName = xpath.compile("*[local-name()='jhove']/*[local-name()='repInfo']/*[local-name()='mimeType']").evaluate(jHoveDoc);
+            if ((formatName == null) || (formatName.trim().length() == 0)) {
+                formatName = "unknown";
+            }
+            jhoveOutput.setFormatVersion(formatVersion);
+
+            jhoveOutput.setAes(aes);
         } catch (Exception e) {
             throw new MetsExportException("Error inspecting file '" + sourceFile + "' - " + e.getMessage(), false, e);
         }

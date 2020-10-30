@@ -16,14 +16,8 @@
  */
 package cz.cas.lib.proarc.aes57;
 
-import org.aes.audioobject.ObjectType;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.aes.audioobject.AudioObject;
+import org.aes.audioobject.AudioObjectType;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -34,6 +28,13 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -86,13 +87,13 @@ public final class Aes57Utils {
     /**
      * Dumps object to XML string.
      */
-    public static String toXml(ObjectType aes, boolean indent) {
+    public static String toXml(AudioObject aes, boolean indent) {
         StringWriter dump = new StringWriter();
         marshal(new StreamResult(dump), aes, indent);
         return dump.toString();
     }
 
-    public static void marshal(Result target, Object aesElement, boolean indent) {
+    public static void marshal(Result target, AudioObject aesElement, boolean indent) {
         try {
             Marshaller m = defaultMarshaller(indent);
             m.marshal(aesElement, target);
@@ -126,6 +127,26 @@ public final class Aes57Utils {
         try {
             JAXBElement<T> item = defaultUnmarshaller().unmarshal(source, type);
             return item.getValue();
+        } catch (JAXBException ex) {
+            throw new DataBindingException(ex);
+        }
+    }
+
+    public static AudioObject unmarshalAes(Source source) {
+        try {
+            Object unmarshaled = defaultUnmarshaller().unmarshal(source);
+            if (unmarshaled instanceof JAXBElement) {
+                unmarshaled = ((JAXBElement) unmarshaled).getValue();
+            }
+            AudioObject aes;
+            if (unmarshaled instanceof AudioObject) {
+                aes = (AudioObject) unmarshaled;
+            } else if (unmarshaled instanceof AudioObjectType) {
+                aes = (AudioObject) unmarshaled;
+            } else {
+                throw new IllegalStateException(String.valueOf(unmarshaled));
+            }
+            return aes;
         } catch (JAXBException ex) {
             throw new DataBindingException(ex);
         }

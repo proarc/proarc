@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
@@ -31,6 +32,7 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
@@ -42,6 +44,7 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject;
 import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -65,6 +68,7 @@ import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration.ResolverConfiguration;
@@ -78,6 +82,8 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.mix.MixUtils;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
@@ -85,6 +91,7 @@ import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
+import org.aes.audioobject.AudioObject;
 import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -112,9 +119,11 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1427,6 +1436,100 @@ public class DigitalObjectResource {
         } catch (DigitalObjectNotFoundException ex) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
+    }
+
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getTechnicalMetadata(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
+    ) throws IOException, DigitalObjectException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            return null;
+        }
+        if (NdkAudioPlugin.MODEL_PAGE.equals(relationEditor.getModel())) {
+            AesEditor aesEditor = AesEditor.ndkArchival(fobject);
+            try {
+                StringRecord technicalMetadata = new StringRecord(aesEditor.readAsString(), aesEditor.getLastModified(), fobject.getPid());
+                technicalMetadata.setBatchId(batchId);
+                return technicalMetadata;
+            } catch (DigitalObjectNotFoundException ex) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            }
+        } else if (relationEditor.getModel().contains("page")) {
+                MixEditor mixEditor = MixEditor.ndkArchival(fobject);
+                try {
+                    StringRecord technicalMedata = new StringRecord(mixEditor.readAsString(), mixEditor.getLastModified(), fobject.getPid());
+                    technicalMedata.setBatchId(batchId);
+                    return technicalMedata;
+                } catch (DigitalObjectNotFoundException ex) {
+                    throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+                }
+            } else {
+            return null;
+        }
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateTechnicalMetadata(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String content
+    ) throws IOException, DigitalObjectException {
+
+        if (timestamp == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
+        }
+        if (content == null || content.length() == 0) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
+        }
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            return null;
+        }
+        if (NdkAudioPlugin.MODEL_PAGE.equals(relationEditor.getModel())) {
+            AesEditor aesEditor = AesEditor.ndkArchival(fobject);
+            try {
+                AudioObject aes = Aes57Utils.unmarshalAes(new StreamSource(new StringReader(content)));
+                aesEditor.write(aes, timestamp, session.asFedoraLog());
+                fobject.flush();
+
+
+                DescriptionMetadata dm = new DescriptionMetadata<>();
+                dm.setPid(fobject.getPid());
+                dm.setTimestamp(aesEditor.getLastModified());
+                dm.setData(aesEditor.readAsString());
+                return new SmartGwtResponse<DescriptionMetadata<Object>>(dm);
+            } catch (DigitalObjectNotFoundException ex) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            }
+        } else if (relationEditor.getModel().contains("page")) {
+            MixEditor mixEditor = MixEditor.ndkArchival(fobject);
+            try {
+                Mix mix = MixUtils.unmarshalMix(new StreamSource(new StringReader(content)));
+                mixEditor.write(mix, timestamp, session.asFedoraLog());
+                fobject.flush();
+                DescriptionMetadata dm = new DescriptionMetadata<>();
+                dm.setPid(fobject.getPid());
+                dm.setTimestamp(mixEditor.getLastModified());
+                dm.setData(mixEditor.readAsString());
+                return new SmartGwtResponse<>();
+            } catch (DigitalObjectNotFoundException ex) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            }
+        } else {
+            return null;
+        }
+
     }
 
     @GET
