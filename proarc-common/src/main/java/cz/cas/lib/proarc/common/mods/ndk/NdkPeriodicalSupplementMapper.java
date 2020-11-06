@@ -31,7 +31,6 @@ import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
-
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
@@ -72,6 +71,21 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
                 dateOther.setType(oi.getEventType());
             }
         }
+        fillPhysicalDescription(mods);
+        fixAndAddGenre(mods);
+        fillAbstract(mods);
+        fillRecordInfo(mods);
+    }
+
+    private void fillPhysicalDescription(ModsDefinition mods) {
+        if (mods.getPhysicalDescription().size() == 0) {
+            PhysicalDescriptionDefinition physicalDescription = new PhysicalDescriptionDefinition();
+            mods.getPhysicalDescription().add(physicalDescription);
+            FormDefinition form = new FormDefinition();
+            physicalDescription.getForm().add(form);
+            form.setValue("print");
+        }
+
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
                 if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA.equals(form.getAuthority())) {
@@ -83,9 +97,6 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
                 }
             }
         }
-        fixAndAddGenre(mods);
-        fillAbstract(mods);
-        fillRecordInfo(mods);
     }
 
     protected void fixAndAddGenre(ModsDefinition mods) {
