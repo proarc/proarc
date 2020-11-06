@@ -66,6 +66,7 @@ public class Const {
     public final static String CHAPTER_MODEL = NdkPlugin.MODEL_CHAPTER;
     public final static String SUPPLEMENT_MODEL = "model:supplement";
     public final static String SOUND_COLLECTION_MODEL = NdkAudioPlugin.MODEL_MUSICDOCUMENT;
+    public final static String SOUND_FONOGRAPH_MODEL = NdkAudioPlugin.MODEL_PHONOGRAPH;
     public final static String SOUND_RECORDING_MODEL = NdkAudioPlugin.MODEL_SONG;
     public final static String SOUND_PART_MODEL = NdkAudioPlugin.MODEL_TRACK;
     public final static String SOUND_PAGE_MODEL = NdkAudioPlugin.MODEL_PAGE;
@@ -205,6 +206,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_CARTOGRAPHIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_SHEETMUSIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + SOUND_COLLECTION_MODEL, SOUND_COLLECTION);
+        typeMap.put(FEDORAPREFIX + SOUND_FONOGRAPH_MODEL, SOUND_COLLECTION);
         typeMap.put(FEDORAPREFIX + SOUND_RECORDING_MODEL, SOUND_RECORDING);
         typeMap.put(FEDORAPREFIX + SOUND_PART_MODEL, SOUND_PART);
         typeMap.put(FEDORAPREFIX + SOUND_PAGE_MODEL, SOUND_PAGE);

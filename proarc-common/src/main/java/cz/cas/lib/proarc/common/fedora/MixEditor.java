@@ -23,8 +23,8 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixType;
 import cz.cas.lib.proarc.mix.MixUtils;
-import java.io.File;
 import javax.xml.transform.Source;
+import java.io.File;
 
 /**
  * Edits technical metadata in MIX format.
@@ -132,6 +132,14 @@ public class MixEditor {
             throw new DigitalObjectException(
                     object.getPid(), null, profileTemplate.getDsID(), null, ex);
         }
+    }
+
+    public String readAsString() throws DigitalObjectException {
+        Mix mix = readMix();
+        if (mix != null) {
+            return MixUtils.toXml(mix, true);
+        }
+        return null;
     }
 
 //    public void generate(String dsId, JhoveContext jhoveCtx) {

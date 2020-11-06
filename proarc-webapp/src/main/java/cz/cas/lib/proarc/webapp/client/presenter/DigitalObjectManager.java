@@ -110,6 +110,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction mediaEditAction;
     private DigitalObjectEditAction childrenEditAction;
     private DigitalObjectEditAction atmEditAction;
+    private DigitalObjectEditAction technicalMetadataAction;
     private UrnNbnAction registerUrnNbnAction;
     private CopyObjectAction copyObjectAction;
     private GenerateMasterCopyAction generateMasterCopyAction;
@@ -272,6 +273,8 @@ public final class DigitalObjectManager {
                 i18n.DigitalObjectEditor_AdministrationAction_Hint(),
                 null,
                 DatastreamEditorType.ATM, places);
+        technicalMetadataAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_TabTechnical_Title(), i18n.DigitalObjectEditor_TabTechnical_Hint(),null, DatastreamEditorType.TECHNICAL, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
         copyObjectAction = new CopyObjectAction(i18n);
         generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
@@ -364,6 +367,7 @@ public final class DigitalObjectManager {
         toolbar.addMember(Actions.asIconButton(ocrEditAction, actionSource));
         toolbar.addMember(Actions.asIconButton(childrenEditAction, actionSource));
         toolbar.addMember(Actions.asIconButton(atmEditAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(technicalMetadataAction, actionSource));
         toolbar.addSeparator();
         toolbar.addMember(Actions.asIconButton(foxmlAction, actionSource));
         toolbar.addMember(btnExport);
@@ -384,6 +388,7 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(ocrEditAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(childrenEditAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(atmEditAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(technicalMetadataAction, actionSource, false));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(foxmlAction, actionSource, true));
         menu.addItem(new MenuItemSeparator());

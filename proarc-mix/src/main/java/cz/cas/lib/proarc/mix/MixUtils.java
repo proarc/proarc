@@ -16,13 +16,6 @@
  */
 package cz.cas.lib.proarc.mix;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -33,6 +26,13 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -136,4 +136,23 @@ public final class MixUtils {
         return stringType;
     }
 
+    public static Mix unmarshalMix(Source source) {
+        try {
+            Object unmarshaled = defaultUnmarshaller().unmarshal(source);
+            if (unmarshaled instanceof JAXBElement) {
+                unmarshaled = ((JAXBElement) unmarshaled).getValue();
+            }
+            Mix mix;
+            if (unmarshaled instanceof Mix) {
+                mix = (Mix) unmarshaled;
+            } else if (unmarshaled instanceof MixType) {
+                mix = (Mix) unmarshaled;
+            } else {
+                throw new IllegalStateException(String.valueOf(unmarshaled));
+            }
+            return mix;
+        } catch (JAXBException ex) {
+            throw new DataBindingException(ex);
+        }
+    }
 }

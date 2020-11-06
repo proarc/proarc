@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2020 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,13 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.object.model;
+package cz.cas.lib.proarc.common.mods.ndk;
+
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 /**
- * Supported datastream UI editors.
+ *
+ * @author Lukas Sykora
  */
-public enum DatastreamEditorType {
+public class NdkSoundPhonographMapper extends NdkSoundCollectionMapper {
 
-    NOTE, OCR, MEDIA, MODS, PARENT, CHILDREN, ATM, TECHNICAL
+    /**
+     * Updates missing required attribute and elements.
+     */
+    @Override
+    public void createMods(ModsDefinition mods, Context ctx) {
+        super.createMods(mods, ctx);
+    }
 
+    @Override
+    protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
+        return super.createDc(mods, ctx);
+    }
 }

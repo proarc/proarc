@@ -237,7 +237,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 ModsConstants.NS,
                 MODEL_NDK_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
                 new RelationCriteria[] {
                         new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
@@ -254,7 +254,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
                 new RelationCriteria[]{
                         new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
@@ -263,6 +263,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         new RelationCriteria(MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
                         new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID)

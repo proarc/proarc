@@ -19,6 +19,8 @@ package cz.cas.lib.proarc.common.imports.audio;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -95,7 +97,7 @@ public class WaveImporter implements ImageImporter {
             createAudio(fileSet, ctx.getTargetFolder(), f, originalFilename, localObj, config);
             importArchivalCopy(fileSet, f, localObj, ctx);
             importUserCopy(fileSet, f, localObj, ctx);
-            //createTechnicalMetadata(localObj, ctx);
+            createTechnicalMetadata(localObj, ctx);
             // writes FOXML
             dobjHandler.commit();
             ibm.addChildRelation(ctx.getBatch(), null, localObj.getPid());
@@ -348,19 +350,19 @@ public class WaveImporter implements ImageImporter {
         return scaled;
     }
 
-    /*private void createTechnicalMetadata(LocalStorage.LocalObject localObj, ImportProcess.ImportOptions ctx)
+    private void createTechnicalMetadata(LocalStorage.LocalObject localObj, ImportProcess.ImportOptions ctx)
             throws DigitalObjectException {
 
         JhoveContext jhoveCtx = ctx.getJhoveContext();
-        File file = BinaryEditor.dissemination(localObj, BinaryEditor.RAW_ID, BinaryEditor.AUDIO_WAVE).read();
-        Aes57Editor aes57Editor = Aes57Editor.raw(localObj);
+        File file = BinaryEditor.dissemination(localObj, BinaryEditor.RAW_AUDIO_ID, BinaryEditor.AUDIO_WAVE).read();
+        AesEditor aes57Editor = AesEditor.raw(localObj);
         aes57Editor.write(file, jhoveCtx, aes57Editor.getLastModified(), null);
 
         // NDK version
-        file = BinaryEditor.dissemination(localObj, BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.AUDIO_MP3).read();
+        file = BinaryEditor.dissemination(localObj, BinaryEditor.NDK_AUDIO_ARCHIVAL_ID, BinaryEditor.AUDIO_WAVE).read();
         if (file != null) {
-            aes57Editor = Aes57Editor.ndkArchival(localObj);
+            aes57Editor = AesEditor.ndkArchival(localObj);
             aes57Editor.write(file, jhoveCtx, aes57Editor.getLastModified(), null);
         }
-    }*/
+    }
 }

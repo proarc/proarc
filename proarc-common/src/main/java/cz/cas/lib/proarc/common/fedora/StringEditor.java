@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import javax.ws.rs.core.MediaType;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -27,7 +28,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import javax.ws.rs.core.MediaType;
 
 /**
  * Supports plaint text as Fedora data stream binary content.
@@ -56,6 +56,18 @@ public final class StringEditor {
     }
 
     public static DatastreamProfile ocrProfile() {
+        return FoxmlUtils.managedProfile(OCR_ID, MediaType.TEXT_PLAIN_TYPE, OCR_LABEL);
+    }
+
+    public static StringEditor technical(FedoraObject object) {
+        return technical(object, false);
+    }
+
+    public static StringEditor technical(FedoraObject object, boolean storeExternally) {
+        return new StringEditor(object, technicalProfile());
+    }
+
+    public static DatastreamProfile technicalProfile() {
         return FoxmlUtils.managedProfile(OCR_ID, MediaType.TEXT_PLAIN_TYPE, OCR_LABEL);
     }
 
