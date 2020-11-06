@@ -274,7 +274,7 @@ public final class DigitalObjectManager {
                 null,
                 DatastreamEditorType.ATM, places);
         technicalMetadataAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabTechnical_Title(), i18n.ImportBatchItemEditor_TabTechnical_Hint(),null, DatastreamEditorType.TECHNICAL, places);
+                i18n.DigitalObjectEditor_TabTechnical_Title(), i18n.DigitalObjectEditor_TabTechnical_Hint(),null, DatastreamEditorType.TECHNICAL, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
         copyObjectAction = new CopyObjectAction(i18n);
         generateMasterCopyAction = new GenerateMasterCopyAction(i18n);

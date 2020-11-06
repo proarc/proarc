@@ -18,6 +18,7 @@
 package cz.cas.lib.proarc.common.export.mets;
 
 import cz.cas.lib.proarc.aes57.Aes57Utils;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -107,6 +108,20 @@ public class JhoveUtility {
     public static void initJhove(MetsContext metsContext) throws MetsExportException {
         if (metsContext.getJhoveContext() == null) {
             File configFolder = new File(metsContext.getOutputPath(), metsContext.getPackageID());
+            metsContext.setJhoveContext(createContext(configFolder));
+        }
+    }
+
+    /**
+     *
+     * Inits the Jhove app
+     *
+     * @param metsContext
+     * @param config
+     */
+    private static void initTempJhove(MetsContext metsContext, AppConfiguration config) throws MetsExportException {
+        if (metsContext.getJhoveContext() == null) {
+            File configFolder = new File(config.getConfigHome(), "temp");
             metsContext.setJhoveContext(createContext(configFolder));
         }
     }
@@ -220,6 +235,12 @@ public class JhoveUtility {
      */
     public static JHoveOutput getAes(File targetFile, MetsContext metsContext, AudioObjectType aes, XMLGregorianCalendar dateCreated, String originalFileName) throws MetsExportException {
         initJhove(metsContext);
+        JhoveContext jhoveContext = metsContext.getJhoveContext();
+        return getAes(targetFile, jhoveContext, aes, dateCreated, originalFileName);
+    }
+
+    public static JHoveOutput createAes(File targetFile, MetsContext metsContext, AudioObjectType aes, XMLGregorianCalendar dateCreated, String originalFileName, AppConfiguration config) throws MetsExportException {
+        initTempJhove(metsContext, config);
         JhoveContext jhoveContext = metsContext.getJhoveContext();
         return getAes(targetFile, jhoveContext, aes, dateCreated, originalFileName);
     }

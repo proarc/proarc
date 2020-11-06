@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2020 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -37,10 +53,10 @@ import java.util.logging.Logger;
  *
  * @author Lukas Sykora
  */
-public final class TechnicalMetadataMultiditor extends AbstractDatastreamEditor implements
+public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor implements
         BatchDatastreamEditor, Refreshable, Selectable<DigitalObject> {
 
-    private static final Logger LOG = Logger.getLogger(TechnicalMetadataMultiditor.class.getName());
+    private static final Logger LOG = Logger.getLogger(TechnicalMetadataMultiEditor.class.getName());
     private static final HashSet<String> ACCEPT_BATCH_MODELS = new HashSet<>();
     static {
         ACCEPT_BATCH_MODELS.add("model:page");
@@ -51,10 +67,11 @@ public final class TechnicalMetadataMultiditor extends AbstractDatastreamEditor 
 
     private final VLayout uiContainer;
     private final TechnicalXmlEditor technicalXmlEditor;
+    private final TechnicalCustomEditor technicalCustomEditor;
     private DatastreamEditor activeEditor;
     private final ClientMessages i18n;
     private DigitalObject[] digitalObjects;
-    private MenuItem cunstomEditorButton;
+    private MenuItem customEditorButton;
     private MenuItem customEditorButton2;
     private final Actions.ActionSource actionSource;
     private HandlerRegistration submitCustomValuesRegistration;
@@ -75,14 +92,18 @@ public final class TechnicalMetadataMultiditor extends AbstractDatastreamEditor 
 
     public void save(BooleanCallback callback) {
         callback = wrapSaveCallback(callback);
-        /*if (activeEditor == modsCustomEditor) {
+        if (activeEditor == technicalCustomEditor) {
             saveCustomData(callback);
-        } else*/
+        } else
             if (activeEditor == technicalXmlEditor) {
             saveXmlData(callback);
         } else {
             callback.execute(Boolean.TRUE);
         }
+    }
+
+    private void saveCustomData(BooleanCallback callback) {
+        technicalCustomEditor.save(callback);
     }
 
     private void saveXmlData(BooleanCallback callback) {
@@ -99,12 +120,13 @@ public final class TechnicalMetadataMultiditor extends AbstractDatastreamEditor 
     }
 
 
-    public TechnicalMetadataMultiditor(ClientMessages i18n) {
+    public TechnicalMetadataMultiEditor(ClientMessages i18n) {
         this.i18n = i18n;
         uiContainer = new VLayout();
         technicalXmlEditor = new TechnicalXmlEditor(i18n);
+        technicalCustomEditor = new TechnicalCustomEditor(i18n);
         actionSource = new Actions.ActionSource(this);
-        attachDatastreamEditor(technicalXmlEditor);
+        attachDatastreamEditor(technicalCustomEditor);
     }
 
     private void attachDatastreamEditor(DatastreamEditor deditor) {
@@ -126,7 +148,7 @@ public final class TechnicalMetadataMultiditor extends AbstractDatastreamEditor 
         if (items == null || items.length == 0) {
             // show nothing or throw exception!
         } else if (items.length == 1) {
-            loadTabData(technicalXmlEditor, items[0]);
+            loadTabData(technicalCustomEditor, items[0]);
         } else {
             String firstModelId = null;
             boolean unsupportedBatch = false;
@@ -161,13 +183,35 @@ public final class TechnicalMetadataMultiditor extends AbstractDatastreamEditor 
 
     private void loadTabData(DatastreamEditor tab, DigitalObject digitalObject) {
         setEnabledCustom2();
-        /*if (tab == modsCustomEditor) {
+        if (tab == technicalCustomEditor) {
             loadCustom(digitalObject);
         } else {
-        */    setActiveEditor(tab);
+            setActiveEditor(tab);
             tab.edit(digitalObject);
-        //}
+        }
     }
+
+    private void loadCustom(DigitalObject digitalObject) {
+        technicalCustomEditor.edit(digitalObject);
+        if (technicalCustomEditor.getCustomForm() != null) {
+            setActiveEditor(technicalCustomEditor);
+            setEnabledCustom(true);
+        } else if (!technicalCustomEditor.getFormPrefix().isEmpty()) {
+            technicalCustomEditor.setFormPrefix("");
+            loadCustom(digitalObject);
+        } else {
+            // unknown model, use source form
+            setEnabledCustom(false);
+            loadTabData(technicalCustomEditor, digitalObject);
+        }
+    }
+
+    private void setEnabledCustom(boolean enabled) {
+        if (customEditorButton != null) {
+            customEditorButton.setEnabled(enabled);
+        }
+    }
+
 
     private void setEnabledCustom2() {
         if (customEditorButton2 != null) {
@@ -235,7 +279,7 @@ public final class TechnicalMetadataMultiditor extends AbstractDatastreamEditor 
 
     private IconMenuButton createTechnicalMenu() {
         IconMenuButton btnTechnical = Actions.asIconMenuButton(new AbstractAction(
-                i18n.ImportBatchItemEditor_TabTechnical_Title(),
+                i18n.TechnicalMetadataEditor_ActionMenu_Title(),
                 "[SKIN]/actions/edit.png", null) {
 
             @Override
@@ -251,10 +295,25 @@ public final class TechnicalMetadataMultiditor extends AbstractDatastreamEditor 
 
         Menu menuTechnical = Actions.createMenu();
         menuTechnical.addItem(Actions.asMenuItem(
+                new SwitchAction(technicalCustomEditor,
+                        i18n.TechnicalMetadataEditor_ActionField_Form(),
+                        Page.getAppDir() + "images/silk/16/application_form_edit.png",
+                        i18n.ModsMultiEditor_TabSimple_Hint()
+                ) {
+
+            @Override
+            public void performAction(ActionEvent event) {
+                technicalCustomEditor.setFormPrefix("");
+                super.performAction(event);
+            }
+        }, actionSource, false));
+        customEditorButton = menuTechnical.getItem(0);
+
+        menuTechnical.addItem(Actions.asMenuItem(
                 new SwitchAction(technicalXmlEditor,
-                        i18n.ImportBatchItemEditor_TabTechnical_Title(),
-                        Page.getAppDir() + "image/silk/16/application_form_edit.png",
-                        i18n.ImportBatchItemEditor_TabTechnical_Hint()), actionSource, false));
+                        i18n.TechnicalMetadataEditor_ActionField_XML(),
+                        Page.getAppDir() + "images/oxygen/16/application_xml.png",
+                        i18n.ModsMultiEditor_TabSimpleSimple_Hint()), actionSource, false));
 
         btnTechnical.setMenu(menuTechnical);
         return btnTechnical;

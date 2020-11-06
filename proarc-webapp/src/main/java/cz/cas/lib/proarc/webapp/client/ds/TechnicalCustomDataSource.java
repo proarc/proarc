@@ -49,7 +49,7 @@ public class TechnicalCustomDataSource extends ProarcDataSource implements ModsC
     public static final String FIELD_BATCHID = DigitalObjectResourceApi.BATCHID_PARAM;
     public static final String FIELD_EDITOR = DigitalObjectResourceApi.MODS_CUSTOM_EDITORID;
     public static final String FIELD_TIMESTAMP = DigitalObjectResourceApi.TIMESTAMP_PARAM;
-    public static final String FIELD_DATA = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA;
+    public static final String FIELD_DATA = DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA;
 
     public TechnicalCustomDataSource() {
         setID(ID);

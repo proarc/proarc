@@ -16,16 +16,33 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.export.mets.JHoveOutput;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.MimeType;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.mix.Mix;
 import org.aes.audioobject.AudioObject;
 import org.aes.audioobject.AudioObjectType;
 import javax.xml.transform.Source;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Edits technical metadata in MIX format.
@@ -143,8 +160,83 @@ public class AesEditor {
         }
     }
 
-//    public void generate(String dsId, JhoveContext jhoveCtx) {
-//
-//    }
+    public AudioObject generate(FedoraObject fobject, AppConfiguration config, String importName) throws DigitalObjectException {
+        IMetsElement element = null;
+        try {
+            element = getElement(fobject.getPid(), config);
+            DatastreamType ndkArchivalDS = FoxmlUtils.findDatastream(element.getSourceObject(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
+            if (ndkArchivalDS != null) {
+                GetDatastreamDissemination dsNdkArchival = FedoraClient.getDatastreamDissemination(element.getOriginalPid(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
+                InputStream is = dsNdkArchival.execute(element.getMetsContext().getFedoraClient()).getEntityInputStream();
+                String extension = MimeType.getExtension(ndkArchivalDS.getDatastreamVersion().get(0).getMIMETYPE());
+                if (importName.contains("/")) {
+                    importName = importName.split("/")[importName.split("/").length -1];
+                } else if (importName.contains("\\")) {
+                    importName = importName.split("\\\\")[importName.split("\\\\").length - 1];
+                }
+                importName = importName.substring(0, importName.indexOf(".") - 1);
+                File file = new File(getTemp(config), importName + "." + extension);
+                file.createNewFile();
 
+                try {
+                    MetsUtils.getDigestAndCopy(is, new FileOutputStream(file));
+                } catch (NoSuchAlgorithmException e) {
+                    throw new DigitalObjectException(element.getOriginalPid(), "Unable to copy RAW image and get digest");
+                }
+
+                JHoveOutput jHoveOutput = JhoveUtility.createAes(new File(file.getAbsolutePath()), element.getMetsContext(), null, null, null, config);
+                AudioObject audioObject = jHoveOutput.getAes();
+
+                file.delete();
+
+                return audioObject;
+            }
+            return null;
+        } catch (IOException e) {
+            throw new DigitalObjectException(fobject.getPid(), "Nepodarilo se vytvorit Technicka metadata");
+        } catch (MetsExportException e) {
+            throw new DigitalObjectException(fobject.getPid(), "Nepodařilo se vytvorit Technicka metadata");
+        } catch (FedoraClientException e) {
+            throw new DigitalObjectException(fobject.getPid(), "Nepodařilo se vytvořit Technická metadata");
+        } finally {
+            if (element != null) {
+                JhoveUtility.destroyConfigFiles(element.getMetsContext().getJhoveContext());
+            }
+        }
+    }
+
+    private File getTemp(AppConfiguration config) throws IOException {
+        File home = config.getConfigHome();
+        for (File file : home.listFiles()) {
+            if (file.getName().equals("temp")) {
+                return file;
+            }
+        }
+        File temp = new File(home, "temp");
+        temp.mkdir();
+        return temp;
+    }
+
+    private IMetsElement getElement(String pid, AppConfiguration config) throws IOException, MetsExportException {
+        RemoteStorage rstorage = RemoteStorage.getInstance(config);
+        RemoteStorage.RemoteObject robject = rstorage.find(pid);
+        MetsContext metsContext = buildContext(robject, null, null, rstorage);
+        DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+        if (dobj == null) {
+            return null;
+        }
+        return MetsElement.getElement(dobj, null, metsContext, true);
+    }
+
+    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, File targetFolder, RemoteStorage rstorage) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(null);
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(null);
+        return mc;
+    }
 }

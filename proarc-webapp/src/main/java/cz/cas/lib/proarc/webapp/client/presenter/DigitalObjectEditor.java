@@ -442,8 +442,8 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 new AcceptFilter(true, true),
                 places);
         DigitalObjectEditAction technicalMetadataAction = new DigitalObjectEditAction(
-                i18n.ImportBatchItemEditor_TabTechnical_Title(),
-                i18n.ImportBatchItemEditor_TabTechnical_Hint(),
+                i18n.DigitalObjectEditor_TabTechnical_Title(),
+                i18n.DigitalObjectEditor_TabTechnical_Hint(),
                 null,
                 DatastreamEditorType.TECHNICAL,
                 new AcceptFilter(true, false),
@@ -578,9 +578,9 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 deditor = new DigitalObjectAdministrationEditor(i18n);
                 break;
             case TECHNICAL:
-                title = i18n.ImportBatchItemEditor_TabTechnical_Title();
+                title = i18n.DigitalObjectEditor_TabTechnical_Title();
                 //deditor = TextEditor.technical(i18n);
-                deditor = new TechnicalMetadataMultiditor(i18n);
+                deditor = new TechnicalMetadataMultiEditor(i18n);
                 break;
         }
         title = ClientUtils.format("<b>%s</b>", title);

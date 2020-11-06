@@ -78,7 +78,7 @@ public final class TextDataSource extends DataSource {
     }
 
     public static TextDataSource getTechnicalMetadata() {
-        return getDS(ID_TECHNICAL_METADATA, RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA);
+        return getDS(ID_TECHNICAL_METADATA, RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA_XML);
     }
 
     public static TextDataSource getMods() {

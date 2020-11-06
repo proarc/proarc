@@ -101,7 +101,7 @@ public class ChroniclePlugin implements DigitalObjectPlugin, HasMetadataHandler<
                     ModsConstants.NS,
                     ModsCutomEditorType.EDITOR_PAGE,
                     this,
-                    EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
+                    EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
                     new RelationCriteria[]{
                             new RelationCriteria(MODEL_CHRONICLEVOLUME, RelationCriteria.Type.PID),
                             new RelationCriteria(MODEL_CHRONICLESUPPLEMENT, RelationCriteria.Type.PID),

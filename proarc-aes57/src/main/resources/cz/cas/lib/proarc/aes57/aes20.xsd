@@ -195,7 +195,7 @@
                     <xsd:element name="timeline" type="timeType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="direction" type="directionType" use="required"/>
-                <xsd:attribute name="audioObjectRef" type="xsd:IDREF" use="required"/>
+                <xsd:attribute name="audioObjectRef" type="xsd:string" use="required"/>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
@@ -254,8 +254,8 @@
                     <xsd:element name="stream" type="streamType" minOccurs="1" maxOccurs="unbounded"/>
                     <xsd:element name="timeRange" type="timeType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
-                <xsd:attribute name="formatRef" type="xsd:IDREF" use="required"/>
-                <xsd:attribute name="faceRef" type="xsd:IDREF" use="required"/>
+                <xsd:attribute name="formatRef" type="xsd:string" use="required"/>
+                <xsd:attribute name="faceRef" type="xsd:string" use="required"/>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
@@ -268,7 +268,7 @@
                     <xsd:element name="conditionNote" type="conditionNoteType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="faceRegionRef" type="xsd:IDREF" use="required"/>
+                <xsd:attribute name="faceRegionRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -301,7 +301,7 @@
                     <xsd:element name="bitrateReduction" type="bitrateReductionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -317,7 +317,7 @@
                     <xsd:element name="equalization" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -335,7 +335,7 @@
                     <xsd:element name="bitrateReduction" type="bitrateReductionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -353,7 +353,7 @@
                     <xsd:element name="equalization" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -370,7 +370,7 @@
                     <xsd:element name="bitrateReduction" type="bitrateReductionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -383,7 +383,7 @@
                     <xsd:element name="soundField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -399,7 +399,7 @@
                     <xsd:element name="soundField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
