@@ -19,7 +19,9 @@ package cz.cas.lib.proarc.common.imports.audio;
 public enum AudioMimeType {
 
     WAVE("audio/x-wav", "wave", true, false, false),
-    MP3("audio/mpeg3", "mp3", true, false, false);
+    FLAC("audio/flac", "flac", true, true, false),
+    MP3("audio/mpeg3", "mp3", true, false, false),
+    OGG("audio/ogg", "ogg", true, false, false);
 
     private String mime;
     private boolean supportedbyJava;

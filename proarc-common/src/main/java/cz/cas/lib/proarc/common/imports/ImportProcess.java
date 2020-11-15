@@ -31,7 +31,9 @@ import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,6 +54,17 @@ public final class ImportProcess implements Runnable {
     private final ImportBatchManager batchManager;
     private static List<ImageImporter> consumerRegistery;
     private final ImportOptions importConfig;
+
+    private static Map<String, String> myMimeType= new HashMap<>();
+
+    static {
+        myMimeType.put("flac", "audio/flac");
+        myMimeType.put("ogg", "audio/ogg");
+        myMimeType.put("ogv", "audio/ogg");
+        myMimeType.put("oga", "audio/ogg");
+        myMimeType.put("ogx", "audio/ogg");
+        myMimeType.put("ogm", "audio/ogg");
+    }
 
     ImportProcess(ImportOptions importConfig, ImportBatchManager batchManager) {
         this.importConfig = importConfig;
@@ -312,7 +325,12 @@ public final class ImportProcess implements Runnable {
      */
     public static String findMimeType(File f) {
         FileNameMap fileNameMap = URLConnection.getFileNameMap();
-        return fileNameMap.getContentTypeFor(f.getName());
+        String mimeType = fileNameMap.getContentTypeFor(f.getName());
+        if (mimeType == null) {
+            String extension = f.getName().substring(f.getName().lastIndexOf(".") + 1);
+            mimeType = myMimeType.get(extension);
+        }
+        return mimeType;
     }
 
     public static final class ImportOptions {

@@ -20,6 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.object.technicalMetadata.TechnicalMetadataMapper.TechnicalMetadataWrapper;
 import org.aes.audioobject.AudioObject;
+import org.aes.audioobject.FaceRegionType;
+import org.aes.audioobject.FaceType;
+import org.aes.audioobject.FormatRegionType;
 import org.aes.audioobject.FormatType;
 import java.io.IOException;
 
@@ -40,11 +43,31 @@ public class AesMapper {
 
     /* Not supported yet */
     public void update(AudioObject aes) {
-
         setFormat(aes);
+        setIdAndRef(aes);
+    }
 
+    private void setIdAndRef(AudioObject aes) {
+        String aesId = "id1";
+        String faceId = "id2";
+        String formatId = "id3";
+        String regionId = "id4";
 
-
+        aes.setID(aesId);
+        for (FaceType face : aes.getFace()) {
+            face.setAudioObjectRef(aesId);
+            face.setID(faceId);
+            for (FaceRegionType region : face.getRegion()) {
+                region.setID(regionId);
+                region.setFaceRef(faceId);
+                region.setFormatRef(formatId);
+            }
+        }
+        if (aes.getFormatList() != null) {
+            for (FormatRegionType formatRegion : aes.getFormatList().getFormatRegion()) {
+                formatRegion.setID(formatId);
+            }
+        }
     }
 
     private void setFormat(AudioObject aes) {

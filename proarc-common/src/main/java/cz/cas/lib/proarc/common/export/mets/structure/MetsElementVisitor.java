@@ -35,6 +35,8 @@ import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
+import cz.cas.lib.proarc.common.fedora.AesEditor;
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -557,7 +559,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         InputStream is = null;
         seq = seq + 1;
         if (Const.SOUND_PAGE.equals(metsElement.getElementType())) {
-            fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "__" + String.format("%04d", seq));
+            fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MimeType.getExtension(mimeTypes.get(metsStreamName)) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "_" + String.format("%04d", seq));
         } else {
             fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "_" + String.format("%04d", seq));
         }
@@ -616,6 +618,97 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         fileType.getFLocat().add(flocat);
         return fileType;
     }
+
+
+    /**
+     * Prepares a mets FileType element for a file
+     *
+     * @param seq
+     * @param metsStreamName
+     * @return
+     */
+    protected FileType prepareAudioFileType(int seq, String metsStreamName, String metsStreamNameExtension, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, IMetsElement metsElement, HashMap<String, String> outputFileNames, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
+        // String streamName = Const.streamMapping.get(metsStreamName);
+        MetsContext metsContext = metsElement.getMetsContext();
+        FileType fileType = new FileType();
+        fileType.setCHECKSUMTYPE("MD5");
+        GregorianCalendar gregory = new GregorianCalendar();
+        gregory.setTime(new Date());
+
+        XMLGregorianCalendar calendar;
+        try {
+            calendar = DatatypeFactory.newInstance()
+                    .newXMLGregorianCalendar(
+                            gregory);
+        } catch (DatatypeConfigurationException e1) {
+            throw new MetsExportException("Unable to create XMLGregorianDate", false, e1);
+        }
+        fileType.setCREATED(calendar);
+        fileType.setSEQ(seq);
+        fileType.setMIMETYPE(mimeTypes.get(metsStreamName));
+        InputStream is = null;
+        seq = seq + 1;
+        if (Const.SOUND_PAGE.equals(metsElement.getElementType())) {
+            fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MimeType.getExtension(mimeTypes.get(metsStreamName)) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "_" + String.format("%04d", seq));
+        } else {
+            fileType.setID(Const.streamMappingPrefix.get(metsStreamName) + "_" + MimeType.getExtension(mimeTypes.get(metsStreamName)) + "_" + MetsUtils.removeNonAlpabetChars(metsContext.getPackageID()) + "_" + String.format("%04d", seq));
+        }
+        if (fileNames.get(metsStreamName) instanceof String) {
+            String fileNameOriginal = (String) fileNames.get(metsStreamName);
+            int lastIndex = fileNameOriginal.lastIndexOf('/');
+            int preLastIndex = fileNameOriginal.substring(1, lastIndex).lastIndexOf('/');
+            String fileName = metsContext.getPath() + fileNameOriginal.substring(preLastIndex + 2);
+            File file = new File(fileName);
+            try {
+                is = new FileInputStream(file);
+
+            } catch (FileNotFoundException e) {
+                throw new MetsExportException("File not found:" + fileName, false, e);
+            }
+        }
+        if (fileNames.get(metsStreamName) instanceof byte[]) {
+            byte[] bytes = (byte[]) fileNames.get(metsStreamName);
+            is = new ByteArrayInputStream(bytes);
+        }
+        if (fileNames.get(metsStreamName) instanceof InputStream) {
+            is = (InputStream) fileNames.get(metsStreamName);
+        }
+
+        if (metsStreamName.equalsIgnoreCase("TECHMDGRP")) {
+            is = addLabelToAmdSec(is, metsContext);
+        }
+
+        String outputFileName = fileType.getID() + "." + MimeType.getExtension(mimeTypes.get(metsStreamName));
+        String fullOutputFileName = metsContext.getPackageDir().getAbsolutePath() + File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName;
+        outputFileNames.put(metsStreamName, fullOutputFileName);
+        try {
+            FileMD5Info fileMD5Info;
+            if (md5InfosMap.get(metsStreamName) == null) {
+                fileMD5Info = MetsUtils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
+                md5InfosMap.put(metsStreamName, fileMD5Info);
+            } else {
+                FileMD5Info tempMd5 = MetsUtils.getDigestAndCopy(is, new FileOutputStream(fullOutputFileName));
+                fileMD5Info = md5InfosMap.get(metsStreamName);
+                fileMD5Info.setSize(tempMd5.getSize());
+                fileMD5Info.setMd5(tempMd5.getMd5());
+            }
+            fileType.setSIZE(Long.valueOf(fileMD5Info.getSize()));
+            fileMD5Info.setFileName(File.separator + Const.streamMappingFile.get(metsStreamName) + File.separator + outputFileName);
+            fileMD5Info.setMimeType(fileType.getMIMETYPE());
+            fileType.setCHECKSUM(fileMD5Info.getMd5());
+            metsContext.getFileList().add(fileMD5Info);
+        } catch (Exception e) {
+            throw new MetsExportException("Unable to process file " + fullOutputFileName, false, e);
+        }
+        FLocat flocat = new FLocat();
+        flocat.setLOCTYPE("URL");
+        URI uri;
+        uri = URI.create(Const.streamMappingFile.get(metsStreamName) + "/" + outputFileName);
+        flocat.setHref(uri.toASCIIString());
+        fileType.getFLocat().add(flocat);
+        return fileType;
+    }
+
 
     /**
      * Reads files/streams for each stream and puts it into the map (fileNames)
@@ -1249,70 +1342,134 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             PhotometricInterpretation photometricInterpretation = null;
             JHoveOutput jHoveOutputRaw = null;
             JHoveOutput jHoveOutputMC = null;
-            if (metsElement.getMetsContext().getFedoraClient() != null) {
-                try {
-                    DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
-                    if (rawDS != null) {
-                        GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                        try {
-                            rawCreated = rawDS.getDatastreamVersion().get(0).getCREATED();
-                            InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                            String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                            rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);
-                            FileMD5Info rawinfo;
+            JHoveOutput jHoveOutputRawAes = null;
+            JHoveOutput jHoveOutputMcAes = null;
+
+            if (!Const.SOUND_PAGE.equals(metsElement.getElementType())) {
+                if (metsElement.getMetsContext().getFedoraClient() != null) {
+                    try {
+                        DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
+                        if (rawDS != null) {
+                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
                             try {
-                                rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
-                            } catch (NoSuchAlgorithmException e) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
-                            }
-                            rawinfo.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                            rawinfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
-                            md5InfosMap.put("RAW", rawinfo);
-                            outputFileNames.put("RAW", rawFile.getAbsolutePath());
-                            toGenerate.put("MIX_001", "RAW");
-
-                            // If mix is present in fedora, then use this one
-                            if (metsElement.getMetsContext().getFedoraClient() != null) {
-                                jHoveOutputRaw = JhoveUtility.getMixFromFedora(metsElement, MixEditor.RAW_ID);
-                            }
-                            // If not present, then generate new
-                            if (jHoveOutputRaw == null) {
-                                jHoveOutputRaw = JhoveUtility.getMix(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), mixDevice, rawCreated, null);
-                                if (jHoveOutputRaw.getMix() == null) {
-                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for RAW image", false, null);
+                                rawCreated = rawDS.getDatastreamVersion().get(0).getCREATED();
+                                InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                                String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                                rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);
+                                FileMD5Info rawinfo;
+                                try {
+                                    rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
+                                } catch (NoSuchAlgorithmException e) {
+                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
                                 }
-                            } else {
-                                // Merges the information from the device mix
-                                JhoveUtility.mergeMix(jHoveOutputRaw.getMix(), mixDevice);
-                            }
-                            if ((jHoveOutputRaw.getMix() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
-                                photometricInterpretation = jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation();
-                            }
-                            fixPSMix(jHoveOutputRaw, metsElement.getOriginalPid(), rawCreated);
-                        } catch (FedoraClientException e) {
-                            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                        }
-                    }
-                } catch (IOException ex) {
-                    throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting RAW datastream " + metsElement.getOriginalPid(), false, ex);
-                }
-            }
+                                rawinfo.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                                rawinfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
+                                md5InfosMap.put("RAW", rawinfo);
+                                outputFileNames.put("RAW", rawFile.getAbsolutePath());
+                                toGenerate.put("MIX_001", "RAW");
 
-            if (fileNames.get(Const.MC_GRP_ID) != null) {
-                toGenerate.put("MIX_002", Const.MC_GRP_ID);
-                String outputFileName = outputFileNames.get(Const.MC_GRP_ID);
-                if (outputFileName != null) {
-                    String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
-                    if (metsElement.getMetsContext().getFedoraClient() != null) {
-                        jHoveOutputMC = JhoveUtility.getMixFromFedora(metsElement, MixEditor.NDK_ARCHIVAL_ID);
+                                // If mix is present in fedora, then use this one
+                                if (metsElement.getMetsContext().getFedoraClient() != null) {
+                                    jHoveOutputRaw = JhoveUtility.getMixFromFedora(metsElement, MixEditor.RAW_ID);
+                                }
+                                // If not present, then generate new
+                                if (jHoveOutputRaw == null) {
+                                    jHoveOutputRaw = JhoveUtility.getMix(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), mixDevice, rawCreated, null);
+                                    if (jHoveOutputRaw.getMix() == null) {
+                                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for RAW image", false, null);
+                                    }
+                                } else {
+                                    // Merges the information from the device mix
+                                    JhoveUtility.mergeMix(jHoveOutputRaw.getMix(), mixDevice);
+                                }
+                                if ((jHoveOutputRaw.getMix() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
+                                    photometricInterpretation = jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation();
+                                }
+                                fixPSMix(jHoveOutputRaw, metsElement.getOriginalPid(), rawCreated);
+                            } catch (FedoraClientException e) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                            }
+                        }
+                    } catch (IOException ex) {
+                        throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting RAW datastream " + metsElement.getOriginalPid(), false, ex);
                     }
-                    if (jHoveOutputMC == null) {
-                        jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get(Const.MC_GRP_ID).getCreated(), originalFile);
-                        if (jHoveOutputMC.getMix() == null) {
-                            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for MC image", false, null);
+                }
+
+                if (fileNames.get(Const.MC_GRP_ID) != null) {
+                    toGenerate.put("MIX_002", Const.MC_GRP_ID);
+                    String outputFileName = outputFileNames.get(Const.MC_GRP_ID);
+                    if (outputFileName != null) {
+                        String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+                        if (metsElement.getMetsContext().getFedoraClient() != null) {
+                            jHoveOutputMC = JhoveUtility.getMixFromFedora(metsElement, MixEditor.NDK_ARCHIVAL_ID);
+                        }
+                        if (jHoveOutputMC == null) {
+                            jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get(Const.MC_GRP_ID).getCreated(), originalFile);
+                            if (jHoveOutputMC.getMix() == null) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for MC image", false, null);
+                            }
+                        }
+                        fixMCMix(jHoveOutputMC, metsElement.getOriginalPid(), md5InfosMap.get(Const.MC_GRP_ID).getCreated(), originalFile, photometricInterpretation);
+                    }
+                }
+            } else {
+                if (metsElement.getMetsContext().getFedoraClient() != null) {
+                    try {
+                        DatastreamType rawDsAes = FoxmlUtils.findDatastream(metsElement.getSourceObject(), BinaryEditor.RAW_AUDIO_ID);
+                        if (rawDsAes != null) {
+                            GetDatastreamDissemination dsRawAes = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), BinaryEditor.RAW_AUDIO_ID);
+                            try {
+                                rawCreated = rawDsAes.getDatastreamVersion().get(0).getCREATED();
+                                InputStream is = dsRawAes.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                                String rawExtendsion = MimeType.getExtension(rawDsAes.getDatastreamVersion().get(0).getMIMETYPE());
+                                rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "rawAes" + "." + rawExtendsion);
+                                FileMD5Info rawinfo;
+                                try {
+                                    rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
+                                } catch (NoSuchAlgorithmException e) {
+                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
+                                }
+                                rawinfo.setMimeType(rawDsAes.getDatastreamVersion().get(0).getMIMETYPE());
+                                rawinfo.setCreated(rawDsAes.getDatastreamVersion().get(0).getCREATED());
+                                md5InfosMap.put("RAW", rawinfo);
+                                outputFileNames.put("RAW", rawFile.getAbsolutePath());
+                                toGenerate.put("AES_001", "RAW");
+
+                                // If aes is present in fedora, then use this one
+                                if (metsElement.getMetsContext().getFedoraClient() != null) {
+                                    jHoveOutputRawAes = JhoveUtility.getAesFromFedora(metsElement, AesEditor.RAW_ID);
+                                }
+                                // If not present, then generate new
+                                if (jHoveOutputRawAes == null) {
+                                    jHoveOutputRawAes = JhoveUtility.getAes(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), null, rawCreated, null);
+                                    if (jHoveOutputRawAes.getAes() == null) {
+                                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Aes information for RAW audio", false, null);
+                                    }
+                                }
+                            } catch (FedoraClientException e) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                            }
+                        }
+                    } catch (IOException ex) {
+                        throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting RAW datastream " + metsElement.getOriginalPid(), false, ex);
+                    }
+                }
+
+                if (fileNames.get(Const.AUDIO_MC_GRP_ID) != null) {
+                    toGenerate.put("AES_002", Const.AUDIO_MC_GRP_ID);
+                    String outputFileName = outputFileNames.get(Const.AUDIO_MC_GRP_ID);
+                    if (outputFileName != null) {
+                        String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+                        if (metsElement.getMetsContext().getFedoraClient() != null) {
+                            jHoveOutputMcAes = JhoveUtility.getAesFromFedora(metsElement, AesEditor.NDK_ARCHIVAL_ID);
+                        }
+                        if (jHoveOutputMcAes == null) {
+                            jHoveOutputMcAes = JhoveUtility.getAes(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get(Const.AUDIO_MC_GRP_ID).getCreated(), originalFile);
+                            if (jHoveOutputMcAes.getAes() == null) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Aes information for MC audio", false, null);
+                            }
                         }
                     }
-                    fixMCMix(jHoveOutputMC, metsElement.getOriginalPid(), md5InfosMap.get(Const.MC_GRP_ID).getCreated(), originalFile, photometricInterpretation);
                 }
             }
 
@@ -1327,12 +1484,18 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     mdWrap.setMDTYPE("NISOIMG");
                     XmlData xmlData = new XmlData();
                     Node mixNode = null;
+                    Node aesNode = null;
 
                     if ("RAW".equals(streamName)) {
                         if (jHoveOutputRaw != null) {
                             mixNode = jHoveOutputRaw.getMixNode();
                             if (md5InfosMap.get(streamName) != null) {
                                 md5InfosMap.get(streamName).setFormatVersion(jHoveOutputRaw.getFormatVersion());
+                            }
+                        } else if (jHoveOutputRawAes != null) {
+                            aesNode = jHoveOutputRawAes.getAesNode();
+                            if (md5InfosMap.get(streamName) != null) {
+                                md5InfosMap.get(streamName).setFormatVersion(jHoveOutputRawAes.getFormatVersion());
                             }
                         }
                     } else if ((Const.MC_GRP_ID.equals(streamName)) && (md5InfosMap.get(Const.MC_GRP_ID) != null)) {
@@ -1347,12 +1510,26 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                 }
                             }
                         }
+                    } else if ((Const.AUDIO_MC_GRP_ID.equals(streamName)) && (md5InfosMap.get(Const.AUDIO_MC_GRP_ID) != null)) {
+                        if (jHoveOutputMcAes != null) {
+                            aesNode = jHoveOutputMcAes.getAesNode();
+                            if (md5InfosMap.get(streamName) != null) {
+                                md5InfosMap.get(streamName).setFormatVersion(jHoveOutputMcAes.getFormatVersion());
+                            }
+                            if (aesNode != null) {
+                                if ((amdSecFileGrpMap.get(Const.AUDIO_MC_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.AUDIO_MC_GRP_ID).getFile().get(0) != null)) {
+                                    amdSecFileGrpMap.get(Const.AUDIO_MC_GRP_ID).getFile().get(0).getADMID().add(mdSec);
+                                }
+                            }
+                        }
                     }
 
                     if (mixNode != null) {
                         xmlData.getAny().add(mixNode);
+                    } else if (aesNode != null) {
+                        xmlData.getAny().add(aesNode);
                     } else {
-                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image metadata (MIX) for " + streamName, false, null);
+                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image/audo metadata (MIX/AES) for " + streamName, false, null);
                     }
 
                     mdWrap.setXmlData(xmlData);
@@ -2414,11 +2591,19 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         HashMap<String, XMLGregorianCalendar> createDates = new HashMap<String, XMLGregorianCalendar>();
         HashMap<String, FileMD5Info> md5InfosMap = new HashMap<String, FileMD5Info>();
         processAudioPageFiles(metsElement, fileNames, mimeTypes, createDates, md5InfosMap);
+        String streamNameExtension = "";
         for (String streamName : Const.audioStremMapping.keySet()) {
+            if (Const.AUDIO_MC_GRP_ID_FLAC.equals(streamName)) {
+                streamNameExtension = Const.AUDIO_MC_GRP_ID;
+            } else if (Const.AUDIO_UC_GRP_ID_OGG.equals(streamName)) {
+                streamNameExtension = Const.AUDIO_UC_GRP_ID;
+            } else {
+                streamNameExtension = streamName;
+            }
             if (fileNames.containsKey(streamName)) {
-                FileType fileType = prepareFileType(audioPageCounter, streamName, fileNames, mimeTypes, metsElement, outputFileName, md5InfosMap);
-                fileGrpAudioPage.get(streamName).getFile().add(fileType);
-                fileGrpMap.get(streamName).getFile().add(fileType);
+                FileType fileType = prepareAudioFileType(audioPageCounter, streamName, streamNameExtension, fileNames, mimeTypes, metsElement, outputFileName, md5InfosMap);
+                fileGrpAudioPage.get(streamNameExtension).getFile().add(fileType);
+                fileGrpMap.get(streamNameExtension).getFile().add(fileType);
                 Fptr fptr = new Fptr();
                 fptr.setFILEID(fileType);
                 audioPageDiv.getFptr().add(fptr);

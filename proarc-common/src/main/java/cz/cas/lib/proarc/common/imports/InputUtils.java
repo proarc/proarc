@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
+import org.apache.commons.io.IOUtils;
+import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.DatatypeConverter;
-import org.apache.commons.io.IOUtils;
 
 /**
  * Helper class to check imported data.
@@ -48,15 +48,21 @@ public class InputUtils {
     public static final byte[] WAVE_MAGIC_NUMBER =
             DatatypeConverter.parseHexBinary("52494646");
 
+    public static final byte[] FLAC_MAGIC_NUMBER =
+            DatatypeConverter.parseHexBinary("664C6143");
+
     public static final byte[] MP3_ID3V1_MAGIC_NUMBER =
             DatatypeConverter.parseHexBinary("FFFB");
 
     public static final byte[] MP3_ID3V2_MAGIC_NUMBER =
             DatatypeConverter.parseHexBinary("494433");
 
+    public static final byte[] OGG_MAGIC_NUMBER =
+            DatatypeConverter.parseHexBinary("4F676753");
+
     private static final Logger LOG = Logger.getLogger(InputUtils.class.getName());
 
-    
+
     public static boolean isJp2000(File f) throws IOException {
         return hasMagicNumber(f, JP2000_MAGIC_NUMBER);
     }
@@ -77,8 +83,16 @@ public class InputUtils {
         return hasMagicNumber(f, WAVE_MAGIC_NUMBER);
     }
 
+    public static boolean isFlac(File f) throws IOException {
+        return hasMagicNumber(f, FLAC_MAGIC_NUMBER);
+    }
+
     public static boolean isMp3(File f) throws IOException {
         return hasMagicNumber(f, MP3_ID3V1_MAGIC_NUMBER, MP3_ID3V2_MAGIC_NUMBER);
+    }
+
+    public static boolean isOgg(File f) throws  IOException {
+        return hasMagicNumber(f, OGG_MAGIC_NUMBER);
     }
 
     /**
