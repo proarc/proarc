@@ -36,7 +36,9 @@ public class MimeType {
         mimeMap.put("image/tiff", "tif");
         mimeMap.put("image/jpeg", "jpg");
         mimeMap.put("audio/wave", "wav");
+        mimeMap.put("audio/flac", "flac");
         mimeMap.put("audio/mp3", "mp3");
+        mimeMap.put("audio/ogg", "ogg");
     }
 
     /**

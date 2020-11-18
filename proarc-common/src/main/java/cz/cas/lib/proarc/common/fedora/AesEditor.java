@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.object.technicalMetadata.AesMapper;
 import cz.cas.lib.proarc.mix.Mix;
 import org.aes.audioobject.AudioObject;
 import org.aes.audioobject.AudioObjectType;
@@ -150,6 +151,9 @@ public class AesEditor {
             if (aes == null) {
                 throw new DigitalObjectException(
                         object.getPid(), null, profileTemplate.getDsID(), "jHove cannot generate AES for " + content.toString(), null);
+            } else {
+                AesMapper mapper = new AesMapper();
+                mapper.update(aes);
             }
             write(aes, timestamp, msg);
         } catch (DigitalObjectException ex) {

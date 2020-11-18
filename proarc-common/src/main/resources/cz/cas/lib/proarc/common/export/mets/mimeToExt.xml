@@ -22,6 +22,7 @@
 <entry key="image/vnd.mix">mix</entry>
 <entry key="application/x-dvi">dvi</entry>
 <entry key="audio/x-wav">wav</entry>
+<entry key="audio/flac">flac</entry>
 <entry key="application/dwf, application/x-dwf, drawing/x-dwf, image/vnd.dwf, image/x-dwf, model/vnd.dwf">dwf</entry>
 <entry key="application/vnd.ms-word.document.macroEnabled.12">docm</entry>
 <entry key="application/xml, text/xml">xml</entry>
