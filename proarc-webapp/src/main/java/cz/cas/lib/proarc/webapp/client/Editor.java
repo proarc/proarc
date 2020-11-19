@@ -211,8 +211,7 @@ public class Editor implements EntryPoint {
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
                     if (data.length > 1) {
-                        user = data[0];
-                        role = user.getAttribute(UserDataSource.FIELD_ROLE);
+                        role = data[0].getAttribute(UserDataSource.FIELD_ROLE);
                     }
                     permissions.clear();
                     permissions.add(role);
