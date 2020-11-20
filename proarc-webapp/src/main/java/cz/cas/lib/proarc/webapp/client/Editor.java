@@ -204,15 +204,14 @@ public class Editor implements EntryPoint {
 
     private void loadPermissions() {
         sweepTask.expect();
-        UserDataSource.getInstance().fetchData(null, new DSCallback() {
+        UserDataSource.getInstance().fetchData(new Criteria(UserDataSource.FIELD_WHOAMI, "true"), new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 String role = "none";
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
                     if (data.length > 1) {
-                        user = data[0];
-                        role = user.getAttribute(UserDataSource.FIELD_ROLE);
+                        role = data[0].getAttribute(UserDataSource.FIELD_ROLE);
                     }
                     permissions.clear();
                     permissions.add(role);
