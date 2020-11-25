@@ -39,6 +39,8 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Label;
+import com.smartgwt.client.widgets.events.ClickEvent;
+import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
@@ -269,11 +271,56 @@ public class Editor implements EntryPoint {
         mainHeader.addMember(createGlobalMenuButton(menu));
         mainHeader.addMember(createLangMenu());
         createUserLink(mainHeader, mainHeader.getMembers().length);
+        mainHeader.addMember(createButtonImportHistory());
+        mainHeader.addMember(createButtonSearchObject());
+        mainHeader.addMember(createButtonZamer());
         mainHeader.addFill();
         mainHeader.addMember(headerItem);
         mainHeader.addSpacer(6);
 
         return mainHeader;
+    }
+
+    private Canvas createButtonImportHistory() {
+        IconButton btn = new IconButton();
+        btn.setTitle(i18n.MainMenu_Import_Edit_Title_Btn());
+        btn.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                PlaceController placeController = getEditorWorkFlow().getPlaceController();
+                placeController.goTo( new ImportPlace(Type.HISTORY));
+                return;
+            }
+        });
+        return btn;
+    }
+
+    private Canvas createButtonSearchObject() {
+        IconButton btn = new IconButton();
+        btn.setTitle(i18n.MainMenu_Edit_Edit_Title_Btn());
+        btn.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                PlaceController placeController = getEditorWorkFlow().getPlaceController();
+                placeController.goTo(new DigitalObjectManagerPlace());
+                return;
+            }
+        });
+        return btn;
+    }
+
+    private Canvas createButtonZamer() {
+        IconButton btn = new IconButton();
+        btn.setTitle(i18n.MainMenu_Workflow_Jobs_Title());
+        btn.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                PlaceController placeController = getEditorWorkFlow().getPlaceController();
+                placeController.goTo(new WorkflowJobPlace());
+                return;
+            }
+        });
+        return btn;
     }
 
     private Canvas createLangMenu() {
@@ -282,8 +329,8 @@ public class Editor implements EntryPoint {
         langMenuButton.setCanFocus(Boolean.FALSE);
         Menu m = new Menu();
         m.setShowShadow(Boolean.TRUE);
-        m.addItem(createLangItem("cs", "Česky", activeLocale));
-        m.addItem(createLangItem("en", "English", activeLocale));
+        m.addItem(createLangItem("cs", ClientUtils.format("<b>%s</b>", "Česky"), activeLocale));
+        m.addItem(createLangItem("en", ClientUtils.format("<b>%s</b>", "English"), activeLocale));
         langMenuButton.setMenu(m);
         m.addItemClickHandler(new ItemClickHandler() {
 
@@ -345,7 +392,7 @@ public class Editor implements EntryPoint {
                         title = user.getAttribute(UserDataSource.FIELD_USERNAME);
                     }
                 }
-                userButton.setTitle(title);
+                userButton.setTitle(ClientUtils.format("<b>%s</b>", title));
                 mainHeader.addMember(userButton, index);
             }
         });
@@ -360,8 +407,7 @@ public class Editor implements EntryPoint {
         menuWindow.setWidth(200);
         menuWindow.setMembers(menu);
         final IconMenuButton[] globalMenuButton = new IconMenuButton[1];
-        globalMenuButton[0] = Actions.asIconMenuButton(new AbstractAction(
-                i18n.MainMenu_Title(), null, null) {
+        globalMenuButton[0] = Actions.asIconMenuButton(new AbstractAction(ClientUtils.format("<b>%s</b>", i18n.MainMenu_Title()), null, null) {
 
             @Override
             public void performAction(ActionEvent event) {
