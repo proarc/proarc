@@ -82,7 +82,9 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
@@ -1020,6 +1022,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
+            @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String model,
             @DefaultValue("false")
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
             ) throws IOException, DigitalObjectException {
@@ -1027,7 +1031,12 @@ public class DigitalObjectResource {
         LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
                 pid, editorId, timestamp, ignoreValidation, jsonData, xmlData));
         if (pid == null || pid.isEmpty()) {
-            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            if (jobId == null) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            } else {
+                // MODS Custom editor doesnt use WorkFlowResource, if there is a validation error
+                return WorkflowResource.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, session, httpHeaders);
+            }
         }
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
