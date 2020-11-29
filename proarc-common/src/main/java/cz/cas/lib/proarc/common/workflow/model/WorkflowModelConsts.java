@@ -60,6 +60,7 @@ public final class WorkflowModelConsts {
     public static final String JOB_FILTER_PROFILENAME = "profileName";
     public static final String JOB_FILTER_SORTBY = "_sortBy";
     public static final String JOB_FILTER_STATE = "state";
+    public static final String JOB_FILTER_DIGOBJ_PID = "pid";
 
     public static final String TASK_CREATED = "created";
     public static final String TASK_ID = "id";

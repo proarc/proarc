@@ -22,12 +22,6 @@ import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowJobTable;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBJoinType;
@@ -37,6 +31,12 @@ import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -115,6 +115,25 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         cmd.join(tableJob.id, wjId, DBJoinType.LEFT);
         // empire db reverse the joint type so that is why RIGHT instead of LEFT
         cmd.join(tpd.materialId, wmId, DBJoinType.RIGHT);
+
+        final ProarcDatabase.WorkflowDigObjTable tdo = db.tableWorkflowDigObj;
+        cmd.select(tdo.pid);
+
+        DBCommand digObjCmd = db.createCommand();
+        final DBColumnExpr digObjMaterialId = db.tableWorkflowMaterial.id.min().as(db.tableWorkflowMaterial.id);
+        digObjCmd.select(digObjMaterialId);
+        digObjCmd.select(db.tableWorkflowTask.jobId);
+        digObjCmd.join(db.tableWorkflowMaterial.id, db.tableWorkflowMaterialInTask.materialId);
+        digObjCmd.join(db.tableWorkflowTask.id, db.tableWorkflowMaterialInTask.taskId);
+        digObjCmd.where(db.tableWorkflowMaterial.type.is("DIGITAL_OBJECT"));
+        digObjCmd.groupBy(db.tableWorkflowTask.jobId);
+        DBQuery digObjQuery = new DBQuery(digObjCmd);
+
+        DBQuery.DBQueryColumn doId = digObjQuery.findQueryColumn(digObjMaterialId);
+        DBQuery.DBQueryColumn djId = digObjQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        cmd.join(tableJob.id, djId, DBJoinType.LEFT);
+        cmd.join(tdo.materialId, doId, DBJoinType.RIGHT);
+
 
         EmpireUtils.addWhereIs(cmd, tableJob.id, () -> filter.getId());
         if (filter.getLabel() != null) {

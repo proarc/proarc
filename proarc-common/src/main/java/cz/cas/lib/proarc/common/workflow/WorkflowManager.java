@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
@@ -52,6 +53,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.BlockerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.MaterialDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.ModelDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetMaterialDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetParamDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.StepDefinition;
@@ -276,12 +278,12 @@ public class WorkflowManager {
         } else if (m.getType() == MaterialType.DIGITAL_OBJECT) {
             DigitalMaterial dm = (DigitalMaterial) m;
             String label = view.getPid();
-            if (view.getPid() != null && !view.getPid().equals(dm.getPid())) {
+           /* if (view.getPid() != null && !view.getPid().equals(dm.getPid())) {
                 List<Item> items = RemoteStorage.getInstance().getSearch().find(view.getPid());
                 if (!items.isEmpty()) {
                     label = items.get(0).getLabel();
                 }
-            }
+            }*/
             dm.setPid(view.getPid());
             dm.setLabel(label);
             jobDao.update(job);
@@ -303,7 +305,15 @@ public class WorkflowManager {
             pm.setYear(view.getYear());
 
             if (newMetadata == null ? oldMetadata != null : !newMetadata.equals(oldMetadata)) {
-                PhysicalMaterial t = new PhysicalMaterialBuilder().setMetadata(newMetadata).build();
+                WorkflowDefinition wd = WorkflowProfiles.getInstance().getProfiles();
+                WorkflowProfiles wp = WorkflowProfiles.getInstance();
+                JobDefinition jd = wp.getProfile(wd, job.getProfileName());
+                List<ModelDefinition> models = jd.getModel();
+                String model = null;
+                if (models.size() > 0) {
+                    model = models.get(0).getName();
+                }
+                PhysicalMaterial t = new PhysicalMaterialBuilder().setMetadata(newMetadata, model).build();
                 pm.setMetadata(t.getMetadata());
                 pm.setSignature(t.getSignature());
                 pm.setSigla(t.getSigla());
@@ -412,8 +422,13 @@ public class WorkflowManager {
             CatalogConfiguration catalog, BigDecimal rdczId, UserProfile defaultUser, AppConfiguration appConfiguration
     ) throws WorkflowException {
         Map<String, UserProfile> users = createUserMap();
+        List<ModelDefinition> models = jobProfile.getModel();
+        String model = null;
+        if (models.size() > 0) {
+            model = models.get(0).getName();
+        }
         PhysicalMaterial physicalMaterial = new PhysicalMaterialBuilder()
-                .setCatalog(catalog).setMetadata(xml).setRdczId(rdczId)
+                .setCatalog(catalog).setMetadata(xml, model).setRdczId(rdczId)
                 .build();
         Transaction tx = daoFactory.createTransaction();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
@@ -499,7 +514,6 @@ public class WorkflowManager {
                 physicalMaterial.setBarcode(mv.getBarcode());
                 physicalMaterial.setField001(mv.getField001());
                 physicalMaterial.setDetail(mv.getDetail());
-                physicalMaterial.setIssue(mv.getIssue());
                 physicalMaterial.setLabel(mv.getLabel());
                 physicalMaterial.setMetadata(mv.getMetadata());
                 physicalMaterial.setName(mv.getName());
@@ -509,6 +523,10 @@ public class WorkflowManager {
                 physicalMaterial.setSignature(mv.getSignature());
                 physicalMaterial.setSource(mv.getSource());
                 physicalMaterial.setVolume(mv.getVolume());
+                physicalMaterial.setIssue(mv.getIssue());
+                if (jobProfile.getModel().size() > 0 && NdkPlugin.MODEL_PERIODICALVOLUME.equals(jobProfile.getModel().get(0).getName())) {
+                 physicalMaterial.setVolume(mv.getIssue());
+                }
                 physicalMaterial.setYear(mv.getYear());
 //                physicalMaterial.setState(mv.getState());
                 jobLabel = physicalMaterial.getLabel();

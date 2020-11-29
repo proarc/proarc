@@ -50,6 +50,16 @@ public class JobView extends Job {
     private String volume;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR)
     private String year;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID)
+    private String pid;
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
 
     public String getProfileLabel() {
         return profileLabel;
