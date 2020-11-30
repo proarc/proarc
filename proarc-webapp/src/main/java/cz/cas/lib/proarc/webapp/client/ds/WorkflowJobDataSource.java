@@ -65,6 +65,7 @@ public class WorkflowJobDataSource extends ProarcDataSource {
     public static final String FIELD_MVOLUME = WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME;
     public static final String FIELD_MYEAR = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR;
     public static final String FIELD_MPID = WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID;
+    public static final String FIELD_MODEL = WorkflowModelConsts.JOB_FILTER_MODEL;
 
     private static WorkflowJobDataSource INSTANCE;
 

@@ -58,7 +58,6 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
@@ -66,7 +65,6 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
-import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 
 /**
@@ -385,7 +383,7 @@ public class WorkflowJobView implements Refreshable {
         return menu;
     }
 
-    private void createSubjob(Record job, Record subjob) {
+    /*private void createSubjob(Record job, Record subjob) {
         Record query = new Record();
         query.setAttribute(WorkflowResourceApi.NEWJOB_PARENTID, job.getAttribute(WorkflowJobDataSource.FIELD_ID));
         query.setAttribute(WorkflowResourceApi.NEWJOB_PROFILE, subjob.getAttribute(WorkflowProfileDataSource.FIELD_ID));
@@ -402,6 +400,15 @@ public class WorkflowJobView implements Refreshable {
                 }
             }
         });
+    }*/
+
+    private void createSubjob(Record job, Record subjob) {
+        if (handler != null) {
+            Record query = new Record();
+            query.setAttribute(WorkflowResourceApi.NEWJOB_PARENTID, job.getAttribute(WorkflowJobDataSource.FIELD_ID));
+            query.setAttribute(WorkflowResourceApi.NEWJOB_PROFILE, subjob.getAttribute(WorkflowProfileDataSource.FIELD_ID));
+            handler.onCreateNewSubjob(query, subjobGrid);
+        }
     }
 
     private ListGrid createSubjobList() {

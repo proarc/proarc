@@ -124,6 +124,9 @@ public class WorkflowManager {
                 if (profile != null) {
                     job.setProfileLabel(profile.getTitle(lang, profile.getName()));
                     job.setProfileHint(profile.getHint(lang, null));
+                    if (profile.getModel() != null && profile.getModel().size() > 0) {
+                        job.setModel(profile.getModel().get(0).getName());
+                    }
                 } else {
                     job.setProfileLabel(job.getProfileName());
                     job.setProfileHint("Unknown job XML ID: " + job.getProfileName());
