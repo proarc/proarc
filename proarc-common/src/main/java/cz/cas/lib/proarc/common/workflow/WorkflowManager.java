@@ -448,10 +448,10 @@ public class WorkflowManager {
         try {
             Job job = createJob(jobDao, now, jobLabel, jobProfile, null, users, defaultUser);
             Map<String, Material> materialCache = new HashMap<>();
-
+            Integer order = 1;
             for (StepDefinition step : jobProfile.getSteps()) {
                 if (!step.isOptional()) {
-                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser);
+                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser, order++);
                     createTaskParams(paramDao, step, task);
                     createMaterials(materialDao, step, task, materialCache, physicalMaterial, appConfiguration);
                 }
@@ -538,9 +538,10 @@ public class WorkflowManager {
             Job job = createJob(jobDao, now, jobLabel, jobProfile, parentId, users, defaultUser);
 
             Map<String, Material> materialCache = new HashMap<>();
+            Integer order = 1;
             for (StepDefinition step : jobProfile.getSteps()) {
                 if (!step.isOptional()) {
-                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser);
+                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser, order++);
                     createTaskParams(paramDao, step, task);
                     createMaterials(materialDao, step, task, materialCache, physicalMaterial, appConfiguration);
                 }
@@ -575,7 +576,7 @@ public class WorkflowManager {
     private Task createTask(WorkflowTaskDao taskDao, Timestamp now,
             Job job, JobDefinition jobProfile,
             StepDefinition step,
-            Map<String, UserProfile> users, UserProfile defaultUser
+            Map<String, UserProfile> users, UserProfile defaultUser, Integer order
     ) throws ConcurrentModificationException {
 
         Task task = taskDao.create().addCreated(now)
@@ -584,7 +585,8 @@ public class WorkflowManager {
                 .addPriority(job.getPriority())
                 .setState(isBlockedNewTask(step, jobProfile) ? Task.State.WAITING : Task.State.READY)
                 .addTimestamp(now)
-                .addTypeRef(step.getTask().getName());
+                .addTypeRef(step.getTask().getName())
+                .addOrder(order);
         taskDao.update(task);
         return task;
     }

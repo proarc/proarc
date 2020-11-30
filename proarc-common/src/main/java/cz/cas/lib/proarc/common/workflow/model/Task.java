@@ -180,6 +180,11 @@ public class Task {
         return this;
     }
 
+    public Task addOrder(Integer order) {
+        setOrder(order);
+        return this;
+    }
+
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
