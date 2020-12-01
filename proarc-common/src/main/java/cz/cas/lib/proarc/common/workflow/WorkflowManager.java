@@ -541,7 +541,7 @@ public class WorkflowManager {
             Integer order = 1;
             for (StepDefinition step : jobProfile.getSteps()) {
                 if (!step.isOptional()) {
-                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser, order++);
+                     Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser, order++);
                     createTaskParams(paramDao, step, task);
                     createMaterials(materialDao, step, task, materialCache, physicalMaterial, appConfiguration);
                 }
