@@ -323,6 +323,8 @@ public class WorkflowManager {
                 pm.setIssue(t.getIssue());
                 pm.setVolume(t.getVolume());
                 pm.setLabel(t.getLabel());
+                pm.setYear(t.getYear());
+                pm.setDetail(t.getDetail());
                 pm.setBarcode(t.getBarcode());
                 jobLabel = pm.getLabel();
             }
