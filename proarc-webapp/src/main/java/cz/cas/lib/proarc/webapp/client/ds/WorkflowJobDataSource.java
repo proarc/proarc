@@ -64,6 +64,8 @@ public class WorkflowJobDataSource extends ProarcDataSource {
     public static final String FIELD_MSIGNATURE = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE;
     public static final String FIELD_MVOLUME = WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME;
     public static final String FIELD_MYEAR = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR;
+    public static final String FIELD_MPID = WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID;
+    public static final String FIELD_MODEL = WorkflowModelConsts.JOB_FILTER_MODEL;
 
     private static WorkflowJobDataSource INSTANCE;
 
@@ -170,9 +172,13 @@ public class WorkflowJobDataSource extends ProarcDataSource {
         year.setTitle(i18n.WorkflowMaterial_Field_Year_Title());
         year.setDetail(true);
 
+        DataSourceTextField pid = new DataSourceTextField(FIELD_MPID);
+        pid.setTitle(i18n.WorkflowMaterial_Field_Pid_Title());
+        pid.setDetail(true);
+
         setFields(fieldId, label, state, profileId, priority, owner, created, modified,
                 note, financed, barcode,
-                detail, field001, issue, sigla, signature, volume, year
+                detail, field001, issue, sigla, signature, volume, year, pid
         );
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

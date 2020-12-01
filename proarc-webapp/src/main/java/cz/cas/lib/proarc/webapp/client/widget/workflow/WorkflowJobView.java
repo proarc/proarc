@@ -19,9 +19,6 @@ package cz.cas.lib.proarc.webapp.client.widget.workflow;
 import com.google.gwt.core.client.Callback;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
@@ -61,7 +58,6 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
@@ -69,9 +65,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
-import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
-import java.util.Map;
 
 /**
  *
@@ -296,7 +290,7 @@ public class WorkflowJobView implements Refreshable {
     private void fetchModelMenu(Record job) {
         if (job == null
                 // not subjob
-                || job.getAttribute(WorkflowJobDataSource.FIELD_PARENTID) != null
+                //|| job.getAttribute(WorkflowJobDataSource.FIELD_PARENTID) != null
                 || !Job.State.OPEN.name().equals(job.getAttribute(WorkflowJobDataSource.FIELD_STATE))
                 ) {
             createNewObjectButton.setVisible(false);
@@ -389,7 +383,7 @@ public class WorkflowJobView implements Refreshable {
         return menu;
     }
 
-    private void createSubjob(Record job, Record subjob) {
+    /*private void createSubjob(Record job, Record subjob) {
         Record query = new Record();
         query.setAttribute(WorkflowResourceApi.NEWJOB_PARENTID, job.getAttribute(WorkflowJobDataSource.FIELD_ID));
         query.setAttribute(WorkflowResourceApi.NEWJOB_PROFILE, subjob.getAttribute(WorkflowProfileDataSource.FIELD_ID));
@@ -406,6 +400,15 @@ public class WorkflowJobView implements Refreshable {
                 }
             }
         });
+    }*/
+
+    private void createSubjob(Record job, Record subjob) {
+        if (handler != null) {
+            Record query = new Record();
+            query.setAttribute(WorkflowResourceApi.NEWJOB_PARENTID, job.getAttribute(WorkflowJobDataSource.FIELD_ID));
+            query.setAttribute(WorkflowResourceApi.NEWJOB_PROFILE, subjob.getAttribute(WorkflowProfileDataSource.FIELD_ID));
+            handler.onCreateNewSubjob(query, subjobGrid);
+        }
     }
 
     private ListGrid createSubjobList() {
@@ -420,24 +423,26 @@ public class WorkflowJobView implements Refreshable {
         g.setCanGroupBy(false);
         g.setDataFetchMode(FetchMode.BASIC);
         g.setDataSource(WorkflowJobDataSource.getInstance(),
-                new ListGridField(WorkflowJobDataSource.FIELD_LABEL),
-                new ListGridField(WorkflowJobDataSource.FIELD_ID, 30),
-                new ListGridField(WorkflowJobDataSource.FIELD_STATE, 50),
-                new ListGridField(WorkflowJobDataSource.FIELD_PROFILE_ID, 80),
-                new ListGridField(WorkflowJobDataSource.FIELD_OWNER, 50),
-                new ListGridField(WorkflowJobDataSource.FIELD_PRIORITY, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
-                new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100),
-                new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_MBARCODE, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),
-                new ListGridField(WorkflowJobDataSource.FIELD_MFIELD001, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MISSUE, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_MSIGLA, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_MSIGNATURE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_ID, 30),
+                new ListGridField(WorkflowJobDataSource.FIELD_LABEL),
+                new ListGridField(WorkflowJobDataSource.FIELD_MPID, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_MFIELD001, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_NOTE),
+                new ListGridField(WorkflowJobDataSource.FIELD_PRIORITY, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_PROFILE_ID, 80),
                 new ListGridField(WorkflowJobDataSource.FIELD_MVOLUME, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MYEAR, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_NOTE)
+                new ListGridField(WorkflowJobDataSource.FIELD_MSIGLA, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MSIGNATURE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_STATE, 50),
+                new ListGridField(WorkflowJobDataSource.FIELD_OWNER, 50),
+                new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100)
+
                 );
         g.setSortField(WorkflowJobDataSource.FIELD_CREATED);
         g.setSortDirection(SortDirection.ASCENDING);
@@ -482,24 +487,25 @@ public class WorkflowJobView implements Refreshable {
         rs.setUseClientSorting(false);
         jobGrid.setDataProperties(rs);
         jobGrid.setDataSource(WorkflowJobDataSource.getInstance(),
-                new ListGridField(WorkflowJobDataSource.FIELD_LABEL),
-                new ListGridField(WorkflowJobDataSource.FIELD_ID, 30),
-                new ListGridField(WorkflowJobDataSource.FIELD_STATE, 50),
-                new ListGridField(WorkflowJobDataSource.FIELD_PROFILE_ID, 80),
-                new ListGridField(WorkflowJobDataSource.FIELD_OWNER, 50),
-                new ListGridField(WorkflowJobDataSource.FIELD_PRIORITY, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
-                new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100),
-                new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_MBARCODE, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),
-                new ListGridField(WorkflowJobDataSource.FIELD_MFIELD001, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MISSUE, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_MSIGLA, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_MSIGNATURE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_ID, 30),
+                new ListGridField(WorkflowJobDataSource.FIELD_LABEL),
+                new ListGridField(WorkflowJobDataSource.FIELD_MPID, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_MFIELD001, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_NOTE),
+                new ListGridField(WorkflowJobDataSource.FIELD_PRIORITY, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_PROFILE_ID, 80),
                 new ListGridField(WorkflowJobDataSource.FIELD_MVOLUME, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MYEAR, 60),
-                new ListGridField(WorkflowJobDataSource.FIELD_NOTE)
+                new ListGridField(WorkflowJobDataSource.FIELD_MSIGLA, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_MSIGNATURE, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_STATE, 50),
+                new ListGridField(WorkflowJobDataSource.FIELD_OWNER, 50),
+                new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100)
                 );
 
         jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setWidth("80%");

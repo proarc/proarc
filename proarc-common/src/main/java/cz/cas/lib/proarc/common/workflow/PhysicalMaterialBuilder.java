@@ -20,22 +20,23 @@ import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
-import java.io.IOException;
-import java.io.StringReader;
-import java.math.BigDecimal;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.math.BigDecimal;
 
 /**
  *
@@ -58,7 +59,7 @@ class PhysicalMaterialBuilder {
 
     public PhysicalMaterial build(String xml, CatalogConfiguration catalog) {
         setCatalog(catalog);
-        setMetadata(xml);
+        setMetadata(xml, null);
         return m;
     }
 
@@ -69,9 +70,9 @@ class PhysicalMaterialBuilder {
         return this;
     }
 
-    public PhysicalMaterialBuilder setMetadata(String modsXml) {
+    public PhysicalMaterialBuilder setMetadata(String modsXml, String model) {
         try {
-            return setMetadataImpl(modsXml);
+            return setMetadataImpl(modsXml, model);
         } catch (Exception ex) {
             StringBuilder sb = new StringBuilder("Cannot set metadata!");
             for (String error : validationErrorHandler.getValidationErrors()) {
@@ -88,7 +89,7 @@ class PhysicalMaterialBuilder {
         return this;
     }
 
-    private PhysicalMaterialBuilder setMetadataImpl(String modsXml) throws IOException, SAXException, XPathExpressionException {
+    private PhysicalMaterialBuilder setMetadataImpl(String modsXml, String model) throws IOException, SAXException, XPathExpressionException {
         if (modsXml != null) {
             Document modsDom = db.parse(new InputSource(new StringReader(modsXml)));
             Element modsElm = (Element) xpath.evaluate(
@@ -106,7 +107,11 @@ class PhysicalMaterialBuilder {
             m.setSignature(signature);
             m.setField001(field001);
             m.setYear(dateIssued);
-            m.setIssue(partNumber);
+            if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(model)) {
+                m.setVolume(partNumber);
+            } else {
+                m.setIssue(partNumber);
+            }
             m.setLabel(label.length() == 0
                     ? "?"
                     : label.length() > 2000
