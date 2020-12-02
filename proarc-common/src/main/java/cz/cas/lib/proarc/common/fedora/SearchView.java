@@ -424,13 +424,13 @@ public final class SearchView {
         sortField = createSortField(sortField);
         sort = createSort(sort);
         List<String> pids = findAdvancedPids(new Query().setLabel(label).setIdentifier(identifier).setModel(model).setCreator(creator).setOwner(owner));
-        return findAdvancedObjects(pids, status, organization, processor, sortField + " " + sort, offset, limit);
+        return findAdvancedObjects(pids, status, organization, processor, model, sortField + " " + sort, offset, limit);
     }
 
 
     public int findAdvancedSearch(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator) throws FedoraClientException, IOException {
         List<String> pids = findAdvancedPids(new Query().setLabel(label).setIdentifier(identifier).setModel(model).setCreator(creator).setOwner(owner));
-        return findAdvancedCountObjects(pids, status, organization, processor);
+        return findAdvancedCountObjects(pids, status, organization, processor, model);
     }
 
     private List<String> findAdvancedPids(Query q) throws FedoraClientException {
@@ -438,7 +438,7 @@ public final class SearchView {
         List<String> pids = new ArrayList<>();
         StringBuilder query = new StringBuilder();
         if (q.getModel() != null && !q.getModel().isEmpty()) {
-            query.append("type~").append(q.getModel());
+            //query.append("type~").append(q.getModel());
         }
         buildQuery(query, "label", q.getLabel());
         buildQuery(query, "ownerId", q.getOwner());
@@ -466,11 +466,12 @@ public final class SearchView {
     }
 
 
-    private List<Item> findAdvancedObjects(List<String> pids, String status, String organization, String processor, String orderBy, int offset, int limit) throws FedoraClientException, IOException {
+    private List<Item> findAdvancedObjects(List<String> pids, String status, String organization, String processor, String model, String orderBy, int offset, int limit) throws FedoraClientException, IOException {
         String statusFilter = "";
         String organizationFilter = "";
         String processorFilter = "";
         String pidsFilter = "";
+        String modelFilter = "";
 
         StringBuilder expr = new StringBuilder();
         for (String pid : pids) {
@@ -482,7 +483,9 @@ public final class SearchView {
         if (pids.size() > 0) {
             pidsFilter = "and (" + expr.toString() + ")";
         }
-
+        if (model != null && !model.isEmpty()) {
+            modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
+        }
         if (organization != null && !organization.isEmpty()) {
             organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
         }
@@ -494,6 +497,7 @@ public final class SearchView {
             statusFilter = String.format("and   $pid    <http://proarc.lib.cas.cz/relations#status>     <info:fedora/%s>", status);
         }
         String query = QUERY_ADVANCED_SEARCH.replace("${OFFSET}", String.valueOf(offset));
+        query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${ORGANIZATION_FILTER}", organizationFilter);
         query = query.replace("${PROCESSOR_FILTER}", processorFilter);
         query = query.replace("${STATUS_FILTER}", statusFilter);
@@ -515,7 +519,7 @@ public final class SearchView {
         }
     }
 
-    private int findAdvancedCountObjects(List<String> pids, String status, String organization, String processor) throws FedoraClientException, IOException {
+    private int findAdvancedCountObjects(List<String> pids, String status, String organization, String processor, String model) throws FedoraClientException, IOException {
         if (pids.size() == 0) {
             return 0;
         }
@@ -524,6 +528,7 @@ public final class SearchView {
         String organizationFilter = "";
         String processorFilter = "";
         String pidsFilter = "";
+        String modelFilter = "";
 
         StringBuilder expr = new StringBuilder();
         for (String pid : pids) {
@@ -536,6 +541,9 @@ public final class SearchView {
             pidsFilter = "and (" + expr.toString() + ")";
         }
 
+        if (model != null && !model.isEmpty()) {
+            modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
+        }
         if (organization != null && !organization.isEmpty()) {
             organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
         }
@@ -547,6 +555,7 @@ public final class SearchView {
             statusFilter = String.format("and   $pid    <http://proarc.lib.cas.cz/relations#status>     <info:fedora/%s>", status);
         }
         String query = QUERY_ADVANCED_SEARCH_COUNT;
+        query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${ORGANIZATION_FILTER}", organizationFilter);
         query = query.replace("${PROCESSOR_FILTER}", processorFilter);
         query = query.replace("${STATUS_FILTER}", statusFilter);

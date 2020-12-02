@@ -212,7 +212,7 @@ public class Editor implements EntryPoint {
                 String role = "none";
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
-                    if (data.length > 1) {
+                    if (data.length > 0) {
                         role = data[0].getAttribute(UserDataSource.FIELD_ROLE);
                     }
                     permissions.clear();
