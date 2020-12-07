@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
+import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
@@ -41,19 +42,20 @@ import java.sql.SQLException;
 import java.util.logging.Logger;
 
 /**
- * Database schema version 5. It adds workflow stuff.
+ * Database schema version 7. It adds element order to wf_task.
  *
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
  *
  * @author Jan Pokorsky
  */
-public class ProarcDatabase extends DBDatabase {
+@Deprecated
+public class ProarcDatabaseV7 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV7.class.getName());
     /** the schema version */
-    public static final int VERSION = 8;
+    public static final int VERSION = 7;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -75,6 +77,47 @@ public class ProarcDatabase extends DBDatabase {
     public final DBRelation relationWorkflowJob_ParentId_Fk;
     public final DBRelation relationWorkflowMaterialInTask_MaterialId_Fk;
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
+
+    public static int upgradeToVersion8(
+            int currentSchemaVersion, ProarcDatabase schema,
+            Connection conn, EmpireConfiguration conf) throws SQLException {
+
+        if (currentSchemaVersion < VERSION) {
+            currentSchemaVersion = ProarcDatabaseV6.upgradeToVersion7(currentSchemaVersion, conn, conf);
+        }
+        if (currentSchemaVersion > VERSION) {
+            // ignore higher versions
+            return currentSchemaVersion;
+        } else if (currentSchemaVersion != VERSION) {
+            throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
+        }
+        //ProarcDatabaseV8 schema = new ProarcDatabaseV8();
+        try {
+            schema.open(conf.getDriver(), conn);
+            upgradeDdl(schema, conn);
+            int schemaVersion = schema.initVersion(conn, VERSION);
+
+            conn.commit();
+            return schemaVersion;
+        } finally {
+//            schema.close(conn);
+        }
+    }
+
+    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+        try {
+            conn.setAutoCommit(true);
+            DBDatabaseDriver driver = schema.getDriver();
+            DBSQLScript script = new DBSQLScript();
+
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.edition, script);
+
+            LOG.fine(script.toString());
+            script.run(driver, conn);
+        } finally {
+            conn.setAutoCommit(false);
+        }
+    }
 
     public static class ProarcVersionTable extends DBTable {
 
@@ -464,7 +507,6 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn sigla;
         public final DBTableColumn volume;
         public final DBTableColumn year;
-        public final DBTableColumn edition;
 
         public WorkflowPhysicalDocTable(DBDatabase db) {
             super("PROARC_WF_PHYSICAL_DOCUMENT", db);
@@ -481,7 +523,6 @@ public class ProarcDatabase extends DBDatabase {
             sigla = addColumn("SIGLA", DataType.TEXT, 6, false);
             volume = addColumn("VOLUME", DataType.TEXT, 100, false);
             year = addColumn("YEAR", DataType.TEXT, 100, false);
-            edition = addColumn("EDITION", DataType.TEXT, 2000, false);
             setPrimaryKey(materialId);
         }
     }
@@ -505,7 +546,7 @@ public class ProarcDatabase extends DBDatabase {
         }
     }
 
-    public ProarcDatabase() {
+    public ProarcDatabaseV7() {
         addRelation(tableBatch.userId.referenceOn(tableUser.id));
         addRelation(tableBatchItem.batchId.referenceOn(tableBatch.id));
         // users
@@ -535,8 +576,8 @@ public class ProarcDatabase extends DBDatabase {
         try {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
-                schemaVersion = ProarcDatabaseV7.upgradeToVersion8(
-                        schemaVersion, this, conn, conf);
+                schemaVersion = ProarcDatabaseV6.upgradeToVersion7(
+                        schemaVersion, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);
                 }
@@ -548,7 +589,7 @@ public class ProarcDatabase extends DBDatabase {
         }
     }
 
-    static int schemaExists(ProarcDatabase db, Connection c) {
+    static int schemaExists(ProarcDatabaseV7 db, Connection c) {
         try {
             DBCommand cmd = db.createCommand();
             cmd.select(db.tableProarcVersion.schemaVersion);
@@ -559,7 +600,7 @@ public class ProarcDatabase extends DBDatabase {
         }
     }
 
-    private static void createSchema(ProarcDatabase db, Connection conn) throws SQLException {
+    private static void createSchema(ProarcDatabaseV7 db, Connection conn) throws SQLException {
         if (db.getDriver() instanceof DBDatabaseDriverPostgreSQL) {
             conn.setAutoCommit(true);
         }
@@ -573,7 +614,7 @@ public class ProarcDatabase extends DBDatabase {
     }
 
     int initVersion(Connection conn, Integer oldVersion) {
-        ProarcDatabase db = this;
+        ProarcDatabaseV7 db = this;
         DBRecord dbRecord = new DBRecord();
         if (oldVersion != null) {
             dbRecord.init(db.tableProarcVersion, new Integer[] {0}, false);

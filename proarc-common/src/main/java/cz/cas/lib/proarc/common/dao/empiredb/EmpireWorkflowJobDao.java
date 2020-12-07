@@ -97,7 +97,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         cmd.select(tableJob.getColumns());
         cmd.select(db.tableUser.username);
         final ProarcDatabase.WorkflowPhysicalDocTable tpd = db.tableWorkflowPhysicalDoc;
-        cmd.select(tpd.barcode, tpd.detail, tpd.field001, tpd.issue, tpd.sigla, tpd.signature, tpd.volume, tpd.year);
+        cmd.select(tpd.barcode, tpd.detail, tpd.field001, tpd.issue, tpd.sigla, tpd.signature, tpd.volume, tpd.year, tpd.edition);
         cmd.join(tableJob.ownerId, db.tableUser.id, DBJoinType.LEFT);
 
         DBCommand pmatCmd = db.createCommand();
@@ -150,6 +150,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         EmpireUtils.addWhereLike(cmd, tpd.signature, () -> filter.getMaterialSignature());
         EmpireUtils.addWhereLike(cmd, tpd.volume, () -> filter.getMaterialVolume());
         EmpireUtils.addWhereLike(cmd, tpd.year, () -> filter.getMaterialYear());
+        EmpireUtils.addWhereLike(cmd, tpd.edition, () -> filter.getMaterialEdition());
         EmpireUtils.addWhereIs(cmd, tableJob.parentId, () -> filter.getParentId());
         EmpireUtils.addWhereIs(cmd, tableJob.profileName, () -> filter.getProfileName());
         EmpireUtils.addWhereIs(cmd, tableJob.state, () -> filter.getState() == null ? null : filter.getState().name());

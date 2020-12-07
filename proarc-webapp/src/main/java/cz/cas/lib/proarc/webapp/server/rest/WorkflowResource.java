@@ -132,6 +132,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE) String mSignature,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME) String mVolume,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR) String mYear,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION) String mEdition,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy
     ) {
@@ -153,6 +154,7 @@ public class WorkflowResource {
         filter.setMaterialSignature(mSignature);
         filter.setMaterialVolume(mVolume);
         filter.setMaterialYear(mYear);
+        filter.setMaterialEdition(mEdition);
         filter.setModified(modified);
         filter.setParentId(parentId);
         filter.setPriority(priority);

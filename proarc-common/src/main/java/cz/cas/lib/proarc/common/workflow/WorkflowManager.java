@@ -306,6 +306,7 @@ public class WorkflowManager {
             pm.setSigla(view.getSigla());
             pm.setVolume(view.getVolume());
             pm.setYear(view.getYear());
+            pm.setEdition(view.getEdition());
 
             if (newMetadata == null ? oldMetadata != null : !newMetadata.equals(oldMetadata)) {
                 WorkflowDefinition wd = WorkflowProfiles.getInstance().getProfiles();
@@ -326,6 +327,7 @@ public class WorkflowManager {
                 pm.setYear(t.getYear());
                 pm.setDetail(t.getDetail());
                 pm.setBarcode(t.getBarcode());
+                pm.setEdition(t.getEdition());
                 jobLabel = pm.getLabel();
             }
             if (jobLabel == null ? job.getLabel() != null : !jobLabel.equals(job.getLabel())) {
