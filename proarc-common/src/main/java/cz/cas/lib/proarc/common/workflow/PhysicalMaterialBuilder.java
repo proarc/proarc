@@ -100,6 +100,7 @@ class PhysicalMaterialBuilder {
             String field001 = xpath.evaluate("m:recordInfo/m:recordIdentifier", modsElm);
             String dateIssued = xpath.evaluate("m:originInfo/m:dateIssued", modsElm);
             String partNumber = xpath.evaluate("m:titleInfo/m:partNumber", modsElm);
+            String edition = xpath.evaluate("m:relatedItem[@type='series']/m:titleInfo/m:title", modsElm);
             StringBuilder label = getTitle(new StringBuilder(), modsElm);
             m.setMetadata(modsXml);
             m.setBarcode(barcode);
@@ -107,6 +108,7 @@ class PhysicalMaterialBuilder {
             m.setSignature(signature);
             m.setField001(field001);
             m.setYear(dateIssued);
+            m.setEdition(edition);
             if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(model)) {
                 m.setVolume(partNumber);
             } else {

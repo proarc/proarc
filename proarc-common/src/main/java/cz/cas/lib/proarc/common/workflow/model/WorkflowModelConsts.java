@@ -53,6 +53,7 @@ public final class WorkflowModelConsts {
     public static final String JOB_FILTER_MATERIAL_SIGNATURE = "signature";
     public static final String JOB_FILTER_MATERIAL_VOLUME = "volume";
     public static final String JOB_FILTER_MATERIAL_YEAR = "year";
+    public static final String JOB_FILTER_MATERIAL_EDITION = "edition";
     public static final String JOB_FILTER_OFFSET = "_startRow";
     public static final String JOB_FILTER_OWNERID = "ownerId";
     public static final String JOB_FILTER_PARENTID = "parentId";
@@ -141,6 +142,7 @@ public final class WorkflowModelConsts {
     public static final String MATERIAL_VOLUME = "volume";
     public static final String MATERIAL_YEAR = "year";
     public static final String MATERIAL_YEARNUMBER = "yearNumber";
+    public static final String MATERIAL_EDITION = "edition";
 
     public static final String MATERIALFILTER_ID = "id";
     public static final String MATERIALFILTER_JOBID = "jobId";

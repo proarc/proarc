@@ -54,6 +54,8 @@ public class JobView extends Job {
     private String pid;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MODEL)
     private String model;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
+    private String edition;
 
     public String getModel() {
         return model;
@@ -61,6 +63,14 @@ public class JobView extends Job {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    public String getEdition() {
+        return edition;
+    }
+
+    public void setEdition(String edition) {
+        this.edition = edition;
     }
 
     public String getPid() {

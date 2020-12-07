@@ -113,7 +113,7 @@ public final class BinaryEditor {
         } else if (NDK_AUDIO_USER_OGG_ID.equals(dsId)) {
             dp = FoxmlUtils.managedProfile(dsId, mime, NDK_AUDIO_USER_OGG_LABEL);
         } else {
-            dp = null;
+            return null;
         }
         return new BinaryEditor(object, dp);
     }
