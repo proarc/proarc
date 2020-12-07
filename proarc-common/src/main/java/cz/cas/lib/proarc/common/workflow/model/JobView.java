@@ -56,6 +56,16 @@ public class JobView extends Job {
     private String model;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
     private String edition;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_RAW_PATH)
+    private String rawPath;
+
+    public String getRawPath() {
+        return rawPath;
+    }
+
+    public void setRawPath(String rawPath) {
+        this.rawPath = rawPath;
+    }
 
     public String getModel() {
         return model;

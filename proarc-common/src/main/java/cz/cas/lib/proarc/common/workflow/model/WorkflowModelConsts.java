@@ -63,6 +63,8 @@ public final class WorkflowModelConsts {
     public static final String JOB_FILTER_STATE = "state";
     public static final String JOB_FILTER_DIGOBJ_PID = "pid";
     public static final String JOB_FILTER_MODEL = "model";
+    public static final String JOB_FILTER_RAW_PATH = "rawPath";
+//    public static final String JOB_FILTER_MASTER_PATH = "masterPath";
 
     public static final String TASK_CREATED = "created";
     public static final String TASK_ID = "id";
