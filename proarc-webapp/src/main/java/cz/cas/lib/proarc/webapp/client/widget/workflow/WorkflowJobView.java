@@ -423,6 +423,8 @@ public class WorkflowJobView implements Refreshable {
         g.setCanGroupBy(false);
         g.setDataFetchMode(FetchMode.BASIC);
         g.setDataSource(WorkflowJobDataSource.getInstance(),
+//                new ListGridField(WorkflowJobDataSource.FIELD_MASTER_PATH, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_RAW_PATH, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_MBARCODE, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MISSUE, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),
@@ -488,6 +490,8 @@ public class WorkflowJobView implements Refreshable {
         rs.setUseClientSorting(false);
         jobGrid.setDataProperties(rs);
         jobGrid.setDataSource(WorkflowJobDataSource.getInstance(),
+//                new ListGridField(WorkflowJobDataSource.FIELD_MASTER_PATH, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_RAW_PATH, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_MBARCODE, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MISSUE, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),

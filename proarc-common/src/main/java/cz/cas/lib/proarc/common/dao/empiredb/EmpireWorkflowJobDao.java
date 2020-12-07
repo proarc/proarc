@@ -134,6 +134,24 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         cmd.join(tableJob.id, djId, DBJoinType.LEFT);
         cmd.join(tdo.materialId, doId, DBJoinType.RIGHT);
 
+        final ProarcDatabase.WorkflowFolderTable twfR = db.tableWorkflowFolder;
+        final DBColumnExpr rawPath = twfR.path.as("raw_Path");
+        cmd.select(rawPath);
+
+        DBCommand rawCmd = db.createCommand();
+        final DBColumnExpr rawMaterialId = db.tableWorkflowMaterial.id.min().as(db.tableWorkflowMaterial.id);
+        rawCmd.select(rawMaterialId);
+        rawCmd.select(db.tableWorkflowTask.jobId);
+        rawCmd.join(db.tableWorkflowMaterial.id, db.tableWorkflowMaterialInTask.materialId);
+        rawCmd.join(db.tableWorkflowTask.id, db.tableWorkflowMaterialInTask.taskId);
+        rawCmd.where(db.tableWorkflowMaterial.name.is("material.folder.rawScan"));
+        rawCmd.groupBy(db.tableWorkflowTask.jobId);
+        DBQuery rawQuery = new DBQuery(rawCmd);
+
+        DBQuery.DBQueryColumn rawId = rawQuery.findQueryColumn(rawMaterialId);
+        DBQuery.DBQueryColumn rawjId = rawQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        cmd.join(tableJob.id, rawjId, DBJoinType.LEFT);
+        cmd.join(twfR.materialId, rawId, DBJoinType.RIGHT);
 
         EmpireUtils.addWhereIs(cmd, tableJob.id, () -> filter.getId());
         if (filter.getLabel() != null) {
