@@ -55,6 +55,7 @@ public final class RestConfig {
     public static final String URL_IMPORT = path(URL_ROOT, ImportResourceApi.PATH);
     public static final String URL_IMPORT_FOLDER = path(URL_IMPORT, ImportResourceApi.FOLDER_PATH);
     public static final String URL_IMPORT_BATCH = path(URL_IMPORT, ImportResourceApi.BATCH_PATH);
+    public static final String URL_IMPORT_BATCHES = path(URL_IMPORT, ImportResourceApi.BATCHES_PATH);
     public static final String URL_IMPORT_BATCH_ITEM = path(URL_IMPORT_BATCH, ImportResourceApi.BATCHITEM_PATH);
     public static final String URL_DIGOBJECT =  path(URL_ROOT, DigitalObjectResourceApi.PATH);
     public static final String URL_DIGOBJECT_ATM =  path(URL_DIGOBJECT, DigitalObjectResourceApi.ATM_PATH);

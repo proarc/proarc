@@ -213,6 +213,78 @@ public class ImportResource {
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
     }
 
+    @POST
+    @Path(ImportResourceApi.BATCHES_PATH)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<BatchView> newBatches(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
+            @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
+            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
+    ) throws URISyntaxException, IOException {
+
+        LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
+                new Object[] {pathes, indices, device});
+
+        List<String> listFolders = createListOfPath(pathes);
+        URI userRoot = user.getImportFolder();
+        List<Batch> listBatches = new ArrayList<>();
+        List <IOException> listExceptions = new ArrayList<>();
+
+        for (String folderPath : listFolders) {
+            try {
+                URI folderUri = (folderPath != null)
+                        // URI multi param constructor escapes input unlike single param constructor or URI.create!
+                        ? userRoot.resolve(new URI(null, null, folderPath, null))
+                        : userRoot;
+                File folder = new File(folderUri);
+                ConfigurationProfile profile = findImportProfile(null, profileId);
+                ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
+                        importManager, device, indices, appConfig.getImportConfiguration(profile));
+                ImportDispatcher.getDefault().addImport(process);
+                listBatches.add(process.getBatch());
+            } catch (IOException ex) {
+                listExceptions.add(ex);
+            }
+        }
+        if (listExceptions.size() > 0) {
+            throw listExceptions.get(0);
+        }
+        if (listBatches.size() > 0) {
+            return new SmartGwtResponse<BatchView>(importManager.viewBatch(listBatches.get(0).getId()));
+        } else {
+            return new SmartGwtResponse<BatchView>();
+        }
+    }
+
+    private List<String> createListOfPath(String path) {
+        List<String> pathes = new ArrayList<>();
+        path = trim(path, "{", "}");
+        path = trim(path, "[", "]");
+
+        String[] pathesArray = path.split(",");
+
+        if (pathesArray.length > 0) {
+            for (int i = 0; i < pathesArray.length; i++) {
+
+                pathes.add(validateParentPath(pathesArray[i].trim()));
+            }
+        }
+        return pathes;
+    }
+
+    private String trim(String value, String start, String end) {
+        if (value != null && !value.isEmpty()) {
+            if (value.startsWith(start)) {
+                value = value.substring(start.length());
+            }
+            if (value.endsWith(end)) {
+                value = value.substring(0, value.length()-end.length());
+            }
+        }
+        return value;
+    }
+
     /**
      * Gets list of batch imports. DateTime format is ISO 8601.
      * 
