@@ -1616,7 +1616,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_STATUS) String status,
-            @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String model
             ) throws IOException, DigitalObjectException {
 
         ArrayList<AtmItem> result = new ArrayList<AtmItem>(pids.size());
@@ -1628,7 +1629,9 @@ public class DigitalObjectResource {
             AtmEditor editor = new AtmEditor(fobject, search);
             editor.write(deviceId, organization, userName, status, session.asFedoraLog(), user.getRole());
             fobject.flush();
-            editor.setChild(pid, organization, userName, status, appConfig, search, session.asFedoraLog());
+            if (!(model != null && model.length() > 0 && model.contains("page"))) {
+                editor.setChild(pid, organization, userName, status, appConfig, search, session.asFedoraLog());
+            }
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);
             result.add(atm);
