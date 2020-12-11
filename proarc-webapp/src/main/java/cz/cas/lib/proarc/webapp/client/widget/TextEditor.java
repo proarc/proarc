@@ -68,6 +68,10 @@ public final class TextEditor implements DatastreamEditor, Refreshable, Selectab
         return new TextEditor(i18n, TextDataSource.getTechnicalMetadata());
     }
 
+    public static TextEditor technicalCodingHistory(ClientMessages i18n) {
+        return new TextEditor(i18n, TextDataSource.getTechnicalMetadataCodingHistory());
+    }
+
     @Override
     public void edit(DigitalObject digitalObject) {
         this.editObject = digitalObject;

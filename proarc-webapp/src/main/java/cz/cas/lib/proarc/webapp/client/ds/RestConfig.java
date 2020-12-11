@@ -78,6 +78,8 @@ public final class RestConfig {
             URL_DIGOBJECT, DigitalObjectResourceApi.PRIVATENOTE_PATH);
     public static final String URL_DIGOBJECT_TECHNICAL_METADATA = path(URL_DIGOBJECT, DigitalObjectResourceApi.TECHNICALMETADATA_PATH);
     public static final String URL_DIGOBJECT_TECHNICAL_METADATA_XML = path(URL_DIGOBJECT, DigitalObjectResourceApi.TECHNICALMETADATA_XML_PATH);
+    public static final String URL_DIGOBJECT_TECHNICAL_METADATA_CODING_HISTORY = path(URL_DIGOBJECT, DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH);
+    public static final String URL_DIGOBJECT_TECHNICAL_METADATA_XML_CODING_HISTORY = path(URL_DIGOBJECT, DigitalObjectResourceApi.TECHNICALMETADATA_XML_CODING_HISTORY_PATH);
     public static final String URL_DIGOBJECT_RAW = path(URL_DIGOBJECT, DigitalObjectResourceApi.RAW_PATH);
     public static final String URL_DIGOBJECT_SEARCH =  path(URL_DIGOBJECT, DigitalObjectResourceApi.SEARCH_PATH);
     public static final String URL_DIGOBJECT_STREAMPROFILE = path(URL_DIGOBJECT, DigitalObjectResourceApi.STREAMPROFILE_PATH);

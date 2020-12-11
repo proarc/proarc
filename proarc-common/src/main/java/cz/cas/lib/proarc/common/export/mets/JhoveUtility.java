@@ -18,6 +18,7 @@
 package cz.cas.lib.proarc.common.export.mets;
 
 import cz.cas.lib.proarc.aes57.Aes57Utils;
+import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
@@ -43,9 +44,11 @@ import edu.harvard.hul.ois.jhove.App;
 import edu.harvard.hul.ois.jhove.JhoveBase;
 import edu.harvard.hul.ois.jhove.Module;
 import edu.harvard.hul.ois.jhove.OutputHandler;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import org.aes.audioobject.AudioObject;
 import org.aes.audioobject.AudioObjectType;
 import org.apache.commons.io.FileUtils;
+import org.apache.xerces.dom.DeferredTextImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -97,6 +100,34 @@ public class JhoveUtility {
             }
         }
         return null;
+    }
+
+    public static Node getNodeRecursive(Node node, String localName, String value) {
+        if ((node.getLocalName() != null) &&
+                (node.getLocalName().startsWith(localName))) {
+            System.out.println(localName);
+        }
+        if ((node.getLocalName() != null) &&
+                (node.getLocalName().startsWith(localName)) &&
+                (node.getChildNodes() != null) &&
+                node.getChildNodes().getLength() > 0 &&
+                node.getChildNodes().item(0) != null &&
+                (((DeferredTextImpl)node.getChildNodes().item(0)).getData().startsWith(value))) {
+            return node;
+        } else {
+            NodeList nl = node.getChildNodes();
+            if (nl == null) {
+                return null;
+            }
+            for (int a = 0; a < nl.getLength(); a++) {
+                Node found = getNodeRecursive(nl.item(a), localName, value);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+
     }
 
     /**
@@ -204,6 +235,24 @@ public class JhoveUtility {
     }
 
     /**
+     * Gets Coding History of a source image file.
+     *
+     * @param sourceFile image file to describe with AES
+     * @param tempFolder workspace for JHove
+     * @param dateCreated optional date of creation of the source
+     * @param originalFileName optional image file name
+     * @return the MIX description
+     * @throws MetsExportException failure
+     */
+    public static JHoveOutput getCodingHistory(File sourceFile, File tempFolder,
+                                     XMLGregorianCalendar dateCreated, String originalFileName
+    ) throws MetsExportException {
+
+        JhoveContext ctx = createContext(tempFolder);
+        return getCodingHistory(sourceFile, ctx, dateCreated, null);
+    }
+
+    /**
      *
      * Returns the MIX data for fiven element
      *
@@ -243,6 +292,29 @@ public class JhoveUtility {
         initTempJhove(metsContext, config);
         JhoveContext jhoveContext = metsContext.getJhoveContext();
         return getAes(targetFile, jhoveContext, aes, dateCreated, originalFileName);
+    }
+
+    /**
+     *
+     * Returns the AES data for fiven element
+     *
+     * @param targetFile
+     * @param metsContext
+     * @param dateCreated
+     * @param originalFileName
+     * @return
+     * @throws MetsExportException
+     */
+    public static JHoveOutput getCodingHistory(File targetFile, MetsContext metsContext, XMLGregorianCalendar dateCreated, String originalFileName) throws MetsExportException {
+        initJhove(metsContext);
+        JhoveContext jhoveContext = metsContext.getJhoveContext();
+        return getCodingHistory(targetFile, jhoveContext, dateCreated, originalFileName);
+    }
+
+    public static JHoveOutput createCodingHistory(File targetFile, MetsContext metsContext, XMLGregorianCalendar dateCreated, String originalFileName, AppConfiguration config) throws MetsExportException {
+        initTempJhove(metsContext, config);
+        JhoveContext jhoveContext = metsContext.getJhoveContext();
+        return getCodingHistory(targetFile, jhoveContext, dateCreated, originalFileName);
     }
 
     /**
@@ -575,6 +647,61 @@ public class JhoveUtility {
             jhoveOutput.setFormatVersion(formatVersion);
 
             jhoveOutput.setAes(aes);
+        } catch (Exception e) {
+            throw new MetsExportException("Error inspecting file '" + sourceFile + "' - " + e.getMessage(), false, e);
+        }
+        return jhoveOutput;
+    }
+
+    /**
+     * Gets Coding History of a source image file.
+     *
+     * @param sourceFile image file to describe with AES
+     * @param jhoveContext JHove
+     * @param dateCreated optional date of creation of the source
+     * @param originalFileName optional image file name
+     * @return the MIX description
+     * @throws MetsExportException failure
+     */
+    public static JHoveOutput getCodingHistory(File sourceFile, JhoveContext jhoveContext,
+                                     XMLGregorianCalendar dateCreated, String originalFileName
+    ) throws MetsExportException {
+
+        JHoveOutput jhoveOutput = new JHoveOutput();
+
+        if (sourceFile == null || !sourceFile.isFile() || !sourceFile.exists()) {
+            LOG.log(Level.SEVERE, "target file '" + sourceFile + "' cannot be found.");
+            throw new MetsExportException("target file '" + sourceFile + "' cannot be found.", false, null);
+        }
+        try {
+            JhoveBase jhoveBase = jhoveContext.getJhoveBase();
+            File outputFile = File.createTempFile("jhove", "output");
+            LOG.log(Level.FINE, "JHOVE output file " + outputFile);
+            Module module = jhoveBase.getModule(null);
+            OutputHandler aboutHandler = jhoveBase.getHandler(null);
+            OutputHandler xmlHandler = jhoveBase.getHandler("XML");
+            LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + sourceFile);
+            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { sourceFile.getAbsolutePath() });
+            DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+            builderFactory.setNamespaceAware(true);
+            DocumentBuilder builder = builderFactory.newDocumentBuilder();
+            Document jHoveDoc = builder.parse(outputFile);
+
+            outputFile.delete();
+            Node nodeExtension = getNodeRecursive(jHoveDoc, "name", "BroadcastAudioExtension");
+            if (nodeExtension == null) {
+                return jhoveOutput;
+            }
+            Property codingHistory = CodingHistoryUtils.unmarshal(new DOMSource(nodeExtension.getParentNode()), Property.class);
+
+
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            String formatVersion = xpath.compile("*[local-name()='jhove']/*[local-name()='repInfo']/*[local-name()='version']").evaluate(jHoveDoc);
+            if ((formatVersion == null) || ("0".equals(formatVersion)) || (formatVersion.trim().length() == 0)) {
+                formatVersion = "1.0";
+            }
+            jhoveOutput.setFormatVersion(formatVersion);
+            jhoveOutput.setCodingHistory(codingHistory);
         } catch (Exception e) {
             throw new MetsExportException("Error inspecting file '" + sourceFile + "' - " + e.getMessage(), false, e);
         }

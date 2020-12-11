@@ -67,6 +67,8 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
 
     private final VLayout uiContainer;
     private final TechnicalXmlEditor technicalXmlEditor;
+    private final TechnicalXmlCodingHistoryEditor technicalXmlCodingHistoryEditor;
+    private final TechnicalCustomCodingHistoryEditor technicalCustomCodingHistoryEditor;
     private final TechnicalCustomEditor technicalCustomEditor;
     private DatastreamEditor activeEditor;
     private final ClientMessages i18n;
@@ -94,9 +96,12 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         callback = wrapSaveCallback(callback);
         if (activeEditor == technicalCustomEditor) {
             saveCustomData(callback);
-        } else
-            if (activeEditor == technicalXmlEditor) {
+        } else if (activeEditor == technicalCustomCodingHistoryEditor) {
+            saveCustomCodingHistoryData(callback);
+        } else if (activeEditor == technicalXmlEditor) {
             saveXmlData(callback);
+        } else if (activeEditor == technicalXmlCodingHistoryEditor) {
+            saveXmlCodingHistoryData(callback);
         } else {
             callback.execute(Boolean.TRUE);
         }
@@ -106,8 +111,16 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         technicalCustomEditor.save(callback);
     }
 
+    private void saveCustomCodingHistoryData(BooleanCallback callback) {
+        technicalCustomCodingHistoryEditor.save(callback);
+    }
+
     private void saveXmlData(BooleanCallback callback) {
         technicalXmlEditor.save(callback, true, SaveAction.SaveValidation.ASK);
+    }
+
+    private void saveXmlCodingHistoryData(BooleanCallback callback) {
+        technicalXmlCodingHistoryEditor.save(callback, true, SaveAction.SaveValidation.ASK);
     }
 
     private BooleanCallback wrapSaveCallback(final BooleanCallback callback) {
@@ -124,7 +137,9 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         this.i18n = i18n;
         uiContainer = new VLayout();
         technicalXmlEditor = new TechnicalXmlEditor(i18n);
+        technicalXmlCodingHistoryEditor = new TechnicalXmlCodingHistoryEditor(i18n);
         technicalCustomEditor = new TechnicalCustomEditor(i18n);
+        technicalCustomCodingHistoryEditor = new TechnicalCustomCodingHistoryEditor(i18n);
         actionSource = new Actions.ActionSource(this);
         attachDatastreamEditor(technicalCustomEditor);
     }
@@ -185,7 +200,9 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         setEnabledCustom2();
         if (tab == technicalCustomEditor) {
             loadCustom(digitalObject);
-        } else {
+        } else if (tab == technicalCustomCodingHistoryEditor) {
+            loadCodingCustom(digitalObject);
+        }else {
             setActiveEditor(tab);
             tab.edit(digitalObject);
         }
@@ -203,6 +220,21 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
             // unknown model, use source form
             setEnabledCustom(false);
             loadTabData(technicalCustomEditor, digitalObject);
+        }
+    }
+
+    private void loadCodingCustom(DigitalObject digitalObject) {
+        technicalCustomCodingHistoryEditor.edit(digitalObject);
+        if (technicalCustomCodingHistoryEditor.getCustomForm() != null) {
+            setActiveEditor(technicalCustomCodingHistoryEditor);
+            setEnabledCustom(true);
+        } else if (!technicalCustomCodingHistoryEditor.getFormPrefix().isEmpty()) {
+            technicalCustomCodingHistoryEditor.setFormPrefix("");
+            loadCustom(digitalObject);
+        } else {
+            // unknown model, use source form
+            setEnabledCustom(false);
+            loadTabData(technicalCustomCodingHistoryEditor, digitalObject);
         }
     }
 
@@ -312,6 +344,26 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         menuTechnical.addItem(Actions.asMenuItem(
                 new SwitchAction(technicalXmlEditor,
                         i18n.TechnicalMetadataEditor_ActionField_XML(),
+                        Page.getAppDir() + "images/oxygen/16/application_xml.png",
+                        i18n.ModsMultiEditor_TabSimpleSimple_Hint()), actionSource, false));
+
+        menuTechnical.addItem(Actions.asMenuItem(
+                new SwitchAction(technicalCustomCodingHistoryEditor,
+                        "Coding history editor",
+                        Page.getAppDir() + "images/silk/16/application_form_edit.png",
+                        i18n.ModsMultiEditor_TabSimple_Hint()
+                ) {
+
+                    @Override
+                    public void performAction(ActionEvent event) {
+                        technicalCustomCodingHistoryEditor.setFormPrefix("");
+                        super.performAction(event);
+                    }
+                }, actionSource, false));
+
+        menuTechnical.addItem(Actions.asMenuItem(
+                new SwitchAction(technicalXmlCodingHistoryEditor,
+                        "Coding History XML",
                         Page.getAppDir() + "images/oxygen/16/application_xml.png",
                         i18n.ModsMultiEditor_TabSimpleSimple_Hint()), actionSource, false));
 
