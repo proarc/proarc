@@ -91,7 +91,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkEbornPlugin.MODEL_EPERIODICALISSUE,
             NdkEbornPlugin.MODEL_EARTICLE,
             NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
-            NdkAudioPlugin.MODEL_MUSICDOCUMENT
+            NdkAudioPlugin.MODEL_MUSICDOCUMENT,
+            NdkAudioPlugin.MODEL_PHONOGRAPH
             ));
     private static final Logger LOG = Logger.getLogger(UrnNbnVisitor.class.getName());
 

@@ -116,7 +116,7 @@ public final class SearchView {
         final int objectsLimit = 80;
         StringBuilder query = new StringBuilder();
         if (q.getModel() != null && !q.getModel().isEmpty()) {
-            query.append("type~").append(q.getModel());
+        //    query.append("type~").append(translateModels(q.getModel()));
         }
         // FedoraClient.findObjects() does not support OR operator!
         if (!q.getHasOwners().isEmpty()) {
@@ -145,9 +145,9 @@ public final class SearchView {
         while (!pids.isEmpty()) {
             List<Item> items = new ArrayList<>();
             if (active) {
-                items = find(pids.toArray(new String[pids.size()]));
+                items = find(true, q.getModel(), pids.toArray(new String[pids.size()]));
             } else {
-                items = findDeleted(pids.toArray(new String[pids.size()]));
+                items = find(false, q.getModel(), pids.toArray(new String[pids.size()]));
             }
             result.addAll(items);
             String token = response.getToken();
@@ -234,16 +234,24 @@ public final class SearchView {
         return phrase;
     }
 
+    public List<Item> find(String pid) throws FedoraClientException, IOException {
+        return find(true, null, Arrays.asList(pid));
+    }
+
     public List<Item> find(String... pids) throws FedoraClientException, IOException {
-        return find(Arrays.asList(pids), true);
+        return find(true, null, Arrays.asList(pids));
+    }
+
+    public List<Item> find(String model, String... pids) throws FedoraClientException, IOException {
+        return find(true, model, Arrays.asList(pids));
     }
 
     public List<Item> find(boolean onlyActive, String... pids) throws FedoraClientException, IOException {
-        return find(Arrays.asList(pids), onlyActive);
+        return find(onlyActive, null, Arrays.asList(pids));
     }
 
-    public List<Item> findDeleted(String... pids) throws IOException, FedoraClientException {
-        return find(Arrays.asList(pids), false);
+    public List<Item> find(boolean onlyActive, String model, String... pids) throws FedoraClientException, IOException {
+        return find(onlyActive, model, Arrays.asList(pids));
     }
 
     /**
@@ -255,7 +263,19 @@ public final class SearchView {
      * @throws IOException
      */
     public List<Item> find(List<String> pids) throws FedoraClientException, IOException {
-        return find(pids, true);
+        return find(true, null, pids);
+    }
+
+    /**
+     * Finds active descriptors of passed PIDs.
+     *
+     * @param pids PIDs of digital objects
+     * @return list of descriptors
+     * @throws FedoraClientException
+     * @throws IOException
+     */
+    public List<Item> find(boolean onlyActive, List<String> pids) throws FedoraClientException, IOException {
+        return find(onlyActive, null, pids);
     }
 
     /**
@@ -267,7 +287,7 @@ public final class SearchView {
      * @throws FedoraClientException
      * @throws IOException
      */
-    public List<Item> find(List<String> pids, boolean onlyActive) throws FedoraClientException, IOException {
+    public List<Item> find(boolean onlyActive, String model, List<String> pids) throws FedoraClientException, IOException {
         // issue 85: reasonable count of PIDs per query to prevent StackOverflowError.
         // Greater query page sizes (>1000, <2000) are acceptable but Mulgara responses are really slow.
         // It does not make sence to add paging to API as load on demand of SmartGWT Tree
@@ -278,8 +298,13 @@ public final class SearchView {
         ArrayList<Item> result = new ArrayList<Item>(size);
         for (int startOffset = 0; startOffset < size; ) {
             int endOffset = Math.min(size, startOffset + queryPageSize);
-            List<String> subList = pids.subList(startOffset, endOffset);
-            List<Item> members = findImpl(subList, onlyActive);
+            List<Item> membersFull = findImpl(pids, onlyActive, model);
+            List<Item> members = new ArrayList<>();
+            if (membersFull.size() > endOffset) {
+                members = membersFull.subList(startOffset, endOffset);
+            } else {
+                members.addAll(membersFull);
+            }
             repairItemsModel(members);
             startOffset = endOffset;
             result.addAll(members);
@@ -301,9 +326,13 @@ public final class SearchView {
         }
     }
 
-    List<Item> findImpl(List<String> pids, boolean onlyActive) throws FedoraClientException, IOException {
+    List<Item> findImpl(List<String> pids, boolean onlyActive, String model) throws FedoraClientException, IOException {
         if (pids.isEmpty()) {
             return Collections.emptyList();
+        }
+        String modelFilter = "";
+        if (model != null && !model.isEmpty()) {
+            modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
         }
         StringBuilder expr = new StringBuilder(256);
         for (String pid : pids) {
@@ -315,6 +344,7 @@ public final class SearchView {
                     pid));
         }
         String query = QUERY_FIND_PIDS.replace("${pids.expression}", expr);
+        query = query.replace("${pids.model}", modelFilter);
 
         String onlyActiveExpr = onlyActive
                 ? "and        $pid     <info:fedora/fedora-system:def/model#state>"
@@ -341,7 +371,7 @@ public final class SearchView {
         
         RemoteObject parent = storage.find(parentPid);
         List<String> memberPids = new RelationEditor(parent).getMembers();
-        List<Item> items = find(memberPids, true);
+        List<Item> items = find(memberPids);
         ArrayList<Item> sortedItems = new ArrayList<Item>(memberPids.size());
         for (String memberPid : memberPids) {
             for (Iterator<Item> it = items.iterator(); it.hasNext();) {
@@ -394,13 +424,13 @@ public final class SearchView {
         sortField = createSortField(sortField);
         sort = createSort(sort);
         List<String> pids = findAdvancedPids(new Query().setLabel(label).setIdentifier(identifier).setModel(model).setCreator(creator).setOwner(owner));
-        return findAdvancedObjects(pids, status, organization, processor, sortField + " " + sort, offset, limit);
+        return findAdvancedObjects(pids, status, organization, processor, model, sortField + " " + sort, offset, limit);
     }
 
 
     public int findAdvancedSearch(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator) throws FedoraClientException, IOException {
         List<String> pids = findAdvancedPids(new Query().setLabel(label).setIdentifier(identifier).setModel(model).setCreator(creator).setOwner(owner));
-        return findAdvancedCountObjects(pids, status, organization, processor);
+        return findAdvancedCountObjects(pids, status, organization, processor, model);
     }
 
     private List<String> findAdvancedPids(Query q) throws FedoraClientException {
@@ -408,7 +438,7 @@ public final class SearchView {
         List<String> pids = new ArrayList<>();
         StringBuilder query = new StringBuilder();
         if (q.getModel() != null && !q.getModel().isEmpty()) {
-            query.append("type~").append(q.getModel());
+            //query.append("type~").append(q.getModel());
         }
         buildQuery(query, "label", q.getLabel());
         buildQuery(query, "ownerId", q.getOwner());
@@ -436,11 +466,12 @@ public final class SearchView {
     }
 
 
-    private List<Item> findAdvancedObjects(List<String> pids, String status, String organization, String processor, String orderBy, int offset, int limit) throws FedoraClientException, IOException {
+    private List<Item> findAdvancedObjects(List<String> pids, String status, String organization, String processor, String model, String orderBy, int offset, int limit) throws FedoraClientException, IOException {
         String statusFilter = "";
         String organizationFilter = "";
         String processorFilter = "";
         String pidsFilter = "";
+        String modelFilter = "";
 
         StringBuilder expr = new StringBuilder();
         for (String pid : pids) {
@@ -452,7 +483,9 @@ public final class SearchView {
         if (pids.size() > 0) {
             pidsFilter = "and (" + expr.toString() + ")";
         }
-
+        if (model != null && !model.isEmpty()) {
+            modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
+        }
         if (organization != null && !organization.isEmpty()) {
             organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
         }
@@ -464,6 +497,7 @@ public final class SearchView {
             statusFilter = String.format("and   $pid    <http://proarc.lib.cas.cz/relations#status>     <info:fedora/%s>", status);
         }
         String query = QUERY_ADVANCED_SEARCH.replace("${OFFSET}", String.valueOf(offset));
+        query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${ORGANIZATION_FILTER}", organizationFilter);
         query = query.replace("${PROCESSOR_FILTER}", processorFilter);
         query = query.replace("${STATUS_FILTER}", statusFilter);
@@ -485,7 +519,7 @@ public final class SearchView {
         }
     }
 
-    private int findAdvancedCountObjects(List<String> pids, String status, String organization, String processor) throws FedoraClientException, IOException {
+    private int findAdvancedCountObjects(List<String> pids, String status, String organization, String processor, String model) throws FedoraClientException, IOException {
         if (pids.size() == 0) {
             return 0;
         }
@@ -494,6 +528,7 @@ public final class SearchView {
         String organizationFilter = "";
         String processorFilter = "";
         String pidsFilter = "";
+        String modelFilter = "";
 
         StringBuilder expr = new StringBuilder();
         for (String pid : pids) {
@@ -506,6 +541,9 @@ public final class SearchView {
             pidsFilter = "and (" + expr.toString() + ")";
         }
 
+        if (model != null && !model.isEmpty()) {
+            modelFilter = String.format("and        $pid     <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/%s>", model);
+        }
         if (organization != null && !organization.isEmpty()) {
             organizationFilter = String.format("and       $pid      <http://proarc.lib.cas.cz/relations#organization>    <info:fedora/%s>", organization);
         }
@@ -517,6 +555,7 @@ public final class SearchView {
             statusFilter = String.format("and   $pid    <http://proarc.lib.cas.cz/relations#status>     <info:fedora/%s>", status);
         }
         String query = QUERY_ADVANCED_SEARCH_COUNT;
+        query = query.replace("${MODEL_FILTER}", modelFilter);
         query = query.replace("${ORGANIZATION_FILTER}", organizationFilter);
         query = query.replace("${PROCESSOR_FILTER}", processorFilter);
         query = query.replace("${STATUS_FILTER}", statusFilter);

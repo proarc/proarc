@@ -17,10 +17,10 @@
 package cz.cas.lib.proarc.common.workflow.model;
 
 import cz.cas.lib.proarc.common.workflow.profile.Way;
-import java.math.BigDecimal;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import java.math.BigDecimal;
 
 /**
  * The view for all kinds of materials.
@@ -64,6 +64,16 @@ public class MaterialView extends Material {
     private String volume;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_YEAR)
     private String year;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_EDITION)
+    private String edition;
+
+    public String getEdition() {
+        return edition;
+    }
+
+    public void setEdition(String edition) {
+        this.edition = edition;
+    }
 
     public String getProfileLabel() {
         return profileLabel;

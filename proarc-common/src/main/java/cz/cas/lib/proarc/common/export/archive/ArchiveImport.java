@@ -87,7 +87,7 @@ public class ArchiveImport implements ImportHandler {
     public void consumeArchive(File metsFile, ImportOptions ctx) {
         File targetFolder = ctx.getTargetFolder();
         PackageReader reader = new PackageReader(targetFolder, isession);
-        reader.read(metsFile);
+        reader.read(metsFile, ctx);
     }
 
 }

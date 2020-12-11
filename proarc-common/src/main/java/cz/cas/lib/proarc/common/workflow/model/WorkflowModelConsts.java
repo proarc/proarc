@@ -53,6 +53,7 @@ public final class WorkflowModelConsts {
     public static final String JOB_FILTER_MATERIAL_SIGNATURE = "signature";
     public static final String JOB_FILTER_MATERIAL_VOLUME = "volume";
     public static final String JOB_FILTER_MATERIAL_YEAR = "year";
+    public static final String JOB_FILTER_MATERIAL_EDITION = "edition";
     public static final String JOB_FILTER_OFFSET = "_startRow";
     public static final String JOB_FILTER_OWNERID = "ownerId";
     public static final String JOB_FILTER_PARENTID = "parentId";
@@ -60,6 +61,10 @@ public final class WorkflowModelConsts {
     public static final String JOB_FILTER_PROFILENAME = "profileName";
     public static final String JOB_FILTER_SORTBY = "_sortBy";
     public static final String JOB_FILTER_STATE = "state";
+    public static final String JOB_FILTER_DIGOBJ_PID = "pid";
+    public static final String JOB_FILTER_MODEL = "model";
+    public static final String JOB_FILTER_RAW_PATH = "rawPath";
+//    public static final String JOB_FILTER_MASTER_PATH = "masterPath";
 
     public static final String TASK_CREATED = "created";
     public static final String TASK_ID = "id";
@@ -75,6 +80,7 @@ public final class WorkflowModelConsts {
     public static final String TASK_PROFILENAME = "profileName";
     public static final String TASK_STATE = "state";
     public static final String TASK_MODIFIED = "modified";
+    public static final String TASK_ORDER = "order";
     /**
      * It is same like {@link #TASK_MODIFIED} but in a long number format to keep precision.
      */
@@ -138,6 +144,7 @@ public final class WorkflowModelConsts {
     public static final String MATERIAL_VOLUME = "volume";
     public static final String MATERIAL_YEAR = "year";
     public static final String MATERIAL_YEARNUMBER = "yearNumber";
+    public static final String MATERIAL_EDITION = "edition";
 
     public static final String MATERIALFILTER_ID = "id";
     public static final String MATERIALFILTER_JOBID = "jobId";

@@ -17,17 +17,21 @@
 package cz.cas.lib.proarc.webapp.client.presenter;
 
 import com.google.gwt.place.shared.PlaceController;
+import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.grid.ListGrid;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ErrorHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
@@ -132,4 +136,26 @@ public class WorkflowJobsEditor {
         }
     }
 
+    public void onCreateNewSubjob(Record query, ListGrid subjobGrid) {
+        DSRequest dsRequest = new DSRequest();
+        dsRequest.setWillHandleError(true);
+        WorkflowJobDataSource.getInstance().addData(query, new DSCallback() {
+            @Override
+            public void execute(DSResponse dsResponse, Object o, DSRequest dsRequest) {
+                if (RestConfig.isStatusOk(dsResponse)) {
+                    StatusView.getInstance().show(i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+                    Record[] records = dsResponse.getData();
+                    String model = records[0].getAttribute(WorkflowJobDataSource.FIELD_MODEL);
+                    if (records.length > 0) {
+                        int idx = subjobGrid.findIndex(new AdvancedCriteria(WorkflowJobDataSource.FIELD_ID,
+                                OperatorId.EQUALS, records[0].getAttribute(WorkflowJobDataSource.FIELD_ID)));
+                        subjobGrid.selectSingleRecord(idx);
+                        subjobGrid.scrollToRow(idx);
+                    }
+                    String jobId = records.length == 0 ? null : records[0].getAttribute(WorkflowJobDataSource.FIELD_ID);
+                    places.goTo(new WorkflowManaging.WorkflowNewJobEditPlace().setJobId(jobId).setModelPid(model));
+                }
+            }
+        }, dsRequest);
+    }
 }

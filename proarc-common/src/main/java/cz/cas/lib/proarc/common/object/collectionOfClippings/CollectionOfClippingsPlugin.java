@@ -113,7 +113,7 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
                 new RelationCriteria[]{
                         new RelationCriteria(MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID)
                 }

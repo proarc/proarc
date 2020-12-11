@@ -38,6 +38,7 @@ import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction.Resto
 import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.Collections;
 import java.util.HashMap;
@@ -118,7 +119,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
     }
 
     public static DynamicForm createDeleteOptionsForm() {
-        if (!Editor.getInstance().hasPermission("proarc.permission.admin")) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN))) {
             return null;
         }
         ClientMessages i18n = GWT.create(ClientMessages.class);

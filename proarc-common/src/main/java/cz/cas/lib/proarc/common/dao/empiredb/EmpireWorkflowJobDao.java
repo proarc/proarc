@@ -22,12 +22,6 @@ import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowJobTable;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBJoinType;
@@ -37,6 +31,12 @@ import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -97,7 +97,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         cmd.select(tableJob.getColumns());
         cmd.select(db.tableUser.username);
         final ProarcDatabase.WorkflowPhysicalDocTable tpd = db.tableWorkflowPhysicalDoc;
-        cmd.select(tpd.barcode, tpd.detail, tpd.field001, tpd.issue, tpd.sigla, tpd.signature, tpd.volume, tpd.year);
+        cmd.select(tpd.barcode, tpd.detail, tpd.field001, tpd.issue, tpd.sigla, tpd.signature, tpd.volume, tpd.year, tpd.edition);
         cmd.join(tableJob.ownerId, db.tableUser.id, DBJoinType.LEFT);
 
         DBCommand pmatCmd = db.createCommand();
@@ -116,6 +116,43 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         // empire db reverse the joint type so that is why RIGHT instead of LEFT
         cmd.join(tpd.materialId, wmId, DBJoinType.RIGHT);
 
+        final ProarcDatabase.WorkflowDigObjTable tdo = db.tableWorkflowDigObj;
+        cmd.select(tdo.pid);
+
+        DBCommand digObjCmd = db.createCommand();
+        final DBColumnExpr digObjMaterialId = db.tableWorkflowMaterial.id.min().as(db.tableWorkflowMaterial.id);
+        digObjCmd.select(digObjMaterialId);
+        digObjCmd.select(db.tableWorkflowTask.jobId);
+        digObjCmd.join(db.tableWorkflowMaterial.id, db.tableWorkflowMaterialInTask.materialId);
+        digObjCmd.join(db.tableWorkflowTask.id, db.tableWorkflowMaterialInTask.taskId);
+        digObjCmd.where(db.tableWorkflowMaterial.type.is("DIGITAL_OBJECT"));
+        digObjCmd.groupBy(db.tableWorkflowTask.jobId);
+        DBQuery digObjQuery = new DBQuery(digObjCmd);
+
+        DBQuery.DBQueryColumn doId = digObjQuery.findQueryColumn(digObjMaterialId);
+        DBQuery.DBQueryColumn djId = digObjQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        cmd.join(tableJob.id, djId, DBJoinType.LEFT);
+        cmd.join(tdo.materialId, doId, DBJoinType.RIGHT);
+
+        final ProarcDatabase.WorkflowFolderTable twfR = db.tableWorkflowFolder;
+        final DBColumnExpr rawPath = twfR.path.as("raw_Path");
+        cmd.select(rawPath);
+
+        DBCommand rawCmd = db.createCommand();
+        final DBColumnExpr rawMaterialId = db.tableWorkflowMaterial.id.min().as(db.tableWorkflowMaterial.id);
+        rawCmd.select(rawMaterialId);
+        rawCmd.select(db.tableWorkflowTask.jobId);
+        rawCmd.join(db.tableWorkflowMaterial.id, db.tableWorkflowMaterialInTask.materialId);
+        rawCmd.join(db.tableWorkflowTask.id, db.tableWorkflowMaterialInTask.taskId);
+        rawCmd.where(db.tableWorkflowMaterial.name.is("material.folder.rawScan"));
+        rawCmd.groupBy(db.tableWorkflowTask.jobId);
+        DBQuery rawQuery = new DBQuery(rawCmd);
+
+        DBQuery.DBQueryColumn rawId = rawQuery.findQueryColumn(rawMaterialId);
+        DBQuery.DBQueryColumn rawjId = rawQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        cmd.join(tableJob.id, rawjId, DBJoinType.LEFT);
+        cmd.join(twfR.materialId, rawId, DBJoinType.RIGHT);
+
         EmpireUtils.addWhereIs(cmd, tableJob.id, () -> filter.getId());
         if (filter.getLabel() != null) {
             String pattern = filter.getLabel().trim().replace("%", "\\%");
@@ -131,6 +168,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         EmpireUtils.addWhereLike(cmd, tpd.signature, () -> filter.getMaterialSignature());
         EmpireUtils.addWhereLike(cmd, tpd.volume, () -> filter.getMaterialVolume());
         EmpireUtils.addWhereLike(cmd, tpd.year, () -> filter.getMaterialYear());
+        EmpireUtils.addWhereLike(cmd, tpd.edition, () -> filter.getMaterialEdition());
         EmpireUtils.addWhereIs(cmd, tableJob.parentId, () -> filter.getParentId());
         EmpireUtils.addWhereIs(cmd, tableJob.profileName, () -> filter.getProfileName());
         EmpireUtils.addWhereIs(cmd, tableJob.state, () -> filter.getState() == null ? null : filter.getState().name());

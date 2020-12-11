@@ -335,7 +335,7 @@ public final class MapperUtils {
                     DetailDefinition detail = new DetailDefinition();
                     //        detail.setType(extent.getUnit());
                     StringPlusLanguage detailNumber = new StringPlusLanguage();
-                    detailNumber.setValue(start.getValue() + "-" + end.getValue());
+                    detailNumber.setValue((start == null ? "" : start.getValue())+ "-" + (end == null ? "" : end.getValue()));
                     detail.getNumber().add(detailNumber);
                     part.getDetail().clear();
                     part.getDetail().add(detail);
@@ -378,6 +378,9 @@ public final class MapperUtils {
                     addElementType(dc.getDates(), date.getValue());
                 //}
             }
+            /*for (DateDefinition date : originInfo.getDateOther()) {
+                addElementType(dc.getDates(), date.getValue());
+            }*/
         }
     }
 

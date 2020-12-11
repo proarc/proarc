@@ -139,7 +139,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN))
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL))
                 ));
 
         return models;

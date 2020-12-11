@@ -66,6 +66,7 @@ public class Const {
     public final static String CHAPTER_MODEL = NdkPlugin.MODEL_CHAPTER;
     public final static String SUPPLEMENT_MODEL = "model:supplement";
     public final static String SOUND_COLLECTION_MODEL = NdkAudioPlugin.MODEL_MUSICDOCUMENT;
+    public final static String SOUND_FONOGRAPH_MODEL = NdkAudioPlugin.MODEL_PHONOGRAPH;
     public final static String SOUND_RECORDING_MODEL = NdkAudioPlugin.MODEL_SONG;
     public final static String SOUND_PART_MODEL = NdkAudioPlugin.MODEL_TRACK;
     public final static String SOUND_PAGE_MODEL = NdkAudioPlugin.MODEL_PAGE;
@@ -138,7 +139,9 @@ public class Const {
     public static final String TXT_GRP_ID = "TXTGRP";
     public static final String AUDIO_RAW_GRP_ID = "SA_AUDIOGRP";
     public static final String AUDIO_MC_GRP_ID = "MC_AUDIOGRP";
+    public static final String AUDIO_MC_GRP_ID_FLAC = "MC_AUDIOGRP_FLAC";
     public static final String AUDIO_UC_GRP_ID = "UC_AUDIOGRP";
+    public static final String AUDIO_UC_GRP_ID_OGG = "UC_AUDIOGRP_OGG";
     public static final String OC_GRP_ID = "OC_EBGRP";
     public static final String OC_GRP_ID_CREATION = "OC_EBGRP_CREATION";
     public static final String OC_GRP_ID_VALIDATION = "OC_EBGRP_VALIDATION";
@@ -182,7 +185,9 @@ public class Const {
         mimeToExtensionMap.put("application/pdf", ".pdf");
         mimeToExtensionMap.put("image/jpeg", ".jpeq");
         mimeToExtensionMap.put("audio/wav", ".wav");
+        mimeToExtensionMap.put("audio/flac", ".flac");
         mimeToExtensionMap.put("audio/mpeg", ".mp3");
+        mimeToExtensionMap.put("audio/ogg", ".ogg");
 
         PSPElements.add(Const.MONOGRAPH_UNIT);
         PSPElements.add(Const.ISSUE);
@@ -205,6 +210,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_CARTOGRAPHIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_SHEETMUSIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + SOUND_COLLECTION_MODEL, SOUND_COLLECTION);
+        typeMap.put(FEDORAPREFIX + SOUND_FONOGRAPH_MODEL, SOUND_COLLECTION);
         typeMap.put(FEDORAPREFIX + SOUND_RECORDING_MODEL, SOUND_RECORDING);
         typeMap.put(FEDORAPREFIX + SOUND_PART_MODEL, SOUND_PART);
         typeMap.put(FEDORAPREFIX + SOUND_PAGE_MODEL, SOUND_PAGE);
@@ -244,9 +250,13 @@ public class Const {
 
         audioStremMapping.put(AUDIO_MC_GRP_ID, new ArrayList<String>());
         audioStremMapping.get(AUDIO_MC_GRP_ID).add(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
+        audioStremMapping.put(AUDIO_MC_GRP_ID_FLAC, new ArrayList<String>());
+        audioStremMapping.get(AUDIO_MC_GRP_ID_FLAC).add(BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID);
 
         audioStremMapping.put(AUDIO_UC_GRP_ID, new ArrayList<String>());
         audioStremMapping.get(AUDIO_UC_GRP_ID).add(BinaryEditor.NDK_AUDIO_USER_ID);
+        audioStremMapping.put(AUDIO_UC_GRP_ID_OGG, new ArrayList<String>());
+        audioStremMapping.get(AUDIO_UC_GRP_ID_OGG).add(BinaryEditor.NDK_AUDIO_USER_OGG_ID);
 
         streamMapping = new HashMap<String, List<String>>();
         streamMapping.put(MC_GRP_ID, new ArrayList<String>());
@@ -272,7 +282,9 @@ public class Const {
         streamMappingPrefix.put(TXT_GRP_ID, "txt");
         streamMappingPrefix.put(TECHMDGRP, "amd_mets");
         streamMappingPrefix.put(AUDIO_MC_GRP_ID, "mca");
+        streamMappingPrefix.put(AUDIO_MC_GRP_ID_FLAC, "mca");
         streamMappingPrefix.put(AUDIO_UC_GRP_ID, "uca");
+        streamMappingPrefix.put(AUDIO_UC_GRP_ID_OGG, "uca");
         streamMappingPrefix.put(AUDIO_RAW_GRP_ID, "sa");
 
 
@@ -282,7 +294,9 @@ public class Const {
         streamMappingFile.put(TXT_GRP_ID, "txt");
         streamMappingFile.put(TECHMDGRP, "amdsec");
         streamMappingFile.put(AUDIO_MC_GRP_ID, "mastercopy_audio");
+        streamMappingFile.put(AUDIO_MC_GRP_ID_FLAC, "mastercopy_audio");
         streamMappingFile.put(AUDIO_UC_GRP_ID, "usercopy_audio");
+        streamMappingFile.put(AUDIO_UC_GRP_ID_OGG, "usercopy_audio");
         streamMappingFile.put(AUDIO_RAW_GRP_ID, "sourceaudio");
 
         canContainPage.add(Const.ISSUE);

@@ -52,6 +52,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.BlockerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.MaterialDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.ModelDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetMaterialDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.SetParamDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.StepDefinition;
@@ -122,6 +123,9 @@ public class WorkflowManager {
                 if (profile != null) {
                     job.setProfileLabel(profile.getTitle(lang, profile.getName()));
                     job.setProfileHint(profile.getHint(lang, null));
+                    if (profile.getModel() != null && profile.getModel().size() > 0) {
+                        job.setModel(profile.getModel().get(0).getName());
+                    }
                 } else {
                     job.setProfileLabel(job.getProfileName());
                     job.setProfileHint("Unknown job XML ID: " + job.getProfileName());
@@ -276,12 +280,12 @@ public class WorkflowManager {
         } else if (m.getType() == MaterialType.DIGITAL_OBJECT) {
             DigitalMaterial dm = (DigitalMaterial) m;
             String label = view.getPid();
-            if (view.getPid() != null && !view.getPid().equals(dm.getPid())) {
+           /* if (view.getPid() != null && !view.getPid().equals(dm.getPid())) {
                 List<Item> items = RemoteStorage.getInstance().getSearch().find(view.getPid());
                 if (!items.isEmpty()) {
                     label = items.get(0).getLabel();
                 }
-            }
+            }*/
             dm.setPid(view.getPid());
             dm.setLabel(label);
             jobDao.update(job);
@@ -301,16 +305,28 @@ public class WorkflowManager {
             pm.setSigla(view.getSigla());
             pm.setVolume(view.getVolume());
             pm.setYear(view.getYear());
+            pm.setEdition(view.getEdition());
 
             if (newMetadata == null ? oldMetadata != null : !newMetadata.equals(oldMetadata)) {
-                PhysicalMaterial t = new PhysicalMaterialBuilder().setMetadata(newMetadata).build();
+                WorkflowDefinition wd = WorkflowProfiles.getInstance().getProfiles();
+                WorkflowProfiles wp = WorkflowProfiles.getInstance();
+                JobDefinition jd = wp.getProfile(wd, job.getProfileName());
+                List<ModelDefinition> models = jd.getModel();
+                String model = null;
+                if (models.size() > 0) {
+                    model = models.get(0).getName();
+                }
+                PhysicalMaterial t = new PhysicalMaterialBuilder().setMetadata(newMetadata, model).build();
                 pm.setMetadata(t.getMetadata());
                 pm.setSignature(t.getSignature());
                 pm.setSigla(t.getSigla());
                 pm.setIssue(t.getIssue());
                 pm.setVolume(t.getVolume());
                 pm.setLabel(t.getLabel());
+                pm.setYear(t.getYear());
+                pm.setDetail(t.getDetail());
                 pm.setBarcode(t.getBarcode());
+                pm.setEdition(t.getEdition());
                 jobLabel = pm.getLabel();
             }
             if (jobLabel == null ? job.getLabel() != null : !jobLabel.equals(job.getLabel())) {
@@ -412,8 +428,13 @@ public class WorkflowManager {
             CatalogConfiguration catalog, BigDecimal rdczId, UserProfile defaultUser, AppConfiguration appConfiguration
     ) throws WorkflowException {
         Map<String, UserProfile> users = createUserMap();
+        List<ModelDefinition> models = jobProfile.getModel();
+        String model = null;
+        if (models.size() > 0) {
+            model = models.get(0).getName();
+        }
         PhysicalMaterial physicalMaterial = new PhysicalMaterialBuilder()
-                .setCatalog(catalog).setMetadata(xml).setRdczId(rdczId)
+                .setCatalog(catalog).setMetadata(xml, model).setRdczId(rdczId)
                 .build();
         Transaction tx = daoFactory.createTransaction();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
@@ -430,10 +451,10 @@ public class WorkflowManager {
         try {
             Job job = createJob(jobDao, now, jobLabel, jobProfile, null, users, defaultUser);
             Map<String, Material> materialCache = new HashMap<>();
-
+            Integer order = 1;
             for (StepDefinition step : jobProfile.getSteps()) {
                 if (!step.isOptional()) {
-                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser);
+                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser, order++);
                     createTaskParams(paramDao, step, task);
                     createMaterials(materialDao, step, task, materialCache, physicalMaterial, appConfiguration);
                 }
@@ -496,11 +517,15 @@ public class WorkflowManager {
             String jobLabel = "?";
             if (mv != null) {
                 physicalMaterial = new PhysicalMaterial();
-                physicalMaterial.setBarcode(mv.getBarcode());
+                physicalMaterial.setLabel(mv.getLabel());
+                jobLabel = physicalMaterial.getLabel();
+
+
+                /* Issue #1254: bylo rozhodnotu, ze se nebudou kopirovat metadata do podzameru, schvaleno M. Nezbedovou dne 2020.12.11 */
+                /*physicalMaterial.setBarcode(mv.getBarcode());
                 physicalMaterial.setField001(mv.getField001());
                 physicalMaterial.setDetail(mv.getDetail());
-                physicalMaterial.setIssue(mv.getIssue());
-                physicalMaterial.setLabel(mv.getLabel());
+
                 physicalMaterial.setMetadata(mv.getMetadata());
                 physicalMaterial.setName(mv.getName());
                 physicalMaterial.setNote(mv.getNote());
@@ -509,17 +534,22 @@ public class WorkflowManager {
                 physicalMaterial.setSignature(mv.getSignature());
                 physicalMaterial.setSource(mv.getSource());
                 physicalMaterial.setVolume(mv.getVolume());
+                physicalMaterial.setIssue(mv.getIssue());
+                if (jobProfile.getModel().size() > 0 && NdkPlugin.MODEL_PERIODICALVOLUME.equals(jobProfile.getModel().get(0).getName())) {
+                 physicalMaterial.setVolume(mv.getIssue());
+                }
                 physicalMaterial.setYear(mv.getYear());
 //                physicalMaterial.setState(mv.getState());
-                jobLabel = physicalMaterial.getLabel();
+                */
             }
 
             Job job = createJob(jobDao, now, jobLabel, jobProfile, parentId, users, defaultUser);
 
             Map<String, Material> materialCache = new HashMap<>();
+            Integer order = 1;
             for (StepDefinition step : jobProfile.getSteps()) {
                 if (!step.isOptional()) {
-                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser);
+                     Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser, order++);
                     createTaskParams(paramDao, step, task);
                     createMaterials(materialDao, step, task, materialCache, physicalMaterial, appConfiguration);
                 }
@@ -554,7 +584,7 @@ public class WorkflowManager {
     private Task createTask(WorkflowTaskDao taskDao, Timestamp now,
             Job job, JobDefinition jobProfile,
             StepDefinition step,
-            Map<String, UserProfile> users, UserProfile defaultUser
+            Map<String, UserProfile> users, UserProfile defaultUser, Integer order
     ) throws ConcurrentModificationException {
 
         Task task = taskDao.create().addCreated(now)
@@ -563,7 +593,8 @@ public class WorkflowManager {
                 .addPriority(job.getPriority())
                 .setState(isBlockedNewTask(step, jobProfile) ? Task.State.WAITING : Task.State.READY)
                 .addTimestamp(now)
-                .addTypeRef(step.getTask().getName());
+                .addTypeRef(step.getTask().getName())
+                .addOrder(order);
         taskDao.update(task);
         return task;
     }

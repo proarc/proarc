@@ -37,24 +37,10 @@ import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
+import org.apache.commons.io.IOUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -71,7 +57,22 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import org.apache.commons.io.IOUtils;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Resource to handle imports.
@@ -212,6 +213,78 @@ public class ImportResource {
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
     }
 
+    @POST
+    @Path(ImportResourceApi.BATCHES_PATH)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<BatchView> newBatches(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
+            @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
+            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
+    ) throws URISyntaxException, IOException {
+
+        LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
+                new Object[] {pathes, indices, device});
+
+        List<String> listFolders = createListOfPath(pathes);
+        URI userRoot = user.getImportFolder();
+        List<Batch> listBatches = new ArrayList<>();
+        List <IOException> listExceptions = new ArrayList<>();
+
+        for (String folderPath : listFolders) {
+            try {
+                URI folderUri = (folderPath != null)
+                        // URI multi param constructor escapes input unlike single param constructor or URI.create!
+                        ? userRoot.resolve(new URI(null, null, folderPath, null))
+                        : userRoot;
+                File folder = new File(folderUri);
+                ConfigurationProfile profile = findImportProfile(null, profileId);
+                ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
+                        importManager, device, indices, appConfig.getImportConfiguration(profile));
+                ImportDispatcher.getDefault().addImport(process);
+                listBatches.add(process.getBatch());
+            } catch (IOException ex) {
+                listExceptions.add(ex);
+            }
+        }
+        if (listExceptions.size() > 0) {
+            throw listExceptions.get(0);
+        }
+        if (listBatches.size() > 0) {
+            return new SmartGwtResponse<BatchView>(importManager.viewBatch(listBatches.get(0).getId()));
+        } else {
+            return new SmartGwtResponse<BatchView>();
+        }
+    }
+
+    private List<String> createListOfPath(String path) {
+        List<String> pathes = new ArrayList<>();
+        path = trim(path, "{", "}");
+        path = trim(path, "[", "]");
+
+        String[] pathesArray = path.split(",");
+
+        if (pathesArray.length > 0) {
+            for (int i = 0; i < pathesArray.length; i++) {
+
+                pathes.add(validateParentPath(pathesArray[i].trim()));
+            }
+        }
+        return pathes;
+    }
+
+    private String trim(String value, String start, String end) {
+        if (value != null && !value.isEmpty()) {
+            if (value.startsWith(start)) {
+                value = value.substring(start.length());
+            }
+            if (value.endsWith(end)) {
+                value = value.substring(0, value.length()-end.length());
+            }
+        }
+        return value;
+    }
+
     /**
      * Gets list of batch imports. DateTime format is ISO 8601.
      * 
@@ -246,7 +319,7 @@ public class ImportResource {
         int pageSize = 100;
         BatchViewFilter filterAll = new BatchViewFilter()
                     .setBatchId(batchId)
-                    .setUserId(user.getId() == 1 ? null : user.getId())
+                    .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                     .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -261,7 +334,7 @@ public class ImportResource {
         BatchViewFilter filter = new BatchViewFilter()
                 .setBatchId(batchId)
                 // admin may see all users; XXX use permissions for this!
-                .setUserId(user.getId() == 1 ? null : user.getId())
+                .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                 .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -276,6 +349,28 @@ public class ImportResource {
         int endRow = startRow + batchSize - 1;
         int total = allBatches.size();
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
+    }
+
+    @GET
+    @Path(ImportResourceApi.BATCHES_IN_PROCESS_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<BatchView> listProcessingBatches(
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState
+
+    ) throws IOException {
+        if (batchState.isEmpty()) {
+            batchState.add(Batch.State.LOADING);
+        }
+        BatchViewFilter filterAll = new BatchViewFilter()
+                .setState(batchState)
+                .setMaxCount(1000)
+                .setSortBy("id");
+
+        List<BatchView> loadingBatches = importManager.viewProcessingBatches(filterAll, user, UserRole.ROLE_USER);
+
+        int endRow = 0 + loadingBatches.size() - 1;
+        int total = loadingBatches.size();
+        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, loadingBatches);
     }
 
     @PUT

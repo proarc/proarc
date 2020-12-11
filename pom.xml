@@ -28,6 +28,7 @@
         <module>proarc-common</module>
 
         <module>proarc-aes57</module>
+        <module>proarc-codingHistory</module>
         <module>proarc-auth</module>
         <module>proarc-desa</module>
         <module>proarc-mets</module>

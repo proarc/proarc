@@ -61,6 +61,7 @@ public class WorkflowMaterialDataSource extends ProarcDataSource {
     public static final String FIELD_PHYSICAL_SIGLA = WorkflowModelConsts.MATERIAL_SIGLA;
     public static final String FIELD_PHYSICAL_VOLUME = WorkflowModelConsts.MATERIAL_VOLUME;
     public static final String FIELD_PHYSICAL_YEAR = WorkflowModelConsts.MATERIAL_YEAR;
+    public static final String FIELD_PHYSICAL_EDITION = WorkflowModelConsts.MATERIAL_EDITION;
     public static final String FIELD_DIGITAL_PID = WorkflowModelConsts.MATERIAL_PID;
 
     public static WorkflowMaterialDataSource INSTANCE;
@@ -158,6 +159,10 @@ public class WorkflowMaterialDataSource extends ProarcDataSource {
                 i18n.WorkflowMaterial_Field_Year_Title(), 100);
         year.setDetail(true);
 
+        DataSourceTextField edition = new DataSourceTextField(FIELD_PHYSICAL_EDITION,
+                i18n.WorkflowMaterial_Field_Edition_Title(), 100);
+        edition.setDetail(true);
+
         DataSourceTextField pid = new DataSourceTextField(FIELD_DIGITAL_PID);
         pid.setTitle(i18n.WorkflowMaterial_Field_Pid_Title());
         pid.setDetail(true);
@@ -169,7 +174,7 @@ public class WorkflowMaterialDataSource extends ProarcDataSource {
         setFields(profile, type, value, way, note, fieldId, primaryKey,
                 path,
                 barcode, field001, signature, rdCzId, catalog, metadata, detail, issue, sigla, volume, year,
-                pid
+                pid, edition
         );
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

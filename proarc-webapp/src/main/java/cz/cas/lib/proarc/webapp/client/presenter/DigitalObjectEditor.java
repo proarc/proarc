@@ -441,6 +441,13 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
                 DatastreamEditorType.ATM,
                 new AcceptFilter(true, true),
                 places);
+        DigitalObjectEditAction technicalMetadataAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_TabTechnical_Title(),
+                i18n.DigitalObjectEditor_TabTechnical_Hint(),
+                null,
+                DatastreamEditorType.TECHNICAL,
+                new AcceptFilter(true, false),
+                places);
         if (embeddedView) {
             Action actionMore = Actions.emptyAction(i18n.ActionsMenu_Title(),
                     null, null);
@@ -460,6 +467,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             }
             menu.addItem(Actions.asMenuItem(ocrEditAction, source, false));
             menu.addItem(Actions.asMenuItem(atmEditAction, source, false));
+            menu.addItem(Actions.asMenuItem(technicalMetadataAction, source, false));
             actionsMenu.setMenu(menu);
         } else {
             t.addMember(Actions.asIconButton(refreshAction, source));
@@ -474,6 +482,7 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             menuEditors.addItem(Actions.asMenuItem(ocrEditAction, source, false));
             menuEditors.addItem(Actions.asMenuItem(childrenEditAction, source, false));
             menuEditors.addItem(Actions.asMenuItem(atmEditAction, source, false));
+            menuEditors.addItem(Actions.asMenuItem(technicalMetadataAction, source, false));
             btnEditors.setMenu(menuEditors);
             t.addMember(btnEditors);
             DigitalObjectNavigateAction parentAction = DigitalObjectNavigateAction.parent(i18n, places);
@@ -567,6 +576,11 @@ public final class DigitalObjectEditor implements Refreshable, Selectable<Record
             case ATM:
                 title = i18n.DigitalObjectEditor_AdministrationEditor_Title();
                 deditor = new DigitalObjectAdministrationEditor(i18n);
+                break;
+            case TECHNICAL:
+                title = i18n.DigitalObjectEditor_TabTechnical_Title();
+                //deditor = TextEditor.technical(i18n);
+                deditor = new TechnicalMetadataMultiEditor(i18n);
                 break;
         }
         title = ClientUtils.format("<b>%s</b>", title);

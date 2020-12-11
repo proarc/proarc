@@ -16,11 +16,11 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
-import java.math.BigDecimal;
-import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 /**
  *
@@ -48,6 +48,16 @@ public class Task {
     private String typeRef;
     @XmlElement(name = WorkflowModelConsts.TASK_TIMESTAMP)
     private Timestamp timestamp;
+    @XmlElement(name = WorkflowModelConsts.TASK_ORDER)
+    private Integer order;
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
 
     public Timestamp getCreated() {
         return created;
@@ -167,6 +177,11 @@ public class Task {
 
     public Task addTimestamp(Timestamp timestamp) {
         setTimestamp(timestamp);
+        return this;
+    }
+
+    public Task addOrder(Integer order) {
+        setOrder(order);
         return this;
     }
 

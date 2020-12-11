@@ -74,4 +74,5 @@ public interface UserManager {
 
     Set<Permission> findUserPermissions(int userId);
 
+    String findUserRole(int id);
 }

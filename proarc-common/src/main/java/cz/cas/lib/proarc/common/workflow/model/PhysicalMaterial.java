@@ -37,6 +37,7 @@ public class PhysicalMaterial extends Material {
     private String sigla;
     private String volume;
     private String year;
+    private String edition;
 
     public PhysicalMaterial() {
         setType(MaterialType.PHYSICAL_DOCUMENT);
@@ -130,4 +131,11 @@ public class PhysicalMaterial extends Material {
         this.year = year;
     }
 
+    public String getEdition() {
+        return edition;
+    }
+
+    public void setEdition(String edition) {
+        this.edition = edition;
+    }
 }

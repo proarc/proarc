@@ -55,6 +55,7 @@ public final class RestConfig {
     public static final String URL_IMPORT = path(URL_ROOT, ImportResourceApi.PATH);
     public static final String URL_IMPORT_FOLDER = path(URL_IMPORT, ImportResourceApi.FOLDER_PATH);
     public static final String URL_IMPORT_BATCH = path(URL_IMPORT, ImportResourceApi.BATCH_PATH);
+    public static final String URL_IMPORT_BATCHES = path(URL_IMPORT, ImportResourceApi.BATCHES_PATH);
     public static final String URL_IMPORT_BATCH_ITEM = path(URL_IMPORT_BATCH, ImportResourceApi.BATCHITEM_PATH);
     public static final String URL_DIGOBJECT =  path(URL_ROOT, DigitalObjectResourceApi.PATH);
     public static final String URL_DIGOBJECT_ATM =  path(URL_DIGOBJECT, DigitalObjectResourceApi.ATM_PATH);
@@ -75,6 +76,10 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_PREVIEW = path(URL_DIGOBJECT, DigitalObjectResourceApi.PREVIEW_PATH);
     public static final String URL_DIGOBJECT_PRIVATE_NOTE = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.PRIVATENOTE_PATH);
+    public static final String URL_DIGOBJECT_TECHNICAL_METADATA = path(URL_DIGOBJECT, DigitalObjectResourceApi.TECHNICALMETADATA_PATH);
+    public static final String URL_DIGOBJECT_TECHNICAL_METADATA_XML = path(URL_DIGOBJECT, DigitalObjectResourceApi.TECHNICALMETADATA_XML_PATH);
+    public static final String URL_DIGOBJECT_TECHNICAL_METADATA_CODING_HISTORY = path(URL_DIGOBJECT, DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH);
+    public static final String URL_DIGOBJECT_TECHNICAL_METADATA_XML_CODING_HISTORY = path(URL_DIGOBJECT, DigitalObjectResourceApi.TECHNICALMETADATA_XML_CODING_HISTORY_PATH);
     public static final String URL_DIGOBJECT_RAW = path(URL_DIGOBJECT, DigitalObjectResourceApi.RAW_PATH);
     public static final String URL_DIGOBJECT_SEARCH =  path(URL_DIGOBJECT, DigitalObjectResourceApi.SEARCH_PATH);
     public static final String URL_DIGOBJECT_STREAMPROFILE = path(URL_DIGOBJECT, DigitalObjectResourceApi.STREAMPROFILE_PATH);
