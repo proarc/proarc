@@ -351,6 +351,28 @@ public class ImportResource {
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
     }
 
+    @GET
+    @Path(ImportResourceApi.BATCHES_IN_PROCESS_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<BatchView> listProcessingBatches(
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState
+
+    ) throws IOException {
+        if (batchState.isEmpty()) {
+            batchState.add(Batch.State.LOADING);
+        }
+        BatchViewFilter filterAll = new BatchViewFilter()
+                .setState(batchState)
+                .setMaxCount(1000)
+                .setSortBy("id");
+
+        List<BatchView> loadingBatches = importManager.viewProcessingBatches(filterAll, user, UserRole.ROLE_USER);
+
+        int endRow = 0 + loadingBatches.size() - 1;
+        int total = loadingBatches.size();
+        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, loadingBatches);
+    }
+
     @PUT
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
