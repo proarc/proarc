@@ -30,7 +30,6 @@ import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
@@ -518,10 +517,15 @@ public class WorkflowManager {
             String jobLabel = "?";
             if (mv != null) {
                 physicalMaterial = new PhysicalMaterial();
-                physicalMaterial.setBarcode(mv.getBarcode());
+                physicalMaterial.setLabel(mv.getLabel());
+                jobLabel = physicalMaterial.getLabel();
+
+
+                /* Issue #1254: bylo rozhodnotu, ze se nebudou kopirovat metadata do podzameru, schvaleno M. Nezbedovou dne 2020.12.11 */
+                /*physicalMaterial.setBarcode(mv.getBarcode());
                 physicalMaterial.setField001(mv.getField001());
                 physicalMaterial.setDetail(mv.getDetail());
-                physicalMaterial.setLabel(mv.getLabel());
+
                 physicalMaterial.setMetadata(mv.getMetadata());
                 physicalMaterial.setName(mv.getName());
                 physicalMaterial.setNote(mv.getNote());
@@ -536,7 +540,7 @@ public class WorkflowManager {
                 }
                 physicalMaterial.setYear(mv.getYear());
 //                physicalMaterial.setState(mv.getState());
-                jobLabel = physicalMaterial.getLabel();
+                */
             }
 
             Job job = createJob(jobDao, now, jobLabel, jobProfile, parentId, users, defaultUser);
