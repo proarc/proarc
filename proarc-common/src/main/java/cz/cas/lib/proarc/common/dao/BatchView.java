@@ -36,6 +36,7 @@ public class BatchView {
     private String parentPid;
     private String profileId;
     private String log;
+    private Integer pageCount;
 
     public Integer getId() {
         return id;
@@ -127,6 +128,14 @@ public class BatchView {
 
     public void setProfileId(String profileId) {
         this.profileId = profileId;
+    }
+
+    public Integer getPageCount() {
+        return pageCount;
+    }
+
+    public void setPageCount(Integer pageCount) {
+        this.pageCount = pageCount;
     }
 
     @Override

@@ -28,3 +28,13 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 {&folderPath=[Monografie%2FMetodika2%2F,Periodikum%2Fkrasanasehodomova%2F1%2F]&profile=profile.default&indices=true&device=device%3Ab99a9bbc-1158-48de-84e7-34785fe4eaec&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
+
+###
+
+GET http://localhost:8081/proarc/rest/v1/import/processingBatches
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+###
+
+GET http://localhost:8081/proarc/rest/v1/import/processingBatches?state=INGESTING_FAILED
