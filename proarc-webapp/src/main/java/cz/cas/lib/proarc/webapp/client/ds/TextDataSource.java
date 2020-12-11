@@ -33,6 +33,7 @@ public final class TextDataSource extends DataSource {
     public static final String ID_PRIVATE_NOTE = "PrivateNoteTextDataSource";
     public static final String ID_OCR = "OcrDataSource";
     public static final String ID_TECHNICAL_METADATA = "TechnicalMetadataSource";
+    public static final String ID_TECHNICAL_METADATA_CODING_HISTORY = "TechnicalMetadataCodingHistorySource";
 
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     // Do not include batchId as DS field as DynamicForm always sets null for missing fetched values.
@@ -79,6 +80,10 @@ public final class TextDataSource extends DataSource {
 
     public static TextDataSource getTechnicalMetadata() {
         return getDS(ID_TECHNICAL_METADATA, RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA_XML);
+    }
+
+    public static TextDataSource getTechnicalMetadataCodingHistory() {
+        return getDS(ID_TECHNICAL_METADATA_CODING_HISTORY, RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA_XML_CODING_HISTORY);
     }
 
     public static TextDataSource getMods() {

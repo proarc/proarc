@@ -1,0 +1,36 @@
+<xsd:schema xmlns="http://hul.harvard.edu/ois/xml/ns/jhove" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" targetNamespace="http://hul.harvard.edu/ois/xml/ns/jhove" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xsd:element name="property">
+        <xsd:annotation>
+            <xsd:documentation>Coding History</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="propertyType"/>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="objectType">
+        <xsd:attribute name="ID" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="propertyType">
+        <xsd:complexContent>
+            <xsd:extension base="objectType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string"/>
+                    <xsd:element name="values" type="valuesType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="valuesType">
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="property" type="propertyType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="arity" type="xsd:string" use="required"/>
+        <xsd:attribute name="type" type="xsd:string" use="required"/>
+    </xsd:complexType>
+</xsd:schema>

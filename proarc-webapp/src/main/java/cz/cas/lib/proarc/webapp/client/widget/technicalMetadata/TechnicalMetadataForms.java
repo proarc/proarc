@@ -33,12 +33,17 @@ public class TechnicalMetadataForms {
     private final ClientMessages i18n;
     private final String activeLocale;
     private final static Map<String, Supplier<Form>> mappers = new HashMap<>();
+    private final static Map<String, Supplier<Form>> mappersExtension = new HashMap<>();
 
     static {
         mappers.put(NdkPlugin.MODEL_PAGE, new MixForm() :: build);
         mappers.put(NdkPlugin.MODEL_NDK_PAGE, new MixForm() :: build);
         mappers.put(OldPrintPlugin.MODEL_PAGE, new MixForm() :: build);
         mappers.put(NdkAudioPlugin.MODEL_PAGE, new AesForm() :: build);
+    }
+
+    static {
+        mappersExtension.put(NdkAudioPlugin.MODEL_PAGE, new CodingHistoryForm() :: build);
     }
 
     public TechnicalMetadataForms(ClientMessages i18n) {
@@ -49,5 +54,10 @@ public class TechnicalMetadataForms {
     public DynamicForm getForm(MetaModelDataSource.MetaModelRecord model) {
         String modelId = model.getId();
         return  mappers.get(modelId) == null ? null : new TechnicalMetadataFormGenerator(mappers.get(modelId).get(), activeLocale).generateForm();
+    }
+
+    public DynamicForm getFormExtension(MetaModelDataSource.MetaModelRecord model) {
+        String modelId = model.getId();
+        return  mappersExtension.get(modelId) == null ? null : new TechnicalMetadataFormGenerator(mappersExtension.get(modelId).get(), activeLocale).generateForm();
     }
 }

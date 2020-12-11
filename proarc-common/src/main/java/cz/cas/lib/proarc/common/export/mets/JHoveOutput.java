@@ -18,8 +18,10 @@
 package cz.cas.lib.proarc.common.export.mets;
 
 import cz.cas.lib.proarc.aes57.Aes57Utils;
+import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import org.aes.audioobject.AudioObject;
 import org.w3c.dom.Node;
 import javax.xml.transform.dom.DOMResult;
@@ -81,5 +83,29 @@ public class JHoveOutput {
 
     public void setAes(AudioObject aes) {
         this.aes = aes;
+    }
+
+    Node codingHistoryNode;
+    Property codingHistory;
+
+    public Node getCodingHistoryNode() {
+        if (this.codingHistory != null) {
+            DOMResult result = new DOMResult();
+            CodingHistoryUtils.marshal(result, codingHistory, true);
+            return result.getNode().getFirstChild();
+        }
+        return null;
+    }
+
+    public void setCodingHistoryNode(Node codingHistoryNode) {
+        this.codingHistoryNode = codingHistoryNode;
+    }
+
+    public Property getCodingHistory() {
+        return codingHistory;
+    }
+
+    public void setCodingHistory(Property codingHistory) {
+        this.codingHistory = codingHistory;
     }
 }

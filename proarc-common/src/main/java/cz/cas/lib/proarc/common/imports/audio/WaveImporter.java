@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
@@ -461,12 +462,16 @@ public class WaveImporter implements ImageImporter {
         File file = BinaryEditor.dissemination(localObj, BinaryEditor.RAW_AUDIO_ID, BinaryEditor.AUDIO_WAVE).read();
         AesEditor aes57Editor = AesEditor.raw(localObj);
         aes57Editor.write(file, jhoveCtx, aes57Editor.getLastModified(), null);
+        CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.raw(localObj);
+        codingHistoryEditor.write(file, jhoveCtx, codingHistoryEditor.getLastModified(), null);
 
         // NDK version
         file = BinaryEditor.dissemination(localObj, BinaryEditor.NDK_AUDIO_ARCHIVAL_ID, BinaryEditor.AUDIO_WAVE).read();
         if (file != null) {
             aes57Editor = AesEditor.ndkArchival(localObj);
             aes57Editor.write(file, jhoveCtx, aes57Editor.getLastModified(), null);
+            codingHistoryEditor = CodingHistoryEditor.ndkArchival(localObj);
+            codingHistoryEditor.write(file, jhoveCtx, codingHistoryEditor.getLastModified(), null);
         }
     }
 

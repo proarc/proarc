@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
@@ -1460,7 +1461,7 @@ public class DigitalObjectResource {
             AesEditor aesEditor = AesEditor.ndkArchival(fobject);
             try {
                 TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig);
-                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile()), aesEditor.getLastModified(), fobject.getPid());
+                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), "classic"), aesEditor.getLastModified(), fobject.getPid());
                 technicalMetadata.setBatchId(batchId);
                 return technicalMetadata;
             } catch (DigitalObjectNotFoundException ex) {
@@ -1506,11 +1507,11 @@ public class DigitalObjectResource {
 
         TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig);
         if (xmlData == null) {
-            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog());
+            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog(), "classic");
         } else {
             mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog());
         }
-        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile());
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), "classic");
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
 
@@ -1533,7 +1534,94 @@ public class DigitalObjectResource {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
         TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(editor.getModel(), batchId, pid, appConfig);
-        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile());
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), "classic");
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_CODING_HISTORY_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getCodingHistoryTxt(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
+    ) throws IOException, DigitalObjectException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            return null;
+        }
+        if (NdkAudioPlugin.MODEL_PAGE.equals(relationEditor.getModel())) {
+            CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.ndkArchival(fobject);
+            try {
+                TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig);
+                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), "extension"), codingHistoryEditor.getLastModified(), fobject.getPid());
+                technicalMetadata.setBatchId(batchId);
+                return technicalMetadata;
+            } catch (DigitalObjectNotFoundException ex) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateCodingHisotry(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
+    ) throws IOException, DigitalObjectException {
+
+        if (timestamp == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
+        }
+        if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
+        }
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        String data = xmlData == null ? jsonData : xmlData;
+
+        TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig);
+        if (xmlData == null) {
+            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog(), "extension");
+        } else {
+            mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog());
+        }
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), "extension");
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<DescriptionMetadata<Object>> getCodingHistoryMetadata(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
+    ) throws IOException, DigitalObjectException {
+        if (pid == null || pid.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        RelationEditor editor = new RelationEditor(fobject);
+
+        if (editor == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(editor.getModel(), batchId, pid, appConfig);
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), "extension");
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
 
