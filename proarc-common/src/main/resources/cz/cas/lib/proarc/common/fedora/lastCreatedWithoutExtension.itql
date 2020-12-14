@@ -1,0 +1,19 @@
+select     $pid $model $owner $label $state $created $modified
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasExport>       $export)
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasNdkExport>       $export)
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasKrameriusExport>       $export)
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasArchiveExport>       $export)
+count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasCrossrefExport>       $export)
+from       <#ri>
+where      $pid     <info:fedora/fedora-system:def/model#hasModel>        $model
+and        $model   <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/model:proarcobject>
+${MODEL_FILTER}
+${OWNER_FILTER}
+and        $pid     <info:fedora/fedora-system:def/model#createdDate>     $created
+and        $pid     <info:fedora/fedora-system:def/view#lastModifiedDate> $modified
+and        $pid     <info:fedora/fedora-system:def/model#ownerId>         $owner
+and        $pid     <info:fedora/fedora-system:def/model#label>           $label
+and        $pid     <info:fedora/fedora-system:def/model#state>           $state
+and        $pid     <info:fedora/fedora-system:def/model#state>           <info:fedora/fedora-system:def/model#Active>
+order by   ${ORDERBY}
+offset     ${OFFSET}
