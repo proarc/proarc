@@ -92,6 +92,27 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
      */
     public static final String MODEL_CHAPTER = "model:oldprintchapter";
 
+    /**
+     * The convolute of oldprints.
+     */
+    public static final String MODEL_OMNIBUSVOLUME = "model:oldprintomnibusvolume";
+
+    /**
+     * The graphics of oldprints.
+     */
+    public static final String MODEL_GRAPHICS = "model:oldprintgraphics";
+
+    /**
+     * The map of oldprints.
+     */
+    public static final String MODEL_CARTOGRAPHIC = "model:oldprintmap";
+
+    /**
+     * The sheet music of oldprints.
+     */
+    public static final String MODEL_SHEETMUSIC = "model:oldprintsheetmusic";
+
+
     private OldPrintSearchViewHandler searchViewHandler;
 
     public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
@@ -100,6 +121,10 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHTITLE, Const.MONOGRAPH_MULTIPART);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_CHAPTER, Const.CHAPTER);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_PAGE, Const.PAGE);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_OMNIBUSVOLUME, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_GRAPHICS, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_CARTOGRAPHIC, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_SHEETMUSIC, Const.MONOGRAPH_UNIT);
     }});
 
     @Override
@@ -130,7 +155,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[]{new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
+                new RelationCriteria[]{new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID), new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_SUPPLEMENT, true, null,
@@ -163,9 +188,59 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
                 new RelationCriteria[]{
                         new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_SUPPLEMENT, RelationCriteria.Type.PID)
+                        new RelationCriteria(MODEL_SUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_GRAPHICS, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
                 }
                 ));
+        models.add(new MetaModel(
+                MODEL_OMNIBUSVOLUME, true, null,
+                Arrays.asList(new ElementType("Old Print Omnibus volume", "en"), new ElementType("STT Konvolut", "cs")),
+                ModsConstants.NS,
+                MODEL_OMNIBUSVOLUME,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[]{}
+        ));
+        models.add(new MetaModel(
+                MODEL_GRAPHICS, true, null,
+                Arrays.asList(new ElementType("Old Print Graphics", "en"), new ElementType("STT  Grafika", "cs")),
+                ModsConstants.NS,
+                MODEL_GRAPHICS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[] {new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_CARTOGRAPHIC, true, null,
+                Arrays.asList(new ElementType("Old print Cartographic Document", "en"), new ElementType("STT Kartografický dokument", "cs")),
+                ModsConstants.NS,
+                MODEL_CARTOGRAPHIC,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_SHEETMUSIC, true, null,
+                Arrays.asList(new ElementType("Old print Sheet Music", "en"), new ElementType("STT Hudebnina", "cs")),
+                ModsConstants.NS,
+                MODEL_SHEETMUSIC,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
+        ));
         return models;
     }
 

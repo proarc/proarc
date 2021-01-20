@@ -91,6 +91,9 @@ public class Const {
     public final static String GENRE_ETITLE = "electronic title";
     public final static String GENRE_EVOLUME = "electronic volume";
 
+    public final static String GENRE_OLDPRINT_OMNIBUS = "omnibus";       //konvolut
+    public final static String GENRE_OLDPRINT_GRAPHICS = "graphics";       //grafika
+
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
 
