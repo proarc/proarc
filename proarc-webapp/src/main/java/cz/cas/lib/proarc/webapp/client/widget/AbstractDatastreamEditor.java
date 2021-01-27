@@ -22,8 +22,8 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.smartgwt.client.widgets.form.events.HasSubmitValuesHandlers;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
-import cz.cas.lib.proarc.webapp.client.event.EditorLoadHandler;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
+import cz.cas.lib.proarc.webapp.client.event.EditorLoadHandler;
 import cz.cas.lib.proarc.webapp.client.event.HasEditorLoadHandlers;
 
 /**

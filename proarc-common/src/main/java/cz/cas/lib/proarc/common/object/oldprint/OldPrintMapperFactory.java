@@ -18,10 +18,14 @@ package cz.cas.lib.proarc.common.object.oldprint;
 
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
 /**
  * It is expected to handle MODS of old prints the same way like NDK.
@@ -44,6 +48,24 @@ public class OldPrintMapperFactory extends NdkMapperFactory {
     public NdkMapper get(String modelId) {
         Optional<Supplier<NdkMapper>> ndkMapper = Optional.ofNullable(mappers.get(modelId));
         return ndkMapper.map(s -> s.get()).orElseThrow(() -> new IllegalStateException("Unsupported model: " + modelId));
+    }
+
+    public static String createObjectLabel(ModsDefinition mods) {
+        for (TitleInfoDefinition ti : mods.getTitleInfo()) {
+            if (toValue(ti.getType()) != null) {
+                continue;
+            }
+            return createTitleString(ti);
+        }
+        for (TitleInfoDefinition ti : mods.getTitleInfo()) {
+            if ("abbreviated".equalsIgnoreCase(toValue(ti.getType()))) {
+                return createTitleString(ti);
+            }
+        }
+        for (TitleInfoDefinition ti : mods.getTitleInfo()) {
+            return createTitleString(ti);
+        }
+        return null;
     }
 
 }

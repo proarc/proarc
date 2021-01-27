@@ -75,7 +75,7 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkEArticle(elm, p);
         } else if (NdkEbornPlugin.MODEL_ECHAPTER.equals(model)) {
             return visitNdkEChapter(elm, p);
-        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(model)) {
+        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(model) || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(model)) {
             return visitNdkMusicDocument(elm, p);
         }
         return super.visit(elm, p);

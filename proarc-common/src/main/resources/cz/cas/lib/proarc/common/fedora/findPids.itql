@@ -6,6 +6,7 @@ count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasCrossrefExport>       $export)
 from       <#ri>
 where      $pid     <info:fedora/fedora-system:def/model#hasModel>        $model
+${pids.model}
 and        $model   <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/model:proarcobject>
 and        $pid     <info:fedora/fedora-system:def/model#createdDate>     $created
 and        $pid     <info:fedora/fedora-system:def/view#lastModifiedDate> $modified

@@ -22,12 +22,6 @@ import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowTaskTable;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBJoinType;
 import org.apache.empire.db.DBReader;
@@ -35,6 +29,12 @@ import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -123,7 +123,7 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         }
         EmpireUtils.addWhereDate(cmd, tableTask.created, filter.getCreated());
         EmpireUtils.addWhereDate(cmd, tableTask.timestamp, filter.getModified());
-        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableTask.timestamp, false);
+        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableTask.order, false);
 
         DBReader reader = new DBReader();
         try {

@@ -133,6 +133,10 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_CUSTOM_CUSTOMXMLDATA = "xmlData";
     public static final String MODS_CUSTOM_IGNOREVALIDATION = "ignoreValidation";
 
+    public static final String TECHNICAL_CUSTOM_XMLDATA = "xmlData";
+    public static final String TECHNICAL_CUSTOM_JSONDATA = "jsonData";
+    public static final String TECHNICAL_CUSTOM_TYPE = "type";
+
     public static final String MODS_PAGE_RULES_APPLY_TO = "applyTo";
     public static final String MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE = "applyToFirstPage";
     public static final String MODS_PAGE_RULES_NUMBER_PREFIX = "prefix";
@@ -170,6 +174,12 @@ public final class DigitalObjectResourceApi {
 
     /** Resource /object/ocr */
     public static final String OCR_PATH = "ocr";
+
+    /** Resource /object/technicalMetadata */
+    public static final String TECHNICALMETADATA_PATH = "technicalMetadata";
+    public static final String TECHNICALMETADATA_CODING_HISTORY_PATH = "technicalMetadataCodingHistory";
+    public static final String TECHNICALMETADATA_XML_PATH = "technicalMetadataXml";
+    public static final String TECHNICALMETADATA_XML_CODING_HISTORY_PATH = "technicalMetadataXmlCodingHistory";
 
     /** Resource /object/preview */
     public static final String PREVIEW_PATH = "preview";

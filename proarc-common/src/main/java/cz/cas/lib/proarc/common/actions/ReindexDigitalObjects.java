@@ -116,12 +116,19 @@ public class ReindexDigitalObjects {
         for (IMetsElement childElement : parentElement.getChildren()) {
             if (Const.PAGE.equals(childElement.getElementType())) {
                 String pid = childElement.getOriginalPid();
-                reindex(pageIndex++, pid, fixModel(childElement.getModel()));
+                reindexMods(pageIndex++, pid, fixModel(childElement.getModel()));
+                reindexDc(pid, fixModel(childElement.getModel()));
             }
             if (Const.SOUND_PAGE.equals(childElement.getElementType())) {
                 String pid = childElement.getOriginalPid();
-                reindex(audioPageIndex++, pid, fixModel(childElement.getModel()));
+                reindexMods(audioPageIndex++, pid, fixModel(childElement.getModel()));
+                reindexDc(pid, fixModel(childElement.getModel()));
             }
+           /* try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }*/
         }
     }
 
@@ -132,7 +139,7 @@ public class ReindexDigitalObjects {
         return model;
     }
 
-    private void reindex(int index, String pid, String model) throws DigitalObjectException {
+    private void reindexMods(int index, String pid, String model) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fo = dom.find(pid, null);
         XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
@@ -142,6 +149,18 @@ public class ReindexDigitalObjects {
         ModsDefinition mods = modsStreamEditor.read();
         setIndexToMods(mods, index);
         modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
+
+        fo.flush();
+    }
+
+    private void reindexDc(String pid, String model) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fo = dom.find(pid, null);
+        XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
+        ModsDefinition mods = modsStreamEditor.read();
 
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
         NdkMapperFactory mapperFactory = new NdkMapperFactory();

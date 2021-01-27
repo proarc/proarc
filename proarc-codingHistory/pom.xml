@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>cz.cas.lib.proarc</groupId>
+        <artifactId>proarc</artifactId>
+        <version>3.6.2</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>proarc-codingHistory</artifactId>
+    <packaging>jar</packaging>
+
+    <name>ProArc Coding History JAXB Model</name>
+    <url>${proarc.wiki}</url>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>aes</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <!--forceRegenerate>true</forceRegenerate -->
+                            <arguments>-no-header</arguments>
+                            <schemaDirectory>src/main/resources/cz/cas/lib/proarc/codingHistory</schemaDirectory>
+                            <schemaFiles>codingHistory.xsd</schemaFiles>
+                            <clearOutputDir>false</clearOutputDir>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <arguments>-extension -Xwildcard</arguments>
+                </configuration>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jvnet.jaxb2_commons</groupId>
+                        <artifactId>jaxb2-basics</artifactId>
+                        <version>0.8.2</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+</project>

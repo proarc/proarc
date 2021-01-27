@@ -20,3 +20,21 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 {&pids=[uuid%3A341dfe44-2ba1-4ac6-a987-c2e49f148dde,uuid%3Af5a48346-c4b3-4e7d-a496-ce7f571d9aa0,uuid%3Af593ee5d-2941-44af-b3c8-8996d4fd87dd,uuid%3A7cef5162-b3ae-4017-9378-6bf80031b84a]&_operationType=update&_dataSource=ModsCustomDataSource&sequence=ALPHABET_LOWER_SERIES&applyTo=2&pageType=titlePage&prefix=[&suffix=]&startNumber=28&incrementNumber=1&applyToFirstPage=true}
+
+###
+
+POST http://localhost:8081/proarc/rest/v1/import/batches
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&folderPath=[Monografie%2FMetodika2%2F,Periodikum%2Fkrasanasehodomova%2F1%2F]&profile=profile.default&indices=true&device=device%3Ab99a9bbc-1158-48de-84e7-34785fe4eaec&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
+
+###
+
+GET http://localhost:8081/proarc/rest/v1/import/processingBatches
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+###
+
+GET http://localhost:8081/proarc/rest/v1/import/processingBatches?state=INGESTING_FAILED

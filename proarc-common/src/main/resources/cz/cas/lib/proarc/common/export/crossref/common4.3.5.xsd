@@ -486,6 +486,9 @@
 					<xsd:enumeration value="chemical/x-xyz"/>
 					<xsd:enumeration value="model/vrml"/>
 					<xsd:enumeration value="audio/x-wav"/>
+					<xsd:enumeration value="audio/flac"/>
+					<xsd:enumeration value="audio/mp3"/>
+					<xsd:enumeration value="audio/ogg"/>
 					<xsd:enumeration value="video/x-flv"/>
 				</xsd:restriction>
 			</xsd:simpleType>

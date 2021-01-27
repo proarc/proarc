@@ -241,6 +241,34 @@ public class ImportBatchManager {
         }
     }
 
+    public List<BatchView> viewProcessingBatches(BatchViewFilter filter, UserProfile user, String roleUser) {
+        BatchDao dao = daos.createBatch();
+        BatchItemDao itemDao = daos.createBatchItem();
+        Transaction tx = daos.createTransaction();
+        dao.setTransaction(tx);
+        itemDao.setTransaction(tx);
+        try {
+            List<BatchView> result = dao.view(filter);
+            for (BatchView batchView : result) {
+                batchView.setPageCount(0);
+                batchView.setParentPid("SECRET");
+                batchView.setProfileId("SECRET");
+                batchView.setLog("SECRET");
+            }
+            if (user.getRole() == null || user.getRole().length() == 0 || user.getRole().equals(roleUser)) {
+                for (BatchView batchView : result) {
+                    batchView.setTitle("SECRET");
+                    batchView.setUserId(0);
+                    batchView.setUserName("SECRET");
+
+                }
+            }
+            return result;
+        } finally {
+            tx.close();
+        }
+    }
+
     public Batch add(File folder, String title, UserProfile user, int itemNumber, ImportOptions options) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));

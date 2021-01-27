@@ -17,15 +17,15 @@
 package cz.cas.lib.proarc.common.workflow.model;
 
 import cz.cas.lib.proarc.common.workflow.model.Job.State;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
@@ -75,8 +75,18 @@ public class JobFilter {
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_OFFSET)
     private int offset = 0;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
+    private String materialEdition;
     private int maxCount = 100;
     private Locale locale;
+
+    public String getMaterialEdition() {
+        return materialEdition;
+    }
+
+    public void setMaterialEdition(String materialEdition) {
+        this.materialEdition = materialEdition;
+    }
 
     public List<String> getCreated() {
         return created == null ? Collections.<String>emptyList() : created;

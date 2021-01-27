@@ -70,6 +70,7 @@ import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectSearchView;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectTreeView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import java.util.LinkedHashMap;
 
 /**
@@ -112,6 +113,7 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction mediaEditAction;
     private DigitalObjectEditAction childrenEditAction;
     private DigitalObjectEditAction atmEditAction;
+    private DigitalObjectEditAction technicalMetadataAction;
     private UrnNbnAction registerUrnNbnAction;
     private CopyObjectAction copyObjectAction;
     private GenerateMasterCopyAction generateMasterCopyAction;
@@ -214,6 +216,12 @@ public final class DigitalObjectManager {
                         Object firstModel = valueMap.keySet().iterator().next();
                         foundView.setFilterModel(firstModel);
                     }
+                    Object previousSort = Offline.get(LAST_SELECTED_MODEL_TAG + "_sort");
+                    if (previousSort != null) {
+                        foundView.setSort(previousSort);
+                    } else {
+                        foundView.setSort("asc");
+                    }
                     foundView.refresh();
                 }
             }
@@ -270,6 +278,8 @@ public final class DigitalObjectManager {
                 i18n.DigitalObjectEditor_AdministrationAction_Hint(),
                 null,
                 DatastreamEditorType.ATM, places);
+        technicalMetadataAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_TabTechnical_Title(), i18n.DigitalObjectEditor_TabTechnical_Hint(),null, DatastreamEditorType.TECHNICAL, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
         copyObjectAction = new CopyObjectAction(i18n);
         generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
@@ -324,7 +334,8 @@ public final class DigitalObjectManager {
 
             @Override
             public boolean accept(ActionEvent event) {
-                if (!Editor.getInstance().hasPermission("proarc.permission.admin")) {
+                if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN))) {
+                //if (!Editor.getInstance().hasPermission("proarc.permission.admin") || !Editor.getInstance().hasPermission("superAdmin") || !Editor.getInstance().hasPermission("test")) {
                     return false;
                 } else {
                     Object[] selection = Actions.getSelection(event);
@@ -363,6 +374,7 @@ public final class DigitalObjectManager {
         toolbar.addMember(Actions.asIconButton(ocrEditAction, actionSource));
         toolbar.addMember(Actions.asIconButton(childrenEditAction, actionSource));
         toolbar.addMember(Actions.asIconButton(atmEditAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(technicalMetadataAction, actionSource));
         toolbar.addSeparator();
         toolbar.addMember(Actions.asIconButton(foxmlAction, actionSource));
         toolbar.addMember(btnExport);
@@ -383,6 +395,7 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(ocrEditAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(childrenEditAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(atmEditAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(technicalMetadataAction, actionSource, false));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(foxmlAction, actionSource, true));
         menu.addItem(new MenuItemSeparator());

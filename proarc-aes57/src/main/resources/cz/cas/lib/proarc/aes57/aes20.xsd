@@ -1,6 +1,15 @@
 <xsd:schema xmlns="http://www.aes.org/audioObject" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" targetNamespace="http://www.aes.org/audioObject" elementFormDefault="qualified" attributeFormDefault="unqualified">
-    <xsd:element name="audioObject" type="audioObjectType"/>
-    <xsd:complexType name="objectType" abstract="true">
+    <xsd:element name="audioObject">
+        <xsd:annotation>
+            <xsd:documentation>NISO Data Dictionary Technical Metadata for Digital Still Images (May 1, 2006)</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="audioObjectType"/>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="objectType">
         <xsd:attribute name="ID" type="xsd:ID" use="required"/>
     </xsd:complexType>
     <xsd:complexType name="audioObjectType">
@@ -45,7 +54,7 @@
             <xsd:element name="shellDimensions" type="shellDimensionsType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:complexType name="physicalStructureType" abstract="true"/>
+    <xsd:complexType name="physicalStructureType"/>
     <xsd:complexType name="tapeStructureType">
         <xsd:complexContent>
             <xsd:extension base="physicalStructureType">
@@ -97,7 +106,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:complexType name="baseDimensionsType" abstract="true"/>
+    <xsd:complexType name="baseDimensionsType"/>
     <xsd:complexType name="tapeDimensionsType">
         <xsd:complexContent>
             <xsd:extension base="baseDimensionsType">
@@ -183,10 +192,55 @@
             <xsd:extension base="objectType">
                 <xsd:sequence>
                     <xsd:element name="region" type="faceRegionType" minOccurs="1" maxOccurs="unbounded"/>
+                    <xsd:element name="timeline" type="timeType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="direction" type="directionType" use="required"/>
-                <xsd:attribute name="audioObjectRef" type="xsd:IDREF" use="required"/>
+                <xsd:attribute name="audioObjectRef" type="xsd:string" use="required"/>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="timeType">
+        <xsd:complexContent>
+            <xsd:extension base="objectType">
+                <xsd:sequence>
+                    <xsd:element name="startTime" type="timeExtensionType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="duration" type="timeExtensionType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="timeExtensionType">
+        <xsd:complexContent>
+            <xsd:extension base="objectType">
+                <xsd:sequence>
+                    <xsd:element name="hours" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="minutes" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="seconds" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="frames" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="samples" type="sampleType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="filmingFrame" type="filmingFrameType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="sampleType">
+        <xsd:complexContent>
+            <xsd:extension base="objectType">
+                <xsd:sequence>
+                    <xsd:element name="numberOfSamples" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+                <xsd:attribute name="sampleRate" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="filmingFrameType">
+        <xsd:complexContent>
+            <xsd:extension base="objectType">
+                <xsd:attribute name="frameCount" type="xsd:string"/>
+                <xsd:attribute name="timeBase" type="xsd:string"/>
+                <xsd:attribute name="videoField" type="xsd:string"/>
+                <xsd:attribute name="countingMode" type="xsd:string"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -198,9 +252,10 @@
                     <xsd:element name="conditionNote" type="conditionNoteType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="securityNote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="stream" type="streamType" minOccurs="1" maxOccurs="unbounded"/>
+                    <xsd:element name="timeRange" type="timeType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
-                <xsd:attribute name="formatRef" type="xsd:IDREF" use="required"/>
-                <xsd:attribute name="faceRef" type="xsd:IDREF" use="required"/>
+                <xsd:attribute name="formatRef" type="xsd:string" use="required"/>
+                <xsd:attribute name="faceRef" type="xsd:string" use="required"/>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
@@ -213,16 +268,16 @@
                     <xsd:element name="conditionNote" type="conditionNoteType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="faceRegionRef" type="xsd:IDREF" use="required"/>
+                <xsd:attribute name="faceRegionRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:complexType name="formatRegionListType">
         <xsd:sequence>
-            <xsd:element name="formatRegion" type="baseFormatRegionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="formatRegion" type="formatRegionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:complexType name="baseFormatRegionType" abstract="true">
+    <xsd:complexType name="baseFormatRegionType">
         <xsd:complexContent>
             <xsd:extension base="objectType"/>
         </xsd:complexContent>
@@ -233,9 +288,9 @@
                 <xsd:sequence>
                     <xsd:element name="physicalProperties" type="physicalPropertiesType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="speed" type="speedType" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="bitDepth" type="xsd:positiveInteger" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="bitDepth" type="xsd:long" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="sampleRate" type="xsd:double" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="wordSize" type="xsd:positiveInteger" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="wordSize" type="xsd:long" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="trackLayout" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="grooveOrientation" type="grooveOrientationType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="grooveWidth" type="grooveWidthType" minOccurs="0" maxOccurs="1"/>
@@ -246,13 +301,13 @@
                     <xsd:element name="bitrateReduction" type="bitrateReductionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:complexType name="analogTapeFormatRegionType">
         <xsd:complexContent>
-            <xsd:extension base="baseFormatRegionType">
+            <xsd:extension base="objectType">
                 <xsd:sequence>
                     <xsd:element name="physicalProperties" type="physicalPropertiesType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="speed" type="speedType" minOccurs="0" maxOccurs="1"/>
@@ -262,13 +317,13 @@
                     <xsd:element name="equalization" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:complexType name="digitalTapeFormatRegionType">
         <xsd:complexContent>
-            <xsd:extension base="baseFormatRegionType">
+            <xsd:extension base="objectType">
                 <xsd:sequence>
                     <xsd:element name="physicalProperties" type="physicalPropertiesType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="speed" type="speedType" minOccurs="0" maxOccurs="1"/>
@@ -280,13 +335,13 @@
                     <xsd:element name="bitrateReduction" type="bitrateReductionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:complexType name="analogDiscFormatRegionType">
         <xsd:complexContent>
-            <xsd:extension base="baseFormatRegionType">
+            <xsd:extension base="objectType">
                 <xsd:sequence>
                     <xsd:element name="physicalProperties" type="physicalPropertiesType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="speed" type="speedType" minOccurs="0" maxOccurs="1"/>
@@ -298,13 +353,13 @@
                     <xsd:element name="equalization" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:complexType name="opticalDiscFormatRegionType">
         <xsd:complexContent>
-            <xsd:extension base="baseFormatRegionType">
+            <xsd:extension base="objectType">
                 <xsd:sequence>
                     <xsd:element name="physicalProperties" type="physicalPropertiesType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="speed" type="speedType" minOccurs="0" maxOccurs="1"/>
@@ -315,26 +370,26 @@
                     <xsd:element name="bitrateReduction" type="bitrateReductionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:complexType name="wireFormatRegionType">
         <xsd:complexContent>
-            <xsd:extension base="baseFormatRegionType">
+            <xsd:extension base="objectType">
                 <xsd:sequence>
                     <xsd:element name="physicalProperties" type="physicalPropertiesType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="speed" type="speedType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="soundField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:complexType name="cylinderFormatRegionType">
         <xsd:complexContent>
-            <xsd:extension base="baseFormatRegionType">
+            <xsd:extension base="objectType">
                 <xsd:sequence>
                     <xsd:element name="physicalProperties" type="physicalPropertiesType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="speed" type="speedType" minOccurs="0" maxOccurs="1"/>
@@ -344,7 +399,7 @@
                     <xsd:element name="soundField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
                 <xsd:attribute name="label" type="xsd:string" use="required"/>
-                <xsd:attribute name="ownerRef" type="xsd:IDREFS" use="required"/>
+                <xsd:attribute name="ownerRef" type="xsd:string" use="required"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

@@ -69,7 +69,7 @@ public final class ImportProfile {
     public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
     public static final String OCR_GEN_PROCESSOR = "import.ocr_generator.processor";
     public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
-    public static final String NDK_ARCHOVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
+    public static final String NDK_ARCHIVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
     public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
     public static final String CREATE_MODELS_HIERARCHY = "import.create.models_hierarchy";
     public static final String DEFAULT_ALTO = "import.default_alto.file";
@@ -197,9 +197,12 @@ public final class ImportProfile {
         return suffix.toLowerCase();
     }
 
-    public String getNdkArchivalAudioFileSuffix() {
-        String suffix = config.getString(NDK_ARCHOVAL_AUDIO_SUFFIX, ".ac.wav");
-        return suffix.toLowerCase();
+    public List<Object> getNdkArchivalAudioFileSuffix() {
+        List<Object>  suffix = config.getList(NDK_ARCHIVAL_AUDIO_SUFFIX);
+        if (suffix == null || suffix.isEmpty()) {
+            suffix.add("ac.wav");
+        }
+        return suffix;
     }
 
     public String getNdkUserFileSuffix() {
@@ -207,9 +210,12 @@ public final class ImportProfile {
         return suffix.toLowerCase();
     }
 
-    public String getNdkUserAudioFileSuffix() {
-        String suffix = config.getString(NDK_USER_AUDIO_SUFFIX, ".uc.mp3");
-        return suffix.toLowerCase();
+    public List<Object> getNdkUserAudioFileSuffix() {
+        List<Object> suffix = config.getList(NDK_USER_AUDIO_SUFFIX);
+        if (suffix == null || suffix.isEmpty()) {
+            suffix.add(".uc.mp3");
+        }
+        return suffix;
     }
 
     public String getDefaultOcr() {

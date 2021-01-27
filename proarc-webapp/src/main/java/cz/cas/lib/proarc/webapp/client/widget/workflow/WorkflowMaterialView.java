@@ -206,6 +206,7 @@ public class WorkflowMaterialView {
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_SIGLA),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_SIGNATURE),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_DETAIL),
+                new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_EDITION),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_ISSUE),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_VOLUME),
                 new TextItem(WorkflowMaterialDataSource.FIELD_PHYSICAL_YEAR),

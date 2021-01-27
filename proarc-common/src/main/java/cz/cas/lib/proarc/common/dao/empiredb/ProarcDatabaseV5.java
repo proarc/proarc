@@ -23,16 +23,12 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.logging.Logger;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
-import static org.apache.empire.db.DBDatabase.SYSDATE;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRelation;
@@ -41,6 +37,9 @@ import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
 import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Logger;
 
 /**
  * Database schema version 5. It adds workflow stuff.
@@ -80,7 +79,7 @@ public class ProarcDatabaseV5 extends DBDatabase {
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
 
     public static int upgradeToVersion6(
-            int currentSchemaVersion, ProarcDatabase schema,
+            int currentSchemaVersion,
             Connection conn, EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion < VERSION) {
@@ -92,7 +91,7 @@ public class ProarcDatabaseV5 extends DBDatabase {
         } else if (currentSchemaVersion != VERSION) {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
-        // ProarcDatabaseV6 schema = new ProarcDatabaseV6();
+        ProarcDatabaseV6 schema = new ProarcDatabaseV6();
         try {
             schema.open(conf.getDriver(), conn);
             upgradeDdl(schema, conn);
@@ -105,7 +104,7 @@ public class ProarcDatabaseV5 extends DBDatabase {
         }
     }
 
-    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+    private static void upgradeDdl(ProarcDatabaseV6 schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();

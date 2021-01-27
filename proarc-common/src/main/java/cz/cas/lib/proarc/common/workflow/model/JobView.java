@@ -50,6 +50,46 @@ public class JobView extends Job {
     private String volume;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR)
     private String year;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID)
+    private String pid;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MODEL)
+    private String model;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
+    private String edition;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_RAW_PATH)
+    private String rawPath;
+
+    public String getRawPath() {
+        return rawPath;
+    }
+
+    public void setRawPath(String rawPath) {
+        this.rawPath = rawPath;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public String getEdition() {
+        return edition;
+    }
+
+    public void setEdition(String edition) {
+        this.edition = edition;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
 
     public String getProfileLabel() {
         return profileLabel;

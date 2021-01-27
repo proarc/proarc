@@ -22,12 +22,8 @@ import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -42,6 +38,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  *
@@ -111,7 +112,7 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_ROLE) String role
             ) {
 
-        checkAccess(session.getUser(), Permissions.ADMIN, Permissions.USERS_CREATE);
+        checkAccess(session.getUser(), UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, Permissions.USERS_CREATE);
         if (userName == null) {
             return SmartGwtResponse.<UserProfile>asError()
                     .error(UserResourceApi.USER_NAME, "missing")
@@ -153,11 +154,11 @@ public final class UserResource {
         UserProfile update = userId == null ? null : userManager.find(userId);
         boolean fullUpdate;
         if (update != null && update.getUserName().equals(sessionUser.getUserName())) {
-            Set<Permission> grants = checkAccess(sessionUser, (Permission) null);
+            checkAccess(sessionUser, UserRole.ROLE_SUPERADMIN, (Permission) null);
 //            fullUpdate = grants.contains(Permissions.ADMIN);
             fullUpdate = true;
         } else {
-            checkAccess(sessionUser, Permissions.ADMIN);
+            checkAccess(sessionUser, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
             fullUpdate = true;
         }
         if (update == null) {
@@ -201,12 +202,18 @@ public final class UserResource {
         return new SmartGwtResponse<Permission>(result);
     }
 
-    Set<Permission> checkAccess(UserProfile user, Permission... permissions) {
+    String checkAccess(UserProfile user, String requiredRole, Permission... permissions) {
         if (user != null) {
             Set<Permission> grants = userManager.findUserPermissions(user.getId());
             for (Permission permission : permissions) {
                 if (permission == null || grants.contains(permission)) {
-                    return grants;
+                    return grants.toString();
+                }
+            }
+            String role = userManager.findUserRole(user.getId());
+            if (role != null) {
+                if (requiredRole.equals(role)) {
+                    return role;
                 }
             }
         }

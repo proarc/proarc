@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
@@ -51,6 +52,7 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
@@ -130,6 +132,7 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE) String mSignature,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME) String mVolume,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR) String mYear,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION) String mEdition,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy
     ) {
@@ -151,6 +154,7 @@ public class WorkflowResource {
         filter.setMaterialSignature(mSignature);
         filter.setMaterialVolume(mVolume);
         filter.setMaterialYear(mYear);
+        filter.setMaterialEdition(mEdition);
         filter.setModified(modified);
         filter.setParentId(parentId);
         filter.setPriority(priority);
@@ -498,7 +502,7 @@ public class WorkflowResource {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, jobId.toString());
         }
 
-        DigitalObjectHandler doHandler = findHandler(jobId, modelId);
+        DigitalObjectHandler doHandler = findHandler(jobId, modelId, session, httpHeaders);
         DescriptionMetadata<Object> metadata = doHandler.metadata().getMetadataAsJsonObject(editorId);
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
@@ -516,6 +520,11 @@ public class WorkflowResource {
             @DefaultValue("false")
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
     ) throws DigitalObjectException {
+        return updateDescriptionMetadataFix(jobId, modelId, timestamp, editorId, jsonData, xmlData, ignoreValidation, session, httpHeaders);
+    }
+
+
+    public static SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadataFix(BigDecimal jobId, String model, Long timestamp, String editorId, String jsonData, String xmlData, boolean ignoreValidation, SessionContext session, HttpHeaders httpHeaders) throws DigitalObjectException {
         if (jobId == null) {
             throw RestException.plainNotFound(WorkflowModelConsts.PARAMETER_JOBID, jobId.toString());
         }
@@ -523,23 +532,47 @@ public class WorkflowResource {
                 jobId, editorId, timestamp, ignoreValidation, jsonData, xmlData));
         final boolean isJsonData = xmlData == null;
         String data = isJsonData ? jsonData : xmlData;
-        DigitalObjectHandler doHandler = findHandler(jobId, modelId);
+        DigitalObjectHandler doHandler = findHandler(jobId, model, session, httpHeaders);
         MetadataHandler<?> mHandler = doHandler.metadata();
         DescriptionMetadata<String> dMetadata = new DescriptionMetadata<String>();
         dMetadata.setEditor(editorId);
         dMetadata.setData(data);
         dMetadata.setTimestamp(timestamp);
         dMetadata.setIgnoreValidation(ignoreValidation);
-        if (isJsonData) {
-            mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), "update");
-        } else {
-            mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), "update");
+        try {
+            if (isJsonData) {
+                mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), "update");
+            } else {
+                mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), "update");
+            }
+        } catch (DigitalObjectValidationException ex) {
+            return toValidationError(ex, session, httpHeaders);
         }
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
-    private DigitalObjectHandler findHandler(BigDecimal jobId, String modelId) throws DigitalObjectNotFoundException {
+    private static SmartGwtResponse<DescriptionMetadata<Object>> toValidationError(DigitalObjectValidationException ex, SessionContext session, HttpHeaders httpHeaders) {
+        if (ex.getValidations().isEmpty()) {
+            return SmartGwtResponse.asError(ex);
+        }
+        ErrorBuilder error = SmartGwtResponse.asError();
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        for (ValidationResult validationResult : ex.getValidations()) {
+            String msg;
+            try {
+                msg = msgs.getFormattedMessage(validationResult.getBundleKey(), validationResult.getValues());
+            } catch (MissingResourceException mrex) {
+                LOG.log(Level.WARNING, validationResult.getBundleKey(), mrex);
+                msg = validationResult.getBundleKey();
+            }
+            error.error(validationResult.getName(), msg);
+        }
+        return error.build();
+    }
+
+    private static DigitalObjectHandler findHandler(BigDecimal jobId, String modelId, SessionContext session, HttpHeaders httpHeaders) throws DigitalObjectNotFoundException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fobject = dom.find(jobId, modelId, session.getLocale(httpHeaders));
         return dom.createHandler(fobject);

@@ -94,7 +94,9 @@ public interface ModsConstants {
     public static final String FIELD_ORIGININFO_DATE_COPYRIGHT = "copyrightDate";
 
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA = "rdamedia";
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_MEDIA = "media";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER = "rdacarrier";
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_CARRIER = "carrier";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM = "marcform";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCCATEGORY= "marccategory";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD= "marcsmd";
