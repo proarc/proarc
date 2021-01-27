@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.RepairMetadata;
 import cz.cas.lib.proarc.common.actions.UpdateObjects;
+import cz.cas.lib.proarc.common.actions.UpdatePages;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -315,9 +316,13 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM) String queryTitle,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_STATUS_PARAM) String queryStatus,
+            @QueryParam(DigitalObjectResourceApi.SEACH_ORGANIZATION_PARAM) String queryOrganization,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_PROCESSOR_PARAM) String queryProcessor,
             @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow,
             @DefaultValue(SearchSort.DEFAULT_DESC)
-            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM) String sortField
             ) throws FedoraClientException, IOException {
 
         Locale locale = session.getLocale(httpHeaders);
@@ -346,7 +351,7 @@ public class DigitalObjectResource {
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
+                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator).setStatus(queryStatus)
                         .setHasOwners(filterGroups(user)), "active");
                 total = items.size();
                 page = 1;
@@ -381,6 +386,19 @@ public class DigitalObjectResource {
             case ALL:
                 items = search.findAllObjects();
                 total = items.size();
+                break;
+            case ADVANCED:
+                if (username == null) {
+                    username = queryProcessor;
+                }
+                if (organization == null) {
+                    organization = queryOrganization;
+                }
+                total = search.findAdvancedSearch(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator);
+                items = search.findAdvanced(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, sortField, sort.toString(), startRow, 100);
+                if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
+                    items = sortItems(items, sort);
+                }
                 break;
             default:
                 total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
@@ -1034,6 +1052,32 @@ public class DigitalObjectResource {
         DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMedatadaPages(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pids,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO) String applyTo,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE) String applyToFirstPage,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_PREFIX) String prefix,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_SUFFIX) String suffix,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_SEQUENCE_TYPE) String sequenceType,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_START_NUMBER) String startNumber,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER) String incrementNumber,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_INDEX_START_NUMBER) String startIndex,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_TYPE_PAGE) String pageType
+    ) throws IOException, DigitalObjectException {
+        LOG.fine(String.format("pid: %s", pids));
+        if (pids == null || pids.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
+        }
+        UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage);
+        updatePages.createListOfPids(pids);
+        updatePages.createIndex(startIndex);
+        updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType);
+        return new SmartGwtResponse<>();
     }
 
     private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {

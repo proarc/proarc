@@ -225,15 +225,18 @@ public final class NdkPeriodicalSupplementForm {
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                /*.addField(new FieldBuilder("value").setTitle("Genre - M").setMaxOccurrences(1)
+                .addField(new FieldBuilder("value").setTitle("Genre (value) - M").setMaxOccurrences(1)
                         .setType(Field.SELECT).setRequired(true).setDefaultValue("supplement")
-                        .setHint("bližší údaje o typu dokumentu")
+                        .setHint("bližší údaje o typu dokumentu." +
+                                "<p> při uložení se hodnota převede do elementu Type (kvůli změně standardu)")
                         .addMapValue("supplement", "Příloha")
+                        .addMapValue("volume_supplement", "příloha k ročníku - dle starého standardu (viz. Hint)")
+                        .addMapValue("issue_supplement", "příloha k číslu - dle starého standardu (viz. Hint)")
                         .createField()) // value
-                */
-                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
+                .addField(new FieldBuilder("type").setTitle("Genre (type) - M").setMaxOccurrences(1)
                     .setType(Field.SELECT).setRequired(true)
-                    .setHint("bližší údaje o typu dokumentu")
+                    .setHint("bližší údaje o typu dokumentu - dle nového standardu se informace ukládá do type." +
+                            "<p> Jestliže je hodnota prázdná, a hodnota value naplněna - bude informace převedena při uložení.")
                     .addMapValue("volume_supplement", "příloha k ročníku")
                     .addMapValue("issue_supplement", "příloha k číslu")
                 .createField()) // type

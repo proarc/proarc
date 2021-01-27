@@ -38,6 +38,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.Rdf;
 import cz.cas.lib.proarc.common.fedora.relation.RdfRelation;
@@ -65,19 +66,20 @@ import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import org.w3c.dom.Node;
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXB;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXB;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
-import org.w3c.dom.Node;
 
 /**
  * It reads the proarc archive package and generates digital objects for a batch import.
@@ -123,7 +125,7 @@ public class PackageReader {
 
         StructMapType physicalMap = getStructMap(mets, PackageBuilder.STRUCTMAP_PHYSICAL_TYPE);
         DivType div = physicalMap.getDiv();
-        processObject(1, div);
+        processObject(1, div, null);
     }
 
     private List<String> processChildObjects(List<DivType> divs) throws DigitalObjectException {
@@ -136,11 +138,34 @@ public class PackageReader {
             // check whether child objects exist in the repository
             iSession.checkRemote(pids);
         }
+        File newArchive = null;
+        if (containsNdkFolder(metsFile.getParentFile())) {
+            newArchive = getNdkFolder(metsFile.getParentFile());
+        }
         int childIndex = 1;
         for (DivType div : divs) {
-            processObject(childIndex++, div);
+            processObject(childIndex++, div, newArchive);
         }
         return pids;
+    }
+
+    private boolean containsNdkFolder(File parentFile) {
+        return getNdkFolder(parentFile) != null;
+    }
+
+    private File getNdkFolder(File parentFile) {
+        if (parentFile != null) {
+            for (File file : parentFile.listFiles()) {
+                if ("NDK".equals(file.getName())) {
+                    for (File child : file.listFiles()) {
+                        if (child.isDirectory()) {
+                            return child;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private void processDevices(StructMapType structMap) {
@@ -193,7 +218,7 @@ public class PackageReader {
                 importItem = iSession.addObject(lObj, physicalPath.isEmpty());
 
                 if (isNewObject) {
-                    createDatastreams(lObj, deviceDiv, Collections.<String>emptyList());
+                    createDatastreams(lObj, deviceDiv, Collections.<String>emptyList(), null);
                 }
                 lObj.flush();
                 importItem.setState(ObjectState.LOADED);
@@ -204,7 +229,7 @@ public class PackageReader {
         }
     }
 
-    private void processObject(int divIndex, DivType div) throws DigitalObjectException {
+    private void processObject(int divIndex, DivType div, File ndkFolder) throws DigitalObjectException {
         String modelId = div.getTYPE();
         boolean isPkgModel = pkgModelId.equals(modelId);
         String pid = toPid(div);
@@ -255,7 +280,8 @@ public class PackageReader {
             List<String> childPids = processChildObjects(div.getDiv());
             physicalPath.remove(pid);
             if (isNewObject) {
-                createDatastreams(lObj, div, childPids);
+                createDatastreams(lObj, div, childPids, ndkFolder);
+
             } else {
                 mergeDatastreams(lObj, div, childPids);
             }
@@ -313,7 +339,7 @@ public class PackageReader {
         }
     }
 
-    private void createDatastreams(LocalObject lObj, DivType objectDiv, List<String> childPids) throws DigitalObjectException {
+    private void createDatastreams(LocalObject lObj, DivType objectDiv, List<String> childPids, File ndkFolder) throws DigitalObjectException {
         List<Fptr> fPtrs = objectDiv.getFptr();
         for (Fptr fPtr : fPtrs) {
             Object fileid = fPtr.getFILEID();
@@ -334,7 +360,64 @@ public class PackageReader {
                         "METS: Unexpected <dmdSec> " + dmdObject + ", div@id: " + objectDiv.getID());
             }
         }
+
+        if (ndkFolder != null) {
+            String[] fileName = lObj.getFoxml().getName().split("_");
+            String seq = null;
+            if (fileName.length == 4) {
+                seq = fileName[2];
+            }
+
+            if (seq != null) {
+                if (ndkFolder.isDirectory()) {
+                    for (File folder : ndkFolder.listFiles()) {
+                        if (folder.isDirectory()) {
+                            for (File file : folder.listFiles()) {
+                                if (file.getName().contains(seq)) {
+                                    createDatastream(lObj, file);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
+
+    private void createDatastream(LocalObject lObj, File file) throws DigitalObjectException {
+        try {
+            String dsId = toValidDsId(file.getParentFile().getName());
+            if (AltoDatastream.ALTO_ID.equals(dsId)) {
+                AltoDatastream.importAlto(lObj, file.toURI(), null);
+            } else if (StringEditor.OCR_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf(Files.probeContentType(file.toPath()));
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(StringEditor.OCR_ID, mime, StringEditor.OCR_LABEL));
+                }
+                editor.write(file, 0, null);
+            } else if (BinaryEditor.NDK_USER_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf("image/jp2");
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_USER_ID, mime, BinaryEditor.NDK_USER_LABEL));
+                }
+                editor.write(file, 0, null);
+            } else if (BinaryEditor.NDK_ARCHIVAL_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf("image/jp2");
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_ARCHIVAL_ID, mime, BinaryEditor.NDK_ARCHIVAL_LABEL));
+                }
+                editor.write(file, 0, null);
+            }
+        } catch (IOException ex) {
+            throw new DigitalObjectException(ex.getMessage(), ex);
+        }
+
+    }
+
+
 
     private void createDatastream(LocalObject lObj, MdSecType dmdSec) throws DigitalObjectException {
         MdWrap mdWrap = dmdSec.getMdWrap();
@@ -494,6 +577,20 @@ public class PackageReader {
             throw new IllegalStateException("Invalid METS: " + toString(file));
         }
         return dsId;
+    }
+
+    private String toValidDsId(String name) {
+        if ("alto".equals(name)) {
+            return AltoDatastream.ALTO_ID;
+        } else if ("txt".equals(name)) {
+            return StringEditor.OCR_ID;
+        } else if ("usercopy".equals(name)) {
+            return BinaryEditor.NDK_USER_ID;
+        } else if ("mastercopy".equals(name)) {
+            return BinaryEditor.NDK_ARCHIVAL_ID;
+        } else {
+            return name;
+        }
     }
 
     private String toDsId(FileType file) {

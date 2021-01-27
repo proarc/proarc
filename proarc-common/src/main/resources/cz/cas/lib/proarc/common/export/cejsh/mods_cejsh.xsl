@@ -264,11 +264,15 @@ Author Miroslav Pavelka
                                 </xsl:if>
                                 <xsl:if test="./mods:nonSort!=''">
                                     <xsl:value-of select="./mods:nonSort"/>
-                                    <xsl:text>&#160;</xsl:text>
+                                    <xsl:if test="./mods:title!='' or ./mods:subTitle!=''">
+                                        <xsl:text>&#160;</xsl:text>
+                                    </xsl:if>
                                 </xsl:if>
                                 <xsl:if test="./mods:title!=''">
                                     <xsl:value-of select="./mods:title"/>
-                                    <xsl:text>: </xsl:text>
+                                    <xsl:if test="./mods:subTitle!=''">
+                                        <xsl:text>: </xsl:text>
+                                    </xsl:if>
                                 </xsl:if>
                                 <xsl:if test="./mods:subTitle!=''">
                                     <xsl:value-of select="./mods:subTitle"/>

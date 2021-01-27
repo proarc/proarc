@@ -19,14 +19,14 @@ package cz.cas.lib.proarc.common.mods.custom;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 /**
  *

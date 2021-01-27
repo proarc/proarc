@@ -45,6 +45,9 @@ import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import cz.cas.lib.proarc.urnnbn.model.registration.Import;
 import cz.cas.lib.proarc.urnnbn.model.response.ErrorType;
 import cz.cas.lib.proarc.urnnbn.model.response.UrnNbn;
+import org.apache.commons.io.FileUtils;
+import org.xml.sax.SAXException;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayDeque;
@@ -56,9 +59,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response;
-import org.apache.commons.io.FileUtils;
-import org.xml.sax.SAXException;
 
 /**
  * Walks down the NDK hierarchy and registers missing URN:NBN with {@link ResolverClient}.
@@ -83,6 +83,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
             NdkPlugin.MODEL_MONOGRAPHVOLUME,
             NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
+            NdkPlugin.MODEL_ARTICLE,
             NdkPlugin.MODEL_CARTOGRAPHIC,
             NdkPlugin.MODEL_SHEETMUSIC,
             NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME,
@@ -128,6 +129,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             return null;
         }
         try {
+            super.visitChildren(elm, p);
             registeringObject = elm;
             return processNdkPeriodicalIssue(elm, p);
         } catch (DigitalObjectException ex) {
@@ -169,7 +171,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
             String parentModelId = parent.getModelId();
-            if (parent == DigitalObjectElement.NULL || NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModelId)) {
+            if (parent == DigitalObjectElement.NULL || NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModelId)  || NdkPlugin.MODEL_PERIODICALISSUE.equals(parentModelId)) {
                 try {
                     registeringObject = elm;
                     return processNdkPeriodicalIssue(elm, p);
@@ -260,7 +262,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            return processOtherEntity(elm, "cartographic", p);
+            return processOtherEntity(elm, "cartographic", p, null);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {
@@ -278,7 +280,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            return processOtherEntity(elm, "sheetmusic", p);
+            return processOtherEntity(elm, "sheetmusic", p, null);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {
@@ -289,9 +291,17 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     @Override
     public Void visitNdkArticle(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
         if (registeringObject != null) {
-            return super.visitNdkArticle(elm, p);
-        } else {
-            return visitEnclosingElement2Register(elm, p);
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT, "The article under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            MixType mixType = searchMixElement(getParent(elm), p);
+            return processOtherEntity(elm, "article", p, mixType);
+        } catch (DigitalObjectException ex) {
+            throw  new VisitorException(ex);
+        } finally {
+            registeringObject = null;
         }
     }
 
@@ -641,7 +651,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         return null;
     }
 
-    private Void processOtherEntity(DigitalObjectElement elm, String entityType, UrnNbnContext p)
+    private Void processOtherEntity(DigitalObjectElement elm, String entityType, UrnNbnContext p, MixType mix)
             throws DigitalObjectException, VisitorException {
 
         final DigitalObjectHandler volumeHandler = elm.getHandler();
@@ -654,10 +664,11 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
         }
-
-        MixType mix = searchMix(elm, p);
         if (mix == null) {
-            return null;
+            mix = searchMix(elm, p);
+            if (mix == null) {
+                return null;
+            }
         }
 
         try {
@@ -776,6 +787,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             visitChildren(elm, p);
             // no page found
+            p.getStatus().error(elm, Status.NO_PAGE_FOUND, "No technical metadata!");
+            return null;
+        } catch (StopOnFirstMixException ex) {
+            return ex.getMix();
+        }
+    }
+
+    private MixType searchMixElement(DigitalObjectElement elm, UrnNbnContext p) throws  VisitorException {
+        try {
+            visitChildrenOnlyIf(elm, p, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
             p.getStatus().error(elm, Status.NO_PAGE_FOUND, "No technical metadata!");
             return null;
         } catch (StopOnFirstMixException ex) {
