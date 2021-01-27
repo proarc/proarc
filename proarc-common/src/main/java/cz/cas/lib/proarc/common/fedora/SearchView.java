@@ -55,17 +55,21 @@ public final class SearchView {
     private static final Logger LOG = Logger.getLogger(SearchView.class.getName());
 
     private static final String QUERY_LAST_CREATED = readQuery("lastCreated.itql");
+    private static final String QUERY_LAST_CREATED_WITHOUT_EXTENSION = readQuery("lastCreatedWithoutExtension.itql");
     private static final String QUERY_COUNT_MODELS = readQuery("countModels.itql");
     private static final String QUERY_FIND_BY_MODEL = readQuery("findByModel.itql");
     private static final String QUERY_FIND_BY_MODELS = readQuery("findByModels.itql");
     private static final String QUERY_FIND_MEMBERS = readQuery("findMembers.itql");
     private static final String QUERY_FIND_MEMBER_HIERARCHY = readQuery("findMemberHierarchy.itql");
     private static final String QUERY_FIND_PIDS = readQuery("findPids.itql");
+    private static final String QUERY_FIND_PIDS_WITHOUT_EXTENSION = readQuery("findPidsWithoutExtension.itql");
     private static final String QUERY_FIND_REFERRERS = readQuery("findReferrers.itql");
     private static final String QUERY_FIND_DEVICE_REFERRERS = readQuery("findDeviceReferrers.itql");
     private static final String QUERY_FIND_ALL_OBJECTS = readQuery("findAll.itql");
     private static final String QUERY_ADVANCED_SEARCH = readQuery("advancedSearch.itql");
+    private static final String QUERY_ADVANCED_SEARCH_WITHOUT_EXTENSION = readQuery("advancedSearchWithoutExtension.itql");
     private static final String QUERY_ADVANCED_SEARCH_COUNT = readQuery("advancedSearchCount.itql");
+    private static final String QUERY_ADVANCED_SEARCH_COUNT_WITHOUT_EXTENSION = readQuery("advancedSearchCountWithoutExtension.itql");
 
     private final FedoraClient fedora;
     private final int maxLimit;
@@ -354,7 +358,22 @@ public final class SearchView {
 
         LOG.fine(query);
         RiSearch search = buildSearch(query);
-        return consumeSearch(search.execute(fedora));
+        List<SearchView.Item> list = consumeSearch(search.execute(fedora));
+        if (list.size() == 0) {
+            String queryWithoutExtension = QUERY_FIND_PIDS_WITHOUT_EXTENSION.replace("${pids.expression}", expr);
+            queryWithoutExtension = queryWithoutExtension.replace("${pids.model}", modelFilter);
+            String onlyActiveExprWithoutExtension = onlyActive
+                    ? "and        $pid     <info:fedora/fedora-system:def/model#state>"
+                    + "           <info:fedora/fedora-system:def/model#Active>"
+                    : "";
+            queryWithoutExtension = queryWithoutExtension.replace("${includeActive}", onlyActiveExprWithoutExtension);
+
+            LOG.fine(queryWithoutExtension);
+            RiSearch searchWithoutExtension = buildSearch(queryWithoutExtension);
+            list = consumeSearch(searchWithoutExtension.execute(fedora));
+        }
+        return list;
+
     }
 
     /**
@@ -518,7 +537,26 @@ public final class SearchView {
         if (pids.size() == 0) {
             return new ArrayList<Item>();
         } else {
-            return consumeSearch(search.execute(fedora));
+            List<SearchView.Item> list = consumeSearch(search.execute(fedora));
+            if (list.size() == 0) {
+                String queryWithoutExtension = QUERY_ADVANCED_SEARCH_WITHOUT_EXTENSION.replace("${OFFSET}", String.valueOf(offset));
+                queryWithoutExtension = queryWithoutExtension.replace("${MODEL_FILTER}", modelFilter);
+                queryWithoutExtension = queryWithoutExtension.replace("${ORGANIZATION_FILTER}", organizationFilter);
+                queryWithoutExtension = queryWithoutExtension.replace("${PROCESSOR_FILTER}", processorFilter);
+                queryWithoutExtension = queryWithoutExtension.replace("${STATUS_FILTER}", statusFilter);
+                queryWithoutExtension = queryWithoutExtension.replace("${PIDS_FILTER}", pidsFilter);
+                queryWithoutExtension = queryWithoutExtension.replace("${ORDERBY}", orderBy);
+
+                LOG.fine(queryWithoutExtension);
+
+                RiSearch searchWithoutExtension = buildSearch(queryWithoutExtension);
+                if (limit > 0) {
+                    limit = Math.min(limit, maxLimit);
+                    searchWithoutExtension.limit(limit);
+                }
+                list = consumeSearch(searchWithoutExtension.execute(fedora));
+            }
+            return list;
         }
     }
 
@@ -569,6 +607,18 @@ public final class SearchView {
 
         RiSearch search = buildSearch(query);
         List<Item> items = consumeSearch(search.execute(fedora));
+        if (items.size() == 0) {
+            String queryWithoutExtension = QUERY_ADVANCED_SEARCH_COUNT;
+            queryWithoutExtension = queryWithoutExtension.replace("${MODEL_FILTER}", modelFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${ORGANIZATION_FILTER}", organizationFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${PROCESSOR_FILTER}", processorFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${STATUS_FILTER}", statusFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${PIDS_FILTER}", pidsFilter);
+
+            LOG.fine(queryWithoutExtension);
+            RiSearch searchWithoutExtension = buildSearch(queryWithoutExtension);
+            items = consumeSearch(searchWithoutExtension.execute(fedora));
+        }
         return items.size();
     }
 
@@ -643,7 +693,24 @@ public final class SearchView {
             limit = Math.min(limit, maxLimit);
             search.limit(limit);
         }
-        return consumeSearch(search.execute(fedora));
+        List<SearchView.Item> items = consumeSearch(search.execute(fedora));
+        if (items.size() == 0) {
+            String queryWithoutExtension = QUERY_LAST_CREATED.replace("${OFFSET}", String.valueOf(offset));
+            queryWithoutExtension = queryWithoutExtension.replace("${MODEL_FILTER}", modelFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${OWNER_FILTER}", ownerFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${ORDERBY}", orderBy);
+            queryWithoutExtension = queryWithoutExtension.replace("${ORGANIZATION}", organizationFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${USERNAME}", userFilter);
+            LOG.fine(queryWithoutExtension);
+            RiSearch searchWithoutExtension = buildSearch(queryWithoutExtension);
+
+            if (limit > 0) {
+                limit = Math.min(limit, maxLimit);
+                searchWithoutExtension.limit(limit);
+            }
+            items = consumeSearch(searchWithoutExtension.execute(fedora));
+        }
+        return items;
     }
 
     public List<Item> countModels(String model, String user, String organization, String username) throws FedoraClientException, IOException {
@@ -673,7 +740,18 @@ public final class SearchView {
         LOG.fine(query);
         RiSearch search = buildSearch(query);
 
-        return consumeSearch(search.execute(fedora));
+        List<SearchView.Item> items = consumeSearch(search.execute(fedora));
+        if (items.size() == 0) {
+            String queryWithoutExtension = QUERY_COUNT_MODELS;
+            queryWithoutExtension = queryWithoutExtension.replace("${MODEL_FILTER}", modelFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${OWNER_FILTER}", ownerFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${ORGANIZATION}", organizationFilter);
+            queryWithoutExtension = queryWithoutExtension.replace("${USERNAME}", userFilter);
+            LOG.fine(queryWithoutExtension);
+            RiSearch searchWithoutExtension = buildSearch(queryWithoutExtension);
+            items = consumeSearch(searchWithoutExtension.execute(fedora));
+        }
+        return items;
     }
 
     public List<Item> findAllObjects() throws FedoraClientException, IOException {
