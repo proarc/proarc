@@ -341,18 +341,21 @@ public class DigitalObjectResource {
                 || UserRole.ROLE_ADMIN.equals(user.getRole())
                 || !appConfig.getSearchOptions().getSearchFilterProcessor() ? null : user.getUserName();
 
+        Boolean allowAllForProcessor = appConfig.getSearchOptions().getSearchFilterAllowAllForProcessor();
+        Boolean filterWithoutExtension = appConfig.getSearchOptions().getSearchFilterWithoutExtension();
+
         List<Item> items;
         int total = 0;
         int page = 20;
         switch (type) {
             case ALPHABETICAL:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
-                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension).size();
+                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension,  100, sort.toString());
                 items = sortItems(items, sort);
                 break;
             case LAST_MODIFIED:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension).size();
+                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
@@ -400,15 +403,15 @@ public class DigitalObjectResource {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearch(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator);
-                items = search.findAdvanced(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }
                 break;
             default:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension).size();
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
         }
         repairItemsModel(items);
         int count = items.size();

@@ -132,7 +132,7 @@ public class SearchViewTest {
         String user = NdkPlugin.MODEL_PERIODICAL;
 //        String user = null;
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findLastCreated(0, user, null, "desc");
+        List<Item> result = instance.findLastCreated(0, user, null, false, "desc");
         System.out.println(result);
     }
 
@@ -170,7 +170,7 @@ public class SearchViewTest {
 
 //        fedora.getClient().debug(true);
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findLastCreated(0, modelId, user.getUserNameAsPid(), "desc");
+        List<Item> result = instance.findLastCreated(0, modelId, user.getUserNameAsPid(), false, "desc");
         System.out.println(result);
         assertNotNull(result);
         assertEquals(1, result.size());
