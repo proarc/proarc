@@ -40,13 +40,13 @@ public class UpdateObjects {
         return items;
     }
 
-    public void setOrganization(List<SearchView.Item> items) throws DigitalObjectException {
+    public void setOrganization(List<SearchView.Item> items, String defaultProcessor) throws DigitalObjectException {
         for (SearchView.Item item : items) {
-            setOrganization(item.getPid());
+            setOrganization(item.getPid(), defaultProcessor);
         }
     }
 
-    private void setOrganization(String pid) throws DigitalObjectException {
+    private void setOrganization(String pid, String defaultProcesor) throws DigitalObjectException {
         try {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
             FedoraObject fo = dom.find(pid, null);
@@ -59,7 +59,7 @@ public class UpdateObjects {
                 relations.setOrganization(user.getOrganization());
             }
             if (relations.getUser() == null) {
-                relations.setUser("all");
+                relations.setUser(defaultProcesor);
             }
             if (relations.getStatus() == null) {
                 relations.setStatus(STATUS_NEW);

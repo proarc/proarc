@@ -71,6 +71,7 @@ public final class ImportProfile {
     public static final String NDK_ARCHIVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
     public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
     public static final String CREATE_MODELS_HIERARCHY = "import.create.models_hierarchy";
+    public static final String DEFAULT_PROCESSOR = "import.create.defaultProcessor";
     public static final String DEFAULT_ALTO = "import.default_alto.file";
     public static final String DEFAULT_OCR = "import.default_ocr.file";
     public static final String DEFAULT_CATALOG = "import.catalog.file";
@@ -279,6 +280,11 @@ public final class ImportProfile {
     public Boolean getCreateModelsHierarchy() {
         String createHierarchy = config.getString(CREATE_MODELS_HIERARCHY, "false");
         return  Boolean.parseBoolean(createHierarchy);
+    }
+
+    public String getDefaultProcessor() {
+        String processor = config.getString(DEFAULT_PROCESSOR, "all");
+        return  processor;
     }
 
     public boolean isTiffToJpgDefined() {

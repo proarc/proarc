@@ -1922,7 +1922,7 @@ public class DigitalObjectResource {
         UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
         List<Item> objects = updateObjects.findAllObjects();
         //Map<String, Integer> map = updateObjects.countObjects(objects);
-        updateObjects.setOrganization(objects);
+        updateObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
         return new SmartGwtResponse<>();
     }
 

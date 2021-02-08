@@ -154,7 +154,7 @@ public class TiffImporter implements ImageImporter {
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
         relEditor.setOrganization(ctx.getOrganization());
-        relEditor.setUser("all");
+        relEditor.setUser(ctx.getConfig().getDefaultProcessor());
         relEditor.setStatus(STATUS_NEW);
         if (ctx.isPagePath()) {
             relEditor.setImportFile(f.getAbsolutePath());

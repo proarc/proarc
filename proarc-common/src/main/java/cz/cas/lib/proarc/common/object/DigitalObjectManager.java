@@ -445,10 +445,16 @@ public class DigitalObjectManager {
             relations.setModel(modelId);
             relations.setOrganization(user.getOrganization());
             relations.setStatus(STATUS_NEW);
+
+            String defaultProcessor = "all";
+            if (appConfig != null) {
+                defaultProcessor = appConfig.getImportConfiguration().getDefaultProcessor();
+            }
+
             if ("user".equals(user.getRole())) {
                 relations.setUser(user.getUserName());
             } else {
-                relations.setUser("all");
+                relations.setUser(defaultProcessor);
             }
             if (getUserGroup() != null) {
                 String grpPid = getUserGroup().getName();

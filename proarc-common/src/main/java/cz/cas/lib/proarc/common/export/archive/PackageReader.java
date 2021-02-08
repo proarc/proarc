@@ -457,7 +457,7 @@ public class PackageReader {
                 relationEditor.setStatus(DigitalObjectStatusUtils.STATUS_EXPORTED);
             }
             if (relationEditor.getUser() == null) {
-                relationEditor.setUser("all");
+                relationEditor.setUser(ctx.getConfig().getDefaultProcessor());
             }
 
             String modelId = relationEditor.getModel();
