@@ -1715,6 +1715,14 @@ public class DigitalObjectResource {
         Locale locale = session.getLocale(httpHeaders);
         RemoteStorage storage = RemoteStorage.getInstance(appConfig);
         SearchView search = storage.getSearch(locale);
+
+        if (userName != null && !userName.isEmpty()) {
+            UserProfile processor = UserUtil.getDefaultManger().find(userName);
+            if (processor != null) {
+                organization = processor.getOrganization();
+            }
+        }
+
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);

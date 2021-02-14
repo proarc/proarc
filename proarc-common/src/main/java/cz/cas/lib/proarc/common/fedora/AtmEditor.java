@@ -27,6 +27,8 @@ import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,17 +81,6 @@ public final class AtmEditor {
                 write = true;
             }
         }
-        if (organization != null && !organization.isEmpty()) {
-            String oldVal = relationEditor.getOrganization();
-            String newVal = NULL.equals(organization) ? null : organization;
-            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
-                if ("admin".equals(role) || "user".equals(role)) {
-                    throw new DigitalObjectException(fobject.getPid(), "Nemáte právo měnit organizaci záznamu.");
-                }
-                relationEditor.setOrganization(organization);
-                write = true;
-            }
-        }
         if (user != null && !user.isEmpty()) {
             String oldVal = relationEditor.getUser();
             String newVal = NULL.equals(user) ? null : user;
@@ -99,6 +90,17 @@ public final class AtmEditor {
                 }
                 relationEditor.setUser(user);
                 changedUser = true;
+                write = true;
+            }
+        }
+        if (organization != null && !organization.isEmpty()) {
+            String oldVal = relationEditor.getOrganization();
+            String newVal = NULL.equals(organization) ? null : organization;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                if ("admin".equals(role) || "user".equals(role)) {
+                    throw new DigitalObjectException(fobject.getPid(), "Nemáte právo měnit organizaci záznamu.");
+                }
+                relationEditor.setOrganization(organization);
                 write = true;
             }
         }
@@ -124,25 +126,32 @@ public final class AtmEditor {
      * @param user  ID to update. Use {@link #NULL} for clearing
      * @param status  ID to update. Use {@link #NULL} for clearing
      * @param message audit message
+     * @param fobject
      * @throws DigitalObjectException
      */
-    public void writeOrganizationUserState(String organization, String user, String status, String message) throws DigitalObjectException {
+    public void writeOrganizationUserState(String organization, String user, String status, String message, FedoraObject fobject) throws DigitalObjectException {
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
+        if (user != null && !user.isEmpty()) {
+            String oldVal = relationEditor.getUser();
+            String newVal = NULL.equals(user) ? null : user;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                relationEditor.setUser(user);
+                write = true;
+
+                UserProfile processor = UserUtil.getDefaultManger().find(user);
+                if (processor != null) {
+                    organization = processor.getOrganization();
+                }
+            }
+        }
+
         // check organization exist
         if (organization != null && !organization.isEmpty()) {
             String oldVal = relationEditor.getOrganization();
             String newVal = NULL.equals(organization) ? null : organization;
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
                 relationEditor.setOrganization(organization);
-                write = true;
-            }
-        }
-        if (user != null && !user.isEmpty()) {
-            String oldVal = relationEditor.getUser();
-            String newVal = NULL.equals(user) ? null : user;
-            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
-                relationEditor.setUser(user);
                 write = true;
             }
         }
@@ -221,7 +230,7 @@ public final class AtmEditor {
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, appConfig);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.writeOrganizationUserState(organization, user, state, sessionLog);
+            editor.writeOrganizationUserState(organization, user, state, sessionLog, fobject);
             fobject.flush();
         }
     }
@@ -240,6 +249,7 @@ public final class AtmEditor {
             throw new DigitalObjectException("Process: Set organization failed - impossible to get element");
         }
         findChildrens(element, pids);
+        pids.remove(element.getOriginalPid());
         return pids;
     }
 
