@@ -38,3 +38,12 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 ###
 
 GET http://localhost:8081/proarc/rest/v1/import/processingBatches?state=INGESTING_FAILED
+
+###
+
+GET http://localhost:8081/proarc/rest/v1/info
+
+
+###
+
+
