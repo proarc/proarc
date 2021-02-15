@@ -148,6 +148,13 @@ public class Const {
     //public
     public static final String TECHMDGRP = "TECHMDGRP";
 
+    public static final String MIX001 = "MIX_001";
+    public static final String MIX002 = "MIX_002";
+    public static final String AES001 = "AES_001";
+    public static final String AES002 = "AES_002";
+    public static final String CODINGHISTORY001 = "CODINGHISTORY_001";
+    public static final String CODINGHISTORY002 = "CODINGHISTORY_002";
+
     public static final List<String> PSPElements = new ArrayList<>();
 
     public final static Map<String, String> typeMap = new HashMap<>();

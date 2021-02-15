@@ -44,7 +44,7 @@ public class CodingHistoryForm {
         return new FieldBuilder("values").setTitle("Values").setMaxOccurrences(100)
                 .addField(new FieldBuilder("arity").setTitle("Arity").setMaxOccurrences(1).setType(Field.TEXT).createField())
                 .addField(new FieldBuilder("type").setTitle("Type").setMaxOccurrences(1).setType(Field.TEXT).createField())
-                .addField(new FieldBuilder("value").setTitle("Value").setMaxOccurrences(1).setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("value").setTitle("Value").setMaxOccurrences(1).setType(Field.TEXTAREA).createField())
                 .createField();
     }
 }

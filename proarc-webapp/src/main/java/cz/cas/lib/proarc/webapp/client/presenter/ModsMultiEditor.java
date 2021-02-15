@@ -43,6 +43,7 @@ import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.event.HasEditorLoadHandlers;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
@@ -418,7 +419,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
     private void saveCatalogData(final BooleanCallback callback) {
         String mods = catalogBrowser.getMods();
-        ModsCustomDataSource.getInstance().saveXmlDescription(digitalObjects[0], mods, new DescriptionSaveHandler() {
+        DescriptionSaveHandler descriptionSaveHandler = new DescriptionSaveHandler() {
 
             @Override
             protected void onSave(DescriptionMetadata dm) {
@@ -432,7 +433,14 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                 callback.execute(Boolean.FALSE);
             }
 
-        });
+        };
+
+        if (digitalObjects != null && digitalObjects.length > 0 && digitalObjects[0] != null && digitalObjects[0].getWorkflowJobId() != null) {
+            WorkflowModsCustomDataSource.getInstance().saveXmlDescription(digitalObjects[0], mods, descriptionSaveHandler);
+        } else {
+            ModsCustomDataSource.getInstance().saveXmlDescription(digitalObjects[0], mods, descriptionSaveHandler);
+        }
+
     }
 
     private class SwitchAction extends AbstractAction {

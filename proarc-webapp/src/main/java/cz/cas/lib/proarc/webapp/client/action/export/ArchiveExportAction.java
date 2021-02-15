@@ -74,8 +74,8 @@ public class ArchiveExportAction extends ExportAction {
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
                 if (modelId != null && (modelId.contains("ndkmusicdocument")
-                        || modelId.contains("ndksong")
-                        || modelId.contains("ndktrack") || modelId.contains("ndkaudiopage"))) {
+                        || modelId.contains("ndksong") || modelId.contains("ndktrack")
+                        || modelId.contains("ndkaudiopage") || modelId.contains("ndkphonographcylinder"))) {
                     accept = false;
                     continue;
                 }

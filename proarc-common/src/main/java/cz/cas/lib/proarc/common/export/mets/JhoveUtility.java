@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
+import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
@@ -380,7 +381,7 @@ public class JhoveUtility {
         RemoteObject fObj = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
         if (AesEditor.RAW_ID.equals(streamName)) {
             aesEditor = AesEditor.raw(fObj);
-        } else if (MixEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
+        } else if (AesEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
             aesEditor = AesEditor.ndkArchival(fObj);
         } else {
             return null;
@@ -407,6 +408,40 @@ public class JhoveUtility {
 //        DOMSource domSource = new DOMSource(document);
 //        MixType mix = MixUtils.unmarshal(domSource, MixType.class);
         jhoveOutput.setAes(aes);
+        return jhoveOutput;
+    }
+
+    /**
+     * Returns the Coding history information from the fedoraStream
+     *
+     * @param metsElement
+     * @param streamName
+     * @return
+     * @throws MetsExportException
+     */
+    public static JHoveOutput getCodingHistoryFromFedora(IMetsElement metsElement, String streamName) throws MetsExportException {
+//        Document document = null;
+        // hotfix of issue 250
+        JHoveOutput jhoveOutput = new JHoveOutput();
+        CodingHistoryEditor editor;
+        RemoteObject fObj = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        if (CodingHistoryEditor.RAW_ID.equals(streamName)) {
+            editor = CodingHistoryEditor.raw(fObj);
+        } else if (CodingHistoryEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
+            editor = CodingHistoryEditor.ndkArchival(fObj);
+        } else {
+            return null;
+        }
+        Property codingHistory;
+        try {
+            codingHistory = editor.readCodingHistory();
+            if (codingHistory == null) {
+                return null;
+            }
+        } catch (DigitalObjectException ex) {
+            throw new MetsExportException(metsElement.getOriginalPid(), ex.getMessage(), false, ex);
+        }
+        jhoveOutput.setCodingHistory(codingHistory);
         return jhoveOutput;
     }
 
