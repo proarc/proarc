@@ -95,6 +95,7 @@ public class WorkflowTasksEditor {
                             WorkflowTaskDataSource.getInstance().updateCaches(reset);
                             WorkflowJobDataSource.getInstance().updateCaches(reset);
                         }
+                        places.goTo(new WorkflowJobPlace());
                     } else if (RestConfig.isConcurrentModification(dsResponse)) {
                         SC.ask(i18n.SaveAction_ConcurrentErrorAskReload_Msg(), new BooleanCallback() {
 
