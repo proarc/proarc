@@ -30,6 +30,7 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
@@ -95,6 +96,17 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         parent.setHidden(true);
 
         DataSourceTextField profileId = new DataSourceTextField(FIELD_PROFILE_ID);
+        LinkedHashMap<String, String> profiles = new LinkedHashMap<>();
+        profiles.put(ConfigurationProfile.DEFAULT, i18n.ImportProfile_DEFAULT());
+        profiles.put(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, i18n.ImportProfile_DEFAULT_ARCHIVE_IMPORT());
+        profiles.put(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_IMPORT());
+        profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_STT_IMPORT());
+        profiles.put(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_MONOGRAPH_IMPORT());
+        profiles.put(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_PERIODIKA_IMPORT());
+        profiles.put("profile.chronicle", i18n.ImportProfile_DEFAULT_CHRONICLE_IMPORT());
+        profiles.put("profile.oldprint", i18n.ImportProfile_DEFAULT_OLDPRINT_IMPORT());
+        profiles.put(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, i18n.ImportProfile_DEFAULT_SOUNDRECORDING_IMPORT());
+        profileId.setValueMap(profiles);
         profileId.setHidden(true);
 
         DataSourceTextField log = new DataSourceTextField(FIELD_LOG);

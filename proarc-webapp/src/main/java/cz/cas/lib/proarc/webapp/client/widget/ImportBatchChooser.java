@@ -150,7 +150,13 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfUser.setWidth(150);
         lgfUser.setCanFilter(false);
         lgfUser.setCanSort(false);
-        lg.setFields(lgfFolder, lgfDate, lgfModified, lgfImported, lgfUser);
+        ListGridField lgfProfile = new ListGridField(ImportBatchDataSource.FIELD_PROFILE_ID,
+                i18n.ImportSourceChooser_OptionProfile_Title());
+        lgfProfile.setWidth(150);
+        lgfProfile.setCanSort(true);
+        lgfProfile.setCanFilter(true);
+        lgfProfile.setHidden(true);
+        lg.setFields(lgfFolder, lgfDate, lgfModified, lgfImported, lgfUser, lgfProfile);
 
         lg.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
