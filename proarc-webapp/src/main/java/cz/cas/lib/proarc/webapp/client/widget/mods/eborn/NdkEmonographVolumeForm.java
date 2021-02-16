@@ -173,6 +173,10 @@ public final class NdkEmonographVolumeForm {
                 // displayForm
                 // etal
                 // affiliation
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
                 // role, roleDefinition
                 .addField(new FieldBuilder("role").setTitle("Role - MA").setMaxOccurrences(5)
                         .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
@@ -704,7 +708,12 @@ public final class NdkEmonographVolumeForm {
                 // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @altRepGroup
                 // physicalLocation, physicalLocationDefinition extends stringPlusLanguagePlusAuthority
-                // shelfLocator, stringPlusLanguage
+                .addField(new FieldBuilder("shelfLocator").setTitle("Shelf Locator - M").setMaxOccurrences(10)
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                                .setHint("Signatura nebo lokační údaje o daném konkrétním dokumentu, který slouží jako předloha.")
+                                .createField()) // value
+                        .createField()) // shelfLocator
                 // url, urlDefinition extends xs:anyURI
                 .addField(new FieldBuilder("url").setTitle("URL - MA").setMaxOccurrences(1)
                         // @dateLastAccessed, @displayLabel, @access(preview, raw object, object in context), @usage(primary display, primary)
