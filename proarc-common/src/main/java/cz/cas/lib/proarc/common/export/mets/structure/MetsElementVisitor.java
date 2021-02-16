@@ -37,6 +37,7 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -1344,6 +1345,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             JHoveOutput jHoveOutputMC = null;
             JHoveOutput jHoveOutputRawAes = null;
             JHoveOutput jHoveOutputMcAes = null;
+            JHoveOutput jhoveOutputRawCodingHistory = null;
+            JHoveOutput jhoveOutputMcCodingHistory = null;
 
             if (!Const.SOUND_PAGE.equals(metsElement.getElementType())) {
                 if (metsElement.getMetsContext().getFedoraClient() != null) {
@@ -1366,7 +1369,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                 rawinfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
                                 md5InfosMap.put("RAW", rawinfo);
                                 outputFileNames.put("RAW", rawFile.getAbsolutePath());
-                                toGenerate.put("MIX_001", "RAW");
+                                toGenerate.put(Const.MIX001, "RAW");
 
                                 // If mix is present in fedora, then use this one
                                 if (metsElement.getMetsContext().getFedoraClient() != null) {
@@ -1396,7 +1399,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
 
                 if (fileNames.get(Const.MC_GRP_ID) != null) {
-                    toGenerate.put("MIX_002", Const.MC_GRP_ID);
+                    toGenerate.put(Const.MIX002, Const.MC_GRP_ID);
                     String outputFileName = outputFileNames.get(Const.MC_GRP_ID);
                     if (outputFileName != null) {
                         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
@@ -1433,7 +1436,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                 rawinfo.setCreated(rawDsAes.getDatastreamVersion().get(0).getCREATED());
                                 md5InfosMap.put("RAW", rawinfo);
                                 outputFileNames.put("RAW", rawFile.getAbsolutePath());
-                                toGenerate.put("AES_001", "RAW");
+                                toGenerate.put(Const.AES001, "RAW");
+                                toGenerate.put(Const.CODINGHISTORY001, "RAW");
 
                                 // If aes is present in fedora, then use this one
                                 if (metsElement.getMetsContext().getFedoraClient() != null) {
@@ -1446,6 +1450,18 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                         throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Aes information for RAW audio", false, null);
                                     }
                                 }
+                                // If coding history is present in fedora, then use this one
+                                if (metsElement.getMetsContext().getFedoraClient() != null) {
+                                    jhoveOutputRawCodingHistory = JhoveUtility.getCodingHistoryFromFedora(metsElement, CodingHistoryEditor.RAW_ID);
+                                }
+                                // If not present, then generate new
+                                if (jhoveOutputRawCodingHistory == null) {
+                                    jhoveOutputRawCodingHistory = JhoveUtility.getCodingHistory(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), rawCreated, null);
+                                    if (jhoveOutputRawCodingHistory.getCodingHistory() == null) {
+                                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Aes information for RAW audio", false, null);
+                                    }
+                                }
+
                             } catch (FedoraClientException e) {
                                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                             }
@@ -1456,7 +1472,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
 
                 if (fileNames.get(Const.AUDIO_MC_GRP_ID) != null) {
-                    toGenerate.put("AES_002", Const.AUDIO_MC_GRP_ID);
+                    toGenerate.put(Const.AES002, Const.AUDIO_MC_GRP_ID);
+                    toGenerate.put(Const.CODINGHISTORY002, Const.AUDIO_MC_GRP_ID);
                     String outputFileName = outputFileNames.get(Const.AUDIO_MC_GRP_ID);
                     if (outputFileName != null) {
                         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
@@ -1466,6 +1483,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         if (jHoveOutputMcAes == null) {
                             jHoveOutputMcAes = JhoveUtility.getAes(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get(Const.AUDIO_MC_GRP_ID).getCreated(), originalFile);
                             if (jHoveOutputMcAes.getAes() == null) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Aes information for MC audio", false, null);
+                            }
+                        }
+                        if (metsElement.getMetsContext().getFedoraClient() != null) {
+                            jhoveOutputMcCodingHistory = JhoveUtility.getCodingHistoryFromFedora(metsElement, CodingHistoryEditor.NDK_ARCHIVAL_ID);
+                        }
+                        if (jhoveOutputMcCodingHistory == null) {
+                            jhoveOutputMcCodingHistory = JhoveUtility.getCodingHistory(new File(outputFileName), metsElement.getMetsContext(), md5InfosMap.get(Const.AUDIO_MC_GRP_ID).getCreated(), originalFile);
+                            if (jhoveOutputMcCodingHistory.getCodingHistory() == null) {
                                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Aes information for MC audio", false, null);
                             }
                         }
@@ -1485,6 +1511,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     XmlData xmlData = new XmlData();
                     Node mixNode = null;
                     Node aesNode = null;
+                    Node codingHistoryNode = null;
 
                     if ("RAW".equals(streamName)) {
                         if (jHoveOutputRaw != null) {
@@ -1492,10 +1519,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             if (md5InfosMap.get(streamName) != null) {
                                 md5InfosMap.get(streamName).setFormatVersion(jHoveOutputRaw.getFormatVersion());
                             }
-                        } else if (jHoveOutputRawAes != null) {
+                        } else if (jHoveOutputRawAes != null && Const.AES001.equals(name)) {
                             aesNode = jHoveOutputRawAes.getAesNode();
                             if (md5InfosMap.get(streamName) != null) {
                                 md5InfosMap.get(streamName).setFormatVersion(jHoveOutputRawAes.getFormatVersion());
+                            }
+                        } else if (jhoveOutputRawCodingHistory != null && Const.CODINGHISTORY001.equals(name)) {
+                            codingHistoryNode = jhoveOutputRawCodingHistory.getCodingHistoryNode();
+                            if (md5InfosMap.get(streamName) != null) {
+                                md5InfosMap.get(streamName).setFormatVersion(jhoveOutputRawCodingHistory.getFormatVersion());
                             }
                         }
                     } else if ((Const.MC_GRP_ID.equals(streamName)) && (md5InfosMap.get(Const.MC_GRP_ID) != null)) {
@@ -1511,12 +1543,22 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             }
                         }
                     } else if ((Const.AUDIO_MC_GRP_ID.equals(streamName)) && (md5InfosMap.get(Const.AUDIO_MC_GRP_ID) != null)) {
-                        if (jHoveOutputMcAes != null) {
+                        if (jHoveOutputMcAes != null && Const.AES002.equals(name)) {
                             aesNode = jHoveOutputMcAes.getAesNode();
                             if (md5InfosMap.get(streamName) != null) {
                                 md5InfosMap.get(streamName).setFormatVersion(jHoveOutputMcAes.getFormatVersion());
                             }
                             if (aesNode != null) {
+                                if ((amdSecFileGrpMap.get(Const.AUDIO_MC_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.AUDIO_MC_GRP_ID).getFile().get(0) != null)) {
+                                    amdSecFileGrpMap.get(Const.AUDIO_MC_GRP_ID).getFile().get(0).getADMID().add(mdSec);
+                                }
+                            }
+                        } else if (jhoveOutputMcCodingHistory != null && Const.CODINGHISTORY002.equals(name)) {
+                            codingHistoryNode = jhoveOutputMcCodingHistory.getCodingHistoryNode();
+                            if (md5InfosMap.get(streamName) != null) {
+                                md5InfosMap.get(streamName).setFormatVersion(jhoveOutputMcCodingHistory.getFormatVersion());
+                            }
+                            if (codingHistoryNode != null) {
                                 if ((amdSecFileGrpMap.get(Const.AUDIO_MC_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.AUDIO_MC_GRP_ID).getFile().get(0) != null)) {
                                     amdSecFileGrpMap.get(Const.AUDIO_MC_GRP_ID).getFile().get(0).getADMID().add(mdSec);
                                 }
@@ -1528,8 +1570,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         xmlData.getAny().add(mixNode);
                     } else if (aesNode != null) {
                         xmlData.getAny().add(aesNode);
-                    } else {
-                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image/audo metadata (MIX/AES) for " + streamName, false, null);
+                    } else if (codingHistoryNode != null) {
+                        xmlData.getAny().add(codingHistoryNode);
+                    } else {throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image/audo metadata (MIX/AES) for " + streamName, false, null);
                     }
 
                     mdWrap.setXmlData(xmlData);
