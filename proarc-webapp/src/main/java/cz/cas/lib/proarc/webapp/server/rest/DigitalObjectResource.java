@@ -30,7 +30,11 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
@@ -82,8 +86,16 @@ import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
@@ -293,6 +305,13 @@ public class DigitalObjectResource {
         RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
         ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
         PurgeFedoraObject service = new PurgeFedoraObject(fedora);
+        for (String pid : pids) {
+            try {
+                setWorkflow("task.deletionPA", geIMetsElement(pid));
+            } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
+                throw new IOException(e);
+            }
+        }
         if (purge) {
             session.requirePermission(Permissions.ADMIN);
             service.purge(pids, hierarchy, session.asFedoraLog());
@@ -341,18 +360,21 @@ public class DigitalObjectResource {
                 || UserRole.ROLE_ADMIN.equals(user.getRole())
                 || !appConfig.getSearchOptions().getSearchFilterProcessor() ? null : user.getUserName();
 
+        Boolean allowAllForProcessor = appConfig.getSearchOptions().getSearchFilterAllowAllForProcessor();
+        Boolean filterWithoutExtension = appConfig.getSearchOptions().getSearchFilterWithoutExtension();
+
         List<Item> items;
         int total = 0;
         int page = 20;
         switch (type) {
             case ALPHABETICAL:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
-                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension).size();
+                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension,  100, sort.toString());
                 items = sortItems(items, sort);
                 break;
             case LAST_MODIFIED:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension).size();
+                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
@@ -400,15 +422,15 @@ public class DigitalObjectResource {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearch(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator);
-                items = search.findAdvanced(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }
                 break;
             default:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username).size();
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, username, 100, sort.toString());
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension).size();
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
         }
         repairItemsModel(items);
         int count = items.size();
@@ -1159,6 +1181,79 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<DatastreamResult>(result);
     }
 
+    private void setWorkflow(String type, IMetsElement root) throws DigitalObjectException, WorkflowException {
+        if (root != null) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            DigitalObjectManager.CreateHandler handler = dom.create(root.getModel(), root.getOriginalPid(), null, user, null, session.asFedoraLog());
+            Locale locale = session.getLocale(httpHeaders);
+            Job job = handler.getWfJob(root.getOriginalPid(), locale);
+            if (job == null) {
+                return;
+            }
+            List<TaskView> tasks = handler.getTask(job.getId(), locale);
+            Task editedTask = null;
+            for (TaskView task : tasks) {
+                if (type.equals(task.getTypeRef())) {
+                    editedTask = task;
+                    break;
+                }
+            }
+            if (editedTask != null) {
+                editedTask.setOwnerId(new BigDecimal(session.getUser().getId()));
+                editedTask.setState(Task.State.FINISHED);
+                WorkflowProfiles workflowProfiles = WorkflowProfiles.getInstance();
+                WorkflowDefinition workflow = workflowProfiles.getProfiles();
+                WorkflowManager workflowManager = WorkflowManager.getInstance();
+
+                try {
+                    TaskFilter taskFilter = new TaskFilter();
+                    taskFilter.setId(editedTask.getId());
+                    taskFilter.setLocale(locale);
+                    Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
+                            .findFirst().get().getState();
+                    workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
+                    List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+
+                    if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
+                        WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, locale);
+                        workflowActionHandler.runAction(editedTask);
+                    }
+                } catch (IOException e) {
+                    throw new DigitalObjectException(e.getMessage());
+                }
+            }
+        }
+    }
+
+    private IMetsElement geIMetsElement(String pid) throws MetsExportException {
+        RemoteStorage rstorage = RemoteStorage.getInstance();
+        RemoteStorage.RemoteObject fo = rstorage.find(pid);
+        MetsContext mc = buildContext(rstorage, fo, null, null);
+        IMetsElement element = getMetsElement(fo, mc, true);
+        return element == null ? null : element;
+    }
+
+    private MetsContext buildContext(RemoteStorage rstorage, RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(targetFolder == null ? null : targetFolder.getAbsolutePath());
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(appConfig.getNdkExportOptions());
+        return mc;
+    }
+
+    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+        dc.resetContext();
+        com.yourmediashelf.fedora.generated.foxml.DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+        if (dobj == null) {
+            return null;
+        }
+        return MetsElement.getElement(dobj, null, dc, hierarchy);
+    }
+
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class DatastreamResult {
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_ID)
@@ -1712,6 +1807,14 @@ public class DigitalObjectResource {
         Locale locale = session.getLocale(httpHeaders);
         RemoteStorage storage = RemoteStorage.getInstance(appConfig);
         SearchView search = storage.getSearch(locale);
+
+        if (userName != null && !userName.isEmpty()) {
+            UserProfile processor = UserUtil.getDefaultManger().find(userName);
+            if (processor != null) {
+                organization = processor.getOrganization();
+            }
+        }
+
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
@@ -1919,7 +2022,7 @@ public class DigitalObjectResource {
         UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
         List<Item> objects = updateObjects.findAllObjects();
         //Map<String, Integer> map = updateObjects.countObjects(objects);
-        updateObjects.setOrganization(objects);
+        updateObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
         return new SmartGwtResponse<>();
     }
 

@@ -27,9 +27,13 @@ public class NdkExportOptions {
     static final String PROP_NDK_AGENT_ARCHIVIST = "export.ndk.agent.archivist";
     static final String PROP_NDK_AGENT_CREATOR = "export.ndk.agent.creator";
     static final String PROP_PROARC_VERSION = "proarc.version";
+    static final String PROP_PROARC_REVISION = "proarc.build.revision";
+    static final String PROP_PROARC_TIMESTAMP = "proarc.build.timestamp";
     private String archivist;
     private String creator;
     private String version;
+    private String timestamp;
+    private String revision;
 
     public static NdkExportOptions getOptions(Configuration config) {
         NdkExportOptions options = new NdkExportOptions();
@@ -47,6 +51,16 @@ public class NdkExportOptions {
         String version = config.getString(PROP_PROARC_VERSION);
         if (version != null && !version.isEmpty()) {
             options.setVersion(version);
+        }
+
+        String timestamp = config.getString(PROP_PROARC_TIMESTAMP);
+        if (timestamp != null && !timestamp.isEmpty()) {
+            options.setTimestamp(timestamp);
+        }
+
+        String revision = config.getString(PROP_PROARC_REVISION);
+        if (revision != null && !revision.isEmpty()) {
+            options.setRevision(revision);
         }
 
         return options;
@@ -80,5 +94,21 @@ public class NdkExportOptions {
     /** Sets value of Proarc version */
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getRevision() {
+        return revision;
+    }
+
+    public void setRevision(String revision) {
+        this.revision = revision;
     }
 }

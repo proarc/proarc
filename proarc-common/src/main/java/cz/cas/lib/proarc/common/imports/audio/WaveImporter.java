@@ -224,7 +224,7 @@ public class WaveImporter implements ImageImporter {
             relEditor.setImportFile(f.getName());
         }
         relEditor.setOrganization(ctx.getOrganization());
-        relEditor.setUser("all");
+        relEditor.setUser(ctx.getConfig().getDefaultProcessor());
         relEditor.setStatus(STATUS_NEW);
         relEditor.write(0, null);
         // XXX use fedora-model:downloadFilename in RELS-INT or label of datastream to specify filename

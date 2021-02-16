@@ -24,6 +24,7 @@ import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
+import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
@@ -120,6 +121,7 @@ public final class RestConfig {
     public static final String URL_EXPORT_NDK = path(
             URL_EXPORT, ExportResourceApi.NDK_PATH);
     public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
+    public static final String URL_APPLICATION_INFO = path(URL_ROOT, ApplicationResourceApi.PATH);
     public static final String URL_VALUEMAP = path(URL_ROOT, ValueMapResourceApi.PATH);
     public static final String URL_CONFIGPROFILE = path(URL_ROOT, ConfigurationProfileResourceApi.PATH);
     public static final String URL_WORKFLOW = path(URL_ROOT, WorkflowResourceApi.PATH);

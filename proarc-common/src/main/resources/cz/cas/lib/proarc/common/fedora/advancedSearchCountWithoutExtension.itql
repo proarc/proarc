@@ -1,0 +1,8 @@
+select     $pid
+from       <#ri>
+where      $pid     <info:fedora/fedora-system:def/model#hasModel>        $model
+${MODEL_FILTER}
+and        $model   <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/model:proarcobject>
+and        $pid     <info:fedora/fedora-system:def/model#state>           $state
+and        $pid     <info:fedora/fedora-system:def/model#state>           <info:fedora/fedora-system:def/model#Active>
+${PIDS_FILTER}

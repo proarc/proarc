@@ -311,6 +311,7 @@ public class ImportResource {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_FROM) DateTimeParam modifiedFrom,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_TO) DateTimeParam modifiedTo,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_DESCRIPTION) String filePattern,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profile,
             @QueryParam("_startRow") int startRow,
             @QueryParam("_sortBy") String sortBy
             ) throws IOException {
@@ -326,6 +327,7 @@ public class ImportResource {
                     .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
                     .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                     .setFilePattern(filePattern)
+                    .setProfile(profile)
                     .setMaxCount(100000)
                     .setSortBy(sortBy);
         List<BatchView> allBatches = importManager.viewBatch(filterAll);
@@ -341,6 +343,7 @@ public class ImportResource {
                 .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
                 .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                 .setFilePattern(filePattern)
+                .setProfile(profile)
                 .setOffset(startRow).setMaxCount(pageSize)
                 .setSortBy(sortBy)
                 ;

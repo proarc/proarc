@@ -27,6 +27,14 @@ import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchItemTable;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchTable;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserTable;
+import org.apache.empire.data.bean.BeanResult;
+import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBReader;
+import org.apache.empire.db.DBRecord;
+import org.apache.empire.db.DBRecordData;
+import org.apache.empire.db.exceptions.RecordNotFoundException;
+import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
+import org.apache.empire.db.expr.compare.DBCompareExpr;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -36,14 +44,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import org.apache.empire.data.bean.BeanResult;
-import org.apache.empire.db.DBCommand;
-import org.apache.empire.db.DBReader;
-import org.apache.empire.db.DBRecord;
-import org.apache.empire.db.DBRecordData;
-import org.apache.empire.db.exceptions.RecordNotFoundException;
-import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
-import org.apache.empire.db.expr.compare.DBCompareExpr;
 
 /**
  *
@@ -200,6 +200,10 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             cmd.where(table.folder.like('%' + filePattern + '%')
                     .or(bitems.type.is(BatchItem.Type.FILE).and(bitems.file.like('%' + filePattern + '%')))
             );
+        }
+        String profileId = filter.getProfile();
+        if (profileId != null) {
+            cmd.where(table.profileId.in(profileId));
         }
         EmpireUtils.addOrderBy(cmd, filter.getSortBy(), table.create, true);
         DBReader reader = new DBReader();

@@ -27,7 +27,11 @@ import org.apache.commons.configuration.Configuration;
  */
 public class SearchOptions {
     static final String PROP_SEARCH_FILTER_PROCESSOR = "search.filter.processor";
+    static final String PROP_SEARCH_FILTER_ALLOW_ALL = "search.filter.allowAllForProcessor";
+    static final String PROP_SEARCH_FILTER_WITHOUT_EXTENSION = "search.filter.withoutExtensionFields";
     private Boolean searchFilterProcessor;
+    private Boolean searchFilterAllowAllForProcessor;
+    private Boolean searchFilterWithoutExtension;
 
     public static SearchOptions getOptions(Configuration config) {
         SearchOptions options = new SearchOptions();
@@ -39,7 +43,33 @@ public class SearchOptions {
         } else {
             options.setSearchFilterProcessor(false);
         }
+
+        String searchFilterAllowAll = config.getString(PROP_SEARCH_FILTER_ALLOW_ALL);
+        if (searchFilterAllowAll != null
+                && !searchFilterAllowAll.isEmpty()) {
+            options.setSearchFilterAllowAllForProcessor("true".equals(searchFilterAllowAll));
+        } else {
+            options.setSearchFilterAllowAllForProcessor(false);
+        }
+
+        String searchFilterWithoutExtension = config.getString(PROP_SEARCH_FILTER_WITHOUT_EXTENSION);
+        if (searchFilterWithoutExtension != null && !searchFilterWithoutExtension.isEmpty()) {
+            options.setSearchFilterWithoutExtension("true".equals(searchFilterWithoutExtension));
+        } else {
+            options.setSearchFilterWithoutExtension(false);
+        }
+
+
         return options;
+    }
+
+
+    public Boolean getSearchFilterAllowAllForProcessor() {
+        return searchFilterAllowAllForProcessor;
+    }
+
+    public void setSearchFilterAllowAllForProcessor(Boolean searchFilterAllowAllForProcessor) {
+        this.searchFilterAllowAllForProcessor = searchFilterAllowAllForProcessor;
     }
 
     public Boolean getSearchFilterProcessor() {
@@ -49,4 +79,14 @@ public class SearchOptions {
     public void setSearchFilterProcessor(boolean value) {
         this.searchFilterProcessor = value;
     }
+
+    public Boolean getSearchFilterWithoutExtension() {
+        return searchFilterWithoutExtension;
+    }
+
+    public void setSearchFilterWithoutExtension(Boolean value) {
+        this.searchFilterWithoutExtension = value;
+    }
+
+
 }

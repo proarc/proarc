@@ -328,7 +328,7 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         Menu menuTechnical = Actions.createMenu();
         menuTechnical.addItem(Actions.asMenuItem(
                 new SwitchAction(technicalCustomEditor,
-                        i18n.TechnicalMetadataEditor_ActionField_Form(),
+                        i18n.TechnicalMetadataEditorAes_ActionField_Form(),
                         Page.getAppDir() + "images/silk/16/application_form_edit.png",
                         i18n.ModsMultiEditor_TabSimple_Hint()
                 ) {
@@ -343,13 +343,13 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
 
         menuTechnical.addItem(Actions.asMenuItem(
                 new SwitchAction(technicalXmlEditor,
-                        i18n.TechnicalMetadataEditor_ActionField_XML(),
+                        i18n.TechnicalMetadataEditorAes_ActionField_XML(),
                         Page.getAppDir() + "images/oxygen/16/application_xml.png",
                         i18n.ModsMultiEditor_TabSimpleSimple_Hint()), actionSource, false));
 
         menuTechnical.addItem(Actions.asMenuItem(
                 new SwitchAction(technicalCustomCodingHistoryEditor,
-                        "Coding history editor",
+                        i18n.TechnicalMetadataEditorCodingHistory_ActionField_Form(),
                         Page.getAppDir() + "images/silk/16/application_form_edit.png",
                         i18n.ModsMultiEditor_TabSimple_Hint()
                 ) {
@@ -363,7 +363,7 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
 
         menuTechnical.addItem(Actions.asMenuItem(
                 new SwitchAction(technicalXmlCodingHistoryEditor,
-                        "Coding History XML",
+                        i18n.TechnicalMetadataEditorCodingHistory_ActionField_XML(),
                         Page.getAppDir() + "images/oxygen/16/application_xml.png",
                         i18n.ModsMultiEditor_TabSimpleSimple_Hint()), actionSource, false));
 
