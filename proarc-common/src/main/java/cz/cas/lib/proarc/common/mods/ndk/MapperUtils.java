@@ -342,6 +342,23 @@ public final class MapperUtils {
                 }
             }
         }
+                for (PartDefinition part : mods.getPart()) {
+            ExtentDefinition extentDefinition = null;
+            if (part.getExtent() != null && part.getExtent().size() > 0 && part.getExtent().get(0) != null) {
+                extentDefinition = part.getExtent().get(0);
+            }
+            if (extentDefinition != null) {
+                StringPlusLanguage start = extentDefinition.getStart();
+                StringPlusLanguage end = extentDefinition.getEnd();
+                part.getDetail().clear();
+                DetailDefinition detail = new DetailDefinition();
+                StringPlusLanguage detailNumber = new StringPlusLanguage();
+                detailNumber.setValue((start == null ? "" : start.getValue())+ "-" + (end == null ? "" : end.getValue()));
+                detail.getNumber().add(detailNumber);
+                part.getDetail().add(detail);
+            }
+        }
+
     }
 
     static void addNameWithEtal(ModsDefinition mods) {

@@ -45,15 +45,16 @@ import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
-import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.UpdateAllObjectsAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsTitleToNdkMonographTitleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsVolumeToNdkMonographVolumeAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangePageToNdkPageAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ChronicleExportAction;
@@ -118,6 +119,7 @@ public final class DigitalObjectManager {
     private ChangeNdkPageToPageAction changeNdkPageToPageAction;
     private ChangeClippingsVolumeToNdkMonographVolumeAction changeClippingsVolumeToNdkMonographVolumeAction;
     private ChangeClippingsTitleToNdkMonographTitleAction changeClippingsTitleToNdkMonographTitleAction;
+    private UpdateNdkArticleAction updateNdkArticleAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -282,6 +284,7 @@ public final class DigitalObjectManager {
         changeNdkPageToPageAction = new ChangeNdkPageToPageAction(i18n);
         changeClippingsVolumeToNdkMonographVolumeAction = new ChangeClippingsVolumeToNdkMonographVolumeAction(i18n);
         changeClippingsTitleToNdkMonographTitleAction = new ChangeClippingsTitleToNdkMonographTitleAction(i18n);
+        updateNdkArticleAction = new UpdateNdkArticleAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -345,7 +348,6 @@ public final class DigitalObjectManager {
         IconMenuButton btnAdministration = Actions.asIconMenuButton(administrationMenuAction, actionSource);
         Menu menuAdministration = Actions.createMenu();
         menuAdministration.addItem(Actions.asMenuItem(restoreAction, actionSource, false));
-        menuAdministration.addItem(Actions.asMenuItem(updateAllObjectsAction, actionSource, false));
         //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
         //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
@@ -353,6 +355,10 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToPageAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(changeClippingsVolumeToNdkMonographVolumeAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
+        menuAdministration.addItem(new MenuItemSeparator());
+        menuAdministration.addItem(Actions.asMenuItem(updateNdkArticleAction, actionSource, false));
+        menuAdministration.addItem(new MenuItemSeparator());
+        menuAdministration.addItem(Actions.asMenuItem(updateAllObjectsAction, actionSource, false));
         btnAdministration.setMenu(menuAdministration);
 
 
