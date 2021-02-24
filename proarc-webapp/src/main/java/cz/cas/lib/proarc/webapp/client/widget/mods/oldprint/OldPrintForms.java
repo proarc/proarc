@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.client.widget.mods.oldprint;
 
 import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
@@ -44,18 +45,26 @@ public class OldPrintForms {
     public DynamicForm getForm(MetaModelRecord model) {
         String modelId = model.getId();
         Form f;
-        if ("model:oldprintvolume".equals(modelId)) {
+        if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
             f = new OldPrintVolumeForm().build();
             f.setItemWidth("800");
-        } else if ("model:oldprintsupplement".equals(modelId)) {
+        } else if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
             f = new OldPrintSupplementForm().build();
-        } else if ("model:oldprintpage".equals(modelId)) {
+        } else if (OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
             //return new PageForm(i18n, BundleName.MODS_OLDPRINT_PAGE_TYPES);
             return new PageForm(i18n);
-        } else if ("model:oldprintmonographtitle".equals(modelId)) {
+        } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
             f = new OldPrintMonographTitleForm().build();
-        } else if ("model:oldprintchapter".equals(modelId)) {
+        } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
             f = new OldPrintChapterForms().build();
+        } else if (OldPrintPlugin.MODEL_CARTOGRAPHIC.equals(modelId)) {
+            f = new OldPrintCartographicForm().build();
+        } else if (OldPrintPlugin.MODEL_GRAPHICS.equals(modelId)) {
+            f = new OldPrintGraphicsForm().build();
+        } else if (OldPrintPlugin.MODEL_OMNIBUSVOLUME.equals(modelId)) {
+            f = new OldPrintOmnibusVolumeForm().build();
+        } else if (OldPrintPlugin.MODEL_SHEETMUSIC.equals(modelId)) {
+            f = new OldPrintSheetMusicForm().build();
         } else {
             return null;
         }

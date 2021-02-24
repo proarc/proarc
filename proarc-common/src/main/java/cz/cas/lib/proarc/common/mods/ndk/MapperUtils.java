@@ -172,7 +172,7 @@ public final class MapperUtils {
 //        }
     }
 
-    static void fillRecordInfo(ModsDefinition mods) {
+    public static void fillRecordInfo(ModsDefinition mods) {
         Date now = new Date();
         List<RecordInfoDefinition> recordInfos = mods.getRecordInfo();
         if (recordInfos.isEmpty()) {
@@ -220,7 +220,7 @@ public final class MapperUtils {
         }
     }
 
-    static void fillAbstract(ModsDefinition mods) {
+    public static void fillAbstract(ModsDefinition mods) {
         List<AbstractDefinition> abstracts = mods.getAbstract();
         List<AbstractDefinition> newAbstract = new ArrayList<>();
         for (AbstractDefinition abs : abstracts) {
@@ -239,7 +239,7 @@ public final class MapperUtils {
         mods.getAbstract().addAll(newAbstract);
     }
 
-    static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {
+    public static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {
         for (StringPlusLanguage modsValue : modsValues) {
             // XXX lang?
             if (modsValue.getValue() != null && modsValue.getValue().length() > 2700) {
@@ -263,7 +263,7 @@ public final class MapperUtils {
         return tmp;
     }
 
-    static void addName(List<NameDefinition> modsNames, List<ElementType> dcElms) {
+    public static void addName(List<NameDefinition> modsNames, List<ElementType> dcElms) {
         for (NameDefinition name : modsNames) {
             StringBuilder sbName = new StringBuilder();
             StringBuilder sbFamily = new StringBuilder();
@@ -360,7 +360,7 @@ public final class MapperUtils {
         }
     }
 
-    static void addOriginInfo(List<OriginInfoDefinition> originInfos, OaiDcType dc) {
+    public static void addOriginInfo(List<OriginInfoDefinition> originInfos, OaiDcType dc) {
         for (OriginInfoDefinition originInfo : originInfos) {
             for (PlaceDefinition place : originInfo.getPlace()) {
                 for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
