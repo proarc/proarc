@@ -2023,6 +2023,21 @@ public class DigitalObjectResource {
         List<Item> objects = updateObjects.findAllObjects();
         //Map<String, Integer> map = updateObjects.countObjects(objects);
         updateObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
+        LOG.log(Level.INFO, "Update finished, updated " + objects.size() + " objects.");
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_NDK_ARTICLE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> updateNdkArticeObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+        Locale locale = session.getLocale(httpHeaders);
+        UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
+        updateObjects.findObjects(pid, NdkPlugin.MODEL_ARTICLE);
+        updateObjects.repair(NdkPlugin.MODEL_ARTICLE);
         return new SmartGwtResponse<>();
     }
 

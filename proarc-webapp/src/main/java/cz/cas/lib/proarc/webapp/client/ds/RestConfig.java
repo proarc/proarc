@@ -99,6 +99,7 @@ public final class RestConfig {
     public static final String URL_CHANGE_NDK_PAGE_TO_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE);
     public static final String URL_CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME);
     public static final String URL_CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE);
+    public static final String URL_UPDATE_NDK_ARTICLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_ARTICLE);
     public static final String URL_LOCALIZATION =  path(URL_ROOT, LocalizationResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG =  path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG_QUERY =  path(
