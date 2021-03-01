@@ -45,12 +45,14 @@ public class UpdateObjects {
     private static UserProfile user;
     private static Locale locale;
     private List<String> pids;
+    private int updatedObjects;
 
     public UpdateObjects(AppConfiguration appConfig, UserProfile user, Locale locale) {
         this.config = appConfig;
         this.user = user;
         this.locale = locale;
         pids = new ArrayList<>();
+        updatedObjects = 0;
     }
 
     public List<SearchView.Item> findAllObjects() throws IOException, FedoraClientException {
@@ -72,10 +74,10 @@ public class UpdateObjects {
             FedoraObject fo = dom.find(pid, null);
             DigitalObjectHandler doh = dom.createHandler(fo);
             RelationEditor relations = doh.relations();
-            if (relations.getOrganization() != null && relations.getUser() != null && relations.getStatus() != null) {
+            if (relations.getOrganization() != null && !relations.getOrganization().equals(".") && relations.getUser() != null && relations.getStatus() != null) {
                 return;
             }
-            if (relations.getOrganization() == null) {
+            if (relations.getOrganization() == null || (relations.getOrganization() != null && relations.getOrganization().equals("."))) {
                 relations.setOrganization(user.getOrganization());
             }
             if (relations.getUser() == null) {
@@ -86,6 +88,7 @@ public class UpdateObjects {
             }
             relations.write(relations.getLastModified(), "Add organization to foxml");
             doh.commit();
+            updatedObjects++;
         } catch (DigitalObjectException ex)  {
             LOG.log(Level.WARNING, "Unable to update object " + pid);
         }
@@ -157,7 +160,7 @@ public class UpdateObjects {
         for (String pid : pids) {
             updateObject(pid, model);
         }
-        LOG.log(Level.WARNING, "INFORMATION: Update " + model + " finished succesfully, updated " + pids.size() + " object(s).");
+        LOG.log(Level.WARNING, "INFORMATION: Update " + model + " finished succesfully, updated " + updatedObjects + "/" + pids.size() + " object(s).");
     }
 
     private void updateObject(String pid, String model) throws DigitalObjectException {
@@ -185,5 +188,10 @@ public class UpdateObjects {
 
         fo.setLabel(mapper.toLabel(mods));
         handler.commit();
+        updatedObjects++;
+    }
+
+    public int getUpdatedObjects() {
+        return updatedObjects;
     }
 }

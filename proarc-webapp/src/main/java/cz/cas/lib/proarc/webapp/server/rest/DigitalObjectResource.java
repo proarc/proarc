@@ -2023,7 +2023,7 @@ public class DigitalObjectResource {
         List<Item> objects = updateObjects.findAllObjects();
         //Map<String, Integer> map = updateObjects.countObjects(objects);
         updateObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
-        LOG.log(Level.INFO, "Update finished, updated " + objects.size() + " objects.");
+        LOG.log(Level.INFO, "Update finished, updated " + updateObjects.getUpdatedObjects() + "/" + objects.size() + " object(s).");
         return new SmartGwtResponse<>();
     }
 
