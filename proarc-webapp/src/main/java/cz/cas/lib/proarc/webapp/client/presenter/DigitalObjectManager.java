@@ -56,6 +56,7 @@ import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.Change
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangePageToNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.ArchiveOldPrintExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ChronicleExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CrossrefExportAction;
@@ -90,6 +91,7 @@ public final class DigitalObjectManager {
     private final DigitalObjectTreeView treeView;
     private FoxmlViewAction foxmlAction;
     private ArchiveExportAction archiveExportAction;
+    private ArchiveOldPrintExportAction archiveOldPrintExportAction;
     private KrameriusExportAction krameriusExportAction;
     private NdkExportAction ndkExportAction;
     private NdkSipExportAction ndkSipExportAction;
@@ -233,6 +235,7 @@ public final class DigitalObjectManager {
 
     private void createActions() {
         archiveExportAction = new ArchiveExportAction(i18n);
+        archiveOldPrintExportAction = new ArchiveOldPrintExportAction(i18n);
         foxmlAction = new FoxmlViewAction(i18n);
         krameriusExportAction = new KrameriusExportAction(i18n);
         ndkExportAction = new NdkExportAction(i18n);
@@ -311,6 +314,7 @@ public final class DigitalObjectManager {
         IconMenuButton btnExport = Actions.asIconMenuButton(exportMenuAction, actionSource);
         Menu menuExport = Actions.createMenu();
         menuExport.addItem(Actions.asMenuItem(archiveExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(archiveOldPrintExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkSipExportAction, actionSource, false));
@@ -399,6 +403,7 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(foxmlAction, actionSource, true));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(archiveExportAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(archiveOldPrintExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(ndkOldPrintExportAction, actionSource, false));
