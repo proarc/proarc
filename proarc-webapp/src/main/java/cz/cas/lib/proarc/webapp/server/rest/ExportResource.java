@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
+import cz.cas.lib.proarc.common.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
 import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
@@ -509,7 +510,8 @@ public class ExportResource {
     @Path(ExportResourceApi.ARCHIVE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newArchive(
-            @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids
+            @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage
             ) throws ExportException {
 
         if (pids.isEmpty()) {
@@ -519,7 +521,18 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
         ExportResult result = new ExportResult();
         List<ExportResult> resultList = new ArrayList<>();
-        ArchiveProducer export = new ArchiveProducer(appConfig);
+        ArchiveProducer export = null;
+        switch (typeOfPackage) {
+            case "PSP":
+                export = new ArchiveProducer(appConfig);;
+                break;
+            case "STT":
+                export = new ArchiveOldPrintProducer(appConfig);;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported type of package");
+        }
+
         File targetFolder = ExportUtils.createFolder(exportFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)), appConfig.getExportOptions().isOverwritePackage());
         try {
             //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
@@ -548,7 +561,17 @@ public class ExportResource {
         if (!result.getErrors().isEmpty()) {
             return new SmartGwtResponse<>(resultList);
         }
-        NdkExport exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
+        NdkExport exportNdk;
+        switch (typeOfPackage) {
+            case "PSP":
+                exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
+                break;
+            case "STT":
+                exportNdk = new NdkSttExport(RemoteStorage.getInstance(), appConfig);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported type of package");
+        }
         File target = null;
         for (File file : targetFolder.listFiles()) {
             if (file.isDirectory()) {
