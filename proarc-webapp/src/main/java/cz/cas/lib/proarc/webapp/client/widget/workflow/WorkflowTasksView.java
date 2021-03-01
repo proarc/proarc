@@ -217,7 +217,8 @@ public class WorkflowTasksView implements Refreshable {
                 new ListGridField(WorkflowTaskDataSource.FIELD_ID, 30),
                 new ListGridField(WorkflowTaskDataSource.FIELD_NOTE),
                 new ListGridField(WorkflowTaskDataSource.FIELD_JOB_ID, 30),
-                new ListGridField(WorkflowTaskDataSource.FIELD_JOB_LABEL)
+                new ListGridField(WorkflowTaskDataSource.FIELD_JOB_LABEL),
+                new ListGridField(WorkflowTaskDataSource.FIELD_BARCODE)
                 );
 
         grid.getField(WorkflowTaskDataSource.FIELD_LABEL).setWidth("80%");
@@ -258,6 +259,11 @@ public class WorkflowTasksView implements Refreshable {
 
         grid.getField(WorkflowTaskDataSource.FIELD_TYPE).setCanFilter(false);
         grid.getField(WorkflowTaskDataSource.FIELD_TYPE).setCanSort(false);
+
+        grid.getField(WorkflowTaskDataSource.FIELD_BARCODE).setCanFilter(true);
+        grid.getField(WorkflowTaskDataSource.FIELD_BARCODE).setCanSort(true);
+        grid.getField(WorkflowTaskDataSource.FIELD_BARCODE).setFilterOperator(OperatorId.EQUALS);
+        grid.getField(WorkflowTaskDataSource.FIELD_BARCODE).setFilterOnKeypress(false);
 
         grid.addDataArrivedHandler(new DataArrivedHandler() {
 
