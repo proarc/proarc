@@ -176,6 +176,7 @@ public class NdkExport {
                              boolean hierarchy, boolean keepResult, String log) throws ExportException {
 
         Result result = new Result();
+        result.setPid(pid);
 
         if (keepResult) {
             result.setTargetFolder(target);
@@ -209,6 +210,7 @@ public class NdkExport {
                 targetFolder = target;
             }
             storeExportResult(dc, targetFolder.toURI().toASCIIString(), "ARCHIVE", log);
+            result.setPageIndexCount(countPageIndex(target));
             return result;
         } catch (MetsExportException ex) {
             if (ex.getExceptions().isEmpty()) {
@@ -308,6 +310,7 @@ public class NdkExport {
                           boolean hierarchy, boolean keepResult, String log) throws ExportException {
 
         Result result = new Result();
+        result.setPid(pid);
 
         if (keepResult) {
             result.setTargetFolder(target);
@@ -332,6 +335,7 @@ public class NdkExport {
                 }
             }
             storeExportResult(dc, target.toURI().toASCIIString(), "NDK", log);
+            result.setPageIndexCount(countPageIndex(target));
             return result;
         } catch (MetsExportException ex) {
             if (ex.getExceptions().isEmpty()) {
@@ -343,6 +347,23 @@ public class NdkExport {
         }catch (Throwable ex) {
             throw new ExportException(pid, ex);
         }
+    }
+
+    private Integer countPageIndex(File folder) {
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory() && f.getName().equals("mastercopy")) {
+                    return f.listFiles().length;
+                } else if (f.isDirectory()) {
+                    int count = countPageIndex(f);
+                    if (count > 0) {
+                        return count;
+                    }
+                }
+            }
+        }
+        return 0;
     }
 
     protected IMetsElementVisitor createMetsVisitor() {
@@ -410,6 +431,8 @@ public class NdkExport {
 
         private File targetFolder;
         private MetsExportException validationError;
+        private String pid;
+        private Integer pageIndexCount;
 
         public MetsExportException getValidationError() {
             return validationError;
@@ -433,5 +456,20 @@ public class NdkExport {
             return this;
         }
 
+        public String getPid() {
+            return pid;
+        }
+
+        public void setPid(String pid) {
+            this.pid = pid;
+        }
+
+        public Integer getPageIndexCount() {
+            return pageIndexCount;
+        }
+
+        public void setPageIndexCount(Integer pageIndexCount) {
+            this.pageIndexCount = pageIndexCount;
+        }
     }
 }

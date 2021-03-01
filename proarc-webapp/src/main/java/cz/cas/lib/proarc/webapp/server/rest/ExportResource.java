@@ -86,6 +86,7 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -156,12 +157,12 @@ public class ExportResource {
                 RemoteStorage.getInstance(appConfig), appConfig, policy);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
-        File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
-        URI targetPath = user.getUserHomeUri().relativize(target.toURI());
+        Kramerius4Export.Result k4Result = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
+        URI targetPath = user.getUserHomeUri().relativize(k4Result.getFile().toURI());
 
         for (String pid : pids) {
             try {
-                setWorkflowExport("task.exportK4", getRoot(pid, exportFolder));
+                setWorkflowExport("task.exportK4", "param.exportK4", k4Result.getPageCount(), getRoot(pid, exportFolder));
             } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
                 throw new IOException(e);
             }
@@ -316,9 +317,9 @@ public class ExportResource {
             }
         }
         if ("done".equals(result.get(0).getTarget())) {
-            for (String pid : pids) {
+            for (NdkExport.Result r : ndkResults) {
                 try {
-                    setWorkflowExport("task.exportNdkPsp", getRoot(pid, exportFolder));
+                    setWorkflowExport("task.exportNdkPsp", "param.exportNdkPsp.numberOfPackages", r.getPageIndexCount(), getRoot(r.getPid(), exportFolder));
                 } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
                     result.clear();
                     result.add(new ExportResult(null, "Vyexportovano ale nepodarilo se propojit s RDflow."));
@@ -358,7 +359,7 @@ public class ExportResource {
         return mc;
     }
 
-    private void setWorkflowExport(String type, IMetsElement root) throws DigitalObjectException, WorkflowException {
+    private void setWorkflowExport(String taskName, String parameterName, Integer pageCount, IMetsElement root) throws DigitalObjectException, WorkflowException {
        if (root != null) {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
             DigitalObjectManager.CreateHandler handler = dom.create(root.getModel(), root.getOriginalPid(), null, user, null, session.asFedoraLog());
@@ -370,7 +371,7 @@ public class ExportResource {
             List<TaskView> tasks = handler.getTask(job.getId(), locale);
             Task editedTask = null;
             for (TaskView task : tasks) {
-                if (type.equals(task.getTypeRef())) {
+                if (taskName.equals(task.getTypeRef())) {
                     editedTask = task;
                     break;
                 }
@@ -388,7 +389,13 @@ public class ExportResource {
                     taskFilter.setLocale(locale);
                     Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
                             .findFirst().get().getState();
-                    workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
+                    if (parameterName != null) {
+                        Map<String, Object> parameters = new HashMap<>();
+                        parameters.put(parameterName, pageCount);
+                        workflowManager.tasks().updateTask(editedTask, parameters, workflow);
+                    } else {
+                        workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
+                    }
                     List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
 
                     if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
@@ -578,9 +585,9 @@ public class ExportResource {
         }
 
         if (!errors) {
-            for (String pid : pids) {
+            for (NdkExport.Result r : ndkResults) {
                 try {
-                    setWorkflowExport("task.exportArchive", getRoot(pid, exportFolder));
+                    setWorkflowExport("task.exportArchive", "param.exportArchive", r.getPageIndexCount(), getRoot(r.getPid(), exportFolder));
                 } catch (MetsExportException | DigitalObjectException e) {
                     resultList.clear();
                     resultList.clear();

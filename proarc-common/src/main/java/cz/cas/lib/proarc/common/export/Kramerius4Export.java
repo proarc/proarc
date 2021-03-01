@@ -136,7 +136,7 @@ public final class Kramerius4Export {
         }
     }
 
-    public File export(File output, boolean hierarchy, String log, String... pids) {
+    public Result export(File output, boolean hierarchy, String log, String... pids) {
         if (!output.exists() || !output.isDirectory()) {
             throw new IllegalStateException(String.valueOf(output));
         }
@@ -172,7 +172,11 @@ public final class Kramerius4Export {
         result.setStatus(ResultStatus.OK);
         result.setEnd();
         ExportUtils.writeExportResult(target, reslog);
-        return target;
+
+        Result krameriusResult = new Result();
+        krameriusResult.setFile(target);
+        krameriusResult.setPageCount(exportedPids.size());
+        return krameriusResult;
     }
 
     private boolean hasParent(File output, boolean hierarchy, HashSet<String> selectedPids, String[] models) {
@@ -852,6 +856,27 @@ public final class Kramerius4Export {
             Element elm = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":file");
             elm.setTextContent(importFile);
             relations.add(0, elm);
+        }
+    }
+
+    public static class Result {
+        private File file;
+        private Integer pageCount;
+
+        public File getFile() {
+            return file;
+        }
+
+        public void setFile(File file) {
+            this.file = file;
+        }
+
+        public Integer getPageCount() {
+            return pageCount;
+        }
+
+        public void setPageCount(Integer pageCount) {
+            this.pageCount = pageCount;
         }
     }
 
