@@ -30,6 +30,8 @@ import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -52,6 +54,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.DetailDefinition;
@@ -154,11 +157,11 @@ public final class Kramerius4Export {
         toExport.addAll(selectedPids);
         try {
             String[] parentModels = {NdkPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHTITLE};
-            boolean hasParent = hasParent(target, hierarchy, selectedPids, parentModels);
+            //boolean hasParent = hasParent(target, hierarchy, selectedPids, parentModels);
             for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
-                exportPid(target, hierarchy, pid, hasParent);
+                exportPid(target, hierarchy, pid, hasParent(pid));
             }
-            exportParents(target, selectedPids, hasParent);
+            exportParents(target, selectedPids);
             storeExportResult(target, log);
         } catch (RuntimeException ex) {
             result.setStatus(ResultStatus.FAILED);
@@ -167,6 +170,13 @@ public final class Kramerius4Export {
             result.setEnd();
             ExportUtils.writeExportResult(target, reslog);
             throw ex;
+        } catch (DigitalObjectException ex) {
+            result.setStatus(ResultStatus.FAILED);
+            reslog.getExports().add(result);
+            result.getError().add(new ResultError(null, ex));
+            result.setEnd();
+            ExportUtils.writeExportResult(target, reslog);
+            throw new IllegalStateException(ex.getMessage());
         }
 
         result.setStatus(ResultStatus.OK);
@@ -177,6 +187,43 @@ public final class Kramerius4Export {
         krameriusResult.setFile(target);
         krameriusResult.setPageCount(exportedPids.size());
         return krameriusResult;
+    }
+
+    private boolean hasParent(String pid) throws DigitalObjectException {
+        Set<String> parentModels = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(NdkPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHTITLE, ChroniclePlugin.MODEL_CHRONICLETITLE)));
+        IMetsElement element = getElement(pid);
+        if (element == null || element.getParent() == null || element.getParent().getModel() == null) {
+            return false;
+        } else {
+            return parentModels.contains(element.getParent().getModel().substring(12));
+        }
+    }
+
+    public IMetsElement getElement(String pid) throws DigitalObjectException {
+        try {
+            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+            RemoteStorage.RemoteObject robject = rstorage.find(pid);
+            MetsContext metsContext = buildContext(robject, null, rstorage);
+            DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+            if (dobj == null) {
+                return null;
+            }
+            return MetsElement.getElement(dobj, null, metsContext, true);
+        } catch (IOException | MetsExportException ex) {
+            throw new DigitalObjectException("Process: Changing models failed - imposible to find element");
+        }
+    }
+
+    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, RemoteStorage rstorage) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(null);
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(null);
+        return mc;
     }
 
     private boolean hasParent(File output, boolean hierarchy, HashSet<String> selectedPids, String[] models) {
@@ -319,20 +366,19 @@ public final class Kramerius4Export {
      * that were selected for export.
      * <p/>RELS-EXT of exported parent objects contains only PIDs that are subject to export.
      * Other relations are excluded.
-     *
      * @param output output folder
      * @param pids PIDs selected for export
      */
-    private void exportParents(File output, Collection<String> pids, boolean hasParent) {
+    private void exportParents(File output, Collection<String> pids) {
         Map<String, Set<String>> buildPidTree = buildPidTree(pids, exportedPids);
         for (Entry<String, Set<String>> node : buildPidTree.entrySet()) {
             String pid = node.getKey();
             Set<String> children = node.getValue();
-            exportParentPid(output, pid, children, hasParent);
+            exportParentPid(output, pid, children);
         }
     }
 
-    void exportParentPid(File output, String pid, Collection<String> includeChildPids, boolean hasParent) {
+    void exportParentPid(File output, String pid, Collection<String> includeChildPids) {
         try {
             exportedPids.add(pid);
             RemoteObject robject = rstorage.find(pid);
@@ -342,7 +388,7 @@ public final class Kramerius4Export {
                     .execute(client).getEntity(DigitalObject.class);
             File foxml = ExportUtils.pidAsXmlFile(output, pid);
             LocalObject local = lstorage.create(foxml, dobj);
-            exportParentDatastreams(local, includeChildPids, hasParent);
+            exportParentDatastreams(local, includeChildPids, hasParent(pid));
             local.flush();
         } catch (DigitalObjectException ex) {
             throw new IllegalStateException(pid, ex);
@@ -490,7 +536,7 @@ public final class Kramerius4Export {
             Element typeElm = (Element) typeNodes.item(i);
             String type = typeElm.getTextContent();
             String k4ModelId;
-            if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type))) {
+            if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type) || K4Plugin.MODEL_MONOGRAPH.equals(type))) {
                 k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
                 k4ModelId = kramerius4ExportOptions.getModelMap().get(type);
