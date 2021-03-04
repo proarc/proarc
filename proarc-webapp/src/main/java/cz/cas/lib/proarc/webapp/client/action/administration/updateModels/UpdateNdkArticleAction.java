@@ -22,6 +22,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
@@ -29,6 +30,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UpdateObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 
 /**
  * Update Ndk Article
@@ -52,6 +54,9 @@ public class UpdateNdkArticleAction extends AbstractAction {
 
     @Override
     public boolean accept(ActionEvent event) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_OBJECTS_FUNCTION))) {
+            return false;
+        }
         Object[] selection = Actions.getSelection(event);
         boolean accept = false;
         if (selection != null && selection instanceof Record[]) {

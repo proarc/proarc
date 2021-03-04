@@ -46,6 +46,7 @@ public class UserProfile {
     private String organization;
     private String role;
     private String email;
+    private Boolean changeModelFunction;
     private Date created;
     private Date lastLogin;
     private String status;
@@ -254,6 +255,14 @@ public class UserProfile {
 
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Boolean getChangeModelFunction() {
+        return changeModelFunction;
+    }
+
+    public void setChangeModelFunction(Boolean changeModelFunction) {
+        this.changeModelFunction = changeModelFunction;
     }
 
     @Override

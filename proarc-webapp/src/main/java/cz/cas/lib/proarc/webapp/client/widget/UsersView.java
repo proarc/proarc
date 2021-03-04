@@ -29,6 +29,7 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FormItemIfFunction;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
+import com.smartgwt.client.widgets.form.fields.BooleanItem;
 import com.smartgwt.client.widgets.form.fields.CancelItem;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
@@ -229,6 +230,8 @@ public final class UsersView implements RefreshAction.Refreshable {
         SelectItem role = new SelectItem(UserResourceApi.USER_ROLE);
         role.setCanEdit(admin);
         role.setValueMap(UserRole.getMap());
+        BooleanItem changeModelFunction = new BooleanItem(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION);
+        changeModelFunction.setCanEdit(admin);
         TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
         email.setColSpan("*");
         email.setWidth(300);
@@ -270,7 +273,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         cancel.setStartRow(false);
 
         form.setFields(username, password, forename, surname, email,
-                remoteName, remoteType, organization, role, home,
+                remoteName, remoteType, organization, role, home, changeModelFunction,
                 new RowSpacerItem(), submit, cancel);
 
         return form;
