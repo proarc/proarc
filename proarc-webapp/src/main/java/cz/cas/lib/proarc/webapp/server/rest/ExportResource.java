@@ -43,6 +43,7 @@ import cz.cas.lib.proarc.common.export.mets.NdkSttExport;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
+import cz.cas.lib.proarc.common.export.workflow.WorkflowExport;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -54,13 +55,24 @@ import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Task;
-import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
-import org.apache.commons.io.FileUtils;
-import org.glassfish.jersey.server.CloseableService;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.math.BigDecimal;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -79,20 +91,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.server.CloseableService;
 
 /**
  * REST resource to export data from the system.
@@ -335,8 +335,7 @@ public class ExportResource {
             RemoteStorage rstorage = RemoteStorage.getInstance();
             RemoteStorage.RemoteObject fo = rstorage.find(pid);
             MetsContext mc = buildContext(rstorage, fo, null, exportFolder);
-            IMetsElement element = getMetsElement(fo, mc, true);
-            return element.getMetsContext().getRootElement();
+            return getMetsElement(fo, mc, true);
     }
 
     private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
@@ -385,24 +384,24 @@ public class ExportResource {
                 WorkflowManager workflowManager = WorkflowManager.getInstance();
 
                 try {
-                    TaskFilter taskFilter = new TaskFilter();
+                /*    TaskFilter taskFilter = new TaskFilter();
                     taskFilter.setId(editedTask.getId());
                     taskFilter.setLocale(locale);
                     Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
                             .findFirst().get().getState();
-                    if (parameterName != null) {
+                 */   if (parameterName != null) {
                         Map<String, Object> parameters = new HashMap<>();
                         parameters.put(parameterName, pageCount);
                         workflowManager.tasks().updateTask(editedTask, parameters, workflow);
                     } else {
                         workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
                     }
-                    List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+                   // List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
 
-                    if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
+                    //if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
                         WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, locale);
                         workflowActionHandler.runAction(editedTask);
-                    }
+                    //}
                 } catch (IOException e) {
                     throw new DigitalObjectException(e.getMessage());
                 }
@@ -596,7 +595,6 @@ public class ExportResource {
                 resultList.add(new ExportResult((Integer) null, "done"));
             }
         }
-
         boolean errors = false;
         for (ExportResource.ExportResult log: resultList) {
             if (log.getErrors() == null || log.getErrors().isEmpty()) {
@@ -626,6 +624,15 @@ public class ExportResource {
                 }
             }
         }
+
+        WorkflowExport exportWorkflow = new WorkflowExport(appConfig, user, session.getLocale(httpHeaders));
+        try {
+            exportWorkflow.export(targetFolder, ndkResults, session.asFedoraLog());
+        } catch (Exception ex ) {
+            resultList.clear();
+            resultList.add(new ExportResult(null, "Nepodarilo se vytvorit soubor workflow_onformation.xml"));
+        }
+
         return new SmartGwtResponse<>(resultList);
     }
 
