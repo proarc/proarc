@@ -67,11 +67,6 @@ import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import org.w3c.dom.Node;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXB;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -81,6 +76,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXB;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import org.w3c.dom.Node;
 
 /**
  * It reads the proarc archive package and generates digital objects for a batch import.
@@ -450,9 +450,7 @@ public class PackageReader {
             Rdf rdf = Relations.unmarshal(new StreamSource(dsFile), Rdf.class);
             RelationEditor relationEditor = new RelationEditor(lObj);
             relationEditor.setRdf(rdf);
-            if (relationEditor.getOrganization() == null) {
-                relationEditor.setOrganization(ctx.getOrganization());
-            }
+            relationEditor.setOrganization(ctx.getOrganization());
             if (relationEditor.getStatus() == null) {
                 relationEditor.setStatus(DigitalObjectStatusUtils.STATUS_EXPORTED);
             }

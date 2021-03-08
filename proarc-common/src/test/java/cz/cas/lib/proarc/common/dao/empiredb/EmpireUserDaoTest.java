@@ -26,10 +26,13 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  *
@@ -102,12 +105,12 @@ public class EmpireUserDaoTest {
         tx.commit();
 
         String username = "test";
-        List<UserProfile> result = dao.find(username, null, null, null);
+        List<UserProfile> result = dao.find(username, null, null, null, null);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(username, result.get(0).getUserName());
 
-        result = dao.find("UnknownUser", null, null, null);
+        result = dao.find("UnknownUser", null, null, null, null);
         assertEquals(Arrays.asList(), result);
     }
 
@@ -147,7 +150,7 @@ public class EmpireUserDaoTest {
         assertEquals("create", create.getUserName());
         assertEquals("digest", create.getUserPasswordDigest());
 
-        List<UserProfile> find = dao.find(create.getUserName(), null, create.getRemoteName(), create.getRemoteType());
+        List<UserProfile> find = dao.find(create.getUserName(), null, create.getRemoteName(), create.getRemoteType(), null);
         assertEquals(1, find.size());
         UserProfile result = find.get(0);
         assertNotNull(result.getCreated());
