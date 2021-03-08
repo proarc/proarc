@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -301,17 +302,37 @@ public class MetsElement implements IMetsElement {
             DOMSource modsDOMSource = new DOMSource(modsDocument);
             ModsDefinition modsDefinition = ModsUtils.unmarshalModsType(modsDOMSource);
             if (modsDefinition.getPart().size()>0) {
-                if (modsDefinition.getPart().get(0).getExtent().size()>0) {
-                    try {
-                        ExtentDefinition extent = getExtent(modsDefinition.getPart().get(0).getExtent());
-                        if (extent.getStart() != null) {
-                            this.modsStart = new BigInteger(extent.getStart().getValue());
+                for (PartDefinition part : modsDefinition.getPart()) {
+                    if (part.getType() != null && part.getType().equals("pageIndex")) {
+                        if (part.getExtent().size() > 0) {
+                            try {
+                                ExtentDefinition extent = getExtent(part.getExtent());
+                                if (extent.getStart() != null) {
+                                    this.modsStart = new BigInteger(extent.getStart().getValue());
+                                }
+                                if (extent.getEnd() != null) {
+                                    this.modsEnd = new BigInteger(extent.getEnd().getValue());
+                                }
+                                break;
+                            } catch (NumberFormatException ex) {
+                                throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);
+                            }
                         }
-                        if (extent.getEnd() != null) {
-                            this.modsEnd = new BigInteger(extent.getEnd().getValue());
+                    }
+                }
+                if (this.modsStart == null || this.modsEnd == null) {
+                    if (modsDefinition.getPart().get(0).getExtent().size()>0) {
+                        try {
+                            ExtentDefinition extent = getExtent(modsDefinition.getPart().get(0).getExtent());
+                            if (extent.getStart() != null) {
+                                this.modsStart = new BigInteger(extent.getStart().getValue());
+                            }
+                            if (extent.getEnd() != null) {
+                                this.modsEnd = new BigInteger(extent.getEnd().getValue());
+                            }
+                        } catch (NumberFormatException ex) {
+                            throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);
                         }
-                    } catch (NumberFormatException ex) {
-                        throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);
                     }
                 }
             }
