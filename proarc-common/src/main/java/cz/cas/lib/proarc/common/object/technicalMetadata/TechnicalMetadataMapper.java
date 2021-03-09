@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.technicalMetadata;
 
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -23,16 +24,16 @@ import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-import org.aes.audioobject.AudioObject;
-import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
 import java.io.StringReader;
+import javax.xml.transform.stream.StreamSource;
+import org.aes.audioobject.AudioObject;
 
 public class TechnicalMetadataMapper {
 
@@ -127,7 +128,7 @@ public class TechnicalMetadataMapper {
         dm.setPid(fobject.getPid());
         dm.setTimestamp(aesEditor.getLastModified());
         dm.setData(aesEditor.readAes());
-        if (dm.getData() == null) {
+        if (dm.getData() == null && !(fobject instanceof LocalStorage.LocalObject)) {
             dm.setData(aesEditor.generate(fobject, config, importName));
         }
 
@@ -147,7 +148,7 @@ public class TechnicalMetadataMapper {
         dm.setPid(fobject.getPid());
         dm.setTimestamp(codingHistoryEditor.getLastModified());
         dm.setData(codingHistoryEditor.readCodingHistory());
-        if (dm.getData() == null) {
+        if (dm.getData() == null  && !(fobject instanceof LocalStorage.LocalObject)) {
             dm.setData(codingHistoryEditor.generate(fobject, config, importName));
         }
 
@@ -163,7 +164,7 @@ public class TechnicalMetadataMapper {
         AesEditor aesEditor = AesEditor.ndkArchival(fobject);
 
         AudioObject aes = aesEditor.readAes();
-        if (aes == null) {
+        if (aes == null  && !(fobject instanceof LocalStorage.LocalObject)) {
             aes = aesEditor.generate(fobject, config, importFile);
         }
 
@@ -178,7 +179,7 @@ public class TechnicalMetadataMapper {
         CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.ndkArchival(fobject);
 
         Property codingHistory = codingHistoryEditor.readCodingHistory();
-        if (codingHistory == null) {
+        if (codingHistory == null  && !(fobject instanceof LocalStorage.LocalObject)) {
             codingHistory = codingHistoryEditor.generate(fobject, config, importFile);
         }
         if (codingHistory != null) {

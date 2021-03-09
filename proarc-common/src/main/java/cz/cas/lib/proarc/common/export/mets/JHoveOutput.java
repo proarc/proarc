@@ -17,14 +17,14 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import javax.xml.transform.dom.DOMResult;
 import org.aes.audioobject.AudioObject;
 import org.w3c.dom.Node;
-import javax.xml.transform.dom.DOMResult;
 
 public class JHoveOutput {
     String formatVersion;
