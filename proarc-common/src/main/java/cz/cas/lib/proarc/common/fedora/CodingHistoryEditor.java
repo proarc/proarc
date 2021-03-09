@@ -23,6 +23,8 @@ import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.JHoveOutput;
@@ -36,14 +38,13 @@ import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.object.technicalMetadata.CodingHistoryMapper;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
-import javax.xml.transform.Source;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
+import javax.xml.transform.Source;
 
 /**
  * Edits technical metadata in Coding history format.
@@ -59,6 +60,8 @@ public class CodingHistoryEditor {
     private final XmlStreamEditor editor;
     private final FedoraObject object;
     private final DatastreamProfile profileTemplate;
+
+    private static final Logger LOG = Logger.getLogger(CodingHistoryEditor.class.getName());
 
     public static DatastreamProfile rawProfile() {
         return FoxmlUtils.managedProfile(RAW_ID, AES_FORMAT_URI, "Technical metadata (coding history) for RAW stream.");
@@ -149,13 +152,13 @@ public class CodingHistoryEditor {
         try {
             Property codingHistory = JhoveUtility.getCodingHistory(content, jhoveCtx, null, null).getCodingHistory();
             if (codingHistory == null) {
-                throw new DigitalObjectException(
-                        object.getPid(), null, profileTemplate.getDsID(), "jHove cannot generate Coding history for " + content.toString(), null);
+                LOG.warning("jHove cannot generate Coding history for " + content.toString() + ".");
+                //throw new DigitalObjectException(object.getPid(), null, profileTemplate.getDsID(), "jHove cannot generate Coding history for " + content.toString(), null);
             } else {
                 CodingHistoryMapper mapper = new CodingHistoryMapper();
                 mapper.update(codingHistory);
+                write(codingHistory, timestamp, msg);
             }
-            write(codingHistory, timestamp, msg);
         } catch (DigitalObjectException ex) {
             throw ex;
         } catch (Exception ex) {
