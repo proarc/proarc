@@ -28,6 +28,15 @@ import org.w3c.dom.Node;
 
 public class JHoveOutput {
     String formatVersion;
+    boolean skip;
+
+    public boolean isSkip() {
+        return skip;
+    }
+
+    public void setSkip() {
+        this.skip = true;
+    }
 
     public String getFormatVersion() {
         return formatVersion;

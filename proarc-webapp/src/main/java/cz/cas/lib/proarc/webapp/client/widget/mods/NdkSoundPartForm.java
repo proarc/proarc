@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods;
 
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -49,7 +48,7 @@ public final class NdkSoundPartForm {
         modsFields.add(typeOfResource());
         modsFields.add(genre());
         //   modsFields.add(originInfo());
-        //   modsFields.add(language());
+        modsFields.add(language());
         modsFields.add(physicalDescription());
         //  modsFields.add(abstracts());
         modsFields.add(note());
@@ -99,7 +98,18 @@ public final class NdkSoundPartForm {
                                 .createField()) // value
                         .createField()) // partNumber
                 // partName, type="stringPlusLanguage"
-                // nonSort, type="stringPlusLanguage"
+                .addField(new FieldBuilder("partName").setMaxOccurrences(1)
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Part Name - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Unifikovaný název - číslo části/sekce díla.")
+                                .createField()) // value
+                        .createField()) // partName
+                .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Non sort - O").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
+                                .createField()) // value
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .createField()) // nonSort
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
                 .createField(); // titleInfo
     }
@@ -110,7 +120,7 @@ public final class NdkSoundPartForm {
                 .setHint("Údaje o odpovědnosti za titul periodika.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
-                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
+                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
                         .setHint("<dl>"
                                 + "<dt>personal</dt><dd>celé jméno osoby</dd>"
                                 + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
@@ -126,7 +136,7 @@ public final class NdkSoundPartForm {
                 // namePart, namePartDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("namePart").setTitle("Name Parts - MA").setMaxOccurrences(5)
                         // @type(date, family, given, termsOfAddress)
-                        .addField(new FieldBuilder("type").setTitle("Type").setMaxOccurrences(1).setType(Field.SELECT)
+                        .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
                                 .setHint("<dl>"
                                         + "<dt>date</dt><dd>RA - datum</dd>"
                                         + "<dt>family</dt><dd>MA -příjmení </dd>"
@@ -151,7 +161,10 @@ public final class NdkSoundPartForm {
                                 .createField()) // value
                         .createField()) // namePart
                 // displayForm
-                // etal
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
                 // affiliation
                 // role, roleDefinition
                 .addField(new FieldBuilder("role").setTitle("Role - MA").setMaxOccurrences(5)

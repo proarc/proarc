@@ -99,18 +99,23 @@ public final class NdkSoundCollectionForm {
                 // partNumber, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("value").setTitle("Part Number - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setTitle("Part Number - MA").setMaxOccurrences(1).setType(Field.TEXT)
                                 .setHint("Údaje o názvu - číslo části/sekce.")
                                 .createField()) // value
                         .createField()) // partNumber
                 // partName, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partName").setMaxOccurrences(1)
                         // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        .addField(new FieldBuilder("value").setTitle("Part Name - R").setMaxOccurrences(1).setType(Field.TEXT)
+                        .addField(new FieldBuilder("value").setTitle("Part Name - MA").setMaxOccurrences(1).setType(Field.TEXT)
                                 .setHint("Unifikovaný název - číslo části/sekce díla.")
                                 .createField()) // value
                         .createField()) // partName
-                // nonSort, type="stringPlusLanguage"
+                .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Non sort - O").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
+                                .createField()) // value
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .createField()) // nonSort
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
                 .createField(); // titleInfo
     }
@@ -163,7 +168,19 @@ public final class NdkSoundCollectionForm {
                         .createField()) // namePart
                 // displayForm
                 // etal
+                .addField(new FieldBuilder("etal").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Etal - O").setType(Field.TEXT)
+                                .setHint("Element indikující, že existuje více autorů, než pouze ti, kteří byli uvedeni v <name> elementu." +
+                                        "<p>V případě užití tohoto elementu je dále top element <name> neopakovatelný." +
+                                        "<p><etal> je nutné umístit do samostatného top elementu <name>, ve kterém se " +
+                                        "nesmí objevit subelementy <namePart> a <nameIdentifier>." +
+                                        "<p><etal> je neopakovatelný element, který se do zápisu vkládá ručně.").createField())
+                        .createField()) //etal
                 // affiliation
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - R").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
                 // role, roleDefinition
                 .addField(new FieldBuilder("role").setTitle("Role - MA").setMaxOccurrences(5)
                         .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
@@ -297,14 +314,18 @@ public final class NdkSoundCollectionForm {
                                 .createField()) // value
                         .createField()) // dateIssued
                 // dateOther, dateOtherDefinition extends dateDefinition
-                .addField(new FieldBuilder("dateOther").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("value").setTitle("Date Other - R").setMaxOccurrences(1).setType(Field.TEXT)
+                .addField(new FieldBuilder("dateOther").setMaxOccurrences(1).setTitle("Date Other - R")
+                        .addField(new FieldBuilder("value").setTitle("Date - R").setMaxOccurrences(1).setType(Field.TEXT)
                                 .setHint("Datum vytvoření, distribuce, výroby předlohy."
                                         + "<p>Tento elemet se využije v případě výskytu $c v:"
                                         + "<p>264_0 je production"
                                         + "<p>264_2 je distribution"
                                         + "<p>264_3 je manufacture")
                                 .createField()) // value
+                        .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("<p>264_0: <dateOther type=\"production\">"
+                                        + "<p>264_2: <dateOther type=\"distribution\">"
+                                        + "<p>264_3: <dateOther type=\"manufacture\">").createField())
                         .createField()) // dateOther
                 // copyrightDate, dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("copyrightDate").setMaxOccurrences(1)

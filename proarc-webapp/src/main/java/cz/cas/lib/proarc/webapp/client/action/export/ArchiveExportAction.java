@@ -89,10 +89,10 @@ public class ArchiveExportAction extends ExportAction {
     }
 
     private boolean isNdkModel(String modelId, boolean withNdkEborn, boolean withNdkSoundrecording) {
-        if (withNdkSoundrecording && modelId != null && (modelId.contains("ndkmusicdocument")
+        if (modelId != null && (modelId.contains("ndkmusicdocument")
                 || modelId.contains("ndksong") || modelId.contains("ndktrack")
                 || modelId.contains("ndkaudiopage") || modelId.contains("ndkphonographcylinder"))) {
-            return true;
+            return withNdkSoundrecording;
         }
         if (withNdkEborn && modelId != null && modelId.startsWith("model:ndke")) {
             return true;
