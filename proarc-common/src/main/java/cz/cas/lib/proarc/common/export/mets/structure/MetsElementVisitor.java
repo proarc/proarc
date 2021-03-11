@@ -1464,7 +1464,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                     jHoveOutputRawAes = JhoveUtility.getAes(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), null, rawCreated, null);
                                     if (jHoveOutputRawAes.getAes() == null) {
                                         jHoveOutputRawAes.setSkip();
-                                        LOG.warning("U objektu " + metsElement.getOriginalPid() + " nejsou vyplněna technická metadata a nejdou ani najít v RAW souboru pro tento objekt.");
+                                        LOG.warning("U objektu " + metsElement.getOriginalPid() + " nejsou vyplněna technická metadata a nejdou ani najít v RAW souboru pro tento objekt " + metsElement.getOriginalPid() + ".");
                                     }
                                 }
                                 // If coding history is present in fedora, then use this one
@@ -1476,7 +1476,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                     jhoveOutputRawCodingHistory = JhoveUtility.getCodingHistory(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), rawCreated, null);
                                     if (jhoveOutputRawCodingHistory.getCodingHistory() == null) {
                                         jhoveOutputRawCodingHistory.setSkip();
-                                        LOG.warning("Unable to generate Coding history information for RAW audio");
+                                        LOG.warning("Unable to generate Coding history information for RAW audio object: " + metsElement.getOriginalPid() + ".");
                                     }
                                 }
 
@@ -1501,7 +1501,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         if (jHoveOutputMcAes == null) {
                             jHoveOutputMcAes = JhoveUtility.getAes(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get(Const.AUDIO_MC_GRP_ID).getCreated(), originalFile);
                             if (jHoveOutputMcAes.getAes() == null) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Aes information for MC audio", false, null);
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Aes information for MC audio object.", false, null);
                             }
                         }
                         if (metsElement.getMetsContext().getFedoraClient() != null) {
@@ -1511,7 +1511,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             jhoveOutputMcCodingHistory = JhoveUtility.getCodingHistory(new File(outputFileName), metsElement.getMetsContext(), md5InfosMap.get(Const.AUDIO_MC_GRP_ID).getCreated(), originalFile);
                             if (jhoveOutputMcCodingHistory.getCodingHistory() == null) {
                                 jhoveOutputMcCodingHistory.setSkip();
-                                LOG.warning("Unable to generate Coding history information for MC audio");
+                                LOG.warning("Unable to generate Coding history information for MC audio object " + metsElement.getOriginalPid() + ".");
                             }
                         }
                     }
