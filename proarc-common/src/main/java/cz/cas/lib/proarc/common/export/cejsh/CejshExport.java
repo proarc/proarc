@@ -102,7 +102,11 @@ public class CejshExport {
         try {
             ctx = new CejshContext(output, status, cejshConfig, options);
         } catch (Exception ex) {
-            status.error(pids.get(0), "Broken context!", ex);
+            if (ex.getMessage().contains("export.cejsh_crossref.journals.path=")) {
+                status.error(pids.get(0), "Not configurated!", ex);
+            } else {
+                status.error(pids.get(0), "Broken context!", ex);
+            }
             return status;
         }
         CejshHierarchy hierarchy = new CejshHierarchy(crawler);

@@ -86,7 +86,7 @@ public class CrossrefExport {
             return ;
         }
 
-        CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0));
+        CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0), options);
         if (crossRefBuilder == null) {
             return ;
         }
@@ -144,11 +144,15 @@ public class CrossrefExport {
         }
     }
 
-    private static CrossrefBuilder initBuilder(File output, CejshStatusHandler status, String pid) {
+    private static CrossrefBuilder initBuilder(File output, CejshStatusHandler status, String pid, ExportOptions options) {
         try {
-            return new CrossrefBuilder(output);
+            return new CrossrefBuilder(output, options);
         } catch (Exception ex) {
-            status.error(pid, "Broken context!", ex);
+            if (ex.getMessage().contains("export.cejsh_crossref.journals.path=")) {
+                status.error(pid, "Not configurated!", ex);
+            } else {
+                status.error(pid, "Broken context!", ex);
+            }
             return null;
         }
     }
