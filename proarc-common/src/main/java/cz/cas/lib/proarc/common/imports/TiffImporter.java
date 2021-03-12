@@ -39,13 +39,11 @@ import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.ExternalProcess;
 import cz.cas.lib.proarc.common.process.KakaduCompress;
+import cz.cas.lib.proarc.common.process.OcrGenerator;
 import cz.cas.lib.proarc.common.process.TiffToJpgConvert;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
-import org.apache.commons.configuration.Configuration;
-import javax.imageio.stream.FileImageOutputStream;
-import javax.ws.rs.core.MediaType;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -55,6 +53,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.ws.rs.core.MediaType;
+import org.apache.commons.configuration.Configuration;
+
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
@@ -107,7 +109,7 @@ public class TiffImporter implements ImageImporter {
             createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config);
             importArchivalCopy(fileSet, f, localObj, ctx);
             importUserCopy(fileSet, f, localObj, ctx);
-            importOcr(fileSet, localObj, ctx);
+            importOcr(fileSet, f, localObj, ctx);
             createTechnicalMetadata(localObj, ctx);
             // writes FOXML
             dobjHandler.commit();
@@ -179,7 +181,7 @@ public class TiffImporter implements ImageImporter {
         return null;
     }
 
-    private void importOcr(FileSet fileSet, FedoraObject fo, ImportOptions options)
+    private void importOcr(FileSet fileSet, File tiff, FedoraObject fo, ImportOptions options)
             throws IOException, DigitalObjectException {
 
         // XXX find filename.ocr.txt or generate OCR or nothing
@@ -190,6 +192,15 @@ public class TiffImporter implements ImageImporter {
         List<Object> requiredDatastreamId = config.getRequiredDatastreamId();
 
         FileEntry ocrEntry = findSibling(fileSet, config.getPlainOcrFileSuffix());
+        FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
+        if ((ocrEntry == null || altoEntry == null) && requiredDatastreamId.contains(StringEditor.OCR_ALTO_GEN_ID)) {
+            generateOCR(tiff, options);
+
+            File[] ocrFiles = OcrGenerator.getOcrFiles(tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
+
+            ocrEntry = new FileEntry(ocrFiles[0]);
+            altoEntry = new FileEntry(ocrFiles[1]);
+        }
         if (ocrEntry != null) {
             doOcrEditor(tempBatchFolder, originalFilename, ocrEntry.getFile(), config, fo);
         } else if (existsFile(options.getImportFolder(), originalFilename, config.getPlainOcrFilePath(), config.getPlainOcrFileSuffix(), config.getOcrAltoFolderPath())) {
@@ -207,7 +218,6 @@ public class TiffImporter implements ImageImporter {
                     originalFilename + config.getPlainOcrFileSuffix()).toString());
         }
         // ALTO OCR
-        FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
         if (altoEntry != null) {
             URI altoUri = altoEntry.getFile().toURI();
             AltoDatastream altoDatastrem = new AltoDatastream(config);
@@ -225,6 +235,20 @@ public class TiffImporter implements ImageImporter {
         } else if (requiredDatastreamId.contains(AltoDatastream.ALTO_ID)) {
             throw new FileNotFoundException("Missing ALTO: " + new File(tempBatchFolder.getParent(),
                     originalFilename + config.getAltoFileSuffix()).toString());
+        }
+    }
+
+    private void generateOCR(File tiff, ImportOptions options) throws IOException{
+        ImportProfile config = options.getConfig();
+
+        ExternalProcess process = new OcrGenerator(config.getOcrGenProcessor(), tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
+
+        if (process != null) {
+            process.run();
+
+            if (!process.isOk()) {
+                throw new IOException("Generating OCR for " + tiff.getName() + " failed. \n " + process.getFullOutput());
+            }
         }
     }
 

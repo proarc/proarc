@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportUtils;
+import cz.cas.lib.proarc.common.export.KWISExport;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
@@ -67,6 +68,7 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -105,7 +107,18 @@ public class ExportResource {
     private final AppConfiguration appConfig;
     private final UserProfile user;
     private final SessionContext session;
-    private final HttpHeaders httpHeaders;
+    private HttpHeaders httpHeaders;
+
+    public ExportResource(
+            @Context SecurityContext securityCtx,
+            @Context HttpServletRequest httpRequest
+    ) throws AppConfigurationException {
+
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        this.httpHeaders = httpHeaders;
+        session = SessionContext.from(httpRequest);
+        user = session.getUser();
+    }
 
     public ExportResource(
             @Context SecurityContext securityCtx,
@@ -640,6 +653,102 @@ public class ExportResource {
         return "URNNBN identifier is missing".equals(error.getMessage());
     }
 
+    @POST
+    @Path(ExportResourceApi.KWIS_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ExportResult> newKwisExport(
+            @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
+    ) throws IOException, ExportException {
+
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
+        }
+        ExportResult result = new ExportResult();
+
+        URI imagesPath = runDatastreamExport(pids, Collections.singletonList("NDK_USER"), hierarchy);
+        URI k4Path = runK4Export(pids, hierarchy, policy, "public");
+
+        String outputPath = user.getExportFolder().getPath();
+        String imp = imagesPath.getPath();
+        String k4p = k4Path.getPath();
+        String exportPackPath = outputPath + pids.get(0).substring(5) + "_KWIS";
+        File exportFolder = new File(exportPackPath);
+        exportFolder.mkdir();
+
+        imp = outputPath + imp.substring(imp.indexOf('/') + 1);
+        k4p = outputPath + k4p.substring(k4p.indexOf('/') + 1);
+
+        KWISExport export = new KWISExport(
+                appConfig,
+                imp,
+                k4p,
+                exportPackPath);
+
+        try {
+            export.run();
+        } catch (Exception ex) {
+            result.setErrors(new ArrayList<>());
+            result.getErrors().add(new ExportError(pids.get(0), ex.getMessage(), false, "Not configurated KWIS export."));
+            MetsUtils.renameFolder(new File(outputPath), exportFolder, null);
+        } finally {
+            FileUtils.deleteDirectory(new File(imp));
+            FileUtils.deleteDirectory(new File(k4p));
+        }
+        return new SmartGwtResponse<>(result);
+    }
+
+    private URI runK4Export(List<String> pids, boolean hierarchy, String policy, String exportPageContext) throws IOException {
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
+        }
+
+        Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(appConfig), appConfig, policy);
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        Kramerius4Export.Result target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
+        return user.getUserHomeUri().relativize(target.getFile().toURI());
+    }
+
+    private URI runDatastreamExport(
+            List<String> pids,
+            List<String> dsIds,
+            boolean hierarchy
+    ) throws IOException, ExportException {
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
+        }
+        if (dsIds.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
+        }
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig.getExportOptions());
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        File target = export.export(exportFolder, hierarchy, pids, dsIds);
+        return user.getUserHomeUri().relativize(target.toURI());
+    }
+
+    @GET
+    @Path("alephexport")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<String> alephExportState() {
+        File[] listOfFiles = new File("/tmp/aleph").listFiles();
+
+        if (listOfFiles == null) {
+            return new ArrayList<>();
+        }
+
+        List<String> fileNames = new ArrayList<>();
+
+        for (File file : listOfFiles) {
+            fileNames.add(file.getName());
+        }
+
+        return fileNames;
+    }
+
+
     /**
      * The export result.
      */
@@ -700,6 +809,9 @@ public class ExportResource {
          */
         @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
         public List<ExportError> getErrors() {
+            if (errors == null) {
+                errors = new ArrayList<>();
+            }
             return errors;
         }
 

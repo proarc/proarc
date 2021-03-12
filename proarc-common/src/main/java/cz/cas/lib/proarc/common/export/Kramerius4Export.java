@@ -63,13 +63,6 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -85,6 +78,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Exports digital object and transforms its data streams to Kramerius4 format.
@@ -116,9 +116,29 @@ public final class Kramerius4Export {
     
     private final Kramerius4ExportOptions kramerius4ExportOptions;
     private AppConfiguration appConfig;
-    private final ExportOptions exportOptions;
+    private ExportOptions exportOptions;
 
     private final String policy;
+
+    private String exportPageContext;
+
+    public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options) {
+        this(rstorage, options, options.getPolicy(), null);
+    }
+
+    public Kramerius4Export(RemoteStorage rstorage, Kramerius4ExportOptions options, String policy, String exportPageContext) {
+        this.rstorage = rstorage;
+        this.kramerius4ExportOptions = options;
+        this.search = rstorage.getSearch();
+        this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
+        this.exportPageContext = exportPageContext;
+
+        if (Arrays.asList(ALLOWED_POLICY).contains(policy)) {
+            this.policy = policy;
+        } else {
+            this.policy = kramerius4ExportOptions.getPolicy();
+        }
+    }
 
     public Kramerius4Export(RemoteStorage rstorage, AppConfiguration configuration) {
         this(rstorage, configuration, configuration.getKramerius4Export().getPolicy());
@@ -246,7 +266,7 @@ public final class Kramerius4Export {
                 pidsToExport.add(pid);
                 RemoteObject robject = rstorage.find(pid);
                 FedoraClient client = robject.getClient();
-                DigitalObject dobj = FedoraClient.export(pid).context("archive")
+                DigitalObject dobj = FedoraClient.export(pid).context("public")
                         .format("info:fedora/fedora-system:FOXML-1.1")
                         .execute(client).getEntity(DigitalObject.class);
                 File foxml = ExportUtils.pidAsXmlFile(output, pid);
@@ -289,7 +309,7 @@ public final class Kramerius4Export {
                 pidsToExport.add(pid);
                 RemoteObject robject = rstorage.find(pid);
                 FedoraClient client = robject.getClient();
-                DigitalObject dobj = FedoraClient.export(pid).context("archive")
+                DigitalObject dobj = FedoraClient.export(pid).context("public")
                         .format("info:fedora/fedora-system:FOXML-1.1")
                         .execute(client).getEntity(DigitalObject.class);
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
@@ -341,7 +361,7 @@ public final class Kramerius4Export {
             exportedPids.add(pid);
             RemoteObject robject = rstorage.find(pid);
             FedoraClient client = robject.getClient();
-            DigitalObject dobj = FedoraClient.export(pid).context("archive")
+            DigitalObject dobj = FedoraClient.export(pid).context(exportPageContext == null ? "archive" : exportPageContext)
                     .format("info:fedora/fedora-system:FOXML-1.1")
                     .execute(client).getEntity(DigitalObject.class);
             File foxml = ExportUtils.pidAsXmlFile(output, pid);
@@ -569,7 +589,7 @@ public final class Kramerius4Export {
             return ;
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
-        if (version.getBinaryContent().length == 0) {
+        if (version.getBinaryContent() == null || version.getBinaryContent().length == 0) {
             version.setBinaryContent(System.lineSeparator().getBytes());
         }
     }
