@@ -74,9 +74,9 @@ public class KakaduExpand extends ExternalProcess {
         String inputFile = input.getAbsolutePath();
         String outputFile = output.getAbsolutePath();
         List<String> cmdLine = super.buildCmdLine(conf);
-        //cmdLine.add("-i");
+        cmdLine.add("-i");
         cmdLine.add(inputFile);
-        //cmdLine.add("-o");
+        cmdLine.add("-o");
         cmdLine.add(outputFile);
         return cmdLine;
     }

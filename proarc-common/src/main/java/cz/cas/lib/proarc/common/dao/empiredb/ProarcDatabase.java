@@ -53,7 +53,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 8;
+    public static final int VERSION = 9;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -192,6 +192,7 @@ public class ProarcDatabase extends DBDatabase {
         /** type of the remote user null(PROARC), DESA, LDAP, ... */
         public final DBTableColumn remoteType;
         public final DBTableColumn timestamp;
+        public final DBTableColumn changeModelFunction;
 
         public UserTable(DBDatabase db) {
             super("PROARC_USERS", db);
@@ -217,6 +218,7 @@ public class ProarcDatabase extends DBDatabase {
             timestamp = addTimestampColumn("TIMESTAMP");
             organization = addColumn("ORGANIZATION", DataType.TEXT, 100, false);
             role = addColumn("ROLE", DataType.TEXT, 100, false);
+            changeModelFunction = addColumn("CHANGE_MODEL_FUNCTION", DataType.BOOL, 0, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
@@ -535,7 +537,7 @@ public class ProarcDatabase extends DBDatabase {
         try {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
-                schemaVersion = ProarcDatabaseV7.upgradeToVersion8(
+                schemaVersion = ProarcDatabaseV8.upgradeToVersion9(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);

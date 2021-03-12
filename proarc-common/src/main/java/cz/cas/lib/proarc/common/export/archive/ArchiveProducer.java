@@ -40,9 +40,9 @@ import java.util.logging.Logger;
 public class ArchiveProducer {
 
     private static final Logger LOG = Logger.getLogger(ArchiveProducer.class.getName());
-    private final DigitalObjectCrawler crawler;
-    private ExportResultLog reslog;
-    private AppConfiguration appConfig;
+    protected final DigitalObjectCrawler crawler;
+    protected ExportResultLog reslog;
+    protected AppConfiguration appConfig;
 
     public ArchiveProducer(AppConfiguration appConfiguration) {
         this.crawler = new DigitalObjectCrawler(
@@ -103,7 +103,7 @@ public class ArchiveProducer {
         }
     }
 
-    private List<List<DigitalObjectElement>> selectObjects(List<String> pids) {
+    protected List<List<DigitalObjectElement>> selectObjects(List<String> pids) {
         ArchiveObjectSelector selector = new ArchiveObjectSelector(crawler);
         try {
             selector.select(pids);

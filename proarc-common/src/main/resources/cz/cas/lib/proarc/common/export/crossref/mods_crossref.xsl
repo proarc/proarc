@@ -42,10 +42,11 @@ Author Miroslav Pavelka
     <xsl:param name="export_uuid"/>
     <!-- čas exportu - formát RRRRMMDDhhmm -->
     <xsl:param name="export_time"/>
+    <xsl:param name="journalsInfo"/>
 
     <xsl:param name="kramerius_link">http://kramerius.lib.cas.cz/search/handle/uuid:</xsl:param>
 
-    <xsl:variable name="lookupDoc" select="document('../cejsh/cejsh_journals.xml')" />
+    <xsl:variable name="lookupDoc" select="document($journalsInfo)"/>
     <xsl:variable name="depositor_name" select="$lookupDoc/cejsh/journal[@issn=$issn]/depositorName"/>
     <xsl:variable name="email_address" select="$lookupDoc/cejsh/journal[@issn=$issn]/emailAddress"/>
 

@@ -17,19 +17,21 @@
 package cz.cas.lib.proarc.common.export;
 
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.workflow.WorkflowExportFile;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import javax.xml.bind.JAXB;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXB;
+
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
 
 /**
@@ -39,6 +41,7 @@ import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EX
 public final class ExportUtils {
 
     public static final String PROARC_EXPORT_STATUSLOG = "proarc_export_status.log";
+    public static final String WORKFLOW_EXPORT_FILE = "workflow_information.xml";
 
     private static final Logger LOG = Logger.getLogger(ExportUtils.class.getName());
 
@@ -179,4 +182,12 @@ public final class ExportUtils {
         return sw.toString();
     }
 
+    public static void writeWorkflowResult(File targetFolder, WorkflowExportFile wf) {
+        File resultFile = new File(targetFolder, WORKFLOW_EXPORT_FILE);
+        try {
+            JAXB.marshal(wf, resultFile);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, targetFolder.toString(), e);
+        }
+    }
 }

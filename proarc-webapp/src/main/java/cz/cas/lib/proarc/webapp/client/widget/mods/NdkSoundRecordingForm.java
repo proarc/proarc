@@ -54,7 +54,7 @@ public final class NdkSoundRecordingForm {
         modsFields.add(tableOfContents());
         modsFields.add(note());
         modsFields.add(subject());
-        // modsFields.add(classification());
+        modsFields.add(classification());
         // XXX unsupported yet
         // relatedItem
         modsFields.add(identifier());
@@ -104,8 +104,18 @@ public final class NdkSoundRecordingForm {
                                 .setHint("Údaje o názvu - číslo části/sekce.")
                                 .createField()) // value
                         .createField()) // partNumber
-                // partName, type="stringPlusLanguage"
-                // nonSort, type="stringPlusLanguage"
+                .addField(new FieldBuilder("partName").setMaxOccurrences(1)
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Part Name - MA").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Unifikovaný název - číslo části/sekce díla.")
+                                .createField()) // value
+                        .createField()) // partName
+                .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Non sort - O").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
+                                .createField()) // value
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .createField()) // nonSort
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
                 .createField(); // titleInfo
     }
@@ -116,7 +126,7 @@ public final class NdkSoundRecordingForm {
                 .setHint("Údaje o odpovědnosti za skladby.")
                 // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
                 // @type(personal, corporate, conference, family)
-                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
+                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT).setRequired(false)
                         .setHint("<dl>"
                                 + "<dt>personal</dt><dd>celé jméno osoby</dd>"
                                 + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
@@ -156,6 +166,10 @@ public final class NdkSoundRecordingForm {
                                         + " ve tvaru RRRR-RRRR s atributem type=”date”.")
                                 .createField()) // value
                         .createField()) // namePart
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - R").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
                 // displayForm
                 // etal
                 // affiliation
@@ -600,14 +614,6 @@ public final class NdkSoundRecordingForm {
                                 .createField()) // value
                         .createField()) // namePart
                 // displayForm
-                .addField(new FieldBuilder("etal").setMaxOccurrences(1)
-                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Etal - O").setType(Field.TEXT)
-                                .setHint("Element indikující, že existuje více autorů, než pouze ti, kteří byli uvedeni v <name> elementu." +
-                                        "<p>V případě užití tohoto elementu je dále top element <name> neopakovatelný." +
-                                        "<p><etal> je nutné umístit do samostatného top elementu <name>, ve kterém se " +
-                                        "nesmí objevit subelementy <namePart> a <nameIdentifier>." +
-                                        "<p><etal> je neopakovatelný element, který se do zápisu vkládá ručně.").createField())
-                        .createField()) //etal
                 // affiliation
                 // role, roleDefinition
                 .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - R").setMaxOccurrences(5)

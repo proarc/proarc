@@ -24,6 +24,11 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -38,11 +43,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  *
@@ -83,21 +83,42 @@ public final class UserResource {
             UserProfile found = userManager.find(userName);
             return new SmartGwtResponse<UserProfile>(found);
         }
-        List<UserProfile> findAll = userManager.findAll();
-        List<UserProfile> selectedUsers = new ArrayList<>();
-        if (startRow < 0) {
-            selectedUsers.addAll(findAll);
-        } else {
-            for (int i = startRow; i < startRow + 100; i++) {
-                if (findAll.size() - 1 < i) {
-                    break;
+        UserProfile user = session.getUser();
+        boolean allowAllOrganization = user.getRole() == null || user.getRole().isEmpty() || UserRole.ROLE_SUPERADMIN.equals(user.getRole());
+        if (!allowAllOrganization) {
+            List<UserProfile> findAll = userManager.findMyOrganization(session.getUser().getOrganization());
+            List<UserProfile> selectedUsers = new ArrayList<>();
+            if (startRow < 0) {
+                selectedUsers.addAll(findAll);
+            } else {
+                for (int i = startRow; i < startRow + 100; i++) {
+                    if (findAll.size() - 1 < i) {
+                        break;
+                    }
+                    selectedUsers.add(findAll.get(i));
                 }
-                selectedUsers.add(findAll.get(i));
             }
+            int endRow = startRow + selectedUsers.size() - 1;
+            int total = findAll.size();
+            return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, selectedUsers);
+
+        } else {
+            List<UserProfile> findAll = userManager.findAll();
+            List<UserProfile> selectedUsers = new ArrayList<>();
+            if (startRow < 0) {
+                selectedUsers.addAll(findAll);
+            } else {
+                for (int i = startRow; i < startRow + 100; i++) {
+                    if (findAll.size() - 1 < i) {
+                        break;
+                    }
+                    selectedUsers.add(findAll.get(i));
+                }
+            }
+            int endRow = startRow + selectedUsers.size() - 1;
+            int total = findAll.size();
+            return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, selectedUsers);
         }
-        int endRow = startRow + selectedUsers.size() - 1;
-        int total = findAll.size();
-        return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, selectedUsers);
     }
 
     @POST
@@ -109,7 +130,8 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_FORENAME) String forename,
             @FormParam(UserResourceApi.USER_EMAIL) String email,
             @FormParam(UserResourceApi.USER_ORGANIZATION) String organization,
-            @FormParam(UserResourceApi.USER_ROLE) String role
+            @FormParam(UserResourceApi.USER_ROLE) String role,
+            @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction
             ) {
 
         checkAccess(session.getUser(), UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, Permissions.USERS_CREATE);
@@ -132,6 +154,7 @@ public final class UserResource {
         newProfile.setUserPassword(passwd);
         newProfile.setOrganization(organization);
         newProfile.setRole(role);
+        newProfile.setChangeModelFunction(changeModelFunction);
         newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
                 session.getUser().getUserName(), session.asFedoraLog());
         return new SmartGwtResponse<UserProfile>(newProfile);
@@ -146,7 +169,8 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_FORENAME) String forename,
             @FormParam(UserResourceApi.USER_EMAIL) String email,
             @FormParam(UserResourceApi.USER_ORGANIZATION) String organization,
-            @FormParam(UserResourceApi.USER_ROLE) String role
+            @FormParam(UserResourceApi.USER_ROLE) String role,
+            @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction
             ) {
 
         UserProfile sessionUser = session.getUser();
@@ -173,6 +197,7 @@ public final class UserResource {
             update.setForename(forename);
             update.setOrganization(organization);
             update.setRole(role);
+            update.setChangeModelFunction(changeModelFunction);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.USER_SURNAME, "Required!").build();

@@ -36,6 +36,8 @@ public class TaskView extends Task {
     private String jobLabel;
     @XmlElement(name = WorkflowModelConsts.TASK_OWNERNAME)
     private String userName;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_BARCODE)
+    private String barcode;
 
     public Integer getOrder() {
         return order;
@@ -78,6 +80,14 @@ public class TaskView extends Task {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
     }
 
     /**

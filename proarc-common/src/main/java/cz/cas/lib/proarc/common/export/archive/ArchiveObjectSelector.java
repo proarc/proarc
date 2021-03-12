@@ -35,9 +35,9 @@ import java.util.Set;
  */
 public class ArchiveObjectSelector {
     
-    private final DigitalObjectCrawler crawler;
-    private final List<List<DigitalObjectElement>> selectedObjects = new ArrayList<>();
-    private final Set<String> processedPids = new HashSet<>();
+    protected final DigitalObjectCrawler crawler;
+    protected final List<List<DigitalObjectElement>> selectedObjects = new ArrayList<>();
+    protected final Set<String> processedPids = new HashSet<>();
 
     public ArchiveObjectSelector(DigitalObjectCrawler crawler) {
         this.crawler = crawler;
@@ -69,7 +69,7 @@ public class ArchiveObjectSelector {
         searchPath(entryPath);
     }
 
-    private void searchPath(List<DigitalObjectElement> entryPath) throws DigitalObjectException {
+    protected void searchPath(List<DigitalObjectElement> entryPath) throws DigitalObjectException {
         DigitalObjectElement entry = entryPath.get(0);
         if (processedPids.contains(entry.getPid())) {
             return ;
@@ -112,7 +112,7 @@ public class ArchiveObjectSelector {
         }
     }
 
-    private void searchChildren(DigitalObjectElement entry, List<DigitalObjectElement> entryPath) throws DigitalObjectException {
+    protected void searchChildren(DigitalObjectElement entry, List<DigitalObjectElement> entryPath) throws DigitalObjectException {
         List<DigitalObjectElement> children = crawler.getChildren(entry.getPid());
         for (DigitalObjectElement child : children) {
             List<DigitalObjectElement> childPath = new ArrayList<>(entryPath.size() + 1);
@@ -122,7 +122,7 @@ public class ArchiveObjectSelector {
         }
     }
 
-    private void addSelection(List<DigitalObjectElement> entryPath) {
+    protected void addSelection(List<DigitalObjectElement> entryPath) {
         selectedObjects.add(entryPath);
     }
 

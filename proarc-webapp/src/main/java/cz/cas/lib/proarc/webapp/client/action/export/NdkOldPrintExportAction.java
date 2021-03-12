@@ -18,6 +18,7 @@
 package cz.cas.lib.proarc.webapp.client.action.export;
 
 import com.smartgwt.client.data.Record;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 
@@ -38,7 +39,14 @@ public class NdkOldPrintExportAction extends NdkExportAction {
     }
 
     protected boolean isOldPrintModel(String modelId) {
-        return modelId.startsWith("model:old");
+        if (modelId.equals(OldPrintPlugin.MODEL_MONOGRAPHTITLE) ||
+                modelId.equals(OldPrintPlugin.MODEL_VOLUME) ||
+                modelId.equals(OldPrintPlugin.MODEL_SUPPLEMENT) ||
+                modelId.equals(OldPrintPlugin.MODEL_CHAPTER)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

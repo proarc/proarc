@@ -27,7 +27,9 @@ import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportUtils;
+import cz.cas.lib.proarc.common.export.KWISExport;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
+import cz.cas.lib.proarc.common.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
 import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
@@ -42,6 +44,7 @@ import cz.cas.lib.proarc.common.export.mets.NdkSttExport;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
+import cz.cas.lib.proarc.common.export.workflow.WorkflowExport;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -53,13 +56,25 @@ import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Task;
-import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
-import org.apache.commons.io.FileUtils;
-import org.glassfish.jersey.server.CloseableService;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.math.BigDecimal;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -78,19 +93,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.server.CloseableService;
 
 /**
  * REST resource to export data from the system.
@@ -103,7 +107,18 @@ public class ExportResource {
     private final AppConfiguration appConfig;
     private final UserProfile user;
     private final SessionContext session;
-    private final HttpHeaders httpHeaders;
+    private HttpHeaders httpHeaders;
+
+    public ExportResource(
+            @Context SecurityContext securityCtx,
+            @Context HttpServletRequest httpRequest
+    ) throws AppConfigurationException {
+
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        this.httpHeaders = httpHeaders;
+        session = SessionContext.from(httpRequest);
+        user = session.getUser();
+    }
 
     public ExportResource(
             @Context SecurityContext securityCtx,
@@ -156,12 +171,12 @@ public class ExportResource {
                 RemoteStorage.getInstance(appConfig), appConfig, policy);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
-        File target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
-        URI targetPath = user.getUserHomeUri().relativize(target.toURI());
+        Kramerius4Export.Result k4Result = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
+        URI targetPath = user.getUserHomeUri().relativize(k4Result.getFile().toURI());
 
         for (String pid : pids) {
             try {
-                setWorkflowExport("task.exportK4", getRoot(pid, exportFolder));
+                setWorkflowExport("task.exportK4", "param.exportK4", k4Result.getPageCount(), getRoot(pid, exportFolder));
             } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
                 throw new IOException(e);
             }
@@ -316,9 +331,9 @@ public class ExportResource {
             }
         }
         if ("done".equals(result.get(0).getTarget())) {
-            for (String pid : pids) {
+            for (NdkExport.Result r : ndkResults) {
                 try {
-                    setWorkflowExport("task.exportNdkPsp", getRoot(pid, exportFolder));
+                    setWorkflowExport("task.exportNdkPsp", "param.exportNdkPsp.numberOfPackages", r.getPageIndexCount(), getRoot(r.getPid(), exportFolder));
                 } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
                     result.clear();
                     result.add(new ExportResult(null, "Vyexportovano ale nepodarilo se propojit s RDflow."));
@@ -333,8 +348,7 @@ public class ExportResource {
             RemoteStorage rstorage = RemoteStorage.getInstance();
             RemoteStorage.RemoteObject fo = rstorage.find(pid);
             MetsContext mc = buildContext(rstorage, fo, null, exportFolder);
-            IMetsElement element = getMetsElement(fo, mc, true);
-            return element.getMetsContext().getRootElement();
+            return getMetsElement(fo, mc, true);
     }
 
     private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
@@ -358,7 +372,7 @@ public class ExportResource {
         return mc;
     }
 
-    private void setWorkflowExport(String type, IMetsElement root) throws DigitalObjectException, WorkflowException {
+    private void setWorkflowExport(String taskName, String parameterName, Integer pageCount, IMetsElement root) throws DigitalObjectException, WorkflowException {
        if (root != null) {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
             DigitalObjectManager.CreateHandler handler = dom.create(root.getModel(), root.getOriginalPid(), null, user, null, session.asFedoraLog());
@@ -370,7 +384,7 @@ public class ExportResource {
             List<TaskView> tasks = handler.getTask(job.getId(), locale);
             Task editedTask = null;
             for (TaskView task : tasks) {
-                if (type.equals(task.getTypeRef())) {
+                if (taskName.equals(task.getTypeRef())) {
                     editedTask = task;
                     break;
                 }
@@ -383,18 +397,24 @@ public class ExportResource {
                 WorkflowManager workflowManager = WorkflowManager.getInstance();
 
                 try {
-                    TaskFilter taskFilter = new TaskFilter();
+                /*    TaskFilter taskFilter = new TaskFilter();
                     taskFilter.setId(editedTask.getId());
                     taskFilter.setLocale(locale);
                     Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
                             .findFirst().get().getState();
-                    workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
-                    List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+                 */   if (parameterName != null) {
+                        Map<String, Object> parameters = new HashMap<>();
+                        parameters.put(parameterName, pageCount);
+                        workflowManager.tasks().updateTask(editedTask, parameters, workflow);
+                    } else {
+                        workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
+                    }
+                   // List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
 
-                    if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
+                    //if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
                         WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, locale);
                         workflowActionHandler.runAction(editedTask);
-                    }
+                    //}
                 } catch (IOException e) {
                     throw new DigitalObjectException(e.getMessage());
                 }
@@ -502,7 +522,8 @@ public class ExportResource {
     @Path(ExportResourceApi.ARCHIVE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newArchive(
-            @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids
+            @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage
             ) throws ExportException {
 
         if (pids.isEmpty()) {
@@ -512,7 +533,18 @@ public class ExportResource {
         File exportFolder = new File(exportUri);
         ExportResult result = new ExportResult();
         List<ExportResult> resultList = new ArrayList<>();
-        ArchiveProducer export = new ArchiveProducer(appConfig);
+        ArchiveProducer export = null;
+        switch (typeOfPackage) {
+            case "PSP":
+                export = new ArchiveProducer(appConfig);;
+                break;
+            case "STT":
+                export = new ArchiveOldPrintProducer(appConfig);;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported type of package");
+        }
+
         File targetFolder = ExportUtils.createFolder(exportFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)), appConfig.getExportOptions().isOverwritePackage());
         try {
             //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
@@ -541,7 +573,17 @@ public class ExportResource {
         if (!result.getErrors().isEmpty()) {
             return new SmartGwtResponse<>(resultList);
         }
-        NdkExport exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
+        NdkExport exportNdk;
+        switch (typeOfPackage) {
+            case "PSP":
+                exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
+                break;
+            case "STT":
+                exportNdk = new NdkSttExport(RemoteStorage.getInstance(), appConfig);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported type of package");
+        }
         File target = null;
         for (File file : targetFolder.listFiles()) {
             if (file.isDirectory()) {
@@ -566,7 +608,6 @@ public class ExportResource {
                 resultList.add(new ExportResult((Integer) null, "done"));
             }
         }
-
         boolean errors = false;
         for (ExportResource.ExportResult log: resultList) {
             if (log.getErrors() == null || log.getErrors().isEmpty()) {
@@ -578,9 +619,9 @@ public class ExportResource {
         }
 
         if (!errors) {
-            for (String pid : pids) {
+            for (NdkExport.Result r : ndkResults) {
                 try {
-                    setWorkflowExport("task.exportArchive", getRoot(pid, exportFolder));
+                    setWorkflowExport("task.exportArchive", "param.exportArchive", r.getPageIndexCount(), getRoot(r.getPid(), exportFolder));
                 } catch (MetsExportException | DigitalObjectException e) {
                     resultList.clear();
                     resultList.clear();
@@ -596,12 +637,117 @@ public class ExportResource {
                 }
             }
         }
+
+        WorkflowExport exportWorkflow = new WorkflowExport(appConfig, user, session.getLocale(httpHeaders));
+        try {
+            exportWorkflow.export(targetFolder, ndkResults, session.asFedoraLog());
+        } catch (Exception ex ) {
+            resultList.clear();
+            resultList.add(new ExportResult(null, "Nepodarilo se vytvorit soubor workflow_onformation.xml"));
+        }
+
         return new SmartGwtResponse<>(resultList);
     }
 
     private boolean isMissingURNNBN(ResultError error) {
         return "URNNBN identifier is missing".equals(error.getMessage());
     }
+
+    @POST
+    @Path(ExportResourceApi.KWIS_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ExportResult> newKwisExport(
+            @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
+    ) throws IOException, ExportException {
+
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
+        }
+        ExportResult result = new ExportResult();
+
+        URI imagesPath = runDatastreamExport(pids, Collections.singletonList("NDK_USER"), hierarchy);
+        URI k4Path = runK4Export(pids, hierarchy, policy, "public");
+
+        String outputPath = user.getExportFolder().getPath();
+        String imp = imagesPath.getPath();
+        String k4p = k4Path.getPath();
+        String exportPackPath = outputPath + pids.get(0).substring(5) + "_KWIS";
+        File exportFolder = new File(exportPackPath);
+        exportFolder.mkdir();
+
+        imp = outputPath + imp.substring(imp.indexOf('/') + 1);
+        k4p = outputPath + k4p.substring(k4p.indexOf('/') + 1);
+
+        KWISExport export = new KWISExport(
+                appConfig,
+                imp,
+                k4p,
+                exportPackPath);
+
+        try {
+            export.run();
+        } catch (Exception ex) {
+            result.setErrors(new ArrayList<>());
+            result.getErrors().add(new ExportError(pids.get(0), ex.getMessage(), false, "Not configurated KWIS export."));
+            MetsUtils.renameFolder(new File(outputPath), exportFolder, null);
+        } finally {
+            FileUtils.deleteDirectory(new File(imp));
+            FileUtils.deleteDirectory(new File(k4p));
+        }
+        return new SmartGwtResponse<>(result);
+    }
+
+    private URI runK4Export(List<String> pids, boolean hierarchy, String policy, String exportPageContext) throws IOException {
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
+        }
+
+        Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(appConfig), appConfig, policy);
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        Kramerius4Export.Result target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
+        return user.getUserHomeUri().relativize(target.getFile().toURI());
+    }
+
+    private URI runDatastreamExport(
+            List<String> pids,
+            List<String> dsIds,
+            boolean hierarchy
+    ) throws IOException, ExportException {
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
+        }
+        if (dsIds.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
+        }
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig.getExportOptions());
+        URI exportUri = user.getExportFolder();
+        File exportFolder = new File(exportUri);
+        File target = export.export(exportFolder, hierarchy, pids, dsIds);
+        return user.getUserHomeUri().relativize(target.toURI());
+    }
+
+    @GET
+    @Path("alephexport")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<String> alephExportState() {
+        File[] listOfFiles = new File("/tmp/aleph").listFiles();
+
+        if (listOfFiles == null) {
+            return new ArrayList<>();
+        }
+
+        List<String> fileNames = new ArrayList<>();
+
+        for (File file : listOfFiles) {
+            fileNames.add(file.getName());
+        }
+
+        return fileNames;
+    }
+
 
     /**
      * The export result.
@@ -663,6 +809,9 @@ public class ExportResource {
          */
         @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
         public List<ExportError> getErrors() {
+            if (errors == null) {
+                errors = new ArrayList<>();
+            }
             return errors;
         }
 

@@ -23,6 +23,7 @@ import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.util.SC;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -92,6 +93,9 @@ public class NdkExportAction extends ExportAction {
 
     private boolean isNdkModel(String modelId, boolean withNdkEbornDocuments) {
         if (modelId.startsWith("model:ndk")) {
+            if (modelId.equals(NdkAudioPlugin.MODEL_PAGE) || modelId.equals(NdkAudioPlugin.MODEL_SONG) || modelId.equals(NdkAudioPlugin.MODEL_TRACK)) {
+                return false;
+            }
             if (withNdkEbornDocuments == true && modelId.startsWith("model:ndke")) {
                 return true;
             } else if (withNdkEbornDocuments == false && !modelId.startsWith("model:ndke")) {

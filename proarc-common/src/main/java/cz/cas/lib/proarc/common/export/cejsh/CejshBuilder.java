@@ -49,7 +49,6 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -122,7 +121,7 @@ class CejshBuilder {
     private Level logLevel;
 
     public CejshBuilder(CejshConfig config, ExportOptions options)
-            throws TransformerConfigurationException, ParserConfigurationException, XPathExpressionException {
+            throws Exception {
         this.gcalendar = new GregorianCalendar(UTC);
         this.logLevel = config.getLogLevel();
         this.options = options;
@@ -134,6 +133,10 @@ class CejshBuilder {
         }
         bwmetaXsl.setOutputProperty(OutputKeys.INDENT, "yes");
         bwmetaXsl.setErrorListener(tranformationErrorHandler);
+        if (options.getJournalsInfoPath() == null || options.getJournalsInfoPath().length() == 0) {
+            throw new Exception("Not configurated path : \"export.cejsh_crossref.journals.path=\".");
+        }
+        bwmetaXsl.setParameter("journalsInfo", options.getJournalsInfoPath());
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         db = dbf.newDocumentBuilder();

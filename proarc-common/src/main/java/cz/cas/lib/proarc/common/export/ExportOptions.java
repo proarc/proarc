@@ -26,15 +26,19 @@ import org.apache.commons.configuration.Configuration;
 public class ExportOptions {
     static final String PROP_DELETE_PACKAGE = "export.deletePackageIfUrnNbnIsMissing";
     static final String PROP_OVERWRITE_PACKAGE = "export.overwritePackage";
+    static final String PROP_JOURNALS_INFO_PATH = "export.cejsh_crossref.journals.path";
 
     public static ExportOptions getOptions(Configuration config) {
         ExportOptions options = new ExportOptions();
 
         String deletePackage = config.getString(PROP_DELETE_PACKAGE);
-        options.setDeletePackage(Boolean.parseBoolean(deletePackage));
+        options.setDeletePackage(Boolean.TRUE.equals(Boolean.parseBoolean(deletePackage)));
 
         String overwritePackage = config.getString(PROP_OVERWRITE_PACKAGE);
-        options.setOverwritePackage(Boolean.parseBoolean(overwritePackage));
+        options.setOverwritePackage(Boolean.TRUE.equals(Boolean.parseBoolean(overwritePackage)));
+
+        String journalsInfoPath = config.getString(PROP_JOURNALS_INFO_PATH);
+        options.setJournalsInfoPath(journalsInfoPath);
 
         return options;
     }
@@ -55,6 +59,15 @@ public class ExportOptions {
         this.overwritePackage = overwritePackage;
     }
 
+    public String getJournalsInfoPath() {
+        return journalsInfoPath;
+    }
+
+    public void setJournalsInfoPath(String journalsInfoPath) {
+        this.journalsInfoPath = journalsInfoPath;
+    }
+
     private boolean deletePackage;
     private boolean overwritePackage;
+    private String journalsInfoPath;
 }

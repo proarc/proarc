@@ -36,14 +36,15 @@ import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.object.technicalMetadata.AesMapper;
 import cz.cas.lib.proarc.mix.Mix;
-import org.aes.audioobject.AudioObject;
-import org.aes.audioobject.AudioObjectType;
-import javax.xml.transform.Source;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
+import javax.xml.transform.Source;
+import org.aes.audioobject.AudioObject;
+import org.aes.audioobject.AudioObjectType;
 
 /**
  * Edits technical metadata in MIX format.
@@ -59,6 +60,8 @@ public class AesEditor {
     private final XmlStreamEditor editor;
     private final FedoraObject object;
     private final DatastreamProfile profileTemplate;
+
+    private static final Logger LOG = Logger.getLogger(AesEditor.class.getName());
 
     public static DatastreamProfile rawProfile() {
         return FoxmlUtils.managedProfile(RAW_ID, AES_FORMAT_URI, "Technical metadata for RAW stream.");
@@ -139,23 +142,23 @@ public class AesEditor {
     /**
      * Generates and writes MIX for the passed content.
      *
-     * @param content file containing e.g. an image
-     * @param jhoveCtx jHove context
+     * @param content   file containing e.g. an image
+     * @param jhoveCtx  jHove context
      * @param timestamp timestamp
-     * @param msg log message
+     * @param msg       log message
      * @throws DigitalObjectException failure
      */
     public void write(File content, JhoveContext jhoveCtx, long timestamp, String msg) throws DigitalObjectException {
         try {
             AudioObject aes = JhoveUtility.getAes(content, jhoveCtx, null, null, null).getAes();
             if (aes == null) {
-                throw new DigitalObjectException(
-                        object.getPid(), null, profileTemplate.getDsID(), "jHove cannot generate AES for " + content.toString(), null);
+                LOG.warning("jHove cannot generate AES for " + content.toString() + ".");
+                //throw new DigitalObjectException(object.getPid(), null, profileTemplate.getDsID(), "jHove cannot generate AES for " + content.toString(), null);
             } else {
                 AesMapper mapper = new AesMapper();
                 mapper.update(aes);
+                write(aes, timestamp, msg);
             }
-            write(aes, timestamp, msg);
         } catch (DigitalObjectException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -174,7 +177,7 @@ public class AesEditor {
                 InputStream is = dsNdkArchival.execute(element.getMetsContext().getFedoraClient()).getEntityInputStream();
                 String extension = MimeType.getExtension(ndkArchivalDS.getDatastreamVersion().get(0).getMIMETYPE());
                 if (importName.contains("/")) {
-                    importName = importName.split("/")[importName.split("/").length -1];
+                    importName = importName.split("/")[importName.split("/").length - 1];
                 } else if (importName.contains("\\")) {
                     importName = importName.split("\\\\")[importName.split("\\\\").length - 1];
                 }

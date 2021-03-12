@@ -250,7 +250,7 @@ public class ImportBatchManager {
         try {
             List<BatchView> result = dao.view(filter);
             for (BatchView batchView : result) {
-                batchView.setPageCount(0);
+                batchView.setPageCount(batchView.getEstimateItemNumber() != null ? batchView.getEstimateItemNumber() : 0);
                 batchView.setParentPid("SECRET");
                 batchView.setProfileId("SECRET");
                 batchView.setLog("SECRET");
@@ -260,7 +260,6 @@ public class ImportBatchManager {
                     batchView.setTitle("SECRET");
                     batchView.setUserId(0);
                     batchView.setUserName("SECRET");
-
                 }
             }
             return result;

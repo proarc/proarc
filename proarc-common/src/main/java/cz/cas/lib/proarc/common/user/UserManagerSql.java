@@ -24,8 +24,6 @@ import cz.cas.lib.proarc.common.dao.empiredb.SqlTransaction;
 import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.sql.DbUtils;
-import org.apache.commons.io.FileUtils;
-import javax.sql.DataSource;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -33,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.sql.DataSource;
+import org.apache.commons.io.FileUtils;
 
 /**
  * Manages user stuff in RDBMS and the Fedora storage.
@@ -68,7 +68,7 @@ final class UserManagerSql implements UserManager {
         UserDao users = daos.createUser();
         users.setTransaction(tx);
         try {
-            List<UserProfile> result = users.find(userName, digist, null, null);
+            List<UserProfile> result = users.find(userName, digist, null, null, null);
             return result.isEmpty() ? null : filter(result.get(0));
         } finally {
             tx.close();
@@ -84,7 +84,7 @@ final class UserManagerSql implements UserManager {
         UserDao users = daos.createUser();
         users.setTransaction(tx);
         try {
-            List<UserProfile> result = users.find(userName, null, null, null);
+            List<UserProfile> result = users.find(userName, null, null, null, null);
             return result.isEmpty() ? null : filter(result.get(0));
         } finally {
             tx.close();
@@ -100,7 +100,7 @@ final class UserManagerSql implements UserManager {
         UserDao users = daos.createUser();
         users.setTransaction(tx);
         try {
-            List<UserProfile> result = users.find(null, null, remoteName, remoteType);
+            List<UserProfile> result = users.find(null, null, remoteName, remoteType, null);
             return result.isEmpty() ? null : filter(result.get(0));
         } finally {
             tx.close();
@@ -125,7 +125,19 @@ final class UserManagerSql implements UserManager {
         UserDao users = daos.createUser();
         users.setTransaction(tx);
         try {
-            return filter(users.find(null, null, null, null));
+            return filter(users.find(null, null, null, null, null));
+        } finally {
+            tx.close();
+        }
+    }
+
+    @Override
+    public List<UserProfile> findMyOrganization(String organization) {
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
+        try {
+            return filter(users.find(null, null, null, null, organization));
         } finally {
             tx.close();
         }

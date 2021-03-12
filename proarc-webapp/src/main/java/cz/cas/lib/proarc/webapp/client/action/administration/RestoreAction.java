@@ -22,6 +22,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
@@ -29,6 +30,7 @@ import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import java.util.logging.Logger;
 
 /**
@@ -52,8 +54,13 @@ public final class RestoreAction extends AbstractAction {
 
     @Override
     public boolean accept(ActionEvent event) {
-        Object[] selection = Actions.getSelection(event);
-        return selection != null && selection.length > 0;
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_RESTORE_OBJECTS_FUNCTION))) {
+            //if (!Editor.getInstance().hasPermission("proarc.permission.admin") || !Editor.getInstance().hasPermission("superAdmin") || !Editor.getInstance().hasPermission("test")) {
+            return false;
+        } else {
+            Object[] selection = Actions.getSelection(event);
+            return selection != null && selection.length > 0;
+        }
     }
 
     @Override

@@ -210,13 +210,16 @@ public class Editor implements EntryPoint {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 String role = "none";
+                String permissionRunUpdateFunction = "none";
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
                     if (data.length > 0) {
                         role = data[0].getAttribute(UserDataSource.FIELD_ROLE);
+                        permissionRunUpdateFunction = data[0].getAttribute(UserDataSource.FIELD_CHANGE_MODEL_FUNCTION);
                     }
                     permissions.clear();
                     permissions.add(role);
+                    permissions.add("true".equals(permissionRunUpdateFunction) ? UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION : "none");
                     sweepTask.release();
                 }
             }

@@ -55,7 +55,9 @@ Author Miroslav Pavelka
         </xsl:choose>
     </xsl:param>
 
-    <xsl:variable name="lookupDoc" select="document('cejsh_journals.xml')" />
+    <xsl:param name="journalsInfo"/>
+
+    <xsl:variable name="lookupDoc" select="document($journalsInfo)" />
     <xsl:variable name="journalId" select="$lookupDoc/cejsh/journal[@issn=$issn]/journalId"/>
     <xsl:variable name="discipline" select="$lookupDoc/cejsh/journal[@issn=$issn]/discipline"/>
     <xsl:variable name="publisherAddress" select="$lookupDoc/cejsh/journal[@issn=$issn]/publisherAddress"/>

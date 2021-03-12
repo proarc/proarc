@@ -17,12 +17,18 @@
 package cz.cas.lib.proarc.webapp.client.widget.workflow;
 
 import com.google.gwt.core.client.Callback;
+import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.CriteriaPolicy;
+import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.FetchMode;
 import com.smartgwt.client.types.OperatorId;
 import com.smartgwt.client.types.SelectionStyle;
@@ -30,8 +36,10 @@ import com.smartgwt.client.types.SortDirection;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Label;
+import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
@@ -58,14 +66,23 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
 import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
 import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
+import cz.cas.lib.proarc.webapp.client.widget.Dialog;
 import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
+import cz.cas.lib.proarc.webapp.client.widget.form.CustomUUIDValidator;
+import cz.cas.lib.proarc.webapp.client.widget.mods.NewIssueEditor;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *
@@ -322,8 +339,8 @@ public class WorkflowJobView implements Refreshable {
 
             for (Record model : models) {
                 MenuItem menuItem = new MenuItem(model.getAttribute(WorkflowProfileConsts.MODEL_TITLE));
+                menuItem.setAttribute(WorkflowProfileConsts.MODEL_PID, model.getAttribute(WorkflowProfileConsts.MODEL_NAME));
                 menu.addItem(menuItem);
-
                 menuItem.addClickHandler(event -> {
                     saveNewDigitalObject(model.getAttributeAsString(WorkflowProfileConsts.MODEL_NAME), jobId);
                     createNewObjectButton.disable();
@@ -331,12 +348,126 @@ public class WorkflowJobView implements Refreshable {
                     jobFormView.refreshState();
                     jobFormView.refresh();
                 });
-
             }
-
+            Arrays.stream(menu.getItems()).forEach(menuItem -> attachAddSubmenu(menuItem, jobId));
             createNewObjectButton.setVisible(models.length > 0);
             createNewObjectButton.setMenu(menu);
         });
+    }
+
+    private void attachAddSubmenu(MenuItem menuItem, Long jobId) {
+        Menu sm = new Menu();
+        MenuItem miAddSingle = new MenuItem(i18n.DigitalObjectEditor_ChildrenEditor_CreateAction_Title());
+        MenuItem miAddSingleWithID = new MenuItem(i18n.DigitalObjectEditor_ChildrenEditor_CreateWithParamsAction_Title());
+        MenuItem miAddMultiple = new MenuItem(i18n.DigitalObjectEditor_ChildrenEditor_CreateMoreAction_Title());
+
+        sm.addItemClickHandler((event) -> {
+            String model = menuItem.getAttribute(WorkflowProfileConsts.MODEL_PID);
+            if (event.getItem() == miAddSingle) {
+                addChild(model, Collections.emptyMap(), jobId);
+            } else if (event.getItem() == miAddSingleWithID) {
+                final Dialog d = new Dialog(i18n.DigitalObjectEditor_ChildrenEditor_CreateWithParamsAction_Dialog_Title());
+
+                DynamicForm paramsForm = createParamsForm();
+                paramsForm.clearValues();
+
+                d.getDialogContentContainer().setMembers(paramsForm);
+                d.addOkButton((ClickEvent eventX) -> {
+                    if(!paramsForm.validate()) {
+                        return;
+                    }
+
+                    addChild(model, Collections.emptyMap(), paramsForm, d, jobId);
+                });
+
+                d.addCancelButton(() -> d.destroy());
+                d.setWidth(400);
+                d.show();
+            } else if (event.getItem() == miAddMultiple && "model:ndkperiodicalissue".equals(menuItem.getAttribute(MetaModelDataSource.FIELD_PID))) {
+                new NewIssueEditor(i18n).showWindow(params -> {
+                    addChild(model, params.toMap(), jobId);
+                });
+            }
+        });
+
+        sm.addItem(miAddSingle);
+        sm.addItem(miAddSingleWithID);
+
+        if ("model:ndkperiodicalissue".equals(menuItem.getAttribute(MetaModelDataSource.FIELD_PID))) {
+            sm.addItem(miAddMultiple);
+        }
+
+        menuItem.setSubmenu(sm);
+    }
+
+    private void addChild(String model, Map<String, Object> params, Long jobId) {
+        addChild(model, params, null, null, jobId);
+    }
+
+    private void addChild(String model, Map<String, Object> params, DynamicForm paramsForm, Dialog dialog, Long jobId) {
+        Record record = new Record(params);
+        record.setAttribute(DigitalObjectDataSource.FIELD_MODEL, model);
+        record.setAttribute(DigitalObjectDataSource.FIELD_WF_JOB_ID, jobId);
+
+        DSRequest dsRequest = new DSRequest();
+
+        if (paramsForm != null) {
+            String pid = paramsForm.getValueAsString(DigitalObjectDataSource.FIELD_PID);
+
+            if (pid != null) {
+                record.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);
+
+                dsRequest.setWillHandleError(true);
+            }
+        }
+
+        DigitalObjectDataSource.getInstance().addData(record, new DSCallback() {
+
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] data = response.getData();
+                    final Record r = data[0];
+                    DSRequest dsRequest = new DSRequest();
+                    dsRequest.setOperationType(DSOperationType.ADD);
+                    RelationDataSource.getInstance().updateCaches(response, dsRequest);
+
+                    if (dialog != null) {
+                        dialog.destroy();
+                    }
+                }
+
+                if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
+                    if (paramsForm != null) {
+                        Map errors = response.getErrors();
+
+                        paramsForm.setErrors(errors, true);
+
+                        return;
+                    }
+                } else if (response.getStatus() == RPCResponse.STATUS_SUCCESS) {
+                    SC.say(i18n.DigitalObjectCreator_FinishedStep_CreateNewObjectButton_Title(), i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
+                }
+            }
+        }, dsRequest);
+    }
+
+    private DynamicForm createParamsForm() {
+        ClientMessages i18n = GWT.create(ClientMessages.class);
+        DynamicForm f = new DynamicForm();
+        f.setAutoHeight();
+
+        TextItem newPid = new TextItem(DigitalObjectDataSource.FIELD_PID);
+
+        newPid.setTitle(i18n.NewDigObject_OptionPid_Title());
+        newPid.setTooltip(i18n.NewDigObject_OptionPid_Hint());
+        newPid.setRequired(true);
+        newPid.setLength(36 + 5);
+        newPid.setWidth((36 + 5) * 8);
+        newPid.setValidators(new CustomUUIDValidator(i18n));
+        f.setFields(newPid);
+        f.setAutoFocus(true);
+        return f;
     }
 
     private void saveNewDigitalObject(String modelId, Long jobId) {

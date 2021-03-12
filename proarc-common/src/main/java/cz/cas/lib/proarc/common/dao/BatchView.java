@@ -37,6 +37,7 @@ public class BatchView {
     private String profileId;
     private String log;
     private Integer pageCount;
+    private Integer estimateItemNumber;
 
     public Integer getId() {
         return id;
@@ -136,6 +137,14 @@ public class BatchView {
 
     public void setPageCount(Integer pageCount) {
         this.pageCount = pageCount;
+    }
+
+    public Integer getEstimateItemNumber() {
+        return estimateItemNumber;
+    }
+
+    public void setEstimateItemNumber(Integer estimateItemNumber) {
+        this.estimateItemNumber = estimateItemNumber;
     }
 
     @Override

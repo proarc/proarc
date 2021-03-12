@@ -91,6 +91,9 @@ public class Const {
     public final static String GENRE_ETITLE = "electronic title";
     public final static String GENRE_EVOLUME = "electronic volume";
 
+    public final static String GENRE_OLDPRINT_OMNIBUS = "omnibus";       //konvolut
+    public final static String GENRE_OLDPRINT_GRAPHICS = "graphics";       //grafika
+
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
 
@@ -304,7 +307,7 @@ public class Const {
         streamMappingFile.put(AUDIO_MC_GRP_ID_FLAC, "mastercopy_audio");
         streamMappingFile.put(AUDIO_UC_GRP_ID, "usercopy_audio");
         streamMappingFile.put(AUDIO_UC_GRP_ID_OGG, "usercopy_audio");
-        streamMappingFile.put(AUDIO_RAW_GRP_ID, "sourceaudio");
+        streamMappingFile.put(AUDIO_RAW_GRP_ID, "source_audio");
 
         canContainPage.add(Const.ISSUE);
         canContainPage.add(Const.MONOGRAPH_MULTIPART);

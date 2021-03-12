@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.export.crossref;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.export.cejsh.CejshBuilderTest;
 import cz.cas.lib.proarc.common.xml.TransformErrorListener;
 import java.io.File;
@@ -26,10 +28,12 @@ import java.util.List;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.Rule;
+import org.junit.Test;
 import org.w3c.dom.Document;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -37,16 +41,18 @@ import org.w3c.dom.Document;
  */
 public class CrossrefBuilderTest {
 
+    private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
 
-    public CrossrefBuilderTest() {
+    public CrossrefBuilderTest() throws Exception {
     }
 
     @Test
     public void testCreateCrossrefXml() throws Exception {
         File targetFolder = temp.getRoot();
-        CrossrefBuilder builder = new CrossrefBuilder(targetFolder);
+        CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportOptions());
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
         builder.addVolume("1", null, null);
         builder.addIssue("10", "2010", "uuid");
@@ -66,7 +72,7 @@ public class CrossrefBuilderTest {
     @Test
     public void testCreateCrossrefXml_SkippedVolume() throws Exception {
         File targetFolder = temp.getRoot();
-        CrossrefBuilder builder = new CrossrefBuilder(targetFolder);
+        CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportOptions());
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
         builder.addIssue("10", "2010", "uuid");
         Document article = builder.getDocumentBuilder().parse(
@@ -85,7 +91,7 @@ public class CrossrefBuilderTest {
     @Test
     public void testCreateCrossrefXml_SkippedIssue() throws Exception {
         File targetFolder = temp.getRoot();
-        CrossrefBuilder builder = new CrossrefBuilder(targetFolder);
+        CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportOptions());
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
         builder.addVolume("1", "20.12.2012", "uuid");
         Document article = builder.getDocumentBuilder().parse(
