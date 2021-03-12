@@ -26,9 +26,9 @@ import cz.cas.lib.proarc.common.imports.kramerius.KrameriusImport;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
+import java.util.List;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConversionException;
-import java.util.List;
 
 /**
  * The import configuration. There can be several versions declared
@@ -67,6 +67,7 @@ public final class ImportProfile {
     public static final String CONVERTOR_JPG_SMALL_PROCESSOR = "import.jpg_small_convertor.processor";
     public static final String CONVERTOR_JPG_LARGE_PROCESSOR = "import.jpg_large_convertor.processor";
     public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
+    public static final String OCR_GEN_PROCESSOR = "import.ocr_generator.processor";
     public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
     public static final String NDK_ARCHIVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
     public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
@@ -236,6 +237,11 @@ public final class ImportProfile {
     public boolean getDefaultAltoAndOcr() {
         String value = config.getString(DEFAULT_ALTO_AND_OCR);
         return "true".equals(value);
+    }
+
+    public Configuration getOcrGenProcessor() {
+        String processor = config.getString(OCR_GEN_PROCESSOR, "-");
+        return config.subset(PROCESSOR + "." + processor);
     }
 
     public boolean getDeletePackageImport() {

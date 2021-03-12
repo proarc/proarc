@@ -27,11 +27,6 @@ import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.workflow.WorkflowOptions;
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,6 +40,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 
 /**
  * Server side configurations.
@@ -59,7 +59,9 @@ public final class AppConfiguration {
     }
 
     public static final String PROPERTY_USER_HOME = "user.home";
-    /** environment variable name to override default application home */
+    /**
+     * environment variable name to override default application home*
+     */
     public static final String ENV_APP_HOME = "PROARC_HOME";
     public static final String DEFAULT_APP_HOME_NAME = ".proarc";
     public static final String CONFIG_FILE_NAME = "proarc.cfg";
@@ -68,7 +70,8 @@ public final class AppConfiguration {
      */
     public static final String VERSION;
 
-    /** Path to configuration folder.
+    /**
+     * Path to configuration folder.
      * Internal configuration property interpolated on init.
      * Accessible as {@code ${proarc.home}} in properties files.
      */
@@ -78,13 +81,17 @@ public final class AppConfiguration {
     private static final String PROPERTY_FEDORA_CLIENT_URL = "fedora.client.url";
     private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
+    public static final String EXPORT_KWIS_POST_PROCESSOR = "export.export_post_processor.processor";
+
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
 
     private File configHome;
     private final Map<String, String> environment;
-    /** read only configuration */
+    /**
+     * read only configuration
+     */
     private final Configuration config;
     private final Map<ConfigurationProfile, Configuration> profileConfigCache =
             new HashMap<ConfigurationProfile, Configuration>();
@@ -106,6 +113,11 @@ public final class AppConfiguration {
             users.mkdirs();
         }
         return users;
+    }
+
+    public Configuration getExportPostProcessor() {
+        String processor = config.getString(EXPORT_KWIS_POST_PROCESSOR, "-");
+        return config.subset(ImportProfile.PROCESSOR + "." + processor);
     }
 
     public String getFedoraUsername() {
@@ -333,6 +345,7 @@ public final class AppConfiguration {
 
     /**
      * checks file/folder parameters
+     *
      * @return {@code true} iff {@code f} exists
      */
     private static boolean checkFile(File f, boolean mustExist,
