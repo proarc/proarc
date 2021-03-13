@@ -26,10 +26,14 @@ import org.apache.commons.configuration.Configuration;
 public class NdkExportOptions {
     static final String PROP_NDK_AGENT_ARCHIVIST = "export.ndk.agent.archivist";
     static final String PROP_NDK_AGENT_CREATOR = "export.ndk.agent.creator";
-    static final String PROP_DELETE_PACKAGE = "export.ndk.deletePackageIfUrnNbnIsMissing";
+    static final String PROP_PROARC_VERSION = "proarc.version";
+    static final String PROP_PROARC_REVISION = "proarc.build.revision";
+    static final String PROP_PROARC_TIMESTAMP = "proarc.build.timestamp";
     private String archivist;
     private String creator;
-    private boolean deletePackage;
+    private String version;
+    private String timestamp;
+    private String revision;
 
     public static NdkExportOptions getOptions(Configuration config) {
         NdkExportOptions options = new NdkExportOptions();
@@ -44,8 +48,20 @@ public class NdkExportOptions {
             options.setArchivist(archivist);
         }
 
-        String deletePackage = config.getString(PROP_DELETE_PACKAGE);
-        options.setDeletePackage(Boolean.parseBoolean(deletePackage));
+        String version = config.getString(PROP_PROARC_VERSION);
+        if (version != null && !version.isEmpty()) {
+            options.setVersion(version);
+        }
+
+        String timestamp = config.getString(PROP_PROARC_TIMESTAMP);
+        if (timestamp != null && !timestamp.isEmpty()) {
+            options.setTimestamp(timestamp);
+        }
+
+        String revision = config.getString(PROP_PROARC_REVISION);
+        if (revision != null && !revision.isEmpty()) {
+            options.setRevision(revision);
+        }
 
         return options;
     }
@@ -70,13 +86,29 @@ public class NdkExportOptions {
         this.archivist = archivist;
     }
 
-    /** Returns value of deleting package - used for unsuccesfull export */
-    public boolean isDeletePackage() {
-        return deletePackage;
+    /** Returns value of version*/
+    public String getVersion() {
+        return version;
     }
 
-    /** Sets value of deleting package */
-    public void setDeletePackage(boolean deletePackage) {
-        this.deletePackage = deletePackage;
+    /** Sets value of Proarc version */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getRevision() {
+        return revision;
+    }
+
+    public void setRevision(String revision) {
+        this.revision = revision;
     }
 }

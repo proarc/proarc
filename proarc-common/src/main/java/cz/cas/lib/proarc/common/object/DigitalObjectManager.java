@@ -37,9 +37,14 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
@@ -58,6 +63,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
  * The helper to access and manipulate digital objects.
@@ -380,6 +386,39 @@ public class DigitalObjectManager {
             return Collections.singletonList(item);
         }
 
+        public Job getWfJob(String pid, Locale locale) {
+            WorkflowManager workflowManager = WorkflowManager.getInstance();
+            List<MaterialView> materials = findAllWorkflowJob(workflowManager, locale, 10000);
+            for (MaterialView material : materials) {
+                if (pid.equals(material.getPid())) {
+                    return workflowManager.getJobs(material.getId());
+                }
+            }
+            return null;
+
+        }
+
+        public List<MaterialView> findAllWorkflowJob(WorkflowManager workflowManager, Locale locale, int maxCount) {
+            MaterialFilter filter = new MaterialFilter();
+            filter.setLocale(locale);
+            filter.setType(MaterialType.DIGITAL_OBJECT);
+            filter.setMaxCount(maxCount);
+            return workflowManager.findMaterial(filter);
+        }
+
+        public List<TaskView> getTask(BigDecimal jobId, Locale locale) {
+            TaskFilter filter = new TaskFilter();
+            filter.setLocale(locale);
+            filter.setJobId(jobId);
+
+            WorkflowManager workflowManager = WorkflowManager.getInstance();
+            WorkflowProfiles workflowProfiles = WorkflowProfiles.getInstance();
+            WorkflowDefinition workflow = workflowProfiles.getProfiles();
+            List<TaskView> tasks = workflowManager.tasks().findTask(filter, workflow);
+
+            return tasks;
+        }
+
         private List<Item> createBatch() throws DigitalObjectException {
             ArrayList<Item> items = new ArrayList<>();
             while (hasNext()) {
@@ -404,6 +443,19 @@ public class DigitalObjectManager {
 
             RelationEditor relations = doHandler.relations();
             relations.setModel(modelId);
+            relations.setOrganization(user.getOrganization());
+            relations.setStatus(STATUS_NEW);
+
+            String defaultProcessor = "all";
+            if (appConfig != null) {
+                defaultProcessor = appConfig.getImportConfiguration().getDefaultProcessor();
+            }
+
+            if ("user".equals(user.getRole())) {
+                relations.setUser(user.getUserName());
+            } else {
+                relations.setUser(defaultProcessor);
+            }
             if (getUserGroup() != null) {
                 String grpPid = getUserGroup().getName();
                 relations.setOwners(Collections.singletonList(grpPid));

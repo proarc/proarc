@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.workflow.WorkflowExportFile;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -30,6 +32,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXB;
 
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
+
 /**
  *
  * @author Jan Pokorsky
@@ -37,6 +41,7 @@ import javax.xml.bind.JAXB;
 public final class ExportUtils {
 
     public static final String PROARC_EXPORT_STATUSLOG = "proarc_export_status.log";
+    public static final String WORKFLOW_EXPORT_FILE = "workflow_information.xml";
 
     private static final Logger LOG = Logger.getLogger(ExportUtils.class.getName());
 
@@ -46,7 +51,7 @@ public final class ExportUtils {
      * @param name name of the new folder
      * @return the new folder
      */
-    public static File createFolder(File parent, String name) {
+    public static File createFolder(File parent, String name, boolean overwrite) {
         if (name == null || name.contains(":")) {
             throw new IllegalArgumentException(name);
         }
@@ -54,8 +59,15 @@ public final class ExportUtils {
             throw new NullPointerException("parent");
         }
         File folder = new File(parent, name);
-        for (int i = 1; !folder.mkdir(); i++) {
-            folder = new File(parent, name + '_' + i);
+        if (overwrite) {
+            if (!folder.mkdir()) {
+                MetsUtils.deleteFolder(folder);
+                folder.mkdir();
+            }
+        } else {
+            for (int i = 1; !folder.mkdir(); i++) {
+                folder = new File(parent, name + '_' + i);
+            }
         }
         return folder;
     }
@@ -100,14 +112,51 @@ public final class ExportUtils {
      * @param log fedora log message
      * @throws DigitalObjectException failure
      */
-    public static void storeObjectExportResult(String pid, String target, String log) throws DigitalObjectException {
+    public static void storeObjectExportResult(String pid, String target, String type, String log) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fo = dom.find(pid, null);
         DigitalObjectHandler doh = dom.createHandler(fo);
         RelationEditor relations = doh.relations();
-        relations.setExportResult(target);
+        switch(type) {
+            case "NDK":
+                relations.setNdkExportResult(target);
+                relations.setExportResult(target);
+                relations.setStatus(STATUS_EXPORTED);
+                break;
+            case "KRAMERIUS":
+                relations.setKrameriusExportResult(target);
+                relations.setExportResult(target);
+                relations.setStatus(STATUS_EXPORTED);
+                break;
+            case "ARCHIVE":
+                relations.setNdkExportResult(target);
+                String archiveTarget = createArchiveTarget(target);
+                relations.setArchiveExportResult(archiveTarget);
+                relations.setExportResult(archiveTarget);
+                relations.setStatus(STATUS_EXPORTED);
+                break;
+            case "CROSREFF":
+                relations.setCrossrefExportResult(target);
+                relations.setExportResult(target);
+                relations.setStatus(STATUS_EXPORTED);
+                break;
+        }
         relations.write(relations.getLastModified(), log);
         doh.commit();
+    }
+
+    private static String createArchiveTarget(String path) {
+        StringBuilder target = new StringBuilder();
+        String[] targetFolder = path.split("/");
+        for (int i = 0; i < targetFolder.length; i++) {
+            if (targetFolder[i].contains("archive_")) {
+                target.append(targetFolder[i]).append("/");
+                return target.toString();
+            } else {
+                target.append(targetFolder[i]).append("/");
+            }
+        }
+        return path;
     }
 
     public static String toString(Iterable<?> lines) {
@@ -133,4 +182,12 @@ public final class ExportUtils {
         return sw.toString();
     }
 
+    public static void writeWorkflowResult(File targetFolder, WorkflowExportFile wf) {
+        File resultFile = new File(targetFolder, WORKFLOW_EXPORT_FILE);
+        try {
+            JAXB.marshal(wf, resultFile);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, targetFolder.toString(), e);
+        }
+    }
 }

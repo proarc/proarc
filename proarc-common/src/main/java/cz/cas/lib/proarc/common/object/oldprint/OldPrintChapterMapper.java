@@ -28,4 +28,9 @@ public class OldPrintChapterMapper extends NdkChapterMapper {
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
     }
+
+    @Override
+    protected String createObjectLabel(ModsDefinition mods) {
+        return OldPrintMapperFactory.createObjectLabel(mods);
+    }
 }

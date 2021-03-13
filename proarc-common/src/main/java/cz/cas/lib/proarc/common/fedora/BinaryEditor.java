@@ -17,13 +17,13 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import javax.ws.rs.core.MediaType;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
 
 /**
  * Editor for managed binary content.
@@ -52,16 +52,22 @@ public final class BinaryEditor {
     /** ID of the optional data stream to hold a NDK audio archive copy of RAW. E.g. lossless WAV. */
     public static final String NDK_AUDIO_ARCHIVAL_ID = "NDK_AUDIO_ARCHIVAL";
     public static final String NDK_AUDIO_ARCHIVAL_LABEL = "NDK audio archive copy of RAW";
+    public static final String NDK_AUDIO_ARCHIVAL_FLAC_ID = "NDK_AUDIO_ARCHIVAL_FLAC";
+    public static final String NDK_AUDIO_ARCHIVAL_FLAC_LABEL = "NDK flac audio archive copy of RAW";
     /** ID of the optional data stream to hold a NDK audio production copy of RAW. E.g.*/
     public static final String NDK_AUDIO_USER_ID = "NDK_AUDIO_USER";
     public static final String NDK_AUDIO_USER_LABEL = "NDK audio user copy of RAW";
+    public static final String NDK_AUDIO_USER_OGG_ID = "NDK_AUDIO_USER_OGG";
+    public static final String NDK_AUDIO_USER_OGG_LABEL = "NDK ogg audio user copy of RAW";
 
 
     public static final MediaType IMAGE_JP2 = new MediaType("image", "jp2");
     public static final MediaType IMAGE_JPEG = new MediaType("image", "jpeg");
     public static final MediaType IMAGE_TIFF = new MediaType("image", "tiff");
     public static final MediaType AUDIO_WAVE = new MediaType("audio", "wave");
+    public static final MediaType AUDIO_FLAC = new MediaType("audio", "flac");
     public static final MediaType AUDIO_MP3 = new MediaType("audio", "mp3");
+    public static final MediaType AUDIO_OGG = new MediaType("audio", "ogg");
     /**
      * Data stream IDs with binary contents.
      */
@@ -102,6 +108,10 @@ public final class BinaryEditor {
             dp = FoxmlUtils.managedProfile(dsId, mime, NDK_AUDIO_ARCHIVAL_LABEL);
         } else if (NDK_AUDIO_USER_ID.equals(dsId)) {
             dp = FoxmlUtils.managedProfile(dsId, mime, NDK_AUDIO_USER_LABEL);
+        } else if (NDK_AUDIO_ARCHIVAL_FLAC_ID.equals(dsId)) {
+            dp = FoxmlUtils.managedProfile(dsId, mime, NDK_AUDIO_ARCHIVAL_FLAC_LABEL);
+        } else if (NDK_AUDIO_USER_OGG_ID.equals(dsId)) {
+            dp = FoxmlUtils.managedProfile(dsId, mime, NDK_AUDIO_USER_OGG_LABEL);
         } else {
             return null;
         }

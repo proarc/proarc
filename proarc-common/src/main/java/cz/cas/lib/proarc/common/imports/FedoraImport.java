@@ -17,10 +17,19 @@
 package cz.cas.lib.proarc.common.imports;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -29,12 +38,30 @@ import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static cz.cas.lib.proarc.common.imports.ImportProcess.getTargetFolder;
 
 /**
  * XXX write result to proarc_import_status.log
@@ -48,11 +75,15 @@ public final class FedoraImport {
     private final LocalStorage localStorage;
     private final ImportBatchManager ibm;
     private final SearchView search;
+    private final UserProfile user;
+    private final AppConfiguration config;
 
-    public FedoraImport(RemoteStorage fedora, ImportBatchManager ibm) {
+    public FedoraImport(AppConfiguration config, RemoteStorage fedora, ImportBatchManager ibm, UserProfile user) {
+        this.config = config;
         this.fedora = fedora;
         this.search = fedora.getSearch();
         this.ibm = ibm;
+        this.user = user;
         this.localStorage = new LocalStorage();
     }
 
@@ -72,8 +103,17 @@ public final class FedoraImport {
         ArrayList<String> ingestedPids = new ArrayList<String>();
         try {
             boolean itemFailed = importItems(batch, importer, ingestedPids, repair);
-            addParentMembers(parentPid, ingestedPids, message);
+            addParentMembers(batch, parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
+            deleteImportFolder(batch);
+            DigitalObjectStatusUtils.setState(batch.getParentPid(), DigitalObjectStatusUtils.STATUS_CONNECTED);
+            try {
+                setWorkflowMetadataDescription("task.metadataDescriptionInProArc", getRoot(batch.getParentPid(), null));
+            } catch (MetsExportException e) {
+                e.printStackTrace();
+
+
+            }
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
             batch.setState(Batch.State.INGESTING_FAILED);
@@ -84,6 +124,94 @@ public final class FedoraImport {
                     new Object[]{System.currentTimeMillis() - startTime, ingestedPids.size(), batch});
         }
         return batch;
+    }
+
+    private void setWorkflowMetadataDescription(String type, IMetsElement root) throws DigitalObjectException, WorkflowException {
+        if (root != null) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            DigitalObjectManager.CreateHandler handler = dom.create(root.getModel(), root.getOriginalPid(), null, user, null, "Update task - metadata Description finish");
+            Locale locale = new Locale("cs");
+            Job job = handler.getWfJob(root.getOriginalPid(), locale);
+            if (job == null) {
+                return;
+            }
+            List<TaskView> tasks = handler.getTask(job.getId(), locale);
+            Task editedTask = null;
+            for (TaskView task : tasks) {
+                if (type.equals(task.getTypeRef())) {
+                    editedTask = task;
+                    break;
+                }
+            }
+            if (editedTask != null) {
+                editedTask.setOwnerId(new BigDecimal(user.getId()));
+                editedTask.setState(Task.State.FINISHED);
+                WorkflowProfiles workflowProfiles = WorkflowProfiles.getInstance();
+                WorkflowDefinition workflow = workflowProfiles.getProfiles();
+                WorkflowManager workflowManager = WorkflowManager.getInstance();
+
+                try {
+                    TaskFilter taskFilter = new TaskFilter();
+                    taskFilter.setId(editedTask.getId());
+                    taskFilter.setLocale(locale);
+                    Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
+                            .findFirst().get().getState();
+                    workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
+                    List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+
+                    if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
+                        WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, locale);
+                        workflowActionHandler.runAction(editedTask);
+                    }
+                } catch (IOException e) {
+                    throw new DigitalObjectException(e.getMessage());
+                }
+            }
+        }
+    }
+
+    private IMetsElement getRoot(String pid, File file) throws MetsExportException {
+        RemoteStorage rstorage = RemoteStorage.getInstance();
+        RemoteStorage.RemoteObject fo = rstorage.find(pid);
+        MetsContext mc = buildContext(rstorage, fo, null, file);
+        IMetsElement element = getMetsElement(fo, mc, true);
+        if (element == null) {
+            return null;
+        }
+        return element.getMetsContext().getRootElement();
+    }
+
+    private MetsContext buildContext(RemoteStorage rstorage, RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(targetFolder == null ? null : targetFolder.getAbsolutePath());
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(config.getNdkExportOptions());
+        return mc;
+    }
+
+    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+        dc.resetContext();
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+        if (dobj == null) {
+            return null;
+        }
+        return MetsElement.getElement(dobj, null, dc, hierarchy);
+    }
+
+    private void deleteImportFolder(Batch batch) throws IOException {
+        ConfigurationProfile profile = findImportProfile(batch.getId(), batch.getProfileId());
+        ImportProfile importProfile = profile != null ? config.getImportConfiguration(profile) : config.getImportConfiguration();
+        if (importProfile.getDeletePackageImport()) {
+            File target = getTargetFolder(resolveBatchFile(batch.getFolder()), importProfile);
+            //File file = new File(config.getDefaultUsersHome(), batch.getFolder() + "/" + ImportProcess.TMP_DIR_NAME);
+            LOG.log(Level.INFO, "Smazani importni slozky "+ target.getName());
+            //MetsUtils.deleteFolder(file);
+            MetsUtils.deleteFolder(target);
+        }
     }
 
     private boolean importItems(Batch batch, String importer, List<String> ingests, boolean repair)
@@ -248,10 +376,95 @@ public final class FedoraImport {
         return item;
     }
 
-    private void addParentMembers(String parent, List<String> pids, String message) throws DigitalObjectException {
+    private void addParentMembers(Batch batch, String parent, List<String> pids, String message) throws DigitalObjectException {
         if (parent == null || pids.isEmpty()) {
             return ;
         }
+        ConfigurationProfile profile = findImportProfile(batch.getId(), batch.getProfileId());
+        ImportProfile importProfile = profile != null ? config.getImportConfiguration(profile) : config.getImportConfiguration();
+        if (ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT.equals(batch.getProfileId()) &&
+                importProfile.getCreateModelsHierarchy()) {
+            createHierarchy(batch, pids, parent, message);
+        }
+        if (pids.size()!= 0){
+            setParent(parent, pids, message);
+        }
+    }
+
+    private ConfigurationProfile findImportProfile(Integer batchId, String profileId) {
+        ConfigurationProfile profile = config.getProfiles().getProfile(ImportProfile.PROFILES, profileId);
+        if (profile == null) {
+            LOG.log(Level.SEVERE,"Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
+                    new Object[]{ImportProfile.PROFILES, profileId, batchId});
+            return null;
+        }
+        return profile;
+    }
+
+    private void createHierarchy(Batch batch, List<String> pids, String documentPid, String message) {
+        List<BatchItemObject> batchItems = ibm.findBatchObjects(batch.getId(), null);
+        ArrayList<Hierarchy> songsPid = new ArrayList<>();
+        ArrayList<ArrayList<Hierarchy>> tracksPid = new ArrayList<>();
+
+        boolean hierarchyCreated = createPidHierarchy(batchItems, documentPid, songsPid, tracksPid, pids);
+
+        if (!hierarchyCreated) {
+            return;
+        }
+        try {
+            if (tracksPid.size() == 0) {
+                createModels(documentPid, songsPid, message);
+            } else if (tracksPid.size() != 0) {
+                createModels(documentPid, songsPid, tracksPid, message);
+            }
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.WARNING, "Nepodarilo se automaticky vytvorit hierarchii objektu, protoze se nepodarilo vytvorit objekt " + ex.getPid());
+            return;
+        }
+        return;
+    }
+
+    private void createModels(String documentPid, ArrayList<Hierarchy> songsPid, String message)  throws  DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        String pid = "";
+        for (Hierarchy song : songsPid) {
+            if (pid != song.getParent()) {
+                pid = song.getParent();
+                DigitalObjectManager.CreateHandler songHandler = dom.create(NdkAudioPlugin.MODEL_SONG, pid, documentPid, user, null, "create new object with pid: " + songsPid.get(0));
+                songHandler.create();
+            }
+            List<String> songList = new ArrayList<>();
+            songList.add(song.getChild());
+            setParent(song.getParent(), songList, message);
+        }
+    }
+
+    private void createModels(String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, String message) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        for (int tmp = 0; tmp < songsPid.size(); tmp++) {
+            String songPid = songsPid.get(tmp).getParent();
+            DigitalObjectManager.CreateHandler songHandler = dom.create(NdkAudioPlugin.MODEL_SONG, songPid, documentPid, user, null,  "create new object with pid: " + songsPid.get(0));
+            songHandler.create();
+
+            if (songsPid.get(tmp).getChild() != null) {
+                List<String> songList = new ArrayList<>();
+                songList.add(songsPid.get(tmp).getChild());
+                setParent(songPid, songList, message);
+            }
+
+            for (Hierarchy track : tracksPid.get(tmp)) {
+                DigitalObjectManager.CreateHandler trackHandler = dom.create(NdkAudioPlugin.MODEL_TRACK, track.getParent(), songPid, user, null,  "create new object with pid: " + songsPid.get(0));
+                trackHandler.create();
+
+                List<String> trackList = new ArrayList<>();
+                trackList.add(track.getChild());
+                setParent(track.getParent(), trackList, message);
+            }
+        }
+
+    }
+
+    private void setParent(String parent, List<String> pids, String message) throws DigitalObjectException {
         RemoteObject remote = fedora.find(parent);
         RelationEditor editor = new RelationEditor(remote);
         List<String> members = editor.getMembers();
@@ -259,6 +472,76 @@ public final class FedoraImport {
         editor.setMembers(members);
         editor.write(editor.getLastModified(), message);
         remote.flush();
+    }
+
+    private boolean createPidHierarchy(List<BatchItemObject> batchItems, String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, List<String> pids) {
+        pids.clear();
+        String pid = "";
+        for (BatchItemObject batchItem : batchItems) {
+            String name = nameWithoutExtention(batchItem.getFile().getName(), ".foxml");
+            String[] splitName = name.split("-");
+
+            try {
+                int length = splitName.length;
+                if (splitName[length-3].length() == 2 && splitName[length-2].length() == 2 && splitName[length-1].length() == 2) {
+                    int disc = Integer.valueOf(splitName[splitName.length-3]);
+                    int song = Integer.valueOf(splitName[splitName.length-2]);
+                    int track = Integer.valueOf(splitName[splitName.length-1]);
+
+                    if (disc < 1 || song < 1) {
+                        LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
+                        return false;
+                    }
+                    if (track > 0 ) {
+                        if (songsPid.size() < song) {
+                            pid = FoxmlUtils.createPid();
+                            Hierarchy songHierarchy = new Hierarchy(pid, null);
+                            songsPid.add(song - 1, songHierarchy);
+                            tracksPid.add(song - 1, new ArrayList<>());
+                        }
+                        if (tracksPid.get(song - 1).size() < track) {
+                            pid = FoxmlUtils.createPid();
+                            Hierarchy trackHierarchy = new Hierarchy(pid, batchItem.getPid());
+                            tracksPid.get(song - 1).add(track - 1, trackHierarchy);
+                        }
+                    } else if (track == 0) {
+                        if (songsPid.size() < song) {
+                            pid = FoxmlUtils.createPid();
+                            Hierarchy songHierarchy = new Hierarchy(pid, batchItem.getPid());
+                            songsPid.add(song - 1, songHierarchy);
+                            tracksPid.add(song - 1, new ArrayList<>());
+                        }
+                    } else {
+                        LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
+                        return false;
+                    }
+                } else {
+                    pids.add(batchItem.getPid());
+                    continue;
+                }
+            } catch (NumberFormatException ex) {
+                pids.add(batchItem.getPid());
+                continue;
+            }
+        }
+        return true;
+    }
+
+    public File resolveBatchFile(String file) {
+        URI uri = getBatchRoot().resolve(file);
+        return new File(uri);
+    }
+
+    URI getBatchRoot() {
+        try {
+            return config.getDefaultUsersHome().toURI();
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private String nameWithoutExtention(String name, String extension) {
+        return name.substring(0, name.length() - extension.length());
     }
 
     private void checkParent(String parent) throws DigitalObjectException {
@@ -269,5 +552,32 @@ public final class FedoraImport {
         RelationEditor editor = new RelationEditor(remote);
         editor.getModel();
     }
+
+    class Hierarchy {
+        String parent;
+        String child;
+
+        public Hierarchy(String parent, String child) {
+            this.parent = parent;
+            this.child = child;
+        }
+
+        public String getParent() {
+            return parent;
+        }
+
+        public void setParent(String parent) {
+            this.parent = parent;
+        }
+
+        public String getChild() {
+            return child;
+        }
+
+        public void setChild(String child) {
+            this.child = child;
+        }
+    }
+
 
 }

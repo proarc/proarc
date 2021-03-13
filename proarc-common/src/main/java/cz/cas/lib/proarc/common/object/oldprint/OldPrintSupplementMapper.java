@@ -32,4 +32,9 @@ public class OldPrintSupplementMapper extends NdkMonographSupplementMapper {
 //        OldPrintMapperUtils.addTypeOfResource(mods);
     }
 
+    @Override
+    protected String createObjectLabel(ModsDefinition mods) {
+        return OldPrintMapperFactory.createObjectLabel(mods);
+    }
+
 }

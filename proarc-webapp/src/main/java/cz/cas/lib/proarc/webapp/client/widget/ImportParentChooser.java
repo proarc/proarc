@@ -181,6 +181,12 @@ public final class ImportParentChooser {
                         Object firstModel = valueMap.keySet().iterator().next();
                         foundView.setFilterModel(firstModel);
                     }
+                    Object previousSort = Offline.get(LAST_SELECTED_MODEL_TAG + "_sort");
+                    if (previousSort != null) {
+                        foundView.setSort(previousSort);
+                    } else {
+                        foundView.setSort("asc");
+                    }
                     // issue 209: do not refresh the parent search on each show
                     firstShowParentFetch = false;
                     foundView.refresh();

@@ -68,7 +68,7 @@ final class UserManagerSql implements UserManager {
         UserDao users = daos.createUser();
         users.setTransaction(tx);
         try {
-            List<UserProfile> result = users.find(userName, digist, null, null);
+            List<UserProfile> result = users.find(userName, digist, null, null, null);
             return result.isEmpty() ? null : filter(result.get(0));
         } finally {
             tx.close();
@@ -84,7 +84,7 @@ final class UserManagerSql implements UserManager {
         UserDao users = daos.createUser();
         users.setTransaction(tx);
         try {
-            List<UserProfile> result = users.find(userName, null, null, null);
+            List<UserProfile> result = users.find(userName, null, null, null, null);
             return result.isEmpty() ? null : filter(result.get(0));
         } finally {
             tx.close();
@@ -100,7 +100,7 @@ final class UserManagerSql implements UserManager {
         UserDao users = daos.createUser();
         users.setTransaction(tx);
         try {
-            List<UserProfile> result = users.find(null, null, remoteName, remoteType);
+            List<UserProfile> result = users.find(null, null, remoteName, remoteType, null);
             return result.isEmpty() ? null : filter(result.get(0));
         } finally {
             tx.close();
@@ -125,7 +125,19 @@ final class UserManagerSql implements UserManager {
         UserDao users = daos.createUser();
         users.setTransaction(tx);
         try {
-            return filter(users.find(null, null, null, null));
+            return filter(users.find(null, null, null, null, null));
+        } finally {
+            tx.close();
+        }
+    }
+
+    @Override
+    public List<UserProfile> findMyOrganization(String organization) {
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
+        try {
+            return filter(users.find(null, null, null, null, organization));
         } finally {
             tx.close();
         }
@@ -329,6 +341,19 @@ final class UserManagerSql implements UserManager {
             }
         } catch (SQLException ex) {
             throw new IllegalStateException(ex);
+        }
+    }
+
+    @Override
+    public String findUserRole(int userId) {
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
+        try {
+            UserProfile user = filter(users.find(userId));
+            return user.getRole();
+        } finally {
+            tx.close();
         }
     }
 

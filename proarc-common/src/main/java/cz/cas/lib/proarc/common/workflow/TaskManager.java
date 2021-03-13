@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
@@ -276,7 +277,7 @@ public class TaskManager {
                 jobTask.setState(newState);
                 continue;
             }
-            if (jobTask.getState() == State.WAITING) {
+            if (jobTask.getState() == State.WAITING)  {
                 boolean blocked = isBlocked(getStepDefinition(job, jobTask.getTypeRef()), sortedTasks);
                 if (!blocked) {
                     jobTask.setState(State.READY);
@@ -308,7 +309,7 @@ public class TaskManager {
     }
 
     public Task addTask(
-            BigDecimal jobId, String taskName, WorkflowDefinition workflow, UserProfile defaultUser
+            BigDecimal jobId, String taskName, WorkflowDefinition workflow, UserProfile defaultUser, AppConfiguration config
     ) throws WorkflowException {
         Map<String, UserProfile> users = wmgr.createUserMap();
         Transaction tx = daoFactory.createTransaction();
@@ -352,7 +353,7 @@ public class TaskManager {
                 for (MaterialView material : materials) {
                     materialCache.put(material.getName(), material);
                 }
-                wmgr.createMaterials(materialDao, step, task, materialCache, null);
+                wmgr.createMaterials(materialDao, step, task, materialCache, null, config);
             }
             tx.commit();
             return task;

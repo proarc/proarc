@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.FedoraCredentials;
@@ -120,6 +121,7 @@ public final class RemoteStorage {
         }
         return sv;
     }
+
 
     public SearchView getSearch() {
         return getSearch(null);
@@ -295,6 +297,20 @@ public final class RemoteStorage {
         public void delete(String logMessage) throws DigitalObjectException {
             try {
                 FedoraClient.modifyObject(getPid()).state(StateType.D.value())
+                        .logMessage(qpEncode(logMessage))
+                        .execute(client);
+            } catch (FedoraClientException ex) {
+                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                } else {
+                    throw new DigitalObjectException(getPid(), ex);
+                }
+            }
+        }
+
+        public void restore(String logMessage) throws DigitalObjectException {
+            try {
+                FedoraClient.modifyObject(getPid()).state(StateType.A.value())
                         .logMessage(qpEncode(logMessage))
                         .execute(client);
             } catch (FedoraClientException ex) {
@@ -564,9 +580,10 @@ public final class RemoteStorage {
             try {
                 GetDatastreamResponse response = FedoraClient.getDatastream(object.getPid(), dsId)
                         .format("xml").execute(object.getClient());
+                lastModified = response.getLastModifiedDate().getTime();
                 profile = response.getDatastreamProfile();
                 profile = normalizeProfile(profile);
-                lastModified = response.getLastModifiedDate().getTime();
+
                 missingDataStream = false;
             } catch (FedoraClientException ex) {
                 if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -587,6 +604,10 @@ public final class RemoteStorage {
                     } else {
                         throw new DigitalObjectNotFoundException(object.getPid());
                     }
+                } else if (ex.getStatus() == 0) {
+                    profile = defaultProfile;
+                    profile = normalizeProfile(profile);
+                    missingDataStream = false;
                 } else {
                     throw new DigitalObjectException(object.getPid(), toLogString(), ex);
                 }
@@ -719,8 +740,20 @@ public final class RemoteStorage {
                     throw new UnsupportedOperationException("DsControlGroup: " + control + "; " + toLogString());
                 }
             }
-            ModifyDatastreamResponse response = request.execute(object.getClient());
-            return response;
+            int testNumber = 1;
+            return getResponse(request, testNumber);
+        }
+
+        private ModifyDatastreamResponse getResponse(ModifyDatastream request, int testNumber) throws FedoraClientException {
+            try {
+                return request.execute(object.getClient());
+            }  catch (ClientHandlerException e) {
+                if (testNumber < 10) {
+                    return getResponse(request, ++testNumber);
+                } else {
+                    throw e;
+                }
+            }
         }
 
         private String toLogString() {

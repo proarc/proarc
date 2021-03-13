@@ -17,8 +17,11 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.mods.AbstractDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.LanguageDefinition;
@@ -28,6 +31,7 @@ import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.NamePartDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
@@ -48,7 +52,7 @@ import java.util.List;
  */
 public final class MapperUtils {
 
-    static ModsDefinition addPid(ModsDefinition mods, String pid) {
+    public static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
             if (uuid.equals(id.getValue()) && "uuid".equals(id.getType())) {
@@ -95,7 +99,7 @@ public final class MapperUtils {
      * @param ti MODS titleInfo
      * @return string for DC title
      */
-    static String createTitleString(TitleInfoDefinition ti) {
+    public static String createTitleString(TitleInfoDefinition ti) {
         StringBuilder title = new StringBuilder();
         addNonSort(title, ti);
         addTitle(title, ti);
@@ -149,7 +153,7 @@ public final class MapperUtils {
 
     // mods/language/languageTerm @type=code, @authority="iso639‐2b"
     // XXX should it be really checked?
-    static void fillLanguage(ModsDefinition mods) {
+    public static void fillLanguage(ModsDefinition mods) {
 //        fillLanguage(mods.getLanguage());
     }
 
@@ -168,7 +172,7 @@ public final class MapperUtils {
 //        }
     }
 
-    static void fillRecordInfo(ModsDefinition mods) {
+    public static void fillRecordInfo(ModsDefinition mods) {
         Date now = new Date();
         List<RecordInfoDefinition> recordInfos = mods.getRecordInfo();
         if (recordInfos.isEmpty()) {
@@ -216,10 +220,29 @@ public final class MapperUtils {
         }
     }
 
-    static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {
+    public static void fillAbstract(ModsDefinition mods) {
+        List<AbstractDefinition> abstracts = mods.getAbstract();
+        List<AbstractDefinition> newAbstract = new ArrayList<>();
+        for (AbstractDefinition abs : abstracts) {
+            if (abs.getValue().length() > 2700) {
+                List<String> splitedValues = splitAfter2700Characters(abs.getValue());
+                for (String value : splitedValues) {
+                    AbstractDefinition abstractDefinition = new AbstractDefinition();
+                    abstractDefinition.setValue(value);
+                    newAbstract.add(abstractDefinition);
+                }
+            } else {
+                newAbstract.add(abs);
+            }
+        }
+        mods.getAbstract().clear();
+        mods.getAbstract().addAll(newAbstract);
+    }
+
+    public static void addStringPlusLanguage(List<ElementType> dcElms, List<? extends StringPlusLanguage> modsValues) {
         for (StringPlusLanguage modsValue : modsValues) {
             // XXX lang?
-            if (modsValue.getValue().length() > 2700) {
+            if (modsValue.getValue() != null && modsValue.getValue().length() > 2700) {
                 List<String> splitValue = splitAfter2700Characters(modsValue.getValue());
                 for (String value : splitValue) {
                     addElementType(dcElms, value, null);
@@ -240,7 +263,7 @@ public final class MapperUtils {
         return tmp;
     }
 
-    static void addName(List<NameDefinition> modsNames, List<ElementType> dcElms) {
+    public static void addName(List<NameDefinition> modsNames, List<ElementType> dcElms) {
         for (NameDefinition name : modsNames) {
             StringBuilder sbName = new StringBuilder();
             StringBuilder sbFamily = new StringBuilder();
@@ -283,6 +306,61 @@ public final class MapperUtils {
         }
     }
 
+    static void addDetailWithPageRangeToPart(ModsDefinition mods) {
+        List<ExtentDefinition> extents = new ArrayList<>();
+        for (PartDefinition part : mods.getPart()) {
+            if (part.getType() == null) {
+                for (ExtentDefinition extentDefinition : part.getExtent()) {
+                    extents.add(extentDefinition);
+                }
+            }
+        }
+        if (extents.size() > 0) {
+            mods.getPart().clear();
+
+            for (ExtentDefinition extentDefinition : extents) {
+
+                PartDefinition part = new PartDefinition();
+                part.getExtent().add(extentDefinition);
+                part.setType(extentDefinition.getUnit());
+                extentDefinition.setUnit("pages");
+                mods.getPart().add(part);
+            }
+
+            for (PartDefinition part : mods.getPart()) {
+                if (part.getExtent() != null && part.getExtent().size() != 0) {
+                    ExtentDefinition extent = part.getExtent().get(0);
+                    StringPlusLanguage start = extent.getStart();
+                    StringPlusLanguage end = extent.getEnd();
+                    DetailDefinition detail = new DetailDefinition();
+                    //        detail.setType(extent.getUnit());
+                    StringPlusLanguage detailNumber = new StringPlusLanguage();
+                    detailNumber.setValue((start == null ? "" : start.getValue())+ "-" + (end == null ? "" : end.getValue()));
+                    detail.getNumber().add(detailNumber);
+                    part.getDetail().clear();
+                    part.getDetail().add(detail);
+                }
+            }
+        }
+                for (PartDefinition part : mods.getPart()) {
+            ExtentDefinition extentDefinition = null;
+            if (part.getExtent() != null && part.getExtent().size() > 0 && part.getExtent().get(0) != null) {
+                extentDefinition = part.getExtent().get(0);
+            }
+            if (extentDefinition != null) {
+                StringPlusLanguage start = extentDefinition.getStart();
+                StringPlusLanguage end = extentDefinition.getEnd();
+                part.getDetail().clear();
+                DetailDefinition detail = new DetailDefinition();
+                StringPlusLanguage detailNumber = new StringPlusLanguage();
+                detailNumber.setValue((start == null ? "" : start.getValue())+ "-" + (end == null ? "" : end.getValue()));
+                detail.getNumber().add(detailNumber);
+                part.getDetail().add(detail);
+            }
+        }
+
+    }
+
     static void addNameWithEtal(ModsDefinition mods) {
         NameDefinition nameDefinition = null;
         for (NameDefinition name : mods.getName()) {
@@ -299,7 +377,7 @@ public final class MapperUtils {
         }
     }
 
-    static void addOriginInfo(List<OriginInfoDefinition> originInfos, OaiDcType dc) {
+    public static void addOriginInfo(List<OriginInfoDefinition> originInfos, OaiDcType dc) {
         for (OriginInfoDefinition originInfo : originInfos) {
             for (PlaceDefinition place : originInfo.getPlace()) {
                 for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
@@ -317,10 +395,13 @@ public final class MapperUtils {
                     addElementType(dc.getDates(), date.getValue());
                 //}
             }
+            /*for (DateDefinition date : originInfo.getDateOther()) {
+                addElementType(dc.getDates(), date.getValue());
+            }*/
         }
     }
 
-    static void addLanguage(List<LanguageDefinition> modsLanguages, OaiDcType dc) {
+    public static void addLanguage(List<LanguageDefinition> modsLanguages, OaiDcType dc) {
         for (LanguageDefinition language : modsLanguages) {
             for (LanguageTermDefinition languageTerm : language.getLanguageTerm()) {
                 CodeOrText type = languageTerm.getType();
@@ -331,7 +412,7 @@ public final class MapperUtils {
         }
     }
 
-    static List<ElementType> addElementType(List<ElementType> dcElms, String value) {
+    public static List<ElementType> addElementType(List<ElementType> dcElms, String value) {
         return addElementType(dcElms, value, null);
     }
 
@@ -368,7 +449,7 @@ public final class MapperUtils {
         return null;
     }
 
-    static String toValue(String s) {
+    public static String toValue(String s) {
         if (s != null) {
             s = s.trim();
         }

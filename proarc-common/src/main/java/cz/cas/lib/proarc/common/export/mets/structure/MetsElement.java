@@ -30,7 +30,9 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.MdSecType;
+import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -300,16 +302,37 @@ public class MetsElement implements IMetsElement {
             DOMSource modsDOMSource = new DOMSource(modsDocument);
             ModsDefinition modsDefinition = ModsUtils.unmarshalModsType(modsDOMSource);
             if (modsDefinition.getPart().size()>0) {
-                if (modsDefinition.getPart().get(0).getExtent().size()>0) {
-                    try {
-                        if (modsDefinition.getPart().get(0).getExtent().get(0).getStart() != null) {
-                            this.modsStart = new BigInteger(modsDefinition.getPart().get(0).getExtent().get(0).getStart().getValue());
+                for (PartDefinition part : modsDefinition.getPart()) {
+                    if (part.getType() != null && part.getType().equals("pageIndex")) {
+                        if (part.getExtent().size() > 0) {
+                            try {
+                                ExtentDefinition extent = getExtent(part.getExtent());
+                                if (extent.getStart() != null) {
+                                    this.modsStart = new BigInteger(extent.getStart().getValue());
+                                }
+                                if (extent.getEnd() != null) {
+                                    this.modsEnd = new BigInteger(extent.getEnd().getValue());
+                                }
+                                break;
+                            } catch (NumberFormatException ex) {
+                                throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);
+                            }
                         }
-                        if (modsDefinition.getPart().get(0).getExtent().get(0).getEnd() != null) {
-                            this.modsEnd = new BigInteger(modsDefinition.getPart().get(0).getExtent().get(0).getEnd().getValue());
+                    }
+                }
+                if (this.modsStart == null || this.modsEnd == null) {
+                    if (modsDefinition.getPart().get(0).getExtent().size()>0) {
+                        try {
+                            ExtentDefinition extent = getExtent(modsDefinition.getPart().get(0).getExtent());
+                            if (extent.getStart() != null) {
+                                this.modsStart = new BigInteger(extent.getStart().getValue());
+                            }
+                            if (extent.getEnd() != null) {
+                                this.modsEnd = new BigInteger(extent.getEnd().getValue());
+                            }
+                        } catch (NumberFormatException ex) {
+                            throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);
                         }
-                    } catch (NumberFormatException ex) {
-                        throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);
                     }
                 }
             }
@@ -347,6 +370,43 @@ public class MetsElement implements IMetsElement {
 
         if (fillChildren) {
             fillChildren();
+        }
+    }
+
+    private ExtentDefinition getExtent(List<ExtentDefinition> extents) {
+        ExtentDefinition pageIndex = null;
+        ExtentDefinition pageNumber = null;
+        ExtentDefinition pageNotFill = null;
+
+        for (ExtentDefinition extent : extents) {
+            if (extent.getUnit() != null && !extent.getUnit().isEmpty()) {
+                switch (extent.getUnit()) {
+                    case "pageNumber":
+                        if (pageNumber == null) {
+                            pageNumber = extent;
+                        }
+                        break;
+                    case "pageIndex":
+                        if (pageIndex == null) {
+                            pageIndex = extent;
+                        }
+                        break;
+                    default:
+                        if (pageNotFill == null) {
+                            pageNotFill = extent;
+                        }
+                }
+            }
+        }
+
+        if (pageIndex != null) {
+            return pageIndex;
+        } else if (pageNumber != null) {
+            return pageNumber;
+        } else if (pageNotFill != null) {
+            return pageNotFill;
+        } else {
+            return extents.get(0);
         }
     }
 

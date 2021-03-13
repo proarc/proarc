@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
@@ -30,9 +29,21 @@ import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.TableOfContentsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPartName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPartNumber;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -112,11 +123,15 @@ public class NdkSoundCollectionMapper extends RdaNdkMapper {
             addNonSort(title, titleInfo);
             addTitle(title, titleInfo);
             addSubTitle(title, titleInfo);
+            addPartNumber(title, titleInfo);
+            addPartName(title, titleInfo);
             addElementType(dc.getTitles(), title.toString());
         }
 
         addName(mods.getName(), dc.getCreators());
-        addElementType(dc.getTypes(), mods.getTypeOfResource().get(0).getValue());
+        if (mods.getTypeOfResource() != null && mods.getTypeOfResource().size()>0) {
+            addElementType(dc.getTypes(), mods.getTypeOfResource().get(0).getValue());
+        }
         addElementType(dc.getTypes(), getDcType());
         addOriginInfo(mods.getOriginInfo(), dc);
 
@@ -134,6 +149,9 @@ public class NdkSoundCollectionMapper extends RdaNdkMapper {
         for (LocationDefinition location : mods.getLocation()) {
             addStringPlusLanguage(dc.getSources(), location.getPhysicalLocation());
             addStringPlusLanguage(dc.getSources(), location.getShelfLocator());
+        }
+        for (TableOfContentsDefinition tableOfContents : mods.getTableOfContents()) {
+            addElementType(dc.getDescriptions(), tableOfContents.getValue());
         }
         return dc;
     }

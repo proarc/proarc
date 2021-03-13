@@ -74,7 +74,7 @@ public class ProarcDatabaseV4 extends DBDatabase {
     public final WorkflowPhysicalDocTable tableWorkflowPhysicalDoc = new WorkflowPhysicalDocTable(this);
 
     public static int upgradeToVersion5(
-            int currentSchemaVersion, ProarcDatabase schema,
+            int currentSchemaVersion,
             Connection conn, EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion < VERSION) {
@@ -86,9 +86,9 @@ public class ProarcDatabaseV4 extends DBDatabase {
         } else if (currentSchemaVersion != VERSION) {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
-//        ProarcDatabaseV5 schema = new ProarcDatabaseV5();
+       ProarcDatabaseV5 schema = new ProarcDatabaseV5();
         try {
-//            schema.open(conf.getDriver(), conn);
+            schema.open(conf.getDriver(), conn);
             upgradeDdl(schema, conn);
             int schemaVersion = schema.initVersion(conn, VERSION);
 
@@ -99,7 +99,7 @@ public class ProarcDatabaseV4 extends DBDatabase {
         }
     }
 
-    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+    private static void upgradeDdl(ProarcDatabaseV5 schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();

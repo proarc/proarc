@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
@@ -58,7 +59,7 @@ class PhysicalMaterialBuilder {
 
     public PhysicalMaterial build(String xml, CatalogConfiguration catalog) {
         setCatalog(catalog);
-        setMetadata(xml);
+        setMetadata(xml, null);
         return m;
     }
 
@@ -69,9 +70,9 @@ class PhysicalMaterialBuilder {
         return this;
     }
 
-    public PhysicalMaterialBuilder setMetadata(String modsXml) {
+    public PhysicalMaterialBuilder setMetadata(String modsXml, String model) {
         try {
-            return setMetadataImpl(modsXml);
+            return setMetadataImpl(modsXml, model);
         } catch (Exception ex) {
             StringBuilder sb = new StringBuilder("Cannot set metadata!");
             for (String error : validationErrorHandler.getValidationErrors()) {
@@ -88,22 +89,31 @@ class PhysicalMaterialBuilder {
         return this;
     }
 
-    private PhysicalMaterialBuilder setMetadataImpl(String modsXml) throws IOException, SAXException, XPathExpressionException {
+    private PhysicalMaterialBuilder setMetadataImpl(String modsXml, String model) throws IOException, SAXException, XPathExpressionException {
         if (modsXml != null) {
             Document modsDom = db.parse(new InputSource(new StringReader(modsXml)));
             Element modsElm = (Element) xpath.evaluate(
                     "m:mods | m:modsCollection/m:mods", modsDom, XPathConstants.NODE);
-            String barcode = xpath.evaluate(
-                    "m:identifier[@type='barcode' and not(@invalid)]", modsElm);
+            String barcode = xpath.evaluate("m:identifier[@type='barcode']", modsElm);
             String sigla = xpath.evaluate("m:location/m:physicalLocation", modsElm);
             String signature = xpath.evaluate("m:location/m:shelfLocator", modsElm);
             String field001 = xpath.evaluate("m:recordInfo/m:recordIdentifier", modsElm);
+            String dateIssued = xpath.evaluate("m:originInfo/m:dateIssued", modsElm);
+            String partNumber = xpath.evaluate("m:titleInfo/m:partNumber", modsElm);
+            String edition = xpath.evaluate("m:relatedItem[@type='series']/m:titleInfo/m:title", modsElm);
             StringBuilder label = getTitle(new StringBuilder(), modsElm);
             m.setMetadata(modsXml);
             m.setBarcode(barcode);
             m.setSigla(sigla);
             m.setSignature(signature);
             m.setField001(field001);
+            m.setYear(dateIssued);
+            m.setEdition(edition);
+            if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(model)) {
+                m.setVolume(partNumber);
+            } else {
+                m.setIssue(partNumber);
+            }
             m.setLabel(label.length() == 0
                     ? "?"
                     : label.length() > 2000

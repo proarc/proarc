@@ -16,9 +16,9 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import javax.xml.bind.annotation.XmlElement;
 import java.math.BigDecimal;
 import java.util.Locale;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * The filter to view materials.

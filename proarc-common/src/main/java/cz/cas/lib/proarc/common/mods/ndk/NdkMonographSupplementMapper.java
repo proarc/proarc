@@ -40,7 +40,9 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPartName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
 
@@ -81,6 +83,9 @@ public class NdkMonographSupplementMapper extends RdaNdkMapper {
                 }
             }
         }
+
+        fillAbstract(mods);
+        fillRecordInfo(mods);
     }
 
     protected void addGenre(ModsDefinition mods) {

@@ -18,15 +18,28 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.actions.ChangeModels;
+import cz.cas.lib.proarc.common.actions.CopyObject;
+import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
+import cz.cas.lib.proarc.common.actions.RepairMetadata;
+import cz.cas.lib.proarc.common.actions.UpdateObjects;
+import cz.cas.lib.proarc.common.actions.UpdatePages;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
@@ -35,6 +48,7 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject;
 import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -53,11 +67,17 @@ import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.object.technicalMetadata.TechnicalMetadataMapper;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration.ResolverConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnService;
@@ -69,11 +89,23 @@ import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.Task;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.io.File;
 import java.io.IOException;
@@ -122,6 +154,8 @@ import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_PROCESSING;
 
 /**
  * Resource to manage digital objects.
@@ -247,6 +281,11 @@ public class DigitalObjectResource {
                 items = handler.create();
             }
 
+            if (OldPrintPlugin.MODEL_OMNIBUSVOLUME.equals(modelId)) {
+                CreateHandler hierarchyModelsHandler = dom.create(OldPrintPlugin.MODEL_VOLUME, null, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
+                hierarchyModelsHandler.create();
+            }
+
             return new SmartGwtResponse<>(items);
         } catch (DigitalObjectExistException ex) {
             return SmartGwtResponse.<Item>asError().error("pid", ex.getMessage()).build();
@@ -267,15 +306,26 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
             @DefaultValue("true") boolean hierarchy,
             @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
-            @DefaultValue("false") boolean purge
+            @DefaultValue("false") boolean purge,
+            @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
+            @DefaultValue("false") boolean restore
             ) throws IOException, PurgeException {
 
         RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
         ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
         PurgeFedoraObject service = new PurgeFedoraObject(fedora);
+        for (String pid : pids) {
+            try {
+                setWorkflow("task.deletionPA", geIMetsElement(pid));
+            } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
+                throw new IOException(e);
+            }
+        }
         if (purge) {
             session.requirePermission(Permissions.ADMIN);
             service.purge(pids, hierarchy, session.asFedoraLog());
+        } else if (restore){
+            service.restore(pids, session.asFedoraLog());
         } else {
             service.delete(pids, hierarchy, session.asFedoraLog());
         }
@@ -300,26 +350,52 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM) String queryTitle,
-            @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow
+            @QueryParam(DigitalObjectResourceApi.SEARCH_STATUS_PARAM) String queryStatus,
+            @QueryParam(DigitalObjectResourceApi.SEACH_ORGANIZATION_PARAM) String queryOrganization,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_PROCESSOR_PARAM) String queryProcessor,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow,
+            @DefaultValue(SearchSort.DEFAULT_DESC)
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM) String sortField
             ) throws FedoraClientException, IOException {
 
         Locale locale = session.getLocale(httpHeaders);
-        SearchView search = RemoteStorage.getInstance(appConfig).getSearch(locale);
+        RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+        SearchView search = remote.getSearch(locale);
+        String organization = user.getRole() == null || user.getRole().isEmpty() || UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getOrganization();
+        String username = user.getRole() == null
+                || user.getRole().isEmpty()
+                || UserRole.ROLE_SUPERADMIN.equals(user.getRole())
+                || UserRole.ROLE_ADMIN.equals(user.getRole())
+                || !appConfig.getSearchOptions().getSearchFilterProcessor() ? null : user.getUserName();
+
+        Boolean allowAllForProcessor = appConfig.getSearchOptions().getSearchFilterAllowAllForProcessor();
+        Boolean filterWithoutExtension = appConfig.getSearchOptions().getSearchFilterWithoutExtension();
+
         List<Item> items;
+        int total = 0;
         int page = 20;
         switch (type) {
+            case ALPHABETICAL:
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension).size();
+                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension,  100, sort.toString());
+                items = sortItems(items, sort);
+                break;
             case LAST_MODIFIED:
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), 100);
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension).size();
+                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new Query().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
-                        .setHasOwners(filterGroups(user)));
+                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator).setStatus(queryStatus)
+                        .setHasOwners(filterGroups(user)), "active");
+                total = items.size();
                 page = 1;
                 break;
             case PIDS:
                 items = search.find(pids);
+                total = items.size();
                 page = 1;
                 break;
             case PHRASE:
@@ -328,19 +404,88 @@ public class DigitalObjectResource {
                     throw new WebApplicationException(Status.FORBIDDEN);
                 }
                 items = search.findPhrase(phrase);
+                total = items.size();
                 page = 1;
                 break;
             case PARENT:
                 items = searchParent(batchId, pids, search);
+                total = items.size();
                 page = 1;
                 break;
+            case DELETED:
+                items = search.findQuery(new Query().setTitle(queryTitle)
+                        .setLabel(queryLabel).setIdentifier(queryIdentifier)
+                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
+                        .setHasOwners(filterGroups(user)), "deleted");;
+                total = items.size();
+                page = 1;
+                break;
+            case ALL:
+                items = search.findAllObjects();
+                total = items.size();
+                break;
+            case ADVANCED:
+                if (username == null) {
+                    username = queryProcessor;
+                }
+                if (organization == null) {
+                    organization = queryOrganization;
+                }
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
+                if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
+                    items = sortItems(items, sort);
+                }
+                break;
             default:
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user));
+                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension).size();
+                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
         }
+        repairItemsModel(items);
         int count = items.size();
         int endRow = startRow + count - 1;
-        int total = count == 0 ? startRow : endRow + page;
+        //int total = count == 0 ? startRow : endRow + page;
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
+    }
+
+    private List<Item> sortItems(List<Item> items, SearchSort sort) {
+        List<Item> normal = new ArrayList<>();
+        List<Item> lower = new ArrayList<>();
+        List<Item> upper = new ArrayList<>();
+        for (Item item : items) {
+            if (item.getLabel() != null && item.getLabel().startsWith("\"")) {
+                upper.add(item);
+            } else if (item.getLabel() != null && item.getLabel().startsWith("„")) {
+                lower.add(item);
+            } else {
+                normal.add(item);
+            }
+        }
+        items.clear();
+        if (SearchSort.ASC.equals(sort)) {
+            items.addAll(lower);
+            items.addAll(upper);
+            items.addAll(normal);
+        } else {
+            items.addAll(normal);
+            items.addAll(upper);
+            items.addAll(lower);
+        }
+        return items;
+    }
+
+    private void repairItemsModel(List<Item> items) {
+        for (Item item : items) {
+            if (item.getOrganization() != null && item.getOrganization().startsWith("info:fedora/")) {
+                item.setOrganization(item.getOrganization().substring(12));
+            }
+            if (item.getUser() != null && item.getUser().startsWith("info:fedora/")) {
+                item.setUser(item.getUser().substring(12));
+            }
+            if (item.getStatus() != null && item.getStatus().startsWith("info:fedora/")) {
+                item.setStatus(item.getStatus().substring(12));
+            }
+        }
     }
 
     private String filterOwnObjects(UserProfile user) {
@@ -518,7 +663,6 @@ public class DigitalObjectResource {
 
     /**
      * Fetches object descriptions from the index. Useful to check whether object exists.
-     * @param searchIndex index
      * @param pids object IDs to search
      * @return the map of found PIDs and descriptions
      */
@@ -910,6 +1054,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
+            @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String model,
             @DefaultValue("false")
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
             ) throws IOException, DigitalObjectException {
@@ -917,7 +1063,12 @@ public class DigitalObjectResource {
         LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
                 pid, editorId, timestamp, ignoreValidation, jsonData, xmlData));
         if (pid == null || pid.isEmpty()) {
-            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            if (jobId == null) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            } else {
+                // MODS Custom editor doesnt use WorkFlowResource, if there is a validation error
+                return WorkflowResource.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, session, httpHeaders);
+            }
         }
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
@@ -942,6 +1093,7 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
+        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
@@ -979,6 +1131,32 @@ public class DigitalObjectResource {
 
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMedatadaPages(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pids,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO) String applyTo,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE) String applyToFirstPage,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_PREFIX) String prefix,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_SUFFIX) String suffix,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_SEQUENCE_TYPE) String sequenceType,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_START_NUMBER) String startNumber,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER) String incrementNumber,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_INDEX_START_NUMBER) String startIndex,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_TYPE_PAGE) String pageType
+    ) throws IOException, DigitalObjectException {
+        LOG.fine(String.format("pid: %s", pids));
+        if (pids == null || pids.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
+        }
+        UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage);
+        updatePages.createListOfPids(pids);
+        updatePages.createIndex(startIndex);
+        updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType);
+        return new SmartGwtResponse<>();
     }
 
     private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
@@ -1045,6 +1223,79 @@ public class DigitalObjectResource {
             }
         }
         return new SmartGwtResponse<DatastreamResult>(result);
+    }
+
+    private void setWorkflow(String type, IMetsElement root) throws DigitalObjectException, WorkflowException {
+        if (root != null) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            DigitalObjectManager.CreateHandler handler = dom.create(root.getModel(), root.getOriginalPid(), null, user, null, session.asFedoraLog());
+            Locale locale = session.getLocale(httpHeaders);
+            Job job = handler.getWfJob(root.getOriginalPid(), locale);
+            if (job == null) {
+                return;
+            }
+            List<TaskView> tasks = handler.getTask(job.getId(), locale);
+            Task editedTask = null;
+            for (TaskView task : tasks) {
+                if (type.equals(task.getTypeRef())) {
+                    editedTask = task;
+                    break;
+                }
+            }
+            if (editedTask != null) {
+                editedTask.setOwnerId(new BigDecimal(session.getUser().getId()));
+                editedTask.setState(Task.State.FINISHED);
+                WorkflowProfiles workflowProfiles = WorkflowProfiles.getInstance();
+                WorkflowDefinition workflow = workflowProfiles.getProfiles();
+                WorkflowManager workflowManager = WorkflowManager.getInstance();
+
+                try {
+                    TaskFilter taskFilter = new TaskFilter();
+                    taskFilter.setId(editedTask.getId());
+                    taskFilter.setLocale(locale);
+                    Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
+                            .findFirst().get().getState();
+                    workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
+                    List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+
+                    if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
+                        WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, locale);
+                        workflowActionHandler.runAction(editedTask);
+                    }
+                } catch (IOException e) {
+                    throw new DigitalObjectException(e.getMessage());
+                }
+            }
+        }
+    }
+
+    private IMetsElement geIMetsElement(String pid) throws MetsExportException {
+        RemoteStorage rstorage = RemoteStorage.getInstance();
+        RemoteStorage.RemoteObject fo = rstorage.find(pid);
+        MetsContext mc = buildContext(rstorage, fo, null, null);
+        IMetsElement element = getMetsElement(fo, mc, true);
+        return element == null ? null : element;
+    }
+
+    private MetsContext buildContext(RemoteStorage rstorage, RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(targetFolder == null ? null : targetFolder.getAbsolutePath());
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(appConfig.getNdkExportOptions());
+        return mc;
+    }
+
+    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+        dc.resetContext();
+        com.yourmediashelf.fedora.generated.foxml.DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+        if (dobj == null) {
+            return null;
+        }
+        return MetsElement.getElement(dobj, null, dc, hierarchy);
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -1332,6 +1583,188 @@ public class DigitalObjectResource {
     }
 
     @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getTechnicalMetadataTxt(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
+    ) throws IOException, DigitalObjectException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            return null;
+        }
+        if (NdkAudioPlugin.MODEL_PAGE.equals(relationEditor.getModel())) {
+            AesEditor aesEditor = AesEditor.ndkArchival(fobject);
+            try {
+                TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig);
+                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), "classic"), aesEditor.getLastModified(), fobject.getPid());
+                technicalMetadata.setBatchId(batchId);
+                return technicalMetadata;
+            } catch (DigitalObjectNotFoundException ex) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            }
+        } else if (relationEditor.getModel().contains("page")) {
+                MixEditor mixEditor = MixEditor.ndkArchival(fobject);
+                try {
+                    StringRecord technicalMedata = new StringRecord(mixEditor.readAsString(), mixEditor.getLastModified(), fobject.getPid());
+                    technicalMedata.setBatchId(batchId);
+                    return technicalMedata;
+                } catch (DigitalObjectNotFoundException ex) {
+                    throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+                }
+            } else {
+            return null;
+        }
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateTechnicalMetadata(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
+    ) throws IOException, DigitalObjectException {
+
+        if (timestamp == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
+        }
+        if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
+        }
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        String data = xmlData == null ? jsonData : xmlData;
+
+        TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig);
+        if (xmlData == null) {
+            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog(), "classic");
+        } else {
+            mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog());
+        }
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), "classic");
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<DescriptionMetadata<Object>> getTechnicalMetadata(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
+    ) throws IOException, DigitalObjectException {
+        if (pid == null || pid.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        RelationEditor editor = new RelationEditor(fobject);
+
+        if (editor == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(editor.getModel(), batchId, pid, appConfig);
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), "classic");
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_CODING_HISTORY_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getCodingHistoryTxt(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
+    ) throws IOException, DigitalObjectException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            return null;
+        }
+        if (NdkAudioPlugin.MODEL_PAGE.equals(relationEditor.getModel())) {
+            CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.ndkArchival(fobject);
+            try {
+                TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig);
+                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), "extension"), codingHistoryEditor.getLastModified(), fobject.getPid());
+                technicalMetadata.setBatchId(batchId);
+                return technicalMetadata;
+            } catch (DigitalObjectNotFoundException ex) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateCodingHisotry(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
+    ) throws IOException, DigitalObjectException {
+
+        if (timestamp == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
+        }
+        if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
+        }
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        String data = xmlData == null ? jsonData : xmlData;
+
+        TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig);
+        if (xmlData == null) {
+            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog(), "extension");
+        } else {
+            mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog());
+        }
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), "extension");
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<DescriptionMetadata<Object>> getCodingHistoryMetadata(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
+    ) throws IOException, DigitalObjectException {
+        if (pid == null || pid.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        RelationEditor editor = new RelationEditor(fobject);
+
+        if (editor == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(editor.getModel(), batchId, pid, appConfig);
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), "extension");
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @GET
     @Path(DigitalObjectResourceApi.PRIVATENOTE_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public StringRecord getPrivateNote(
@@ -1407,18 +1840,33 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) Set<String> pids,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
-            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_STATUS) String status,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String model
             ) throws IOException, DigitalObjectException {
 
         ArrayList<AtmItem> result = new ArrayList<AtmItem>(pids.size());
         Locale locale = session.getLocale(httpHeaders);
         RemoteStorage storage = RemoteStorage.getInstance(appConfig);
         SearchView search = storage.getSearch(locale);
+
+        if (userName != null && !userName.isEmpty()) {
+            UserProfile processor = UserUtil.getDefaultManger().find(userName);
+            if (processor != null) {
+                organization = processor.getOrganization();
+            }
+        }
+
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, session.asFedoraLog());
+            editor.write(deviceId, organization, userName, status, session.asFedoraLog(), user.getRole());
             fobject.flush();
+            if (!(model != null && model.length() > 0 && model.contains("page"))) {
+                editor.setChild(pid, organization, userName, status, appConfig, search, session.asFedoraLog());
+            }
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);
             result.add(atm);
@@ -1473,6 +1921,170 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<UrnNbnResult>(result);
     }
 
+    @POST
+    @Path(DigitalObjectResourceApi.COPYOBJECT_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> copyObject(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pidOld,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+        CopyObject copyObject = new CopyObject(appConfig, user, pidOld, modelId);
+        try {
+            copyObject.copy();
+            copyObject.copyMods();
+        } catch (DigitalObjectValidationException ex) {
+            return toError(ex);
+        }
+
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.GENERATE_JP2_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> generateJp2(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.GENERATE_TYPE) String type,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changePageToNdkPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_NDK_PAGE, pids);
+        repairMetadata.repair();
+        return new SmartGwtResponse<>();
+    }
+
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkPageToPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_PAGE, pids);
+        repairMetadata.repair();
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeClippingsVolumeToNdkMonographVolume(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
+        List<String> pids = changeModels.findObjects();
+        String parentPid = changeModels.findRootObject();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_MONOGRAPHVOLUME, pids);
+        repairMetadata.repair(parentPid);
+
+
+        return new SmartGwtResponse<>();
+    }
+
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeClippingsTitleToNdkMonographTitle(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, NdkPlugin.MODEL_MONOGRAPHTITLE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModels();
+
+        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_MONOGRAPHTITLE, pids);
+        repairMetadata.repair();
+
+
+        return new SmartGwtResponse<>();
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.REINDEX_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> reindex(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+        ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, user, pid, modelId);
+        IMetsElement parentElement = reindexObjects.getParentElement();
+        if (parentElement != null) {
+            reindexObjects.reindex(parentElement);
+        }
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_ALL_OBJECTS_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> updateAllObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException, IOException, FedoraClientException {
+        Locale locale = session.getLocale(httpHeaders);
+        UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
+        List<Item> objects = updateObjects.findAllObjects();
+        //Map<String, Integer> map = updateObjects.countObjects(objects);
+        updateObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
+        LOG.log(Level.INFO, "Update finished, updated " + updateObjects.getUpdatedObjects() + "/" + objects.size() + " object(s).");
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_NDK_ARTICLE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> updateNdkArticeObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+        Locale locale = session.getLocale(httpHeaders);
+        UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
+        updateObjects.findObjects(pid, NdkPlugin.MODEL_ARTICLE);
+        updateObjects.repair(NdkPlugin.MODEL_ARTICLE);
+        return new SmartGwtResponse<>();
+    }
+
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class UrnNbnResult {
 
@@ -1517,6 +2129,7 @@ public class DigitalObjectResource {
             this.message = me.getMessage();
             this.type = me.getStatus().name();
             this.warning = warning;
+            this.urnnbn = me.getUrnNbn();
             if (elm != null) {
                 this.modelId = elm.getModel();
                 this.label = elm.getLabel();

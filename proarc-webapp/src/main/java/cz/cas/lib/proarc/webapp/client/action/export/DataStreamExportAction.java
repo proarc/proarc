@@ -55,6 +55,14 @@ public final class DataStreamExportAction extends ExportAction {
         return action;
     }
 
+    public static DataStreamExportAction ndkUser(ClientMessages i18n) {
+        DataStreamExportAction action = new DataStreamExportAction(i18n, "NDK_USER");
+        action.setTitle(i18n.DataStreamExportAction_NDKUser_Title());
+        action.setTooltip(i18n.DataStreamExportAction_NDKUser_Hint());
+        return action;
+    }
+
+
     private DataStreamExportAction(ClientMessages i18n, String dsId) {
         super(i18n,null, null, null);
         this.dsId = dsId;

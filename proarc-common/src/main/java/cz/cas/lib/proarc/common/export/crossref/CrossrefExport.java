@@ -17,14 +17,17 @@
 package cz.cas.lib.proarc.common.export.crossref;
 
 import cz.cas.lib.proarc.common.export.ExportException;
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,21 +40,36 @@ public class CrossrefExport {
 
     private DigitalObjectManager dom;
     private final RemoteStorage remotes;
+    private final ExportOptions options;
+    private List<String> pids;
 
-    public CrossrefExport(DigitalObjectManager dom, RemoteStorage remotes) {
+    public CrossrefExport(DigitalObjectManager dom, RemoteStorage remotes, ExportOptions options) {
         this.dom = dom;
         this.remotes = remotes;
+        this.options = options;
+        this.pids = new ArrayList<>();
     }
 
     public void export(File output, List<String> pids, CejshStatusHandler status) {
         try {
             exportImpl(output, pids, status);
+            storeExportResult(output, "Export succesfull");
         } catch (ExportException ex) {
             status.error(ex);
         } finally {
             File targetFolder = status.getTargetFolder();
             if (targetFolder != null) {
                 ExportUtils.writeExportResult(targetFolder, status.getReslog());
+            }
+        }
+    }
+
+    private void storeExportResult(File output, String log) {
+        for (String pid : pids) {
+            try {
+                ExportUtils.storeObjectExportResult(pid, output.toURI().toASCIIString(), "CROSREFF", log);
+            } catch (DigitalObjectException ex) {
+                throw new IllegalStateException(ex);
             }
         }
     }
@@ -68,7 +86,7 @@ public class CrossrefExport {
             return ;
         }
 
-        CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0));
+        CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0), options);
         if (crossRefBuilder == null) {
             return ;
         }
@@ -88,7 +106,7 @@ public class CrossrefExport {
         if (pids == null || pids.isEmpty()) {
             throw new ExportException(null, "Nothing to export. Missing input PID!", null, null);
         }
-        return ExportUtils.createFolder(output, folderName);
+        return ExportUtils.createFolder(output, folderName, options.isOverwritePackage());
     }
 
     private void exportPackage(
@@ -105,6 +123,7 @@ public class CrossrefExport {
             if (!articles.isEmpty()) {
                 aPackage.setArticles(articles);
                 crossRefBuilder.createPackage(aPackage);
+                addExportedPids(aPackage, articles);
             }
         } catch (ExportException ex) {
             status.error(ex);
@@ -115,11 +134,25 @@ public class CrossrefExport {
         }
     }
 
-    private static CrossrefBuilder initBuilder(File output, CejshStatusHandler status, String pid) {
+    private void addExportedPids(CrossrefPackage aPackage, List<DigitalObjectElement> articles) {
+        for (DigitalObjectElement obj : aPackage.getPath()) {
+            pids.add(obj.getPid());
+        }
+
+        for (DigitalObjectElement obj : articles) {
+            pids.add(obj.getPid());
+        }
+    }
+
+    private static CrossrefBuilder initBuilder(File output, CejshStatusHandler status, String pid, ExportOptions options) {
         try {
-            return new CrossrefBuilder(output);
+            return new CrossrefBuilder(output, options);
         } catch (Exception ex) {
-            status.error(pid, "Broken context!", ex);
+            if (ex.getMessage().contains("export.cejsh_crossref.journals.path=")) {
+                status.error(pid, "Not configurated!", ex);
+            } else {
+                status.error(pid, "Broken context!", ex);
+            }
             return null;
         }
     }

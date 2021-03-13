@@ -20,10 +20,13 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.mockrepository.MockSearchView;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import mockit.Mock;
@@ -77,12 +80,13 @@ public class NdkEbornArchivalTest {
      * {@see cz.cas.lib.proarc.common.export.archive.ArchiveObjectSelector#searchPath(List)}
      */
     public void ebornExportArchivalTest() {
-        ArchiveProducer export = new ArchiveProducer();
+        ArchiveProducer export = new ArchiveProducer(appConfig);
 
         List<String> pids = Arrays.asList("uuid:26342028-12c8-4446-9217-d3c9f249bd13"); //etitle
 
         try {
-            export.archive(pids, folder.getRoot());
+            File target = ExportUtils.createFolder(folder.getRoot(), "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)), appConfig.getExportOptions().isOverwritePackage());
+            export.archive(pids, target);
         } catch (IllegalStateException ex) {
             collector.addError(ex.getCause());
         }

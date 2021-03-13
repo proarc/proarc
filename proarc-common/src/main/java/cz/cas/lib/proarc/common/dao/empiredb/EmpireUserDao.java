@@ -99,7 +99,7 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
     }
 
     @Override
-    public List<UserProfile> find(String userName, String passwd, String remoteName, String remoteType) {
+    public List<UserProfile> find(String userName, String passwd, String remoteName, String remoteType, String organization) {
         BeanResult<UserProfile> beans = new BeanResult<UserProfile>(UserProfile.class, table);
         DBCommand cmd = beans.getCommand();
         if (userName != null) {
@@ -113,6 +113,9 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
         }
         if (remoteType != null) {
             cmd.where(table.remoteType.is(remoteType));
+        }
+        if (organization != null) {
+            cmd.where(table.organization.is(organization));
         }
         cmd.orderBy(table.surname);
         beans.fetch(getConnection());

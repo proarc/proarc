@@ -37,6 +37,8 @@ public interface UserManager {
 
     List<UserProfile> findAll();
 
+    List<UserProfile> findMyOrganization(String organization);
+
     /**
      * Adds a new user. It creates also the user group ({@link UserProfile#getUserGroup() })
      * that can define permissions or override permissions inherited from other user groups.
@@ -74,4 +76,5 @@ public interface UserManager {
 
     Set<Permission> findUserPermissions(int userId);
 
+    String findUserRole(int id);
 }

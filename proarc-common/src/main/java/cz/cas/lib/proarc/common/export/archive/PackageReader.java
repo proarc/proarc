@@ -38,6 +38,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.Rdf;
 import cz.cas.lib.proarc.common.fedora.relation.RdfRelation;
@@ -48,6 +49,7 @@ import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
@@ -68,6 +70,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -100,15 +103,15 @@ public class PackageReader {
         this.iSession = session;
     }
 
-    public void read(File metsFile) throws IllegalStateException {
+    public void read(File metsFile, ImportOptions ctx) throws IllegalStateException {
         try {
-            readImpl(metsFile);
+            readImpl(metsFile, ctx);
         } catch (Exception ex) {
             throw new IllegalStateException(metsFile.getAbsolutePath(), ex);
         }
     }
 
-    private void readImpl(File metsFile) throws DigitalObjectException {
+    private void readImpl(File metsFile, ImportOptions ctx) throws DigitalObjectException {
         this.metsFile = metsFile;
         this.metsUri = metsFile.toURI();
         this.mets = JAXB.unmarshal(metsFile, Mets.class);
@@ -119,14 +122,14 @@ public class PackageReader {
             throw new IllegalStateException("Unknown mets@TYPE:" + pkgModelId);
         }
         StructMapType otherMap = getStructMap(mets, PackageBuilder.STRUCTMAP_OTHERS_TYPE);
-        processDevices(otherMap);
+        processDevices(otherMap, ctx);
 
         StructMapType physicalMap = getStructMap(mets, PackageBuilder.STRUCTMAP_PHYSICAL_TYPE);
         DivType div = physicalMap.getDiv();
-        processObject(1, div);
+        processObject(1, div, null, ctx);
     }
 
-    private List<String> processChildObjects(List<DivType> divs) throws DigitalObjectException {
+    private List<String> processChildObjects(List<DivType> divs, ImportOptions ctx) throws DigitalObjectException {
         ArrayList<String> pids = new ArrayList<String>(100);
         for (DivType div : divs) {
             String pid = toPid(div);
@@ -136,14 +139,37 @@ public class PackageReader {
             // check whether child objects exist in the repository
             iSession.checkRemote(pids);
         }
+        File newArchive = null;
+        if (containsNdkFolder(metsFile.getParentFile())) {
+            newArchive = getNdkFolder(metsFile.getParentFile());
+        }
         int childIndex = 1;
         for (DivType div : divs) {
-            processObject(childIndex++, div);
+            processObject(childIndex++, div, newArchive, ctx);
         }
         return pids;
     }
 
-    private void processDevices(StructMapType structMap) {
+    private boolean containsNdkFolder(File parentFile) {
+        return getNdkFolder(parentFile) != null;
+    }
+
+    private File getNdkFolder(File parentFile) {
+        if (parentFile != null) {
+            for (File file : parentFile.listFiles()) {
+                if ("NDK".equals(file.getName())) {
+                    for (File child : file.listFiles()) {
+                        if (child.isDirectory()) {
+                            return child;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private void processDevices(StructMapType structMap, ImportOptions ctx) {
         DivType devicesDiv = null;
         if (structMap != null) {
             DivType div = structMap.getDiv();
@@ -154,12 +180,12 @@ public class PackageReader {
         if (devicesDiv != null) {
             int index = 1;
             for (DivType deviceDiv : devicesDiv.getDiv()) {
-                processDevice(index++, deviceDiv);
+                processDevice(index++, deviceDiv, ctx);
             }
         }
     }
 
-    private void processDevice(int divIndex, DivType deviceDiv) {
+    private void processDevice(int divIndex, DivType deviceDiv, ImportOptions ctx) {
         if (!DeviceRepository.METAMODEL_ID.equals(deviceDiv.getTYPE())) {
             throw new IllegalStateException("Unexpected type of device: " + toString(deviceDiv));
         }
@@ -169,7 +195,7 @@ public class PackageReader {
             LocalObject lObj = iSession.findLocalObject(importItem);
             boolean isNewObject = lObj == null;
             if (lObj == null) {
-                File objFile = new File(targetFolder, getFoxmlFilename(divIndex, pid, DeviceRepository.METAMODEL_ID));
+                File objFile = new File(targetFolder, getFoxmlFilename("DESCRIPTION", divIndex, pid, DeviceRepository.METAMODEL_ID));
                 RemoteObject remote = iSession.getRemotes().find(pid);
                 DigitalObject dObj = null;
                 try {
@@ -193,7 +219,7 @@ public class PackageReader {
                 importItem = iSession.addObject(lObj, physicalPath.isEmpty());
 
                 if (isNewObject) {
-                    createDatastreams(lObj, deviceDiv, Collections.<String>emptyList());
+                    createDatastreams(lObj, deviceDiv, Collections.<String>emptyList(), null, ctx);
                 }
                 lObj.flush();
                 importItem.setState(ObjectState.LOADED);
@@ -204,7 +230,7 @@ public class PackageReader {
         }
     }
 
-    private void processObject(int divIndex, DivType div) throws DigitalObjectException {
+    private void processObject(int divIndex, DivType div, File ndkFolder, ImportOptions ctx) throws DigitalObjectException {
         String modelId = div.getTYPE();
         boolean isPkgModel = pkgModelId.equals(modelId);
         String pid = toPid(div);
@@ -214,7 +240,7 @@ public class PackageReader {
         LocalObject lObj = iSession.findLocalObject(importItem);
         boolean isNewObject = lObj == null;
         if (lObj == null) {
-            File objFile = new File(targetFolder, getFoxmlFilename(divIndex, pid, modelId));
+            File objFile = new File(targetFolder, getFoxmlFilename("FOXML", divIndex, pid, modelId));
             DigitalObject dObj = null;
             if (isParentObject) {
                 RemoteObject remote = iSession.getRemotes().find(pid);
@@ -252,10 +278,10 @@ public class PackageReader {
                 iSession.checkObjectParent(physicalPath, pid);
             }
             physicalPath.add(pid);
-            List<String> childPids = processChildObjects(div.getDiv());
+            List<String> childPids = processChildObjects(div.getDiv(), ctx);
             physicalPath.remove(pid);
             if (isNewObject) {
-                createDatastreams(lObj, div, childPids);
+                createDatastreams(lObj, div, childPids, ndkFolder, ctx);
             } else {
                 mergeDatastreams(lObj, div, childPids);
             }
@@ -313,13 +339,13 @@ public class PackageReader {
         }
     }
 
-    private void createDatastreams(LocalObject lObj, DivType objectDiv, List<String> childPids) throws DigitalObjectException {
+    private void createDatastreams(LocalObject lObj, DivType objectDiv, List<String> childPids, File ndkFolder, ImportOptions ctx) throws DigitalObjectException {
         List<Fptr> fPtrs = objectDiv.getFptr();
         for (Fptr fPtr : fPtrs) {
             Object fileid = fPtr.getFILEID();
             if (fileid instanceof FileType) {
                 FileType fileType = (FileType) fileid;
-                createDatastream(lObj, fileType, childPids);
+                createDatastream(lObj, fileType, childPids, ctx);
             } else {
                 throw new IllegalStateException(
                         "METS: Unexpected <fptr> " + fileid + ", div@id: " + objectDiv.getID());
@@ -334,7 +360,64 @@ public class PackageReader {
                         "METS: Unexpected <dmdSec> " + dmdObject + ", div@id: " + objectDiv.getID());
             }
         }
+
+        if (ndkFolder != null) {
+            String[] fileName = lObj.getFoxml().getName().split("_");
+            String seq = null;
+            if (fileName.length == 4) {
+                seq = fileName[2];
+            }
+
+            if (seq != null) {
+                if (ndkFolder.isDirectory()) {
+                    for (File folder : ndkFolder.listFiles()) {
+                        if (folder.isDirectory()) {
+                            for (File file : folder.listFiles()) {
+                                if (file.getName().contains(seq)) {
+                                    createDatastream(lObj, file);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
+
+    private void createDatastream(LocalObject lObj, File file) throws DigitalObjectException {
+        try {
+            String dsId = toValidDsId(file.getParentFile().getName());
+            if (AltoDatastream.ALTO_ID.equals(dsId)) {
+                AltoDatastream.importAlto(lObj, file.toURI(), null);
+            } else if (StringEditor.OCR_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf(Files.probeContentType(file.toPath()));
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(StringEditor.OCR_ID, mime, StringEditor.OCR_LABEL));
+                }
+                editor.write(file, editor.getLastModified(), null);
+            } else if (BinaryEditor.NDK_USER_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf("image/jp2");
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_USER_ID, mime, BinaryEditor.NDK_USER_LABEL));
+                }
+                editor.write(file, editor.getLastModified(), null);
+            } else if (BinaryEditor.NDK_ARCHIVAL_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf("image/jp2");
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_ARCHIVAL_ID, mime, BinaryEditor.NDK_ARCHIVAL_LABEL));
+                }
+                editor.write(file, editor.getLastModified(), null);
+            }
+        } catch (IOException ex) {
+            throw new DigitalObjectException(ex.getMessage(), ex);
+        }
+
+    }
+
+
 
     private void createDatastream(LocalObject lObj, MdSecType dmdSec) throws DigitalObjectException {
         MdWrap mdWrap = dmdSec.getMdWrap();
@@ -359,7 +442,7 @@ public class PackageReader {
         }
     }
 
-    private void createDatastream(LocalObject lObj, FileType fileType, List<String> childPids) throws DigitalObjectException {
+    private void createDatastream(LocalObject lObj, FileType fileType, List<String> childPids, ImportOptions ctx) throws DigitalObjectException {
         File dsFile = toFile(fileType);
         URI dsUri = dsFile.toURI();
         String dsId = toValidDsId(fileType);
@@ -367,6 +450,13 @@ public class PackageReader {
             Rdf rdf = Relations.unmarshal(new StreamSource(dsFile), Rdf.class);
             RelationEditor relationEditor = new RelationEditor(lObj);
             relationEditor.setRdf(rdf);
+            relationEditor.setOrganization(ctx.getOrganization());
+            if (relationEditor.getStatus() == null) {
+                relationEditor.setStatus(DigitalObjectStatusUtils.STATUS_EXPORTED);
+            }
+            if (relationEditor.getUser() == null) {
+                relationEditor.setUser(ctx.getConfig().getDefaultProcessor());
+            }
 
             String modelId = relationEditor.getModel();
             MetaModel model = modelId == null ? null: MetaModelRepository.getInstance().find(modelId);
@@ -496,6 +586,20 @@ public class PackageReader {
         return dsId;
     }
 
+    private String toValidDsId(String name) {
+        if ("alto".equals(name)) {
+            return AltoDatastream.ALTO_ID;
+        } else if ("txt".equals(name)) {
+            return StringEditor.OCR_ID;
+        } else if ("usercopy".equals(name)) {
+            return BinaryEditor.NDK_USER_ID;
+        } else if ("mastercopy".equals(name)) {
+            return BinaryEditor.NDK_ARCHIVAL_ID;
+        } else {
+            return name;
+        }
+    }
+
     private String toDsId(FileType file) {
         FileSec fileSec = mets.getFileSec();
         if (fileSec != null) {
@@ -519,8 +623,8 @@ public class PackageReader {
         return new StructMapType();
     }
 
-    private static String getFoxmlFilename(int index, String pid, String model) {
-        return PackageBuilder.getFilename(index,
+    private static String getFoxmlFilename(String datastream, int index, String pid, String model) {
+        return PackageBuilder.getFilename(datastream, index,
                 PackageBuilder.getObjectId(model),
                 PackageBuilder.getObjectId(pid),
                 "xml");
@@ -633,7 +737,7 @@ public class PackageReader {
         public void checkRemote(List<String> pids) throws DigitalObjectException {
             List<Item> items;
             try {
-                items = search.find(pids, false);
+                items = search.find(false, pids);
             } catch (Exception ex) {
                 throw new DigitalObjectException(null, batch.getId(), null, null, ex);
             }

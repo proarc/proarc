@@ -27,6 +27,8 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
+import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -42,6 +44,7 @@ import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.event.HasEditorLoadHandlers;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
@@ -63,9 +66,10 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         BatchDatastreamEditor, Refreshable, Selectable<DigitalObject> {
 
     private static final Logger LOG = Logger.getLogger(ModsMultiEditor.class.getName());
-    private static final HashSet<String> ACCEPT_BATCH_MODELS = new HashSet<String>();
+    private static final HashSet<String> ACCEPT_BATCH_MODELS = new HashSet<>();
     static {
         ACCEPT_BATCH_MODELS.add("model:page");
+        ACCEPT_BATCH_MODELS.add("model:ndkpage");
         ACCEPT_BATCH_MODELS.add("model:oldprintpage");
     }
 
@@ -190,13 +194,12 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
      * Notifies other data sources to update its caches with object label.
      */
     private BooleanCallback wrapSaveCallback(final BooleanCallback callback) {
-        BooleanCallback bc = (Boolean value) -> {
+        return (Boolean value) -> {
             if (value != null && value) {
                 RelationDataSource.getInstance().fireRelationChange(digitalObjects[0].getPid());
             }
             callback.execute(value);
         };
-        return bc;
     }
 
     @Override
@@ -282,6 +285,29 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
                 }, actionSource, false));
         customEditorButton2 = menuMods.getItem(1);
+        menuMods.addItem(Actions.asMenuItem(
+                new SwitchAction(modsCustomEditor,
+                        i18n.ModsMultiEditor_TabComplex_Title(),
+                        Page.getAppDir() + "images/silk/16/application_form_edit.png",
+                        i18n.ModsMultiEditor_TabComplex_Hint()
+                        ) {
+                    @Override
+                    boolean accept(DigitalObject obj) {
+                        return ChroniclePlugin.MODEL_CHRONICLETITLE.equals(obj.getModelId())
+                                || ChroniclePlugin.MODEL_CHRONICLEVOLUME.equals(obj.getModelId())
+                                || ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT.equals(obj.getModelId())
+                                || CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME.equals(obj.getModelId())
+                                || CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE.equals(obj.getModelId());
+                    }
+
+                    @Override
+                    public void performAction(ActionEvent event) {
+                        modsCustomEditor.setFormPrefix("complex:");
+                        super.performAction(event);
+                    }
+
+                }, actionSource, false));
+        customEditorButton2 = menuMods.getItem(2);
 
         menuMods.addItem(Actions.asMenuItem(
                 new SwitchAction(modsSourceEditor,
@@ -428,7 +454,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
     private void saveCatalogData(final BooleanCallback callback) {
         String mods = catalogBrowser.getMods();
-        ModsCustomDataSource.getInstance().saveXmlDescription(digitalObjects[0], mods, new DescriptionSaveHandler() {
+        DescriptionSaveHandler descriptionSaveHandler = new DescriptionSaveHandler() {
 
             @Override
             protected void onSave(DescriptionMetadata dm) {
@@ -441,7 +467,14 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                 callback.execute(Boolean.FALSE);
             }
 
-        });
+        };
+
+        if (digitalObjects != null && digitalObjects.length > 0 && digitalObjects[0] != null && digitalObjects[0].getWorkflowJobId() != null) {
+            WorkflowModsCustomDataSource.getInstance().saveXmlDescription(digitalObjects[0], mods, descriptionSaveHandler);
+        } else {
+            ModsCustomDataSource.getInstance().saveXmlDescription(digitalObjects[0], mods, descriptionSaveHandler);
+        }
+
     }
 
     private class SwitchAction extends AbstractAction {

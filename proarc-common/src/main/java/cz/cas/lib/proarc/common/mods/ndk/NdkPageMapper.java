@@ -67,11 +67,10 @@ public class NdkPageMapper extends NdkMapper {
     public static final String RESOURCE_TYPE_TEXT = "text";
 
     public static ResourceBundle getPageTypeLabels(Locale locale) {
-        ResourceBundle rb = ResourceBundle.getBundle(
+        return ResourceBundle.getBundle(
                 BundleName.MODS_PAGE_TYPES.toString(),
                 locale,
                 ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES));
-        return rb;
     }
 
     public static String getPageTypeLabel(String pageType, Locale locale) {
@@ -137,14 +136,26 @@ public class NdkPageMapper extends NdkMapper {
             }
         }
         if (!mods.getPart().isEmpty()) {
-            PartDefinition part = mods.getPart().get(0);
-            String pageIndex = getNumber(getDetail(part.getDetail(), NUMBER_TYPE_PAGE_INDEX));
-            String pageNumber = getNumber(getDetail(part.getDetail(), NUMBER_TYPE_PAGE_NUMBER));
-            if (part.getType() == null) {
-                page.setType(PAGE_TYPE_NORMAL);
-            } else {
-                page.setType(part.getType());
+            String pageIndex = null;
+            String pageNumber = null;
+            String pageType = null;
+            for (PartDefinition part : mods.getPart()) {
+                if (pageIndex == null) {
+                    pageIndex = getNumber(getDetail(part.getDetail(), NUMBER_TYPE_PAGE_INDEX)); 
+                }
+                if (pageNumber == null) {
+                    pageNumber = getNumber(getDetail(part.getDetail(), NUMBER_TYPE_PAGE_NUMBER));
+                }
+                if (pageType == null) {
+                    if (part.getType() != null) {
+                        pageType = part.getType();
+                    }
+                }
             }
+            if (pageType == null) {
+                pageType = PAGE_TYPE_NORMAL;
+            }
+            page.setType(pageType);
             page.setNumber(pageNumber);
             page.setIndex(pageIndex);
         } else {
@@ -233,83 +244,8 @@ public class NdkPageMapper extends NdkMapper {
         return mods;
     }
 
-    private void setNdkPageMods(Page page, ModsDefinition mods) {
-        if (page.getTitle() != null || page.getSubtitle() != null) {
-            TitleInfoDefinition titleInfo = new TitleInfoDefinition();
-            mods.getTitleInfo().add(titleInfo);
 
-            setTitle(page, titleInfo);
-            setSubtitle(page, titleInfo);
-        }
 
-        setPhysicalDescription(page, mods);
-        setGenre(page, mods);
-        setNote(page, mods);
-        setTypeOfResource(page, mods);
-        setExtent(page, mods);
-    }
-
-    private void setExtent(Page page, ModsDefinition mods) {
-        PartDefinition part = mods.getPart().get(0);
-        if (page.getExtent() != null && part != null) {
-            ExtentDefinition extentDefinition = new ExtentDefinition();
-            extentDefinition.setUnit("pages");
-            StringPlusLanguage extent = new StringPlusLanguage();
-            extent.setValue(page.getExtent());
-            extentDefinition.setStart(extent);
-            part.getExtent().add(extentDefinition);
-        }
-    }
-
-    private void setTypeOfResource(Page page, ModsDefinition mods) {
-        if (page.getTypeOfResource() != null) {
-            TypeOfResourceDefinition typeOfResource = new TypeOfResourceDefinition();
-            typeOfResource.setValue(page.getTypeOfResource());
-            mods.getTypeOfResource().add(typeOfResource);
-        }
-    }
-
-    private void setNote(Page page, ModsDefinition mods) {
-        if (page.getNote() != null) {
-            NoteDefinition noteDefinition = new NoteDefinition();
-            noteDefinition.setValue(page.getNote());
-            mods.getNote().add(noteDefinition);
-        }
-    }
-
-    private void setGenre(Page page, ModsDefinition mods) {
-        if (page.getGenre() != null) {
-            GenreDefinition genreDefinition = new GenreDefinition();
-            mods.getGenre().add(genreDefinition);
-            genreDefinition.setValue(page.getGenre());
-        }
-    }
-
-    private void setPhysicalDescription(Page page, ModsDefinition mods) {
-        if (page.getPhysicalDescription() != null) {
-            PhysicalDescriptionDefinition physicalDescription = new PhysicalDescriptionDefinition();
-            mods.getPhysicalDescription().add(physicalDescription);
-            PhysicalDescriptionNote phNote = new PhysicalDescriptionNote();
-            phNote.setValue(page.getPhysicalDescription());
-            physicalDescription.getNote().add(phNote);
-        }
-    }
-
-    private void setSubtitle(Page page, TitleInfoDefinition titleInfo) {
-        if (page.getSubtitle() != null) {
-            StringPlusLanguage subtitle = new StringPlusLanguage();
-            subtitle.setValue(page.getSubtitle());
-            titleInfo.getSubTitle().add(subtitle);
-        }
-    }
-
-    private void setTitle(Page page, TitleInfoDefinition titleInfo) {
-        if (page.getTitle() != null) {
-            StringPlusLanguage title = new StringPlusLanguage();
-            title.setValue(page.getTitle());
-            titleInfo.getTitle().add(title);
-        }
-    }
 
     @Override
     protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
@@ -332,7 +268,7 @@ public class NdkPageMapper extends NdkMapper {
             if (page.getNumber() != null) {
                 DcUtils.addTitle(dc, page.getNumber());
             }
-            DcUtils.addElementType(dc.getTypes(), "Text");
+            DcUtils.addElementType(dc.getTypes(), "text");
         }
         return dc;
     }
@@ -352,16 +288,7 @@ public class NdkPageMapper extends NdkMapper {
         return sb.toString();
     }
 
-    private void addDetailNumber(String number, String type, PartDefinition part) {
-        if (number != null) {
-            DetailDefinition detail = new DetailDefinition();
-            detail.setType(type);
-            StringPlusLanguage splNumber = new StringPlusLanguage();
-            splNumber.setValue(number);
-            detail.getNumber().add(splNumber);
-            part.getDetail().add(detail);
-        }
-    }
+
 
     private DetailDefinition getDetail(List<DetailDefinition> details, String type) {
         for (DetailDefinition detail : details) {
@@ -383,30 +310,14 @@ public class NdkPageMapper extends NdkMapper {
     }
 
     private List<IdentifierItem> getIdentifierItems(List<IdentifierDefinition> ids) {
-        List<IdentifierItem> iis = new ArrayList<IdentifierItem>(ids.size());
+        List<IdentifierItem> iis = new ArrayList<>(ids.size());
         for (IdentifierDefinition id : ids) {
             iis.add(new IdentifierItem(id.getType(), id.getValue()));
         }
         return iis;
     }
 
-    private List<IdentifierDefinition> getIdentifierDefinition(List<IdentifierItem> iis) {
-        if (iis == null) {
-            return Collections.emptyList();
-        }
-        ArrayList<IdentifierDefinition> ids = new ArrayList<IdentifierDefinition>(iis.size());
-        for (IdentifierItem ii : iis) {
-            String iiValue = MapperUtils.toValue(ii.getValue());
-            if (iiValue != null) {
-                IdentifierDefinition id = new IdentifierDefinition();
-                id.setType(ii.getType());
-                id.setValue(iiValue);
-                ids.add(id);
-            }
-        }
 
-        return ids;
-    }
 
     @XmlRootElement(name = "page")
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -415,6 +326,8 @@ public class NdkPageMapper extends NdkMapper {
         private List<IdentifierItem> identifiers;
         @XmlElement(name = ModsConstants.FIELD_PAGE_NUMBER)
         private String number;
+        @XmlElement(name = ModsConstants.FIELD_PAGE_NUMBER_SPLIT)
+        private String pageNumber;
         @XmlElement(name = ModsConstants.FIELD_PAGE_INDEX)
         private String index;
         @XmlElement(name = ModsConstants.FIELD_PAGE_TYPE)
@@ -454,7 +367,7 @@ public class NdkPageMapper extends NdkMapper {
         }
 
         public String getNumber() {
-            return number;
+            return number == null ? pageNumber : number;
         }
 
         public void setNumber(String pageNumber) {
@@ -523,6 +436,10 @@ public class NdkPageMapper extends NdkMapper {
 
         public void setTypeOfResource(String typeOfResource) {
             this.typeOfResource = typeOfResource;
+        }
+
+        public String getPageNumber() {
+            return pageNumber;
         }
     }
 

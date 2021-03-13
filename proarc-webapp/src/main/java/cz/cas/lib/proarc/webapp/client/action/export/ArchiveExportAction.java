@@ -73,13 +73,7 @@ public class ArchiveExportAction extends ExportAction {
 //                MetaModelRecord model = dobj.getModel();
 //                String metadataFormat = model.getMetadataFormat();
                 String modelId = dobj.getModelId();
-                if (modelId != null && (modelId.contains("ndkmusicdocument")
-                        || modelId.contains("ndksong")
-                        || modelId.contains("ndktrack") || modelId.contains("ndkaudiopage"))) {
-                    accept = false;
-                    continue;
-                }
-                if (modelId != null && modelId.startsWith("model:ndk")) {
+                if (isAcceptableModel(modelId)) {
                     accept = true;
                     continue;
                 }
@@ -90,25 +84,36 @@ public class ArchiveExportAction extends ExportAction {
         return accept;
     }
 
+    protected boolean isAcceptableModel(String modelId) {
+        return modelId != null && isNdkModel(modelId, false, false);
+    }
+
+    private boolean isNdkModel(String modelId, boolean withNdkEborn, boolean withNdkSoundrecording) {
+        if (modelId != null && (modelId.contains("ndkmusicdocument")
+                || modelId.contains("ndksong") || modelId.contains("ndktrack")
+                || modelId.contains("ndkaudiopage") || modelId.contains("ndkphonographcylinder"))) {
+            return withNdkSoundrecording;
+        }
+        if (withNdkEborn && modelId != null && modelId.startsWith("model:ndke")) {
+            return true;
+        }
+        if (modelId != null && modelId.startsWith("model:ndk")) {
+            return true;
+        }
+        return false;
+    }
+
     private void askForExportOptions(String[] pids) {
         if (pids == null || pids.length == 0) {
             return ;
         }
         Record export = new Record();
-        export.setAttribute(ExportResourceApi.ARCHIVE_PID_PARAM, pids);
-//        ExportOptionsWidget.showOptions(export, new Callback<Record, Void>() {
-//
-//            @Override
-//            public void onFailure(Void reason) {
-//                // no-op
-//            }
-//
-//            @Override
-//            public void onSuccess(Record result) {
-//                exportOrValidate(result);
-//            }
-//        });
+        setAttributes(export, pids);
         exportOrValidate(export);
+    }
+
+    protected void setAttributes(Record export, String[] pids) {
+        export.setAttribute(ExportResourceApi.ARCHIVE_PID_PARAM, pids);
     }
 
     private void exportOrValidate(final Record export) {

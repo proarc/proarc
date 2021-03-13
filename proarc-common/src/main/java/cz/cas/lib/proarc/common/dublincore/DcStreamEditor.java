@@ -121,7 +121,8 @@ public final class DcStreamEditor {
             if (handler.getFedoraObject().getPid() != null) {
                 DcUtils.addPid(dc, handler.getFedoraObject().getPid());
             }
-            DcUtils.addModel(dc, relations.getModel());
+            //DcUtils.addModel(dc, relations.getModel());
+            DcUtils.removeDuplicatedType(dc);
             DcUtils.addOwner(dc, relations.getOwners());
         }
     }

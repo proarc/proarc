@@ -16,25 +16,6 @@
  */
 package cz.cas.lib.proarc.common.export;
 
-import javax.xml.bind.DatatypeConverter;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.StringWriter;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -66,7 +47,24 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
+import javax.xml.bind.DatatypeConverter;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import java.io.File;
+import java.io.StringWriter;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -159,10 +157,10 @@ public class Kramerius4ExportTest {
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
-        Kramerius4Export instance = new Kramerius4Export(storage, config.getKramerius4Export());
-        File target = instance.export(output, hierarchy, "export status", pids);
-        assertNotNull(target);
-        File foxml = ExportUtils.pidAsXmlFile(target, pids[0]);
+        Kramerius4Export instance = new Kramerius4Export(storage, config);
+        Kramerius4Export.Result k4Result = instance.export(output, hierarchy, "export status", pids);
+        assertNotNull(k4Result);
+        File foxml = ExportUtils.pidAsXmlFile(k4Result.getFile(), pids[0]);
         String foxmlAsURI = foxml.toURI().toASCIIString();
 
         XMLAssert.assertXpathEvaluatesTo(DatatypeConverter.printBase64Binary(System.lineSeparator().getBytes()),
@@ -183,12 +181,12 @@ public class Kramerius4ExportTest {
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
-        Kramerius4Export instance = new Kramerius4Export(storage, config.getKramerius4Export());
-        File target = instance.export(output, hierarchy, "export status", pids);
-        assertNotNull(target);
+        Kramerius4Export instance = new Kramerius4Export(storage, config);
+        Kramerius4Export.Result k4Result = instance.export(output, hierarchy, "export status", pids);
+        assertNotNull(k4Result);
 
         // check datastreams with xpath
-        File foxml = ExportUtils.pidAsXmlFile(target, pids[0]);
+        File foxml = ExportUtils.pidAsXmlFile(k4Result.getFile(), pids[0]);
         String foxmlSystemId = foxml.toURI().toASCIIString();
         XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
         XMLAssert.assertXpathExists(streamXPath(DcStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));

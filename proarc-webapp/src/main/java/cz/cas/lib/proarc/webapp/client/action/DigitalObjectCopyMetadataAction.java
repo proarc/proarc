@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.webapp.client.action;
 
 import com.smartgwt.client.data.Record;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
@@ -100,7 +102,9 @@ public class DigitalObjectCopyMetadataAction extends AbstractAction {
             DigitalObject dobj = DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if ("model:page".equals(modelId)) {
+                if (NdkPlugin.MODEL_PAGE.equals(modelId)
+                        || NdkPlugin.MODEL_NDK_PAGE.equals(modelId)
+                        || OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
                     continue;
                 }
             }

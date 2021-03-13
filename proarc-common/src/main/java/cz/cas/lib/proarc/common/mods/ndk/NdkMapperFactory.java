@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEMonographVolumeMapper;
 import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalIssueMapper;
 import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalMapper;
 import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalVolumeMapper;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -44,7 +45,7 @@ public class NdkMapperFactory {
     static {
         mappers.put(NdkPlugin.MODEL_PAGE, NdkPageMapper::new);
         mappers.put(ModsCutomEditorType.EDITOR_PAGE, NdkPageMapper::new);
-        mappers.put(NdkPlugin.MODEL_NDK_PAGE, NdkPageMapper::new);
+        mappers.put(NdkPlugin.MODEL_NDK_PAGE, NdkNewPageMapper::new);
         mappers.put(NdkPlugin.MODEL_PERIODICAL, NdkPeriodicalMapper::new);
         mappers.put(NdkPlugin.MODEL_PERIODICALVOLUME, NdkPeriodicalVolumeMapper::new);
         mappers.put(NdkPlugin.MODEL_PERIODICALISSUE, NdkPeriodicalIssueMapper::new);
@@ -58,8 +59,10 @@ public class NdkMapperFactory {
         mappers.put(NdkPlugin.MODEL_CARTOGRAPHIC, NdkCartographicMapper::new);
         mappers.put(NdkPlugin.MODEL_SHEETMUSIC, NdkSheetMusicMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkSoundCollectionMapper::new);
+        mappers.put(NdkAudioPlugin.MODEL_PHONOGRAPH, NdkSoundPhonographMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_SONG, NdkSoundRecordingMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_TRACK, NdkSoundPartMapper::new);
+        mappers.put(NdkAudioPlugin.MODEL_PAGE, NdkAudioPageMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEMonographVolumeMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEMonographTitleMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_ECHAPTER, NdkEChapterMapper::new);

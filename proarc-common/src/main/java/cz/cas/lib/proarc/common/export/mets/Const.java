@@ -38,7 +38,8 @@ public class Const {
     public final static String FEDORAPREFIX = "info:fedora/";
     public static HashMap<String, List<String>> streamMapping;
     public static HashMap<String, List<String>> audioStremMapping;
-    public static List<String> allowedIdentifiers = new ArrayList<String>();
+    public static List<String> allowedNdkIdentifiers = new ArrayList<String>();
+    public static List<String> allowedNdkEbornIdentifiers = new ArrayList<String>();
     public static ArrayList<String> mandatoryStreams = new ArrayList<String>();
     public static ArrayList<String> audioMandatoryStreams = new ArrayList<String>();
     public static ArrayList<String> canContainPage = new ArrayList<String>();
@@ -65,6 +66,7 @@ public class Const {
     public final static String CHAPTER_MODEL = NdkPlugin.MODEL_CHAPTER;
     public final static String SUPPLEMENT_MODEL = "model:supplement";
     public final static String SOUND_COLLECTION_MODEL = NdkAudioPlugin.MODEL_MUSICDOCUMENT;
+    public final static String SOUND_FONOGRAPH_MODEL = NdkAudioPlugin.MODEL_PHONOGRAPH;
     public final static String SOUND_RECORDING_MODEL = NdkAudioPlugin.MODEL_SONG;
     public final static String SOUND_PART_MODEL = NdkAudioPlugin.MODEL_TRACK;
     public final static String SOUND_PAGE_MODEL = NdkAudioPlugin.MODEL_PAGE;
@@ -82,11 +84,15 @@ public class Const {
     public final static String GENRE_TITLE = "title";
     public final static String GENRE_VOLUME = "volume";
 
-    public final static String GENRE_EARTICLE = "electronic_article";
-    public final static String GENRE_ECHAPTER = "electronic_chapter";
-    public final static String GENRE_EISSUE = "electronic_issue";
-    public final static String GENRE_ETITLE = "electronic_title";
-    public final static String GENRE_EVOLUME = "electronic_volume";
+    public static final String NDK_EBORN_MODELS_IDENTIFIER = "ndke";
+    public final static String GENRE_EARTICLE = "electronic article";
+    public final static String GENRE_ECHAPTER = "electronic chapter";
+    public final static String GENRE_EISSUE = "electronic issue";
+    public final static String GENRE_ETITLE = "electronic title";
+    public final static String GENRE_EVOLUME = "electronic volume";
+
+    public final static String GENRE_OLDPRINT_OMNIBUS = "omnibus";       //konvolut
+    public final static String GENRE_OLDPRINT_GRAPHICS = "graphics";       //grafika
 
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
@@ -136,15 +142,28 @@ public class Const {
     public static final String TXT_GRP_ID = "TXTGRP";
     public static final String AUDIO_RAW_GRP_ID = "SA_AUDIOGRP";
     public static final String AUDIO_MC_GRP_ID = "MC_AUDIOGRP";
+    public static final String AUDIO_MC_GRP_ID_FLAC = "MC_AUDIOGRP_FLAC";
     public static final String AUDIO_UC_GRP_ID = "UC_AUDIOGRP";
+    public static final String AUDIO_UC_GRP_ID_OGG = "UC_AUDIOGRP_OGG";
+    public static final String OC_GRP_ID = "OC_EBGRP";
+    public static final String OC_GRP_ID_CREATION = "OC_EBGRP_CREATION";
+    public static final String OC_GRP_ID_VALIDATION = "OC_EBGRP_VALIDATION";
     //public
     public static final String TECHMDGRP = "TECHMDGRP";
+
+    public static final String MIX001 = "MIX_001";
+    public static final String MIX002 = "MIX_002";
+    public static final String AES001 = "AES_001";
+    public static final String AES002 = "AES_002";
+    public static final String CODINGHISTORY001 = "CODINGHISTORY_001";
+    public static final String CODINGHISTORY002 = "CODINGHISTORY_002";
 
     public static final List<String> PSPElements = new ArrayList<>();
 
     public final static Map<String, String> typeMap = new HashMap<>();
     public final static Map<String, String> typeNameMap = new HashMap<>();
     public final static Map<String, String> mimeToFmtMap = new HashMap<>();
+    public final static Map<String, String> mimeToExtensionMap = new HashMap<>();
     // Tech MD creation constants
     public final static Map<String, String> dataStreamToModel = new HashMap<>();
     public final static Map<String, String> dataStreamToEvent = new HashMap<>();
@@ -154,17 +173,31 @@ public class Const {
 
 
     static {
-        allowedIdentifiers.add("isbn");
-        allowedIdentifiers.add("issn");
-        allowedIdentifiers.add("ccnb");
-        allowedIdentifiers.add("urnnbn");
+        allowedNdkIdentifiers.add("isbn");
+        allowedNdkIdentifiers.add("issn");
+        allowedNdkIdentifiers.add("ccnb");
+        allowedNdkIdentifiers.add("urnnbn");
+        allowedNdkEbornIdentifiers.addAll(allowedNdkIdentifiers);
+        allowedNdkEbornIdentifiers.add("uuid");
         mimeToFmtMap.put("image/tiff", "fmt/353");
-        mimeToFmtMap.put("image/jp2", "fmt/151");
+        mimeToFmtMap.put("image/jp2", "x-fmt/392");
         mimeToFmtMap.put("text/xml", "fmt/101");
+        mimeToFmtMap.put("text/plain", "fmt/611");
         mimeToFmtMap.put("application/pdf", "fmt/18");
         mimeToFmtMap.put("image/jpeg", "fmt/44");
         mimeToFmtMap.put("audio/wav", "fmt/141");
         mimeToFmtMap.put("audio/mpeg", "fmt/134");
+
+        mimeToExtensionMap.put("image/tiff", ".tif");
+        mimeToExtensionMap.put("image/jp2", ".jp2");
+        mimeToExtensionMap.put("text/xml", ".xml");
+        mimeToExtensionMap.put("text/plain", ".txt");
+        mimeToExtensionMap.put("application/pdf", ".pdf");
+        mimeToExtensionMap.put("image/jpeg", ".jpeq");
+        mimeToExtensionMap.put("audio/wav", ".wav");
+        mimeToExtensionMap.put("audio/flac", ".flac");
+        mimeToExtensionMap.put("audio/mpeg", ".mp3");
+        mimeToExtensionMap.put("audio/ogg", ".ogg");
 
         PSPElements.add(Const.MONOGRAPH_UNIT);
         PSPElements.add(Const.ISSUE);
@@ -187,6 +220,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_CARTOGRAPHIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_SHEETMUSIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + SOUND_COLLECTION_MODEL, SOUND_COLLECTION);
+        typeMap.put(FEDORAPREFIX + SOUND_FONOGRAPH_MODEL, SOUND_COLLECTION);
         typeMap.put(FEDORAPREFIX + SOUND_RECORDING_MODEL, SOUND_RECORDING);
         typeMap.put(FEDORAPREFIX + SOUND_PART_MODEL, SOUND_PART);
         typeMap.put(FEDORAPREFIX + SOUND_PAGE_MODEL, SOUND_PAGE);
@@ -226,9 +260,13 @@ public class Const {
 
         audioStremMapping.put(AUDIO_MC_GRP_ID, new ArrayList<String>());
         audioStremMapping.get(AUDIO_MC_GRP_ID).add(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
+        audioStremMapping.put(AUDIO_MC_GRP_ID_FLAC, new ArrayList<String>());
+        audioStremMapping.get(AUDIO_MC_GRP_ID_FLAC).add(BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID);
 
         audioStremMapping.put(AUDIO_UC_GRP_ID, new ArrayList<String>());
         audioStremMapping.get(AUDIO_UC_GRP_ID).add(BinaryEditor.NDK_AUDIO_USER_ID);
+        audioStremMapping.put(AUDIO_UC_GRP_ID_OGG, new ArrayList<String>());
+        audioStremMapping.get(AUDIO_UC_GRP_ID_OGG).add(BinaryEditor.NDK_AUDIO_USER_OGG_ID);
 
         streamMapping = new HashMap<String, List<String>>();
         streamMapping.put(MC_GRP_ID, new ArrayList<String>());
@@ -254,7 +292,9 @@ public class Const {
         streamMappingPrefix.put(TXT_GRP_ID, "txt");
         streamMappingPrefix.put(TECHMDGRP, "amd_mets");
         streamMappingPrefix.put(AUDIO_MC_GRP_ID, "mca");
+        streamMappingPrefix.put(AUDIO_MC_GRP_ID_FLAC, "mca");
         streamMappingPrefix.put(AUDIO_UC_GRP_ID, "uca");
+        streamMappingPrefix.put(AUDIO_UC_GRP_ID_OGG, "uca");
         streamMappingPrefix.put(AUDIO_RAW_GRP_ID, "sa");
 
 
@@ -264,8 +304,10 @@ public class Const {
         streamMappingFile.put(TXT_GRP_ID, "txt");
         streamMappingFile.put(TECHMDGRP, "amdsec");
         streamMappingFile.put(AUDIO_MC_GRP_ID, "mastercopy_audio");
+        streamMappingFile.put(AUDIO_MC_GRP_ID_FLAC, "mastercopy_audio");
         streamMappingFile.put(AUDIO_UC_GRP_ID, "usercopy_audio");
-        streamMappingFile.put(AUDIO_RAW_GRP_ID, "sourceaudio");
+        streamMappingFile.put(AUDIO_UC_GRP_ID_OGG, "usercopy_audio");
+        streamMappingFile.put(AUDIO_RAW_GRP_ID, "source_audio");
 
         canContainPage.add(Const.ISSUE);
         canContainPage.add(Const.MONOGRAPH_MULTIPART);
@@ -278,12 +320,16 @@ public class Const {
         dataStreamToModel.put(ALTO_GRP_ID, AltoDatastream.ALTO_ID);
         dataStreamToModel.put(UC_GRP_ID, BinaryEditor.NDK_USER_ID);
         dataStreamToModel.put(TXT_GRP_ID, StringEditor.OCR_ID);
+        dataStreamToModel.put(OC_GRP_ID_CREATION, "PDF");
+        dataStreamToModel.put(OC_GRP_ID_VALIDATION, "PDF");
 
         dataStreamToEvent.put(RAW_GRP_ID, "digitization_001");
         dataStreamToEvent.put(MC_GRP_ID, "MC_creation_001");
         dataStreamToEvent.put(ALTO_GRP_ID, "XML_creation_001");
         dataStreamToEvent.put(UC_GRP_ID, "UC_creation_001");
         dataStreamToEvent.put(TXT_GRP_ID, "TXT_creation_001");
+        dataStreamToEvent.put(OC_GRP_ID_VALIDATION, "PDF_validation_001");
+        dataStreamToEvent.put(OC_GRP_ID_CREATION, "PDF_Creation_001");
 
     }
 }

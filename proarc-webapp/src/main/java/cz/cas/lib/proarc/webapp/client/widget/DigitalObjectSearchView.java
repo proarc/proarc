@@ -57,6 +57,7 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
 import cz.cas.lib.proarc.webapp.client.action.SelectionCache;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import java.util.Arrays;
@@ -76,6 +77,9 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private static final String FILTER_LAST_MODIFIED = SearchType.LAST_MODIFIED.toString();
     private static final String FILTER_PHRASE = SearchType.PHRASE.toString();
     private static final String FILTER_QUERY = SearchType.QUERY.toString();
+    private static final String FILTER_DELETED = SearchType.DELETED.toString();
+    private static final String FILTER_ALPHABETICAL = SearchType.ALPHABETICAL.toString();
+    private static final String FILTER_ADVANCED = SearchType.ADVANCED.toString();
 
     private final DynamicForm filters;
     private final Canvas rootWidget;
@@ -146,6 +150,24 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         ListGridField state = new ListGridField(SearchDataSource.FIELD_STATE,
                 i18n.DigitalObjectSearchView_ListHeaderState_Title(), 100);
         state.setHidden(true);
+        ListGridField organization = new ListGridField(SearchDataSource.FIELD_ORGANIZATION,
+                i18n.DigitalObjectSearchView_ListHeaderOrganization_Title(), 100);
+        organization.setHidden(true);
+        ListGridField user = new ListGridField(SearchDataSource.FIELD_USER,
+                i18n.UsersView_ListHeader_Proccesor_Title(), 100);
+        user.setHidden(true);
+        user.setCellFormatter(new CellFormatter() {
+            @Override
+            public String format(Object value, ListGridRecord listGridRecord, int i, int i1) {
+                return value == null || "all".equals(value)
+                        ? i18n.UsersView_ListHeader_Proccesors_All_Title()
+                        : value.toString();
+            }
+        });
+        ListGridField status = new ListGridField(SearchDataSource.FIELD_STATUS,
+                i18n.DigitalObjectEditor_AdministrationEditor_Status_Title(), 100);
+        status.setValueMap(DigitalObjectState.getMap(i18n));
+        status.setHidden(true);
         ListGridField export = new ListGridField(SearchDataSource.FIELD_EXPORT,
                 i18n.DigitalObjectSearchView_ListHeaderExport_Title(), 100);
         export.setCellFormatter(new CellFormatter() {
@@ -157,7 +179,55 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        grid.setFields(label, model, pid, created, modified, owner, state, export);
+        ListGridField ndkExport = new ListGridField(SearchDataSource.FIELD_NDK_EXPORT,
+                i18n.DigitalObjectEditor_AdministrationEditor_Ndk_Export_Title(), 100);
+        ndkExport.setHidden(true);
+        ndkExport.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        ListGridField archiveExport = new ListGridField(SearchDataSource.FIELD_ARCHIVE_EXPORT,
+                i18n.DigitalObjectEditor_AdministrationEditor_Archive_Export_Title(), 100);
+        archiveExport.setHidden(true);
+        archiveExport.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        ListGridField krameriusExport = new ListGridField(SearchDataSource.FIELD_KRAMERIUS_EXPORT,
+                i18n.DigitalObjectEditor_AdministrationEditor_Kramerius_Export_Title(), 100);
+        krameriusExport.setHidden(true);
+        krameriusExport.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        ListGridField crossrefExport = new ListGridField(SearchDataSource.FIELD_CROSSREF_EXPORT,
+                i18n.DigitalObjectEditor_AdministrationEditor_Crossref_Export_Title(), 100);
+        crossrefExport.setHidden(true);
+        crossrefExport.setCellFormatter(new CellFormatter() {
+
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
+        grid.setFields(label, model, pid, created, modified, owner, state, organization, user, status, export, ndkExport, krameriusExport, archiveExport,crossrefExport);
         grid.setContextMenu(Actions.createMenu());
         grid.addSelectionUpdatedHandler((event) -> {
             selectionCache.setSelection();
@@ -207,18 +277,26 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filterType.setRedrawOnChange(true);
         filterType.setColSpan(5);
         final LinkedHashMap<String, String> filterMap = new LinkedHashMap<String, String>();
+        filterMap.put(FILTER_ALPHABETICAL, i18n.DigitalObjectSearchView_FilterGroupAlphabetical_Title());
         filterMap.put(FILTER_LAST_CREATED, i18n.DigitalObjectSearchView_FilterGroupLastCreated_Title());
         filterMap.put(FILTER_LAST_MODIFIED, i18n.DigitalObjectSearchView_FilterGroupLastModified_Title());
-        if (!Editor.getInstance().hasPermission("proarc.permission.repository.search.groupOwner")) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN))) {
             filterMap.put(FILTER_PHRASE, i18n.DigitalObjectSearchView_FilterGroupPhrase_Title());
         }
         filterMap.put(FILTER_QUERY, i18n.DigitalObjectSearchView_FilterGroupAdvanced_Title());
+        if (Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN)) {
+            filterMap.put(FILTER_DELETED, i18n.DigitalObjectSearchView_FilterGroupDeleted_Title());
+        }
+        filterMap.put(FILTER_ADVANCED, i18n.DigitalObjectSearchView_FilterGroupAdvancedSearch_Title());
         filterType.setValueMap(filterMap);
         filterType.setValue(FILTER_LAST_CREATED);
 
-        FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_QUERY);
+        FormItemIfFunction showIfQuery = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED);
         FormItemIfFunction showIfPhrase = new StringMatchFunction(filterType, FILTER_PHRASE);
-        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY);
+        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ALPHABETICAL, FILTER_ADVANCED);
+        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL, FILTER_ADVANCED);
+        FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_ADVANCED);
+        FormItemIfFunction showIfQueryOrAdvanced = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED, FILTER_ADVANCED);
 
         final TextItem phrase = createAdvancedItem(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM,
                 i18n.DigitalObjectSearchView_FilterPhrase_Title(), showIfPhrase);
@@ -237,18 +315,23 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         form.setFields(filterType, createSpacerItem("100%", null),
                 phrase,
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfQuery), createSpacerItem("100%", showIfQuery),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedIdentifier_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
-                createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedCreator_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedIdentifier_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQueryOrAdvanced),
+                //createOwnerItem(i18n.DigitalObjectSearchView_FilterAdvancedCreator_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQueryOrAdvanced),
+                createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM, i18n.DigitalObjectSearchView_FilterAdvancedCreator_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQuery),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
-                createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM,
-                        i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                        i18n.DigitalObjectSearchView_FilterAdvancedLabel_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQueryOrAdvanced),
+                createOwnerItem(i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQuery),
+                //createAdvancedItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM, i18n.DigitalObjectSearchView_FilterAdvancedOwner_Title(), showIfQueryOrAdvanced), createSpacerItem("100%", showIfQuery),
+                createStatusItem(i18n.DigitalObjectSearchView_FilterGroupStatus_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                createOrganizationItem(i18n.DigitalObjectSearchView_ListHeaderOrganization_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
+                createProcessorItem(i18n.UsersView_ListHeader_Proccesor_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
                 createModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Title(), showIfCreatedModifiedQuery),
                 createRememberModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Remember_Title(), showIfCreatedModifiedQuery),
-                createSpacerItem("100%", showIfCreatedModifiedQuery),
+                createSortFieldItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfAdvanced),
+                createSortItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfAplhabetical),
+                //, createSpacerItem("100%", showIfCreatedModifiedQuery),
                 submit);
         
         form.addSubmitValuesHandler(new SubmitValuesHandler() {
@@ -261,6 +344,96 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
             }
         });
         return form;
+    }
+
+    private FormItem createOwnerItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_OWNER_PARAM, title);
+        item.setWidth("100%");
+        item.setColSpan(3);
+        item.setAllowEmptyValue(true);
+        item.setOptionDataSource(UserDataSource.getInstance());
+        item.setValueField(UserDataSource.FIELD_USERNAME);
+        item.setDisplayField(UserDataSource.FIELD_USERNAME);
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private FormItem createSortFieldItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM, title);
+        item.setWidth(200);
+        item.setAllowEmptyValue(true);
+        LinkedHashMap<String, String> valueMap = new LinkedHashMap<>();
+        valueMap.put("pid", i18n.DigitalObjectSearchView_ListHeaderPid_Title());
+        valueMap.put("model", i18n.DigitalObjectSearchView_ListHeaderModel_Title());
+        valueMap.put("owner", i18n.DigitalObjectSearchView_ListHeaderOwner_Title());
+        valueMap.put("label", i18n.DigitalObjectSearchView_ListHeaderLabel_Title());
+        valueMap.put("state", i18n.DigitalObjectSearchView_ListHeaderState_Title());
+        valueMap.put("created", i18n.DigitalObjectSearchView_ListHeaderCreated_Title());
+        valueMap.put("modified", i18n.DigitalObjectSearchView_ListHeaderModified_Title());
+        valueMap.put("organization", i18n.DigitalObjectSearchView_ListHeaderOrganization_Title());
+        valueMap.put("user", i18n.UsersView_ListHeader_Proccesor_Title());
+        valueMap.put("status", i18n.DigitalObjectSearchView_FilterGroupStatus_Title());
+        item.setValueMap(valueMap);
+        item.setDefaultValue("label");
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private FormItem createSortItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_SORT_PARAM, title);
+        item.setWidth(200);
+        item.setAllowEmptyValue(false);
+        LinkedHashMap<String, String> valueMap = new LinkedHashMap();
+        valueMap.put("asc", i18n.DigitalObjectSearchView_FilterAsc_Title());
+        valueMap.put("desc", i18n.DigitalObjectSearchView_FilterDesc_Title());
+        item.setDefaultValue("asc");
+        item.setValueMap(valueMap);
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private FormItem createStatusItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_STATUS_PARAM, title);
+        item.setWidth("100%");
+        item.setColSpan(3);
+        item.setAllowEmptyValue(true);
+        item.setValueMap(DigitalObjectState.getMap(i18n));
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private FormItem createProcessorItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_PROCESSOR_PARAM, title);
+        item.setOptionDataSource(UserDataSource.getInstance());
+        item.setValueField(UserDataSource.FIELD_USERNAME);
+        item.setDisplayField(UserDataSource.FIELD_USERNAME);
+        item.setWidth("100%");
+        item.setColSpan(3);
+        item.setAllowEmptyValue(true);
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
+    }
+
+    private FormItem createOrganizationItem(String title, FormItemIfFunction showIf) {
+        SelectItem item = new SelectItem(DigitalObjectResourceApi.SEACH_ORGANIZATION_PARAM, title);
+        item.setWidth("100%");
+        item.setColSpan(3);
+        item.setAllowEmptyValue(true);
+        item.setValueMap(Organization.getMap());
+        if (showIf != null) {
+            item.setShowIfCondition(showIf);
+        }
+        return item;
     }
 
     private static TextItem createAdvancedItem(String name, String title, FormItemIfFunction showIf) {
@@ -276,7 +449,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
     private SelectItem createModelItem(String title, FormItemIfFunction showIf) {
         SelectItem item = new SelectItem(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM, title);
-        item.setWidth(300);
+        item.setWidth(200);
         item.setAllowEmptyValue(true);
         item.setEmptyDisplayValue("<i>" + i18nSmartGwt.filterBuilder_matchAllTitle() + "</i>");
         // see setFilterModel
@@ -329,6 +502,11 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filterModel.setValue(modelId);
     }
 
+    public void setSort(Object sort) {
+        FormItem sortField = filters.getField(DigitalObjectResourceApi.SEARCH_SORT_PARAM);
+        sortField.setValue(sort);
+    }
+
     public void setModels(LinkedHashMap<?, ?> valueMap) {
         ListGridField field = foundGrid.getField(SearchDataSource.FIELD_MODEL);
         field.setValueMap(valueMap);
@@ -352,6 +530,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         if (checkbox.getValueAsBoolean()) {
             checkbox.setValue(false);
             Offline.put(sourceName, filters.getField(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM).getValue());
+            Offline.put(sourceName + "_sort", filters.getField(DigitalObjectResourceApi.SEARCH_SORT_PARAM).getValue());
         }
         Criteria valuesAsCriteria = filters.getValuesAsCriteria();
         foundGrid.deselectAllRecords();

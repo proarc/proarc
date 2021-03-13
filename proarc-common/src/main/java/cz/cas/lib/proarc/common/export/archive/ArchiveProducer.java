@@ -16,13 +16,14 @@
  */
 package cz.cas.lib.proarc.common.export.archive;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.export.ExportUtils;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -39,12 +40,14 @@ import java.util.logging.Logger;
 public class ArchiveProducer {
 
     private static final Logger LOG = Logger.getLogger(ArchiveProducer.class.getName());
-    private final DigitalObjectCrawler crawler;
-    private ExportResultLog reslog;
+    protected final DigitalObjectCrawler crawler;
+    protected ExportResultLog reslog;
+    protected AppConfiguration appConfig;
 
-    public ArchiveProducer() {
+    public ArchiveProducer(AppConfiguration appConfiguration) {
         this.crawler = new DigitalObjectCrawler(
                 DigitalObjectManager.getDefault(), RemoteStorage.getInstance().getSearch());
+        this.appConfig = appConfiguration;
     }
 
     /**
@@ -61,9 +64,9 @@ public class ArchiveProducer {
      * @return the result folder that contains folders with archive packages.
      * @throws IllegalStateException failure. See {@link #getResultLog() } for details.
      */
-    public File archive(List<String> pids, File targetFolder) throws IllegalStateException {
+    public File archive(List<String> pids, File archiveRootFolder) throws IllegalStateException {
         reslog = new ExportResultLog();
-        File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
+        //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
 
         try {
             archiveImpl(pids, archiveRootFolder);
@@ -76,15 +79,20 @@ public class ArchiveProducer {
     private void archiveImpl(List<String> pids, File archiveRootFolder) {
         List<List<DigitalObjectElement>> objectPaths = selectObjects(pids);
 
-        ArchiveObjectProcessor processor = new ArchiveObjectProcessor(crawler, archiveRootFolder);
+        ArchiveObjectProcessor processor = new ArchiveObjectProcessor(crawler, archiveRootFolder, appConfig);
         for (List<DigitalObjectElement> path : objectPaths) {
             ExportResult result = new ExportResult();
             DigitalObjectElement dobj = path.get(0);
             result.setInputPid(dobj.getPid());
             reslog.getExports().add(result);
             try {
+                processor.getDevicePids().clear();
                 processor.process(path);
                 result.setStatus(ResultStatus.OK);
+            } catch (MetsExportException ex) {
+                result.setStatus(ResultStatus.FAILED);
+                result.getError().add(new ResultError(dobj.getPid(), ex.getMessage(), dobj.toString(), null));
+                throw new IllegalStateException("Archivation failed!", ex);
             } catch (Exception ex) {
                 result.setStatus(ResultStatus.FAILED);
                 result.getError().add(new ResultError(dobj.getPid(), null, dobj.toString(), ex));
@@ -95,7 +103,7 @@ public class ArchiveProducer {
         }
     }
 
-    private List<List<DigitalObjectElement>> selectObjects(List<String> pids) {
+    protected List<List<DigitalObjectElement>> selectObjects(List<String> pids) {
         ArchiveObjectSelector selector = new ArchiveObjectSelector(crawler);
         try {
             selector.select(pids);

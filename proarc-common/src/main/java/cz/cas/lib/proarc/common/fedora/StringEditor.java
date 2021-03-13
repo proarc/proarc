@@ -42,6 +42,7 @@ public final class StringEditor {
     public static final String OCR_LABEL = "OCR for this object";
     public static final String PRIVATE_NOTE_ID = "PRIVATE_NOTE";
     public static final String PRIVATE_NOTE_LABEL = "Private note for this object";
+    public static final String OCR_ALTO_GEN_ID = "OCR_ALTO_GEN";
 
     private final XmlStreamEditor editor;
     private final FedoraObject object;
@@ -56,6 +57,18 @@ public final class StringEditor {
     }
 
     public static DatastreamProfile ocrProfile() {
+        return FoxmlUtils.managedProfile(OCR_ID, MediaType.TEXT_PLAIN_TYPE, OCR_LABEL);
+    }
+
+    public static StringEditor technical(FedoraObject object) {
+        return technical(object, false);
+    }
+
+    public static StringEditor technical(FedoraObject object, boolean storeExternally) {
+        return new StringEditor(object, technicalProfile());
+    }
+
+    public static DatastreamProfile technicalProfile() {
         return FoxmlUtils.managedProfile(OCR_ID, MediaType.TEXT_PLAIN_TYPE, OCR_LABEL);
     }
 

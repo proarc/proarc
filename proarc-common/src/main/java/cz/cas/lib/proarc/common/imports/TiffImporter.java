@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.ExternalProcess;
 import cz.cas.lib.proarc.common.process.KakaduCompress;
+import cz.cas.lib.proarc.common.process.OcrGenerator;
 import cz.cas.lib.proarc.common.process.TiffToJpgConvert;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
@@ -48,12 +49,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.ws.rs.core.MediaType;
 import org.apache.commons.configuration.Configuration;
+
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
  * Requires Java Advanced Imaging support.
@@ -105,7 +109,7 @@ public class TiffImporter implements ImageImporter {
             createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config);
             importArchivalCopy(fileSet, f, localObj, ctx);
             importUserCopy(fileSet, f, localObj, ctx);
-            importOcr(fileSet, localObj, ctx);
+            importOcr(fileSet, f, localObj, ctx);
             createTechnicalMetadata(localObj, ctx);
             // writes FOXML
             dobjHandler.commit();
@@ -139,6 +143,7 @@ public class TiffImporter implements ImageImporter {
             String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
             PageViewItem page = new PageViewItem();
             page.setPageIndex(pageIndex);
+            page.setPageType("normalPage");
             pvHandler.setPage(page, null);
         } else {
             throw new IllegalStateException("Unsupported metadata handler: " + mHandler);
@@ -150,7 +155,14 @@ public class TiffImporter implements ImageImporter {
         RelationEditor relEditor = objHandler.relations();
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
-        relEditor.setImportFile(f.getName());
+        relEditor.setOrganization(ctx.getOrganization());
+        relEditor.setUser(ctx.getConfig().getDefaultProcessor());
+        relEditor.setStatus(STATUS_NEW);
+        if (ctx.isPagePath()) {
+            relEditor.setImportFile(f.getAbsolutePath());
+        } else {
+            relEditor.setImportFile(f.getName());
+        }
         relEditor.write(0, null);
         // XXX use fedora-model:downloadFilename in RELS-INT or label of datastream to specify filename
     }
@@ -169,7 +181,7 @@ public class TiffImporter implements ImageImporter {
         return null;
     }
 
-    private void importOcr(FileSet fileSet, FedoraObject fo, ImportOptions options)
+    private void importOcr(FileSet fileSet, File tiff, FedoraObject fo, ImportOptions options)
             throws IOException, DigitalObjectException {
 
         // XXX find filename.ocr.txt or generate OCR or nothing
@@ -180,24 +192,117 @@ public class TiffImporter implements ImageImporter {
         List<Object> requiredDatastreamId = config.getRequiredDatastreamId();
 
         FileEntry ocrEntry = findSibling(fileSet, config.getPlainOcrFileSuffix());
+        FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
+        if ((ocrEntry == null || altoEntry == null) && requiredDatastreamId.contains(StringEditor.OCR_ALTO_GEN_ID)) {
+            generateOCR(tiff, options);
+
+            File[] ocrFiles = OcrGenerator.getOcrFiles(tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
+
+            ocrEntry = new FileEntry(ocrFiles[0]);
+            altoEntry = new FileEntry(ocrFiles[1]);
+        }
         if (ocrEntry != null) {
-            File ocrFile = new File(tempBatchFolder, originalFilename + '.' + StringEditor.OCR_ID + ".txt");
-            StringEditor.copy(ocrEntry.getFile(), config.getPlainOcrCharset(), ocrFile, "UTF-8");
-            XmlStreamEditor ocrEditor = fo.getEditor(StringEditor.ocrProfile());
-            ocrEditor.write(ocrFile.toURI(), 0, null);
+            doOcrEditor(tempBatchFolder, originalFilename, ocrEntry.getFile(), config, fo);
+        } else if (existsFile(options.getImportFolder(), originalFilename, config.getPlainOcrFilePath(), config.getPlainOcrFileSuffix(), config.getOcrAltoFolderPath())) {
+            File ocr = createFile(options.getImportFolder(), originalFilename, config.getPlainOcrFilePath(), config.getPlainOcrFileSuffix(), config.getOcrAltoFolderPath());
+            if (ocr != null) {
+                doOcrEditor(tempBatchFolder, originalFilename, ocr, config, fo);
+            }
+        } else if (config.getDefaultAltoAndOcr()) {
+            File ocr = new File(ibm.getAppConfig().getConfigHome().toURI().resolve(config.getDefaultOcr()));
+            if (ocr != null) {
+                doOcrEditor(tempBatchFolder, originalFilename, ocr, config, fo);
+            }
         } else if (requiredDatastreamId.contains(StringEditor.OCR_ID)) {
             throw new FileNotFoundException("Missing OCR: " + new File(tempBatchFolder.getParent(),
                     originalFilename + config.getPlainOcrFileSuffix()).toString());
         }
         // ALTO OCR
-        FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
         if (altoEntry != null) {
             URI altoUri = altoEntry.getFile().toURI();
-            AltoDatastream.importAlto(fo, altoUri, null);
+            AltoDatastream altoDatastrem = new AltoDatastream(config);
+            altoDatastrem.importAlto(fo, altoUri, null);
+        } else if (existsFile(options.getImportFolder(), originalFilename, config.getAltoFilePath(), config.getAltoFileSuffix(), config.getOcrAltoFolderPath())) {
+            File alto = createFile(options.getImportFolder(), originalFilename, config.getAltoFilePath(), config.getAltoFileSuffix(), config.getOcrAltoFolderPath());
+            URI altoUri = alto.toURI();
+            AltoDatastream altoDatastrem = new AltoDatastream(config);
+            altoDatastrem.importAlto(fo, altoUri, null);
+        } else if (config.getDefaultAltoAndOcr()) {
+            File alto = new File(ibm.getAppConfig().getConfigHome().toURI().resolve(config.getDefaultAlto()));
+            URI altoUri = alto.toURI();
+            AltoDatastream altoDatastrem = new AltoDatastream(config);
+            altoDatastrem.importAlto(fo, altoUri, null);
         } else if (requiredDatastreamId.contains(AltoDatastream.ALTO_ID)) {
             throw new FileNotFoundException("Missing ALTO: " + new File(tempBatchFolder.getParent(),
                     originalFilename + config.getAltoFileSuffix()).toString());
         }
+    }
+
+    private void generateOCR(File tiff, ImportOptions options) throws IOException{
+        ImportProfile config = options.getConfig();
+
+        ExternalProcess process = new OcrGenerator(config.getOcrGenProcessor(), tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
+
+        if (process != null) {
+            process.run();
+
+            if (!process.isOk()) {
+                throw new IOException("Generating OCR for " + tiff.getName() + " failed. \n " + process.getFullOutput());
+            }
+        }
+    }
+
+    private boolean existsFile(File originalPath, String filename, String path, String suffix, int lastFolder) {
+        File file = createFile(originalPath, filename, path, suffix, lastFolder);
+        if (file == null) {
+            return false;
+        } else {
+            return file.exists();
+        }
+    }
+
+    private File createFile(File originalPath, String filename, String path, String suffix, int lastFolder) {
+        if (path == null || path.isEmpty() || path.equals("null")) {
+            return null;
+        }
+        StringBuilder pathValue = new StringBuilder();
+        pathValue.append(path).append("/");
+        String value = getOriginalPath(originalPath, lastFolder);
+        pathValue.append(value);
+        pathValue.append(filename);
+        pathValue.append(suffix);
+        return new File(pathValue.toString());
+    }
+
+    private String getOriginalPath(File originalPath, int lastFolder) {
+        StringBuilder value = new StringBuilder();
+        List<String> folderName = new ArrayList<>();
+        getFolderName(originalPath, folderName);
+        if (folderName.size() > lastFolder - 1) {
+            for (int i = lastFolder - 1; i >= 0; i--) {
+                value.append(folderName.get(i)).append("/");
+            }
+            return value.toString();
+        }
+        return null;
+    }
+
+    private void getFolderName(File file, List<String> folderName) {
+        if (file != null) {
+            folderName.add(file.getName());
+            getFolderName(file.getParentFile(), folderName);
+        } else {
+            return;
+        }
+    }
+
+
+    public void doOcrEditor(File tempBatchFolder, String originalFilename, File ocrEntry, ImportProfile config, FedoraObject fo) throws IOException, DigitalObjectException {
+        File ocrFile = new File(tempBatchFolder, originalFilename + '.' + StringEditor.OCR_ID + ".txt");
+        StringEditor.copy(ocrEntry, config.getPlainOcrCharset(), ocrFile, "UTF-8");
+        XmlStreamEditor ocrEditor = fo.getEditor(StringEditor.ocrProfile());
+        ocrEditor.write(ocrFile.toURI(), 0, null);
+
     }
 
     private FileEntry findSibling(FileSet fileSet, String filenameSuffix) {

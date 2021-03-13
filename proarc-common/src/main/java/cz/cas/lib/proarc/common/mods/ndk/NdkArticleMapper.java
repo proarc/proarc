@@ -33,12 +33,14 @@ import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
-
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDetailWithPageRangeToPart;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -84,8 +86,9 @@ public class NdkArticleMapper extends NdkMapper {
         for (ClassificationDefinition classification : classifications) {
             repairAuthorityInClassification(classification);
         }
-
+        fillAbstract(mods);
         fillRecordInfo(mods);
+        addDetailWithPageRangeToPart(mods);
     }
 
 
@@ -118,6 +121,7 @@ public class NdkArticleMapper extends NdkMapper {
                 addStringPlusLanguage(dc.getSubjects(), subjectName.getNamePart());
             }
         }
+        addLanguage(mods.getLanguage(), dc);
         addStringPlusLanguage(dc.getSubjects(), mods.getClassification());
         for (PartDefinition part : mods.getPart()) {
             for (ExtentDefinition extent : part.getExtent()) {

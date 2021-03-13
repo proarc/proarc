@@ -25,6 +25,8 @@ Author Miroslav Pavelka
     <xsl:param name="issue"/>
     <!-- issue UUID - mods/identifier[type="uuid"] -->
     <xsl:param name="issueId"/>
+    <!-- issue date - mods/originInfo/dateIssued[0] -->
+    <xsl:param name="date"/>
     <!-- title issn - mods/identifier[type="issn"][0] -->
     <xsl:param name="issn"/>
     <!-- supplement UUID - mods/identifier[type="uuid"] -->
@@ -53,7 +55,9 @@ Author Miroslav Pavelka
         </xsl:choose>
     </xsl:param>
 
-    <xsl:variable name="lookupDoc" select="document('cejsh_journals.xml')" />
+    <xsl:param name="journalsInfo"/>
+
+    <xsl:variable name="lookupDoc" select="document($journalsInfo)" />
     <xsl:variable name="journalId" select="$lookupDoc/cejsh/journal[@issn=$issn]/journalId"/>
     <xsl:variable name="discipline" select="$lookupDoc/cejsh/journal[@issn=$issn]/discipline"/>
     <xsl:variable name="publisherAddress" select="$lookupDoc/cejsh/journal[@issn=$issn]/publisherAddress"/>
@@ -148,6 +152,12 @@ Author Miroslav Pavelka
                         <xsl:element name="name">
                             <xsl:value-of select="$issue"/>
                         </xsl:element>
+                        <xsl:if test="$date">
+                            <xsl:element name="date">
+                                <xsl:attribute name="type">issued</xsl:attribute>
+                                <xsl:value-of select="$date"/>
+                            </xsl:element>
+                        </xsl:if>
                         <xsl:element name="hierarchy">
                             <xsl:attribute name="class">bwmeta1.hierarchy-class.hierarchy_Journal</xsl:attribute>
                             <xsl:attribute name="level">bwmeta1.level.hierarchy_Journal_Number</xsl:attribute>
@@ -254,19 +264,21 @@ Author Miroslav Pavelka
                                         </xsl:call-template>
                                     </xsl:attribute>
                                 </xsl:if>
-                                <xsl:choose>
-                                    <xsl:when test="./mods:nonSort!='' and ./mods:title!='' ">
-                                        <!-- &#160; je mezera -->
-                                        <xsl:value-of select="./mods:nonSort"/>
+                                <xsl:if test="./mods:nonSort!=''">
+                                    <xsl:value-of select="./mods:nonSort"/>
+                                    <xsl:if test="./mods:title!='' or ./mods:subTitle!=''">
                                         <xsl:text>&#160;</xsl:text>
-                                        <xsl:value-of select="./mods:title"/>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:if test="./mods:title!=''">
-                                            <xsl:value-of select="./mods:title"/>
-                                        </xsl:if>
-                                    </xsl:otherwise>
-                                </xsl:choose>
+                                    </xsl:if>
+                                </xsl:if>
+                                <xsl:if test="./mods:title!=''">
+                                    <xsl:value-of select="./mods:title"/>
+                                    <xsl:if test="./mods:subTitle!=''">
+                                        <xsl:text>: </xsl:text>
+                                    </xsl:if>
+                                </xsl:if>
+                                <xsl:if test="./mods:subTitle!=''">
+                                    <xsl:value-of select="./mods:subTitle"/>
+                                </xsl:if>
                             </xsl:element>
                         </xsl:for-each>
 

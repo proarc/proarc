@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.CopyObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
@@ -46,11 +47,22 @@ import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
 import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.UpdateAllObjectsAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsTitleToNdkMonographTitleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsVolumeToNdkMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangePageToNdkPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.ArchiveOldPrintExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.ChronicleExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CrossrefExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.DataStreamExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.DesaExportAction;
+import cz.cas.lib.proarc.webapp.client.action.export.KWISExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.KrameriusExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.NdkExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.NdkOldPrintExportAction;
@@ -60,6 +72,7 @@ import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectSearchView;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectTreeView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import java.util.LinkedHashMap;
 
 /**
@@ -79,9 +92,12 @@ public final class DigitalObjectManager {
     private final DigitalObjectTreeView treeView;
     private FoxmlViewAction foxmlAction;
     private ArchiveExportAction archiveExportAction;
+    private ArchiveOldPrintExportAction archiveOldPrintExportAction;
     private KrameriusExportAction krameriusExportAction;
+    private KWISExportAction kwisExportAction;
     private NdkExportAction ndkExportAction;
     private NdkSipExportAction ndkSipExportAction;
+    private ChronicleExportAction chronicleExportAction;
     private NdkOldPrintExportAction ndkOldPrintExportAction;
     private CejshExportAction cejshExportAction;
     private CrossrefExportAction crossrefExportAction;
@@ -89,7 +105,10 @@ public final class DigitalObjectManager {
     private DesaExportAction desaExportAction;
     private DataStreamExportAction fullDataStreamExportAction;
     private DataStreamExportAction rawDataStreamExportAction;
+    private DataStreamExportAction ndkUserDataStreamExportAction;
     private DeleteAction deleteAction;
+    private RestoreAction restoreAction;
+    private UpdateAllObjectsAction updateAllObjectsAction;
     private DigitalObjectEditAction ocrEditAction;
     private DigitalObjectEditAction noteEditAction;
     private DigitalObjectEditAction modsEditAction;
@@ -97,7 +116,15 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction mediaEditAction;
     private DigitalObjectEditAction childrenEditAction;
     private DigitalObjectEditAction atmEditAction;
+    private DigitalObjectEditAction technicalMetadataAction;
     private UrnNbnAction registerUrnNbnAction;
+    private CopyObjectAction copyObjectAction;
+    private GenerateMasterCopyAction generateMasterCopyAction;
+    private ChangePageToNdkPageAction changePageToNdkPageAction;
+    private ChangeNdkPageToPageAction changeNdkPageToPageAction;
+    private ChangeClippingsVolumeToNdkMonographVolumeAction changeClippingsVolumeToNdkMonographVolumeAction;
+    private ChangeClippingsTitleToNdkMonographTitleAction changeClippingsTitleToNdkMonographTitleAction;
+    private UpdateNdkArticleAction updateNdkArticleAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -193,6 +220,12 @@ public final class DigitalObjectManager {
                         Object firstModel = valueMap.keySet().iterator().next();
                         foundView.setFilterModel(firstModel);
                     }
+                    Object previousSort = Offline.get(LAST_SELECTED_MODEL_TAG + "_sort");
+                    if (previousSort != null) {
+                        foundView.setSort(previousSort);
+                    } else {
+                        foundView.setSort("asc");
+                    }
                     foundView.refresh();
                 }
             }
@@ -205,19 +238,25 @@ public final class DigitalObjectManager {
 
     private void createActions() {
         archiveExportAction = new ArchiveExportAction(i18n);
+        archiveOldPrintExportAction = new ArchiveOldPrintExportAction(i18n);
         foxmlAction = new FoxmlViewAction(i18n);
         krameriusExportAction = new KrameriusExportAction(i18n);
+        kwisExportAction = new KWISExportAction(i18n);
         ndkExportAction = new NdkExportAction(i18n);
         ndkOldPrintExportAction = new NdkOldPrintExportAction(i18n);
         ndkSipExportAction = new NdkSipExportAction(i18n);
+        chronicleExportAction = new ChronicleExportAction(i18n);
         cejshExportAction = new CejshExportAction(i18n);
         crossrefExportAction = new CrossrefExportAction(i18n);
         desaExportAction = DesaExportAction.export(i18n);
         desaDownloadAction = DesaExportAction.download(i18n);
         fullDataStreamExportAction = DataStreamExportAction.full(i18n);
         rawDataStreamExportAction = DataStreamExportAction.raw(i18n);
+        ndkUserDataStreamExportAction = DataStreamExportAction.ndkUser(i18n);
         deleteAction = new DeleteAction(DigitalObjectDataSource.createDeletable(),
                 DigitalObjectDataSource.createDeleteOptionsForm(), i18n);
+        restoreAction = new RestoreAction(DigitalObjectDataSource.createRestorable(), i18n);
+        updateAllObjectsAction = new UpdateAllObjectsAction(i18n);
         ocrEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabOcr_Title(), DatastreamEditorType.OCR, i18n);
         noteEditAction = new DigitalObjectEditAction(
@@ -244,7 +283,16 @@ public final class DigitalObjectManager {
                 i18n.DigitalObjectEditor_AdministrationAction_Hint(),
                 null,
                 DatastreamEditorType.ATM, places);
+        technicalMetadataAction = new DigitalObjectEditAction(
+                i18n.DigitalObjectEditor_TabTechnical_Title(), i18n.DigitalObjectEditor_TabTechnical_Hint(),null, DatastreamEditorType.TECHNICAL, places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
+        copyObjectAction = new CopyObjectAction(i18n);
+        generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
+        changePageToNdkPageAction = new ChangePageToNdkPageAction(i18n);
+        changeNdkPageToPageAction = new ChangeNdkPageToPageAction(i18n);
+        changeClippingsVolumeToNdkMonographVolumeAction = new ChangeClippingsVolumeToNdkMonographVolumeAction(i18n);
+        changeClippingsTitleToNdkMonographTitleAction = new ChangeClippingsTitleToNdkMonographTitleAction(i18n);
+        updateNdkArticleAction = new UpdateNdkArticleAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -271,9 +319,11 @@ public final class DigitalObjectManager {
         IconMenuButton btnExport = Actions.asIconMenuButton(exportMenuAction, actionSource);
         Menu menuExport = Actions.createMenu();
         menuExport.addItem(Actions.asMenuItem(archiveExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(archiveOldPrintExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkSipExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(chronicleExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(ndkOldPrintExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(cejshExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(crossrefExportAction, actionSource, false));
@@ -281,7 +331,48 @@ public final class DigitalObjectManager {
         menuExport.addItem(Actions.asMenuItem(desaDownloadAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(fullDataStreamExportAction, actionSource, false));
         menuExport.addItem(Actions.asMenuItem(rawDataStreamExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(ndkUserDataStreamExportAction, actionSource, false));
+        menuExport.addItem(Actions.asMenuItem(kwisExportAction, actionSource, false));
         btnExport.setMenu(menuExport);
+
+
+        final AbstractAction administrationMenuAction = new AbstractAction(
+                i18n.AdministrationAction_Title(), "[SKIN]/headerIcons/settings_Over.png", null) {
+
+            @Override
+            public boolean accept(ActionEvent event) {
+                if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION))) {
+                //if (!Editor.getInstance().hasPermission("proarc.permission.admin") || !Editor.getInstance().hasPermission("superAdmin") || !Editor.getInstance().hasPermission("test")) {
+                    return false;
+                } else {
+                    Object[] selection = Actions.getSelection(event);
+                    return selection != null && selection.length > 0;
+                }
+            }
+
+            @Override
+            public void performAction(ActionEvent event) {
+                // choose default action iff supported
+            }
+        };
+
+        IconMenuButton btnAdministration = Actions.asIconMenuButton(administrationMenuAction, actionSource);
+        Menu menuAdministration = Actions.createMenu();
+        menuAdministration.addItem(Actions.asMenuItem(restoreAction, actionSource, false));
+        //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        menuAdministration.addItem(new MenuItemSeparator());
+        menuAdministration.addItem(Actions.asMenuItem(changePageToNdkPageAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToPageAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(changeClippingsVolumeToNdkMonographVolumeAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
+        menuAdministration.addItem(new MenuItemSeparator());
+        menuAdministration.addItem(Actions.asMenuItem(updateNdkArticleAction, actionSource, false));
+        menuAdministration.addItem(new MenuItemSeparator());
+        menuAdministration.addItem(Actions.asMenuItem(updateAllObjectsAction, actionSource, false));
+        btnAdministration.setMenu(menuAdministration);
+
+
 
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n),
                 new RefreshableView((Refreshable) actionSource.getSource())));
@@ -293,11 +384,14 @@ public final class DigitalObjectManager {
         toolbar.addMember(Actions.asIconButton(ocrEditAction, actionSource));
         toolbar.addMember(Actions.asIconButton(childrenEditAction, actionSource));
         toolbar.addMember(Actions.asIconButton(atmEditAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(technicalMetadataAction, actionSource));
         toolbar.addSeparator();
         toolbar.addMember(Actions.asIconButton(foxmlAction, actionSource));
         toolbar.addMember(btnExport);
         toolbar.addMember(Actions.asIconButton(deleteAction, actionSource));
         toolbar.addMember(Actions.asIconButton(registerUrnNbnAction, actionSource));
+        toolbar.addMember(Actions.asIconButton(copyObjectAction, actionSource));
+        toolbar.addMember(btnAdministration);
         if (menuType == MenuType.TREE_VIEW) {
             toolbar.addMember(Actions.asIconButton(expandTreeAction, actionSource));
         }
@@ -311,10 +405,12 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(ocrEditAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(childrenEditAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(atmEditAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(technicalMetadataAction, actionSource, false));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(foxmlAction, actionSource, true));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(archiveExportAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(archiveOldPrintExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(krameriusExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(ndkExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(ndkOldPrintExportAction, actionSource, false));
@@ -324,9 +420,12 @@ public final class DigitalObjectManager {
         menu.addItem(Actions.asMenuItem(desaDownloadAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(fullDataStreamExportAction, actionSource, false));
         menu.addItem(Actions.asMenuItem(rawDataStreamExportAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(ndkUserDataStreamExportAction, actionSource, false));
+        menu.addItem(Actions.asMenuItem(kwisExportAction, actionSource, false));
         menu.addItem(new MenuItemSeparator());
         menu.addItem(Actions.asMenuItem(deleteAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(registerUrnNbnAction, actionSource, true));
+        //menu.addItem(Actions.asMenuItem(copyObjectAction, actionSource, true));
         menu.addItem(Actions.asMenuItem(expandTreeAction, actionSource, true));
     }
 

@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -121,12 +122,24 @@ public class DeviceResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Device> getDevices(
-            @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id
-            ) throws DeviceException, JAXBException {
+            @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id,
+            @QueryParam(DeviceResourceApi.DEVICE_START_ROW_PARAM) int startRow
+            ) throws DeviceException, IOException {
 
+        RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+        int total = 0;
         boolean fetchDescription = id != null && !id.isEmpty();
-        List<Device> result = devRepo.find(id, fetchDescription);
-        return new SmartGwtResponse<Device>(result);
+        List<Device> result = new ArrayList<>();
+
+        if (id == null) {
+            total = devRepo.findAllDevices(0).size();
+            result = devRepo.findAllDevices(startRow);
+        } else {
+            result = devRepo.find(id, fetchDescription, startRow);
+            total = result.size();
+        }
+        int endRow = startRow + result.size() - 1;
+        return new SmartGwtResponse<Device>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, result);
     }
 
 

@@ -26,6 +26,8 @@ public final class DigitalObjectResourceApi {
     public static final String PATH = "object";
 
     public static final String DIGITALOBJECT_PID = "pid";
+    public static final String DIGITALOBJECT_PIDS = "pids";
+    public static final String DIGITALOBJECT_PIDNEW = "pidNew";
     public static final String DIGITALOBJECT_MODEL = "model";
     public static final String BATCHID_PARAM = "batchId";
     public static final String TIMESTAMP_PARAM = "timestamp";
@@ -39,10 +41,14 @@ public final class DigitalObjectResourceApi {
     public static final String DELETE_HIERARCHY_PARAM = "hierarchy";
     public static final String DELETE_PID_PARAM = DIGITALOBJECT_PID;
     public static final String DELETE_PURGE_PARAM = "purge";
+    public static final String DELETE_RESTORE_PARAM = "restore";
+
 
     public static final String SEARCH_PATH = "search";
     public static final String SEARCH_OWNER_PARAM = "owner";
     public static final String SEARCH_START_ROW_PARAM = "_startRow";
+    public static final String SEARCH_SORT_PARAM = "_sort";
+    public static final String SEARCH_SORT_FIELD_PARAM = "sortField";
     public static final String SEARCH_PHRASE_PARAM = "phrase";
     public static final String SEARCH_PID_PARAM = "pid";
     public static final String SEARCH_BATCHID_PARAM = "batchId";
@@ -53,11 +59,16 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_QUERY_MODEL_PARAM = "queryModel";
     public static final String SEARCH_QUERY_TITLE_PARAM = "queryTitle";
     public static final String SEARCH_TYPE_PARAM = "type";
+    public static final String SEARCH_STATUS_PARAM = "status";
+    public static final String SEACH_ORGANIZATION_PARAM = "organization";
+    public static final String SEARCH_PROCESSOR_PARAM = "processor";
     public static final String MODS_ADD_AUTHORITY = "addAuthority";
     /** XXX workaround to fix GWT 2.5 compiler bug related to the use of enum's static
      * field in enum's constant declaration.
      */
     private static final String SEARCH_TYPE_PARAM_DEFAULT = SearchType.DEFAULT;
+
+    private static final String SEARCH_SORT_PARAM_DEFAULT = SearchSort.DEFAULT_DESC;
 
     // resource /object/dc
     public static final String DC_PATH = "dc";
@@ -84,6 +95,13 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_ITEM_MODIFIED = "modified";
     public static final String MEMBERS_ITEM_PARENT = "parent";
     public static final String MEMBERS_ITEM_EXPORT = "export";
+    public static final String MEMBERS_ITEM_NDK_EXPORT = "ndkExport";
+    public static final String MEMBERS_ITEM_ARCHIVE_EXPORT = "archiveExport";
+    public static final String MEMBERS_ITEM_KRAMERIUS_EXPORT = "krameriusExport";
+    public static final String MEMBERS_ITEM_CROSSREF_EXPORT = "crossrefExport";
+    public static final String MEMBERS_ITEM_ORGANIZATION = "organization";
+    public static final String MEMBERS_ITEM_USER = "processor";
+    public static final String MEMBERS_ITEM_STATUS = "status";
 
     public static final String MEMBERS_ROOT_PARAM = "root";
 
@@ -111,9 +129,24 @@ public final class DigitalObjectResourceApi {
     // resource /object/mods/custom
     public static final String MODS_CUSTOM_PATH = "custom";
     public static final String MODS_CUSTOM_EDITORID = "editorId";
+    public static final String MODS_CUSTOM_EDITOR_PAGES = "editorPages";
     public static final String MODS_CUSTOM_CUSTOMJSONDATA = "jsonData";
     public static final String MODS_CUSTOM_CUSTOMXMLDATA = "xmlData";
     public static final String MODS_CUSTOM_IGNOREVALIDATION = "ignoreValidation";
+
+    public static final String TECHNICAL_CUSTOM_XMLDATA = "xmlData";
+    public static final String TECHNICAL_CUSTOM_JSONDATA = "jsonData";
+    public static final String TECHNICAL_CUSTOM_TYPE = "type";
+
+    public static final String MODS_PAGE_RULES_APPLY_TO = "applyTo";
+    public static final String MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE = "applyToFirstPage";
+    public static final String MODS_PAGE_RULES_NUMBER_PREFIX = "prefix";
+    public static final String MODS_PAGE_RULES_NUMBER_SUFFIX = "suffix";
+    public static final String MODS_PAGE_RULES_NUMBER_SEQUENCE_TYPE = "sequence";
+    public static final String MODS_PAGE_RULES_NUMBER_START_NUMBER = "startNumber";
+    public static final String MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER = "incrementNumber";
+    public static final String MODS_PAGE_RULES_INDEX_START_NUMBER = "startIndex";
+    public static final String MODS_PAGE_RULES_TYPE_PAGE = "pageType";
 
     // CustomMods
     public static final String CUSTOMMODS_ELEMENT = "mods";
@@ -143,6 +176,12 @@ public final class DigitalObjectResourceApi {
     /** Resource /object/ocr */
     public static final String OCR_PATH = "ocr";
 
+    /** Resource /object/technicalMetadata */
+    public static final String TECHNICALMETADATA_PATH = "technicalMetadata";
+    public static final String TECHNICALMETADATA_CODING_HISTORY_PATH = "technicalMetadataCodingHistory";
+    public static final String TECHNICALMETADATA_XML_PATH = "technicalMetadataXml";
+    public static final String TECHNICALMETADATA_XML_CODING_HISTORY_PATH = "technicalMetadataXmlCodingHistory";
+
     /** Resource /object/preview */
     public static final String PREVIEW_PATH = "preview";
 
@@ -161,6 +200,13 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_CREATED = MEMBERS_ITEM_CREATED;
     public static final String ATM_ITEM_DEVICE = "device";
     public static final String ATM_ITEM_EXPORTRESULT = "exportResult";
+    public static final String ATM_ITEM_NDK_EXPORT = "ndkExportResult";
+    public static final String ATM_ITEM_ARCHIVE_EXPORT = "archiveExportResult";
+    public static final String ATM_ITEM_KRAMERIUS_EXPORT = "krameriusExportResult";
+    public static final String ATM_ITEM_CROSSREF_EXPORT = "crossrefExportResult";
+    public static final String ATM_ITEM_STATUS = "status";
+    public static final String ATM_ITEM_ORGANIZATION = "organization";
+    public static final String ATM_ITEM_USER = "userProcessor";
     public static final String ATM_ITEM_FILENAME = "filename";
     public static final String ATM_ITEM_MODEL = DIGITALOBJECT_MODEL;
     public static final String ATM_ITEM_MODIFIED = MEMBERS_ITEM_MODIFIED;
@@ -170,8 +216,11 @@ public final class DigitalObjectResourceApi {
 
     /** Resource /object/thumb */
     public static final String URNNBN_PATH = "urnnbn";
+    public static final String COPYOBJECT_PATH = "copyObject";
     public static final String URNNBN_HIERARCHY = "hierarchy";
     public static final String URNNBN_RESOLVER = "resolverId";
+    public static final String REINDEX_PATH = "reindexObjects";
+    public static final String UPDATE_ALL_OBJECTS_PATH = "updateAllObjectsObjects";
 
     public static final String URNNBN_ITEM_URNNBN = "urnnbn";
     public static final String URNNBN_ITEM_MESSAGE = "message";
@@ -179,6 +228,16 @@ public final class DigitalObjectResourceApi {
     public static final String URNNBN_ITEM_WARNING = "warning";
     public static final String URNNBN_ITEM_LOG = "log";
     public static final String WORKFLOW_JOB_ID = "wfJobId";
+
+    public static final String GENERATE_JP2_PATH = "generateJp2";
+    public static final String GENERATE_TYPE = "generateType";
+
+    public static final String CHANGE_PAGE_TO_NDK_PAGE = "changePageToNdkPage";
+    public static final String CHANGE_NDK_PAGE_TO_PAGE = "changeNdkPageToPage";
+    public static final String CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME = "changeClippingsVolumeToNdkMonographVolume";
+    public static final String CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = "changeClippingsTitleToNdkMonographTitle";
+
+    public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
 
     public enum SearchType {
         
@@ -188,7 +247,12 @@ public final class DigitalObjectResourceApi {
         PARENT("parent"),
         PIDS("pids"),
         PHRASE("phrase"),
-        QUERY("query");
+        QUERY("query"),
+        DELETED("deleted"),
+        ALPHABETICAL("alphabetical"),
+        ADVANCED("advanced"),
+        STATUS("status"),
+        ALL("all");
         
         public static final String DEFAULT = "lastCreated";
         private String external;
@@ -204,6 +268,34 @@ public final class DigitalObjectResourceApi {
 
         public static SearchType fromString(String external) {
             for (SearchType type : values()) {
+                if (type.external.equals(external)) {
+                    return type;
+                }
+            }
+            return null;
+        }
+
+    }
+
+    public enum SearchSort {
+
+        DESC(SEARCH_SORT_PARAM_DEFAULT),
+        ASC("asc");
+
+        public static final String DEFAULT_DESC = "desc";
+        private String external;
+
+        SearchSort(String external) {
+            this.external = external;
+        }
+
+        @Override
+        public String toString() {
+            return external;
+        }
+
+        public static SearchSort fromString(String external) {
+            for (SearchSort type : values()) {
                 if (type.external.equals(external)) {
                     return type;
                 }

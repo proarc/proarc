@@ -34,38 +34,33 @@ public class NdkMonographVolumeForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true)
-                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
-                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
-                .createField());
+        f.getFields().add(NdkForms.descriptionRadioButton());
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);
         List<Field> modsFields = mods.getFields();
 
-        modsFields.add(titleInfo());
+        modsFields.add(titleInfo(true));
         modsFields.add(name());
         modsFields.add(typeOfResource());
-        modsFields.add(genre());
-        modsFields.add(originInfo());
-        modsFields.add(language());
-        modsFields.add(physicalDescription());
+        modsFields.add(genre(true));
+        modsFields.add(originInfo(true));
+        modsFields.add(language(true));
+        modsFields.add(physicalDescription(true));
         modsFields.add(abstracts());
         modsFields.add(note());
         modsFields.add(subject());
         modsFields.add(classification());
-        // XXX unsupported yet
-        // relatedItem
-        modsFields.add(identifier());
-        modsFields.add(location());
+        modsFields.add(identifier(true));
+        modsFields.add(location(true));
         modsFields.add(part());
-        modsFields.add(recordInfo());
+        modsFields.add(NdkForms.recordInfo());
+        modsFields.add(relatedItem());
 
         return f;
     }
 
-    private Field titleInfo() {
+    private Field titleInfo(boolean required) {
         // titleInfo, titleInfoDefinition
         return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
                 .setHint("Název titulu.<p>Pro plnění použít katalogizační záznam.")
@@ -84,7 +79,7 @@ public class NdkMonographVolumeForm {
                 .createField()) // type
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required)
                         .setHint("Název svazku monografie.")
                     .createField()) // value
                     // lang, String
@@ -201,6 +196,89 @@ public class NdkMonographVolumeForm {
             .createField(); // name
     }
 
+    private Field nameInSubject() {
+        // name, nameDefinition
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - R")
+                .setHint("Údaje o odpovědnosti za svazek."
+                        + "<p>Pokud má monografie autora a ilustrátora, element &lt;name> se opakuje s různými rolemi.")
+                // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
+                // @type(personal, corporate, conference, family)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
+                        // issue: 612 not required
+                        .setRequired(false)
+                        .setHint("<dl>"
+                                + "<dt>personal</dt><dd>celé jméno osoby</dd>"
+                                + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
+                                + "<dt>conference</dt><dd>název konference nebo související typ setkání</dd>"
+                                + "<dt>family</dt><dd>rodina/rod</dd>"
+                                + "</dl>")
+                        .addMapValue("personal", "personal")
+                        .addMapValue("corporate", "corporate")
+                        .addMapValue("conference", "conference")
+                        .addMapValue("family", "family")
+                        .createField()) // @type
+                // @usage(fixed="primary")
+                .addField(new FieldBuilder("usage").setTitle("Usage - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+                        .setHint("Hodnota “primary” pro označení primární autority.")
+                        .addMapValue("", "")
+                        .addMapValue("primary", "primary")
+                        .createField()) // usage
+                // namePart, namePartDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("namePart").setTitle("Name Parts - R").setMaxOccurrences(5)
+                        // @type(date, family, given, termsOfAddress)
+                        .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
+                                .setHint("<dl>"
+                                        + "<dt>date</dt><dd>RA - datum</dd>"
+                                        + "<dt>family</dt><dd>MA -příjmení </dd>"
+                                        + "<dt>given</dt><dd>MA - jméno/křestní jméno</dd>"
+                                        + "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
+                                        + "</dl>")
+                                .addMapValue("date", "date")
+                                .addMapValue("family", "family")
+                                .addMapValue("given", "given")
+                                .addMapValue("termsOfAddress", "termsOfAddress")
+                                .createField()) // @type
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1)
+                                .setType(Field.TEXT)
+                                // issue: 612 not required
+                                .setRequired(false)
+                                .setHint("Údaje o křestním jméně, příjmení apod."
+                                        + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
+                                        + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
+                                        + " nepoužije se type a jméno se zaznamená"
+                                        + " v podobě jaké je do jednoho elementu &lt;namePart>"
+                                        + "<p>Pokud známe datum narození a úmrtí autora, vyplnit"
+                                        + " ve tvaru RRRR-RRRR s atributem type=”date”.")
+                                .createField()) // value
+                        .createField()) // namePart
+                // displayForm
+                .addField(new FieldBuilder("etal").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Etal - O").setType(Field.TEXT)
+                                .setHint("Element indikující, že existuje více autorů, než pouze ti, kteří byli uvedeni v <name> elementu." +
+                                        "<p>V případě užití tohoto elementu je dále top element <name> neopakovatelný." +
+                                        "<p><etal> je nutné umístit do samostatného top elementu <name>, ve kterém se " +
+                                        "nesmí objevit subelementy <namePart> a <nameIdentifier>." +
+                                        "<p><etal> je neopakovatelný element, který se do zápisu vkládá ručně.").createField())
+                        .createField()) //etal
+                // affiliation
+                // role, roleDefinition
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - R").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
+                .addField(new FieldBuilder("role").setTitle("Role - R").setMaxOccurrences(5)
+                        .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
+                        // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
+                        // issue: 612 not required
+                        .addField(NdkForms.roleTerm(
+                                "Role Term - R", false, "Authority - R", false, "Type - M", false
+                        )) // roleTerm
+                        .createField()) // role
+                // description
+                .createField(); // name
+        }
+
     private Field typeOfResource() {
         // typeOfResource, typeOfResourceDefinition extends resourceTypeDefinition
         return new FieldBuilder("typeOfResource").setMaxOccurrences(1)
@@ -218,18 +296,18 @@ public class NdkMonographVolumeForm {
         .createField(); // typeOfResource
     }
 
-    private Field genre() {
+    private Field genre(boolean required) {
         // genre, genreDefinition extends stringPlusLanguagePlusAuthority extends stringPlusLanguage
         return new FieldBuilder("genre").setTitle("Genre - M").setMaxOccurrences(10)
                 .setHint("Bližší údaje o typu dokumentu.<p>Pro monografie hodnota “volume”.")
                 // genreDefinition@attributes: type, displayLabel, altRepGroup, usage
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required).createField())
         .createField(); // genre
     }
 
-    private Field originInfo() {
+    private Field originInfo(boolean required) {
         // originInfo, originInfoDefinition
         return new FieldBuilder("originInfo").setTitle("Origin Info - M").setMaxOccurrences(10)
                 .setHint("Informace o původu předlohy.")
@@ -350,7 +428,7 @@ public class NdkMonographVolumeForm {
                     .addField(new FieldBuilder("value").setTitle("Edition - R").setMaxOccurrences(1).setType(Field.TEXT).setHint("Pořadí vydání").createField())
                 .createField()) // edition
                 // issuance, issuanceDefinition, enum
-                .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(true)
+                .addField(new FieldBuilder("issuance").setTitle("Issuance - M").setMaxOccurrences(1).setType(Field.SELECT).setRequired(required)
                     .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
                     .addMapValue("monographic", "monographic")
                     .addMapValue("single unit", "single unit")
@@ -360,7 +438,7 @@ public class NdkMonographVolumeForm {
         .createField(); // originInfo
     }
 
-    private Field language() {
+    private Field language(boolean required) {
         // language, languageDefinition
         return new FieldBuilder("language").setTitle("Languages - M").setMaxOccurrences(10)
                 .setHint("Údaje o jazyce dokumentu; v případě vícenásobného výskytu nutno element &lt;language> opakovat")
@@ -379,7 +457,7 @@ public class NdkMonographVolumeForm {
                     // @authorityURI, @valueURI
                     // @authority, enum
                     .addField(new FieldBuilder("authority").setTitle("Authority - M").setMaxOccurrences(1)
-                        .setType(Field.SELECT).setRequired(true)
+                        .setType(Field.SELECT).setRequired(required)
                         .setHint("Použít hodnotu „iso639-2b“.")
                         .addMapValue("iso639-2b", "ISO 639-2B")
                         .addMapValue("rfc3066", "RFC 3066")
@@ -389,19 +467,19 @@ public class NdkMonographVolumeForm {
                     .createField()) // authority
                     // type, codeOrText('code', 'text')
                     .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1)
-                        .setType(Field.SELECT).setRequired(true)
+                        .setType(Field.SELECT).setRequired(required)
                         .setHint("Typ popisu.")
                         .addMapValue("code", "code")
                         .addMapValue("text", "text")
                     .createField()) // type
-                    .addField(NdkForms.createLangTermValue()
+                    .addField(NdkForms.createLangTermValue(required)
                     .createField()) // value
                 .createField()) // languageTerm
                 // scriptTerm
         .createField(); // language
     }
 
-    private Field physicalDescription() {
+    private Field physicalDescription(boolean required) {
         // physicalDescription, physicalDescriptionDefinition
         return new FieldBuilder("physicalDescription").setTitle("Physical Description - M").setMaxOccurrences(10)
                 .setHint("Obsahuje údaje o fyzickém popisu zdroje/předlohy.")
@@ -420,7 +498,7 @@ public class NdkMonographVolumeForm {
                         .addMapValue(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER, ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER)
                     .createField()) // authority
                     .addField(new FieldBuilder("value").setTitle("Form - M").setMaxOccurrences(1)
-                        .setType(Field.COMBO).setRequired(true).setHint("form")
+                        .setType(Field.COMBO).setRequired(required).setHint("form")
                         .setHint("Údaje o fyzické podobě dokumentu, např. print, electronic, microfilm apod."
                             + "<p>Odpovídá hodnotě v poli 008/23")
                         .addMapValue("braille", "braille")
@@ -475,7 +553,7 @@ public class NdkMonographVolumeForm {
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @xlink:simpleLink, @shareable, @altRepGroup
                 // altFormatAttributeGroup: @altFormat, @contentType
-                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
+                .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA).setLength(2700)
                     .setHint("Shrnutí obsahu jako celku. Odpovídá poli 520 MARC21")
                 .createField()) // value
         .createField(); // abstract
@@ -483,7 +561,7 @@ public class NdkMonographVolumeForm {
 
     private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(30)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
@@ -496,7 +574,7 @@ public class NdkMonographVolumeForm {
 
     private Field subject() {
         // subject, subjectDefinition
-        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(10)
+        return new FieldBuilder("subject").setTitle("Subject - R").setMaxOccurrences(30)
                 .setHint("Údaje o věcném třídění.")
                 // @ID, @authorityAttributeGroup, @languageAttributeGroup, @xlink:simpleLink, @displayLabel, @altRepGroup, @usage
                 // autofill "czenas"
@@ -553,7 +631,8 @@ public class NdkMonographVolumeForm {
 
                 // titleInfo, subjectTitleInfoDefinition
                 // name, subjectNameDefinition
-                .addField(new FieldBuilder("name").setMaxOccurrences(1)
+                .addField(nameInSubject()
+                        /*new FieldBuilder("name").setMaxOccurrences(1)
                     // @type, enum: personal, corporate, ...
                     // @ID, @xlink:simpleLink, displayLabel
                     // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
@@ -573,7 +652,8 @@ public class NdkMonographVolumeForm {
                     // affiliation
                     // role
                     // description
-                .createField()) // name
+                */
+                        ) // name
 
                 // geographicCode
                 // hierarchicalGeographic
@@ -605,7 +685,7 @@ public class NdkMonographVolumeForm {
         .createField(); // classification
     }
 
-    private Field identifier() {
+    private Field identifier(boolean required) {
         // identifier, identifierDefinition, [0,*]
         return new FieldBuilder("identifier").setTitle("Identifier - M").setMaxOccurrences(10)
                 .setHint("Údaje o identifikátorech.<p>Obsahuje unikátní identifikátory"
@@ -617,7 +697,7 @@ public class NdkMonographVolumeForm {
                 //   script, xs:string
                 //   transliteration, xs:string
                 //   type, xs:string
-                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(true)
+                .addField(new FieldBuilder("type").setTitle("Type - M").setMaxOccurrences(1).setType(Field.COMBO).setRequired(required)
                     .setHint("UUID - M - vygeneruje dodavatel"
                             + "<br>čČNB - MA - převzít z katalogizačního záznamu z pole 015, podpole „a“, „z“"
                             + "<br>ISBN - MA - převzít z katalogizačního záznamu z pole 020, podpole „a“, „z“"
@@ -640,7 +720,7 @@ public class NdkMonographVolumeForm {
                     .addMapValue("oclc", "OCLC")
                 .createField())
                 // stringPlusLanguage/value
-                .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true).createField())
+                .addField(new FieldBuilder("value").setTitle("Identifier - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required).createField())
                 // identifierDefinition
                 //   displayLabel, xs:string
                 //   typeURI, xs:anyURI
@@ -653,7 +733,7 @@ public class NdkMonographVolumeForm {
         .createField(); // identifier
     }
 
-    private Field location() {
+    private Field location(boolean required) {
         // location, locationDefinition
         return new FieldBuilder("location").setTitle("Location - MA").setMaxOccurrences(10)
                 .setHint("Údaje o uložení popisovaného dokumentu, např. signatura, místo uložení apod.")
@@ -666,7 +746,7 @@ public class NdkMonographVolumeForm {
                     .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("siglaADR").createField())
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                     // @xlink:simpleLink, @displayLabel, @type
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required)
                         .setHint("Údaje o instituci, kde je fyzicky uložen popisovaný dokument. Např. NK ČR."
                             + "<p>Nutno použít kontrolovaný slovník - sigly knihovnen (ABA001 atd.)"
                             + "<p>Odpovídá poli 910 $a v MARC21."
@@ -676,7 +756,7 @@ public class NdkMonographVolumeForm {
                 // shelfLocator, stringPlusLanguage
                 .addField(new FieldBuilder("shelfLocator").setTitle("Shelf Locator - M").setMaxOccurrences(10)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(required)
                         .setHint("Signatura nebo lokační údaje o daném konkrétním dokumentu, který slouží jako předloha.")
                     .createField()) // value
                 .createField()) // shelfLocator
@@ -727,89 +807,46 @@ public class NdkMonographVolumeForm {
             .createField(); // part
     }
 
-    private Field recordInfo() {
-        // recordInfo, recordInfoDefinition
-        return new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
-                .setHint("Údaje o metadatovém záznamu - jeho vzniku, změnách apod.")
-                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
-                // @displayLabel, @altRepGroup
-                // recordContentSource, stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("recordContentSource").setTitle("Record Content Source - R").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("marcorg").createField())
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Kód nebo jméno instituce, která záznam vytvořila nebo změnila.")
-                    .createField()) // value
-                .createField()) // recordContentSource
-                // recordCreationDate, dateDefinition
-                .addField(new FieldBuilder("recordCreationDate").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // @encoding, @qualifier, @point, @keyDate
-                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                    .addField(new FieldBuilder("value").setTitle("Record Creation Date - M").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                .createField()) // recordCreationDate
-                // recordChangeDate, dateDefinition
-                .addField(new FieldBuilder("recordChangeDate").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // @encoding, @qualifier, @point, @keyDate
-                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                    .addField(new FieldBuilder("value").setTitle("Record Change Date - MA").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                .createField()) // recordChangeDate
-                // recordIdentifier, type="recordIdentifierDefinition" extends stringPlusLanguage
-                .addField(new FieldBuilder("recordIdentifier").setTitle("Record Identifier - R").setMaxOccurrences(1)
-                    // lang, String
-                    // xmlLang, lang
-                    // script, String
-                    // transliteration, String
-                    // @source, string
-                    .addField(new FieldBuilder("source").setTitle("Source - R").setMaxOccurrences(1).setType(Field.TEXT).createField())
-                    .addField(new FieldBuilder("value").setTitle("Identifier - R").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Identifikátor záznamu v katalogu, přebírá se z pole 001.")
-                    .createField())
-                .createField()) // recordIdentifier
-                // languageOfCataloging, languageDefinition
-                .addField(new FieldBuilder("languageOfCataloging").setTitle("Language of Cataloging - R").setMaxOccurrences(10)
-                    // @objectPart, @displayLabel, @altRepGroup, @usage
-                    // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
-                    // languageTerm, languageTermDefinition
-                    .addField(new FieldBuilder("languageTerm").setMaxOccurrences(1)
-                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                        // @authorityURI, @valueURI
-                        // @authority, enum
-                        .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.SELECT)
-                            .addMapValue("iso639-2b", "ISO 639-2B")
-                            .addMapValue("rfc3066", "RFC 3066")
-                            .addMapValue("iso639-3", "ISO 639-3")
-                            .addMapValue("rfc4646", "RFC 4646")
-                            .addMapValue("rfc5646", "RFC 5646")
-                        .createField()) // authority
-                        // type, codeOrText('code', 'text')
-                        .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
-                            .addMapValue("code", "code")
-                            .addMapValue("text", "text")
+    private Field relatedItem() {
+        return new FieldBuilder("relatedItem").setTitle("Related Item - RA").setMaxOccurrences(10)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1)
+                        .setHint("Type spolu s otherType popisují vztah položky, popsané " +
+                                "v <relatedItem> a dokumentu, který je předmětem MODS záznamu").setType(Field.SELECT)
+                        .addMapValue("preceding", "preceding")
+                        .addMapValue("succeeding", "succeeding")
+                        .addMapValue("original", "original")
+                        .addMapValue("host", "host")
+                        .addMapValue("constituent", "constituent")
+                        .addMapValue("series", "series")
+                        .addMapValue("otherVersion", "otherVersion")
+                        .addMapValue("otherFormat", "otherFormat")
+                        .addMapValue("isReferencedBy", "isReferencedBy")
+                        .addMapValue("references", "references")
+                        .addMapValue("reviewOf", "reviewOf")
                         .createField())
-                        .addField(NdkForms.createLangTermValue()
-                            .setTitle("Language - R").setRequired(Boolean.FALSE)
-                        .createField()) // value
-                    .createField()) // languageTerm
-                    // scriptTerm
-                .createField()) // languageOfCataloging
-
-                // recordOrigin, extends stringPlusLanguage
-                .addField(new FieldBuilder("recordOrigin").setMaxOccurrences(1)
-                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Record Origin - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
-                        .setHint("Údaje o vzniku záznamu.")
-                        .addMapValue("machine generated", "machine generated")
-                        .addMapValue("human prepared", "human prepared")
-                    .createField()) // value
-                .createField()) // recordChangeDate
-                .addField(new FieldBuilder("recordInfoNote").setMaxOccurrences(1)
-                    .addField(new FieldBuilder("value").setTitle("Record Info Note - O").setMaxOccurrences(1).setType(Field.TEXT).setWidth("200")
-                        .setHint("Poznámka k záznamu").createField())
-                    .createField()) //recordInfoNote
-                .addField(new FieldBuilder("descriptionStandard").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField()) //descriptionStandard
-        .createField(); // recordInfo
+                .addField(new FieldBuilder("otherType").setTitle("Other Type - O").setMaxOccurrences(1)
+                        .setHint("Type spolu s otherType popisují vztah položky, popsané " +
+                        "v <relatedItem> a dokumentu, který je předmětem MODS záznamu").setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("otherTypeURI").setTitle("Other Type URI - O").setMaxOccurrences(1)
+                        .setHint("Odkaz na zdroj položky v <relatedItem>, který se vztahuje k popisovanému").setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("otherTypeAuth").setTitle("Other Type Auth - O").setMaxOccurrences(1)
+                        .setHint("Autoritní záznam příbuzné položky").setType(Field.TEXT).createField())
+                .addField(new FieldBuilder("otherTypeAuthURI").setTitle("Other Type Auth URI - O").setMaxOccurrences(1)
+                        .setHint("Odkaz na autoritní záznam příbuzné položky").setType(Field.TEXT).createField())
+                .addField(titleInfo(false))
+                .addField(name())
+                .addField(typeOfResource())
+                .addField(genre(false))
+                .addField(originInfo(false))
+                .addField(language(false))
+                .addField(physicalDescription(false))
+                .addField(abstracts())
+                .addField(note())
+                .addField(subject())
+                .addField(classification())
+                .addField(identifier(false))
+                .addField(location(false))
+                .addField(part())
+                .createField();
     }
-
 }

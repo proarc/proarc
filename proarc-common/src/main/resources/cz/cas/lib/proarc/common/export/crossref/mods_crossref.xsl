@@ -42,10 +42,11 @@ Author Miroslav Pavelka
     <xsl:param name="export_uuid"/>
     <!-- čas exportu - formát RRRRMMDDhhmm -->
     <xsl:param name="export_time"/>
+    <xsl:param name="journalsInfo"/>
 
     <xsl:param name="kramerius_link">http://kramerius.lib.cas.cz/search/handle/uuid:</xsl:param>
 
-    <xsl:variable name="lookupDoc" select="document('../cejsh/cejsh_journals.xml')" />
+    <xsl:variable name="lookupDoc" select="document($journalsInfo)"/>
     <xsl:variable name="depositor_name" select="$lookupDoc/cejsh/journal[@issn=$issn]/depositorName"/>
     <xsl:variable name="email_address" select="$lookupDoc/cejsh/journal[@issn=$issn]/emailAddress"/>
 
@@ -334,6 +335,24 @@ Author Miroslav Pavelka
                             <xsl:if test="$end_page">
                                 <xsl:element name="last_page">
                                     <xsl:value-of select="$end_page"/>
+                                </xsl:element>
+                            </xsl:if>
+                        </xsl:element>
+                    </xsl:if>
+
+                    <xsl:variable name="start_page_part" select="./mods:part/mods:extent/mods:start" />
+                    <xsl:variable name="end_page_part" select="./mods:part/mods:extent/mods:end" />
+
+                    <xsl:if test="$start_page_part or $end_page_part">
+                        <xsl:element name="pages">
+                            <xsl:if test="$start_page_part">
+                                <xsl:element name="first_page">
+                                    <xsl:value-of select="$start_page_part"/>
+                                </xsl:element>
+                            </xsl:if>
+                            <xsl:if test="$end_page_part">
+                                <xsl:element name="last_page">
+                                    <xsl:value-of select="$end_page_part"/>
                                 </xsl:element>
                             </xsl:if>
                         </xsl:element>

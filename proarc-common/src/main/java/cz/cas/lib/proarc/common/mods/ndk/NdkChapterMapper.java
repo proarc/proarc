@@ -34,11 +34,14 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
 
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDetailWithPageRangeToPart;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -47,7 +50,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
  *
  * @author Jan Pokorsky
  */
-public class NdkChapterMapper extends NdkMapper {
+public class NdkChapterMapper extends RdaNdkMapper {
 
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
@@ -84,8 +87,9 @@ public class NdkChapterMapper extends NdkMapper {
         for (ClassificationDefinition classification : classifications) {
             repairAuthorityInClassification(classification);
         }
-
+        fillAbstract(mods);
         fillRecordInfo(mods);
+        addDetailWithPageRangeToPart(mods);
     }
 
     protected void addGenre(ModsDefinition mods) {
@@ -139,6 +143,7 @@ public class NdkChapterMapper extends NdkMapper {
                 }
             }
         }
+        addLanguage(mods.getLanguage(), dc);
         return dc;
     }
 

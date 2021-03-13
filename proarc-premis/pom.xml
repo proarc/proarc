@@ -9,24 +9,14 @@
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-mets</artifactId>
-            <version>3.5-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-mets</artifactId>
-            <version>3.5-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-mets</artifactId>
-            <version>3.5-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>3.6-SNAPSHOT</version>
+        <version>3.6.5-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

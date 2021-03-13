@@ -39,6 +39,8 @@ import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.Label;
+import com.smartgwt.client.widgets.events.ClickEvent;
+import com.smartgwt.client.widgets.events.ClickHandler;
 import com.smartgwt.client.widgets.layout.HLayout;
 import com.smartgwt.client.widgets.layout.Layout;
 import com.smartgwt.client.widgets.layout.VLayout;
@@ -86,6 +88,7 @@ import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
 import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
 import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
 import cz.cas.lib.proarc.webapp.client.widget.UserInfoView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -203,18 +206,38 @@ public class Editor implements EntryPoint {
 
     private void loadPermissions() {
         sweepTask.expect();
+        UserDataSource.getInstance().fetchData(new Criteria(UserDataSource.FIELD_WHOAMI, "true"), new DSCallback() {
+            @Override
+            public void execute(DSResponse response, Object rawData, DSRequest request) {
+                String role = "none";
+                String permissionRunUpdateFunction = "none";
+                if (RestConfig.isStatusOk(response)) {
+                    Record[] data = response.getData();
+                    if (data.length > 0) {
+                        role = data[0].getAttribute(UserDataSource.FIELD_ROLE);
+                        permissionRunUpdateFunction = data[0].getAttribute(UserDataSource.FIELD_CHANGE_MODEL_FUNCTION);
+                    }
+                    permissions.clear();
+                    permissions.add(role);
+                    permissions.add("true".equals(permissionRunUpdateFunction) ? UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION : "none");
+                    sweepTask.release();
+                }
+            }
+        });
         UserPermissionDataSource.getInstance().fetchData(null, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
-                    permissions.clear();
+                    //permissions.clear();
                     permissions.addAll(UserPermissionDataSource.asPermissions(data));
                     sweepTask.release();
                 }
             }
         });
+
+
     }
 
     /**
@@ -251,11 +274,56 @@ public class Editor implements EntryPoint {
         mainHeader.addMember(createGlobalMenuButton(menu));
         mainHeader.addMember(createLangMenu());
         createUserLink(mainHeader, mainHeader.getMembers().length);
+        mainHeader.addMember(createButtonImportHistory());
+        mainHeader.addMember(createButtonSearchObject());
+        mainHeader.addMember(createButtonZamer());
         mainHeader.addFill();
         mainHeader.addMember(headerItem);
         mainHeader.addSpacer(6);
 
         return mainHeader;
+    }
+
+    private Canvas createButtonImportHistory() {
+        IconButton btn = new IconButton();
+        btn.setTitle(i18n.MainMenu_Import_Edit_Title_Btn());
+        btn.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                PlaceController placeController = getEditorWorkFlow().getPlaceController();
+                placeController.goTo( new ImportPlace(Type.HISTORY));
+                return;
+            }
+        });
+        return btn;
+    }
+
+    private Canvas createButtonSearchObject() {
+        IconButton btn = new IconButton();
+        btn.setTitle(i18n.MainMenu_Edit_Edit_Title_Btn());
+        btn.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                PlaceController placeController = getEditorWorkFlow().getPlaceController();
+                placeController.goTo(new DigitalObjectManagerPlace());
+                return;
+            }
+        });
+        return btn;
+    }
+
+    private Canvas createButtonZamer() {
+        IconButton btn = new IconButton();
+        btn.setTitle(i18n.MainMenu_Workflow_Jobs_Title());
+        btn.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                PlaceController placeController = getEditorWorkFlow().getPlaceController();
+                placeController.goTo(new WorkflowJobPlace());
+                return;
+            }
+        });
+        return btn;
     }
 
     private Canvas createLangMenu() {
@@ -264,8 +332,8 @@ public class Editor implements EntryPoint {
         langMenuButton.setCanFocus(Boolean.FALSE);
         Menu m = new Menu();
         m.setShowShadow(Boolean.TRUE);
-        m.addItem(createLangItem("cs", "Česky", activeLocale));
-        m.addItem(createLangItem("en", "English", activeLocale));
+        m.addItem(createLangItem("cs", ClientUtils.format("<b>%s</b>", "Česky"), activeLocale));
+        m.addItem(createLangItem("en", ClientUtils.format("<b>%s</b>", "English"), activeLocale));
         langMenuButton.setMenu(m);
         m.addItemClickHandler(new ItemClickHandler() {
 
@@ -327,7 +395,7 @@ public class Editor implements EntryPoint {
                         title = user.getAttribute(UserDataSource.FIELD_USERNAME);
                     }
                 }
-                userButton.setTitle(title);
+                userButton.setTitle(ClientUtils.format("<b>%s</b>", title));
                 mainHeader.addMember(userButton, index);
             }
         });
@@ -342,8 +410,7 @@ public class Editor implements EntryPoint {
         menuWindow.setWidth(200);
         menuWindow.setMembers(menu);
         final IconMenuButton[] globalMenuButton = new IconMenuButton[1];
-        globalMenuButton[0] = Actions.asIconMenuButton(new AbstractAction(
-                i18n.MainMenu_Title(), null, null) {
+        globalMenuButton[0] = Actions.asIconMenuButton(new AbstractAction(ClientUtils.format("<b>%s</b>", i18n.MainMenu_Title()), null, null) {
 
             @Override
             public void performAction(ActionEvent event) {
@@ -381,7 +448,7 @@ public class Editor implements EntryPoint {
                 ),
                 createTreeNode("Devices", i18n.MainMenu_Devices_Title(), new DeviceManagerPlace()),
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
-                createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
+                createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin", UserRole.ROLE_SUPERADMIN)),
                 createProtectedTreeNode("Console", i18n.MainMenu_Console_Title(), Arrays.asList("proarc.permission.admin")),
                 createTreeNode("About", i18n.AboutWindow_Title()),
         };
@@ -443,14 +510,19 @@ public class Editor implements EntryPoint {
     }
 
     public boolean hasPermission(String permission) {
+
         return permissions.contains(permission);
     }
 
     private boolean checkCredentials(List<String> requires) {
-        if (requires != null && !permissions.containsAll(requires)) {
-            return true;
+        if (requires != null) {
+            for (String require : requires) {
+                if (permissions.contains(require)) {
+                    return false;
+                }
+            }
         }
-        return false;
+        return true;
     }
 
     private TreeNode createProtectedTreeNode(String name, String displayName, Place place, List<String> requires) {

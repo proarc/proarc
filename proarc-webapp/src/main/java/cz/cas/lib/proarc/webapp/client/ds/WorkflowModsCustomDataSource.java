@@ -66,4 +66,24 @@ public class WorkflowModsCustomDataSource extends ProarcDataSource implements Mo
         updateData(customRecord, callback, callback.getUpdateRequest());
     }
 
+    public void saveXmlDescription(DigitalObjectDataSource.DigitalObject dobj, String xml, ModsCustomDataSource.DescriptionSaveHandler callback) {
+        saveXmlDescription(dobj, xml, -1, callback);
+    }
+
+    public void saveXmlDescription(DigitalObjectDataSource.DigitalObject dobj, String xml, long timestamp, ModsCustomDataSource.DescriptionSaveHandler callback) {
+        Record update = new Record();
+        dobj.toCriteria();
+        update.setAttribute(ModsCustomDataSource.FIELD_PID, dobj.getPid());
+        if (xml == null || xml.isEmpty()) {
+            return ;
+        }
+        update.setAttribute(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA, xml);
+        update.setAttribute(ModsCustomDataSource.FIELD_TIMESTAMP, timestamp);
+        update.setAttribute(ModsCustomDataSource.FIELD_EDITOR, dobj.getModel().getEditorId());
+        update.setAttribute(MetaModelDataSource.FIELD_MODELOBJECT, dobj.getModelId());
+        update.setAttribute(WorkflowModelConsts.PARAMETER_JOBID, dobj.getWorkflowJobId());
+        callback.setUpdateRecord(update);
+        updateData(update, callback, callback.getUpdateRequest());
+    }
+
 }

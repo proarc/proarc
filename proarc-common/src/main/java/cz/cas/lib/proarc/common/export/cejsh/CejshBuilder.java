@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.cejsh;
 
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -48,7 +49,6 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -104,6 +104,7 @@ class CejshBuilder {
     private static Schema SCHEMA_BWMETA;
     private static Pattern SAFE_FILENAME_RE;
     private static final Logger LOG = Logger.getLogger(CejshBuilder.class.getName());
+    private final ExportOptions options;
 
     private final Transformer bwmetaXsl;
     private final TransformErrorListener tranformationErrorHandler;
@@ -119,9 +120,11 @@ class CejshBuilder {
     private Issue issue;
     private Level logLevel;
 
-    public CejshBuilder(CejshConfig config) throws TransformerConfigurationException, ParserConfigurationException, XPathExpressionException {
+    public CejshBuilder(CejshConfig config, ExportOptions options)
+            throws Exception {
         this.gcalendar = new GregorianCalendar(UTC);
         this.logLevel = config.getLogLevel();
+        this.options = options;
         TransformerFactory xslFactory = TransformerFactory.newInstance();
         tranformationErrorHandler = new TransformErrorListener();
         bwmetaXsl = xslFactory.newTransformer(new StreamSource(config.getCejshXslUrl()));
@@ -130,6 +133,10 @@ class CejshBuilder {
         }
         bwmetaXsl.setOutputProperty(OutputKeys.INDENT, "yes");
         bwmetaXsl.setErrorListener(tranformationErrorHandler);
+        if (options.getJournalsInfoPath() == null || options.getJournalsInfoPath().length() == 0) {
+            throw new Exception("Not configurated path : \"export.cejsh_crossref.journals.path=\".");
+        }
+        bwmetaXsl.setParameter("journalsInfo", options.getJournalsInfoPath());
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         db = dbf.newDocumentBuilder();
@@ -226,6 +233,7 @@ class CejshBuilder {
         if (getIssue() != null) {
             bwmetaXsl.setParameter("issue", getIssue().getIssueNumber());
             bwmetaXsl.setParameter("issueId", getIssue().getIssueId());
+            bwmetaXsl.setParameter("date", getIssue().getDateIssued());
         }
         try {
             tranformationErrorHandler.reset();
@@ -247,7 +255,7 @@ class CejshBuilder {
             Document doc = mergeElements(articles);
 
             String pkgName = createPackageName();
-            packageFolder = ExportUtils.createFolder(p.getOutput(), pkgName);
+            packageFolder = ExportUtils.createFolder(p.getOutput(), pkgName, options.isOverwritePackage());
             File importFolder = new File(packageFolder, IMPORTS_NEW_FILENAME);
             importFolder.mkdirs();
             writeProperties(packageFolder, articles.size());
@@ -468,6 +476,7 @@ class CejshBuilder {
                 Issue result = new Issue();
                 result.setIssueId(FoxmlUtils.pidAsUuid(issue.getPid()));
                 result.setIssueNumber(getPartNumberPath().evaluate(modsDom));
+                result.setDateIssued(getDateIssuedPath().evaluate(modsDom));
                 if (result.getIssueNumber() == null || result.getIssueNumber().isEmpty()) {
                     result.setIssueNumber("NA");
                 }
@@ -596,7 +605,15 @@ class CejshBuilder {
         private String issueNumber;
         private String issueId;
         private String issn;
-//        private String year;
+        private String dateIssued;
+
+        public String getDateIssued() {
+            return dateIssued;
+        }
+
+        public void setDateIssued(String dateIssued) {
+            this.dateIssued = dateIssued;
+        }
 
         public String getIssueNumber() {
             return issueNumber;

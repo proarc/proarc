@@ -40,6 +40,10 @@ public final class ExportResourceApi {
     public static final String KRAMERIUS4_HIERARCHY_PARAM = "hierarchy";
     public static final String KRAMERIUS4_POLICY_PARAM = "policy";
 
+    public static final String KWIS_PATH = "kwis";
+    public static final String KWIS_PID_PARAM = "pid";
+    public static final String KWIS_HIERARCHY_PARAM = "hierarchy";
+
     public static final String DATASTREAM_PATH = "datastream";
     public static final String DATASTREAM_PID_PARAM = "pid";
     public static final String DATASTREAM_DSID_PARAM = "dsid";
@@ -55,7 +59,7 @@ public final class ExportResourceApi {
     public static final String NDK_PID_PARAM = "pid";
 
     public static final String NDK_PACKAGE = "package";
-    public enum Package {SIP, PSP, STT};
+    public enum Package {SIP, PSP, STT, CHRONICLE};
     public static final String RESULT_TARGET = "target";
     public static final String RESULT_ID = "exportId";
     public static final String RESULT_TOKEN = "token";

@@ -31,6 +31,7 @@ import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -58,6 +59,8 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalIssueForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalVolumeForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.bdm.BornDigitalForms;
+import cz.cas.lib.proarc.webapp.client.widget.mods.chronicle.ChronicleForms;
+import cz.cas.lib.proarc.webapp.client.widget.mods.collectionOfClippings.CollectionOfClippingsForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.oldprint.OldPrintForms;
 import cz.cas.lib.proarc.webapp.client.widget.nsesss.NsesssV2Form;
 import java.util.HashMap;
@@ -312,11 +315,20 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
         DynamicForm form = null;
         if (ModsConstants.NS.equals(metadataFormat)) {
             form = new NdkForms(i18n).getForm(model);
+            if (NdkPlugin.MODEL_NDK_PAGE.equals(model.getId())) {
+                form.setSaveOnEnter(true);
+            }
             if (form == null) {
                 form = new BornDigitalForms(i18n).getForm(model, getFormPrefix());
             }
             if (form == null) {
+                form = new ChronicleForms(i18n).getForm(model, getFormPrefix());
+            }
+            if (form == null) {
                 form = new OldPrintForms(i18n).getForm(model);
+            }
+            if (form == null) {
+                form = new CollectionOfClippingsForms(i18n).getForm(model, getFormPrefix());
             }
             if (form == null) {
                 // obsolete K4 forms as a fallback

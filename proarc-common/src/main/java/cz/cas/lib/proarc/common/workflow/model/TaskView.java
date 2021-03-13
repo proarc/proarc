@@ -16,10 +16,10 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
-import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import java.sql.Timestamp;
 
 /**
  *
@@ -36,6 +36,19 @@ public class TaskView extends Task {
     private String jobLabel;
     @XmlElement(name = WorkflowModelConsts.TASK_OWNERNAME)
     private String userName;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_BARCODE)
+    private String barcode;
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
+
+    @XmlElement(name = WorkflowModelConsts.TASK_ORDER)
+    private Integer order;
 
     public String getProfileLabel() {
         return profileLabel;
@@ -67,6 +80,14 @@ public class TaskView extends Task {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
     }
 
     /**

@@ -16,14 +16,14 @@
  */
 package cz.cas.lib.proarc.common.fedora.relation;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.w3c.dom.Element;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import org.w3c.dom.Element;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * RDF description of given object.
@@ -32,6 +32,15 @@ import org.w3c.dom.Element;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RdfDescription {
+
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private RdfRelation organization;
+
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private RdfRelation user;
+
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private RdfRelation status;
 
     @XmlAttribute(namespace = Relations.RDF_NS)
     private RelationResource about;
@@ -71,6 +80,51 @@ public class RdfDescription {
      */
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private String hasExport;
+
+    /**
+     * RDF relation defines existence of NDK export.
+     *
+     * <p/>{@code <proarc-rels:hasNdkExport>1234<hasNdkExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasNdkExport;
+
+    /**
+     * RDF relation defines existence of Kramerius export.
+     *
+     * <p/>{@code <proarc-rels:hasKrameriusExport>1234<hasKrameriusExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasKrameriusExport;
+
+    /**
+     * RDF relation defines existence of Archive export.
+     *
+     * <p/>{@code <proarc-rels:hasArchiveExport>1234<hasArchiveExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasArchiveExport;
+
+    /**
+     * RDF relation defines existence of Cejsch export.
+     *
+     * <p/>{@code <proarc-rels:hasCejschExport>1234<hasCejschExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasCejschExport;
+
+    /**
+     * RDF relation defines existence of Crossref export.
+     *
+     * <p/>{@code <proarc-rels:hasCrossrefExport>1234<hasCrossrefExport/>}
+     * <p>It is expected to be overridden by the latest export for now.
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String hasCrossrefExport;
 
     /**
      * RDF relation referencing members of the digital object.
@@ -207,4 +261,67 @@ public class RdfDescription {
         this.hasExport = hasExport;
     }
 
+    public RdfRelation getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(RdfRelation organization) {
+        this.organization = organization;
+    }
+
+    public RdfRelation getUser() {
+        return user;
+    }
+
+    public void setUser(RdfRelation user) {
+        this.user = user;
+    }
+
+    public RdfRelation getStatus() {
+        return status;
+    }
+
+    public void setStatus(RdfRelation status) {
+        this.status = status;
+    }
+
+    public String getHasNdkExport() {
+        return hasNdkExport;
+    }
+
+    public void setHasNdkExport(String hasNdkExport) {
+        this.hasNdkExport = hasNdkExport;
+    }
+
+    public String getHasKrameriusExport() {
+        return hasKrameriusExport;
+    }
+
+    public void setHasKrameriusExport(String hasKrameriusExport) {
+        this.hasKrameriusExport = hasKrameriusExport;
+    }
+
+    public String getHasArchiveExport() {
+        return hasArchiveExport;
+    }
+
+    public void setHasArchiveExport(String hasArchiveExport) {
+        this.hasArchiveExport = hasArchiveExport;
+    }
+
+    public String getHasCejschExport() {
+        return hasCejschExport;
+    }
+
+    public void setHasCejschExport(String hasCejschExport) {
+        this.hasCejschExport = hasCejschExport;
+    }
+
+    public String getHasCrossrefExport() {
+        return hasCrossrefExport;
+    }
+
+    public void setHasCrossrefExport(String hasCrossrefExport) {
+        this.hasCrossrefExport = hasCrossrefExport;
+    }
 }

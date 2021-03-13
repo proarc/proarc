@@ -26,19 +26,22 @@ import com.smartgwt.client.types.Alignment;
 import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.types.SelectionStyle;
 import com.smartgwt.client.types.TextAreaWrap;
-import com.smartgwt.client.util.BooleanCallback;
-import com.smartgwt.client.util.SC;
+import com.smartgwt.client.types.TitleOrientation;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.Window;
+import com.smartgwt.client.widgets.events.ClickEvent;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FormItemValueFormatter;
 import com.smartgwt.client.widgets.form.fields.FormItem;
+import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextAreaItem;
 import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridField;
+import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -47,7 +50,10 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UrnNbnDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.UrnNbnResolverDataSource;
+import cz.cas.lib.proarc.webapp.client.widget.Dialog;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.UrnNbnResourceApi;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,6 +69,8 @@ import java.util.Set;
 public class UrnNbnAction extends AbstractAction {
 
     private final ClientMessages i18n;
+    private final DynamicForm options;
+
 
     public static final Set<String> URNNBN_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALISSUE,
@@ -70,7 +78,8 @@ public class UrnNbnAction extends AbstractAction {
                     NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
                     NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
                     NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME,
-                    NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, NdkEbornPlugin.MODEL_ECHAPTER
+                    NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, NdkEbornPlugin.MODEL_ECHAPTER,
+                    NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH
                     )));
 
     public UrnNbnAction(ClientMessages i18n) {
@@ -78,9 +87,30 @@ public class UrnNbnAction extends AbstractAction {
                 "[SKIN]/actions/add.png",
                 i18n.UrnNbnAction_Hint());
     }
+
+    private DynamicForm createOptionResolver() {
+        DynamicForm form = new DynamicForm();
+        SelectItem selection = new SelectItem(UrnNbnResourceApi.FIND_RESOLVER_PARAM,
+                i18n.UrnNbnAction_Window_Select_Title());
+        selection.setRequired(true);
+        selection.setOptionDataSource(UrnNbnResolverDataSource.getInstance());
+        selection.setValueField(UrnNbnResourceApi.RESOLVER_ID);
+        selection.setDisplayField(UrnNbnResourceApi.RESOLVER_NAME);
+        selection.setAutoFetchData(true);
+        selection.setDefaultToFirstOption(true);
+        selection.setWidth(350);
+        selection.setAutoFetchData(true);
+        form.setFields(selection);
+        form.setBrowserSpellCheck(false);
+        form.setWrapItemTitles(false);
+        form.setTitleOrientation(TitleOrientation.TOP);
+        return form;
+    }
+
     public UrnNbnAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
+        this.options = createOptionResolver();
     }
 
     @Override
@@ -128,16 +158,26 @@ public class UrnNbnAction extends AbstractAction {
         }
         final Record register = new Record();
         register.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
-        SC.ask(i18n.UrnNbnAction_Window_Title(), i18n.UrnNbnAction_Window_Msg(),
-                new BooleanCallback() {
+        final Dialog d = new Dialog(i18n.UrnNbnAction_Window_Title());
+        d.getDialogLabelContainer().setContents(i18n.UrnNbnAction_Window_Msg());
+        d.getDialogContentContainer().setMembers(options);
 
+        d.addYesButton((ClickEvent eventX) -> {
+            FormItem fieldResolver = options.getField(UrnNbnResourceApi.FIND_RESOLVER_PARAM);
+            ListGridRecord listResolver = fieldResolver.getSelectedRecord();
+            String resolver = listResolver.getAttribute(UrnNbnResourceApi.RESOLVER_ID);
+            register.setAttribute(DigitalObjectResourceApi.URNNBN_RESOLVER, resolver);
+                d.destroy();
+            register(register);
+        });
+        d.addNoButton(new Dialog.DialogCloseHandler() {
             @Override
-            public void execute(Boolean value) {
-                if (value == Boolean.TRUE) {
-                    register(register);
-                }
+            public void onClose() {
+                d.destroy();
             }
         });
+        d.setWidth(400);
+        d.show();
     }
 
     private void register(final Record register) {

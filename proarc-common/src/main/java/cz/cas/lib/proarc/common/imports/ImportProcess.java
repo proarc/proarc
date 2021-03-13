@@ -31,7 +31,9 @@ import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,6 +54,17 @@ public final class ImportProcess implements Runnable {
     private final ImportBatchManager batchManager;
     private static List<ImageImporter> consumerRegistery;
     private final ImportOptions importConfig;
+
+    private static Map<String, String> myMimeType= new HashMap<>();
+
+    static {
+        myMimeType.put("flac", "audio/flac");
+        myMimeType.put("ogg", "audio/ogg");
+        myMimeType.put("ogv", "audio/ogg");
+        myMimeType.put("oga", "audio/ogg");
+        myMimeType.put("ogx", "audio/ogg");
+        myMimeType.put("ogm", "audio/ogg");
+    }
 
     ImportProcess(ImportOptions importConfig, ImportBatchManager batchManager) {
         this.importConfig = importConfig;
@@ -89,7 +102,7 @@ public final class ImportProcess implements Runnable {
                 batch, importFolder, user, profile);
         // if necessary reset old computed batch items
         ImportProcess process = new ImportProcess(options, ibm);
-        process.removeCaches(options.getImportFolder());
+        process.removeCaches(options.getImportFolder(), options);
         process.removeBatchItems(batch);
         return process;
     }
@@ -145,8 +158,8 @@ public final class ImportProcess implements Runnable {
         lockImportFolder(importFolder);
         boolean transactionFailed = true;
         try {
-            if (getTargetFolder(importFolder).exists()) {
-                throw new IOException("Folder already exists: " + getTargetFolder(importFolder));
+            if (getTargetFolder(importFolder, importConfig.getConfig()).exists()) {
+                throw new IOException("Folder already exists: " + getTargetFolder(importFolder, importConfig.getConfig()));
             }
             int estimateItemNumber = importConfig.getImporter().estimateItemNumber(importConfig);
             if (estimateItemNumber == 0) {
@@ -207,9 +220,9 @@ public final class ImportProcess implements Runnable {
             } catch (Throwable ex) {
                 return logBatchFailure(batch, ex);
             }
-            File targetFolder = createTargetFolder(importFolder);
+            File targetFolder = createTargetFolder(importFolder, importConfig.getConfig());
             importConfig.setTargetFolder(targetFolder);
-            importConfig.getImporter().start(importConfig);
+            importConfig.getImporter().start(importConfig, batchManager);
             if (batch.getState() == Batch.State.LOADING) {
                 batch.setState(Batch.State.LOADED);
             }
@@ -223,8 +236,8 @@ public final class ImportProcess implements Runnable {
         }
     }
 
-    private void removeCaches(File importFoder) {
-        deleteFolder(getTargetFolder(importFoder));
+    private void removeCaches(File importFoder, ImportOptions importOptions) {
+        deleteFolder(getTargetFolder(importFoder, importOptions.getConfig()));
     }
 
     private void removeBatchItems(Batch batch) {
@@ -239,15 +252,26 @@ public final class ImportProcess implements Runnable {
         return importConfig.getBatch();
     }
 
-    public static File createTargetFolder(File importFolder) throws IOException {
-        File folder = getTargetFolder(importFolder);
-        if (!folder.mkdir()) {
+    public static File createTargetFolder(File importFolder, ImportProfile config) throws IOException {
+        File folder = getTargetFolder(importFolder, config);
+        if (!folder.mkdir() && !folder.mkdirs()) {
             throw new IOException("Import folder already exists: " + folder);
         }
         return folder;
     }
 
-    static File getTargetFolder(File importFolder) {
+    public static File getTargetFolder(File importFolder, ImportProfile config) {
+        if (!config.getDefaultImportFolder()) {
+            String path = config.getImportFolderPath();
+            if (path == null || path.isEmpty()) {
+                File folder = new File(importFolder, TMP_DIR_NAME);
+                return folder;
+            } else {
+                String importFolderPath = path + importFolder.getPath().substring(importFolder.getPath().lastIndexOf("import")-1);
+                File folder = new File(importFolderPath, TMP_DIR_NAME);
+                return folder;
+            }
+        }
         File folder = new File(importFolder, TMP_DIR_NAME);
         return folder;
     }
@@ -301,7 +325,12 @@ public final class ImportProcess implements Runnable {
      */
     public static String findMimeType(File f) {
         FileNameMap fileNameMap = URLConnection.getFileNameMap();
-        return fileNameMap.getContentTypeFor(f.getName());
+        String mimeType = fileNameMap.getContentTypeFor(f.getName());
+        if (mimeType == null) {
+            String extension = f.getName().substring(f.getName().lastIndexOf(".") + 1);
+            mimeType = myMimeType.get(extension);
+        }
+        return mimeType;
     }
 
     public static final class ImportOptions {
@@ -367,6 +396,10 @@ public final class ImportProcess implements Runnable {
             return profile.getAudioModelID();
         }
 
+        public boolean isPagePath() {
+            return profile.isPagePath();
+        }
+
         public int getConsumedFileCounter() {
             return consumedFileCounter;
         }
@@ -377,6 +410,10 @@ public final class ImportProcess implements Runnable {
 
         public String getUsername() {
             return user != null ? user.getUserName() : null;
+        }
+
+        public String getOrganization() {
+            return user != null ? user.getOrganization() : null;
         }
 
         public UserProfile getUser() {

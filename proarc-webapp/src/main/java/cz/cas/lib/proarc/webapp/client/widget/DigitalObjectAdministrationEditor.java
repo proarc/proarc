@@ -22,6 +22,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.layout.VLayout;
@@ -35,6 +36,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectAdministrationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
@@ -241,7 +243,44 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             export.setWidth("*");
             export.setCanEdit(Boolean.FALSE);
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export);
+            TextItem ndkExport = new TextItem(DigitalObjectAdministrationDataSource.FIELD_NDK_EXPORT,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Ndk_Export_Title());
+            ndkExport.setWidth("*");
+            ndkExport.setCanEdit(Boolean.FALSE);
+
+            TextItem archiveExport = new TextItem(DigitalObjectAdministrationDataSource.FIELD_ARCHIVE_EXPORT,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Archive_Export_Title());
+            archiveExport.setWidth("*");
+            archiveExport.setCanEdit(Boolean.FALSE);
+
+            TextItem krameriusExport = new TextItem(DigitalObjectAdministrationDataSource.FIELD_KRAMERIUS_EXPORT,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Kramerius_Export_Title());
+            krameriusExport.setWidth("*");
+            krameriusExport.setCanEdit(Boolean.FALSE);
+
+            TextItem crossrefExport = new TextItem(DigitalObjectAdministrationDataSource.FIELD_CROSSREF_EXPORT,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Crossref_Export_Title());
+            crossrefExport.setWidth("*");
+            crossrefExport.setCanEdit(Boolean.FALSE);
+
+            ComboBoxItem organization = new ComboBoxItem(DigitalObjectAdministrationDataSource.FIELD_ORGANIZATION,
+                    i18n.UsersView_ListHeader_Organization_Title());
+            organization.setWidth(250);
+            organization.setValueMap(Organization.getMap());
+
+            ComboBoxItem user = new ComboBoxItem(DigitalObjectAdministrationDataSource.FIELD_USER,
+                    i18n.UsersView_ListHeader_Proccesor_Title());
+            user.setWidth(250);
+            user.setOptionDataSource(UserDataSource.getInstance());
+            user.setValueField(UserDataSource.FIELD_USERNAME);
+            user.setDisplayField(UserDataSource.FIELD_USERNAME);
+
+            ComboBoxItem status = new ComboBoxItem(DigitalObjectAdministrationDataSource.FIELD_STATUS,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Status_Title());
+            status.setWidth(250);
+            status.setValueMap(DigitalObjectState.getMap(i18n));
+
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status);
             widget.setMembers(form);
         }
 

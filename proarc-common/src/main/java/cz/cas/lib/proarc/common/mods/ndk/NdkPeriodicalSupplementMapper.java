@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
+import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
@@ -30,7 +31,6 @@ import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
-
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
@@ -40,7 +40,9 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPartName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
 
@@ -69,6 +71,21 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
                 dateOther.setType(oi.getEventType());
             }
         }
+        fillPhysicalDescription(mods);
+        fixAndAddGenre(mods);
+        fillAbstract(mods);
+        fillRecordInfo(mods);
+    }
+
+    private void fillPhysicalDescription(ModsDefinition mods) {
+        if (mods.getPhysicalDescription().size() == 0) {
+            PhysicalDescriptionDefinition physicalDescription = new PhysicalDescriptionDefinition();
+            mods.getPhysicalDescription().add(physicalDescription);
+            FormDefinition form = new FormDefinition();
+            physicalDescription.getForm().add(form);
+            form.setValue("print");
+        }
+
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
                 if (ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_RDAMEDIA.equals(form.getAuthority())) {
@@ -82,9 +99,23 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
         }
     }
 
-    protected void addGenre(ModsDefinition mods) {
+    protected void fixAndAddGenre(ModsDefinition mods) {
+        for (GenreDefinition genre : mods.getGenre()) {
+            String type = null;
+            if (genre.getValue() == null || "".equals(genre.getValue())) {
+                genre.setValue(Const.GENRE_SUPPLEMENT);
+            } else if (genre.getValue() != null  && !Const.GENRE_SUPPLEMENT.equals(genre.getValue())) {
+                if ("volume_supplement".equals(genre.getValue()) || "issue_supplement".equals(genre.getValue())) {
+                    type = genre.getValue();
+                    genre.setValue(Const.GENRE_SUPPLEMENT);
+                    if (genre.getType() == null || genre.getType().isEmpty()) {
+                        genre.setType(type);
+                    }
+                }
+            }
+        }
         //  mods/genre="supplement"
-        MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
+        //MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
     }
 
     @Override

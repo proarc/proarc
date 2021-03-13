@@ -23,10 +23,14 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -43,6 +47,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -184,9 +192,30 @@ public class MetsUtils {
                     return plugin.TYPE_MAP.get(model);
                 }
             }
+            List<BornDigitalModsPlugin> bornDigitalPlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                    .filter(plugin -> plugin instanceof BornDigitalModsPlugin).map(plugin -> ((BornDigitalModsPlugin) plugin)).collect(Collectors.toList());
+            for (BornDigitalModsPlugin plugin : bornDigitalPlugins) {
+                if (plugin.TYPE_MAP.containsKey(model)) {
+                    return plugin.TYPE_MAP.get(model);
+                }
+            }
             List<OldPrintPlugin> oldPrintPlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
                     .filter(plugin -> plugin instanceof OldPrintPlugin).map(plugin -> ((OldPrintPlugin) plugin)).collect(Collectors.toList());
             for (OldPrintPlugin plugin : oldPrintPlugins) {
+                if (plugin.TYPE_MAP.containsKey(model)) {
+                    return plugin.TYPE_MAP.get(model);
+                }
+            }
+            List<ChroniclePlugin> chroniclePlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                    .filter(plugin -> plugin instanceof ChroniclePlugin).map(plugin -> ((ChroniclePlugin) plugin)).collect(Collectors.toList());
+            for (ChroniclePlugin plugin : chroniclePlugins) {
+                if (plugin.TYPE_MAP.containsKey(model)) {
+                    return plugin.TYPE_MAP.get(model);
+                }
+            }
+            List<CollectionOfClippingsPlugin> clippingsPlugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
+                    .filter(plugin -> plugin instanceof CollectionOfClippingsPlugin).map(plugin -> ((CollectionOfClippingsPlugin) plugin)).collect(Collectors.toList());
+            for (CollectionOfClippingsPlugin plugin : clippingsPlugins) {
                 if (plugin.TYPE_MAP.containsKey(model)) {
                     return plugin.TYPE_MAP.get(model);
                 }
@@ -622,6 +651,9 @@ public class MetsUtils {
      */
     public static DigitalObject readFoXML(String uuid, FedoraClient client) throws MetsExportException {
         DigitalObject foXMLObject = null;
+        if (uuid == null) {
+            return null;
+        }
         if (uuid.startsWith("info:fedora/")) {
             uuid = uuid.substring(uuid.indexOf("/") + 1);
         }
@@ -752,9 +784,14 @@ public class MetsUtils {
         return output;
     }
 
-    private static void addModsIdentifiersRecursive(IMetsElement element, Info infoJaxb) throws MetsExportException {
+    private static void addModsIdentifiersRecursive(IMetsElement element, Info infoJaxb, String rootElementModel) throws MetsExportException {
         Map<String, String> identifiers = element.getModsIdentifiers();
-        for (String type : identifiers.keySet()) {
+        if (rootElementModel.contains(Const.NDK_EBORN_MODELS_IDENTIFIER)) {
+            addAllModsIdentifiersRecursive(Const.allowedNdkEbornIdentifiers, identifiers, infoJaxb);
+        } else {
+            addAllModsIdentifiersRecursive(Const.allowedNdkIdentifiers, identifiers, infoJaxb);
+        }
+        /*for (String type : identifiers.keySet()) {
             if (Const.allowedIdentifiers.contains(type)) {
                 boolean alreadyAdded = false;
                 for (Titleid titleId : infoJaxb.getTitleid()) {
@@ -770,10 +807,30 @@ public class MetsUtils {
                     infoJaxb.getTitleid().add(titleId);
                 }
             }
-        }
+        }*/
 
         for (IMetsElement child : element.getChildren()) {
-            addModsIdentifiersRecursive(child, infoJaxb);
+            addModsIdentifiersRecursive(child, infoJaxb, rootElementModel);
+        }
+    }
+
+    private static void addAllModsIdentifiersRecursive(List<String> allowedIdentifiers, Map<String, String> identifiers, Info infoJaxb) {
+        for (String type : identifiers.keySet()) {
+            if (allowedIdentifiers.contains(type)) {
+                boolean alreadyAdded = false;
+                for (Titleid titleId : infoJaxb.getTitleid()) {
+                    if ((titleId.getType().equals(type)) && (titleId.getValue().equals(identifiers.get(type)))) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    Titleid titleId = new Titleid();
+                    titleId.setType(type);
+                    titleId.setValue(identifiers.get(type));
+                    infoJaxb.getTitleid().add(titleId);
+                }
+            }
         }
     }
 
@@ -806,7 +863,7 @@ public class MetsUtils {
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
         }
-        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb);
+        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb, metsContext.getRootElement().getModel());
         Validation validation = new Validation();
         validation.setValue("W3C-XML");
         validation.setVersion(0.0f);
@@ -818,9 +875,11 @@ public class MetsUtils {
             infoJaxb.setMetadataversion(metsContext.getPackageVersion().get());
         } else {
             if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
-                infoJaxb.setMetadataversion(1.6f);
+                infoJaxb.setMetadataversion(1.8f);
+            } else if (Const.SOUND_COLLECTION.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
+                infoJaxb.setMetadataversion(0.4f);
             } else {
-                infoJaxb.setMetadataversion(1.2f);
+                infoJaxb.setMetadataversion(1.4f);
             }
         }
 
@@ -881,7 +940,7 @@ public class MetsUtils {
         if (identifiersMap.containsKey(Const.URNNBN)) {
             String urnnbn = identifiersMap.get(Const.URNNBN);
             return urnnbn.substring(urnnbn.lastIndexOf(":") + 1);
-        } else if (element.getMetsContext().isAllowMissingURNNBN() || isOldPrintPlugin(element)){
+        } else if (element.getMetsContext().isAllowMissingURNNBN() || isOldPrintPlugin(element) || isChroniclePlugin(element)){
             // if missing URNNBN is allowed, then try to use UUID - otherwise
             // throw an exception
             element.getMetsContext().getMetsExportException().addException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
@@ -894,6 +953,10 @@ public class MetsUtils {
             // URNNBN is mandatory
             throw new MetsExportException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
         }
+    }
+
+    private static boolean isChroniclePlugin(IMetsElement element) {
+        return element.getModel() != null && element.getModel().contains("chronicle");
     }
 
     private static boolean isOldPrintPlugin(IMetsElement element) {
@@ -1061,5 +1124,51 @@ public class MetsUtils {
             }
         }
         folder.delete();
+    }
+
+    public static HashMap<String, FileGrp> initEbornFileGroups() {
+        FileGrp OpebgrfGRP = new FileGrp();
+        OpebgrfGRP.setID(Const.OC_GRP_ID);
+        OpebgrfGRP.setUSE("master");
+
+        HashMap<String, FileGrp> fileGrpMap = new HashMap<>();
+        fileGrpMap.put(Const.OC_GRP_ID, OpebgrfGRP);
+        return fileGrpMap;
+    }
+
+    public static void renameFolder(File exportFolder, File targetFolder, File archiveTargetFolder) {
+        if (archiveTargetFolder != null) {
+            for (File file : targetFolder.listFiles()) {
+                if (file.isFile()) {
+                    deleteFolder(file);
+                }
+            }
+            for (File file : archiveTargetFolder.listFiles()) {
+                if (ExportUtils.PROARC_EXPORT_STATUSLOG.equals(file.getName())) {
+                    try {
+                        Files.move(Paths.get(file.toURI()), Paths.get(new File(targetFolder, ExportUtils.PROARC_EXPORT_STATUSLOG).toURI()));
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Cannot move " + file.getAbsolutePath() + " to " + targetFolder.getName());
+                    }
+                }
+            }
+
+        }
+        for (File file : targetFolder.listFiles()) {
+            if (file.isDirectory()) {
+                deleteFolder(file);
+            }
+        }
+
+        try {
+            File file = new File(exportFolder, "error_" + targetFolder.getName());
+            if (file.exists()) {
+                deleteFolder(file);
+            }
+            Path path = Paths.get(targetFolder.toURI());
+            Files.move(path, path.resolveSibling("error_" + targetFolder.getName()), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Cannot move " + targetFolder.getName() + "error_" + targetFolder.getName());
+        }
     }
 }

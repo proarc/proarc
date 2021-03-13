@@ -8,3 +8,5 @@ and        $pid     <info:fedora/fedora-system:def/model#ownerId>         $owner
 and        $pid     <info:fedora/fedora-system:def/model#label>           $label
 and        $pid     <info:fedora/fedora-system:def/model#state>           $state
 and        $pid     <info:fedora/fedora-system:def/model#state>           <info:fedora/fedora-system:def/model#Active>
+order by   ${ORDERBY}
+offset     ${OFFSET}

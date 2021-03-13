@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.export.crossref;
 
 import cz.cas.lib.proarc.common.export.ExportException;
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -43,7 +44,6 @@ import java.util.Map;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -94,9 +94,11 @@ class CrossrefBuilder {
     private final SimpleDateFormat exportDateFormat;
     private Validator crossrefValidator;
     private int pkgIndex;
+    private ExportOptions options;
 
-    public CrossrefBuilder(File outputFolder)
-            throws XPathExpressionException, ParserConfigurationException, TransformerConfigurationException {
+    public CrossrefBuilder(File outputFolder, ExportOptions options)
+            throws Exception {
+        this.options = options;
         this.outputFolder = outputFolder;
         this.exportDateFormat = new SimpleDateFormat("yyyyMMddHHmm");
 
@@ -123,6 +125,10 @@ class CrossrefBuilder {
         }
         crosssrefXsl.setOutputProperty(OutputKeys.INDENT, "yes");
         crosssrefXsl.setErrorListener(tranformationErrorHandler);
+        if (options.getJournalsInfoPath() == null || options.getJournalsInfoPath().length() == 0) {
+            throw new Exception("Not configurated path : \"export.cejsh_crossref.journals.path=\".");
+        }
+        crosssrefXsl.setParameter("journalsInfo", options.getJournalsInfoPath());
     }
 
     public File createPackage(CrossrefPackage pkg) throws ExportException {

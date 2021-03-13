@@ -21,6 +21,6 @@ package cz.cas.lib.proarc.common.object.model;
  */
 public enum DatastreamEditorType {
 
-    NOTE, OCR, MEDIA, MODS, PARENT, CHILDREN, ATM
+    NOTE, OCR, MEDIA, MODS, PARENT, CHILDREN, ATM, TECHNICAL
 
 }

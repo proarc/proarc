@@ -17,15 +17,26 @@
 
 package cz.cas.lib.proarc.common.export.mets;
 
-import javax.xml.transform.dom.DOMResult;
-
-import org.w3c.dom.Node;
-
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import cz.cas.lib.proarc.aes57.Aes57Utils;
+import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
+import javax.xml.transform.dom.DOMResult;
+import org.aes.audioobject.AudioObject;
+import org.w3c.dom.Node;
 
 public class JHoveOutput {
     String formatVersion;
+    boolean skip;
+
+    public boolean isSkip() {
+        return skip;
+    }
+
+    public void setSkip() {
+        this.skip = true;
+    }
 
     public String getFormatVersion() {
         return formatVersion;
@@ -57,5 +68,53 @@ public class JHoveOutput {
 
     public void setMix(Mix mix) {
         this.mix = mix;
+    }
+
+    Node aesNode;
+    AudioObject aes;
+
+    public Node getAesNode() {
+        if (this.aes != null) {
+            DOMResult result = new DOMResult();
+            Aes57Utils.marshal(result, aes, true);
+            return result.getNode().getFirstChild();
+        }
+        return null;
+    }
+
+    public void setAesNode(Node aesNode) {
+        this.aesNode = aesNode;
+    }
+
+    public AudioObject getAes() {
+        return  aes;
+    }
+
+    public void setAes(AudioObject aes) {
+        this.aes = aes;
+    }
+
+    Node codingHistoryNode;
+    Property codingHistory;
+
+    public Node getCodingHistoryNode() {
+        if (this.codingHistory != null) {
+            DOMResult result = new DOMResult();
+            CodingHistoryUtils.marshal(result, codingHistory, true);
+            return result.getNode().getFirstChild();
+        }
+        return null;
+    }
+
+    public void setCodingHistoryNode(Node codingHistoryNode) {
+        this.codingHistoryNode = codingHistoryNode;
+    }
+
+    public Property getCodingHistory() {
+        return codingHistory;
+    }
+
+    public void setCodingHistory(Property codingHistory) {
+        this.codingHistory = codingHistory;
     }
 }

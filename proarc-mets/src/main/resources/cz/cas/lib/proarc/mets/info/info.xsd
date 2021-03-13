@@ -27,6 +27,7 @@
     						<xs:enumeration value="issn"/>
    							<xs:enumeration value="ccnb"/>
    							<xs:enumeration value="urnnbn"/>
+                            <xs:enumeration value="uuid"/>
   						</xs:restriction>
   					</xs:simpleType>
   				</xs:attribute>

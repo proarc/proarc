@@ -20,6 +20,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceDateTimeField;
 import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourcePasswordField;
@@ -29,6 +30,8 @@ import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.widget.Organization;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 
 /**
@@ -42,7 +45,9 @@ public final class UserDataSource extends ProarcDataSource {
     public static final String FIELD_ID = UserResourceApi.USER_ID;
     public static final String FIELD_USERNAME = UserResourceApi.USER_NAME;
     public static final String FIELD_PASSWORD = UserResourceApi.USER_PASSWORD;
+    public static final String FIELD_ROLE = UserResourceApi.USER_ROLE;
     public static final String FIELD_WHOAMI = UserResourceApi.USER_WHOAMI_PARAM;
+    public static final String FIELD_CHANGE_MODEL_FUNCTION = UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION;
     private static UserDataSource INSTANCE;
 
     public UserDataSource() {
@@ -76,6 +81,19 @@ public final class UserDataSource extends ProarcDataSource {
         DataSourceTextField forename = new DataSourceTextField(UserResourceApi.USER_FORENAME);
         forename.setTitle(i18n.UsersView_ListHeader_Forename_Title());
 
+        DataSourceTextField organization = new DataSourceTextField(UserResourceApi.USER_ORGANIZATION);
+        organization.setTitle(i18n.UsersView_ListHeader_Organization_Title());
+        organization.setValueMap(Organization.getMap());
+        organization.setReadOnlyEditorProperties(new StaticTextItem());
+
+        DataSourceTextField role = new DataSourceTextField(FIELD_ROLE);
+        role.setTitle(i18n.UsersView_ListHeader_Role_Title());
+        role.setValueMap(UserRole.getMap());
+        role.setReadOnlyEditorProperties(new StaticTextItem());
+
+        DataSourceBooleanField changeModelFunction = new DataSourceBooleanField(FIELD_CHANGE_MODEL_FUNCTION);
+        changeModelFunction.setTitle(i18n.UsersView_ListHeader_ChangeModelFunction_Title());
+
         DataSourceTextField email = new DataSourceTextField(UserResourceApi.USER_EMAIL);
         email.setTitle(i18n.UsersView_ListHeader_Email_Title());
 
@@ -100,7 +118,7 @@ public final class UserDataSource extends ProarcDataSource {
         remoteType.setCanEdit(false);
         remoteType.setHidden(true);
 
-        setFields(userId, userName, passwd, surname, forename, email, created, remoteName, remoteType, home);
+        setFields(userId, userName, passwd, surname, forename, organization, role, email, created, remoteName, remoteType, home, changeModelFunction);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));

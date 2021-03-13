@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.mods.bdm;
 
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkForms;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
@@ -35,18 +35,10 @@ public final class BornDigitalArticleForm {
     public Form build() {
         Form f = new Form();
 
-        f.getFields().add(new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true)
-                .addMapValue("true", ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)
-                .addMapValue("false", ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR)
-                .createField());
+        f.getFields().add(NdkForms.descriptionRadioButton());
 
         // CEJSH, issue 234
-        f.getFields().add(new FieldBuilder("reviewed").setTitle("Peer Review").setMaxOccurrences(1)
-                .setType(Field.RADIOGROUP).setRequired(true)
-                .addMapValue("true", "recenzovaný článek")
-                .addMapValue("false", "nerecenzovaný článek")
-                .createField());
+        f.getFields().add(NdkForms.reviewRadioButton("Peer Review - M"));
 
         Field mods = new FieldBuilder("mods").setMaxOccurrences(1).createField();
         f.getFields().add(mods);
@@ -63,7 +55,7 @@ public final class BornDigitalArticleForm {
         modsFields.add(subject());
         modsFields.add(classification());
         modsFields.add(identifier());
-        modsFields.add(recordInfo());
+        modsFields.add(NdkForms.recordInfo());
         modsFields.add(relatedItem(f.getItemWidth()));
 
         return f;
@@ -400,7 +392,7 @@ public final class BornDigitalArticleForm {
 
     private Field note() {
         // note, noteDefinition extends stringPlusLanguage
-        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(10)
+        return new FieldBuilder("note").setTitle("Note - RA").setMaxOccurrences(30)
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
                 // @displayLabel, @type, @typeURI, @xlink:simpleLink, @ID, @altRepGroup
                 .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXTAREA)
@@ -470,7 +462,8 @@ public final class BornDigitalArticleForm {
 
                 // titleInfo, subjectTitleInfoDefinition
                 // name, subjectNameDefinition
-                .addField(new FieldBuilder("name").setMaxOccurrences(1)
+                .addField(nameInSubject()
+                        /*new FieldBuilder("name").setMaxOccurrences(1)
                     // @type, enum: personal, corporate, ...
                     // @ID, @xlink:simpleLink, displayLabel
                     // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
@@ -490,7 +483,7 @@ public final class BornDigitalArticleForm {
                     // affiliation
                     // role
                     // description
-                .createField()) // name
+                .createField()*/) // name
 
                 // geographicCode
                 // hierarchicalGeographic
@@ -498,6 +491,89 @@ public final class BornDigitalArticleForm {
                 // occupation
                 // genre
         .createField(); // subject
+    }
+
+    private Field nameInSubject() {
+        // name, nameDefinition
+        return new FieldBuilder("name").setMaxOccurrences(10).setTitle("Name - R")
+                .setHint("Údaje o odpovědnosti za svazek."
+                        + "<p>Pokud má monografie autora a ilustrátora, element &lt;name> se opakuje s různými rolemi.")
+                // @ID, @authorityAttributeGroup, @xlinkSimpleLink, @languageAttributeGroup, @displayLabel, @altRepGroup, @nameTitleGroup
+                // @type(personal, corporate, conference, family)
+                .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
+                        // issue: 612 not required
+                        .setRequired(false)
+                        .setHint("<dl>"
+                                + "<dt>personal</dt><dd>celé jméno osoby</dd>"
+                                + "<dt>corporate</dt><dd>název společnosti, instituce nebo organizace</dd>"
+                                + "<dt>conference</dt><dd>název konference nebo související typ setkání</dd>"
+                                + "<dt>family</dt><dd>rodina/rod</dd>"
+                                + "</dl>")
+                        .addMapValue("personal", "personal")
+                        .addMapValue("corporate", "corporate")
+                        .addMapValue("conference", "conference")
+                        .addMapValue("family", "family")
+                        .createField()) // @type
+                // @usage(fixed="primary")
+                .addField(new FieldBuilder("usage").setTitle("Usage - O").setMaxOccurrences(1).setType(Field.SELECT).setDefaultValue("")
+                        .setHint("Hodnota “primary” pro označení primární autority.")
+                        .addMapValue("", "")
+                        .addMapValue("primary", "primary")
+                        .createField()) // usage
+                // namePart, namePartDefinition extends stringPlusLanguage
+                .addField(new FieldBuilder("namePart").setTitle("Name Parts - R").setMaxOccurrences(5)
+                        // @type(date, family, given, termsOfAddress)
+                        .addField(new FieldBuilder("type").setTitle("Type - R").setMaxOccurrences(1).setType(Field.SELECT)
+                                .setHint("<dl>"
+                                        + "<dt>date</dt><dd>RA - datum</dd>"
+                                        + "<dt>family</dt><dd>MA -příjmení </dd>"
+                                        + "<dt>given</dt><dd>MA - jméno/křestní jméno</dd>"
+                                        + "<dt>termsOfAddress</dt><dd>RA - tituly a jiná slova nebo čísla související se jménem</dd>"
+                                        + "</dl>")
+                                .addMapValue("date", "date")
+                                .addMapValue("family", "family")
+                                .addMapValue("given", "given")
+                                .addMapValue("termsOfAddress", "termsOfAddress")
+                                .createField()) // @type
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setTitle("Name Part - R").setMaxOccurrences(1)
+                                .setType(Field.TEXT)
+                                // issue: 612 not required
+                                .setRequired(false)
+                                .setHint("Údaje o křestním jméně, příjmení apod."
+                                        + "<p>Nutno vyjádřit pro křestní jméno i příjmení."
+                                        + "<p>Pokud nelze rozlišit křestní jméno a příjmení,"
+                                        + " nepoužije se type a jméno se zaznamená"
+                                        + " v podobě jaké je do jednoho elementu &lt;namePart>"
+                                        + "<p>Pokud známe datum narození a úmrtí autora, vyplnit"
+                                        + " ve tvaru RRRR-RRRR s atributem type=”date”.")
+                                .createField()) // value
+                        .createField()) // namePart
+                // displayForm
+                .addField(new FieldBuilder("etal").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setTitle("Etal - O").setType(Field.TEXT)
+                                .setHint("Element indikující, že existuje více autorů, než pouze ti, kteří byli uvedeni v <name> elementu." +
+                                        "<p>V případě užití tohoto elementu je dále top element <name> neopakovatelný." +
+                                        "<p><etal> je nutné umístit do samostatného top elementu <name>, ve kterém se " +
+                                        "nesmí objevit subelementy <namePart> a <nameIdentifier>." +
+                                        "<p><etal> je neopakovatelný element, který se do zápisu vkládá ručně.").createField())
+                        .createField()) //etal
+                // affiliation
+                // role, roleDefinition
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - R").setMaxOccurrences(5)
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1)
+                                .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
+                        .createField()) //nameIdentifier
+                .addField(new FieldBuilder("role").setTitle("Role - R").setMaxOccurrences(5)
+                        .setHint("Specifikace role osoby nebo organizace uvedené v elementu &lt;name>")
+                        // roleTerm, type="roleTermDefinition" extends stringPlusLanguagePlusAuthority
+                        // issue: 612 not required
+                        .addField(NdkForms.roleTerm(
+                                "Role Term - R", false, "Authority - R", false, "Type - M", false
+                        )) // roleTerm
+                        .createField()) // role
+                // description
+                .createField(); // name
     }
 
     private Field classification() {
@@ -592,49 +668,6 @@ public final class BornDigitalArticleForm {
                 // date
                 // text
             .createField(); // part
-    }
-
-    private Field recordInfo() {
-        // recordInfo, recordInfoDefinition
-        return new FieldBuilder("recordInfo").setTitle("Record Info - M").setMaxOccurrences(1)
-                .setHint("Údaje o metadatovém záznamu - jeho vzniku, změnách apod.")
-                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
-                // @displayLabel, @altRepGroup
-                // recordContentSource, stringPlusLanguagePlusAuthority
-                .addField(new FieldBuilder("recordContentSource").setTitle("Record Content Source - R").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("marcorg").createField())
-                    .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Kód nebo jméno instituce, která záznam vytvořila nebo změnila.")
-                    .createField()) // value
-                .createField()) // recordContentSource
-                // recordCreationDate, dateDefinition
-                .addField(new FieldBuilder("recordCreationDate").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // @encoding, @qualifier, @point, @keyDate
-                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                    .addField(new FieldBuilder("value").setTitle("Record Creation Date - M").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                .createField()) // recordCreationDate
-                // recordChangeDate, dateDefinition
-                .addField(new FieldBuilder("recordChangeDate").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // @encoding, @qualifier, @point, @keyDate
-                    .addField(new FieldBuilder("encoding").setMaxOccurrences(1).setHidden(true).setType(Field.TEXT).createField())
-                    .addField(new FieldBuilder("value").setTitle("Record Change Date - R").setMaxOccurrences(1).setReadOnly(true).setType(Field.TEXT).createField())
-                .createField()) // recordChangeDate
-                // recordIdentifier
-                // languageOfCataloging
-                // recordOrigin, extends stringPlusLanguage
-                .addField(new FieldBuilder("recordOrigin").setMaxOccurrences(1)
-                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Record Origin - R").setMaxOccurrences(1).setType(Field.COMBO).setWidth("200")
-                        .setHint("Údaje o vzniku záznamu.")
-                        .addMapValue("machine generated", "machine generated")
-                        .addMapValue("human prepared", "human prepared")
-                    .createField()) // value
-                .createField()) // recordOrigin
-                .addField(new FieldBuilder("descriptionStandard").setTitle("Description").setMaxOccurrences(1).setType(Field.TEXT).setHidden(true).createField())// descriptionStandard
-        .createField(); // recordInfo
     }
 
     private Field relatedOriginInfo() {

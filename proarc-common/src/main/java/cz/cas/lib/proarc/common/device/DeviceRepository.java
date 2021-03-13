@@ -161,7 +161,7 @@ public final class DeviceRepository {
      * @throws DeviceException failure
      */
     public List<Device> find(String id) throws DeviceException {
-        return find(id, false);
+        return find(id, false, 0);
     }
 
     /**
@@ -171,14 +171,14 @@ public final class DeviceRepository {
      * @return list of devices
      * @throws DeviceException failure
      */
-    public List<Device> find(String id, boolean fetchDescription) throws DeviceException {
+    public List<Device> find(String id, boolean fetchDescription, int offset) throws DeviceException {
         try {
             List<Device> devices;
             if (id != null) {
                 checkDeviceId(id);
                 devices = findDevice(id);
             } else {
-                devices = findAllDevices();
+                devices = findAllDevices(offset);
             }
             if (fetchDescription) {
                 fetchDeviceDescription(devices);
@@ -345,9 +345,13 @@ public final class DeviceRepository {
         return device;
     }
 
-    private List<Device> findAllDevices() throws IOException, FedoraClientException {
-        List<Item> items = remoteStorage.getSearch().findByModel(METAMODEL_ID);
-        items.addAll(remoteStorage.getSearch().findByModel(METAMODEL_AUDIODEVICE_ID));
+    public List<Device> findAllDevices(int offset) throws DeviceException {
+        List<Item> items = new ArrayList<>();
+        try {
+            items = remoteStorage.getSearch().findByModels(offset, METAMODEL_ID, METAMODEL_AUDIODEVICE_ID);
+        } catch (IOException  | FedoraClientException ex) {
+            throw new DeviceException(ex.getMessage());
+        }
         return objectAsDevice(items, null);
     }
 
@@ -466,7 +470,7 @@ public final class DeviceRepository {
                     } else if ("settings".equals(extension.getFirstChild().getLocalName()))
                         settings = extension.getFirstChild().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
+                    LOG.log(Level.INFO, "Error in premis:agentExtension");
                 }
                 try {
                     if ("serialNumber".equals(extension.getFirstChild().getNextSibling().getLocalName())) {
@@ -474,13 +478,13 @@ public final class DeviceRepository {
                     } else if ("settings".equals(extension.getFirstChild().getNextSibling().getLocalName()))
                         settings = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
+                    LOG.log(Level.INFO, "Error in premis:agentExtension");
                 }
                 try {
                     if ("settings".equals(extension.getFirstChild().getNextSibling().getNextSibling().getLocalName()))
                         settings = extension.getFirstChild().getNextSibling().getNextSibling().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.WARNING, "Error in premis:agentExtension");
+                    LOG.log(Level.INFO, "Error in premis:agentExtension");
                 }
             }
             nk.setManufacturer(manufacturer);

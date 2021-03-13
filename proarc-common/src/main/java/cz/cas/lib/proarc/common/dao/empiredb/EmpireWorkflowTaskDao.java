@@ -22,19 +22,21 @@ import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowTaskTable;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import org.apache.empire.db.DBColumnExpr;
+import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBJoinType;
+import org.apache.empire.db.DBQuery;
+import org.apache.empire.db.DBReader;
+import org.apache.empire.db.DBRecord;
+import org.apache.empire.db.DBRecordData;
+import org.apache.empire.db.exceptions.RecordNotFoundException;
+import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.empire.db.DBCommand;
-import org.apache.empire.db.DBJoinType;
-import org.apache.empire.db.DBReader;
-import org.apache.empire.db.DBRecord;
-import org.apache.empire.db.DBRecordData;
-import org.apache.empire.db.exceptions.RecordNotFoundException;
-import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 
 /**
  *
@@ -65,6 +67,7 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         }
         r.setBeanValues(task);
         try {
+            r.setModified(tableTask.state, true);
             r.update(c);
         } catch (RecordUpdateInvalidException ex) {
             throw new ConcurrentModificationException(ex);
@@ -96,6 +99,24 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         cmd.join(tableTask.jobId, db.tableWorkflowJob.id);
         cmd.join(tableTask.ownerId, db.tableUser.id, DBJoinType.LEFT);
 
+        cmd.select(db.tableWorkflowPhysicalDoc.barcode);
+
+        DBCommand pmatCmd = db.createCommand();
+        final DBColumnExpr pmatMaterialId = db.tableWorkflowMaterial.id.min().as(db.tableWorkflowMaterial.id);
+        pmatCmd.select(pmatMaterialId);
+        pmatCmd.select(db.tableWorkflowTask.jobId);
+        pmatCmd.join(db.tableWorkflowMaterial.id, db.tableWorkflowMaterialInTask.materialId);
+        pmatCmd.join(db.tableWorkflowTask.id, db.tableWorkflowMaterialInTask.taskId);
+        pmatCmd.where(db.tableWorkflowMaterial.type.is("PHYSICAL_DOCUMENT"));
+        pmatCmd.groupBy(db.tableWorkflowTask.jobId);
+        DBQuery pmatQuery = new DBQuery(pmatCmd);
+
+        DBQuery.DBQueryColumn wmId = pmatQuery.findQueryColumn(pmatMaterialId);
+        DBQuery.DBQueryColumn wjId = pmatQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        cmd.join(db.tableWorkflowJob.id, wjId, DBJoinType.LEFT);
+        // empire db reverse the joint type so that is why RIGHT instead of LEFT
+        cmd.join(db.tableWorkflowPhysicalDoc.materialId, wmId, DBJoinType.RIGHT);
+
         if (filter.getId() != null) {
             cmd.where(tableTask.id.is(filter.getId()));
         }
@@ -120,9 +141,12 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         if (!filter.getUserId().isEmpty()) {
             cmd.where(tableTask.ownerId.in(filter.getUserId()));
         }
+        if (filter.getBarcode() != null) {
+            cmd.where(db.tableWorkflowPhysicalDoc.barcode.is(filter.getBarcode()));
+        }
         EmpireUtils.addWhereDate(cmd, tableTask.created, filter.getCreated());
         EmpireUtils.addWhereDate(cmd, tableTask.timestamp, filter.getModified());
-        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableTask.timestamp, false);
+        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableTask.order, false);
 
         DBReader reader = new DBReader();
         try {

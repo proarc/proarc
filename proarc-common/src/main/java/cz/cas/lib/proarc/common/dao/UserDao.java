@@ -28,7 +28,7 @@ public interface UserDao extends Dao {
 
     UserProfile find(int userId);
 
-    List<UserProfile> find(String userName, String passwd, String remoteName, String remoteType);
+    List<UserProfile> find(String userName, String passwd, String remoteName, String remoteType, String organization);
 
     UserProfile create();
 

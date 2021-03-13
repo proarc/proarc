@@ -34,10 +34,10 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
+import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.io.FileUtils;
 
 /**
  * The exporter of digital objects. It can build and validate SIP in format
@@ -51,11 +51,13 @@ public final class DesaExport {
     private final RemoteStorage rstorage;
     private final DesaServices desaServices;
     private final MetaModelRepository models;
+    private final ExportOptions options;
 
-    public DesaExport(RemoteStorage rstorage, DesaServices desaServices, MetaModelRepository models) {
+    public DesaExport(RemoteStorage rstorage, DesaServices desaServices, MetaModelRepository models, ExportOptions options) {
         this.rstorage = rstorage;
         this.desaServices = desaServices;
         this.models = models;
+        this.options = options;
     }
 
     /**
@@ -128,7 +130,7 @@ public final class DesaExport {
             UserProfile user
             ) throws ExportException {
 
-        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid));
+        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid), options.isOverwritePackage());
         Result result = new Result();
         try {
             if (keepResult) {
@@ -138,6 +140,9 @@ public final class DesaExport {
             DesaContext dc = buildContext(fo, packageId, target);
             try {
                 DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+                if (dobj == null) {
+                    throw new ExportException(pid);
+                }
                 DesaElement dElm = DesaElement.getElement(dobj, null, dc, hierarchy);
                 DesaConfiguration desaCfg = transporterProperties(dryRun, dElm);
                 if (desaCfg != null) {
@@ -232,7 +237,7 @@ public final class DesaExport {
 
     void storeObjectExportResult(String pid, String idSIPVersion, String log) throws MetsExportException {
         try {
-            ExportUtils.storeObjectExportResult(pid, idSIPVersion, log);
+            ExportUtils.storeObjectExportResult(pid, idSIPVersion, "DESA", log);
         } catch (DigitalObjectException ex) {
             throw new MetsExportException(pid, "Cannot store SIP ID Version!", false, ex);
         }

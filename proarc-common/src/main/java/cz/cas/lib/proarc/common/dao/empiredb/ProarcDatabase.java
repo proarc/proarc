@@ -23,15 +23,11 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.logging.Logger;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
-import static org.apache.empire.db.DBDatabase.SYSDATE;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRelation;
@@ -40,6 +36,9 @@ import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
 import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Logger;
 
 /**
  * Database schema version 5. It adds workflow stuff.
@@ -54,7 +53,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 5;
+    public static final int VERSION = 9;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -182,6 +181,8 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn created;
         public final DBTableColumn lastLogin;
         public final DBTableColumn home;
+        public final DBTableColumn organization;
+        public final DBTableColumn role;
         /** group to use as owner for newly created objects */
         public final DBTableColumn defaultGroup;
         /** group that can contain single member; it can hold overridden permissions */
@@ -191,6 +192,7 @@ public class ProarcDatabase extends DBDatabase {
         /** type of the remote user null(PROARC), DESA, LDAP, ... */
         public final DBTableColumn remoteType;
         public final DBTableColumn timestamp;
+        public final DBTableColumn changeModelFunction;
 
         public UserTable(DBDatabase db) {
             super("PROARC_USERS", db);
@@ -214,6 +216,9 @@ public class ProarcDatabase extends DBDatabase {
             remoteName = addColumn("REMOTE_NAME", DataType.TEXT, 255, false);
             remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
             timestamp = addTimestampColumn("TIMESTAMP");
+            organization = addColumn("ORGANIZATION", DataType.TEXT, 100, false);
+            role = addColumn("ROLE", DataType.TEXT, 100, false);
+            changeModelFunction = addColumn("CHANGE_MODEL_FUNCTION", DataType.BOOL, 0, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
@@ -337,6 +342,7 @@ public class ProarcDatabase extends DBDatabase {
         /** The name of a task type in workflow profile. */
         public final DBTableColumn typeRef;
         public final DBTableColumn timestamp;
+        public final DBTableColumn order;
 
         public WorkflowTaskTable(DBDatabase db) {
             super("PROARC_WF_TASK", db);
@@ -352,6 +358,7 @@ public class ProarcDatabase extends DBDatabase {
             note = addColumn("NOTE", DataType.TEXT, 2000, false);
             created = addColumn("CREATED", DataType.DATETIME, 0, true);
             timestamp = addTimestampColumn("TIMESTAMP");
+            order = addColumn("ORDER", DataType.INTEGER, 0, false);
             setPrimaryKey(id);
         }
     }
@@ -459,6 +466,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn sigla;
         public final DBTableColumn volume;
         public final DBTableColumn year;
+        public final DBTableColumn edition;
 
         public WorkflowPhysicalDocTable(DBDatabase db) {
             super("PROARC_WF_PHYSICAL_DOCUMENT", db);
@@ -475,6 +483,7 @@ public class ProarcDatabase extends DBDatabase {
             sigla = addColumn("SIGLA", DataType.TEXT, 6, false);
             volume = addColumn("VOLUME", DataType.TEXT, 100, false);
             year = addColumn("YEAR", DataType.TEXT, 100, false);
+            edition = addColumn("EDITION", DataType.TEXT, 2000, false);
             setPrimaryKey(materialId);
         }
     }
@@ -528,7 +537,7 @@ public class ProarcDatabase extends DBDatabase {
         try {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
-                schemaVersion = ProarcDatabaseV4.upgradeToVersion5(
+                schemaVersion = ProarcDatabaseV8.upgradeToVersion9(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);

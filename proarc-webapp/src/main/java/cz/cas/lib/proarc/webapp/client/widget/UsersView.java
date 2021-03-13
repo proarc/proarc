@@ -29,10 +29,13 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.FormItemIfFunction;
 import com.smartgwt.client.widgets.form.events.SubmitValuesEvent;
 import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
+import com.smartgwt.client.widgets.form.fields.BooleanItem;
 import com.smartgwt.client.widgets.form.fields.CancelItem;
+import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.PasswordItem;
 import com.smartgwt.client.widgets.form.fields.RowSpacerItem;
+import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.SubmitItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.validator.LengthRangeValidator;
@@ -166,7 +169,7 @@ public final class UsersView implements RefreshAction.Refreshable {
     }
 
     private DynamicForm getProfileEditor(ListGridRecord record) {
-        final DynamicForm form = createUserEditor(record == null, i18n);
+        final DynamicForm form = createUserEditor(record == null, true, i18n);
 
         FormItem cancel = form.getField("cancel");
         cancel.addClickHandler(new com.smartgwt.client.widgets.form.fields.events.ClickHandler() {
@@ -196,7 +199,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         return form;
     }
 
-    static DynamicForm createUserEditor(final boolean isNewUser, ClientMessages i18n) {
+    static DynamicForm createUserEditor(final boolean isNewUser, final boolean admin, ClientMessages i18n) {
         final DynamicForm form = new DynamicForm();
         form.setMargin(15);
         form.setDataSource(UserDataSource.getInstance());
@@ -221,6 +224,14 @@ public final class UsersView implements RefreshAction.Refreshable {
         TextItem surname = new TextItem(UserResourceApi.USER_SURNAME);
         TextItem forename = new TextItem(UserResourceApi.USER_FORENAME);
         forename.setStartRow(true);
+        ComboBoxItem organization = new ComboBoxItem(UserResourceApi.USER_ORGANIZATION);
+        organization.setCanEdit(admin);
+        organization.setValueMap(Organization.getMap());
+        SelectItem role = new SelectItem(UserResourceApi.USER_ROLE);
+        role.setCanEdit(admin);
+        role.setValueMap(UserRole.getMap());
+        BooleanItem changeModelFunction = new BooleanItem(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION);
+        changeModelFunction.setCanEdit(admin);
         TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
         email.setColSpan("*");
         email.setWidth(300);
@@ -262,7 +273,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         cancel.setStartRow(false);
 
         form.setFields(username, password, forename, surname, email,
-                remoteName, remoteType, home,
+                remoteName, remoteType, organization, role, home, changeModelFunction,
                 new RowSpacerItem(), submit, cancel);
 
         return form;

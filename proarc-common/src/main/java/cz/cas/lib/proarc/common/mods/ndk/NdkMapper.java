@@ -18,25 +18,40 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
+import cz.cas.lib.proarc.common.object.chronicle.ChronicleMapperFactory;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsMapperFactory;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsMapperFactory;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintMapperFactory;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
+import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.ExtentDefinition;
+import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import org.apache.empire.commons.StringUtils;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.empire.commons.StringUtils;
-
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -56,6 +71,9 @@ public abstract class NdkMapper {
 
     private static final NdkMapperFactory ndkMapperFactory = new NdkMapperFactory();
     private static final OldPrintMapperFactory oldprintMapperFacotry = new OldPrintMapperFactory();
+    private static final ChronicleMapperFactory chronicleMapperFactory = new ChronicleMapperFactory();
+    private static final CollectionOfClippingsMapperFactory clippingMapperFactory = new CollectionOfClippingsMapperFactory();
+    private static final BornDigitalModsMapperFactory bornDigitalMapperFactory = new BornDigitalModsMapperFactory();
 
     /**
      * Gets a NDK mapper for the given model ID.
@@ -67,9 +85,29 @@ public abstract class NdkMapper {
         NdkMapper mapper;
         if (isNdkModel(modelId)) {
             mapper = ndkMapperFactory.get(modelId);
-        } else mapper = oldprintMapperFacotry.get(modelId);
+        } else if (isChronicleModel(modelId)) {
+            mapper = chronicleMapperFactory.get(modelId);
+        } else if (isClippingsModel(modelId)) {
+            mapper = clippingMapperFactory.get(modelId);
+        } else if (isBornDigitalModel(modelId)) {
+            mapper = bornDigitalMapperFactory.get(modelId);
+        } else {
+            mapper = oldprintMapperFacotry.get(modelId);
+        }
         mapper.modelId = modelId;
         return mapper;
+    }
+
+    private static boolean isBornDigitalModel(String modelId) {
+        return modelId != null && modelId.contains("bdmarticle");
+    }
+
+    private static boolean isClippingsModel(String modelId) {
+        return modelId != null && modelId.contains("clipping");
+    }
+
+    private static boolean isChronicleModel(String modelId) {
+        return modelId != null && modelId.contains("chronicle");
     }
 
     private static boolean isNdkModel(String modelId) {
@@ -91,6 +129,16 @@ public abstract class NdkMapper {
         mods.setVersion(ModsUtils.VERSION);
         if (ctx.getPid() != null) {
             addPid(mods, ctx.getPid());
+            checkUuidIdentifier(mods, ctx.getPid());
+        }
+    }
+
+    private void checkUuidIdentifier(ModsDefinition mods, String pid) {
+        String uuid = FoxmlUtils.pidAsUuid(pid);
+        for (IdentifierDefinition id : mods.getIdentifier()) {
+            if ("uuid".equals(id.getType()) && !uuid.equals(id.getValue())) {
+                id.setInvalid("yes");
+            }
         }
     }
 
@@ -180,6 +228,10 @@ public abstract class NdkMapper {
                 put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
                 put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
                 put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
+                put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
+                put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "model:electronicmonograph");
+                put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "model:electronicmonographunit");
+                put(NdkEbornPlugin.MODEL_ECHAPTER, "model:internalpart");
             }
         };
 
@@ -208,6 +260,113 @@ public abstract class NdkMapper {
         if (StringUtils.isNotEmpty(classification.getEdition()) && classification.getEdition().equals("Konspekt")){
             classification.setAuthority("udc"); // edition = "Konspekt" only if authority = "udc"
         }
+    }
+
+    protected void addDetailNumber(String number, String type, PartDefinition part) {
+        if (number != null) {
+            DetailDefinition detail = new DetailDefinition();
+            detail.setType(type);
+            StringPlusLanguage splNumber = new StringPlusLanguage();
+            splNumber.setValue(number);
+            detail.getNumber().add(splNumber);
+            part.getDetail().add(detail);
+        }
+    }
+
+    protected void setNdkPageMods(NdkPageMapper.Page page, ModsDefinition mods) {
+        if (page.getTitle() != null || page.getSubtitle() != null) {
+            TitleInfoDefinition titleInfo = new TitleInfoDefinition();
+            mods.getTitleInfo().add(titleInfo);
+
+            setTitle(page, titleInfo);
+            setSubtitle(page, titleInfo);
+        }
+
+        setPhysicalDescription(page, mods);
+        setGenre(page, mods);
+        setNote(page, mods);
+        setTypeOfResource(page, mods);
+        setExtent(page, mods);
+    }
+
+    private void setExtent(NdkPageMapper.Page page, ModsDefinition mods) {
+        PartDefinition part = mods.getPart().get(0);
+        if (page.getExtent() != null && part != null) {
+            ExtentDefinition extentDefinition = new ExtentDefinition();
+            extentDefinition.setUnit("pages");
+            StringPlusLanguage extent = new StringPlusLanguage();
+            extent.setValue(page.getExtent());
+            extentDefinition.setStart(extent);
+            part.getExtent().add(extentDefinition);
+        }
+    }
+
+    private void setTypeOfResource(NdkPageMapper.Page page, ModsDefinition mods) {
+        if (page.getTypeOfResource() != null) {
+            TypeOfResourceDefinition typeOfResource = new TypeOfResourceDefinition();
+            typeOfResource.setValue(page.getTypeOfResource());
+            mods.getTypeOfResource().add(typeOfResource);
+        }
+    }
+
+    private void setNote(NdkPageMapper.Page page, ModsDefinition mods) {
+        if (page.getNote() != null) {
+            NoteDefinition noteDefinition = new NoteDefinition();
+            noteDefinition.setValue(page.getNote());
+            mods.getNote().add(noteDefinition);
+        }
+    }
+
+    private void setGenre(NdkPageMapper.Page page, ModsDefinition mods) {
+        if (page.getGenre() != null) {
+            GenreDefinition genreDefinition = new GenreDefinition();
+            mods.getGenre().add(genreDefinition);
+            genreDefinition.setValue(page.getGenre());
+        }
+    }
+
+    private void setPhysicalDescription(NdkPageMapper.Page page, ModsDefinition mods) {
+        if (page.getPhysicalDescription() != null) {
+            PhysicalDescriptionDefinition physicalDescription = new PhysicalDescriptionDefinition();
+            mods.getPhysicalDescription().add(physicalDescription);
+            PhysicalDescriptionNote phNote = new PhysicalDescriptionNote();
+            phNote.setValue(page.getPhysicalDescription());
+            physicalDescription.getNote().add(phNote);
+        }
+    }
+
+    private void setSubtitle(NdkPageMapper.Page page, TitleInfoDefinition titleInfo) {
+        if (page.getSubtitle() != null) {
+            StringPlusLanguage subtitle = new StringPlusLanguage();
+            subtitle.setValue(page.getSubtitle());
+            titleInfo.getSubTitle().add(subtitle);
+        }
+    }
+
+    private void setTitle(NdkPageMapper.Page page, TitleInfoDefinition titleInfo) {
+        if (page.getTitle() != null) {
+            StringPlusLanguage title = new StringPlusLanguage();
+            title.setValue(page.getTitle());
+            titleInfo.getTitle().add(title);
+        }
+    }
+
+    protected List<IdentifierDefinition> getIdentifierDefinition(List<IdentifierMapper.IdentifierItem> iis) {
+        if (iis == null) {
+            return Collections.emptyList();
+        }
+        ArrayList<IdentifierDefinition> ids = new ArrayList<>(iis.size());
+        for (IdentifierMapper.IdentifierItem ii : iis) {
+            String iiValue = MapperUtils.toValue(ii.getValue());
+            if (iiValue != null) {
+                IdentifierDefinition id = new IdentifierDefinition();
+                id.setType(ii.getType());
+                id.setValue(iiValue);
+                ids.add(id);
+            }
+        }
+
+        return ids;
     }
 
     public static class Context {
@@ -263,6 +422,37 @@ public abstract class NdkMapper {
 
         public void setRdaRules(Boolean rdaRules) {
             this.rdaRules = rdaRules;
+        }
+    }
+
+    public static class PageModsWrapper extends ModsWrapper {
+
+        private String pageType;
+        private String pageIndex;
+        private String pageNumber;
+
+        public String getPageNumber() {
+            return pageNumber;
+        }
+
+        public void setPageNumber(String pageNumber) {
+            this.pageNumber = pageNumber;
+        }
+
+        public String getPageIndex() {
+            return pageIndex;
+        }
+
+        public void setPageIndex(String pageIndex) {
+            this.pageIndex = pageIndex;
+        }
+
+        public String getPageType() {
+            return pageType;
+        }
+
+        public void setPageType(String pageType) {
+            this.pageType = pageType;
         }
     }
 }

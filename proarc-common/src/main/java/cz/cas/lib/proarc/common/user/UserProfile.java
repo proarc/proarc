@@ -43,7 +43,10 @@ public class UserProfile {
     private transient String userPasswordDigest;
     private String surname;
     private String forename;
+    private String organization;
+    private String role;
     private String email;
+    private Boolean changeModelFunction;
     private Date created;
     private Date lastLogin;
     private String status;
@@ -190,6 +193,22 @@ public class UserProfile {
         this.forename = forename;
     }
 
+    public String getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(String organization) {
+        this.organization = organization;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     public String getSurname() {
         return surname;
     }
@@ -236,6 +255,14 @@ public class UserProfile {
 
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Boolean getChangeModelFunction() {
+        return changeModelFunction;
+    }
+
+    public void setChangeModelFunction(Boolean changeModelFunction) {
+        this.changeModelFunction = changeModelFunction;
     }
 
     @Override

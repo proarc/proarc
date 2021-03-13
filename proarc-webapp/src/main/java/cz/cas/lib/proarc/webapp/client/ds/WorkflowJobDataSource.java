@@ -64,6 +64,11 @@ public class WorkflowJobDataSource extends ProarcDataSource {
     public static final String FIELD_MSIGNATURE = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE;
     public static final String FIELD_MVOLUME = WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME;
     public static final String FIELD_MYEAR = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR;
+    public static final String FIELD_MEDITION = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION;
+    public static final String FIELD_MPID = WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID;
+    public static final String FIELD_MODEL = WorkflowModelConsts.JOB_FILTER_MODEL;
+    public static final String FIELD_RAW_PATH = WorkflowModelConsts.JOB_FILTER_RAW_PATH;
+    //public static final String FIELD_MASTER_PATH = WorkflowModelConsts.JOB_FILTER_MASTER_PATH;
 
     private static WorkflowJobDataSource INSTANCE;
 
@@ -170,9 +175,22 @@ public class WorkflowJobDataSource extends ProarcDataSource {
         year.setTitle(i18n.WorkflowMaterial_Field_Year_Title());
         year.setDetail(true);
 
+        DataSourceTextField edition = new DataSourceTextField(FIELD_MEDITION);
+        edition.setTitle(i18n.WorkflowMaterial_Field_Edition_Title());
+        edition.setDetail(true);
+
+        DataSourceTextField pid = new DataSourceTextField(FIELD_MPID);
+        pid.setTitle(i18n.WorkflowMaterial_Field_Pid_Title());
+        pid.setDetail(true);
+
+        DataSourceTextField rawPath = new DataSourceTextField(FIELD_RAW_PATH);
+        rawPath.setTitle(i18n.WorkflowMaterial_Field_Raw_Path_Title());
+        rawPath.setDetail(true);
+
         setFields(fieldId, label, state, profileId, priority, owner, created, modified,
                 note, financed, barcode,
-                detail, field001, issue, sigla, signature, volume, year
+                detail, field001, issue, sigla, signature, volume, year, pid, edition,
+                rawPath
         );
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

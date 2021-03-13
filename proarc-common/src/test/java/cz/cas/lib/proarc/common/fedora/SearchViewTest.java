@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.fedora;
 
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
-import static cz.cas.lib.proarc.common.fedora.FedoraTestSupport.assertItem;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.SearchView.Result;
@@ -31,20 +30,22 @@ import cz.cas.lib.proarc.common.user.FedoraUserDao;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
-
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
 import org.junit.After;
-import static org.junit.Assert.*;
-
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import static cz.cas.lib.proarc.common.fedora.FedoraTestSupport.assertItem;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -131,7 +132,7 @@ public class SearchViewTest {
         String user = NdkPlugin.MODEL_PERIODICAL;
 //        String user = null;
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findLastCreated(0, user, null);
+        List<Item> result = instance.findLastCreated(0, user, null, false, "desc");
         System.out.println(result);
     }
 
@@ -169,7 +170,7 @@ public class SearchViewTest {
 
 //        fedora.getClient().debug(true);
         SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findLastCreated(0, modelId, user.getUserNameAsPid());
+        List<Item> result = instance.findLastCreated(0, modelId, user.getUserNameAsPid(), false, "desc");
         System.out.println(result);
         assertNotNull(result);
         assertEquals(1, result.size());
