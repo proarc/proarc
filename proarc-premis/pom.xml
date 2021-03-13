@@ -11,16 +11,6 @@
             <artifactId>proarc-mets</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-mets</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-mets</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <parent>

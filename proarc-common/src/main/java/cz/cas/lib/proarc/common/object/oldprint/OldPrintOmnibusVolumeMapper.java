@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.RdaNdkMapper;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
@@ -40,6 +41,44 @@ public class OldPrintOmnibusVolumeMapper extends RdaNdkMapper {
         addGenre(mods);
         fillAbstract(mods);
         fillRecordInfo(mods);
+        deleteOthers(mods);
+        removeOtherTitleInfo(mods);
+    }
+
+    private void removeOtherTitleInfo(ModsDefinition mods) {
+        TitleInfoDefinition titleInfoDefinition = null;
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            if (titleInfo != null && titleInfo.getType() == null) {
+                titleInfoDefinition = titleInfo;
+            }
+        }
+        if (titleInfoDefinition != null) {
+            if (titleInfoDefinition.getTitle() != null && titleInfoDefinition.getTitle().size() > 0) {
+                StringPlusLanguage title = titleInfoDefinition.getTitle().get(0);
+                if (title != null && title.getValue() != null && !title.getValue().startsWith("Konvolut začínající dílem:")) {
+                    title.setValue("Konvolut začínající dílem: " + title.getValue());
+                }
+            }
+            mods.getTitleInfo().clear();
+            mods.getTitleInfo().add(titleInfoDefinition);
+        }
+    }
+
+    private void deleteOthers(ModsDefinition mods) {
+        mods.getAbstract().clear();
+        mods.getClassification().clear();
+        mods.getExtension().clear();
+        mods.getLanguage().clear();
+        mods.getOriginInfo().clear();
+        mods.getPart().clear();
+        mods.getPhysicalDescription().clear();
+        mods.getRelatedItem().clear();
+        mods.getSubject().clear();
+        mods.getTableOfContents().clear();
+        mods.getTargetAudience().clear();
+        mods.getTypeOfResource().clear();
+        mods.getNote().clear();
+        mods.getName().clear();
     }
 
     @Override

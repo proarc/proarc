@@ -41,8 +41,9 @@ public final class OldPrintOmnibusVolumeForm {
         List<Field> modsFields = mods.getFields();
 
         modsFields.add(titleInfo());
-        modsFields.add(name());
-        modsFields.add(originInfo());
+        modsFields.add(location());
+        //modsFields.add(name());
+        //modsFields.add(originInfo());
         modsFields.add(genre());
         modsFields.add(identifier());
         modsFields.add(NdkForms.recordInfo());
@@ -52,10 +53,10 @@ public final class OldPrintOmnibusVolumeForm {
 
     private Field titleInfo() {
         // titleInfo, titleInfoDefinition
-        return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(10)
+        return new FieldBuilder("titleInfo").setTitle("Title Info - M").setMaxOccurrences(1)
                 .setHint("Název titulu, souborný název.<p>Pro plnění použít katalogizační záznam.")
                 // titleInfo@type, enum
-                .addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
+                /*.addField(new FieldBuilder("type").setTitle("Type - MA").setMaxOccurrences(1).setType(Field.SELECT)
                         .setHint("Hlavní název bez type.<dl>Hodnoty:"
                                 + "<dt>abbreviated</dt><dd>zkrácený název</dd>"
                                 + "<dt>alternative</dt><dd>alternativní název</dd>"
@@ -67,6 +68,7 @@ public final class OldPrintOmnibusVolumeForm {
                         .addMapValue("translated", "Translated")
                         .addMapValue("uniform", "Uniform")
                         .createField()) // type
+                 */
                 // title, type="stringPlusLanguage"
                 .addField(new FieldBuilder("title").setMaxOccurrences(1)
                         .addField(new FieldBuilder("value").setTitle("Title - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
@@ -98,9 +100,48 @@ public final class OldPrintOmnibusVolumeForm {
                                 .setHint("Název svazku souborného záznamu.")
                                 .createField()) // value
                         .createField()) // partName
-                // nonSort, type="stringPlusLanguage"
+                .addField(new FieldBuilder("nonSort").setMaxOccurrences(1)
+                        .addField(new FieldBuilder("value").setTitle("Non sort - O").setMaxOccurrences(1).setType(Field.TEXT)
+                                .setHint("Část názvu, která má být vynechána při vyhledávání (např. The)")
+                                .createField()) // value
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .createField()) // nonSort
+
                 // titleInfo@attributes: otherType, supplied, altRepGroup, altFormatAttributeGroup, nameTitleGroup, usage, ID, authorityAttributeGroup, xlink:simpleLink, languageAttributeGroup, displayLabel
                 .createField(); // titleInfo
+    }
+
+    private Field location() {
+        // location, locationDefinition
+        return new FieldBuilder("location").setTitle("Location - MA").setMaxOccurrences(1)
+                .setHint("Údaje o uložení popisovaného dokumentu, např. signatura, místo uložení apod.")
+                // languageAttributeGroup: @lang, @xmlLang, @script, @transliteration
+                // @displayLabel, @altRepGroup
+                // physicalLocation, physicalLocationDefinition extends stringPlusLanguagePlusAuthority
+                .addField(new FieldBuilder("physicalLocation").setTitle("Physical Location - M").setMaxOccurrences(1)
+                        // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
+                        // autofill "siglaADR"
+                        .addField(new FieldBuilder("authority").setTitle("Authority - O").setMaxOccurrences(1).setType(Field.TEXT).setDefaultValue("siglaADR").createField())
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        // @xlink:simpleLink, @displayLabel, @type
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                                .setHint("Údaje o instituci, kde je fyzicky uložen popisovaný dokument. Např. NK ČR."
+                                        + "<p>Nutno použít kontrolovaný slovník - sigly knihovnen (ABA001 atd.)"
+                                        + "<p>Odpovídá poli 910 $a v MARC21."
+                                        + "<p>Pozn. u dokumentů v digitální podobě není možné vyplnit.")
+                                .createField()) // value
+                        .createField()) // physicalLocation
+                // shelfLocator, stringPlusLanguage
+                .addField(new FieldBuilder("shelfLocator").setTitle("Shelf Locator - M").setMaxOccurrences(10)
+                        // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
+                        .addField(new FieldBuilder("value").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                                .setHint("Signatura nebo lokační údaje o daném konkrétním dokumentu, který slouží jako předloha.")
+                                .createField()) // value
+                        .createField()) // shelfLocator
+                // url, urlDefinition extends xs:anyURI
+                // holdingSimple
+                // holdingExternal
+                .createField(); // location
     }
 
     private Field name() {
