@@ -62,6 +62,7 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_STATUS_PARAM = "status";
     public static final String SEACH_ORGANIZATION_PARAM = "organization";
     public static final String SEARCH_PROCESSOR_PARAM = "processor";
+    public static final String MODS_ADD_AUTHORITY = "addAuthority";
     /** XXX workaround to fix GWT 2.5 compiler bug related to the use of enum's static
      * field in enum's constant declaration.
      */

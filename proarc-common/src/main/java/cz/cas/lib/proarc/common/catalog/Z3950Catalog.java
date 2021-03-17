@@ -22,11 +22,6 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.xml.Transformers;
 import cz.cas.lib.proarc.z3950.Z3950Client;
 import cz.cas.lib.proarc.z3950.Z3950ClientException;
-import org.w3c.dom.Document;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -41,6 +36,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import org.w3c.dom.Document;
 
 /**
  * Z39.50 metadata provider.
@@ -193,12 +193,17 @@ public final class Z3950Catalog implements BibliographicCatalog {
     private MetadataItem createResponse(int entryIdx, Source marcxmlSrc, Locale locale)
             throws TransformerException, UnsupportedEncodingException {
 
+
+
         byte[] modsBytes = transformers.transformAsBytes(
                 marcxmlSrc, Transformers.Format.MarcxmlAsMods3);
         byte[] modsHtmlBytes = modsAsHtmlBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), locale);
         byte[] modsTitleBytes = transformers.transformAsBytes(
                 new StreamSource(new ByteArrayInputStream(modsBytes)),
                 Transformers.Format.ModsAsTitle);
+        if (modsTitleBytes != null && modsTitleBytes.length == 0) {
+            modsTitleBytes = transformers.transformAsBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), Transformers.Format.ModsAsAuthorityTitle);
+        }
 
         return new MetadataItem(entryIdx, new String(modsBytes, "UTF-8"),
                 repairHtml(new String(modsHtmlBytes, "UTF-8")), new String(modsTitleBytes, "UTF-8"));

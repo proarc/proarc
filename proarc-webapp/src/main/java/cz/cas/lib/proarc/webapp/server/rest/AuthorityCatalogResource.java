@@ -1,21 +1,22 @@
 /*
- * Copyright (C) 2012 Jan Pokorsky
- * 
+ * Copyright (C) 2021 Lukas Sykora
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.catalog.AuthorityItem;
 import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
 import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -23,7 +24,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogQueryField;
-import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.AuthorityCatalogResourceApi;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.ArrayList;
@@ -48,21 +49,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.TransformerException;
 
 /**
- * The resource to list available bibliographic catalogs like Aleph
- * and registrdigitalizace.cz and to query them for metadata.
+ * The resource to list available authorities catalogs like Aleph
+ * and to query them for metadata.
  *
- * @author Jan Pokorsky
+ * @author Lukáš Sýkora
  */
-@Path(BibliographicCatalogResourceApi.PATH)
-public class BibliographicCatalogResource {
+@Path(AuthorityCatalogResourceApi.PATH)
+public class AuthorityCatalogResource {
 
-    private static final Logger LOG = Logger.getLogger(BibliographicCatalogResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(AuthorityCatalogResource.class.getName());
     private final HttpHeaders httpHeaders;
     private final AppConfiguration appConfig;
 
-    public BibliographicCatalogResource(
+    public AuthorityCatalogResource(
             @Context HttpHeaders httpHeaders
-            ) throws AppConfigurationException {
+    ) throws AppConfigurationException {
 
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
@@ -70,14 +71,14 @@ public class BibliographicCatalogResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<CatalogDescriptor> findCatalog(
-            @QueryParam(BibliographicCatalogResourceApi.CATALOG_ID) String id) {
+    public SmartGwtResponse<CatalogDescriptor> findAuthorityCatalog(
+            @QueryParam(AuthorityCatalogResourceApi.CATALOG_ID) String id) {
 
         List<CatalogConfiguration> catalogs;
         if (id == null) {
-            catalogs = appConfig.getCatalogs().getConfigurations();
+            catalogs = appConfig.getCatalogs().getAuthorityConfigurations();
         } else {
-            CatalogConfiguration catalog = appConfig.getCatalogs().findConfiguration(id);
+            CatalogConfiguration catalog = appConfig.getCatalogs().findAuthorityConfiguration(id);
             catalogs = catalog != null ? Arrays.asList(catalog) : Collections.<CatalogConfiguration>emptyList();
         }
         ArrayList<CatalogDescriptor> result = new ArrayList<CatalogDescriptor>(catalogs.size());
@@ -86,22 +87,34 @@ public class BibliographicCatalogResource {
         }
         return new SmartGwtResponse<CatalogDescriptor>(result);
     }
-    
+
     /**
-     * Finds metadata in bibliographic catalog.
+     * Finds metadata in authority catalog.
      *
      * @param catalog catalog descriptor
-     * @param fieldName issn|isbn|ccnb
+     * @param fieldName id, surname, lastname
      * @param value value to query
      * @return list of metadata records
      */
-    @Path(BibliographicCatalogResourceApi.FIND_PATH)
+    @Path(AuthorityCatalogResourceApi.FIND_PATH)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public MetadataList find(
-            @QueryParam(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM) String catalog,
-            @QueryParam(BibliographicCatalogResourceApi.FIND_FIELDNAME_PARAM) String fieldName,
-            @QueryParam(BibliographicCatalogResourceApi.FIND_VALUE_PARAM) String value) throws TransformerException, IOException {
+    public MetadataList findAuthority(
+            @QueryParam(AuthorityCatalogResourceApi.FIND_CATALOG_PARAM) String catalog,
+            @QueryParam(AuthorityCatalogResourceApi.FIND_FIELDNAME_PARAM) String fieldName,
+            @QueryParam(AuthorityCatalogResourceApi.FIND_VALUE_PARAM) String value) throws TransformerException, IOException {
+
+        MetadataList<MetadataItem> list = find(catalog, fieldName, value);
+        List<AuthorityItem> authorities = new ArrayList<>();
+        for (MetadataItem item : list.list) {
+            AuthorityItem authority = new AuthorityItem(item, item.getTitle());
+            authorities.add(authority);
+        }
+
+        return new MetadataList<>(authorities);
+    }
+
+    public MetadataList find(String catalog, String fieldName, String value) throws TransformerException, IOException {
 
         List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
         Locale locale = acceptableLanguages.isEmpty() ? null : acceptableLanguages.get(0);
@@ -115,11 +128,10 @@ public class BibliographicCatalogResource {
                 throw RestException.plainText(Status.SERVICE_UNAVAILABLE, ex.getLocalizedMessage());
             }
         } else {
-            throw RestException.plainNotFound(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM, catalog);
+            throw RestException.plainNotFound(AuthorityCatalogResourceApi.FIND_CATALOG_PARAM, catalog);
         }
         return new MetadataList<>(result);
     }
-
 
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -134,11 +146,11 @@ public class BibliographicCatalogResource {
             return new CatalogDescriptor(cp.getId(), cp.getName(), fieldDescriptors);
         }
 
-        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_ID)
+        @XmlElement(name = AuthorityCatalogResourceApi.CATALOG_ID)
         private String id;
-        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_NAME)
+        @XmlElement(name = AuthorityCatalogResourceApi.CATALOG_NAME)
         private String name;
-        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_FIELDS)
+        @XmlElement(name = AuthorityCatalogResourceApi.CATALOG_FIELDS)
         private List<FieldDescriptor> fields;
 
         public CatalogDescriptor(String id, String name, List<FieldDescriptor> fields) {
@@ -155,9 +167,9 @@ public class BibliographicCatalogResource {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class FieldDescriptor {
 
-        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_FIELD_ID)
+        @XmlElement(name = AuthorityCatalogResourceApi.CATALOG_FIELD_ID)
         private String id;
-        @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_FIELD_TITLE)
+        @XmlElement(name = AuthorityCatalogResourceApi.CATALOG_FIELD_TITLE)
         private String title;
 
         public FieldDescriptor() {
@@ -188,32 +200,4 @@ public class BibliographicCatalogResource {
         }
 
     }
-
-//    @XmlRootElement
-//    @XmlAccessorType(XmlAccessType.FIELD)
-//    public static class Criterion {
-//
-//        private String operator;
-//        private String fieldName;
-//        private String value;
-//
-//        public Criterion() {
-//        }
-//
-//        public String getFieldName() {
-//            return fieldName;
-//        }
-//
-//        public String getValue() {
-//            return value;
-//        }
-//
-//        @Override
-//        public String toString() {
-//            return String.format("Criterion[operator: %s, fieldName: %s, value: %s]",
-//                    operator, fieldName, value);
-//        }
-//
-//    }
-
 }

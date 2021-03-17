@@ -25,6 +25,7 @@ import com.smartgwt.client.types.DSDataFormat;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DSProtocol;
 import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.AuthorityCatalogResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
@@ -72,6 +73,9 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_MODS = path(URL_DIGOBJECT, DigitalObjectResourceApi.MODS_PATH);
     public static final String URL_DIGOBJECT_MODS_CUSTOM = path(
             URL_DIGOBJECT_MODS, DigitalObjectResourceApi.MODS_CUSTOM_PATH);
+    public static final String URL_DIGOBJECT_MODS_ADD_AUTHORITY = path(URL_DIGOBJECT_MODS,
+            DigitalObjectResourceApi.MODS_ADD_AUTHORITY);
+
     public static final String URL_DIGOBJECT_MODS_PLAIN = path(
             URL_DIGOBJECT_MODS, DigitalObjectResourceApi.MODS_PLAIN_PATH);
     public static final String URL_DIGOBJECT_OCR = path(URL_DIGOBJECT, DigitalObjectResourceApi.OCR_PATH);
@@ -105,7 +109,10 @@ public final class RestConfig {
     public static final String URL_BIBLIOCATALOG = path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG_QUERY = path(
             URL_BIBLIOCATALOG, BibliographicCatalogResourceApi.FIND_PATH);
-    public static final String URL_USER = path(URL_ROOT, UserResourceApi.PATH);
+    public static final String URL_AUTHORITY_CATALOG = path(URL_ROOT, AuthorityCatalogResourceApi.PATH);
+    public static final String URL_AUTHORITYCATALOG_QUERY =  path(
+            URL_AUTHORITY_CATALOG, AuthorityCatalogResourceApi.FIND_PATH);
+    public static final String URL_USER =  path(URL_ROOT, UserResourceApi.PATH);
     public static final String URL_USER_PERMISSIONS =  URL_USER + "/permissions";
     public static final String URL_EXPORT = path(URL_ROOT, ExportResourceApi.PATH);
     public static final String URL_EXPORT_ARCHIVE = path(

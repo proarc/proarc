@@ -37,6 +37,8 @@ public final class Catalogs {
     private static final Logger LOG = Logger.getLogger(Catalogs.class.getName());
     static final String CATALOG_PREFIX = "catalog";
     static final String PROPERTY_CATALOGS = "catalogs";
+    static final String PROPERTY_AUTHORITY_CATALOGS = "authorityCatalogs";
+    static final String AUTHORITY_CATALOG_PREFIX = "authorityCatalog";
 
     private final Configuration config;
 
@@ -60,6 +62,21 @@ public final class Catalogs {
     }
 
     /**
+     * Gets configuration of all registered authority catalogs.
+     * @return list of configurations
+     */
+    public List<CatalogConfiguration> getAuthorityConfigurations() {
+        ArrayList<CatalogConfiguration> catalogs = new ArrayList<CatalogConfiguration>();
+        for (String catalogId : config.getStringArray(PROPERTY_AUTHORITY_CATALOGS)) {
+            CatalogConfiguration catalog = readAuthorityConfiguration(catalogId);
+            if (catalog != null) {
+                catalogs.add(catalog);
+            }
+        }
+        return catalogs;
+    }
+
+    /**
      * Finds particular catalog.
      * @param id catalog id
      * @return catalog or {@code null}
@@ -67,7 +84,11 @@ public final class Catalogs {
     public BibliographicCatalog findCatalog(String id) {
         CatalogConfiguration props = findConfiguration(id);
         if (props == null) {
-            return null;
+            props = findAuthorityConfiguration(id);
+
+            if (props == null) {
+                return null;
+            }
         }
         BibliographicCatalog catalog = DigitizationRegistryCatalog.get(props);
         if (catalog != null) {
@@ -99,8 +120,28 @@ public final class Catalogs {
         return null;
     }
 
+    public CatalogConfiguration findAuthorityConfiguration(String id) {
+        for (CatalogConfiguration catalog : getAuthorityConfigurations()) {
+            if (catalog.getId().equals(id)) {
+                return catalog;
+            }
+        }
+        return null;
+    }
+
     private CatalogConfiguration readConfiguration(String catalogId) {
         String catalogPrefix = CATALOG_PREFIX + '.' + catalogId;
+        Configuration catalogConfig = config.subset(catalogPrefix);
+        CatalogConfiguration catalog = new CatalogConfiguration(catalogId, catalogPrefix, catalogConfig);
+        if (!isValidProperty(catalogPrefix, CatalogConfiguration.PROPERTY_URL, catalog.getUrl())) {
+            return null;
+        }
+        isValidProperty(catalogPrefix, CatalogConfiguration.PROPERTY_NAME, catalog.getName());
+        return catalog;
+    }
+
+    private CatalogConfiguration readAuthorityConfiguration(String catalogId) {
+        String catalogPrefix = AUTHORITY_CATALOG_PREFIX + '.' + catalogId;
         Configuration catalogConfig = config.subset(catalogPrefix);
         CatalogConfiguration catalog = new CatalogConfiguration(catalogId, catalogPrefix, catalogConfig);
         if (!isValidProperty(catalogPrefix, CatalogConfiguration.PROPERTY_URL, catalog.getUrl())) {

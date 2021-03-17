@@ -38,6 +38,7 @@ import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.action.Selectable;
+import cz.cas.lib.proarc.webapp.client.ds.AuthorityModsDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
@@ -47,6 +48,7 @@ import cz.cas.lib.proarc.webapp.client.ds.WorkflowModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.event.HasEditorLoadHandlers;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
+import cz.cas.lib.proarc.webapp.client.widget.AuthorityBrowser;
 import cz.cas.lib.proarc.webapp.client.widget.BatchDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.CatalogBrowser;
 import cz.cas.lib.proarc.webapp.client.widget.DatastreamEditor;
@@ -76,6 +78,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     private final ModsXmlEditor modsSourceEditor;
     private final ModsBatchEditor modsBatchEditor;
     private final CatalogBrowser catalogBrowser;
+    private final AuthorityBrowser authorityBrowser;
     private DatastreamEditor activeEditor;
     private final ClientMessages i18n;
     private DigitalObject[] digitalObjects;
@@ -101,6 +104,8 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         modsBatchEditor = new ModsBatchEditor(i18n);
         catalogBrowser = new CatalogBrowser(i18n);
         catalogBrowser.setCompactUi(true);
+        authorityBrowser = new AuthorityBrowser(i18n);
+        authorityBrowser.setCompactUi(true);
         actionSource = new ActionSource(this);
         attachDatastreamEditor(modsCustomEditor);
     }
@@ -161,6 +166,7 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
 
     public void save(BooleanCallback callback) {
         callback = wrapSaveCallback(callback);
+
         if (activeEditor == modsCustomEditor) {
             saveCustomData(callback);
         } else if (activeEditor == modsBatchEditor) {
@@ -169,6 +175,8 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
             saveCatalogData(callback);
         } else if (activeEditor == modsSourceEditor) {
             saveXmlData(callback);
+        } else if (activeEditor == authorityBrowser) {
+            saveAuthorityData(callback);
         } else {
             callback.execute(Boolean.TRUE);
         }
@@ -313,6 +321,12 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                         "[SKIN]/DatabaseBrowser/data.png",
                         i18n.ModsMultiEditor_TabCatalog_Hint()
                 ), actionSource, false));
+        menuMods.addItem(Actions.asMenuItem(
+                new SwitchAction(authorityBrowser,
+                        i18n.ModsMultiEditor_TabAuthorityCatalog_Title(),
+                        Page.getAppDir() + "images/silk/16/user_add.png",
+                        i18n.ModsMultiEditor_TabAuthorityCatalog_Hint()
+                ), actionSource, false));
         btnMods.setMenu(menuMods);
         return btnMods;
     }
@@ -417,6 +431,24 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
         modsBatchEditor.save(callback);
     }
 
+    private void saveAuthorityData(BooleanCallback callback) {
+        callback.execute(Boolean.TRUE);
+        AuthorityModsDataSource.getInstance().addAuthorityXML(digitalObjects[0], authorityBrowser.getMods(), -1 , new DescriptionSaveHandler() {
+
+            @Override
+            protected void onSave(DescriptionMetadata dm) {
+                super.onSave(dm);
+                callback.execute(Boolean.TRUE);
+            }
+            @Override
+            protected void onError() {
+                super.onError();
+                callback.execute(Boolean.FALSE);
+            }
+
+        });
+    }
+
     private void saveCatalogData(final BooleanCallback callback) {
         String mods = catalogBrowser.getMods();
         DescriptionSaveHandler descriptionSaveHandler = new DescriptionSaveHandler() {
@@ -426,7 +458,6 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                 super.onSave(dm);
                 callback.execute(Boolean.TRUE);
             }
-
             @Override
             protected void onError() {
                 super.onError();

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2015 Jan Pokorsky
- *
+ * Copyright (C) 2018 Martin Rumanek
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -14,6 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package cz.cas.lib.proarc.webapp.client.widget;
 
 import com.smartgwt.client.data.Criteria;
@@ -39,19 +39,15 @@ import com.smartgwt.client.widgets.grid.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.grid.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ds.BibliographyDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.BibliographyQueryDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.ds.AuthorityDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.AuthorityQueryDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
+import cz.cas.lib.proarc.webapp.shared.rest.AuthorityCatalogResourceApi;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-/**
- * The widget to query catalog metadata.
- *
- * @author Jan Pokorsky
- */
-public class CatalogBrowser implements DatastreamEditor {
+public class AuthorityBrowser implements DatastreamEditor, Refreshable {
 
     /**
      * Titles of common field types. Used when the server config does not declare
@@ -64,8 +60,9 @@ public class CatalogBrowser implements DatastreamEditor {
     private DynamicForm formCatalog;
     private ListGrid lgResult;
     private boolean compactUi;
+    private long timestamp;
 
-    public CatalogBrowser(ClientMessages i18n) {
+    public AuthorityBrowser(ClientMessages i18n) {
         this.i18n = i18n;
         initFields(i18n);
     }
@@ -75,21 +72,43 @@ public class CatalogBrowser implements DatastreamEditor {
      */
     public String getMods() {
         ListGridRecord r = lgResult.getSelectedRecord();
-        String mods = (r == null) ? null : r.getAttribute(BibliographyQueryDataSource.FIELD_MODS);
+        String mods = (r == null) ? null : r.getAttribute(AuthorityQueryDataSource.FIELD_MODS);
+
 //        ClientUtils.info(LOG, "getMods: %s", mods);
         return mods;
     }
 
-    public String getCatalogId() {
-        ListGridRecord r = lgResult.getSelectedRecord();
-        String val = (r == null) ? null : r.getAttribute(BibliographicCatalogResourceApi.CATALOG_ID);
-        return val;
-    }
+    private ListGrid createLgResult() {
+        ListGrid lgResult = new ListGrid();
+        lgResult.setDataSource(AuthorityQueryDataSource.getInstance());
+//        lgResult.setUseAllDataSourceFields(true);
+        ListGridField preview = new ListGridField(AuthorityQueryDataSource.FIELD_PREVIEW,
+                i18n.CatalogBrowser_HeaderPreview_Title());
+        ListGridField title = new ListGridField(AuthorityQueryDataSource.FIELD_TITLE,
+                i18n.CatalogBrowser_HeaderTitle_Title());
+        lgResult.setDetailField(AuthorityQueryDataSource.FIELD_PREVIEW);
+        lgResult.setFields(title, preview);
+//        lgResult.setAutoFetchData(true);
+        lgResult.setHeight100();
+        lgResult.setWidth100();
+        lgResult.setCanExpandRecords(true);
+        lgResult.setCanExpandMultipleRecords(false);
+        lgResult.setExpansionMode(ExpansionMode.DETAIL_FIELD);
+        lgResult.setSelectionType(SelectionStyle.SINGLE);
+//        lgResult.setSelectionAppearance(SelectionAppearance.CHECKBOX);
+        lgResult.setAlternateRecordStyles(true);
+        lgResult.addDataArrivedHandler(new DataArrivedHandler() {
 
-    public Long getRdczId() {
-        ListGridRecord r = lgResult.getSelectedRecord();
-        Long val = (r == null) ? null : r.getAttributeAsLong(BibliographyQueryDataSource.FIELD_RDCZ_ID);
-        return val;
+            @Override
+            public void onDataArrived(DataArrivedEvent event) {
+                if (event.getStartRow() == 0 && event.getEndRow() > 0) {
+                    lgResult.focus();
+                    lgResult.selectSingleRecord(0);
+                }
+            }
+        });
+
+        return lgResult;
     }
 
     protected DynamicForm getFormCatalog() {
@@ -111,7 +130,7 @@ public class CatalogBrowser implements DatastreamEditor {
     }
 
     @Override
-    public void edit(DigitalObject digitalObject) {
+    public void edit(DigitalObjectDataSource.DigitalObject digitalObject) {
         bind();
     }
 
@@ -119,12 +138,17 @@ public class CatalogBrowser implements DatastreamEditor {
     public void focus() {
         if (formCatalog != null) {
             formCatalog.focus();
+            formCatalog.clearValues();
         }
     }
 
     @Override
     public <T> T getCapability(Class<T> clazz) {
-        return null;
+        T c = null;
+        if (Refreshable.class.equals(clazz)) {
+            c = (T) this;
+        }
+        return c;
     }
 
     @Override
@@ -153,39 +177,6 @@ public class CatalogBrowser implements DatastreamEditor {
         return layout;
     }
 
-    protected ListGrid createLgResult() {
-        ListGrid lgResult = new ListGrid();
-        lgResult.setDataSource(BibliographyQueryDataSource.getInstance());
-//        lgResult.setUseAllDataSourceFields(true);
-        ListGridField preview = new ListGridField(BibliographyQueryDataSource.FIELD_PREVIEW,
-                i18n.CatalogBrowser_HeaderPreview_Title());
-        ListGridField title = new ListGridField(BibliographyQueryDataSource.FIELD_TITLE,
-                i18n.CatalogBrowser_HeaderTitle_Title());
-        lgResult.setDetailField(BibliographyQueryDataSource.FIELD_PREVIEW);
-        lgResult.setFields(title, preview);
-//        lgResult.setAutoFetchData(true);
-        lgResult.setHeight100();
-        lgResult.setWidth100();
-        lgResult.setCanExpandRecords(true);
-        lgResult.setCanExpandMultipleRecords(false);
-        lgResult.setExpansionMode(ExpansionMode.DETAIL_FIELD);
-        lgResult.setSelectionType(SelectionStyle.SINGLE);
-//        lgResult.setSelectionAppearance(SelectionAppearance.CHECKBOX);
-        lgResult.setAlternateRecordStyles(true);
-        lgResult.addDataArrivedHandler(new DataArrivedHandler() {
-
-            @Override
-            public void onDataArrived(DataArrivedEvent event) {
-                if (event.getStartRow() == 0 && event.getEndRow() > 0) {
-                    lgResult.focus();
-                    lgResult.selectSingleRecord(0);
-                }
-            }
-        });
-
-        return lgResult;
-    }
-
     private void queryCatalog() {
         if (formCatalog.validate()) {
             Criteria plain = formCatalog.getValuesAsCriteria();
@@ -195,27 +186,27 @@ public class CatalogBrowser implements DatastreamEditor {
     }
 
     protected DynamicForm createCatalogForm() {
-        SelectItem selection = new SelectItem(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM,
+        SelectItem selection = new SelectItem(AuthorityCatalogResourceApi.FIND_CATALOG_PARAM,
                 i18n.CatalogBrowser_CriteriaCatalog_Title());
         selection.setRequired(true);
-        selection.setOptionDataSource(BibliographyDataSource.getInstance());
+        selection.setOptionDataSource(AuthorityDataSource.getInstance());
 //        selectModel.setShowOptionsFromDataSource(true);
-        selection.setValueField(BibliographicCatalogResourceApi.CATALOG_ID);
-        selection.setDisplayField(BibliographicCatalogResourceApi.CATALOG_NAME);
+        selection.setValueField(AuthorityCatalogResourceApi.CATALOG_ID);
+        selection.setDisplayField(AuthorityCatalogResourceApi.CATALOG_NAME);
         selection.setAutoFetchData(true);
         selection.setDefaultToFirstOption(true);
         selection.setWidth(250);
 
-        SelectItem selectField = new SelectItem(BibliographicCatalogResourceApi.FIND_FIELDNAME_PARAM,
+        SelectItem selectField = new SelectItem(AuthorityCatalogResourceApi.FIND_FIELDNAME_PARAM,
                 i18n.CatalogBrowser_CriteriaField_Title());
         selectField.setRequired(true);
         selectField.setAllowEmptyValue(false);
         selectField.setDefaultToFirstOption(true);
-        CatalogChangedHandler catalogHandler = new CatalogChangedHandler(selection, selectField);
-        selection.addDataArrivedHandler(catalogHandler);
-        selection.addChangedHandler(catalogHandler);
+        AuthorityChangeHandler handler = new AuthorityChangeHandler(selection, selectField);
+        selection.addDataArrivedHandler(handler);
+        selection.addChangedHandler(handler);
 
-        TextItem value = new TextItem(BibliographicCatalogResourceApi.FIND_VALUE_PARAM,
+        TextItem value = new TextItem(AuthorityCatalogResourceApi.FIND_VALUE_PARAM,
                 i18n.CatalogBrowser_CriteriaQuery_Title());
         value.setWidth(300);
         value.setRequired(true);
@@ -284,13 +275,17 @@ public class CatalogBrowser implements DatastreamEditor {
         }
     }
 
-    private static class CatalogChangedHandler implements ChangedHandler,
-            com.smartgwt.client.widgets.form.fields.events.DataArrivedHandler {
+    @Override
+    public void refresh() {
+        this.formCatalog.clearValues();
+    }
+
+    private static class AuthorityChangeHandler implements ChangedHandler, com.smartgwt.client.widgets.form.fields.events.DataArrivedHandler {
 
         private final SelectItem selectCatalog;
         private final SelectItem selectField;
 
-        public CatalogChangedHandler(SelectItem selection, SelectItem selectField) {
+        public AuthorityChangeHandler(SelectItem selection, SelectItem selectField) {
             this.selectCatalog = selection;
             this.selectField = selectField;
         }
@@ -299,11 +294,11 @@ public class CatalogBrowser implements DatastreamEditor {
         public void onChanged(ChangedEvent event) {
             ListGridRecord r = selectCatalog.getSelectedRecord();
             String lastFieldSelection = selectField.getValueAsString();
-            Record[] fields = r.getAttributeAsRecordArray(BibliographicCatalogResourceApi.CATALOG_FIELDS);
+            Record[] fields = r.getAttributeAsRecordArray(AuthorityCatalogResourceApi.CATALOG_FIELDS);
             LinkedHashMap<String, String> fieldMap = new LinkedHashMap<String, String>();
             for (Record field : fields) {
-                String fId = field.getAttribute(BibliographicCatalogResourceApi.CATALOG_FIELD_ID);
-                String fTitle = field.getAttribute(BibliographicCatalogResourceApi.CATALOG_FIELD_TITLE);
+                String fId = field.getAttribute(AuthorityCatalogResourceApi.CATALOG_FIELD_ID);
+                String fTitle = field.getAttribute(AuthorityCatalogResourceApi.CATALOG_FIELD_TITLE);
                 fTitle = fTitle == null || fId.equals(fTitle) ? FIELD_TYPE_TITLES.get(fId) : fTitle;
                 fTitle = fTitle == null ? fId : fTitle;
                 fieldMap.put(fId, fTitle);
@@ -319,8 +314,9 @@ public class CatalogBrowser implements DatastreamEditor {
             selectField.setValue(lastFieldSelection);
         }
 
+
         @Override
-        public void onDataArrived(com.smartgwt.client.widgets.form.fields.events.DataArrivedEvent event) {
+        public void onDataArrived(com.smartgwt.client.widgets.form.fields.events.DataArrivedEvent dataArrivedEvent) {
             onChanged(null);
         }
     }

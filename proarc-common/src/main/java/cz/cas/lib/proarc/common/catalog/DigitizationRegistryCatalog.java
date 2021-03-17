@@ -120,6 +120,9 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
         byte[] modsTitleBytes = transformers.transformAsBytes(
                 new StreamSource(new ByteArrayInputStream(modsBytes)),
                 Transformers.Format.ModsAsTitle);
+        if (modsTitleBytes != null && modsTitleBytes.length == 0) {
+            modsTitleBytes = transformers.transformAsBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), Transformers.Format.ModsAsAuthorityTitle);
+        }
         return new MetadataItem(entryIdx, recordId, new String(modsBytes, "UTF-8"),
                 new String(modsHtmlBytes, "UTF-8"), new String(modsTitleBytes, "UTF-8"));
     }
