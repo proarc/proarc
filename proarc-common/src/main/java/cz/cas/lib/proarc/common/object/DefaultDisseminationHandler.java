@@ -111,7 +111,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                 return evaluatePreconditions.build();
             }
 
-            //transform jp2 or tiff to jpg
+  /*          //transform jp2 or tiff to jpg
             if (NDK_ARCHIVAL_ID.equals(dsId) || NDK_USER_ID.equals(dsId) || RAW_ID.equals(dsId)) {
                 try {
                     return Response.ok(convertToBrowserCompatible(entity, dsId), "image/jpeg")
@@ -123,10 +123,11 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                     return Response.status(Status.INTERNAL_SERVER_ERROR).build();
                 }
             } else {
-                return Response.ok(entity, loader.getProfile().getDsMIME())
+*/
+            return Response.ok(entity, loader.getProfile().getDsMIME())
                         .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
                         .lastModified(lastModification).build();
-            }
+//            }
         } else if (fobject instanceof RemoteObject) {
             RemoteObject remote = (RemoteObject) fobject;
             return getResponse(remote, dsId);
@@ -148,7 +149,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         MultivaluedMap<String, String> headers = response.getHeaders();
         String filename = headers.getFirst("Content-Disposition");
         filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
-
+/*
         //transform jp2 or tiff to jpg
         if (NDK_ARCHIVAL_ID.equals(dsId) || NDK_USER_ID.equals(dsId) || RAW_ID.equals(dsId)) {
 
@@ -161,10 +162,11 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
         } else {
+*/
             return Response.ok(response.getEntity(InputStream.class), headers.getFirst("Content-Type"))
                     .header("Content-Disposition", filename)
                     .build();
-        }
+//        }
     }
 
     private static byte[] convertToBrowserCompatible(InputStream entity, String dsId) throws IOException, AppConfigurationException {
