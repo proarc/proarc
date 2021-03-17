@@ -57,10 +57,11 @@ public class AuthorityModsDataSource extends ProarcDataSource {
         return ds;
     }
 
-    public void addAuthorityXML(DigitalObjectDataSource.DigitalObject dobj, String mods, ModsCustomDataSource.DescriptionSaveHandler callback) {
+    public void addAuthorityXML(DigitalObjectDataSource.DigitalObject dobj, String mods, long timestamp, ModsCustomDataSource.DescriptionSaveHandler callback) {
         Record update = new Record();
         update.setAttribute(FIELD_PID, dobj.getPid());
         update.setAttribute(FIELD_DATA, mods);
+        update.setAttribute(FIELD_TIMESTAMP, timestamp);
 
         updateData(update, callback, callback.getUpdateRequest());
     }

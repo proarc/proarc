@@ -63,25 +63,6 @@ public class AuthorityQueryDataSource extends DataSource {
 
     }
 
-//    @Override
-//    protected void transformResponse(DSResponse response, DSRequest request, Object data) {
-//        int code = response.getStatus();
-//        int httpResponseCode = response.getHttpResponseCode();
-//        ClientUtils.fine(LOG, "transformResponse: %s, status: %s, http: %s", data, code, httpResponseCode);
-//        if (code == DSResponse.STATUS_FAILURE && httpResponseCode == 200 && data == null) {
-//            // jersye serialize empty JSON as null
-//            response.setData(new Record[0]);
-//            response.setStatus(DSResponse.STATUS_SUCCESS);
-//        }
-//        if (RestConfig.isStatusOk(response)) {
-//            Object catalogId = request.getCriteria().getValues().get(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM);
-//            for (Record r : response.getData()) {
-//                r.setAttribute(BibliographicCatalogResourceApi.CATALOG_ID, catalogId);
-//            }
-//        }
-//        super.transformResponse(response, request, data);
-//    }
-//
     public static AuthorityQueryDataSource getInstance() {
         AuthorityQueryDataSource ds = (AuthorityQueryDataSource) DataSource.get(ID);
         ds = (ds != null) ? ds : new AuthorityQueryDataSource();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Jan Pokorsky
+ * Copyright (C) 2021 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,10 @@ package cz.cas.lib.proarc.webapp.shared.rest;
 
 /**
  *
- * @author Jan Pokorsky
+ * @author Lukáš Sýkora
  */
-public final class BibliographicCatalogResourceApi {
-
-    public static final String PATH = "bibliographies";
+public final class AuthorityCatalogResourceApi {
+    public static final String PATH = "authorities";
 
     public static final String FIND_PATH = "query";
 
@@ -35,5 +34,4 @@ public final class BibliographicCatalogResourceApi {
     public static final String CATALOG_FIELDS = "fields";
     public static final String CATALOG_FIELD_ID = "fieldId";
     public static final String CATALOG_FIELD_TITLE = "fieldTitle";
-
 }

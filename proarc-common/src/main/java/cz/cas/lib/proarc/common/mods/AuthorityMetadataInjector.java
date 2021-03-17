@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
 
 public class AuthorityMetadataInjector implements MetadataInjector {
     MetadataHandler metadataHandler;
@@ -31,15 +32,38 @@ public class AuthorityMetadataInjector implements MetadataInjector {
 
     @Override
     public void addMetadata(DescriptionMetadata<String> authorityJson) throws DigitalObjectException {
-
         DescriptionMetadata<ModsDefinition> authority = new DescriptionMetadata<>();
         ModsCollectionDefinition authorityCollectionMods = ModsUtils.unmarshal(authorityJson.getData(),
                 ModsCollectionDefinition.class);
         authorityCollectionMods.getMods();
         authority.setData(authorityCollectionMods.getMods().get(0));
         DescriptionMetadata<ModsDefinition> metadata = metadataHandler.getMetadata();
-        metadata.getData().getName().addAll(authority.getData().getName());
-        metadata.setTimestamp(-1);
+        metadata = insertAuthority(metadata, authority);
         metadataHandler.setMetadata(metadata, "authority added", "update");
+    }
+
+    private DescriptionMetadata<ModsDefinition> insertAuthority(DescriptionMetadata<ModsDefinition> metadata, DescriptionMetadata<ModsDefinition> authority) {
+        if (metadata != null && metadata.getData() != null) {
+            metadata = insertName(metadata, authority);
+            metadata = insertSubject(metadata, authority);
+        }
+        return metadata;
+    }
+
+    private DescriptionMetadata<ModsDefinition> insertSubject(DescriptionMetadata<ModsDefinition> metadata, DescriptionMetadata<ModsDefinition> authority) {
+        if (authority != null && authority.getData() != null && authority.getData().getSubject() != null && authority.getData().getSubject().size() > 0) {
+            metadata.getData().getSubject().addAll(authority.getData().getSubject());
+        }
+        return metadata;
+    }
+
+    private DescriptionMetadata<ModsDefinition> insertName(DescriptionMetadata<ModsDefinition> metadata, DescriptionMetadata<ModsDefinition> authority) {
+        if (authority != null && authority.getData() != null && authority.getData().getName() != null && authority.getData().getName().size() > 0) {
+            for (NameDefinition name : authority.getData().getName()) {
+                name.setUsage(null);
+            }
+            metadata.getData().getName().addAll(authority.getData().getName());
+        }
+        return metadata;
     }
 }

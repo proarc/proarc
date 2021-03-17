@@ -1101,11 +1101,12 @@ public class DigitalObjectResource {
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_ADD_AUTHORITY)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> addAuthority(@FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
-                                                                      @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
-                                                                      @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
-                                                                      @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
-                                                                      @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
+    public SmartGwtResponse<DescriptionMetadata<Object>> addAuthority(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
     ) throws DigitalObjectException {
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
@@ -1120,7 +1121,7 @@ public class DigitalObjectResource {
         dMetadata.setBatchId(batchId);
         dMetadata.setEditor(editorId);
         dMetadata.setData(jsonData);
-        dMetadata.setTimestamp(-1);
+        dMetadata.setTimestamp(timestamp);
 
         try {
             MetadataInjector metadataInjector = new AuthorityMetadataInjector(mHandler);

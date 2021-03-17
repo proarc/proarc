@@ -323,9 +323,9 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
                 ), actionSource, false));
         menuMods.addItem(Actions.asMenuItem(
                 new SwitchAction(authorityBrowser,
-                        i18n.ModsMultiEditor_AuthorityCatalog_Title(),
-                        "[SKIN]/DatabaseBrowser/data.png",
-                        i18n.ModsMultiEditor_TabCatalog_Hint()
+                        i18n.ModsMultiEditor_TabAuthorityCatalog_Title(),
+                        Page.getAppDir() + "images/silk/16/user_add.png",
+                        i18n.ModsMultiEditor_TabAuthorityCatalog_Hint()
                 ), actionSource, false));
         btnMods.setMenu(menuMods);
         return btnMods;
@@ -432,11 +432,8 @@ public final class ModsMultiEditor extends AbstractDatastreamEditor implements
     }
 
     private void saveAuthorityData(BooleanCallback callback) {
-        String mods = authorityBrowser.getMods();
-
-
         callback.execute(Boolean.TRUE);
-        AuthorityModsDataSource.getInstance().addAuthorityXML(digitalObjects[0], mods, new DescriptionSaveHandler() {
+        AuthorityModsDataSource.getInstance().addAuthorityXML(digitalObjects[0], authorityBrowser.getMods(), -1 , new DescriptionSaveHandler() {
 
             @Override
             protected void onSave(DescriptionMetadata dm) {
