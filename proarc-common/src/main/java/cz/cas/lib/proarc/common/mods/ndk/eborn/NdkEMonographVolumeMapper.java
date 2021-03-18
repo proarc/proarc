@@ -22,6 +22,9 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMonographVolumeMapper;
 import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDigitalOrigin;
 
 public class NdkEMonographVolumeMapper extends NdkMonographVolumeMapper {
     private boolean addTextResource = true;
@@ -33,12 +36,21 @@ public class NdkEMonographVolumeMapper extends NdkMonographVolumeMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
+        mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getDigitalOrigin).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
     }
 
     @Override
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="electronic_volume"
         MapperUtils.addGenre(mods, Const.GENRE_EVOLUME);
-        mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getDigitalOrigin).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
+    }
+
+    @Override
+    protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
+        OaiDcType dc = super.createDc(mods, ctx);
+        for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
+            addDigitalOrigin(dc.getDescriptions(), physicalDescription.getDigitalOrigin());
+        }
+        return dc;
     }
 }

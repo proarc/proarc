@@ -19,8 +19,13 @@ package cz.cas.lib.proarc.common.mods.ndk.eborn;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPeriodicalIssueMapper;
+import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDigitalOrigin;
 
 public class NdkEPeriodicalIssueMapper extends NdkPeriodicalIssueMapper {
 
@@ -30,11 +35,22 @@ public class NdkEPeriodicalIssueMapper extends NdkPeriodicalIssueMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
+        mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getDigitalOrigin).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
     }
 
     @Override
     protected GenreDefinition addGenre(ModsDefinition mods) {
         //  mods/genre="electronic_issue"
         return MapperUtils.addGenre(mods, Const.GENRE_EISSUE);
+    }
+
+
+    @Override
+    protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
+        OaiDcType dc = super.createDc(mods, ctx);
+        for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
+            addDigitalOrigin(dc.getDescriptions(), physicalDescription.getDigitalOrigin());
+        }
+        return dc;
     }
 }
