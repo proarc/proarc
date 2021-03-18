@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.mods.AbstractDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -249,6 +250,19 @@ public final class MapperUtils {
                 }
             } else {
                 addElementType(dcElms, modsValue.getValue(), null);
+            }
+        }
+    }
+
+    public static void addDigitalOrigin(List<ElementType> dcElms, List<? extends DigitalOriginDefinition> modsValues) {
+        for (DigitalOriginDefinition modsValue : modsValues) {
+            if (modsValue.value() != null && modsValue.value().length() > 2700) {
+                List<String> splitValue = splitAfter2700Characters(modsValue.value());
+                for (String value : splitValue) {
+                    addElementType(dcElms, value, null);
+                }
+            } else {
+                addElementType(dcElms, modsValue.value(), null);
             }
         }
     }
