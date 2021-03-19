@@ -18,26 +18,26 @@
     <xsl:template match="/">
         <xsl:choose>
             <xsl:when test="boolean(normalize-space($geographicCode))">
-                <xsl:value-of select="concat('Geographic code: ', $geographicCode)"/>
+                <xsl:value-of select="concat('S:Geographic code: ', $geographicCode)"/>
             </xsl:when>
             <xsl:when test="boolean(normalize-space($topicOfSubject))">
-                <xsl:value-of select="$topicOfSubject"/>
+                <xsl:value-of select="concat('S:', $topicOfSubject)"/>
             </xsl:when>
             <xsl:when test="boolean(normalize-space($family))">
                     <xsl:choose>
                         <xsl:when test="boolean(normalize-space($date))">
-                            <xsl:value-of select="concat($family, ' ', $given, ' (',$date, '; ',$identifier ,')')"/>
+                            <xsl:value-of select="concat('N:', $family, ' ', $given, ' (',$date, '; ',$identifier ,')')"/>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="concat($family, ' ', $given, ' (',$identifier ,')')"/>
+                            <xsl:value-of select="concat('N:', $family, ' ', $given, ' (',$identifier ,')')"/>
                         </xsl:otherwise>
                     </xsl:choose>
             </xsl:when>
             <xsl:when test="boolean(normalize-space($namePart))">
-                <xsl:value-of select="$namePart"/>
+                <xsl:value-of select="concat('N:', $namePart)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="'--- Nedefinováno ---'"/>
+                <xsl:value-of select="concat('--', '--- Nedefinováno ---')"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

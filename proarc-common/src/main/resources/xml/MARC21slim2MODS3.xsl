@@ -4161,6 +4161,9 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:when test="$sf06a='562'">
                 <xsl:call-template name="createNoteFrom562"/>
             </xsl:when>
+            <xsl:when test="$sf06a='563'">
+                <xsl:call-template name="createNoteFrom563"/>
+            </xsl:when>
             <xsl:when test="$sf06a='581'">
                 <xsl:call-template name="createNoteFrom581"/>
             </xsl:when>
@@ -5079,6 +5082,14 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </xsl:for-each>
             </xsl:variable>
             <xsl:value-of select="substring($str,1,string-length($str)-1)"/>
+        </note>
+    </xsl:template>
+
+    <xsl:template name="createNoteFrom563">
+        <note type="binding">
+            <xsl:call-template name="xxx880"/>
+            <xsl:call-template name="uri"/>
+            <xsl:value-of select="marc:subfield[@code='a']"/>
         </note>
     </xsl:template>
 

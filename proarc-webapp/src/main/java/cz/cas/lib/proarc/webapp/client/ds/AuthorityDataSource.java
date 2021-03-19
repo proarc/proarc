@@ -33,6 +33,10 @@ public final class AuthorityDataSource extends ProarcDataSource {
 
     public static final String ID = "AuthorityDataSource";
 
+    public enum Type {
+        ALL, NAME, SUBJECT
+    }
+
     public AuthorityDataSource() {
         setID(ID);
 

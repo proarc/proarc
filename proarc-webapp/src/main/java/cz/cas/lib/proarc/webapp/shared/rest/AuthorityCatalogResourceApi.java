@@ -34,4 +34,6 @@ public final class AuthorityCatalogResourceApi {
     public static final String CATALOG_FIELDS = "fields";
     public static final String CATALOG_FIELD_ID = "fieldId";
     public static final String CATALOG_FIELD_TITLE = "fieldTitle";
+
+    public static final String FIELD_TYPE = "type";
 }

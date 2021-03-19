@@ -61,6 +61,10 @@ public class AuthorityCatalogResource {
     private final HttpHeaders httpHeaders;
     private final AppConfiguration appConfig;
 
+    public enum Type {
+        ALL, NAME, SUBJECT
+    }
+
     public AuthorityCatalogResource(
             @Context HttpHeaders httpHeaders
     ) throws AppConfigurationException {
@@ -102,13 +106,30 @@ public class AuthorityCatalogResource {
     public MetadataList findAuthority(
             @QueryParam(AuthorityCatalogResourceApi.FIND_CATALOG_PARAM) String catalog,
             @QueryParam(AuthorityCatalogResourceApi.FIND_FIELDNAME_PARAM) String fieldName,
-            @QueryParam(AuthorityCatalogResourceApi.FIND_VALUE_PARAM) String value) throws TransformerException, IOException {
+            @QueryParam(AuthorityCatalogResourceApi.FIND_VALUE_PARAM) String value,
+            @QueryParam(AuthorityCatalogResourceApi.FIELD_TYPE) Type type)
+            throws TransformerException, IOException {
 
         MetadataList<MetadataItem> list = find(catalog, fieldName, value);
         List<AuthorityItem> authorities = new ArrayList<>();
         for (MetadataItem item : list.list) {
-            AuthorityItem authority = new AuthorityItem(item, item.getTitle());
-            authorities.add(authority);
+            switch (type) {
+                case NAME:
+                    if (item.getTitle().startsWith("N:")) {
+                        AuthorityItem authority = new AuthorityItem(item, item.getTitle().substring(2));
+                        authorities.add(authority);
+                    }
+                    break;
+                case SUBJECT:
+                    if (item.getTitle().startsWith("S:")) {
+                        AuthorityItem authority = new AuthorityItem(item, item.getTitle().substring(2));
+                        authorities.add(authority);
+                    }
+                    break;
+                default:
+                    AuthorityItem authority = new AuthorityItem(item, item.getTitle().substring(2));
+                    authorities.add(authority);
+            }
         }
 
         return new MetadataList<>(authorities);
