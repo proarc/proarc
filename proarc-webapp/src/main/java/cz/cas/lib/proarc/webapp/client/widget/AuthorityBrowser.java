@@ -211,6 +211,16 @@ public class AuthorityBrowser implements DatastreamEditor, Refreshable {
         value.setWidth(300);
         value.setRequired(true);
 
+        SelectItem type = new SelectItem(AuthorityCatalogResourceApi.FIELD_TYPE, i18n.CatalogBrowser_CriterieType_Title());
+        type.setRequired(true);
+        type.setDefaultToFirstOption(true);
+        type.setWidth(250);
+        LinkedHashMap<String, String> map = new LinkedHashMap<>();
+        map.put(AuthorityDataSource.Type.ALL.name(), i18n.CatalogBrowser_CriterieType_All_Title());
+        map.put(AuthorityDataSource.Type.NAME.name(), i18n.CatalogBrowser_CriterieType_Name_Title());
+        map.put(AuthorityDataSource.Type.SUBJECT.name(), i18n.CatalogBrowser_CriterieType_Subject_Title());
+        type.setValueMap(map);
+
         ButtonItem findBtn = new ButtonItem("findBtn", i18n.CatalogBrowser_CriteriaFindBtn_Title());
         findBtn.setStartRow(false);
         findBtn.setVAlign(VerticalAlignment.BOTTOM);
@@ -223,7 +233,7 @@ public class AuthorityBrowser implements DatastreamEditor, Refreshable {
         });
 
         DynamicForm form = new DynamicForm();
-        form.setFields(selection, selectField, value, findBtn);
+        form.setFields(selection, selectField, value, type, findBtn);
         form.setBrowserSpellCheck(false);
         form.setAutoWidth();
         form.setWrapItemTitles(false);
