@@ -21,7 +21,6 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
-import cz.cas.lib.proarc.common.actions.RepairMetadata;
 import cz.cas.lib.proarc.common.actions.UpdateObjects;
 import cz.cas.lib.proarc.common.actions.UpdatePages;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -1967,10 +1966,7 @@ public class DigitalObjectResource {
         }
         ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
         List<String> pids = changeModels.findObjects();
-        changeModels.changeModels();
-
-        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_NDK_PAGE, pids);
-        repairMetadata.repair();
+        changeModels.changeModelsAndRepairMetadata(null);
         return new SmartGwtResponse<>();
     }
 
@@ -1988,10 +1984,7 @@ public class DigitalObjectResource {
         }
         ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
         List<String> pids = changeModels.findObjects();
-        changeModels.changeModels();
-
-        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_PAGE, pids);
-        repairMetadata.repair();
+        changeModels.changeModelsAndRepairMetadata(null);
         return new SmartGwtResponse<>();
     }
 
@@ -2009,12 +2002,7 @@ public class DigitalObjectResource {
         ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
         List<String> pids = changeModels.findObjects();
         String parentPid = changeModels.findRootObject();
-        changeModels.changeModels();
-
-        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_MONOGRAPHVOLUME, pids);
-        repairMetadata.repair(parentPid);
-
-
+        changeModels.changeModelsAndRepairMetadata(parentPid);
         return new SmartGwtResponse<>();
     }
 
@@ -2032,12 +2020,7 @@ public class DigitalObjectResource {
         }
         ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, NdkPlugin.MODEL_MONOGRAPHTITLE);
         List<String> pids = changeModels.findObjects();
-        changeModels.changeModels();
-
-        RepairMetadata repairMetadata = new RepairMetadata(appConfig, NdkPlugin.MODEL_MONOGRAPHTITLE, pids);
-        repairMetadata.repair();
-
-
+        changeModels.changeModelsAndRepairMetadata(null);
         return new SmartGwtResponse<>();
     }
 
