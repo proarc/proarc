@@ -79,6 +79,8 @@ public class WorkflowExport {
             WorkflowExportFile.WorkflowJobExport jobExport = new WorkflowExportFile.WorkflowJobExport();
             jobExport.setProfile(job.getProfileName());
             jobExport.setLabel(job.getLabel());
+            jobExport.setUuid(root.getOriginalPid());
+            jobExport.setModel(root.getModel().length() > 12 ? root.getModel().substring(12) : root.getModel());
 
             wf.getWorkflowJobExports().add(jobExport);
 
