@@ -23,9 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSchemaType;
 
 /**
  * Get information from Workflow
@@ -50,12 +50,17 @@ public class WorkflowExportFile {
     @XmlAccessorType(value = XmlAccessType.FIELD)
     public static class WorkflowJobExport {
 
+        @XmlAttribute(name = "uuid")
+        private String uuid;
 
-        @XmlElement(name = "profile")
-        private String profile;
+        @XmlAttribute(name = "model")
+        private String model;
 
-        @XmlElement(name = "label")
+        @XmlAttribute(name = "label")
         private String label;
+
+        @XmlAttribute(name = "profile")
+        private String profile;
 
         @XmlElement(name = "task")
         private List<WorkflowTaskExport> workflowTasks;
@@ -82,24 +87,40 @@ public class WorkflowExportFile {
         public void setLabel(String label) {
             this.label = label;
         }
+
+        public String getUuid() {
+            return uuid;
+        }
+
+        public void setUuid(String uuid) {
+            this.uuid = uuid;
+        }
+
+        public String getModel() {
+            return model;
+        }
+
+        public void setModel(String model) {
+            this.model = model;
+        }
     }
 
     @XmlAccessorType(value = XmlAccessType.FIELD)
     public static class WorkflowTaskExport {
 
-        @XmlSchemaType(name = "taskId")
+        @XmlAttribute(name = "taskId")
         private String taskId;
 
-        @XmlSchemaType(name = "taskName")
+        @XmlAttribute(name = "taskName")
         private String taskName;
 
-        @XmlSchemaType(name = "user")
+        @XmlAttribute(name = "user")
         private String user;
 
-        @XmlSchemaType(name = "time")
+        @XmlAttribute(name = "time")
         private String time;
 
-        @XmlSchemaType(name = "state")
+        @XmlAttribute(name = "state")
         private String state;
 
         public String getTaskId() {
