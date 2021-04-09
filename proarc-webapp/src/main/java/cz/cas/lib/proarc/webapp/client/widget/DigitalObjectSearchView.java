@@ -280,9 +280,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filterMap.put(FILTER_ALPHABETICAL, i18n.DigitalObjectSearchView_FilterGroupAlphabetical_Title());
         filterMap.put(FILTER_LAST_CREATED, i18n.DigitalObjectSearchView_FilterGroupLastCreated_Title());
         filterMap.put(FILTER_LAST_MODIFIED, i18n.DigitalObjectSearchView_FilterGroupLastModified_Title());
-        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN))) {
-            filterMap.put(FILTER_PHRASE, i18n.DigitalObjectSearchView_FilterGroupPhrase_Title());
-        }
+        filterMap.put(FILTER_PHRASE, i18n.DigitalObjectSearchView_FilterGroupPhrase_Title());
         filterMap.put(FILTER_QUERY, i18n.DigitalObjectSearchView_FilterGroupAdvanced_Title());
         if (Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN)) {
             filterMap.put(FILTER_DELETED, i18n.DigitalObjectSearchView_FilterGroupDeleted_Title());
