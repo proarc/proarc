@@ -36,6 +36,11 @@ public final class WorkflowModelConsts {
     public static final String JOB_PROFILENAME = "profileName";
     public static final String JOB_STATE = "state";
     public static final String JOB_MODIFIED = "modified";
+    public static final String JOB_TASK_NAME = "taskName";
+    public static final String JOB_TASK_LABEL = "taskLabel";
+    public static final String JOB_TASK_HINT = "taskHint";
+    public static final String JOB_TASK_CHANGE_DATE = "taskDate";
+    public static final String JOB_TASK_CHANGE_USER = "taskUser";
     /**
      * It is same like {@link #JOB_MODIFIED} but in a long number format to keep precision.
      */

@@ -559,6 +559,9 @@ public class WorkflowJobView implements Refreshable {
                 new ListGridField(WorkflowJobDataSource.FIELD_MBARCODE, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MISSUE, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_TASK_NAME, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_TASK_CHANGE_DATE, 100),
+                //new ListGridField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER, 50),
                 new ListGridField(WorkflowJobDataSource.FIELD_MEDITION, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_ID, 30),
@@ -593,6 +596,12 @@ public class WorkflowJobView implements Refreshable {
         owner.setDisplayField(UserDataSource.FIELD_USERNAME);
         g.getField(WorkflowJobDataSource.FIELD_OWNER).setFilterEditorProperties(owner);
 
+        SelectItem taskOwner = new SelectItem();
+        taskOwner.setOptionDataSource(UserDataSource.getInstance());
+        taskOwner.setValueField(UserDataSource.FIELD_ID);
+        taskOwner.setDisplayField(UserDataSource.FIELD_USERNAME);
+        //g.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setFilterEditorProperties(taskOwner);
+
         g.addSelectionUpdatedHandler((SelectionUpdatedEvent event) -> {
             if (!ignoreSubjobSelection) {
                 editSubjobSelection();
@@ -626,6 +635,9 @@ public class WorkflowJobView implements Refreshable {
                 new ListGridField(WorkflowJobDataSource.FIELD_MBARCODE, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MISSUE, 60),
                 new ListGridField(WorkflowJobDataSource.FIELD_MDETAIL, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_TASK_NAME, 60),
+                new ListGridField(WorkflowJobDataSource.FIELD_TASK_CHANGE_DATE, 100),
+                //new ListGridField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER, 50),
                 new ListGridField(WorkflowJobDataSource.FIELD_MEDITION, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_FINANCED, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_ID, 30),
@@ -668,6 +680,16 @@ public class WorkflowJobView implements Refreshable {
 
         jobGrid.getField(WorkflowJobDataSource.FIELD_FINANCED).setCanFilter(false);
         jobGrid.getField(WorkflowJobDataSource.FIELD_FINANCED).setCanSort(false);
+
+        jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_NAME).setCanSort(false);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_NAME).setCanFilter(false);
+
+        //jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setCanSort(false);
+        SelectItem taskOwner = new SelectItem();
+        taskOwner.setOptionDataSource(UserDataSource.getInstance());
+        taskOwner.setValueField(UserDataSource.FIELD_ID);
+        taskOwner.setDisplayField(UserDataSource.FIELD_USERNAME);
+        //jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setFilterEditorProperties(taskOwner);
 
         jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setCanFilter(false);
         jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setCanSort(false);

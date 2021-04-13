@@ -22,6 +22,12 @@ import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowJobTable;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBJoinType;
@@ -31,12 +37,6 @@ import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  *
@@ -152,6 +152,25 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         DBQuery.DBQueryColumn rawjId = rawQuery.findQueryColumn(db.tableWorkflowTask.jobId);
         cmd.join(tableJob.id, rawjId, DBJoinType.LEFT);
         cmd.join(twfR.materialId, rawId, DBJoinType.RIGHT);
+
+
+        final ProarcDatabase.WorkflowTaskTable twTt = db.tableWorkflowTask;
+        final DBColumnExpr taskName = twTt.typeRef.as("task_Name");
+        final DBColumnExpr taskDate = twTt.timestamp.as("task_Date");
+        final DBColumnExpr taskUserId = twTt.ownerId.as("task_User");
+        cmd.select(taskName, taskDate, taskUserId);
+        DBCommand taskCmd = db.createCommand();
+        final DBColumnExpr taskExpression = db.tableWorkflowTask.id.max().as(db.tableWorkflowTask.id);
+        taskCmd.select(taskExpression);
+        taskCmd.select(db.tableWorkflowTask.jobId);
+//        taskCmd.join(db.tableWorkflowTask.jobId, db.tableWorkflowJob.id);
+        taskCmd.where(db.tableWorkflowTask.state.is("FINISHED"));
+        taskCmd.groupBy(db.tableWorkflowTask.jobId);
+        DBQuery taskQuery = new DBQuery(taskCmd);
+        DBQuery.DBQueryColumn taskJobId = taskQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        DBQuery.DBQueryColumn taskId = taskQuery.findQueryColumn(taskExpression);
+        cmd.join(tableJob.id, taskJobId, DBJoinType.LEFT);
+        cmd.join(twTt.id, taskId, DBJoinType.RIGHT);
 
         EmpireUtils.addWhereIs(cmd, tableJob.id, () -> filter.getId());
         if (filter.getLabel() != null) {

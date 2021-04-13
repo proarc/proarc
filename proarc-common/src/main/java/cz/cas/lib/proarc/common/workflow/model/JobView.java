@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -58,6 +59,16 @@ public class JobView extends Job {
     private String edition;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_RAW_PATH)
     private String rawPath;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_NAME)
+    private String taskName;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_HINT)
+    private String taskHint;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_LABEL)
+    private String taskLabel;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_DATE)
+    private Timestamp taskDate;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USER)
+    private String taskUser;
 
     public String getRawPath() {
         return rawPath;
@@ -188,4 +199,43 @@ public class JobView extends Job {
         this.year = year;
     }
 
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
+
+    public String getTaskHint() {
+        return taskHint;
+    }
+
+    public void setTaskHint(String taskHint) {
+        this.taskHint = taskHint;
+    }
+
+    public String getTaskLabel() {
+        return taskLabel;
+    }
+
+    public void setTaskLabel(String taskLabel) {
+        this.taskLabel = taskLabel;
+    }
+
+    public Timestamp getTaskDate() {
+        return taskDate;
+    }
+
+    public void setTaskDate(Timestamp taskDate) {
+        this.taskDate = taskDate;
+    }
+
+    public String getTaskUser() {
+        return taskUser;
+    }
+
+    public void setTaskUser(String taskUser) {
+        this.taskUser = taskUser;
+    }
 }
