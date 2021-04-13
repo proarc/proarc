@@ -55,6 +55,11 @@ public class WorkflowJobDataSource extends ProarcDataSource {
     public static final String FIELD_PRIORITY = WorkflowModelConsts.JOB_PRIORITY;
     public static final String FIELD_PROFILE_ID = WorkflowModelConsts.JOB_PROFILENAME;
     public static final String FIELD_PROFILE_HINT = WorkflowModelConsts.JOB_PROFILEHINT;
+    public static final String FIELD_TASK_HINT = WorkflowModelConsts.JOB_TASK_HINT;
+    public static final String FIELD_TASK_NAME = WorkflowModelConsts.JOB_TASK_NAME;
+    public static final String FIELD_TASK_LABEL = WorkflowModelConsts.JOB_TASK_LABEL;
+    public static final String FIELD_TASK_CHANGE_DATE = WorkflowModelConsts.JOB_TASK_CHANGE_DATE;
+    public static final String FIELD_TASK_CHANGE_USER = WorkflowModelConsts.JOB_TASK_CHANGE_USER;
     public static final String FIELD_STATE = WorkflowModelConsts.JOB_STATE;
     public static final String FIELD_MBARCODE = WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE;
     public static final String FIELD_MDETAIL = WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL;
@@ -187,10 +192,27 @@ public class WorkflowJobDataSource extends ProarcDataSource {
         rawPath.setTitle(i18n.WorkflowMaterial_Field_Raw_Path_Title());
         rawPath.setDetail(true);
 
+        DataSourceTextField taskName = new DataSourceTextField(FIELD_TASK_NAME);
+        taskName.setTitle(i18n.WorkflowJob_Task_Name());
+        taskName.setCanEdit(false);
+        taskName.setDetail(true);
+        taskName.setDisplayField(FIELD_TASK_LABEL);
+
+        DataSourceDateTimeField taskUpdated = new DataSourceDateTimeField(FIELD_TASK_CHANGE_DATE);
+        taskUpdated.setTitle(i18n.WorkflowJob_Task_Date());
+        taskUpdated.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
+        taskUpdated.setCanEdit(false);
+        taskUpdated.setDetail(true);
+
+        // DataSourceTextField taskOwner = new DataSourceTextField(FIELD_TASK_CHANGE_USER);
+        // taskOwner.setTitle(i18n.WorkflowJob_Task_User());
+        // owner.setDisplayField(WorkflowModelConsts.JOB_OWNERNAME);
+
+
         setFields(fieldId, label, state, profileId, priority, owner, created, modified,
                 note, financed, barcode,
                 detail, field001, issue, sigla, signature, volume, year, pid, edition,
-                rawPath
+                rawPath, taskName, taskUpdated
         );
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

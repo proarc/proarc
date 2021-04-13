@@ -130,6 +130,14 @@ public class WorkflowManager {
                     job.setProfileLabel(job.getProfileName());
                     job.setProfileHint("Unknown job XML ID: " + job.getProfileName());
                 }
+                TaskDefinition taskProfile = wp.getTaskProfile(wd, job.getTaskName());
+                if (taskProfile != null) {
+                    job.setTaskLabel(taskProfile.getTitle(lang, taskProfile.getName()));
+                    job.setTaskHint(taskProfile.getHint(lang, null));
+                } else {
+                    job.setTaskLabel(job.getTaskName());
+                    job.setTaskHint("Unknown task XML ID: " + job.getTaskName());
+                }
             }
             return jobs;
         } finally {
