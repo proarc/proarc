@@ -23,6 +23,9 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Logger;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBColumn;
@@ -36,24 +39,21 @@ import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
 import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.logging.Logger;
 
 /**
- * Database schema version 5. It adds workflow stuff.
+ * Database schema version 10. It adds user permission.
  *
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
  *
- * @author Jan Pokorsky
+ * @author Lukas Sykora
  */
 public class ProarcDatabase extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 9;
+    public static final int VERSION = 10;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -193,6 +193,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn remoteType;
         public final DBTableColumn timestamp;
         public final DBTableColumn changeModelFunction;
+        public final DBTableColumn updateModelFunction;
 
         public UserTable(DBDatabase db) {
             super("PROARC_USERS", db);
@@ -219,6 +220,7 @@ public class ProarcDatabase extends DBDatabase {
             organization = addColumn("ORGANIZATION", DataType.TEXT, 100, false);
             role = addColumn("ROLE", DataType.TEXT, 100, false);
             changeModelFunction = addColumn("CHANGE_MODEL_FUNCTION", DataType.BOOL, 0, false);
+            updateModelFunction = addColumn("UPDATE_MODEL_FUNCTION", DataType.BOOL, 0, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
@@ -537,7 +539,7 @@ public class ProarcDatabase extends DBDatabase {
         try {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
-                schemaVersion = ProarcDatabaseV8.upgradeToVersion9(
+                schemaVersion = ProarcDatabaseV9.upgradeToVersion10(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);

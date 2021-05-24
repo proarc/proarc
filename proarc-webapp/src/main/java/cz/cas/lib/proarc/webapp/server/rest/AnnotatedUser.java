@@ -18,13 +18,13 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
+import java.net.URI;
+import java.sql.Timestamp;
+import java.util.Date;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
-import java.net.URI;
-import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * Helper class to annotate {@link UserProfile} properties.
@@ -103,6 +103,10 @@ public abstract class AnnotatedUser extends UserProfile {
     @XmlElement(name = UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION)
     @Override
     public abstract Boolean getChangeModelFunction();
+
+    @XmlElement(name = UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION)
+    @Override
+    public abstract Boolean getUpdateModelFunction();
 
     @XmlTransient
     @Override
