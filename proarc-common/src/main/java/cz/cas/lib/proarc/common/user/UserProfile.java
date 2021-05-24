@@ -47,6 +47,7 @@ public class UserProfile {
     private String role;
     private String email;
     private Boolean changeModelFunction;
+    private Boolean updateModelFunction;
     private Date created;
     private Date lastLogin;
     private String status;
@@ -263,6 +264,14 @@ public class UserProfile {
 
     public void setChangeModelFunction(Boolean changeModelFunction) {
         this.changeModelFunction = changeModelFunction;
+    }
+
+    public Boolean getUpdateModelFunction() {
+        return updateModelFunction;
+    }
+
+    public void setUpdateModelFunction(Boolean updateModelFunction) {
+        this.updateModelFunction = updateModelFunction;
     }
 
     @Override

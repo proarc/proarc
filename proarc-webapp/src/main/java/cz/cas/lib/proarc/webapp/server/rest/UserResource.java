@@ -131,7 +131,8 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_EMAIL) String email,
             @FormParam(UserResourceApi.USER_ORGANIZATION) String organization,
             @FormParam(UserResourceApi.USER_ROLE) String role,
-            @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction
+            @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction,
+            @FormParam(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION) Boolean updateModelFunction
             ) {
 
         checkAccess(session.getUser(), UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, Permissions.USERS_CREATE);
@@ -155,6 +156,7 @@ public final class UserResource {
         newProfile.setOrganization(organization);
         newProfile.setRole(role);
         newProfile.setChangeModelFunction(changeModelFunction);
+        newProfile.setUpdateModelFunction(updateModelFunction);
         newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
                 session.getUser().getUserName(), session.asFedoraLog());
         return new SmartGwtResponse<UserProfile>(newProfile);
@@ -170,7 +172,8 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_EMAIL) String email,
             @FormParam(UserResourceApi.USER_ORGANIZATION) String organization,
             @FormParam(UserResourceApi.USER_ROLE) String role,
-            @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction
+            @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction,
+            @FormParam(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION) Boolean updateModelFunction
             ) {
 
         UserProfile sessionUser = session.getUser();
@@ -198,6 +201,7 @@ public final class UserResource {
             update.setOrganization(organization);
             update.setRole(role);
             update.setChangeModelFunction(changeModelFunction);
+            update.setUpdateModelFunction(updateModelFunction);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.USER_SURNAME, "Required!").build();

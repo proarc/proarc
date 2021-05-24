@@ -232,6 +232,8 @@ public final class UsersView implements RefreshAction.Refreshable {
         role.setValueMap(UserRole.getMap());
         BooleanItem changeModelFunction = new BooleanItem(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION);
         changeModelFunction.setCanEdit(admin);
+        BooleanItem updateModelFunction = new BooleanItem(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION);
+        updateModelFunction.setCanEdit(admin);
         TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
         email.setColSpan("*");
         email.setWidth(300);
@@ -273,7 +275,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         cancel.setStartRow(false);
 
         form.setFields(username, password, forename, surname, email,
-                remoteName, remoteType, organization, role, home, changeModelFunction,
+                remoteName, remoteType, organization, role, home, changeModelFunction, updateModelFunction,
                 new RowSpacerItem(), submit, cancel);
 
         return form;

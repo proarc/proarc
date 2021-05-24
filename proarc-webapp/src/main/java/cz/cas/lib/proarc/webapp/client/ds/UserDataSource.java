@@ -48,6 +48,7 @@ public final class UserDataSource extends ProarcDataSource {
     public static final String FIELD_ROLE = UserResourceApi.USER_ROLE;
     public static final String FIELD_WHOAMI = UserResourceApi.USER_WHOAMI_PARAM;
     public static final String FIELD_CHANGE_MODEL_FUNCTION = UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION;
+    public static final String FIELD_UPDATE_MODEL_FUNCTION = UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION;
     private static UserDataSource INSTANCE;
 
     public UserDataSource() {
@@ -94,6 +95,9 @@ public final class UserDataSource extends ProarcDataSource {
         DataSourceBooleanField changeModelFunction = new DataSourceBooleanField(FIELD_CHANGE_MODEL_FUNCTION);
         changeModelFunction.setTitle(i18n.UsersView_ListHeader_ChangeModelFunction_Title());
 
+        DataSourceBooleanField updateModelFunction = new DataSourceBooleanField(FIELD_UPDATE_MODEL_FUNCTION);
+        updateModelFunction.setTitle(i18n.UsersView_ListHeader_UpdateModelFunction_Title());
+
         DataSourceTextField email = new DataSourceTextField(UserResourceApi.USER_EMAIL);
         email.setTitle(i18n.UsersView_ListHeader_Email_Title());
 
@@ -118,7 +122,7 @@ public final class UserDataSource extends ProarcDataSource {
         remoteType.setCanEdit(false);
         remoteType.setHidden(true);
 
-        setFields(userId, userName, passwd, surname, forename, organization, role, email, created, remoteName, remoteType, home, changeModelFunction);
+        setFields(userId, userName, passwd, surname, forename, organization, role, email, created, remoteName, remoteType, home, changeModelFunction, updateModelFunction);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
