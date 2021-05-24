@@ -26,7 +26,6 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
@@ -146,8 +145,7 @@ public class UpdatePages {
 
             String model = new RelationEditor(fo).getModel();
             DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
-            NdkMapperFactory mapperFactory = new NdkMapperFactory();
-            NdkMapper mapper = mapperFactory.get(model);
+            NdkMapper mapper = NdkMapper.get(model);
             mapper.setModelId(model);
 
             NdkMapper.Context context = new NdkMapper.Context(handler);

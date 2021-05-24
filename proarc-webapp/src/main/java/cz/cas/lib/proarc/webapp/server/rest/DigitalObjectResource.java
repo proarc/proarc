@@ -1147,7 +1147,7 @@ public class DigitalObjectResource {
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMedatadaPages(
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadataPages(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pids,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO) String applyTo,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE) String applyToFirstPage,
