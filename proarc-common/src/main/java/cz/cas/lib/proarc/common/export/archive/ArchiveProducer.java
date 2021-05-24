@@ -21,7 +21,6 @@ import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
-import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -67,13 +66,8 @@ public class ArchiveProducer {
     public File archive(List<String> pids, File archiveRootFolder) throws IllegalStateException {
         reslog = new ExportResultLog();
         //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
-
-        try {
-            archiveImpl(pids, archiveRootFolder);
-            return archiveRootFolder;
-        } finally {
-            ExportUtils.writeExportResult(archiveRootFolder, reslog);
-        }
+        archiveImpl(pids, archiveRootFolder);
+        return archiveRootFolder;
     }
 
     private void archiveImpl(List<String> pids, File archiveRootFolder) {

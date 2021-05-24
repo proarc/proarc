@@ -619,6 +619,7 @@ public class ExportResource {
         }
 
         if (!errors) {
+            ExportUtils.writeExportResult(targetFolder, export.getResultLog());
             for (NdkExport.Result r : ndkResults) {
                 try {
                     setWorkflowExport("task.exportArchive", "param.exportArchive", r.getPageIndexCount(), getRoot(r.getPid(), exportFolder));
@@ -636,14 +637,14 @@ public class ExportResource {
                     }
                 }
             }
-        }
 
-        WorkflowExport exportWorkflow = new WorkflowExport(appConfig, user, session.getLocale(httpHeaders));
-        try {
-            exportWorkflow.export(targetFolder, ndkResults, session.asFedoraLog());
-        } catch (Exception ex ) {
-            resultList.clear();
-            resultList.add(new ExportResult(null, "Nepodarilo se vytvorit soubor workflow_onformation.xml"));
+            WorkflowExport exportWorkflow = new WorkflowExport(appConfig, user, session.getLocale(httpHeaders));
+            try {
+                exportWorkflow.export(targetFolder, ndkResults, session.asFedoraLog());
+            } catch (Exception ex ) {
+                resultList.clear();
+                resultList.add(new ExportResult(null, "Nepodarilo se vytvorit soubor workflow_onformation.xml"));
+            }
         }
 
         return new SmartGwtResponse<>(resultList);
