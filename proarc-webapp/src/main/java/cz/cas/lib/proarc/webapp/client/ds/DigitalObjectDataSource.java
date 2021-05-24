@@ -54,6 +54,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
     public static final String FIELD_MODS = DigitalObjectResourceApi.NEWOBJECT_XML_PARAM;
+    public static final String FIELD_CATALOGID = DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID;
     public static final String FIELD_WF_JOB_ID = DigitalObjectResourceApi.WORKFLOW_JOB_ID;
     /** Synthetic attribute holding {@link DigitalObject}. */
     private static final String FIELD_INSTANCE = "DIGITALOBJECT_INSTANCE";
@@ -66,7 +67,9 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         pid.setPrimaryKey(true);
 
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
-        setFields(pid, model);
+
+        DataSourceTextField catalogId = new DataSourceTextField(FIELD_CATALOGID);
+        setFields(pid, model, catalogId);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createDeleteOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
@@ -141,7 +144,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         delete(pids, Collections.emptyMap());
     }
 
-    public void saveNewDigitalObject(String modelId, String pid, String mods, Long workflowJobId, Callback<String, ErrorSavingDigitalObject> callback) {
+    public void saveNewDigitalObject(String modelId, String pid, String mods, Long workflowJobId, String catalogId, Callback<String, ErrorSavingDigitalObject> callback) {
         Record r = new Record();
         DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
         r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
@@ -150,6 +153,9 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         }
         if (pid != null && !pid.isEmpty()) {
             r.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);
+        }
+        if (catalogId != null) {
+            r.setAttribute(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID, catalogId);
         }
 
         if (workflowJobId != null) {

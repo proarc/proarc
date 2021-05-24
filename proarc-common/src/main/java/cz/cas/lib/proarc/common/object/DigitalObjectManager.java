@@ -16,7 +16,10 @@
  */
 package cz.cas.lib.proarc.common.object;
 
+import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
+import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
@@ -31,6 +34,7 @@ import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -45,7 +49,11 @@ import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -61,8 +69,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.stream.StreamSource;
+
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
@@ -171,6 +183,10 @@ public class DigitalObjectManager {
             String parentPid, UserProfile user, String xml, String message
             ) throws DigitalObjectException, DigitalObjectExistException {
         return new CreateHandler(modelId, pid, parentPid, user, xml, message);
+    }
+
+    public CreateHierarchyHandler createHierarchyHandler(String model, String pid, String parentPid, UserProfile user, String xml, String message) {
+        return new CreateHierarchyHandler(model, pid, parentPid, user, xml, message);
     }
 
     private RemoteStorage getRemotes() {
@@ -493,4 +509,82 @@ public class DigitalObjectManager {
         }
     }
 
+    public class CreateHierarchyHandler {
+
+        private final String modelId;
+        private String pid;
+        private String parentPid;
+        private DigitalObjectHandler parentHandler;
+        private final UserProfile user;
+        private Group group;
+        private boolean initGroup = true;
+        private String xml;
+        private String message;
+        private final Map<String, Object> params = new HashMap<>();
+        private String catalogId;
+        private String catalogField;
+        private List<String> catalogFieldValue;
+
+        public CreateHierarchyHandler(String modelId, String pid, String parentPid, UserProfile user, String xml, String message) {
+            Objects.requireNonNull(modelId, "modelId");
+            Objects.requireNonNull(user, "user");
+            this.modelId = modelId;
+            this.user = user;
+            if (pid != null) {
+                checkPid(pid);
+                this.pid = pid;
+            }
+            this.parentPid = parentPid;
+            this.xml = xml;
+            this.message = message;
+            this.catalogFieldValue = new ArrayList<>();
+        }
+
+        public void prepareCatalog(String catalogId) throws DigitalObjectException {
+            this.catalogId = catalogId;
+            CatalogConfiguration bCatalog = appConfig.getCatalogs().findConfiguration(catalogId);
+            if (bCatalog != null) {
+                String field = bCatalog.getDefaultSearchField();
+                if (field != null && !field.isEmpty()) {
+                    this.catalogField=field;
+                }
+            } else {
+                throw new DigitalObjectException("Missing catalog configuration");
+            }
+        }
+
+        public void prepareChildList(String metadata) {
+            ModsDefinition mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(metadata)));
+            if (mods != null) {
+                for (RelatedItemDefinition relatedItem : mods.getRelatedItem()) {
+                    for (IdentifierDefinition identifier : relatedItem.getIdentifier()) {
+                        catalogFieldValue.add(identifier.getValue());
+                    }
+                }
+            }
+        }
+
+        public void createChild(Locale locale) throws DigitalObjectException {
+            BibliographicCatalog bCatalog = appConfig.getCatalogs().findCatalog(catalogId);
+            List<MetadataItem> result = new ArrayList<>();
+            for (String fieldValue : catalogFieldValue) {
+                if (bCatalog != null) {
+                    try {
+                        result = bCatalog.find(catalogId, catalogField, fieldValue, locale);
+                    } catch (TransformerException | IOException ex) {
+                        result = null;
+                        LOG.log(Level.SEVERE, "No child downloaded from server " + catalogId);
+                    }
+                }
+                String metadata = "";
+                if (result != null && result.size() > 0) {
+                    metadata = result.get(0).getMods();
+                }
+                LOG.log(Level.INFO, "Creating object");
+                DigitalObjectManager dom = DigitalObjectManager.getDefault();
+                CreateHandler hierarchyModelsHandler = dom.create(modelId, null, parentPid, user, metadata, message);
+                hierarchyModelsHandler.create();
+            }
+        }
+    }
 }

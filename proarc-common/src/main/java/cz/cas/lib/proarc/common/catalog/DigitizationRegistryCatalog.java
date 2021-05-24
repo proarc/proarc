@@ -66,7 +66,7 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
     }
 
     @Override
-    public List<MetadataItem> find(String fieldName, String value, Locale locale) throws TransformerException, IOException {
+    public List<MetadataItem> find(String catalog, String fieldName, String value, Locale locale) throws TransformerException, IOException {
         PlainQuery query = buildQuery(fieldName, value);
         if (query != null) {
             try {

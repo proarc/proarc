@@ -107,12 +107,12 @@ public final class AlephXServer implements BibliographicCatalog {
         this(new URL(url).toURI());
     }
 
-    public List<MetadataItem> find(String fieldName, String value) throws TransformerException, IOException {
-        return find(fieldName, value, null);
+    public List<MetadataItem> find(String catalog, String fieldName, String value) throws TransformerException, IOException {
+        return find(catalog, fieldName, value, null);
     }
 
     @Override
-    public List<MetadataItem> find(String fieldName, String value, Locale locale) throws TransformerException, IOException {
+    public List<MetadataItem> find(String catalog, String fieldName, String value, Locale locale) throws TransformerException, IOException {
         Criteria criteria = fields.getCriteria(fieldName, value);
         if (criteria == null) {
             return Collections.emptyList();

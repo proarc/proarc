@@ -66,6 +66,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHierarchyHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
@@ -230,7 +231,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM) List<Integer> seriesDaysIncluded,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata,
-            @FormParam(DigitalObjectResourceApi.WORKFLOW_JOB_ID) BigDecimal workflowJobId
+            @FormParam(DigitalObjectResourceApi.WORKFLOW_JOB_ID) BigDecimal workflowJobId,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
             ) throws DigitalObjectException {
 
         Set<String> models = MetaModelRepository.getInstance().find()
@@ -283,6 +285,15 @@ public class DigitalObjectResource {
             if (OldPrintPlugin.MODEL_OMNIBUSVOLUME.equals(modelId)) {
                 CreateHandler hierarchyModelsHandler = dom.create(OldPrintPlugin.MODEL_VOLUME, null, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
                 hierarchyModelsHandler.create();
+                CreateHierarchyHandler hierarchyHandler = dom.createHierarchyHandler(OldPrintPlugin.MODEL_VOLUME, pid, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
+                if (catalogId != null && !catalogId.equals("")) {
+                    hierarchyHandler.prepareCatalog(catalogId);
+                    hierarchyHandler.prepareChildList(xmlMetadata);
+
+                    List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
+                    Locale locale = acceptableLanguages.isEmpty() ? null : acceptableLanguages.get(0);
+                    hierarchyHandler.createChild(locale);
+                }
             }
 
             return new SmartGwtResponse<>(items);

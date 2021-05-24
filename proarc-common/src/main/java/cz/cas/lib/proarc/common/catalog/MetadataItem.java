@@ -36,6 +36,7 @@ public class MetadataItem {
     private String title;
     /** optional id from rd */
     private Long rdczId;
+    private String catalogId;
 
     public MetadataItem(int id,  Long rdczId, String mods, String preview, String title) {
         this.id = id;
@@ -50,6 +51,14 @@ public class MetadataItem {
         this.mods = mods;
         this.preview = preview;
         this.title = title;
+    }
+
+    public MetadataItem(int id, String catalogId, String mods, String preview, String title) {
+        this.id = id;
+        this.mods = mods;
+        this.preview = preview;
+        this.title = title;
+        this.catalogId = catalogId;
     }
 
     public int getId() {
@@ -70,5 +79,9 @@ public class MetadataItem {
 
     public Long getRdczId() {
         return rdczId;
+    }
+
+    public String getCatalogId() {
+        return catalogId;
     }
 }

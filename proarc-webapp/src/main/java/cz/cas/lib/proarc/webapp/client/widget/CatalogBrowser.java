@@ -92,6 +92,12 @@ public class CatalogBrowser implements DatastreamEditor {
         return val;
     }
 
+    public String getSelectedCatalogId() {
+        ListGridRecord r = lgResult.getSelectedRecord();
+        String val = (r == null) ? null : r.getAttribute(BibliographyQueryDataSource.FIELD_SELECTED_CATALOG);
+        return val;
+    }
+
     protected DynamicForm getFormCatalog() {
         return formCatalog;
     }

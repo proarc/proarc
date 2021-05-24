@@ -126,7 +126,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
     }
 
     @Override
-    public List<MetadataItem> find(String fieldId, String value, Locale locale) throws TransformerException, IOException {
+    public List<MetadataItem> find(String catalog, String fieldId, String value, Locale locale) throws TransformerException, IOException {
         String query = buildQuery(fieldId, value);
         LOG.fine(query);
         if (query == null) {
@@ -148,7 +148,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
                     transformers.dump(new DOMSource(marcXml), sb);
                     LOG.fine(sb.toString());
                 }
-                MetadataItem item = createResponse(index++, new DOMSource(marcXml), locale);
+                MetadataItem item = createResponse(index++, catalog, new DOMSource(marcXml), locale);
                 result.add(item);
             }
             return result;
@@ -190,7 +190,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
         return query;
     }
 
-    private MetadataItem createResponse(int entryIdx, Source marcxmlSrc, Locale locale)
+    private MetadataItem createResponse(int entryIdx, String catalog, Source marcxmlSrc, Locale locale)
             throws TransformerException, UnsupportedEncodingException {
 
 
@@ -205,7 +205,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
             modsTitleBytes = transformers.transformAsBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), Transformers.Format.ModsAsAuthorityTitle);
         }
 
-        return new MetadataItem(entryIdx, new String(modsBytes, "UTF-8"),
+        return new MetadataItem(entryIdx, catalog, new String(modsBytes, "UTF-8"),
                 repairHtml(new String(modsHtmlBytes, "UTF-8")), new String(modsTitleBytes, "UTF-8"));
     }
 

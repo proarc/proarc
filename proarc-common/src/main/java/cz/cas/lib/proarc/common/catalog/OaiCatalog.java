@@ -120,7 +120,7 @@ public class OaiCatalog implements BibliographicCatalog {
     }
 
     @Override
-    public List<MetadataItem> find(String fieldName, String value, Locale locale) throws TransformerException, IOException {
+    public List<MetadataItem> find(String catalog, String fieldName, String value, Locale locale) throws TransformerException, IOException {
         WebTarget query = buildOaiQuery(fieldName, value);
         String oaiResponse = findOaiRecord(query);
         ArrayList<MetadataItem> result = new ArrayList<MetadataItem>();

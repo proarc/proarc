@@ -24,9 +24,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.util.BooleanCallback;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
-import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
-import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
@@ -38,10 +36,8 @@ import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHa
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.TextDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.WorkflowModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.CodeMirror;
 import cz.cas.lib.proarc.webapp.client.widget.DatastreamEditor;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**

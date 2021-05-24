@@ -46,6 +46,7 @@ public final class CatalogConfiguration {
     public static final String PROPERTY_FIELDS = "fields";
     /** The configuration property prefix of field's properties. */
     public static final String FIELD_PREFIX = "field";
+    public static final String PROPERTY_DEFAULT_SEARCH_FIELD = "defaultSearchField";
 
     private final String id;
     private final String prefix;
@@ -88,6 +89,10 @@ public final class CatalogConfiguration {
             fields.add(field);
         }
         return fields;
+    }
+
+    public String getDefaultSearchField() {
+        return properties.getString(PROPERTY_DEFAULT_SEARCH_FIELD);
     }
 
     /**

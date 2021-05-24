@@ -2093,6 +2093,16 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </relatedItem>
         </xsl:for-each>
 
+        <xsl:for-each select="marc:datafield[@tag=994]">
+            <relatedItem type="series">
+                <xsl:for-each select="marc:subfield[@code='a']">
+                    <identifier type="uuid">
+                        <xsl:value-of select="."/>
+                    </identifier>
+                </xsl:for-each>
+            </relatedItem>
+        </xsl:for-each>
+
         <!-- tmee 1.40 1.74 1.88 fixed 510c mapping 20130829-->
 
         <xsl:for-each select="marc:datafield[@tag=510]">

@@ -476,7 +476,7 @@ public class WorkflowJobView implements Refreshable {
         }
 
         DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
-        ds.saveNewDigitalObject(modelId, null, null, jobId, new Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject>() {
+        ds.saveNewDigitalObject(modelId, null, null, jobId, null, new Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject>() {
 
             @Override
             public void onFailure(DigitalObjectDataSource.ErrorSavingDigitalObject reason) {

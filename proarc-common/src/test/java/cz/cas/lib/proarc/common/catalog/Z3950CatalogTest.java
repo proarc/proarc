@@ -25,11 +25,15 @@ import java.util.Map;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  *
@@ -99,7 +103,7 @@ public class Z3950CatalogTest {
                 recordCharset == null ? null : Charset.forName(recordCharset),
                 Z3950Catalog.readFields(c)
                 );
-        List<MetadataItem> result = instance.find(fieldName, value, locale);
+        List<MetadataItem> result = instance.find(null, fieldName, value, locale);
         assertFalse(result.isEmpty());
     }
 

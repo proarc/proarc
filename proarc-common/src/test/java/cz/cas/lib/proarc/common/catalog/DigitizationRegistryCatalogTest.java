@@ -20,11 +20,13 @@ import java.util.List;
 import java.util.Locale;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -69,7 +71,7 @@ public class DigitizationRegistryCatalogTest {
         String value = "26005405857";
         Locale locale = new Locale("cs");
         DigitizationRegistryCatalog instance = new DigitizationRegistryCatalog(url, user, passwd);
-        List<MetadataItem> details = instance.find(fieldName, value, locale);
+        List<MetadataItem> details = instance.find(null, fieldName, value, locale);
         assertEquals(1, details.size());
         MetadataItem detail = details.get(0);
         assertEquals(1, detail.getId());

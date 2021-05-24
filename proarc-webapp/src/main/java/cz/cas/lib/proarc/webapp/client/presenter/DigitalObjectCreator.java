@@ -164,9 +164,10 @@ public final class DigitalObjectCreator {
                 wc.setModel(model);
                 String mods = newDigObject.getMods();
                 String newPid = newDigObject.getNewPid();
+                String catalogId = newDigObject.getCatalogId();
                 ClientUtils.fine(LOG, "NewDigObjectStep.onStepAction.FORWARD: model: %s pid: %s",
                         model.getId(), newPid);
-                saveNewDigitalObject(model.getId(), newPid, mods);
+                saveNewDigitalObject(model.getId(), newPid, mods, catalogId);
                 return false;
 
             }
@@ -178,9 +179,9 @@ public final class DigitalObjectCreator {
             onStepAction(wizard, StepKind.FORWARD);
         }
 
-        private void saveNewDigitalObject(String modelId, String pid, String mods) {
+        private void saveNewDigitalObject(String modelId, String pid, String mods, String catalogId) {
             DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
-            ds.saveNewDigitalObject(modelId, pid, mods, null, new Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject>() {
+            ds.saveNewDigitalObject(modelId, pid, mods, null, catalogId, new Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject>() {
                 @Override
                 public void onFailure(DigitalObjectDataSource.ErrorSavingDigitalObject reason) {
                     switch (reason) {

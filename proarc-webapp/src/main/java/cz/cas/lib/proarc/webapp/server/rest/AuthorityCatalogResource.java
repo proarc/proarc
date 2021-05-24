@@ -143,7 +143,7 @@ public class AuthorityCatalogResource {
         BibliographicCatalog bCatalog = appConfig.getCatalogs().findCatalog(catalog);
         if (bCatalog != null) {
             try {
-                result = bCatalog.find(fieldName, value, locale);
+                result = bCatalog.find(catalog, fieldName, value, locale);
             } catch (ConnectException ex) {
                 LOG.log(Level.FINE, catalog, ex);
                 throw RestException.plainText(Status.SERVICE_UNAVAILABLE, ex.getLocalizedMessage());
