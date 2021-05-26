@@ -4603,6 +4603,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:if>
             <xsl:call-template name="nameABCDN"/>
             <xsl:call-template name="role"/>
+            <xsl:call-template name="nameIdentifier"/>
         </name>
     </xsl:template>
 
@@ -4616,6 +4617,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:if>
             <xsl:call-template name="nameACDEQ"/>
             <xsl:call-template name="role"/>
+            <xsl:call-template name="nameIdentifier"/>
         </name>
     </xsl:template>
 
@@ -4651,6 +4653,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="xxx880"/>
             <xsl:call-template name="nameABCDN"/>
             <xsl:call-template name="role"/>
+            <xsl:call-template name="nameIdentifier"/>
         </name>
     </xsl:template>
 
@@ -4659,6 +4662,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="xxx880"/>
             <xsl:call-template name="nameACDEQ"/>
             <xsl:call-template name="role"/>
+            <xsl:call-template name="nameIdentifier"/>
         </name>
     </xsl:template>
 
