@@ -16,11 +16,30 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
-
-import cz.cas.lib.proarc.mods.*;
+import cz.cas.lib.proarc.mods.Extent;
+import cz.cas.lib.proarc.mods.GenreDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.PlaceDefinition;
+import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.SubjectDefinition;
+import cz.cas.lib.proarc.mods.SubjectNameDefinition;
+import cz.cas.lib.proarc.mods.TableOfContentsDefinition;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import cz.cas.lib.proarc.urnnbn.model.response.TitleInfo;
+
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addGenre;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPartNumber;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -57,7 +76,7 @@ public class NdkSoundRecordingMapper extends RdaNdkMapper {
             addElementType(dc.getTitles(), title.toString());
         }
 
-        addName(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
 
         for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
             for (PlaceDefinition place : originInfo.getPlace()) {

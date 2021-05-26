@@ -320,6 +320,16 @@ public final class MapperUtils {
         }
     }
 
+    public static void addNameIdentifier(List<NameDefinition> modsNames, List<ElementType> dcElms) {
+        for (NameDefinition name : modsNames) {
+            if (name.getNameIdentifier() != null && name.getNameIdentifier().size() > 0) {
+                for (IdentifierDefinition identifier : name.getNameIdentifier()) {
+                    addElementType(dcElms, identifier.getValue());
+                }
+            }
+        }
+    }
+
     static void addDetailWithPageRangeToPart(ModsDefinition mods) {
         List<ExtentDefinition> extents = new ArrayList<>();
         for (PartDefinition part : mods.getPart()) {

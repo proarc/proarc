@@ -173,7 +173,7 @@ public final class OldPrintCartographicForm {
                         .createField()) //etal
                 // affiliation
                 // role, roleDefinition
-                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - MA").setMaxOccurrences(5)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
                                 .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
                         .createField()) //nameIdentifier
@@ -799,7 +799,7 @@ public final class OldPrintCartographicForm {
                         .createField()) //etal
                 // affiliation
                 // role, roleDefinition
-                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - R").setMaxOccurrences(5)
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - MA").setMaxOccurrences(5)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
                                 .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
                         .createField()) //nameIdentifier

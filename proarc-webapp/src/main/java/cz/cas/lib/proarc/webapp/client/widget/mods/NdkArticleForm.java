@@ -170,7 +170,7 @@ public class NdkArticleForm {
                         .setHint("Umožňuje vepsat název instituce, se kterou je autor, popsaný v elementu <name> spojen.").createField())
                     .createField())// affiliation
                 // role, roleDefinition
-                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - MA").setMaxOccurrences(5)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
                                 .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
                         .createField()) //nameIdentifier
@@ -557,7 +557,7 @@ public class NdkArticleForm {
                         .createField()) //etal
                 // affiliation
                 // role, roleDefinition
-                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - R").setMaxOccurrences(5)
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - MA").setMaxOccurrences(5)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
                                 .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
                         .createField()) //nameIdentifier
