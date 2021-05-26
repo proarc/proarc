@@ -522,6 +522,7 @@ public class NdkPeriodicalIssueForm {
                             + " nebo obsah pole 651 záznamu MARC21.")
                     .createField()) // value
                 .createField()) // geographic
+                .addField(NdkForms.geographicCode())
 
                 // temporal, temporalDefinition extends dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("temporal").setMaxOccurrences(1)

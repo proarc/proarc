@@ -490,6 +490,7 @@ public final class NdkSoundCollectionForm {
                                         + " nebo obsah pole 651 záznamu MARC21.")
                                 .createField()) // value
                         .createField()) // geographic
+                .addField(NdkForms.geographicCode()) // geographicCode
 
                 // geographicCode
                 .addField(new FieldBuilder("geographicCode").setTitle("Geographic Code - R").setMaxOccurrences(1)
