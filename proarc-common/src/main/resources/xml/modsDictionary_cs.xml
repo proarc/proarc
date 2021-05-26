@@ -29,6 +29,7 @@
     <entry key="recordIdentifier">Identifikátor záznamu</entry>
     <entry key="nonSort">Non Sort</entry>
     <entry key="namePart">Name Part</entry>
+    <entry key="nameIdentifier">Name Identifier</entry>
     <entry key="form">Form</entry>
     <entry key="unControlled">Uncontrolled</entry>
     <entry key="controlled">Controlled</entry>
