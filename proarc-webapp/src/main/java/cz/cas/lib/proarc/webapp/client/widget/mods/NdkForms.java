@@ -239,6 +239,36 @@ public final class NdkForms {
                 .createField(); // recordInfo
     }
 
+    public static Field geographicCode() {
+        return new FieldBuilder("geographicCode").setTitle("Geographic Code - R").setMaxOccurrences(10)
+                .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
+                        .addMapValue("marcgac", "marcgac")
+                        .createField()) //authority
+                .addField(new FieldBuilder("value").setTitle("Value - R").setMaxOccurrences(1).setType(Field.COMBO)
+                        .setHint("Geografické věcné třídění."
+                                + "<p>použít kontrolovaný slovník - např. z báze autorit AUT NK ČR (geografický termín).")
+                        .addMapValue("e-xr---", "Česko")
+                        .addMapValue("e-xr-cc", "Čechy")
+                        .addMapValue("e-xr-pg", "Praha (Česko : kraj)")
+                        .addMapValue("e-xr-st", "Středočeský kraj")
+                        .addMapValue("e-xr-kr", "Královéhradecký kraj")
+                        .addMapValue("e-xr-pa", "Pardubický kraj")
+                        .addMapValue("e-xr-us", "Ústecký kraj")
+                        .addMapValue("e-xr-li", "Liberecký kraj")
+                        .addMapValue("e-xr-pl", "Plzeňský kraj")
+                        .addMapValue("e-xr-ka", "Karlovarský kraj")
+                        .addMapValue("e-xr-jc", "Jihočeský kraj")
+                        .addMapValue("e-xr-jm", "Jihomoravský kraj")
+                        .addMapValue("e-xr-zl", "Zlínský kraj")
+                        .addMapValue("e-xr-vy", "Vysočina")
+                        .addMapValue("e-xr-mo", "Moravskoslezský kraj")
+                        .addMapValue("e-xr-ol", "Olomoucký kraj")
+                        .addMapValue("e-xr-mr", "Morava")
+                        .addMapValue("e-xr-sl", "Slezsko (Česko)")
+                        .createField()) // value
+                .createField(); // geographicCode
+    }
+
     public static Field descriptionRadioButton() {
         return new FieldBuilder("rdaRules").setTitle("Zvolte pravidla popisu (Description Standard) - MA").setMaxOccurrences(1)
                 .setType(Field.RADIOGROUP).setRequired(true)

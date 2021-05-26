@@ -500,6 +500,7 @@ public final class NdkEmonographVolumeForm {
                                         + " nebo obsah pole 651 záznamu MARC21.")
                                 .createField()) // value
                         .createField()) // geographic
+                .addField(NdkForms.geographicCode()) // geographicCode
 
                 // stringPlusLanguagePlusAuthority
 

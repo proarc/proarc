@@ -50,13 +50,19 @@ import org.w3c.dom.Document;
 public final class Z3950Catalog implements BibliographicCatalog {
 
     public static final String TYPE = "Z3950Catalog";
-    /** Configuration property name to define database. */
+    /**
+     * Configuration property name to define database.
+     */
     static final String PROPERTY_BASE = "base";
-    /** Configuration property name to override char set of returned records. */
+    /**
+     * Configuration property name to override char set of returned records.
+     */
     static final String PROPERTY_RECORD_CHARSET = "recordCharset";
-    /** Configuration property name to define field's query. */
+    /**
+     * Configuration property name to define field's query.
+     */
     static final String PROPERTY_FIELD_QUERY = "query";
-    
+
     private static final Logger LOG = Logger.getLogger(Z3950Catalog.class.getName());
     private Transformers transformers = new Transformers();
     private final Z3950Client client;
@@ -64,7 +70,9 @@ public final class Z3950Catalog implements BibliographicCatalog {
     private final String base;
     private final int port;
     private final Charset recordCharset;
-    /** fieldId -> field */
+    /**
+     * fieldId -> field
+     */
     private final Map<String, Z3950Field> fields;
 
     public static Z3950Catalog get(CatalogConfiguration c) {
@@ -194,7 +202,6 @@ public final class Z3950Catalog implements BibliographicCatalog {
             throws TransformerException, UnsupportedEncodingException {
 
 
-
         byte[] modsBytes = transformers.transformAsBytes(
                 marcxmlSrc, Transformers.Format.MarcxmlAsMods3);
         byte[] modsHtmlBytes = modsAsHtmlBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), locale);
@@ -218,6 +225,29 @@ public final class Z3950Catalog implements BibliographicCatalog {
         s = s.replace("( ", " (");
         s = s.replace("=\" ", " = ");
         s = s.replace("\"", "");
+        s = repairGeographicCode(s);
+        return s;
+    }
+
+    private String repairGeographicCode(String s) {
+        s = s.replace("e-xr---", "Česko");
+        s = s.replace("e-xr-cc", "Čechy");
+        s = s.replace("e-xr-pg", "Praha (Česko : kraj)");
+        s = s.replace("e-xr-st", "Středočeský kraj");
+        s = s.replace("e-xr-kr", "Královéhradecký kraj");
+        s = s.replace("e-xr-pa", "Pardubický kraj");
+        s = s.replace("e-xr-us", "Ústecký kraj");
+        s = s.replace("e-xr-li", "Liberecký kraj");
+        s = s.replace("e-xr-pl", "Plzeňský kraj");
+        s = s.replace("e-xr-ka", "Karlovarský kraj");
+        s = s.replace("e-xr-jc", "Jihočeský kraj");
+        s = s.replace("e-xr-jm", "Jihomoravský kraj");
+        s = s.replace("e-xr-zl", "Zlínský kraj");
+        s = s.replace("e-xr-vy", "Vysočina");
+        s = s.replace("e-xr-mo", "Moravskoslezský kraj");
+        s = s.replace("e-xr-ol", "Olomoucký kraj");
+        s = s.replace("e-xr-mr", "Morava");
+        s = s.replace("e-xr-sl", "Slezsko (Česko)");
         return s;
     }
 
