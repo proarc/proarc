@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
@@ -63,7 +64,7 @@ public class OldPrintGraphicsMapper extends RdaNdkMapper {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
             addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
-        addName(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
         addElementType(dc.getTypes(), getDcType());
         addOriginInfo(mods.getOriginInfo(), dc);
         addLanguage(mods.getLanguage(), dc);
