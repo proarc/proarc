@@ -45,7 +45,7 @@ public class WorkflowJobDataSource extends ProarcDataSource {
 
     public static final String FIELD_CREATED = WorkflowModelConsts.JOB_CREATED;
     public static final String FIELD_ID = WorkflowModelConsts.JOB_ID;
-    public static final String FIELD_FINANCED = WorkflowModelConsts.JOB_FINANCED;
+    public static final String FIELD_FINANCED = WorkflowModelConsts.JOB_FILTER_FINANCED;
     public static final String FIELD_LABEL = WorkflowModelConsts.JOB_LABEL;
     public static final String FIELD_MATERIALS = "materials";
     public static final String FIELD_MODIFIED = WorkflowModelConsts.JOB_MODIFIED;
