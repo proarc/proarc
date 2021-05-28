@@ -179,6 +179,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
                 cmd.where(tableJob.label.likeUpper('%' + pattern + '%'));
             }
         }
+        EmpireUtils.addWhereLike(cmd, tableJob.financed, () -> filter.getFinanced());
         EmpireUtils.addWhereLike(cmd, tpd.barcode, () -> filter.getMaterialBarcode());
         EmpireUtils.addWhereLike(cmd, tpd.detail, () -> filter.getMaterialDetail());
         EmpireUtils.addWhereLike(cmd, tpd.field001, () -> filter.getMaterialField001());

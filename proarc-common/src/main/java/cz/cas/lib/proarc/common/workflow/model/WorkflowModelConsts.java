@@ -49,6 +49,7 @@ public final class WorkflowModelConsts {
     public static final String JOB_FILTER_ID = "id";
     public static final String JOB_FILTER_CREATED = "created";
     public static final String JOB_FILTER_LABEL = "label";
+    public static final String JOB_FILTER_FINANCED = "financed";
     public static final String JOB_FILTER_MODIFIED = "modified";
     public static final String JOB_FILTER_MATERIAL_BARCODE = "barcode";
     public static final String JOB_FILTER_MATERIAL_DETAIL = "detail";
