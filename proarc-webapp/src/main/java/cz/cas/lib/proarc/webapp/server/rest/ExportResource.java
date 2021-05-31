@@ -172,16 +172,26 @@ public class ExportResource {
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         Kramerius4Export.Result k4Result = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
-        URI targetPath = user.getUserHomeUri().relativize(k4Result.getFile().toURI());
 
-        for (String pid : pids) {
-            try {
-                setWorkflowExport("task.exportK4", "param.exportK4", k4Result.getPageCount(), getRoot(pid, exportFolder));
-            } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
-                throw new IOException(e);
+        ExportResult result = null;
+        if (k4Result.getValidationError() != null) {
+            MetsUtils.renameFolder(exportFolder, k4Result.getFile(), null);
+            result = new ExportResult(k4Result.getValidationError().getExceptions());
+        } else {
+            URI targetPath = user.getUserHomeUri().relativize(k4Result.getFile().toURI());
+            result = new ExportResult(targetPath);
+
+            for (String pid : pids) {
+                try {
+                    setWorkflowExport("task.exportK4", "param.exportK4", k4Result.getPageCount(), getRoot(pid, exportFolder));
+                } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
+                    throw new IOException(e);
+                }
             }
         }
-        return new SmartGwtResponse<>(new ExportResult(targetPath));
+
+
+        return new SmartGwtResponse<>(result);
     }
 
     /**

@@ -1183,6 +1183,9 @@ public class MetsUtils {
             if (file.isDirectory()) {
                 deleteFolder(file);
             }
+            if (file.isFile() && !ExportUtils.PROARC_EXPORT_STATUSLOG.equals(file.getName())) {
+                file.delete();
+            }
         }
 
         try {
