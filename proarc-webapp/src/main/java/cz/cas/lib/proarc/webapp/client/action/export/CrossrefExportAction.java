@@ -75,7 +75,8 @@ public class CrossrefExportAction extends ExportAction {
                 String modelId = dobj.getModelId();
                 // XXX hack; it needs support to query model/object for action availability
                 if (modelId != null && (modelId.equals("model:bdmarticle")
-                         || modelId.startsWith("model:ndkperiodical"))) {
+                        || modelId.startsWith("model:ndkperiodical")
+                        || modelId.startsWith("model:ndkeperiodical"))) {
                     accept = true;
                     continue;
                 }

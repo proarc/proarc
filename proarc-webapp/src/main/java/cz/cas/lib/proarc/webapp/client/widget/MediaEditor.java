@@ -39,6 +39,7 @@ import com.smartgwt.client.widgets.form.fields.events.ChangedHandler;
 import com.smartgwt.client.widgets.form.fields.events.DataArrivedEvent;
 import com.smartgwt.client.widgets.form.fields.events.DataArrivedHandler;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -217,13 +218,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
             @Override
             public boolean accept(ActionEvent event) {
-                String modelId = digitalObject.getModelId();
-                return modelId != null && (modelId.startsWith("model:bdm")
-                        || "model:derFile".equals(modelId)
-                        || "model:desFile".equals(modelId)
-                        || "model:ndkemonographvolume".equals(modelId)
-                        || "model:ndkeperiodicalissue".equals(modelId)
-                        );
+                return acceptModel(event);
             }
 
             @Override
@@ -249,14 +244,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
 
             @Override
             public boolean accept(ActionEvent event) {
-                String modelId = digitalObject.getModelId();
-
-                return modelId != null && (modelId.startsWith("model:bdm")
-                        || "model:derFile".equals(modelId)
-                        || "model:desFile".equals(modelId)
-                        || "model:ndkemonographvolume".equals(modelId)
-                        || "model:ndkeperiodicalissue".equals(modelId)
-                );
+                return acceptModel(event);
             }
 
             @Override
@@ -285,6 +273,13 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
                 d.show();
             }
         };
+    }
+
+    private boolean acceptModel(ActionEvent event) {
+        String modelId = digitalObject.getModelId();
+        return modelId != null && (modelId.startsWith("model:bdm") || "model:derFile".equals(modelId) || "model:desFile".equals(modelId)
+                || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(modelId)
+                || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId) || NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId));
     }
 
     private static DynamicForm createExpandOptionsForm() {

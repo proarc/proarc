@@ -20,9 +20,9 @@ import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
-import org.apache.commons.configuration.Configuration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.configuration.Configuration;
 
 /**
  * Settings for Kramerius4 export.
@@ -96,6 +97,11 @@ public final class Kramerius4ExportOptions {
             put(OldPrintPlugin.MODEL_CARTOGRAPHIC, "hasUnit");
             put(OldPrintPlugin.MODEL_SHEETMUSIC, "hasUnit");
             put(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, "hasUnit");
+            put(NdkEbornPlugin.MODEL_EARTICLE, "hasIntCompPart");
+            put(NdkEbornPlugin.MODEL_ECHAPTER, "hasIntCompPart");
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "hasUnit");
+            put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "hasItem");
+            put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "hasVolume");
         }
     };
 
