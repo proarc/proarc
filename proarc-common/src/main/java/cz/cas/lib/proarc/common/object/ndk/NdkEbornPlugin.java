@@ -111,7 +111,10 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
                 //new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)} why periodical?
-                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_EMONOGRAPHVOLUME, RelationCriteria.Type.PID)
+                }
         ));
         models.add(new MetaModel(
                 MODEL_EPERIODICAL, true, null,

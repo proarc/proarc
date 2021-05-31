@@ -36,6 +36,7 @@ import java.util.List;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
@@ -93,7 +94,7 @@ public final class NdkPictureMapper extends RdaNdkMapper {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
             addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
-        addName(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
         addElementType(dc.getTypes(), getDcType());
         addStringPlusLanguage(dc.getDescriptions(), mods.getAbstract());
         addStringPlusLanguage(dc.getDescriptions(), mods.getNote());

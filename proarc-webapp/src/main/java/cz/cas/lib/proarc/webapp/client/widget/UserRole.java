@@ -11,7 +11,7 @@ public class UserRole {
     public static final String PERMISSION_RUN_CHANGE_MODEL_FUNCTION = "runChangeModelFunction";
     public static final String PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION = "runUpdateAllObjectsFunction";
     public static final String PERMISSION_RUN_RESTORE_OBJECTS_FUNCTION = "runRestoreObjectsFunction";
-    public static final String PERMISSION_RUN_UPDATE_OBJECTS_FUNCTION = "runUpdateObjectsFunction";
+    public static final String PERMISSION_RUN_UPDATE_MODEL_FUNCTION = "runUpdateObjectsFunction";
 
     public static LinkedHashMap<String, String> getMap() {
         LinkedHashMap<String, String> valueMap = new LinkedHashMap();

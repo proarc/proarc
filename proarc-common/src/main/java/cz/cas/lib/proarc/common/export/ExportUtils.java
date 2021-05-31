@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import cz.cas.lib.proarc.common.export.desa.Const;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.workflow.WorkflowExportFile;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -24,6 +25,9 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -189,5 +193,49 @@ public final class ExportUtils {
         } catch (Exception e) {
             LOG.log(Level.SEVERE, targetFolder.toString(), e);
         }
+    }
+
+    public static String getModel(String model) {
+        if (model != null && model.startsWith(Const.FEDORAPREFIX)) {
+            return model.replace(Const.FEDORAPREFIX, "");
+        } else {
+            return model;
+        }
+    }
+
+    public static int getPageIndex(ModsDefinition mods) {
+        if (mods.getPart().size() > 0) {
+            for (PartDefinition part : mods.getPart()) {
+                for (DetailDefinition detail : part.getDetail()) {
+                    if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                        return Integer.valueOf(detail.getNumber().get(0).getValue());
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    public static boolean containPageNumber(ModsDefinition mods) {
+        if (mods.getPart().size() > 0) {
+            for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
+                if ("pageNumber".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                    return !detail.getNumber().get(0).getValue().isEmpty();
+                }
+                if ("page number".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                    return !detail.getNumber().get(0).getValue().isEmpty();
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean containPageType(ModsDefinition mods) {
+        if (mods.getPart().size() > 0) {
+            if (mods.getPart().get(0).getType() != null) {
+                return !mods.getPart().get(0).getType().isEmpty();
+            }
+        }
+        return false;
     }
 }

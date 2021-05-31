@@ -70,6 +70,7 @@ import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
@@ -476,7 +477,7 @@ public class WorkflowJobView implements Refreshable {
         }
 
         DigitalObjectDataSource ds = DigitalObjectDataSource.getInstance();
-        ds.saveNewDigitalObject(modelId, null, null, jobId, new Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject>() {
+        ds.saveNewDigitalObject(modelId, null, null, jobId, null, new Callback<String, DigitalObjectDataSource.ErrorSavingDigitalObject>() {
 
             @Override
             public void onFailure(DigitalObjectDataSource.ErrorSavingDigitalObject reason) {
@@ -678,20 +679,22 @@ public class WorkflowJobView implements Refreshable {
         owner.setDisplayField(UserDataSource.FIELD_USERNAME);
         jobGrid.getField(WorkflowJobDataSource.FIELD_OWNER).setFilterEditorProperties(owner);
 
-        jobGrid.getField(WorkflowJobDataSource.FIELD_FINANCED).setCanFilter(false);
-        jobGrid.getField(WorkflowJobDataSource.FIELD_FINANCED).setCanSort(false);
-
+        jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_NAME).setCanFilter(true);
         jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_NAME).setCanSort(false);
-        jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_NAME).setCanFilter(false);
 
-        //jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setCanSort(false);
+        SelectItem taskOptions = new SelectItem();
+        taskOptions.setOptionDataSource(ValueMapDataSource.getInstance()
+                .getOptionDataSource(WorkflowProfileConsts.WORKFLOWITEMVIEW_TASKS_VALUEMAP));
+        taskOptions.setValueField(WorkflowProfileConsts.NAME);
+        taskOptions.setDisplayField(WorkflowProfileConsts.TITLE_EL);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_NAME).setFilterEditorProperties(taskOptions);
+
         SelectItem taskOwner = new SelectItem();
         taskOwner.setOptionDataSource(UserDataSource.getInstance());
         taskOwner.setValueField(UserDataSource.FIELD_ID);
         taskOwner.setDisplayField(UserDataSource.FIELD_USERNAME);
         //jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setFilterEditorProperties(taskOwner);
 
-        jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setCanFilter(false);
         jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setCanSort(false);
 
         jobGrid.addDataArrivedHandler((DataArrivedEvent event) -> {

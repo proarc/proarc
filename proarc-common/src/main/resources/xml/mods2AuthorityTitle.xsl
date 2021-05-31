@@ -14,9 +14,13 @@
     <xsl:variable name="namePart" select="//mods:mods/mods:name/mods:namePart"/>
     <xsl:variable name="topicOfSubject" select="//mods:mods/mods:subject/mods:topic"/>
     <xsl:variable name="geographicCode" select="//mods:mods/mods:subject/mods:geographicCode"/>
+    <xsl:variable name="geographic" select="//mods:mods/mods:subject/mods:geographic"/>
 
     <xsl:template match="/">
         <xsl:choose>
+            <xsl:when test="boolean(normalize-space($geographic))">
+                <xsl:value-of select="concat('S:', $geographic)"/>
+            </xsl:when>
             <xsl:when test="boolean(normalize-space($geographicCode))">
                 <xsl:value-of select="concat('S:Geographic code: ', $geographicCode)"/>
             </xsl:when>

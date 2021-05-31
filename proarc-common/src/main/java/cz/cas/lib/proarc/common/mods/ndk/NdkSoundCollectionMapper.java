@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPartName;
@@ -128,7 +129,7 @@ public class NdkSoundCollectionMapper extends RdaNdkMapper {
             addElementType(dc.getTitles(), title.toString());
         }
 
-        addName(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
         if (mods.getTypeOfResource() != null && mods.getTypeOfResource().size()>0) {
             addElementType(dc.getTypes(), mods.getTypeOfResource().get(0).getValue());
         }

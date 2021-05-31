@@ -2093,6 +2093,16 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </relatedItem>
         </xsl:for-each>
 
+        <xsl:for-each select="marc:datafield[@tag=994]">
+            <relatedItem type="series">
+                <xsl:for-each select="marc:subfield[@code='a']">
+                    <identifier type="uuid">
+                        <xsl:value-of select="."/>
+                    </identifier>
+                </xsl:for-each>
+            </relatedItem>
+        </xsl:for-each>
+
         <!-- tmee 1.40 1.74 1.88 fixed 510c mapping 20130829-->
 
         <xsl:for-each select="marc:datafield[@tag=510]">
@@ -4593,6 +4603,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:if>
             <xsl:call-template name="nameABCDN"/>
             <xsl:call-template name="role"/>
+            <xsl:call-template name="nameIdentifier"/>
         </name>
     </xsl:template>
 
@@ -4606,6 +4617,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </xsl:if>
             <xsl:call-template name="nameACDEQ"/>
             <xsl:call-template name="role"/>
+            <xsl:call-template name="nameIdentifier"/>
         </name>
     </xsl:template>
 
@@ -4641,6 +4653,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="xxx880"/>
             <xsl:call-template name="nameABCDN"/>
             <xsl:call-template name="role"/>
+            <xsl:call-template name="nameIdentifier"/>
         </name>
     </xsl:template>
 
@@ -4649,6 +4662,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="xxx880"/>
             <xsl:call-template name="nameACDEQ"/>
             <xsl:call-template name="role"/>
+            <xsl:call-template name="nameIdentifier"/>
         </name>
     </xsl:template>
 
@@ -5170,6 +5184,9 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
     <xsl:template name="createSubGeoFrom043">
         <subject>
             <xsl:call-template name="xxx880"/>
+            <xsl:for-each select="../marc:datafield[@tag=151]">
+                <xsl:call-template name="createSubGeoFrom151"/>
+            </xsl:for-each>
             <xsl:for-each select="marc:subfield[@code='a' or @code='b' or @code='c']">
                 <geographicCode>
                     <!-- 1.94.proarc.3.158 -->
@@ -5190,6 +5207,14 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </geographicCode>
             </xsl:for-each>
         </subject>
+    </xsl:template>
+
+    <xsl:template name="createSubGeoFrom151">
+        <xsl:for-each select="marc:subfield[@code='a']">
+            <geographic>
+                <xsl:value-of select="self::marc:subfield"/>
+            </geographic>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template name="createSubGeoFrom255">

@@ -16,10 +16,24 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
-
-import cz.cas.lib.proarc.mods.*;
+import cz.cas.lib.proarc.mods.Extent;
+import cz.cas.lib.proarc.mods.GenreDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addGenre;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPartNumber;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -62,7 +76,7 @@ public class NdkSoundPartMapper extends RdaNdkMapper {
             addElementType(dc.getTitles(), title.toString());
         }
 
-        addName(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
 
         for (TypeOfResourceDefinition typeOfResource : mods.getTypeOfResource()) {
             addElementType(dc.getTypes(), typeOfResource.getValue());

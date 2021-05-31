@@ -21,6 +21,7 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
@@ -80,7 +81,7 @@ public final class KrameriusExportAction extends ExportAction {
                     accept = false;
                     continue;
                 }
-               if (model != null && ModsConstants.NS.equals(model.getMetadataFormat()) && !model.getId().startsWith("model:ndke")) {
+               if (model != null && ModsConstants.NS.equals(model.getMetadataFormat())) {
                     accept = true;
                     continue;
                 }
@@ -121,8 +122,12 @@ public final class KrameriusExportAction extends ExportAction {
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
-                    SC.say(i18n.KrameriusExportAction_AddDone_Msg(
-                            data[0].getAttribute(ExportResourceApi.RESULT_TARGET)));
+                    RecordList erl = errorsFromExportResult(data);
+                    if (erl.isEmpty()) {
+                        SC.say(i18n.KrameriusExportAction_AddDone_Msg(data[0].getAttribute(ExportResourceApi.RESULT_TARGET)));
+                    } else {
+                        DesaExportAction.ExportResultWidget.showErrors(erl.toArray());
+                    }
                 }
             }
         }, dsRequest);
@@ -150,5 +155,16 @@ public final class KrameriusExportAction extends ExportAction {
     @Override
     protected void setRequestOptions(Record record) {
         record.setAttribute(KRAMERIUS4_POLICY_PARAM, rgi.getValueAsString());
+    }
+
+    private RecordList errorsFromExportResult(Record[] exportResults) {
+        RecordList recordList = new RecordList();
+        for (Record result : exportResults) {
+            Record[] errors = result.getAttributeAsRecordArray(ExportResourceApi.RESULT_ERRORS);
+            if (errors != null && errors.length > 0) {
+                recordList.addList(errors);
+            }
+        }
+        return recordList;
     }
 }

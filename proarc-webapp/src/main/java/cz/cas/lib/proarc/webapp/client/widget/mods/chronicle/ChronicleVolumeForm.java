@@ -165,7 +165,7 @@ public class ChronicleVolumeForm {
                         .createField()) //etal
                 // affiliation
                 // role, roleDefinition
-                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - MA").setMaxOccurrences(5)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
                                 .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
                         .createField()) //nameIdentifier
@@ -248,7 +248,7 @@ public class ChronicleVolumeForm {
                         .createField()) //etal
                 // affiliation
                 // role, roleDefinition
-                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - R").setMaxOccurrences(5)
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - MA").setMaxOccurrences(5)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
                                 .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
                         .createField()) //nameIdentifier
@@ -600,6 +600,7 @@ public class ChronicleVolumeForm {
                                         + " nebo obsah pole 651 záznamu MARC21.")
                                 .createField()) // value
                         .createField()) // geographic
+                .addField(NdkForms.geographicCode()) // geographicCode
 
                 // temporal, temporalDefinition extends dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("temporal").setMaxOccurrences(1)

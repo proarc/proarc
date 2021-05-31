@@ -46,6 +46,7 @@ public final class UserResourceApi {
     public static final String USER_TIMESTAMP = "timestamp";
     public static final String USER_PASSWORD = "password";
     public static final String USER_RUN_CHANGE_MODEL_FUNCTION = "changeModelFunction";
+    public static final String USER_RUN_UPDATE_MODEL_FUNCTION = "updateModelFunction";
     public static final String USER_START_ROW_PARAM = "_startRow";
 
 }

@@ -55,6 +55,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.DetailDefinition;
@@ -86,6 +87,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
+import static cz.cas.lib.proarc.common.export.ExportUtils.containPageType;
+import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
+
 /**
  * Exports digital object and transforms its data streams to Kramerius4 format.
  *
@@ -112,7 +117,8 @@ public final class Kramerius4Export {
     /** already exported PIDs to prevent loops */
     private HashSet<String> exportedPids = new HashSet<String>();
     /** PIDs scheduled for export */
-    private Queue<String> toExport = new LinkedList<String>();
+    private Queue<Pair> toExport = new LinkedList<Pair>();
+    private K4Informations informations = new K4Informations();
     
     private final Kramerius4ExportOptions kramerius4ExportOptions;
     private AppConfiguration appConfig;
@@ -169,20 +175,26 @@ public final class Kramerius4Export {
 
         ExportResultLog reslog = new ExportResultLog();
         ExportResult result = new ExportResult();
+        Result krameriusResult = new Result();
         result.setInputPid(pids[0]);
         reslog.getExports().add(result);
 
         File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]), exportOptions.isOverwritePackage());
+        krameriusResult.setFile(target);
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
-        toExport.addAll(selectedPids);
+        toExport.addAll(createPair(null, selectedPids));
         try {
             String[] parentModels = {NdkPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHTITLE};
             //boolean hasParent = hasParent(target, hierarchy, selectedPids, parentModels);
-            for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
-                exportPid(target, hierarchy, pid, hasParent(pid));
+            for (Pair object = toExport.poll(); object != null; object = toExport.poll()) {
+                exportPid(target, hierarchy, object, hasParent(object.getPid()));
             }
             exportParents(target, selectedPids);
             storeExportResult(target, log);
+            result.setStatus(ResultStatus.OK);
+            result.setEnd();
+            ExportUtils.writeExportResult(target, reslog);
+            krameriusResult.setPageCount(exportedPids.size());
         } catch (RuntimeException ex) {
             result.setStatus(ResultStatus.FAILED);
             reslog.getExports().add(result);
@@ -197,16 +209,24 @@ public final class Kramerius4Export {
             result.setEnd();
             ExportUtils.writeExportResult(target, reslog);
             throw new IllegalStateException(ex.getMessage());
+        } catch (MetsExportException ex ) {
+            result.setStatus(ResultStatus.FAILED);
+            result.getError().add(new ResultError(null, ex));
+            result.setEnd();
+            ExportUtils.writeExportResult(target, reslog);
+            krameriusResult.setValidationError(ex);
         }
-
-        result.setStatus(ResultStatus.OK);
-        result.setEnd();
-        ExportUtils.writeExportResult(target, reslog);
-
-        Result krameriusResult = new Result();
-        krameriusResult.setFile(target);
-        krameriusResult.setPageCount(exportedPids.size());
         return krameriusResult;
+    }
+
+    private Collection<Pair> createPair(String parentsPid, Collection<String> selectedPids) {
+        List<Pair> list = new ArrayList<>();
+        Iterator<String> iterator = selectedPids.iterator();
+
+        while (iterator.hasNext()) {
+            list.add(new Pair(iterator.next(), parentsPid));
+        }
+        return list;
     }
 
     private boolean hasParent(String pid) throws DigitalObjectException {
@@ -230,7 +250,7 @@ public final class Kramerius4Export {
             }
             return MetsElement.getElement(dobj, null, metsContext, true);
         } catch (IOException | MetsExportException ex) {
-            throw new DigitalObjectException("Process: Changing models failed - imposible to find element");
+            throw new DigitalObjectException("K4 export: imposible to find element " + pid);
         }
     }
 
@@ -353,31 +373,64 @@ public final class Kramerius4Export {
         return false;
     }
 
-    void exportPid(File output, boolean hierarchy, String pid, boolean hasParent) {
+    void exportPid(File output, boolean hierarchy, Pair object, boolean hasParent) throws MetsExportException {
         try {
-            if (exportedPids.contains(pid)) {
+            if (exportedPids.contains(object.getPid())) {
                 return ;
             }
-            exportedPids.add(pid);
-            RemoteObject robject = rstorage.find(pid);
+            exportedPids.add(object.getPid());
+            RemoteObject robject = rstorage.find(object.getPid());
             FedoraClient client = robject.getClient();
-            DigitalObject dobj = FedoraClient.export(pid).context(exportPageContext == null ? "archive" : exportPageContext)
+            DigitalObject dobj = FedoraClient.export(object.getPid()).context(exportPageContext == null ? "archive" : exportPageContext)
                     .format("info:fedora/fedora-system:FOXML-1.1")
                     .execute(client).getEntity(DigitalObject.class);
-            File foxml = ExportUtils.pidAsXmlFile(output, pid);
+            File foxml = ExportUtils.pidAsXmlFile(output, object.getPid());
             LocalObject local = lstorage.create(foxml, dobj);
+            validate(object.getPid(), object.getParentPid());
             RelationEditor editor = new RelationEditor(local);
             if (hierarchy) {
                 List<String> children = editor.getMembers();
-                toExport.addAll(children);
+                toExport.addAll(createPair(object.getPid(), children));
             }
             exportDatastreams(local, editor, hasParent);
             local.flush();
         } catch (DigitalObjectException ex) {
-            throw new IllegalStateException(pid, ex);
+            throw new IllegalStateException(object.getPid(), ex);
         } catch (FedoraClientException ex) {
             // replace with ExportException
-            throw new IllegalStateException(pid, ex);
+            throw new IllegalStateException(object.getPid(), ex);
+        }
+    }
+
+    private void validate(String pid, String parentPid) throws MetsExportException, DigitalObjectException {
+        IMetsElement element = getElement(pid);
+        if (element == null) {
+            throw new MetsExportException(pid, "K4 export - nevytvoren element pro " + pid, false, null);
+        } else {
+            String model = ExportUtils.getModel(element.getModel());
+            if (NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model) || NdkAudioPlugin.MODEL_PAGE.equals(model)) {
+                ModsDefinition mods = getMods(element.getOriginalPid());
+                int pageIndex = getPageIndex(mods);
+                Integer expectedPageIndex = informations.getExpectedPageIndex(parentPid);
+
+                if (!containPageNumber(mods)) {
+                    throw new MetsExportException(pid, "Strana nemá vyplněný číslo stránky.", false, null);
+                }
+                if (!containPageType(mods)) {
+                    throw new MetsExportException(pid, "Strana nemá vyplněný typ stránky.", false, null);
+                }
+                if (expectedPageIndex != pageIndex) {
+                    if (pageIndex == -1) {
+                        throw new MetsExportException(pid, "Strana nemá vyplněný index strany. Očekávaná hodnota " + expectedPageIndex + ".", false, null);
+                    } else {
+                        throw new MetsExportException(pid, "Strana má neočekávaný index strany. Očekávaná hodnota " + expectedPageIndex + ", ale byl nalezen index "+ pageIndex + ".", false, null);
+                    }
+                } else {
+                    informations.add(pid, model, pageIndex, parentPid);
+                }
+            } else {
+                informations.add(pid, model, null, parentPid);
+            }
         }
     }
 
@@ -928,6 +981,7 @@ public final class Kramerius4Export {
     public static class Result {
         private File file;
         private Integer pageCount;
+        private MetsExportException validationError;
 
         public File getFile() {
             return file;
@@ -944,6 +998,85 @@ public final class Kramerius4Export {
         public void setPageCount(Integer pageCount) {
             this.pageCount = pageCount;
         }
+
+        public MetsExportException getValidationError() {
+            return validationError;
+        }
+
+        public void setValidationError(MetsExportException validationError) {
+            this.validationError = validationError;
+        }
     }
 
+    private class Pair {
+        private String pid;
+        private String parentPid;
+
+        public Pair(String pid, String parentPid) {
+            this.pid = pid;
+            this.parentPid = parentPid;
+        }
+
+        public String getPid() {
+            return pid;
+        }
+
+        public String getParentPid() {
+            return parentPid;
+        }
+    }
+
+    private class K4Information {
+        private String pid;
+        private String model;
+        private Integer index;
+        private String parentPid;
+
+        public K4Information(String pid, String model, Integer index, String parentPid) {
+            this.pid = pid;
+            this.model = model;
+            this.index = index;
+            this.parentPid = parentPid;
+        }
+
+        public String getPid() {
+            return pid;
+        }
+
+        public String getModel() {
+            return model;
+        }
+
+        public Integer getIndex() {
+            return index;
+        }
+
+        public String getParentPid() {
+            return parentPid;
+        }
+    }
+
+    private class K4Informations {
+        public List<K4Information> list = new ArrayList<>();
+
+        public void add(String pid, String model, Integer pageIndex, String parentPid) {
+            list.add(new K4Information(pid, model, null, parentPid));
+        }
+
+        public Integer getExpectedPageIndex(String parentPid) {
+            if (parentPid == null || parentPid.isEmpty()) {
+                return 1;
+            } else {
+                int count = 0;
+                for (K4Information information : list) {
+                    String model = information.getModel();
+                    if (parentPid.equals(information.getParentPid()) && (NdkPlugin.MODEL_PAGE.equals(model) ||
+                            NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model) || NdkAudioPlugin.MODEL_PAGE.equals(model))) {
+                        count++;
+                    }
+                }
+                return count + 1;
+            }
+        }
+    }
 }

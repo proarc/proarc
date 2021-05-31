@@ -28,6 +28,6 @@ import javax.xml.transform.TransformerException;
  */
 public interface BibliographicCatalog {
 
-    List<MetadataItem> find(String fieldName, String value, Locale locale) throws TransformerException, IOException;
+    List<MetadataItem> find(String catalog, String fieldName, String value, Locale locale) throws TransformerException, IOException;
 
 }

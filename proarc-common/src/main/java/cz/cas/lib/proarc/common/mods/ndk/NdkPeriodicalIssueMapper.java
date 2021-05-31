@@ -40,6 +40,7 @@ import java.util.List;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
@@ -135,6 +136,7 @@ public class NdkPeriodicalIssueMapper extends RdaNdkMapper {
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartName());
         }
         addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
         addElementType(dc.getTypes(), getDcType());
         addOriginInfo(mods.getOriginInfo(), dc);
         addLanguage(mods.getLanguage(), dc);

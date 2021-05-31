@@ -174,7 +174,7 @@ public class NdkPeriodicalForm {
                 // etal
                 // affiliation
                 // role, roleDefinition
-                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - RA").setMaxOccurrences(5)
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - MA").setMaxOccurrences(5)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
                                 .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
                         .createField()) //nameIdentifier
@@ -551,20 +551,7 @@ public class NdkPeriodicalForm {
                             + " nebo obsah pole 651 záznamu MARC21.")
                     .createField()) // value
                 .createField()) // geographic
-
-                // geographicCode
-                .addField(new FieldBuilder("geographicCode").setTitle("Geographic Code - R").setMaxOccurrences(1)
-                    // stringPlusLanguagePlusAuthority: authorityAttributeGroup: @authority, @authorityURI, @valueURI
-                    // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    // @type
-                    .addField(new FieldBuilder("authority").setTitle("Authority - R").setMaxOccurrences(1).setType(Field.COMBO)
-                        .setHint("authority: hodnota „marcgac“")
-                        .addMapValue("marcgac", "marcgac")
-                    .createField()) // type
-                    .addField(new FieldBuilder("value").setTitle("Code - R").setMaxOccurrences(1).setType(Field.TEXT)
-                        .setHint("Geografické věcné třídění formou kódu.")
-                    .createField()) // value
-                .createField()) // geographicCode
+                .addField(NdkForms.geographicCode()) // geographicCode
 
                 // temporal, temporalDefinition extends dateDefinition extends stringPlusLanguage
                 .addField(new FieldBuilder("temporal").setMaxOccurrences(1)
@@ -835,7 +822,7 @@ public class NdkPeriodicalForm {
                         .createField()) //etal
                 // affiliation
                 // role, roleDefinition
-                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - R").setMaxOccurrences(5)
+                .addField(new FieldBuilder("nameIdentifier").setTitle("Name Identifier - MA").setMaxOccurrences(5)
                         .addField(new FieldBuilder("value").setMaxOccurrences(1)
                                 .setType(Field.TEXT).setRequired(false).setHint("Číslo národní autority").createField())
                         .createField()) //nameIdentifier

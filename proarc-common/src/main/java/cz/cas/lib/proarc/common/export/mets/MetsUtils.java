@@ -1143,7 +1143,32 @@ public class MetsUtils {
                     deleteFolder(file);
                 }
             }
-            for (File file : archiveTargetFolder.listFiles()) {
+
+            for (File file : targetFolder.listFiles()) {
+                if (file.isDirectory()) {
+                    for (File packageFolder : file.listFiles()) {
+                        if (ExportUtils.PROARC_EXPORT_STATUSLOG.equals(packageFolder.getName())) {
+                            try {
+                                Files.move(Paths.get(packageFolder.toURI()), Paths.get(new File(targetFolder, ExportUtils.PROARC_EXPORT_STATUSLOG).toURI()));
+                            } catch (IOException e) {
+                                LOG.log(Level.SEVERE, "Cannot move " + packageFolder.getAbsolutePath() + " to " + targetFolder.getName());
+                            }
+                        }
+                        if (packageFolder.isDirectory() && "NDK".equals(packageFolder.getName())) {
+                            for (File packageInNDKFolder : packageFolder.listFiles()) {
+                                if (ExportUtils.PROARC_EXPORT_STATUSLOG.equals(packageInNDKFolder.getName())) {
+                                    try {
+                                        Files.move(Paths.get(packageInNDKFolder.toURI()), Paths.get(new File(targetFolder, ExportUtils.PROARC_EXPORT_STATUSLOG).toURI()));
+                                    } catch (IOException e) {
+                                        LOG.log(Level.SEVERE, "Cannot move " + packageInNDKFolder.getAbsolutePath() + " to " + targetFolder.getName());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*for (File file : archiveTargetFolder.listFiles()) {
                 if (ExportUtils.PROARC_EXPORT_STATUSLOG.equals(file.getName())) {
                     try {
                         Files.move(Paths.get(file.toURI()), Paths.get(new File(targetFolder, ExportUtils.PROARC_EXPORT_STATUSLOG).toURI()));
@@ -1151,12 +1176,15 @@ public class MetsUtils {
                         LOG.log(Level.SEVERE, "Cannot move " + file.getAbsolutePath() + " to " + targetFolder.getName());
                     }
                 }
-            }
+            }*/
 
         }
         for (File file : targetFolder.listFiles()) {
             if (file.isDirectory()) {
                 deleteFolder(file);
+            }
+            if (file.isFile() && !ExportUtils.PROARC_EXPORT_STATUSLOG.equals(file.getName())) {
+                file.delete();
             }
         }
 

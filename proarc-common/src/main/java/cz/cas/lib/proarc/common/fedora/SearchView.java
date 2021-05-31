@@ -712,7 +712,7 @@ public final class SearchView {
         }
         List<SearchView.Item> items = consumeSearch(search.execute(fedora));
         if (items.size() == 0 && !filterWithoutExtension) {
-            String queryWithoutExtension = QUERY_LAST_CREATED.replace("${OFFSET}", String.valueOf(offset));
+            String queryWithoutExtension = QUERY_LAST_CREATED_WITHOUT_EXTENSION.replace("${OFFSET}", String.valueOf(offset));
             queryWithoutExtension = queryWithoutExtension.replace("${MODEL_FILTER}", modelFilter);
             queryWithoutExtension = queryWithoutExtension.replace("${OWNER_FILTER}", ownerFilter);
             queryWithoutExtension = queryWithoutExtension.replace("${ORDERBY}", orderBy);

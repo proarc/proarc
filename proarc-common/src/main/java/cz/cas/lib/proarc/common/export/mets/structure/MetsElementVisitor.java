@@ -144,6 +144,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
+import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
+
 /**
  * Visitor class for creating mets document out of Mets objects
  *
@@ -1918,32 +1921,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
-    private int getPageIndex(ModsDefinition mods) {
-        if (mods.getPart().size() > 0) {
-            for (PartDefinition part : mods.getPart()) {
-                for (DetailDefinition detail : part.getDetail()) {
-                    if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
-                        return Integer.valueOf(detail.getNumber().get(0).getValue());
-                    }
-                }
-            }
-        }
-        return -1;
-    }
-
-    private boolean containPageNumber(ModsDefinition mods) {
-        if (mods.getPart().size() > 0) {
-            for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
-                if ("pageNumber".equals(detail.getType()) && detail.getNumber().size() > 0) {
-                    return !detail.getNumber().get(0).getValue().isEmpty();
-                }
-                if ("page number".equals(detail.getType()) && detail.getNumber().size() > 0) {
-                    return !detail.getNumber().get(0).getValue().isEmpty();
-                }
-            }
-        }
-        return false;
-    }
 
     private ModsDefinition getMods(IMetsElement metsElement) throws MetsExportException {
         try {

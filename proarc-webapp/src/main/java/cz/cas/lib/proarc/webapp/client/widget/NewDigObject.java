@@ -115,6 +115,10 @@ public final class NewDigObject extends VLayout {
         return catalogBrowser.getMods();
     }
 
+    public String getCatalogId() {
+        return catalogBrowser.getSelectedCatalogId();
+    }
+
     public String getNewPid() {
         String newPid = optionsForm.getValueAsString(DigitalObjectDataSource.FIELD_PID);
         return newPid;

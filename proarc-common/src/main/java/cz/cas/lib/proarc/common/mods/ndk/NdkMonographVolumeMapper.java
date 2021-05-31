@@ -47,6 +47,7 @@ import java.util.List;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
@@ -193,6 +194,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartName());
         }
         addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
 
         if (ctx != null && ctx.getParentModel() != null && Const.MONOGRAPH_MULTIPART.equals(ctx.getParentModel())) {
             addElementType(dc.getTypes(), getDcType());

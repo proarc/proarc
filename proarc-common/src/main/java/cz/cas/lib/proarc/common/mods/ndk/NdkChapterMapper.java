@@ -38,6 +38,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDetailWithPageRan
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
@@ -104,6 +105,7 @@ public class NdkChapterMapper extends RdaNdkMapper {
             addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
         addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
         addElementType(dc.getTypes(), getDcType());
         for (PhysicalDescriptionDefinition physicalDesc : mods.getPhysicalDescription()) {
             for (FormDefinition form : physicalDesc.getForm()) {

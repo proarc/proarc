@@ -155,7 +155,9 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[]{new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID), new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_SUPPLEMENT, true, null,
