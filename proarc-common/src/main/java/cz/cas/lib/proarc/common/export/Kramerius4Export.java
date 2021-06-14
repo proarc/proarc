@@ -416,7 +416,7 @@ public final class Kramerius4Export {
                 if (!containPageNumber(mods)) {
                     throw new MetsExportException(pid, "Strana nemá vyplněný číslo stránky.", false, null);
                 }
-                if (!containPageType(mods)) {
+                if (NdkPlugin.MODEL_NDK_PAGE.equals(model) && !containPageType(mods)) {
                     throw new MetsExportException(pid, "Strana nemá vyplněný typ stránky.", false, null);
                 }
                 if (expectedPageIndex != pageIndex) {
