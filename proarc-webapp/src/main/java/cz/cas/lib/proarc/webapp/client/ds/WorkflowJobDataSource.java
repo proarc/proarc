@@ -206,7 +206,6 @@ public class WorkflowJobDataSource extends ProarcDataSource {
 
         // DataSourceTextField taskOwner = new DataSourceTextField(FIELD_TASK_CHANGE_USER);
         // taskOwner.setTitle(i18n.WorkflowJob_Task_User());
-        // owner.setDisplayField(WorkflowModelConsts.JOB_OWNERNAME);
 
 
         setFields(fieldId, label, state, profileId, priority, owner, created, modified,
