@@ -366,12 +366,15 @@ public final class MapperUtils {
                 }
             }
         }
-                for (PartDefinition part : mods.getPart()) {
+        for (PartDefinition part : mods.getPart()) {
             ExtentDefinition extentDefinition = null;
             if (part.getExtent() != null && part.getExtent().size() > 0 && part.getExtent().get(0) != null) {
                 extentDefinition = part.getExtent().get(0);
             }
             if (extentDefinition != null) {
+                if (extentDefinition.getUnit() == null) {
+                    extentDefinition.setUnit("pages");
+                }
                 StringPlusLanguage start = extentDefinition.getStart();
                 StringPlusLanguage end = extentDefinition.getEnd();
                 part.getDetail().clear();
