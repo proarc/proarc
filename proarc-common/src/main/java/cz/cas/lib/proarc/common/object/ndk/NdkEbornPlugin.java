@@ -109,6 +109,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.OCR, DatastreamEditorType.MEDIA,
                         DatastreamEditorType.ATM),
                 //new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)} why periodical?
                 new RelationCriteria[] {

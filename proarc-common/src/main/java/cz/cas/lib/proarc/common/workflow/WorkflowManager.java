@@ -395,6 +395,15 @@ public class WorkflowManager {
                                 ).addJobBlockedWithSubjob();
                         }
                     }
+                    TaskFilter taskFilter = new TaskFilter();
+                    taskFilter.setJobId(job.getId());
+                    for (TaskView task : taskDao.view(taskFilter)) {
+                        if (Task.State.READY.equals(task.getState()) || Task.State.STARTED.equals(task.getState()) || Task.State.WAITING.equals(task.getState())) {
+                            throw new WorkflowException(
+                                    String.format("Job ID:%s, open task ID:%s",
+                                    job.getId(), task.getId())).addJobBlockedWithTask();
+                        }
+                    }
                 }
             }
 
