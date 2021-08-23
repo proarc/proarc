@@ -17,11 +17,6 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.device.Device;
@@ -143,7 +138,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
 
@@ -226,7 +225,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * Inits the Mets header info
      */
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
-        mets.setLabel1(getTitle(metsElement) + metsElement.getLabel());
+        mets.setLabel1(getTitle(metsElement) + metsElement.getLabel() + getYear(metsElement));
         mets.setMetsHdr(createMetsHdr(metsElement));
 
         if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())
@@ -253,6 +252,23 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /**
+     * Returns date od publication if element is monograph volume
+     */
+    private String getYear(IMetsElement metsElement) throws MetsExportException {
+        if (isMonograph(metsElement)) {
+            Node dateIssuedNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateIssued']");
+            if (dateIssuedNode == null) {
+                dateIssuedNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateOther']");
+                if (dateIssuedNode == null) {
+                    throw new MetsExportException("Error - missing date issued.");
+                }
+            }
+            return ", " + dateIssuedNode.getTextContent();
+        }
+        return "";
+    }
+
+    /**
      * Returns the name of title if element is issue
      */
     private String getTitle(IMetsElement metsElement) throws MetsExportException {
@@ -275,6 +291,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             return type.equals("issue");
         }
         return metsElement.getModel().contains("issue");
+    }
+
+    /**
+     * Returns true if element is monograph volume, else return false
+     */
+    private boolean isMonograph(IMetsElement metsElement) {
+        return metsElement.getModel().contains(NdkPlugin.MODEL_MONOGRAPHVOLUME);
     }
 
 
