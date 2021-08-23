@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
@@ -154,7 +152,8 @@ import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_PROCESSING;
 
 /**
@@ -2077,6 +2076,20 @@ public class DigitalObjectResource {
         UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
         updateObjects.findObjects(pid, NdkPlugin.MODEL_ARTICLE);
         updateObjects.repair(NdkPlugin.MODEL_ARTICLE);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_NDK_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> updateNdkPageObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+        Locale locale = session.getLocale(httpHeaders);
+        UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
+        updateObjects.findObjects(pid, NdkPlugin.MODEL_NDK_PAGE);
+        updateObjects.repair(NdkPlugin.MODEL_NDK_PAGE);
         return new SmartGwtResponse<>();
     }
 

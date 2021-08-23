@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
@@ -32,6 +31,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
@@ -85,27 +85,27 @@ public class NdkNewPageMapper extends NdkMapper {
                 part.getDetail().add(detailDefinition);
             }
         }
-        /*String index = null;
-        if (mods.getPart().size() > 1
-                && !mods.getPart().get(1).getDetail().isEmpty()
-                && !mods.getPart().get(1).getDetail().get(0).getNumber().isEmpty()) {
-            index = mods.getPart().get(1).getDetail().get(0).getNumber().get(0).getValue();
+        String pageNumber = null;
+
+        for (PartDefinition part : mods.getPart()) {
+            part.getExtent().clear();
+            for (DetailDefinition detail : part.getDetail()) {
+                if (NUMBER_TYPE_PAGE_NUMBER.equals(detail.getType()) || NUMBER_TYPE_PAGE_NUMBER_WRONG.equals(detail.getType())) {
+                    for (StringPlusLanguage index : detail.getNumber()) {
+                        pageNumber = index.getValue();
+                        break;
+                    }
+                    if (pageNumber != null && !pageNumber.isEmpty()) {
+                        ExtentDefinition extentDefinition = new ExtentDefinition();
+                        StringPlusLanguage start = new StringPlusLanguage();
+                        start.setValue(pageNumber);
+                        extentDefinition.setStart(start);
+                        extentDefinition.setUnit("pages");
+                        part.getExtent().add(extentDefinition);
+                    }
+                }
+            }
         }
-        // set part:extent
-        if (index != null) {
-            if (mods.getPart().isEmpty()) {
-                mods.getPart().add(new PartDefinition());
-            }
-            PartDefinition part = mods.getPart().get(0);
-            if (part.getExtent().isEmpty()) {
-                part.getExtent().add(new ExtentDefinition());
-            }
-            ExtentDefinition extent = part.getExtent().get(0);
-            extent.setUnit("pages");
-            StringPlusLanguage start = new StringPlusLanguage();
-            extent.setStart(start);
-            start.setValue(index);
-        }*/
         String type = PAGE_TYPE_NORMAL;
         if (!mods.getPart().isEmpty()) {
             type = mods.getPart().get(0).getType();
@@ -134,7 +134,7 @@ public class NdkNewPageMapper extends NdkMapper {
                 addElementType(dc.getCoverages(), extent.getStart().getValue());
             }
             for (DetailDefinition detail : part.getDetail()) {
-                if (NUMBER_TYPE_PAGE_INDEX.equals(detail.getType()) && !detail.getNumber().isEmpty()) {
+                if ((NUMBER_TYPE_PAGE_NUMBER.equals(detail.getType()) || NUMBER_TYPE_PAGE_NUMBER_WRONG.equals(detail.getType())) && !detail.getNumber().isEmpty()) {
                     addElementType(dc.getCoverages(), detail.getNumber().get(0).getValue());
                 }
             }

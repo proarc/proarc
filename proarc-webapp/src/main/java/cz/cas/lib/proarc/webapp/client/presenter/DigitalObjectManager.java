@@ -16,21 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
-import com.google.gwt.core.client.Callback;
-import com.google.gwt.place.shared.PlaceController;
-import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.ResultSet;
-import com.smartgwt.client.types.SelectionStyle;
-import com.smartgwt.client.util.Offline;
-import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.Label;
-import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
-import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
-import com.smartgwt.client.widgets.layout.VLayout;
-import com.smartgwt.client.widgets.menu.IconMenuButton;
-import com.smartgwt.client.widgets.menu.Menu;
-import com.smartgwt.client.widgets.menu.MenuItemSeparator;
-import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
@@ -55,6 +40,7 @@ import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.Change
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangePageToNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkArticleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveOldPrintExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
@@ -74,6 +60,21 @@ import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectSearchView;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectTreeView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import java.util.LinkedHashMap;
+import com.google.gwt.core.client.Callback;
+import com.google.gwt.place.shared.PlaceController;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.util.Offline;
+import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.Label;
+import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
+import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
+import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.IconMenuButton;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItemSeparator;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 
 /**
  * The component allows to search digital objects and perform actions on
@@ -125,6 +126,7 @@ public final class DigitalObjectManager {
     private ChangeClippingsVolumeToNdkMonographVolumeAction changeClippingsVolumeToNdkMonographVolumeAction;
     private ChangeClippingsTitleToNdkMonographTitleAction changeClippingsTitleToNdkMonographTitleAction;
     private UpdateNdkArticleAction updateNdkArticleAction;
+    private UpdateNdkPageAction updateNdkPageAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -293,6 +295,7 @@ public final class DigitalObjectManager {
         changeClippingsVolumeToNdkMonographVolumeAction = new ChangeClippingsVolumeToNdkMonographVolumeAction(i18n);
         changeClippingsTitleToNdkMonographTitleAction = new ChangeClippingsTitleToNdkMonographTitleAction(i18n);
         updateNdkArticleAction = new UpdateNdkArticleAction(i18n);
+        updateNdkPageAction = new UpdateNdkPageAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -368,6 +371,7 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(updateNdkArticleAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(updateNdkPageAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(updateAllObjectsAction, actionSource, false));
         btnAdministration.setMenu(menuAdministration);

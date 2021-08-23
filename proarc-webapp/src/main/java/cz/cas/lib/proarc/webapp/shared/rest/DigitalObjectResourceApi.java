@@ -239,6 +239,7 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = "changeClippingsTitleToNdkMonographTitle";
 
     public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
+    public static final String UPDATE_NDK_PAGE = "updateNdkPage";
 
     public enum SearchType {
         
