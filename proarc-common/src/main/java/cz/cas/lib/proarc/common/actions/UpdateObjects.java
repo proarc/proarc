@@ -1,7 +1,5 @@
 package cz.cas.lib.proarc.common.actions;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
@@ -35,6 +33,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 public class UpdateObjects {
@@ -111,14 +111,14 @@ public class UpdateObjects {
     public void findObjects(String pid, String model) throws DigitalObjectException {
         IMetsElement element = getElement(pid);
         if (element == null) {
-            throw new DigitalObjectException("Process: Update Ndk Article - impossimble to get element");
+            throw new DigitalObjectException("Process: Update " + model + " - impossimble to get element");
         }
         findChildrens(element, model);
     }
 
     private void findChildrens(IMetsElement element, String model) throws DigitalObjectException {
         if (element == null) {
-            throw new DigitalObjectException("Process: Update Ndk Article - impossimble to get element");
+            throw new DigitalObjectException("Process: Update " + model + " - impossimble to get element");
         }
         String modelId = element.getModel().substring(12);
         if (model.equals(modelId)) {
@@ -178,13 +178,13 @@ public class UpdateObjects {
         ModsDefinition mods = modsStreamEditor.read();
 
         mapper.createMods(mods, context);
-        modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), "Update Ndk Article - MODS stream");
+        modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), "Update " + model + " - MODS stream");
 
         OaiDcType dc = mapper.toDc(mods, context);
         DcStreamEditor dcEditor = handler.objectMetadata();
         DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
         dcr.setDc(dc);
-        dcEditor.write(handler, dcr, "Update Ndk Article - DC stream");
+        dcEditor.write(handler, dcr, "Update " + model + " - DC stream");
 
         fo.setLabel(mapper.toLabel(mods));
         handler.commit();
