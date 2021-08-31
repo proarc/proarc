@@ -98,7 +98,7 @@ public class NdkNewPageMapper extends NdkMapper {
                     if (pageNumber != null && !pageNumber.isEmpty()) {
                         ExtentDefinition extentDefinition = new ExtentDefinition();
                         StringPlusLanguage start = new StringPlusLanguage();
-                        start.setValue(pageNumber);
+                        start.setValue(pageNumber.replaceAll("\\D", ""));
                         extentDefinition.setStart(start);
                         extentDefinition.setUnit("pages");
                         part.getExtent().add(extentDefinition);
