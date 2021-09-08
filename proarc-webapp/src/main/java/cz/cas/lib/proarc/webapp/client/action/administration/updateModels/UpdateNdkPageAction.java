@@ -109,7 +109,7 @@ public class UpdateNdkPageAction extends AbstractAction {
     private void register(String pid, String modelId, Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        UpdateObjectDataSource ds = UpdateObjectDataSource.updateNdkArticle();
+        UpdateObjectDataSource ds = UpdateObjectDataSource.updateNdkPage();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
