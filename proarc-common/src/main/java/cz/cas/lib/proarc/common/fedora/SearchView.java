@@ -16,12 +16,6 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.request.RiSearch;
-import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
-import com.yourmediashelf.fedora.client.response.RiSearchResponse;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
@@ -41,6 +35,12 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.client.request.RiSearch;
+import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
+import com.yourmediashelf.fedora.client.response.RiSearchResponse;
 
 /**
  * Implements search queries with ITQL.
@@ -57,6 +57,7 @@ public final class SearchView {
     private static final String QUERY_LAST_CREATED = readQuery("lastCreated.itql");
     private static final String QUERY_LAST_CREATED_WITHOUT_EXTENSION = readQuery("lastCreatedWithoutExtension.itql");
     private static final String QUERY_COUNT_MODELS = readQuery("countModels.itql");
+    private static final String QUERY_COUNT_MODELS_WITHOUT_EXTENSION = readQuery("countModelsWithoutExtension.itql");
     private static final String QUERY_FIND_BY_MODEL = readQuery("findByModel.itql");
     private static final String QUERY_FIND_BY_MODELS = readQuery("findByModels.itql");
     private static final String QUERY_FIND_MEMBERS = readQuery("findMembers.itql");
@@ -548,7 +549,7 @@ public final class SearchView {
             return new ArrayList<Item>();
         } else {
             List<SearchView.Item> list = consumeSearch(search.execute(fedora));
-            if (list.size() == 0 && !filterWithoutExtension) {
+            if (list.size() == 0 && filterWithoutExtension) {
                 String queryWithoutExtension = QUERY_ADVANCED_SEARCH_WITHOUT_EXTENSION.replace("${OFFSET}", String.valueOf(offset));
                 queryWithoutExtension = queryWithoutExtension.replace("${MODEL_FILTER}", modelFilter);
                 queryWithoutExtension = queryWithoutExtension.replace("${ORGANIZATION_FILTER}", organizationFilter);
@@ -624,7 +625,7 @@ public final class SearchView {
 
         RiSearch search = buildSearch(query);
         List<Item> items = consumeSearch(search.execute(fedora));
-        if (items.size() == 0 && !filterWithoutExtension) {
+        if (items.size() == 0 && filterWithoutExtension) {
             String queryWithoutExtension = QUERY_ADVANCED_SEARCH_COUNT_WITHOUT_EXTENSION;
             queryWithoutExtension = queryWithoutExtension.replace("${MODEL_FILTER}", modelFilter);
             queryWithoutExtension = queryWithoutExtension.replace("${ORGANIZATION_FILTER}", organizationFilter);
@@ -711,7 +712,7 @@ public final class SearchView {
             search.limit(limit);
         }
         List<SearchView.Item> items = consumeSearch(search.execute(fedora));
-        if (items.size() == 0 && !filterWithoutExtension) {
+        if (items.size() == 0 && filterWithoutExtension) {
             String queryWithoutExtension = QUERY_LAST_CREATED_WITHOUT_EXTENSION.replace("${OFFSET}", String.valueOf(offset));
             queryWithoutExtension = queryWithoutExtension.replace("${MODEL_FILTER}", modelFilter);
             queryWithoutExtension = queryWithoutExtension.replace("${OWNER_FILTER}", ownerFilter);
@@ -758,12 +759,11 @@ public final class SearchView {
         RiSearch search = buildSearch(query);
 
         List<SearchView.Item> items = consumeSearch(search.execute(fedora));
-        if (items.size() == 0 && !filterWithoutExtension) {
-            String queryWithoutExtension = QUERY_COUNT_MODELS;
+        if (items.size() == 0 && filterWithoutExtension) {
+            String queryWithoutExtension = QUERY_COUNT_MODELS_WITHOUT_EXTENSION;
             queryWithoutExtension = queryWithoutExtension.replace("${MODEL_FILTER}", modelFilter);
             queryWithoutExtension = queryWithoutExtension.replace("${OWNER_FILTER}", ownerFilter);
-            queryWithoutExtension = queryWithoutExtension.replace("${ORGANIZATION}", organizationFilter);
-            queryWithoutExtension = queryWithoutExtension.replace("${USERNAME}", userFilter);
+
             LOG.fine(queryWithoutExtension);
             RiSearch searchWithoutExtension = buildSearch(queryWithoutExtension);
             items = consumeSearch(searchWithoutExtension.execute(fedora));
