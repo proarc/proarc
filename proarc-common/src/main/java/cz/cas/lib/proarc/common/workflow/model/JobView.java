@@ -69,6 +69,8 @@ public class JobView extends Job {
     private Timestamp taskDate;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USER)
     private String taskUser;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME)
+    private String taskUsername;
 
     public String getRawPath() {
         return rawPath;
@@ -237,5 +239,13 @@ public class JobView extends Job {
 
     public void setTaskUser(String taskUser) {
         this.taskUser = taskUser;
+    }
+
+    public String getTaskUsername() {
+        return taskUsername;
+    }
+
+    public void setTaskUsername(String taskUsername) {
+        this.taskUsername = taskUsername;
     }
 }
