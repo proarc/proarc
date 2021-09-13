@@ -95,10 +95,10 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
     public List<JobView> view(JobFilter filter) {
         DBCommand cmd = db.createCommand();
         cmd.select(tableJob.getColumns());
-        cmd.select(db.tableUser.username);
+        //cmd.select(db.tableUser.username);
         final ProarcDatabase.WorkflowPhysicalDocTable tpd = db.tableWorkflowPhysicalDoc;
         cmd.select(tpd.barcode, tpd.detail, tpd.field001, tpd.issue, tpd.sigla, tpd.signature, tpd.volume, tpd.year, tpd.edition);
-        cmd.join(tableJob.ownerId, db.tableUser.id, DBJoinType.LEFT);
+        //cmd.join(tableJob.ownerId, db.tableUser.id, DBJoinType.LEFT);
 
         DBCommand pmatCmd = db.createCommand();
         final DBColumnExpr pmatMaterialId = db.tableWorkflowMaterial.id.min().as(db.tableWorkflowMaterial.id);
@@ -171,6 +171,12 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         DBQuery.DBQueryColumn taskId = taskQuery.findQueryColumn(taskExpression);
         cmd.join(tableJob.id, taskJobId, DBJoinType.LEFT);
         cmd.join(twTt.id, taskId, DBJoinType.RIGHT);
+
+
+        final ProarcDatabase.UserTable tUsers = db.tableUser;
+        final DBColumnExpr taskUserName = tUsers.username.as("task_Username");
+        cmd.select(taskUserName);
+        cmd.join(taskUserId, db.tableUser.id, DBJoinType.LEFT);
 
         EmpireUtils.addWhereIs(cmd, tableJob.id, () -> filter.getId());
         if (filter.getLabel() != null) {
