@@ -41,7 +41,6 @@ import org.jzkit.z3950.gen.v3.Z39_50_APDU_1995.SearchResponse_type;
 import org.jzkit.z3950.gen.v3.Z39_50_APDU_1995.record_inline13_type;
 import org.jzkit.z3950.util.Z3950Constants;
 import org.marc4j.MarcReader;
-import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcXmlWriter;
 import org.marc4j.marc.Record;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -170,7 +169,7 @@ public final class Z3950Client {
 
     /** Converts Marc21 to MarcXML */
     public static Document toMarcXml(byte[] marc21, String charset) {
-        MarcReader reader = new MarcStreamReader(new ByteArrayInputStream(marc21), charset);
+        MarcReader reader = new MyMarcStreamReader(new ByteArrayInputStream(marc21), charset);
         DOMResult result = new DOMResult();
         MarcXmlWriter writer = new MarcXmlWriter(result);
         if (reader.hasNext()) {
