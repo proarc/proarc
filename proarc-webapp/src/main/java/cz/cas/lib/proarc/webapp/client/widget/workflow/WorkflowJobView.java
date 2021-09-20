@@ -582,6 +582,30 @@ public class WorkflowJobView implements Refreshable {
                 new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100)
 
                 );
+        g.getField(WorkflowJobDataSource.FIELD_RAW_PATH).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_MBARCODE).setHidden(false);
+        g.getField(WorkflowJobDataSource.FIELD_MISSUE).setHidden(false);
+        g.getField(WorkflowJobDataSource.FIELD_MDETAIL).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_TASK_NAME).setHidden(false);
+        g.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_DATE).setHidden(false);
+        g.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setHidden(false);
+        g.getField(WorkflowJobDataSource.FIELD_MEDITION).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_FINANCED).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_ID).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_LABEL).setHidden(false);
+        g.getField(WorkflowJobDataSource.FIELD_MPID).setHidden(false);
+        g.getField(WorkflowJobDataSource.FIELD_MFIELD001).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_NOTE).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_PRIORITY).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_PROFILE_ID).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_MVOLUME).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_MYEAR).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_MSIGLA).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_MSIGNATURE).setHidden(false);
+        g.getField(WorkflowJobDataSource.FIELD_STATE).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_CREATED).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_MODIFIED).setHidden(true);
+
         g.setSortField(WorkflowJobDataSource.FIELD_CREATED);
         g.setSortDirection(SortDirection.ASCENDING);
 
@@ -659,6 +683,30 @@ public class WorkflowJobView implements Refreshable {
                 new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
                 new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100)
                 );
+
+        jobGrid.getField(WorkflowJobDataSource.FIELD_RAW_PATH).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MBARCODE).setHidden(false);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MISSUE).setHidden(false);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MDETAIL).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_NAME).setHidden(false);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_DATE).setHidden(false);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setHidden(false);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MEDITION).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_FINANCED).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_ID).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setHidden(false);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MPID).setHidden(false);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MFIELD001).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_PRIORITY).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_PROFILE_ID).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MVOLUME).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MYEAR).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MSIGLA).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MSIGNATURE).setHidden(false);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_STATE).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_CREATED).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_MODIFIED).setHidden(true);
 
         jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setWidth("80%");
         jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setFilterOnKeypress(false);
