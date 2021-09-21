@@ -101,6 +101,8 @@ public final class RestConfig {
             URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_ALL_OBJECTS_PATH);
     public static final String URL_GENERATE_JP2 = path(URL_DIGOBJECT, DigitalObjectResourceApi.GENERATE_JP2_PATH);
     public static final String URL_CHANGE_PAGE_TO_NDK_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE);
+    public static final String URL_CHANGE_STT_PAGE_TO_NDK_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE);
+    public static final String URL_CHANGE_NDK_PAGE_TO_STT_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_STT_PAGE);
     public static final String URL_CHANGE_NDK_PAGE_TO_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE);
     public static final String URL_CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME);
     public static final String URL_CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE);

@@ -1,6 +1,5 @@
 package cz.cas.lib.proarc.common.actions;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
@@ -17,13 +16,13 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
 import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 
 public class ChangeModels {
@@ -48,7 +48,6 @@ public class ChangeModels {
 
     private static AppConfiguration appConfig;
     private static String pid;
-    private static String modelId;
     private static String oldModel;
     private static String newModel;
     private List<String> pids;
@@ -57,7 +56,6 @@ public class ChangeModels {
     public ChangeModels(AppConfiguration appConfig, String pid, String modelId, String oldModel, String newModel) {
         this.appConfig = appConfig;
         this.pid = pid;
-        this.modelId = modelId;
         this.oldModel = oldModel;
         this.newModel = newModel;
         this.pids = new ArrayList<>();
@@ -116,20 +114,22 @@ public class ChangeModels {
 
     private void repairMetadata(DigitalObjectManager dom, String pid, String parentPid) throws DigitalObjectException {
         FedoraObject fo = dom.find(pid, null);
+        DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
+        NdkMapper.Context context = new NdkMapper.Context(handler);
+
+        NdkMapper mapper = NdkMapper.get(newModel);
+        mapper.setModelId(newModel);
+
         XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
         ModsDefinition mods = modsStreamEditor.read();
         fixMods(pid, mods, parentPid);
+        mapper.createMods(mods, context);
         modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
 
-        DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
-        NdkMapperFactory mapperFactory = new NdkMapperFactory();
-        NdkMapper mapper = mapperFactory.get(newModel);
-        mapper.setModelId(newModel);
 
-        NdkMapper.Context context = new NdkMapper.Context(handler);
         OaiDcType dc = mapper.toDc(mods, context);
         DcStreamEditor dcEditor = handler.objectMetadata();
         DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
@@ -149,6 +149,8 @@ public class ChangeModels {
             case NdkPlugin.MODEL_NDK_PAGE:
                 fixNdkPageMods(mods);
                 break;
+            case OldPrintPlugin.MODEL_PAGE:
+                fixOldPrintMods(mods);
             case NdkPlugin.MODEL_MONOGRAPHVOLUME:
                 fixNdkMonographVolumeMods(mods, parentPid);
                 break;
@@ -210,6 +212,12 @@ public class ChangeModels {
     }
 
     private void fixPageMods(ModsDefinition mods) {
+        fixPartPage(mods);
+        fixGenre(mods, null);
+    }
+
+
+    private void fixOldPrintMods(ModsDefinition mods) {
         fixPartPage(mods);
         fixGenre(mods, null);
     }

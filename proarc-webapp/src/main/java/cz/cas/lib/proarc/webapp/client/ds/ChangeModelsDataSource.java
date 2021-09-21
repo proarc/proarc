@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import com.smartgwt.client.data.fields.DataSourceTextField;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import com.smartgwt.client.data.fields.DataSourceTextField;
 
 /**
  *
@@ -38,6 +38,14 @@ public class ChangeModelsDataSource extends ProarcDataSource {
 
     public static ChangeModelsDataSource changePageToNdkPage() {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_PAGE_TO_NDK_PAGE);
+    }
+
+    public static ChangeModelsDataSource changeSttPageToNdkPage() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_STT_PAGE_TO_NDK_PAGE);
+    }
+
+    public static ChangeModelsDataSource changeNdkPageToSttPage() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_PAGE_TO_STT_PAGE);
     }
 
     public static ChangeModelsDataSource changeNdkPageToPage() {

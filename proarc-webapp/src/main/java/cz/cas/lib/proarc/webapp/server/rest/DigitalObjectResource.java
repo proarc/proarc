@@ -1999,6 +1999,40 @@ public class DigitalObjectResource {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeSttPageToNdkPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModelsAndRepairMetadata(null);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_STT_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkPageToSttPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModelsAndRepairMetadata(null);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> changeClippingsVolumeToNdkMonographVolume(
