@@ -331,7 +331,7 @@ public class DigitalObjectResource {
             }
         }
         if (purge) {
-            session.requirePermission(Permissions.ADMIN);
+            session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
             service.purge(pids, hierarchy, session.asFedoraLog());
         } else if (restore){
             service.restore(pids, session.asFedoraLog());
