@@ -30,15 +30,17 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.mods.*;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -119,8 +121,7 @@ public class CopyObject {
 
         //repair DcDatastream
         DigitalObjectHandler handler = new DigitalObjectHandler(foNew, MetaModelRepository.getInstance());
-        NdkMapperFactory mapperFactory = new NdkMapperFactory();
-        NdkMapper mapper = mapperFactory.get(modelId);
+        NdkMapper mapper = NdkMapper.get(modelId);
         mapper.setModelId(modelId);
         NdkMapper.Context context = new NdkMapper.Context(handler);
         OaiDcType dc = mapper.toDc(mods, context);
