@@ -16,15 +16,12 @@
  */
 package cz.cas.lib.proarc.common.export.archive;
 
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils.ControlGroup;
@@ -67,6 +64,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.IOUtils;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import static cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor.getTitle;
+import static cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor.getYear;
 
 /**
  * Builds resulting METS package and a corresponding folder layout.
@@ -113,7 +116,7 @@ public class PackageBuilder {
         }
     }
 
-    public void prepare(List<DigitalObjectElement> objectPath, LocalObject lobj, AppConfiguration appConfig) throws MetsExportException {
+    public void prepare(List<DigitalObjectElement> objectPath, LocalObject lobj, AppConfiguration appConfig, MetsElement mElm) throws MetsExportException {
         DigitalObjectElement entry = objectPath.get(0);
 
         // create package folder
@@ -142,7 +145,11 @@ public class PackageBuilder {
 
         mets = new Mets();
 //        mets.setID(null);
-        mets.setLabel1(getPackageLabel(objectPath));
+        if (mElm == null) {
+            mets.setLabel1(getPackageLabel(objectPath));
+        } else {
+            mets.setLabel1(getTitle(mElm) + mElm.getLabel() + getYear(mElm));
+        }
         mets.setMetsHdr(metsHdr);
         mets.setTYPE(entry.getModelId());
 
