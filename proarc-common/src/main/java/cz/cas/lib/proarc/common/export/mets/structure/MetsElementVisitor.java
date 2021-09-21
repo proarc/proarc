@@ -254,7 +254,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Returns date od publication if element is monograph volume
      */
-    private String getYear(IMetsElement metsElement) throws MetsExportException {
+    public static String getYear(IMetsElement metsElement) throws MetsExportException {
         if (isMonograph(metsElement)) {
             Node dateIssuedNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateIssued']");
             if (dateIssuedNode == null) {
@@ -271,7 +271,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Returns the name of title if element is issue
      */
-    private String getTitle(IMetsElement metsElement) throws MetsExportException {
+    public static String getTitle(IMetsElement metsElement) throws MetsExportException {
         if (isIssue(metsElement)) {
             Node partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='titleInfo']/*[local-name()='title']");
             if (partNode == null){
@@ -285,7 +285,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Returns true if element is issue, else return false
      */
-    public boolean isIssue(IMetsElement metsElement) throws MetsExportException {
+    private static boolean isIssue(IMetsElement metsElement) throws MetsExportException {
         String type = MetsUtils.xPathEvaluateString(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='part']/@type");
         if (!type.isEmpty()) {
             return type.equals("issue");
@@ -296,7 +296,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Returns true if element is monograph volume, else return false
      */
-    private boolean isMonograph(IMetsElement metsElement) {
+    private static boolean isMonograph(IMetsElement metsElement) {
         return metsElement.getModel().contains(NdkPlugin.MODEL_MONOGRAPHVOLUME);
     }
 
