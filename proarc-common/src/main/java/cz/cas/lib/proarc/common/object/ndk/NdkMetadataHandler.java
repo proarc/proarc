@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object.ndk;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -55,6 +53,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -69,10 +68,6 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import org.xml.sax.SAXException;
-import javax.xml.bind.DataBindingException;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -84,6 +79,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.xml.bind.DataBindingException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Validator;
+import org.xml.sax.SAXException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yourmediashelf.fedora.client.FedoraClientException;
 
 /**
  * Handles description metadata in the NDK format.
@@ -148,7 +149,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     protected ModsDefinition createDefault(String modelId) throws DigitalObjectException {
         ModsDefinition defaultMods = ModsStreamEditor.defaultMods(fobject.getPid());
         DigitalObjectHandler parent = handler.getParameterParent();
-        if (RdaRules.HAS_MEMBER_RDA_VALIDATION_MODELS.contains(modelId)) {
+        if (!(NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || NdkPlugin.MODEL_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId) || NdkAudioPlugin.MODEL_PAGE.equals(modelId))) {
             setRules(defaultMods);
         }
         if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
