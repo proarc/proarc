@@ -115,8 +115,10 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
                 }
             }
         }
-        //  mods/genre="supplement"
-        //MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
+        if (mods.getGenre().size() == 0) {
+            //  mods/genre="supplement"
+            MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
+        }
     }
 
     @Override
