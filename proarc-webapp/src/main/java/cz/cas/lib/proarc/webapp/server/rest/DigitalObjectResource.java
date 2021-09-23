@@ -325,7 +325,7 @@ public class DigitalObjectResource {
         PurgeFedoraObject service = new PurgeFedoraObject(fedora);
         for (String pid : pids) {
             try {
-                setWorkflow("task.deletionPA", geIMetsElement(pid));
+                setWorkflow("task.deletionPA", getIMetsElement(pid));
             } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
                 throw new IOException(e);
             }
@@ -968,6 +968,13 @@ public class DigitalObjectResource {
 
         srcHandler.commit();
         dstHandler.commit();
+
+        try {
+            setWorkflow("task.metadataDescriptionInProArc", getIMetsElement(dstParentPid));
+        } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
+            LOG.severe("Nepodarilo se ukoncit ukol \"task.metadataDescriptionInProArc\" pro " + dstParentPid + " - " + e.getMessage());
+        }
+
         SmartGwtResponse<Item> result = new SmartGwtResponse<Item>(added);
         return result;
     }
@@ -1279,7 +1286,7 @@ public class DigitalObjectResource {
         }
     }
 
-    private IMetsElement geIMetsElement(String pid) throws MetsExportException {
+    private IMetsElement getIMetsElement(String pid) throws MetsExportException {
         RemoteStorage rstorage = RemoteStorage.getInstance();
         RemoteStorage.RemoteObject fo = rstorage.find(pid);
         MetsContext mc = buildContext(rstorage, fo, null, null);
