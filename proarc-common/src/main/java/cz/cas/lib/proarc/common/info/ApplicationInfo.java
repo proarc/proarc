@@ -17,17 +17,20 @@
 package cz.cas.lib.proarc.common.info;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 
 public class ApplicationInfo {
 
     String version;
     String timestamp;
     String revision;
+    String rdflowVersion;
 
     public void initValues(AppConfiguration config) {
         this.version = config.getNdkExportOptions().getVersion();
         this.timestamp = config.getNdkExportOptions().getTimestamp();
         this.revision = config.getNdkExportOptions().getRevision();
+        this.rdflowVersion = WorkflowProfiles.getInstance().getProfiles().getVersion();
     }
 
     public String getVersion() {
@@ -42,8 +45,12 @@ public class ApplicationInfo {
         return revision;
     }
 
+    public String getRdflowVersion() {
+        return rdflowVersion;
+    }
+
     @Override
     public String toString() {
-        return "Info{" + "version=" + version + ", revision=" + revision + ", timestamp=" + timestamp + '}';
+        return "Info{" + "version=" + version + ", revision=" + revision + ", timestamp=" + timestamp + ", rdflowVersion=" + rdflowVersion + "}";
     }
 }
