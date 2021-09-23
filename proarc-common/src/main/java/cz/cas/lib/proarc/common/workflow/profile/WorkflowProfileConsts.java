@@ -35,6 +35,7 @@ public class WorkflowProfileConsts {
     public static final String TITLE_EL = "title";
 
     public static final String WORKFLOW_EL = "workflow";
+    public static final String WORKFLOW_VERSION = "version";
     public static final String WORKFLOW_JOB_EL = "job";
     public static final String WORKFLOW_MATERIAL_EL = "material";
     public static final String WORKFLOW_TASK_EL = "task";

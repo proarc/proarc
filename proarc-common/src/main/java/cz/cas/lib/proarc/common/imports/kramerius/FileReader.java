@@ -16,41 +16,36 @@
  */
 package cz.cas.lib.proarc.common.imports.kramerius;
 
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
-import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -65,18 +60,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
-import cz.cas.lib.proarc.mods.OriginInfoDefinition;
-import cz.cas.lib.proarc.mods.PartDefinition;
-import cz.cas.lib.proarc.mods.RecordInfoDefinition;
-import cz.cas.lib.proarc.mods.StringPlusLanguage;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
-import cz.cas.lib.proarc.mods.SubjectTitleInfoDefinition;
-import cz.cas.lib.proarc.mods.TitleInfoDefinition;
-import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import cz.cas.lib.proarc.urnnbn.model.registration.MonographVolume;
-import cz.cas.lib.proarc.urnnbn.model.registration.OriginatorTypeType;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import com.yourmediashelf.fedora.util.DateUtility;
 
 /**
  * It reads the kramerius package and generates digital objects for a batch import.
@@ -443,8 +434,7 @@ public class FileReader {
         }
 
         try {
-            NdkMapperFactory mapperFactory = new NdkMapperFactory();
-            NdkMapper mapper = mapperFactory.get(modelId);
+            NdkMapper mapper = NdkMapper.get(modelId);
             mapper.setModelId(modelId);
             NdkMapper.Context context = new NdkMapper.Context(handler);
 

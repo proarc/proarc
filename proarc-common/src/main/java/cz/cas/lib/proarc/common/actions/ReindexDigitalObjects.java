@@ -17,7 +17,6 @@
 
 package cz.cas.lib.proarc.common.actions;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.Const;
@@ -34,7 +33,6 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
@@ -47,6 +45,7 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.File;
 import java.io.IOException;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 /**
  * Reindex all digital objects
@@ -163,8 +162,7 @@ public class ReindexDigitalObjects {
         ModsDefinition mods = modsStreamEditor.read();
 
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
-        NdkMapperFactory mapperFactory = new NdkMapperFactory();
-        NdkMapper mapper = mapperFactory.get(model);
+        NdkMapper mapper = NdkMapper.get(model);
         mapper.setModelId(model);
 
         NdkMapper.Context context = new NdkMapper.Context(handler);

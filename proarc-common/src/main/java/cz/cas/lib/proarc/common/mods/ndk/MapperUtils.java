@@ -447,7 +447,10 @@ public final class MapperUtils {
         value = toValue(value);
         lang = toValue(lang);
         if (value != null) {
-            dcElms.add(new ElementType(value, lang));
+            ElementType element = new ElementType(value, lang);
+            if (!dcElms.contains(element)) {
+                dcElms.add(element);
+            }
         }
         return dcElms;
     }

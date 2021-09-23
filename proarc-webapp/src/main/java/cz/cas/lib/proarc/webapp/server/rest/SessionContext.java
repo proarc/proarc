@@ -92,8 +92,17 @@ public final class SessionContext {
         return grants.containsAll(Arrays.asList(permissions));
     }
 
-    public void requirePermission(Permission... permissions) {
-        if (!checkPermission(permissions)) {
+    public boolean checkRole(String requiredRole) {
+        UserManager userManager = UserUtil.getDefaultManger();
+        String role = userManager.findUserRole(user.getId());
+        if (role != null) {
+            return requiredRole.equals(role);
+        }
+        return false;
+    }
+
+    public void requirePermission(String role, Permission... permissions) {
+        if (!checkPermission(permissions)  && !checkRole(role)) {
             throw new WebApplicationException(Status.FORBIDDEN);
         }
     }

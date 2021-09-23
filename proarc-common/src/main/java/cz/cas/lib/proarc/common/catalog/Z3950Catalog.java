@@ -145,10 +145,14 @@ public final class Z3950Catalog implements BibliographicCatalog {
         try {
             for (byte[] content : client.search(query)) {
                 String charset = recordCharset == null ? null : recordCharset.name();
+                String marc21 = new String(content, charset == null ? "UTF-8" : charset);
+                marc21 = marc21.replaceAll("LDR", "");
+                //content = marc21.getBytes(charset);
                 if (LOG.isLoggable(Level.FINE)) {
-                    String marc21 = new String(content, charset == null ? "UTF-8" : charset);
+                    marc21 = new String(content, charset == null ? "UTF-8" : charset);
                     LOG.fine(marc21);
                 }
+
 
                 Document marcXml = Z3950Client.toMarcXml(content, charset);
                 if (LOG.isLoggable(Level.FINE)) {

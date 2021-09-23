@@ -38,7 +38,9 @@ import cz.cas.lib.proarc.webapp.client.action.administration.UpdateAllObjectsAct
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsTitleToNdkMonographTitleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsVolumeToNdkMonographVolumeAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToSttPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangePageToNdkPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeSttPageToNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
@@ -123,6 +125,8 @@ public final class DigitalObjectManager {
     private GenerateMasterCopyAction generateMasterCopyAction;
     private ChangePageToNdkPageAction changePageToNdkPageAction;
     private ChangeNdkPageToPageAction changeNdkPageToPageAction;
+    private ChangeSttPageToNdkPageAction changeSttPageToNdkPageAction;
+    private ChangeNdkPageToSttPageAction changeNdkPageToSttPageAction;
     private ChangeClippingsVolumeToNdkMonographVolumeAction changeClippingsVolumeToNdkMonographVolumeAction;
     private ChangeClippingsTitleToNdkMonographTitleAction changeClippingsTitleToNdkMonographTitleAction;
     private UpdateNdkArticleAction updateNdkArticleAction;
@@ -292,6 +296,8 @@ public final class DigitalObjectManager {
         generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
         changePageToNdkPageAction = new ChangePageToNdkPageAction(i18n);
         changeNdkPageToPageAction = new ChangeNdkPageToPageAction(i18n);
+        changeSttPageToNdkPageAction = new ChangeSttPageToNdkPageAction(i18n);
+        changeNdkPageToSttPageAction = new ChangeNdkPageToSttPageAction(i18n);
         changeClippingsVolumeToNdkMonographVolumeAction = new ChangeClippingsVolumeToNdkMonographVolumeAction(i18n);
         changeClippingsTitleToNdkMonographTitleAction = new ChangeClippingsTitleToNdkMonographTitleAction(i18n);
         updateNdkArticleAction = new UpdateNdkArticleAction(i18n);
@@ -367,6 +373,8 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(changePageToNdkPageAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToPageAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(changeSttPageToNdkPageAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToSttPageAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(changeClippingsVolumeToNdkMonographVolumeAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());

@@ -16,12 +16,6 @@
  */
 package cz.cas.lib.proarc.common.export;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
@@ -86,7 +80,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
@@ -692,7 +691,7 @@ public final class Kramerius4Export {
             return ;
         }
         try {
-            List<Item> childDescriptors = search.findChildren(pid);
+            List<Item> childDescriptors = search.findSortedChildren(pid);
             transformRelation2Kramerius(pid, editor, childDescriptors, includePids, hasParent);
         } catch (DigitalObjectException ex) {
             throw new IllegalStateException(ex);
@@ -801,7 +800,7 @@ public final class Kramerius4Export {
         int pageNumberEnd = Integer.MAX_VALUE - 1;
         for (PartDefinition part : mods.getPart()) {
             for (ExtentDefinition extent : part.getExtent()) {
-                if ("pageIndex".equals(extent.getUnit())) {
+                if ("pageIndex".equals(part.getType())) {
                     if (pageIndexStart == Integer.MIN_VALUE + 1) {
                         if (extent.getStart() != null) {
                             pageIndexStart = Integer.parseInt(extent.getStart().getValue());
@@ -813,7 +812,7 @@ public final class Kramerius4Export {
                         }
                     }
                 }
-                if ("pageNumber".equals(extent.getUnit())) {
+                if ("pageNumber".equals(part.getType())) {
                     if (pageNumberStart == Integer.MIN_VALUE + 1) {
                         if (extent.getStart() != null) {
                             String value = extent.getStart().getValue();
@@ -880,11 +879,11 @@ public final class Kramerius4Export {
         return Integer.MIN_VALUE;
     }
 
-    private List<String> getAllChildren(String pid) throws IOException, MetsExportException, FedoraClientException {
+    private List<String> getAllChildren(String pid) throws IOException, MetsExportException, FedoraClientException, DigitalObjectException {
         String parentPid = getParentPid(pid);
         List<Item> allChildrens = new ArrayList<>();
         if (parentPid != null && !parentPid.isEmpty()) {
-            allChildrens = search.findChildren(parentPid);
+            allChildrens = search.findSortedChildren(parentPid);
         }
         List<String> children = new ArrayList<>();
         for (Item child : allChildrens) {

@@ -33,7 +33,6 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.chronicle.ChronicleMapperFactory;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mods.DateDefinition;
@@ -50,15 +49,15 @@ import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.SubjectDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import static cz.cas.lib.proarc.common.imports.ImportProcess.getConsumers;
 
 /**
@@ -179,8 +178,7 @@ public class FileSetImport implements ImportHandler {
 
         //repair DcDatastream
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
-        ChronicleMapperFactory mapperFactory = new ChronicleMapperFactory();
-        NdkMapper mapper = mapperFactory.get(ChroniclePlugin.MODEL_CHRONICLEVOLUME);
+        NdkMapper mapper = NdkMapper.get(ChroniclePlugin.MODEL_CHRONICLEVOLUME);
         mapper.setModelId(ChroniclePlugin.MODEL_CHRONICLEVOLUME);
         NdkMapper.Context context = new NdkMapper.Context(handler);
         OaiDcType dc = mapper.toDc(mods, context);

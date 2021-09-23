@@ -16,14 +16,15 @@
  */
 package cz.cas.lib.proarc.common.export.archive;
 
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.archive.PackageBuilder.MdType;
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -48,14 +49,17 @@ import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import org.w3c.dom.Element;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.w3c.dom.Element;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 /**
  * Processes a path of digital objects to build a package.
@@ -96,10 +100,41 @@ public class ArchiveObjectProcessor {
         DigitalObjectElement entry = objectPath.get(0);
         DigitalObjectHandler handler = entry.getHandler();
         LocalObject lobj = getLocalObject(handler.getFedoraObject());
-        builder.prepare(objectPath, lobj, appConfig);
+        builder.prepare(objectPath, lobj, appConfig, getElement(objectPath.get(0)));
         processParents(objectPath);
         processObject(1, objectPath, lobj);
         builder.build();
+    }
+
+    private MetsElement getElement(DigitalObjectElement digitalObjectElement) throws DigitalObjectException {
+        if (digitalObjectElement == null) {
+            return null;
+        } else {
+            try {
+                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                RemoteStorage.RemoteObject robject = rstorage.find(digitalObjectElement.getPid());
+                MetsContext metsContext = buildContext(robject, null, rstorage);
+                DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+                if (dobj == null) {
+                    return null;
+                }
+                return MetsElement.getElement(dobj, null, metsContext, true);
+            } catch (IOException | MetsExportException ex) {
+                throw new DigitalObjectException("Process: Changing models failed - imposible to find element");
+            }
+        }
+    }
+
+    private MetsContext buildContext(RemoteObject fo, String packageId, RemoteStorage rstorage) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(null);
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(null);
+        return mc;
     }
 
     private void processParents(List<DigitalObjectElement> objectPath) throws DigitalObjectException, MetsExportException {

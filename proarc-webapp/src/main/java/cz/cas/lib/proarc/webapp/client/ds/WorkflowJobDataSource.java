@@ -16,6 +16,12 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSRequest;
@@ -27,12 +33,6 @@ import com.smartgwt.client.data.fields.DataSourceIntegerField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
-import cz.cas.lib.proarc.common.workflow.model.Job;
-import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 
 /**
  * The data source of workflow jobs.
@@ -60,6 +60,7 @@ public class WorkflowJobDataSource extends ProarcDataSource {
     public static final String FIELD_TASK_LABEL = WorkflowModelConsts.JOB_TASK_LABEL;
     public static final String FIELD_TASK_CHANGE_DATE = WorkflowModelConsts.JOB_TASK_CHANGE_DATE;
     public static final String FIELD_TASK_CHANGE_USER = WorkflowModelConsts.JOB_TASK_CHANGE_USER;
+    public static final String FIELD_TASK_CHANGE_USERNAME = WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME;
     public static final String FIELD_STATE = WorkflowModelConsts.JOB_STATE;
     public static final String FIELD_MBARCODE = WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE;
     public static final String FIELD_MDETAIL = WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL;
@@ -204,14 +205,15 @@ public class WorkflowJobDataSource extends ProarcDataSource {
         taskUpdated.setCanEdit(false);
         taskUpdated.setDetail(true);
 
-        // DataSourceTextField taskOwner = new DataSourceTextField(FIELD_TASK_CHANGE_USER);
-        // taskOwner.setTitle(i18n.WorkflowJob_Task_User());
+        DataSourceTextField taskOwner = new DataSourceTextField(FIELD_TASK_CHANGE_USER);
+        taskOwner.setTitle(i18n.WorkflowJob_Task_User());
+        taskOwner.setDisplayField(FIELD_TASK_CHANGE_USERNAME);
 
 
-        setFields(fieldId, label, state, profileId, priority, owner, created, modified,
+        setFields(fieldId, label, state, profileId, priority, created, modified,
                 note, financed, barcode,
                 detail, field001, issue, sigla, signature, volume, year, pid, edition,
-                rawPath, taskName, taskUpdated
+                rawPath, taskName, taskUpdated, taskOwner
         );
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

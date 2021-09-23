@@ -325,13 +325,13 @@ public class DigitalObjectResource {
         PurgeFedoraObject service = new PurgeFedoraObject(fedora);
         for (String pid : pids) {
             try {
-                setWorkflow("task.deletionPA", geIMetsElement(pid));
+                setWorkflow("task.deletionPA", getIMetsElement(pid));
             } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
                 throw new IOException(e);
             }
         }
         if (purge) {
-            session.requirePermission(Permissions.ADMIN);
+            session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
             service.purge(pids, hierarchy, session.asFedoraLog());
         } else if (restore){
             service.restore(pids, session.asFedoraLog());
@@ -968,6 +968,13 @@ public class DigitalObjectResource {
 
         srcHandler.commit();
         dstHandler.commit();
+
+        try {
+            setWorkflow("task.metadataDescriptionInProArc", getIMetsElement(dstParentPid));
+        } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
+            LOG.severe("Nepodarilo se ukoncit ukol \"task.metadataDescriptionInProArc\" pro " + dstParentPid + " - " + e.getMessage());
+        }
+
         SmartGwtResponse<Item> result = new SmartGwtResponse<Item>(added);
         return result;
     }
@@ -1279,7 +1286,7 @@ public class DigitalObjectResource {
         }
     }
 
-    private IMetsElement geIMetsElement(String pid) throws MetsExportException {
+    private IMetsElement getIMetsElement(String pid) throws MetsExportException {
         RemoteStorage rstorage = RemoteStorage.getInstance();
         RemoteStorage.RemoteObject fo = rstorage.find(pid);
         MetsContext mc = buildContext(rstorage, fo, null, null);
@@ -1993,6 +2000,40 @@ public class DigitalObjectResource {
             return new SmartGwtResponse<>();
         }
         ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModelsAndRepairMetadata(null);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeSttPageToNdkPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModelsAndRepairMetadata(null);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_STT_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkPageToSttPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE);
         List<String> pids = changeModels.findObjects();
         changeModels.changeModelsAndRepairMetadata(null);
         return new SmartGwtResponse<>();

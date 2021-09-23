@@ -17,7 +17,6 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
@@ -50,6 +49,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 /**
  * Class that represents the element of Mets export
@@ -308,10 +308,10 @@ public class MetsElement implements IMetsElement {
                             try {
                                 ExtentDefinition extent = getExtent(part.getExtent());
                                 if (extent.getStart() != null) {
-                                    this.modsStart = new BigInteger(extent.getStart().getValue());
+                                    this.modsStart = new BigInteger(extent.getStart().getValue().replaceAll("\\D", ""));
                                 }
                                 if (extent.getEnd() != null) {
-                                    this.modsEnd = new BigInteger(extent.getEnd().getValue());
+                                    this.modsEnd = new BigInteger(extent.getEnd().getValue().replaceAll("\\D", ""));
                                 }
                                 break;
                             } catch (NumberFormatException ex) {
@@ -325,10 +325,10 @@ public class MetsElement implements IMetsElement {
                         try {
                             ExtentDefinition extent = getExtent(modsDefinition.getPart().get(0).getExtent());
                             if (extent.getStart() != null) {
-                                this.modsStart = new BigInteger(extent.getStart().getValue());
+                                this.modsStart = new BigInteger(extent.getStart().getValue().replaceAll("\\D", ""));
                             }
                             if (extent.getEnd() != null) {
-                                this.modsEnd = new BigInteger(extent.getEnd().getValue());
+                                this.modsEnd = new BigInteger(extent.getEnd().getValue().replaceAll("\\D", ""));
                             }
                         } catch (NumberFormatException ex) {
                             throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);

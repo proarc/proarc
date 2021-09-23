@@ -9,7 +9,6 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapperFactory;
 import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -67,8 +66,7 @@ public class RepairMetadata {
         modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
 
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
-        NdkMapperFactory mapperFactory = new NdkMapperFactory();
-        NdkMapper mapper = mapperFactory.get(model);
+        NdkMapper mapper = NdkMapper.get(model);
         mapper.setModelId(model);
 
         NdkMapper.Context context = new NdkMapper.Context(handler);

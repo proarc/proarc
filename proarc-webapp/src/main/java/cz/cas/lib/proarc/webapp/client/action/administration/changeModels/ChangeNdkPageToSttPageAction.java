@@ -14,17 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action.administration.updateModels;
+package cz.cas.lib.proarc.webapp.client.action.administration.changeModels;
 
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.ds.ChangeModelsDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.UpdateObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import com.smartgwt.client.data.DSCallback;
@@ -33,28 +36,28 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 
 /**
- * Update Ndk Page
+ * Transfer NdkPage to STT page
  *
  * @author Lukas Sykora
  */
-public class UpdateNdkPageAction extends AbstractAction {
+public class ChangeNdkPageToSttPageAction extends AbstractAction {
 
     private final ClientMessages i18n;
 
-    public UpdateNdkPageAction(ClientMessages i18n) {
-        this(i18n, i18n.DigitalObjectUpdateNdkPageAction_Title(),
+    public ChangeNdkPageToSttPageAction(ClientMessages i18n) {
+        this(i18n, i18n.ChangeNdkPageToSttPageAction_Title(),
                 "[SKIN]/headerIcons/transfer.png",
-                i18n.DigitalObjectUpdateNdkPageAction_Hint());
+                i18n.ChangeModelAction_Hint());
     }
 
-    public UpdateNdkPageAction(ClientMessages i18n, String title, String icon, String tooltip) {
+    public ChangeNdkPageToSttPageAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
     }
 
     @Override
     public boolean accept(ActionEvent event) {
-        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION))) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION))) {
             return false;
         }
         Object[] selection = Actions.getSelection(event);
@@ -69,19 +72,15 @@ public class UpdateNdkPageAction extends AbstractAction {
     @Override
     public void performAction(ActionEvent event) {
         Record[] records = Actions.getSelection(event);
-        String modelId = "";
-        String pid = "";
         Record record = new Record();
         for (Record recordLocal : records){
             DigitalObject dobj = DigitalObject.createOrNull(recordLocal);
             if (dobj != null) {
-                modelId = dobj.getModelId();
-                pid = dobj.getPid();
                 record = recordLocal;
                 continue;
             }
         }
-        register(pid, modelId, record);
+        register(record);
     }
 
     private boolean acceptModel(Record[] records) {
@@ -90,12 +89,13 @@ public class UpdateNdkPageAction extends AbstractAction {
             DigitalObject dobj = DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)
-                        || NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)
-                        || NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
-                        || NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)
-                        || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)
-                        || NdkPlugin.MODEL_NDK_PAGE.equals(modelId)) {
+                if (NdkPlugin.MODEL_PAGE.equals(modelId)
+                        || OldPrintPlugin.MODEL_PAGE.equals(modelId)
+                        || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)
+                        || NdkAudioPlugin.MODEL_PAGE.equals(modelId)) {
+                    accept = false;
+                    continue;
+                } else if (modelId != null) {
                     accept = true;
                     continue;
                 }
@@ -106,15 +106,15 @@ public class UpdateNdkPageAction extends AbstractAction {
         return accept;
     }
 
-    private void register(String pid, String modelId, Record record) {
+    private void register(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        UpdateObjectDataSource ds = UpdateObjectDataSource.updateNdkPage();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkPageToSttPage();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.DigitalObjectUpdateAllObjectsAction_FinishMessage());
+                    StatusView.getInstance().show(i18n.ChangeNdkPageToSttPageAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);

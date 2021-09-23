@@ -50,4 +50,10 @@ public abstract class AnnotatedApplicationInfo extends ApplicationInfo {
     public String getTimestamp() {
         return super.getTimestamp();
     }
+
+    @XmlElement(name = ApplicationResourceApi.RDFLOW_VERSION)
+    @Override
+    public String getRdflowVersion() {
+        return super.getRdflowVersion();
+    }
 }
