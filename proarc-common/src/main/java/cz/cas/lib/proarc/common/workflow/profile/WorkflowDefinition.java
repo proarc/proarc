@@ -33,6 +33,9 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class WorkflowDefinition {
 
+    @XmlElement(name = WorkflowProfileConsts.WORKFLOW_VERSION)
+    private String version;
+
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_JOB_EL)
     private List<JobDefinition> jobs;
 
@@ -44,6 +47,10 @@ public class WorkflowDefinition {
 
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_VALUEMAP_EL)
     private List<ValueMapDefinition> valueMaps;
+
+    public String getVersion() {
+        return version;
+    }
 
     public List<JobDefinition> getJobs() {
         if (jobs == null) {

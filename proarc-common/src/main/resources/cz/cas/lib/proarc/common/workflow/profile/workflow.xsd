@@ -26,6 +26,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
     <xs:complexType name="workflowDefinition">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="version" type="tns:i18NString" minOccurs="0" maxOccurs="1"/>
             <xs:element name="job" type="tns:jobDefinition"/>
             <xs:element name="material" type="tns:materialDefinition"/>
             <xs:element name="task" type="tns:taskDefinition"/>
