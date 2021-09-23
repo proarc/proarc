@@ -58,12 +58,15 @@ public final class ImportProfile {
     public static final String PREVIEW_JAVA_SCALING = "import.image.preview.java.scalingMethod";
     public static final String PREVIEW_MAX_HEIGHT = "import.image.preview.maxHeight";
     public static final String PREVIEW_MAX_WIDTH = "import.image.preview.maxWidth";
+    public static final String PREVIEW_SUFFIX = "import.preview.file.suffix";
     public static final String PROCESSOR = "processor";
     public static final String REQUIRED_DATASTREAM = "import.requiredDatastreamId";
     public static final String THUMBNAIL_JAVA_SCALING = "import.image.thumbnail.java.scalingMethod";
     public static final String THUMBNAIL_MAX_HEIGHT = "import.image.thumbnail.maxHeight";
     public static final String THUMBNAIL_MAX_WIDTH = "import.image.thumbnail.maxWidth";
     public static final String THUMBNAIL_PROCESSOR = "import.thumbnail.processor";
+    public static final String THUMBNAIL_SUFFIX = "import.thumbnail.file.suffix";
+    public static final String FULL_SUFFIX = "import.full.file.suffix";
     public static final String CONVERTOR_JPG_SMALL_PROCESSOR = "import.jpg_small_convertor.processor";
     public static final String CONVERTOR_JPG_LARGE_PROCESSOR = "import.jpg_large_convertor.processor";
     public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
@@ -212,6 +215,21 @@ public final class ImportProfile {
             suffix.add(".uc.mp3");
         }
         return suffix;
+    }
+
+    public String getNdkFullFileSuffix() {
+        String suffix = config.getString(FULL_SUFFIX, ".full.jpg");
+        return suffix.toLowerCase();
+    }
+
+    public String getNdkPreviewFileSuffix() {
+        String suffix = config.getString(PREVIEW_SUFFIX, ".preview.jpg");
+        return suffix.toLowerCase();
+    }
+
+    public String getNdkThumbnailFileSuffix() {
+        String suffix = config.getString(THUMBNAIL_SUFFIX, ".thumbnail.jpg");
+        return suffix.toLowerCase();
     }
 
     public String getDefaultOcr() {
