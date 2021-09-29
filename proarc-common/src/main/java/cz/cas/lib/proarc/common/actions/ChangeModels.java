@@ -64,7 +64,7 @@ public class ChangeModels {
     public List<String> findObjects() throws DigitalObjectException {
         IMetsElement element = getElement();
         if (element == null) {
-            throw new DigitalObjectException("Process: Changing models failed - impossimble to get element");
+            throw new DigitalObjectException(pid, "ChangeModels:findObjects - object is null");
         }
         findChildrens(element);
         return pids;
@@ -73,7 +73,7 @@ public class ChangeModels {
     public String findRootObject() throws DigitalObjectException {
         IMetsElement element = getElement();
         if (element == null) {
-            throw new DigitalObjectException("Process: Changing models failed - impossimble to get element");
+            throw new DigitalObjectException(pid, "ChangeModels:findRootObject - object is null");
         }
         return getRootElement(element);
     }
@@ -82,21 +82,12 @@ public class ChangeModels {
         return element.getMetsContext().getRootElement().getOriginalPid();
     }
 
-    public void changeModels() throws DigitalObjectException {
-        if (pids.isEmpty()) {
-            throw new DigitalObjectException(pid, "Process: Changing models failed - no models found");
-        }
-        DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        for (String pid : pids) {
-            changeModel(dom, pid);
-        }
-    }
-
-
     public void changeModelsAndRepairMetadata(String parentPid) throws DigitalObjectException {
+        /*
         if (pids.isEmpty()) {
             throw new DigitalObjectException(pid, "No models with model " + oldModel);
         }
+        */
         int updated = 0;
         try {
             for (String pid : pids) {
@@ -105,10 +96,14 @@ public class ChangeModels {
                 repairMetadata(dom, pid, parentPid);
                 updated++;
             }
-            LOG.log(Level.WARNING, "Object changed from " + oldModel + " to " + newModel + " succesfully. Total items (" + updated + ").");
+            if (updated == 0) {
+                LOG.log(Level.WARNING, "No objects with model " + oldModel + " found.");
+            } else {
+                LOG.log(Level.WARNING, "Object changed from " + oldModel + " to " + newModel + " succesfully. Total items (" + updated + ").");
+            }
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items.") ;
-            throw new DigitalObjectException("Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items.");
+            throw new DigitalObjectException(pid, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items.");
         }
     }
 
@@ -158,7 +153,7 @@ public class ChangeModels {
                 fixNdkMonographVolumeMods(mods, parentPid);
                 break;
             default:
-                throw new DigitalObjectException(pid, "Process: Repair metadata failed - Unsupported model.");
+                throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
         }
     }
 
@@ -373,7 +368,7 @@ public class ChangeModels {
 
     private void findChildrens(IMetsElement element) throws DigitalObjectException {
         if (element == null) {
-            throw new DigitalObjectException("Process: Changing models failed - impossimble to get element");
+            throw new DigitalObjectException(pid, "ChangeModels:findChildrens - element is null");
         }
         String modelId = element.getModel().substring(12);
         if (oldModel.equals(modelId)) {
@@ -396,7 +391,7 @@ public class ChangeModels {
             }
             return MetsElement.getElement(dobj, null, metsContext, true);
         } catch (IOException | MetsExportException ex) {
-            throw new DigitalObjectException("Process: Changing models failed - imposible to find element");
+            throw new DigitalObjectException(pid, "ChangeModels:getElement - impossible to find element");
         }
     }
 
