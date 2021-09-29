@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
@@ -70,15 +71,15 @@ public class OldPrintOmnibusVolumeMapper extends RdaNdkMapper {
         mods.getExtension().clear();
         mods.getLanguage().clear();
         mods.getOriginInfo().clear();
-        mods.getPart().clear();
+        //mods.getPart().clear();
         mods.getPhysicalDescription().clear();
         mods.getRelatedItem().clear();
-        mods.getSubject().clear();
+        //mods.getSubject().clear();
         mods.getTableOfContents().clear();
         mods.getTargetAudience().clear();
         mods.getTypeOfResource().clear();
         mods.getNote().clear();
-        mods.getName().clear();
+        //mods.getName().clear();
     }
 
     @Override
@@ -94,6 +95,7 @@ public class OldPrintOmnibusVolumeMapper extends RdaNdkMapper {
         }
         addElementType(dc.getTypes(), getDcType());
         addLanguage(mods.getLanguage(), dc);
+        addName(mods.getName(), dc.getCreators());
         return dc;
     }
 
