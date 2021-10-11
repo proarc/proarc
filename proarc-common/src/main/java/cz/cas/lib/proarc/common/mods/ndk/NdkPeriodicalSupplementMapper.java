@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
@@ -73,7 +74,7 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
             }
         }
         fillPhysicalDescription(mods);
-        fixAndAddGenre(mods);
+        fixAndAddGenre(mods, ctx);
         fillAbstract(mods);
         fillRecordInfo(mods);
     }
@@ -100,12 +101,22 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
         }
     }
 
-    protected void fixAndAddGenre(ModsDefinition mods) {
+    protected void fixAndAddGenre(ModsDefinition mods, Context ctx) {
+        if (mods.getGenre().size() == 0) {
+            //  mods/genre="supplement"
+            MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
+        }
         for (GenreDefinition genre : mods.getGenre()) {
             String type = null;
             if (genre.getValue() == null || "".equals(genre.getValue())) {
                 genre.setValue(Const.GENRE_SUPPLEMENT);
-            } else if (genre.getValue() != null  && !Const.GENRE_SUPPLEMENT.equals(genre.getValue())) {
+            } else if (genre.getValue() != null && Const.GENRE_SUPPLEMENT.equals(genre.getValue()) && genre.getType() == null) {
+                if (NdkPlugin.MODEL_PERIODICALISSUE.equals(ctx.getParentModel())) {
+                    genre.setType("issue_supplement");
+                } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(ctx.getParentModel())) {
+                    genre.setType("volume_supplement");
+                }
+            } else if (genre.getValue() != null && !Const.GENRE_SUPPLEMENT.equals(genre.getValue())) {
                 if ("volume_supplement".equals(genre.getValue()) || "issue_supplement".equals(genre.getValue())) {
                     type = genre.getValue();
                     genre.setValue(Const.GENRE_SUPPLEMENT);
@@ -114,10 +125,6 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
                     }
                 }
             }
-        }
-        if (mods.getGenre().size() == 0) {
-            //  mods/genre="supplement"
-            MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
         }
     }
 
