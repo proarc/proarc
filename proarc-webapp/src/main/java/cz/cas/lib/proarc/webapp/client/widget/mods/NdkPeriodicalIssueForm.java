@@ -95,7 +95,7 @@ public class NdkPeriodicalIssueForm {
                 // partNumber, type="stringPlusLanguage"
                 .addField(new FieldBuilder("partNumber").setMaxOccurrences(1)
                     // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration
-                    .addField(new FieldBuilder("value").setTitle("Part Number - M").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
+                    .addField(new FieldBuilder("value").setTitle("Part Number - MA").setMaxOccurrences(1).setType(Field.TEXT).setRequired(true)
                         .setHint("Pořadové číslo vydání (čísla), např. 40.<p>U ročenek číslo řady/edice.")
                     .createField()) // value
                 .createField()) // partNumber
