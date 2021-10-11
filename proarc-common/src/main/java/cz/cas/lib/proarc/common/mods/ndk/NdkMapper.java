@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -45,13 +44,14 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import org.apache.empire.commons.StringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.empire.commons.StringUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -111,7 +111,7 @@ public abstract class NdkMapper {
     }
 
     private static boolean isNdkModel(String modelId) {
-         return modelId != null && modelId.contains("ndk");
+         return modelId != null && (modelId.contains("ndk") || NdkPlugin.MODEL_PAGE.equals(modelId));
     }
 
     public String getModelId() {
