@@ -238,7 +238,9 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_NDK_PAGE_TO_PAGE = "changeNdkPageToPage";
     public static final String CHANGE_NDK_PAGE_TO_STT_PAGE = "changeNdkPageToSttPage";
     public static final String CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME = "changeClippingsVolumeToNdkMonographVolume";
+    public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME = "changeNdkMonographVolumeToClippingsVolume";
     public static final String CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = "changeClippingsTitleToNdkMonographTitle";
+    public static final String CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE = "changeNdkMonographTitleToClippingsTitle";
 
     public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
     public static final String UPDATE_NDK_PAGE = "updateNdkPage";

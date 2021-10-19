@@ -106,7 +106,7 @@ public class ChroniclePlugin implements DigitalObjectPlugin, HasMetadataHandler<
                             new RelationCriteria(MODEL_CHRONICLEVOLUME, RelationCriteria.Type.PID),
                             new RelationCriteria(MODEL_CHRONICLESUPPLEMENT, RelationCriteria.Type.PID),
                     }
-            ).setPriority(2)) // override K4 plugin
+            ).setPriority(4)) // override K4 plugin
             ;
             return models;
         }

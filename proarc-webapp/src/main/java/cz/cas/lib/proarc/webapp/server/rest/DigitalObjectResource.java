@@ -2057,6 +2057,41 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<>();
     }
 
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkMonographVolumeToClippingsVolume(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_MONOGRAPHVOLUME, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME);
+        List<String> pids = changeModels.findObjects();
+        String parentPid = changeModels.findRootObject();
+        changeModels.changeModelsAndRepairMetadata(parentPid);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkMonographTitleToClippingsTitle(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_MONOGRAPHTITLE, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE);
+        List<String> pids = changeModels.findObjects();
+        changeModels.changeModelsAndRepairMetadata(null);
+        return new SmartGwtResponse<>();
+    }
+
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE)

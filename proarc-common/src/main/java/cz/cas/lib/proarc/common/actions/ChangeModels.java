@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -83,11 +84,6 @@ public class ChangeModels {
     }
 
     public void changeModelsAndRepairMetadata(String parentPid) throws DigitalObjectException {
-        /*
-        if (pids.isEmpty()) {
-            throw new DigitalObjectException(pid, "No models with model " + oldModel);
-        }
-        */
         int updated = 0;
         try {
             for (String pid : pids) {
@@ -149,11 +145,31 @@ public class ChangeModels {
             case NdkPlugin.MODEL_MONOGRAPHVOLUME:
                 fixNdkMonographVolumeMods(mods, parentPid);
                 break;
+            case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME:
+            case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE:
+                fixCollectionOfClippingsVolumeMods(mods, parentPid);
+                break;
             case NdkPlugin.MODEL_MONOGRAPHTITLE:
                 fixNdkMonographVolumeMods(mods, parentPid);
                 break;
             default:
                 throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
+        }
+    }
+
+    private void fixCollectionOfClippingsVolumeMods(ModsDefinition mods, String parentPid) throws DigitalObjectException {
+        String title = null;
+        if (parentPid != null) {
+            title = getTitle(getParentMods(parentPid));
+        }
+        if (title != null) {
+            for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+                if (title.equals(titleInfo.getTitle().get(0).getValue())) {
+                    titleInfo.getTitle().clear();
+                    titleInfo.getTitle().addAll(titleInfo.getPartName());
+                    titleInfo.getPartName().clear();
+                }
+            }
         }
     }
 

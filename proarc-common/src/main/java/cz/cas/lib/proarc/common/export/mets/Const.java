@@ -94,6 +94,8 @@ public class Const {
     public final static String GENRE_OLDPRINT_OMNIBUS = "omnibus";       //konvolut
     public final static String GENRE_OLDPRINT_GRAPHICS = "graphics";       //grafika
 
+    public final static String GENRE_GRAPHIC = "graphic";
+
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
 
@@ -120,6 +122,7 @@ public class Const {
     public final static String SOUND_RECORDING = "SOUNDRECORDING";
     public final static String SOUND_PART = "SOUNDPART";
     public final static String SOUND_PAGE = "SOUNDPAGE";
+    public final static String GRAPHIC = "GRAPHIC";
 
     public final static String MODS_ARTICLE = "ART";
     public final static String MODS_PICTURE = "PICT";
@@ -242,6 +245,7 @@ public class Const {
         typeNameMap.put(SOUND_RECORDING, SOUND_RECORDING);
         typeNameMap.put(SOUND_PART, SOUND_PART);
         typeNameMap.put(SOUND_PAGE, SOUND_PAGE);
+        typeNameMap.put(GRAPHIC, GRAPHIC);
 
 
         sttMandatoryStreams.add(MC_GRP_ID);
