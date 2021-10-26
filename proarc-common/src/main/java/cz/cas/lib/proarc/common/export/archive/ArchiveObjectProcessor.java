@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.export.archive;
 
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -58,8 +60,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.w3c.dom.Element;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 /**
  * Processes a path of digital objects to build a package.
@@ -120,7 +120,7 @@ public class ArchiveObjectProcessor {
                 }
                 return MetsElement.getElement(dobj, null, metsContext, true);
             } catch (IOException | MetsExportException ex) {
-                throw new DigitalObjectException("Process: Changing models failed - imposible to find element");
+                throw new DigitalObjectException("Process: Archive export failed - imposible to find element. " + ex.getMessage() + ex.getStackTrace());
             }
         }
     }

@@ -171,6 +171,11 @@ public class Const {
     public final static Map<String, String> dataStreamToModel = new HashMap<>();
     public final static Map<String, String> dataStreamToEvent = new HashMap<>();
 
+    public static final String EXPORT_NDK_BASIC = "PSP";
+    public static final String EXPORT_NDK4STT = "STT";
+    public static final String EXPORT_NDK4SIP = "SIP";
+    public static final String EXPORT_NDK4CHRONICLE = "CHRONICLE";
+
     private Const() {
     }
 
