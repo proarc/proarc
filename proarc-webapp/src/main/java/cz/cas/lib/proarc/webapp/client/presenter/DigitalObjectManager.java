@@ -16,6 +16,21 @@
  */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
+import com.google.gwt.core.client.Callback;
+import com.google.gwt.place.shared.PlaceController;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.data.ResultSet;
+import com.smartgwt.client.types.SelectionStyle;
+import com.smartgwt.client.util.Offline;
+import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.Label;
+import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
+import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
+import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.menu.IconMenuButton;
+import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItemSeparator;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
@@ -64,21 +79,6 @@ import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectSearchView;
 import cz.cas.lib.proarc.webapp.client.widget.DigitalObjectTreeView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import java.util.LinkedHashMap;
-import com.google.gwt.core.client.Callback;
-import com.google.gwt.place.shared.PlaceController;
-import com.smartgwt.client.data.Record;
-import com.smartgwt.client.data.ResultSet;
-import com.smartgwt.client.types.SelectionStyle;
-import com.smartgwt.client.util.Offline;
-import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.Label;
-import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
-import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
-import com.smartgwt.client.widgets.layout.VLayout;
-import com.smartgwt.client.widgets.menu.IconMenuButton;
-import com.smartgwt.client.widgets.menu.Menu;
-import com.smartgwt.client.widgets.menu.MenuItemSeparator;
-import com.smartgwt.client.widgets.toolbar.ToolStrip;
 
 /**
  * The component allows to search digital objects and perform actions on
@@ -383,8 +383,8 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToSttPageAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(changeClippingsVolumeToNdkMonographVolumeAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
-        menuAdministration.addItem(Actions.asMenuItem(changeNdkMonographVolumeToClippingsVolumeAction, actionSource, false));
-        menuAdministration.addItem(Actions.asMenuItem(changeNdkMonographTitleToClippingsTitleAction, actionSource, false));
+        //menuAdministration.addItem(Actions.asMenuItem(changeNdkMonographVolumeToClippingsVolumeAction, actionSource, false));
+        //menuAdministration.addItem(Actions.asMenuItem(changeNdkMonographTitleToClippingsTitleAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(updateNdkArticleAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(updateNdkPageAction, actionSource, false));

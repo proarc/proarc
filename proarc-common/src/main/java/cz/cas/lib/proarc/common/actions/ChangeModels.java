@@ -1,5 +1,6 @@
 package cz.cas.lib.proarc.common.actions;
 
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
@@ -40,7 +41,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 
 public class ChangeModels {
@@ -158,18 +158,10 @@ public class ChangeModels {
     }
 
     private void fixCollectionOfClippingsVolumeMods(ModsDefinition mods, String parentPid) throws DigitalObjectException {
-        String title = null;
-        if (parentPid != null) {
-            title = getTitle(getParentMods(parentPid));
-        }
-        if (title != null) {
-            for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-                if (title.equals(titleInfo.getTitle().get(0).getValue())) {
-                    titleInfo.getTitle().clear();
-                    titleInfo.getTitle().addAll(titleInfo.getPartName());
-                    titleInfo.getPartName().clear();
-                }
-            }
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            titleInfo.getTitle().clear();
+            titleInfo.getTitle().addAll(titleInfo.getPartName());
+            titleInfo.getPartName().clear();
         }
     }
 
