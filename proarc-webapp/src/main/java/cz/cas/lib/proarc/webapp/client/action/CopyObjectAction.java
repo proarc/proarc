@@ -20,6 +20,7 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -43,7 +44,8 @@ public class CopyObjectAction extends AbstractAction {
 
     public static final Set<String> COPY_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_MONOGRAPHVOLUME,
-                    NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EPERIODICALISSUE
+                    NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EPERIODICALISSUE,
+                    GraphicPlugin.MODEL_GRAPHIC
             )));
 
     public CopyObjectAction(ClientMessages i18n) {

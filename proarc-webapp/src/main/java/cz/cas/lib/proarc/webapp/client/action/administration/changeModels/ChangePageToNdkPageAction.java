@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -34,6 +35,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
  * Transfer page to NdkPage
@@ -72,19 +74,13 @@ public class ChangePageToNdkPageAction extends AbstractAction {
     @Override
     public void performAction(ActionEvent event) {
         Record[] records = Actions.getSelection(event);
-        String modelId = "";
-        String pidOld = "";
+        String[] pids = ClientUtils.toFieldValues(records, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         Record record = new Record();
-        for (Record recordLocal : records){
-            DigitalObject dobj = DigitalObject.createOrNull(recordLocal);
-            if (dobj != null) {
-                modelId = dobj.getModelId();
-                pidOld = dobj.getPid();
-                record = recordLocal;
-                continue;
-            }
+        record.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
+        if (records != null && records.length > 0) {
+            record.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, records[0].getAttribute(DigitalObjectResourceApi.DIGITALOBJECT_MODEL));
         }
-        register(pidOld, pidOld, modelId, record);
+        changeModel(record);
     }
 
     private boolean acceptModel(Record[] records) {
@@ -110,7 +106,7 @@ public class ChangePageToNdkPageAction extends AbstractAction {
         return accept;
     }
 
-    private void register(String pidOld, String pidNew, String modelId, Record record) {
+    private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
         ChangeModelsDataSource ds = ChangeModelsDataSource.changePageToNdkPage();
