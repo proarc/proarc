@@ -16,8 +16,13 @@
  */
 package cz.cas.lib.proarc.webapp.client.action.administration.changeModels;
 
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -27,10 +32,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.Record;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
  * Change Ndk Monograph Volume to Clippings Volume
@@ -69,13 +71,11 @@ public class ChangeNdkMonographVolumeToClippingsVolumeAction extends AbstractAct
     @Override
     public void performAction(ActionEvent event) {
         Record[] records = Actions.getSelection(event);
+        String[] pids = ClientUtils.toFieldValues(records, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         Record record = new Record();
-        for (Record recordLocal : records){
-            DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(recordLocal);
-            if (dobj != null) {
-                record = recordLocal;
-                continue;
-            }
+        record.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
+        if (records != null && records.length > 0) {
+            record.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, records[0].getAttribute(DigitalObjectResourceApi.DIGITALOBJECT_MODEL));
         }
         changeModel(record);
     }

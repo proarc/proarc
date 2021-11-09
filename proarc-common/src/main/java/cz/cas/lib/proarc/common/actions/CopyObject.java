@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -115,8 +116,10 @@ public class CopyObject {
         ModsStreamEditor modsStreamEditorNew = new ModsStreamEditor(streamEditorNew, foNew);
         ModsDefinition mods = modsStreamEditorNew.read();
         repairIdentifiers(mods);
-        removePartNumber(mods);
-        removeDateIssued(mods);
+        if (!GraphicPlugin.MODEL_GRAPHIC.equals(modelId)) {
+            removePartNumber(mods);
+            removeDateIssued(mods);
+        }
         modsStreamEditorNew.write(mods, modsStreamEditorNew.getLastModified(), null);
 
         //repair DcDatastream

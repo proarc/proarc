@@ -54,7 +54,7 @@ public class ChangeModels {
     private List<String> pids;
 
 
-    public ChangeModels(AppConfiguration appConfig, String pid, String modelId, String oldModel, String newModel) {
+    public ChangeModels(AppConfiguration appConfig, String pid, String oldModel, String newModel) {
         this.appConfig = appConfig;
         this.pid = pid;
         this.oldModel = oldModel;
@@ -83,12 +83,14 @@ public class ChangeModels {
         return element.getMetsContext().getRootElement().getOriginalPid();
     }
 
-    public void changeModelsAndRepairMetadata(String parentPid) throws DigitalObjectException {
+    public ChangeModelResult changeModelsAndRepairMetadata(String parentPid) {
         int updated = 0;
+        String updatedPid = "";
         try {
             for (String pid : pids) {
+                updatedPid = pid;
                 DigitalObjectManager dom = DigitalObjectManager.getDefault();
-                changeModel(dom, pid);
+                changeModel(dom, pid, newModel);
                 repairMetadata(dom, pid, parentPid);
                 updated++;
             }
@@ -97,9 +99,20 @@ public class ChangeModels {
             } else {
                 LOG.log(Level.WARNING, "Object changed from " + oldModel + " to " + newModel + " succesfully. Total items (" + updated + ").");
             }
+            return null;
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items.") ;
-            throw new DigitalObjectException(pid, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items.");
+            return new ChangeModelResult(updatedPid, new DigitalObjectException(pid, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items."));
+        }
+    }
+
+    public void changeModelBack(String pid, String model) throws DigitalObjectException {
+        try {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            changeModel(dom, pid, model);
+            LOG.info("Model changed to original value for pid:" + pid);
+        } catch (DigitalObjectException ex) {
+            LOG.warning("Can not changed model back.");
         }
     }
 
@@ -365,11 +378,11 @@ public class ChangeModels {
     }
 
 
-    private void changeModel(DigitalObjectManager dom, String pid) throws DigitalObjectException {
+    private void changeModel(DigitalObjectManager dom, String pid, String model) throws DigitalObjectException {
         FedoraObject fedoraObject = dom.find(pid, null);
         DigitalObjectHandler handler = dom.createHandler(fedoraObject);
         RelationEditor editor = handler.relations();
-        editor.setModel(newModel);
+        editor.setModel(model);
         editor.write(editor.getLastModified(), "Change model");
         handler.commit();
     }
@@ -413,5 +426,24 @@ public class ChangeModels {
         mc.setAllowMissingURNNBN(false);
         mc.setConfig(null);
         return mc;
+    }
+
+    public class ChangeModelResult {
+
+        private String pid;
+        private DigitalObjectException ex;
+
+        public ChangeModelResult(String updatedPid, DigitalObjectException e) {
+            pid = updatedPid;
+            ex = e;
+        }
+
+        public String getPid() {
+            return pid;
+        }
+
+        public DigitalObjectException getEx() {
+            return ex;
+        }
     }
 }
