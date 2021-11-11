@@ -17,6 +17,7 @@ public class Organization {
         valueMap.put("ABD103", "Univerzita Karlova v Praze - Fakulta sociálních věd");
         valueMap.put("PAG001", "Krajská knihovna v Pardubicích");
         valueMap.put("JIG001", "Městská knihovna Jihlava");
+        valueMap.put("ABA009", "Knihovna Antonína Švehly (UZEI)");
         valueMap.put("221610200","SOkA Jihlava");
         valueMap.put("226103010","SOkA Pelhřimov");
         valueMap.put("226101010","SOkA Havlíčkův Brod");
