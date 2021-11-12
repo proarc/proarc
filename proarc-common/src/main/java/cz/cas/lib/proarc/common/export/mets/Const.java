@@ -20,6 +20,7 @@ package cz.cas.lib.proarc.common.export.mets;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import java.util.ArrayList;
@@ -220,6 +221,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + PAGE_NDK_MODEL, PAGE);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_MODEL, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_TITLE_MODEL, MONOGRAPH_MULTIPART);
+        typeMap.put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, MONOGRAPH_MULTIPART);
         typeMap.put(FEDORAPREFIX + PICTURE_MODEL, PICTURE);
         typeMap.put(FEDORAPREFIX + ARTICLE_MODEL, ARTICLE);
         typeMap.put(FEDORAPREFIX + SUPPLEMENT_MODEL, SUPPLEMENT);
