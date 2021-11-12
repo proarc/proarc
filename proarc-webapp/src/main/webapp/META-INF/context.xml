@@ -5,32 +5,25 @@ Tomcat configuration helper.
 
 <Context>
 
-    <Resource name="jdbc/proarc" auth="Container"
-              type="javax.sql.DataSource" initialSize="3"
-              maxActive="100" maxIdle="30" maxWait="10000"
-              username="proarcAdmin" password="FIXME"
-              driverClassName="org.postgresql.Driver"
-              url="jdbc:postgresql://localhost/proarc"/>
-
     <Resources>
 
         <!--
         #477: JAX-RS 2 must be loaded before possible JAX-RS 1 (fedora-client).
         -->
         <PreResources className="org.apache.catalina.webresources.FileResourceSet"
-            base="${catalina.home}/webapps/proarc/WEB-INF/lib/javax.ws.rs-api-2.0.1.jar"
-            webAppMount="/WEB-INF/lib/javax.ws.rs-api-2.0.1.jar" />
+                      base="${catalina.base}/webapps/proarc/WEB-INF/lib/javax.ws.rs-api-2.0.1.jar"
+                      webAppMount="/WEB-INF/lib/javax.ws.rs-api-2.0.1.jar" />
 
         <!--
         #514: spring-2.5.jar must follow proarc-z3950-*.jar
         -->
         <PreResources className="org.apache.catalina.webresources.FileResourceSet"
-            base="${catalina.home}/webapps/proarc/WEB-INF/lib/proarc-z3950-${project.version}.jar"
-            webAppMount="/WEB-INF/lib/proarc-z3950-${project.version}.jar" />
+                      base="${catalina.base}/webapps/proarc/WEB-INF/lib/proarc-z3950-${project.version}.jar"
+                      webAppMount="/WEB-INF/lib/proarc-z3950-${project.version}.jar" />
 
         <PostResources className="org.apache.catalina.webresources.FileResourceSet"
-            base="${catalina.home}/webapps/proarc/WEB-INF/lib/spring-2.5.jar"
-            webAppMount="/WEB-INF/lib/spring-2.5.jar" />
+                       base="${catalina.base}/webapps/proarc/WEB-INF/lib/spring-2.5.jar"
+                       webAppMount="/WEB-INF/lib/spring-2.5.jar" />
 
     </Resources>
 
