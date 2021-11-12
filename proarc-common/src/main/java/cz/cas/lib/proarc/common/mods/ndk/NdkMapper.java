@@ -25,11 +25,14 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.chronicle.ChronicleMapperFactory;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsMapperFactory;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsMapperFactory;
+import cz.cas.lib.proarc.common.object.graphic.GraphicMapperFactory;
+import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintMapperFactory;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
@@ -45,13 +48,13 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import org.apache.empire.commons.StringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.empire.commons.StringUtils;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -73,6 +76,7 @@ public abstract class NdkMapper {
     private static final OldPrintMapperFactory oldprintMapperFacotry = new OldPrintMapperFactory();
     private static final ChronicleMapperFactory chronicleMapperFactory = new ChronicleMapperFactory();
     private static final CollectionOfClippingsMapperFactory clippingMapperFactory = new CollectionOfClippingsMapperFactory();
+    private static final GraphicMapperFactory graphicMapperFactory = new GraphicMapperFactory();
     private static final BornDigitalModsMapperFactory bornDigitalMapperFactory = new BornDigitalModsMapperFactory();
 
     /**
@@ -83,12 +87,14 @@ public abstract class NdkMapper {
     @Deprecated
     public static NdkMapper get(String modelId) {
         NdkMapper mapper;
-        if (isNdkModel(modelId)) {
+        if (isNdkEModel(modelId) || isNdkModel(modelId)) {
             mapper = ndkMapperFactory.get(modelId);
         } else if (isChronicleModel(modelId)) {
             mapper = chronicleMapperFactory.get(modelId);
         } else if (isClippingsModel(modelId)) {
             mapper = clippingMapperFactory.get(modelId);
+        } else if (isGraphicModel(modelId)) {
+            mapper = graphicMapperFactory.get(modelId);
         } else if (isBornDigitalModel(modelId)) {
             mapper = bornDigitalMapperFactory.get(modelId);
         } else {
@@ -106,12 +112,24 @@ public abstract class NdkMapper {
         return modelId != null && modelId.contains("clipping");
     }
 
-    private static boolean isChronicleModel(String modelId) {
+    private static boolean isGraphicModel(String modelId) {
+        return modelId != null && GraphicPlugin.MODEL_GRAPHIC.equals(modelId);
+    }
+
+    public static boolean isChronicleModel(String modelId) {
         return modelId != null && modelId.contains("chronicle");
     }
 
-    private static boolean isNdkModel(String modelId) {
-         return modelId != null && modelId.contains("ndk");
+    public static boolean isNdkModel(String modelId) {
+         return modelId != null && (modelId.contains("ndk") || NdkPlugin.MODEL_PAGE.equals(modelId));
+    }
+
+    public static boolean isNdkEModel(String modelId) {
+        return modelId != null && modelId.contains("ndke");
+    }
+
+    public static boolean isOldprintModel(String modelId) {
+        return modelId != null && (modelId.contains(OldPrintPlugin.ID));
     }
 
     public String getModelId() {

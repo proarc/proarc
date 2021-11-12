@@ -106,7 +106,7 @@ public class TiffImporter implements ImageImporter {
             DigitalObjectHandler dobjHandler = DigitalObjectManager.getDefault().createHandler(localObj);
             createRelsExt(dobjHandler, f, ctx);
             createMetadata(dobjHandler, ctx);
-            createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config);
+            createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config, fileSet);
             importArchivalCopy(fileSet, f, localObj, ctx);
             importUserCopy(fileSet, f, localObj, ctx);
             importOcr(fileSet, f, localObj, ctx);
@@ -377,7 +377,7 @@ public class TiffImporter implements ImageImporter {
     }
 
     private void createImages(File tempBatchFolder, File original,
-            String originalFilename, LocalObject foxml, ImportProfile config)
+            String originalFilename, LocalObject foxml, ImportProfile config, FileSet fileSet)
             throws IOException, DigitalObjectException, AppConfigurationException {
         
         BinaryEditor.dissemination(foxml, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)
@@ -402,71 +402,100 @@ public class TiffImporter implements ImageImporter {
         start = System.nanoTime();
         String targetName = String.format("%s.full.%s", originalFilename, imageType.getDefaultFileExtension());
 
-        if (runCustomConversion) {
-            f  = new File(tempBatchFolder, targetName);
-            ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), original, f);
-            p.run();
+        FileEntry fullEntry = findSibling(fileSet, config.getNdkFullFileSuffix());
+        String fullId = BinaryEditor.FULL_ID;
 
-            if (!p.isOk()) {
-                throw new IllegalStateException("Converting tiff to FULL jpg failed: " + p.getFullOutput());
-            }
+        if (fullEntry != null) {
+            f = fullEntry.getFile();
+        } else if (config.getRequiredDatastreamId().contains(fullId)) {
+            throw new FileNotFoundException("Missing full jpg: " + new File(
+                    original.getParentFile(), fileSet.getName() + config.getNdkFullFileSuffix()));
         } else {
-            f = writeImage(tiff, tempBatchFolder, targetName, imageType);
+            if (runCustomConversion) {
+                f = new File(tempBatchFolder, targetName);
+                ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), original, f);
+                p.run();
+
+                if (!p.isOk()) {
+                    throw new IllegalStateException("Converting tiff to FULL jpg failed: " + p.getFullOutput());
+                }
+            } else {
+                f = writeImage(tiff, tempBatchFolder, targetName, imageType);
+            }
         }
 
         if (!InputUtils.isJpeg(f)) {
             throw new IllegalStateException("Not a JPEG content: " + f);
         }
         long endFull = System.nanoTime() - start;
-        BinaryEditor.dissemination(foxml, BinaryEditor.FULL_ID, mediaType).write(f, 0, null);
+        BinaryEditor.dissemination(foxml, fullId, mediaType).write(f, 0, null);
 
         start = System.nanoTime();
-        Integer previewMaxHeight = config.getPreviewMaxHeight();
-        Integer previewMaxWidth = config.getPreviewMaxWidth();
-        config.checkPreviewScaleParams();
-        targetName = String.format("%s.preview.%s", originalFilename, imageType.getDefaultFileExtension());
 
-        if (runCustomConversion) {
-            f  = new File(tempBatchFolder, targetName);
-            ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), original, f, previewMaxWidth, previewMaxHeight);
-            p.run();
-
-            if (!p.isOk()) {
-                throw new IllegalStateException("Converting tiff to PREVIEW jpg failed: " + p.getFullOutput());
-            }
+        FileEntry entry = findSibling(fileSet, config.getNdkPreviewFileSuffix());
+        String previewId = BinaryEditor.PREVIEW_ID;
+        if (entry != null) {
+            f = entry.getFile();
+        } else if (config.getRequiredDatastreamId().contains(previewId)) {
+            throw new FileNotFoundException("Missing preview: " + new File(
+                    original.getParentFile(), fileSet.getName() + config.getNdkPreviewFileSuffix()));
         } else {
-            f = writeImage(
-                    scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
-                    tempBatchFolder, targetName, imageType);
-        }
-        if (!InputUtils.isJpeg(f)) {
-            throw new IllegalStateException("Not a JPEG content: " + f);
+            Integer previewMaxHeight = config.getPreviewMaxHeight();
+            Integer previewMaxWidth = config.getPreviewMaxWidth();
+            config.checkPreviewScaleParams();
+            targetName = String.format("%s.preview.%s", originalFilename, imageType.getDefaultFileExtension());
+            if (runCustomConversion) {
+                f = new File(tempBatchFolder, targetName);
+                ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), original, f, previewMaxWidth, previewMaxHeight);
+                p.run();
+
+                if (!p.isOk()) {
+                    throw new IllegalStateException("Converting tiff to PREVIEW jpg failed: " + p.getFullOutput());
+                }
+            } else {
+                f = writeImage(
+                        scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
+                        tempBatchFolder, targetName, imageType);
+            }
+            if (!InputUtils.isJpeg(f)) {
+                throw new IllegalStateException("Not a JPEG content: " + f);
+            }
         }
 
         long endPreview = System.nanoTime() - start;
-        BinaryEditor.dissemination(foxml, BinaryEditor.PREVIEW_ID, mediaType).write(f, 0, null);
+        BinaryEditor.dissemination(foxml, previewId, mediaType).write(f, 0, null);
 
         start = System.nanoTime();
-        if (runCustomConversion) {
-            //check is done within createThumbnail() unlike full and preview variants, should be unified
-            targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
-            Integer thumbMaxHeight = config.getThumbnailMaxHeight();
-            Integer thumbMaxWidth = config.getThumbnailMaxWidth();
-            config.checkThumbnailScaleParams();
 
-            f  = new File(tempBatchFolder, targetName);
-            ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), original, f, thumbMaxWidth, thumbMaxHeight);
-            p.run();
-
-            if (!p.isOk()) {
-                throw new IllegalStateException("Converting tiff to THUMBNAIL jpg failed: " + p.getFullOutput());
-            }
+        FileEntry thumbnailEntry = findSibling(fileSet, config.getNdkThumbnailFileSuffix());
+        String thumbnailId = BinaryEditor.THUMB_ID;
+        if (thumbnailEntry != null) {
+            f = thumbnailEntry.getFile();
+        } else if (config.getRequiredDatastreamId().contains(thumbnailId)) {
+            throw new FileNotFoundException("Missing thumbnail: " + new File(
+                    original.getParentFile(), fileSet.getName() + config.getNdkThumbnailFileSuffix()));
         } else {
-            f = createThumbnail(tempBatchFolder, originalFilename, original, tiff, config);
+            if (runCustomConversion) {
+                //check is done within createThumbnail() unlike full and preview variants, should be unified
+                targetName = String.format("%s.thumb.%s", originalFilename, imageType.getDefaultFileExtension());
+                Integer thumbMaxHeight = config.getThumbnailMaxHeight();
+                Integer thumbMaxWidth = config.getThumbnailMaxWidth();
+                config.checkThumbnailScaleParams();
+
+                f = new File(tempBatchFolder, targetName);
+                ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), original, f, thumbMaxWidth, thumbMaxHeight);
+                p.run();
+
+                if (!p.isOk()) {
+                    throw new IllegalStateException("Converting tiff to THUMBNAIL jpg failed: " + p.getFullOutput());
+                }
+            } else {
+                f = createThumbnail(tempBatchFolder, originalFilename, original, tiff, config);
+            }
         }
 
         long endThumb = System.nanoTime() - start;
-        BinaryEditor.dissemination(foxml, BinaryEditor.THUMB_ID, mediaType).write(f, 0, null);
+        BinaryEditor.dissemination(foxml, thumbnailId, mediaType).write(f, 0, null);
 
         LOG.fine(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                 originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));

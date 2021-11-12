@@ -20,6 +20,7 @@ package cz.cas.lib.proarc.common.export.mets;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import java.util.ArrayList;
@@ -94,6 +95,8 @@ public class Const {
     public final static String GENRE_OLDPRINT_OMNIBUS = "omnibus";       //konvolut
     public final static String GENRE_OLDPRINT_GRAPHICS = "graphics";       //grafika
 
+    public final static String GENRE_GRAPHIC = "graphic";
+
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
 
@@ -120,6 +123,7 @@ public class Const {
     public final static String SOUND_RECORDING = "SOUNDRECORDING";
     public final static String SOUND_PART = "SOUNDPART";
     public final static String SOUND_PAGE = "SOUNDPAGE";
+    public final static String GRAPHIC = "GRAPHIC";
 
     public final static String MODS_ARTICLE = "ART";
     public final static String MODS_PICTURE = "PICT";
@@ -168,6 +172,11 @@ public class Const {
     public final static Map<String, String> dataStreamToModel = new HashMap<>();
     public final static Map<String, String> dataStreamToEvent = new HashMap<>();
 
+    public static final String EXPORT_NDK_BASIC = "PSP";
+    public static final String EXPORT_NDK4STT = "STT";
+    public static final String EXPORT_NDK4SIP = "SIP";
+    public static final String EXPORT_NDK4CHRONICLE = "CHRONICLE";
+
     private Const() {
     }
 
@@ -212,6 +221,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + PAGE_NDK_MODEL, PAGE);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_MODEL, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_TITLE_MODEL, MONOGRAPH_MULTIPART);
+        typeMap.put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, MONOGRAPH_MULTIPART);
         typeMap.put(FEDORAPREFIX + PICTURE_MODEL, PICTURE);
         typeMap.put(FEDORAPREFIX + ARTICLE_MODEL, ARTICLE);
         typeMap.put(FEDORAPREFIX + SUPPLEMENT_MODEL, SUPPLEMENT);
@@ -242,6 +252,7 @@ public class Const {
         typeNameMap.put(SOUND_RECORDING, SOUND_RECORDING);
         typeNameMap.put(SOUND_PART, SOUND_PART);
         typeNameMap.put(SOUND_PAGE, SOUND_PAGE);
+        typeNameMap.put(GRAPHIC, GRAPHIC);
 
 
         sttMandatoryStreams.add(MC_GRP_ID);

@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
 import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.export.crossref.CrossrefExport;
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
@@ -48,6 +49,7 @@ import cz.cas.lib.proarc.common.export.workflow.WorkflowExport;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -300,7 +302,7 @@ public class ExportResource {
 //            @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
 //            @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
 //            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
-            ) throws ExportException {
+            ) throws ExportException, MetsExportException {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
@@ -309,17 +311,19 @@ public class ExportResource {
         List<ExportResult> result = new ArrayList<>(pids.size());
         NdkExport export;
 
+        typeOfPackage = getTypeOfPackage(pids, typeOfPackage);
+
         switch (typeOfPackage) {
-            case "PSP":
+            case Const.EXPORT_NDK_BASIC:
                 export = new NdkExport(RemoteStorage.getInstance(), appConfig);
                 break;
-            case "SIP":
+            case Const.EXPORT_NDK4SIP:
                 export = new NdkSipExport(RemoteStorage.getInstance(), appConfig);
                 break;
-            case "STT":
+            case Const.EXPORT_NDK4STT:
                 export = new NdkSttExport(RemoteStorage.getInstance(), appConfig);
                 break;
-            case "CHRONICLE":
+            case Const.EXPORT_NDK4CHRONICLE:
                 export = new NdkExport(RemoteStorage.getInstance(), appConfig);
                 break;
             default:
@@ -354,11 +358,37 @@ public class ExportResource {
         return new SmartGwtResponse<>(result);
     }
 
+    private String getTypeOfPackage(List<String> pids, String typeOfPackage) throws MetsExportException {
+        if (pids == null || pids.isEmpty()) {
+            return typeOfPackage;
+        }
+        if (!Const.EXPORT_NDK_BASIC.equals(typeOfPackage)) {
+            return typeOfPackage;
+        }
+        RemoteStorage remoteStorage = RemoteStorage.getInstance();
+        RemoteStorage.RemoteObject fo = remoteStorage.find(pids.get(0));
+        MetsContext mc = buildContext(remoteStorage, fo, null, null);
+        IMetsElement element = getMetsElement(fo, mc, true);
+        if (element != null) {
+            String modelId = element.getModel().substring(12);
+            if (NdkMapper.isOldprintModel(modelId)) {
+                return Const.EXPORT_NDK4STT;
+            } else if (NdkMapper.isChronicleModel(modelId)) {
+                return Const.EXPORT_NDK4CHRONICLE;
+            } else if (NdkMapper.isNdkEModel(modelId)) {
+                return Const.EXPORT_NDK4SIP;
+            } else if (NdkMapper.isNdkModel(modelId)) {
+                return Const.EXPORT_NDK_BASIC;
+            }
+        }
+        return typeOfPackage;
+    }
+
     private IMetsElement getRoot(String pid, File exportFolder) throws MetsExportException {
-            RemoteStorage rstorage = RemoteStorage.getInstance();
-            RemoteStorage.RemoteObject fo = rstorage.find(pid);
-            MetsContext mc = buildContext(rstorage, fo, null, exportFolder);
-            return getMetsElement(fo, mc, true);
+        RemoteStorage rstorage = RemoteStorage.getInstance();
+        RemoteStorage.RemoteObject fo = rstorage.find(pid);
+        MetsContext mc = buildContext(rstorage, fo, null, exportFolder);
+        return getMetsElement(fo, mc, true);
     }
 
     private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
@@ -375,7 +405,11 @@ public class ExportResource {
         mc.setFedoraClient(fo.getClient());
         mc.setRemoteStorage(rstorage);
         mc.setPackageID(packageId);
-        mc.setOutputPath(targetFolder.getAbsolutePath());
+        if (targetFolder == null) {
+            mc.setOutputPath(null);
+        } else {
+            mc.setOutputPath(targetFolder.getAbsolutePath());
+        }
         mc.setAllowNonCompleteStreams(false);
         mc.setAllowMissingURNNBN(false);
         mc.setConfig(appConfig.getNdkExportOptions());

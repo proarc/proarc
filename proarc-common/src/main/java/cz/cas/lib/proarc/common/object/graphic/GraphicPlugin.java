@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Lukas Sykora
+ * Copyright (C) 2021 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.object.collectionOfClippings;
+package cz.cas.lib.proarc.common.object.graphic;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.PageView;
@@ -34,7 +34,7 @@ import cz.cas.lib.proarc.common.object.HasMetadataHandler;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
-import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
@@ -42,33 +42,37 @@ import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
-
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
 /**
  *
- * The plugin to support Collection of Clippings objects.
+ * The plugin to support Graphic objects.
  *
  * @author Lukas Sykora
  */
-public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition>,
+public class GraphicPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition>,
         HasSearchViewHandler {
 
     /**
      * The plugin ID.
      */
-    public static final String ID = "collectionOfClippings";
-    public static final String MODEL_COLLECTION_OF_CLIPPINGS_VOLUME = "model:clippingsvolume";
-    public static final String MODEL_COLLECTION_OF_CLIPPINGS_TITLE = "model:clippingstitle";
+    public static final String ID = "graphic";
+    public static final String MODEL_GRAPHIC = "model:graphic";
     public static final String MODEL_PAGE = "model:page";
 
-    private ClippingsSearchViewHandler searchViewHandler;
+    private GraphicSearchViewHandler searchViewHandler;
 
     public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
-        put(FEDORAPREFIX + CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, Const.MONOGRAPH_UNIT);
-        put(FEDORAPREFIX + CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + MODEL_GRAPHIC, Const.GRAPHIC);
         put(FEDORAPREFIX + CollectionOfClippingsPlugin.MODEL_PAGE, Const.PAGE);
     }});
 
@@ -87,28 +91,15 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
         // for now it is read only repository
         List<MetaModel> models = new ArrayList<MetaModel>();
         models.add(new MetaModel(
-                MODEL_COLLECTION_OF_CLIPPINGS_TITLE, true, null,
-                Arrays.asList(new ElementType("Collection of clippings", "en"), new ElementType("Sb\u00edrka v\u00fdst\u0159i\u017ek\u016f", "cs")),
+                MODEL_GRAPHIC, true, null,
+                Arrays.asList(new ElementType("Graphic", "en"), new ElementType("Grafika", "cs")),
                 ModsConstants.NS,
-                MODEL_COLLECTION_OF_CLIPPINGS_TITLE,
+                MODEL_GRAPHIC,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
                 new RelationCriteria[] {}
-        ));
-        models.add(new MetaModel(
-                MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, true, null,
-                Arrays.asList(new ElementType("Clipping", "en"), new ElementType("V\u00fdst\u0159i\u017eek", "cs")),
-                ModsConstants.NS,
-                MODEL_COLLECTION_OF_CLIPPINGS_VOLUME,
-                this,
-                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM),
-                new RelationCriteria[] {
-                        new RelationCriteria(MODEL_COLLECTION_OF_CLIPPINGS_TITLE, RelationCriteria.Type.PID)
-                }
         ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
@@ -138,13 +129,13 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
 
     @Override
     public MetadataHandler<ModsDefinition> createMetadataHandler(DigitalObjectHandler handler) {
-        return new NdkMetadataHandler(handler, new CollectionOfClippingsMapperFactory());
+        return new NdkMetadataHandler(handler, new GraphicMapperFactory());
     }
 
     @Override
     public SearchViewHandler createSearchViewHandler() {
         if (searchViewHandler == null) {
-            searchViewHandler = new ClippingsSearchViewHandler();
+            searchViewHandler = new GraphicSearchViewHandler();
         }
         return searchViewHandler;
     }
@@ -162,7 +153,7 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
         return BundleValueMap.fromBundle(BundleName.MODS_PAGE_TYPES, locale);
     }
 
-    private static class ClippingsSearchViewHandler implements SearchViewHandler {
+    private static class GraphicSearchViewHandler implements SearchViewHandler {
 
         @Override
         public String getObjectLabel(Item item, Locale locale) {

@@ -1,5 +1,6 @@
 package cz.cas.lib.proarc.common.actions;
 
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
@@ -20,6 +21,7 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -39,7 +41,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 
 public class ChangeModels {
@@ -53,7 +54,7 @@ public class ChangeModels {
     private List<String> pids;
 
 
-    public ChangeModels(AppConfiguration appConfig, String pid, String modelId, String oldModel, String newModel) {
+    public ChangeModels(AppConfiguration appConfig, String pid, String oldModel, String newModel) {
         this.appConfig = appConfig;
         this.pid = pid;
         this.oldModel = oldModel;
@@ -64,7 +65,7 @@ public class ChangeModels {
     public List<String> findObjects() throws DigitalObjectException {
         IMetsElement element = getElement();
         if (element == null) {
-            throw new DigitalObjectException("Process: Changing models failed - impossimble to get element");
+            throw new DigitalObjectException(pid, "ChangeModels:findObjects - object is null");
         }
         findChildrens(element);
         return pids;
@@ -73,7 +74,7 @@ public class ChangeModels {
     public String findRootObject() throws DigitalObjectException {
         IMetsElement element = getElement();
         if (element == null) {
-            throw new DigitalObjectException("Process: Changing models failed - impossimble to get element");
+            throw new DigitalObjectException(pid, "ChangeModels:findRootObject - object is null");
         }
         return getRootElement(element);
     }
@@ -82,33 +83,36 @@ public class ChangeModels {
         return element.getMetsContext().getRootElement().getOriginalPid();
     }
 
-    public void changeModels() throws DigitalObjectException {
-        if (pids.isEmpty()) {
-            throw new DigitalObjectException(pid, "Process: Changing models failed - no models found");
-        }
-        DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        for (String pid : pids) {
-            changeModel(dom, pid);
-        }
-    }
-
-
-    public void changeModelsAndRepairMetadata(String parentPid) throws DigitalObjectException {
-        if (pids.isEmpty()) {
-            throw new DigitalObjectException(pid, "No models with model " + oldModel);
-        }
+    public ChangeModelResult changeModelsAndRepairMetadata(String parentPid) {
         int updated = 0;
+        String updatedPid = "";
         try {
             for (String pid : pids) {
+                updatedPid = pid;
                 DigitalObjectManager dom = DigitalObjectManager.getDefault();
-                changeModel(dom, pid);
+                changeModel(dom, pid, newModel);
                 repairMetadata(dom, pid, parentPid);
                 updated++;
             }
-            LOG.log(Level.WARNING, "Object changed from " + oldModel + " to " + newModel + " succesfully. Total items (" + updated + ").");
+            if (updated == 0) {
+                LOG.log(Level.WARNING, "No objects with model " + oldModel + " found.");
+            } else {
+                LOG.log(Level.WARNING, "Object changed from " + oldModel + " to " + newModel + " succesfully. Total items (" + updated + ").");
+            }
+            return null;
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items.") ;
-            throw new DigitalObjectException("Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items.");
+            return new ChangeModelResult(updatedPid, new DigitalObjectException(pid, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items."));
+        }
+    }
+
+    public void changeModelBack(String pid, String model) throws DigitalObjectException {
+        try {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            changeModel(dom, pid, model);
+            LOG.info("Model changed to original value for pid:" + pid);
+        } catch (DigitalObjectException ex) {
+            LOG.warning("Can not changed model back.");
         }
     }
 
@@ -154,11 +158,23 @@ public class ChangeModels {
             case NdkPlugin.MODEL_MONOGRAPHVOLUME:
                 fixNdkMonographVolumeMods(mods, parentPid);
                 break;
+            case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME:
+            case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE:
+                fixCollectionOfClippingsVolumeMods(mods, parentPid);
+                break;
             case NdkPlugin.MODEL_MONOGRAPHTITLE:
                 fixNdkMonographVolumeMods(mods, parentPid);
                 break;
             default:
-                throw new DigitalObjectException(pid, "Process: Repair metadata failed - Unsupported model.");
+                throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
+        }
+    }
+
+    private void fixCollectionOfClippingsVolumeMods(ModsDefinition mods, String parentPid) throws DigitalObjectException {
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            titleInfo.getTitle().clear();
+            titleInfo.getTitle().addAll(titleInfo.getPartName());
+            titleInfo.getPartName().clear();
         }
     }
 
@@ -362,18 +378,18 @@ public class ChangeModels {
     }
 
 
-    private void changeModel(DigitalObjectManager dom, String pid) throws DigitalObjectException {
+    private void changeModel(DigitalObjectManager dom, String pid, String model) throws DigitalObjectException {
         FedoraObject fedoraObject = dom.find(pid, null);
         DigitalObjectHandler handler = dom.createHandler(fedoraObject);
         RelationEditor editor = handler.relations();
-        editor.setModel(newModel);
+        editor.setModel(model);
         editor.write(editor.getLastModified(), "Change model");
         handler.commit();
     }
 
     private void findChildrens(IMetsElement element) throws DigitalObjectException {
         if (element == null) {
-            throw new DigitalObjectException("Process: Changing models failed - impossimble to get element");
+            throw new DigitalObjectException(pid, "ChangeModels:findChildrens - element is null");
         }
         String modelId = element.getModel().substring(12);
         if (oldModel.equals(modelId)) {
@@ -396,7 +412,7 @@ public class ChangeModels {
             }
             return MetsElement.getElement(dobj, null, metsContext, true);
         } catch (IOException | MetsExportException ex) {
-            throw new DigitalObjectException("Process: Changing models failed - imposible to find element");
+            throw new DigitalObjectException(pid, "ChangeModels:getElement - impossible to find element");
         }
     }
 
@@ -410,5 +426,24 @@ public class ChangeModels {
         mc.setAllowMissingURNNBN(false);
         mc.setConfig(null);
         return mc;
+    }
+
+    public class ChangeModelResult {
+
+        private String pid;
+        private DigitalObjectException ex;
+
+        public ChangeModelResult(String updatedPid, DigitalObjectException e) {
+            pid = updatedPid;
+            ex = e;
+        }
+
+        public String getPid() {
+            return pid;
+        }
+
+        public DigitalObjectException getEx() {
+            return ex;
+        }
     }
 }

@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
@@ -152,8 +154,6 @@ import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_PROCESSING;
 
 /**
@@ -1974,16 +1974,21 @@ public class DigitalObjectResource {
     @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> changePageToNdkPage(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+        if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
-        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
-        List<String> pids = changeModels.findObjects();
-        changeModels.changeModelsAndRepairMetadata(null);
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
+            changeModels.findObjects();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PAGE);
+                throw result.getEx();
+            }
+        }
         return new SmartGwtResponse<>();
     }
 
@@ -1992,16 +1997,21 @@ public class DigitalObjectResource {
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> changeNdkPageToPage(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+        if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
-        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
-        List<String> pids = changeModels.findObjects();
-        changeModels.changeModelsAndRepairMetadata(null);
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
+            changeModels.findObjects();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_NDK_PAGE);
+                throw result.getEx();
+            }
+        }
         return new SmartGwtResponse<>();
     }
 
@@ -2009,16 +2019,21 @@ public class DigitalObjectResource {
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> changeSttPageToNdkPage(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+        if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
-        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
-        List<String> pids = changeModels.findObjects();
-        changeModels.changeModelsAndRepairMetadata(null);
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
+            changeModels.findObjects();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_PAGE);
+                throw result.getEx();
+            }
+        }
         return new SmartGwtResponse<>();
     }
 
@@ -2026,16 +2041,21 @@ public class DigitalObjectResource {
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_STT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> changeNdkPageToSttPage(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+        if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
-        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE);
-        List<String> pids = changeModels.findObjects();
-        changeModels.changeModelsAndRepairMetadata(null);
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE);
+            changeModels.findObjects();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_NDK_PAGE);
+                throw result.getEx();
+            }
+        }
         return new SmartGwtResponse<>();
     }
 
@@ -2043,17 +2063,67 @@ public class DigitalObjectResource {
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> changeClippingsVolumeToNdkMonographVolume(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+        if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
-        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-        List<String> pids = changeModels.findObjects();
-        String parentPid = changeModels.findRootObject();
-        changeModels.changeModelsAndRepairMetadata(parentPid);
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            changeModels.findObjects();
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME);
+                throw result.getEx();
+            }
+        }
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkMonographVolumeToClippingsVolume(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        if (pids == null || pids.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME);
+            changeModels.findObjects();
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHVOLUME);
+                throw result.getEx();
+            }
+        }
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkMonographTitleToClippingsTitle(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        if (pids == null || pids.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_MONOGRAPHTITLE, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE);
+            changeModels.findObjects();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHTITLE);
+                throw result.getEx();
+            }
+        }
         return new SmartGwtResponse<>();
     }
 
@@ -2062,16 +2132,21 @@ public class DigitalObjectResource {
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> changeClippingsTitleToNdkMonographTitle(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (pid == null || pid.isEmpty()|| modelId == null || modelId.isEmpty()) {
+        if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
-        ChangeModels changeModels = new ChangeModels(appConfig, pid, modelId, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, NdkPlugin.MODEL_MONOGRAPHTITLE);
-        List<String> pids = changeModels.findObjects();
-        changeModels.changeModelsAndRepairMetadata(null);
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, NdkPlugin.MODEL_MONOGRAPHTITLE);
+            changeModels.findObjects();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE);
+                throw result.getEx();
+            }
+        }
         return new SmartGwtResponse<>();
     }
 

@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.mets.Const;
@@ -49,7 +50,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 
 /**
  * Class that represents the element of Mets export
@@ -307,10 +307,10 @@ public class MetsElement implements IMetsElement {
                         if (part.getExtent().size() > 0) {
                             try {
                                 ExtentDefinition extent = getExtent(part.getExtent());
-                                if (extent.getStart() != null) {
+                                if (extent.getStart() != null && containsNumber(extent.getStart().getValue())) {
                                     this.modsStart = new BigInteger(extent.getStart().getValue().replaceAll("\\D", ""));
                                 }
-                                if (extent.getEnd() != null) {
+                                if (extent.getEnd() != null && containsNumber(extent.getEnd().getValue())) {
                                     this.modsEnd = new BigInteger(extent.getEnd().getValue().replaceAll("\\D", ""));
                                 }
                                 break;
@@ -324,10 +324,10 @@ public class MetsElement implements IMetsElement {
                     if (modsDefinition.getPart().get(0).getExtent().size()>0) {
                         try {
                             ExtentDefinition extent = getExtent(modsDefinition.getPart().get(0).getExtent());
-                            if (extent.getStart() != null) {
+                            if (extent.getStart() != null && containsNumber(extent.getStart().getValue())) {
                                 this.modsStart = new BigInteger(extent.getStart().getValue().replaceAll("\\D", ""));
                             }
-                            if (extent.getEnd() != null) {
+                            if (extent.getEnd() != null && containsNumber(extent.getEnd().getValue())) {
                                 this.modsEnd = new BigInteger(extent.getEnd().getValue().replaceAll("\\D", ""));
                             }
                         } catch (NumberFormatException ex) {
@@ -371,6 +371,19 @@ public class MetsElement implements IMetsElement {
         if (fillChildren) {
             fillChildren();
         }
+    }
+
+    private boolean containsNumber(String value) {
+        boolean containsDigit = false;
+        if (value != null && !value.isEmpty()) {
+            for (char c : value.toCharArray()) {
+                if (containsDigit = Character.isDigit(c)) {
+                    break;
+                }
+            }
+        }
+
+        return containsDigit;
     }
 
     private ExtentDefinition getExtent(List<ExtentDefinition> extents) {

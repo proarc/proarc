@@ -56,7 +56,15 @@ public class ChangeModelsDataSource extends ProarcDataSource {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME);
     }
 
+    public static ChangeModelsDataSource changeNdkMonographVolumeToClippingsVolume() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME);
+    }
+
     public static ChangeModelsDataSource changeClippingsTitleToNdkMonographTitle() {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE);
+    }
+
+    public static ChangeModelsDataSource changeNdkMonographTitleToClippingsTitle() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE);
     }
 }

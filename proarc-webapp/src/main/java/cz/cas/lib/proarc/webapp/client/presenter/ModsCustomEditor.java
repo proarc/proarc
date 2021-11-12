@@ -16,19 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
-import com.google.gwt.event.shared.HandlerRegistration;
-import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.Overflow;
-import com.smartgwt.client.util.BooleanCallback;
-import com.smartgwt.client.util.SC;
-import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
-import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -61,12 +48,26 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.PeriodicalVolumeForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.bdm.BornDigitalForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.chronicle.ChronicleForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.collectionOfClippings.CollectionOfClippingsForms;
+import cz.cas.lib.proarc.webapp.client.widget.mods.graphic.GraphicForms;
 import cz.cas.lib.proarc.webapp.client.widget.mods.oldprint.OldPrintForms;
 import cz.cas.lib.proarc.webapp.client.widget.nsesss.NsesssV2Form;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.Overflow;
+import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
+import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
+import com.smartgwt.client.widgets.layout.VLayout;
 
 /**
  * Edits subset of MODS data. It shows different form for each dig. object model.
@@ -329,6 +330,9 @@ public final class ModsCustomEditor extends AbstractDatastreamEditor implements 
             }
             if (form == null) {
                 form = new CollectionOfClippingsForms(i18n).getForm(model, getFormPrefix());
+            }
+            if (form == null) {
+                form = new GraphicForms(i18n).getForm(model, getFormPrefix());
             }
             if (form == null) {
                 // obsolete K4 forms as a fallback

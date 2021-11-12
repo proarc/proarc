@@ -17,6 +17,11 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.device.Device;
@@ -138,11 +143,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
 
@@ -2661,9 +2661,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
             } else if (Const.SOUND_PART.equals(element.getElementType())) {
-                insertSoundPart(logicalDiv, physicalDiv, element);
+                insertSoundPart(divType, physicalDiv, element);
             } else if (Const.SUPPLEMENT.equals(element.getElementType())) {
-                insertAudioSupplement(logicalDiv, physicalDiv, element);
+                insertAudioSupplement(divType, physicalDiv, element);
             } else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Supplement, SoundPart, AudioPage got:" + element.getElementType(), false, null);
         }
@@ -2871,7 +2871,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
             } else if (Const.SUPPLEMENT.equals(element.getElementType())) {
-                insertAudioSupplement(logicalDiv, physicalDiv, element);
+                insertAudioSupplement(divType, physicalDiv, element);
             }
             else
                 throw new MetsExportException(element.getOriginalPid(), "Expected AudioPage or Supplement, got:" + element.getElementType(), false, null);
