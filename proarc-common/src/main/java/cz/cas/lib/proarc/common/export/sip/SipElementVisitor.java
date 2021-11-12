@@ -20,32 +20,47 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import cz.cas.lib.proarc.common.export.mets.*;
+import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
-
-import java.io.*;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.mets.AmdSecType;
+import cz.cas.lib.proarc.mets.DivType;
+import cz.cas.lib.proarc.mets.FileType;
+import cz.cas.lib.proarc.mets.StructMapType;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.mets.*;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.w3c.dom.Node;
-
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import static cz.cas.lib.proarc.common.export.mets.Const.*;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.w3c.dom.Node;
+import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_MULTIPART;
+import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_UNIT;
+import static cz.cas.lib.proarc.common.export.mets.Const.OC_GRP_ID_CREATION;
+import static cz.cas.lib.proarc.common.export.mets.Const.OC_GRP_ID_VALIDATION;
+import static cz.cas.lib.proarc.common.export.mets.Const.PERIODICAL_TITLE;
 
 class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisitor {
 
@@ -155,7 +170,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
 
     private void generateTechMetadata(IMetsElement metsElement, int seq) throws MetsExportException {
         AmdSecType amdSec = new AmdSecType();
-        amdSec.setID(metsElement.getElementID());
+        amdSec.setID("AMD_" + metsElement.getModsElementID());
         mets.getAmdSec().add(amdSec);
         addPremisNodeToMets(getPremisEvent(metsElement, OC_GRP_ID_CREATION, md5InfosMap.get(OC_GRP_ID_CREATION), "creation"), amdSec, "EVT_001", true, null);
         addPremisNodeToMets(getPremisEvent(metsElement, OC_GRP_ID_VALIDATION, md5InfosMap.get(OC_GRP_ID_VALIDATION), "validation"), amdSec, "EVT_002", true, null);
@@ -365,17 +380,19 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                 break;
             }
         }
-        if (!containsUnit) {
             logicalDiv.setLabel3(metsElement.getLabel());
             logicalDiv.setTYPE("TITLE");
-            logicalDiv.setID("MONOGRAPH_0001");
             physicalDiv.setLabel3(metsElement.getLabel());
-            physicalDiv.setID("DIV_P_0000");
             physicalDiv.setTYPE("TITLE");
+        if (!containsUnit) {
+            logicalDiv.setID("MONOGRAPH_0001");
+            physicalDiv.setID("DIV_P_0000");
             metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
             insertVolume(logicalDiv, physicalDiv, metsElement, false);
             createStructureMap(metsElement, false);
         } else {
+            logicalDiv.setID("TITLE_0001");
+            physicalDiv.setID("DIV_P_0000");
             metsElement.setModsElementID("TITLE_0001");
             titleCounter++;
             addDmdSec(metsElement);
