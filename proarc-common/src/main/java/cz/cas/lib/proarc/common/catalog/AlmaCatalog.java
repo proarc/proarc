@@ -145,11 +145,17 @@ public final class AlmaCatalog implements BibliographicCatalog {
             JSONArray records = response.getJSONArray("bib");
             int index = 1;
             for (int i = 0; i < records.length(); i++) {
-                String marc = getMarcResult(records.getJSONObject(i));
-                DOMResult marcResult = transformAlmaResponse(new StreamSource(new StringReader(updateMarc(marc))), new DOMResult());
-                if (marcResult != null) {
-                    MetadataItem item = createResponse(index++, catalog, new DOMSource(marcResult.getNode()), locale);
-                    result.add(item);
+                JSONObject json = records.getJSONObject(i);
+                if ("marc21".equals(json.getString("record_format"))) {
+                    String marc = getMarcResult(json);
+                    DOMResult marcResult = transformAlmaResponse(new StreamSource(new StringReader(updateMarc(marc))), new DOMResult());
+                    if (marcResult != null) {
+                        MetadataItem item = createResponse(index++, catalog, new DOMSource(marcResult.getNode()), locale);
+                        result.add(item);
+                    }
+                } else {
+                    LOG.log(Level.WARNING, "Expected record format \"marc21\", get \"" + json.getString("record_format") + "\".");
+                    throw new IOException("Očekávaný formát záznamu \"marc21\", ze serveru dostal \"" + json.getString("record_format") + "\".");
                 }
             }
         } catch (JSONException e) {
@@ -304,6 +310,7 @@ public final class AlmaCatalog implements BibliographicCatalog {
         marc = marc.replace("\"<", "<");
         marc = marc.replace(">\"", ">");
         marc = marc.replace("<record>", "<records xmlns:m=\"http://www.loc.gov/MARC21/slim\"><m:record>");
+        marc = marc.replace("<record xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:discovery=\"http://purl.org/dc/elements/1.1/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">", "<records xmlns:m=\"http://www.loc.gov/MARC21/slim\"><m:record>");
         marc = marc.replace("</record>", "</m:record></records>");
         marc = marc.replace("leader>", "m:leader>");
         marc = marc.replace("controlfield", "m:controlfield");
