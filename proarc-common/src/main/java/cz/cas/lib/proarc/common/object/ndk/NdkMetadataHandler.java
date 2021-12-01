@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.object.ndk;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -83,8 +85,6 @@ import javax.xml.bind.DataBindingException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;
 import org.xml.sax.SAXException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 
 /**
  * Handles description metadata in the NDK format.
@@ -645,7 +645,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 : Collections.<IdentifierDefinition>emptyList();
         // check URN:NBN
         for (IdentifierDefinition oldId : oldIds) {
-            if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty()) {
+            if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty() && (oldId.getInvalid() == null || "no".equals(oldId.getInvalid()))) {
                 boolean missingId = true;
                 for (IdentifierDefinition id : mods.getIdentifier()) {
                     if (oldId.getType().equals(id.getType()) && oldId.getValue().equals(id.getValue())) {

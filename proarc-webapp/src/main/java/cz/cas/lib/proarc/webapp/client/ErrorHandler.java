@@ -181,7 +181,7 @@ public final class ErrorHandler {
         d.setIsModal(true);
         d.setAutoSize(Boolean.FALSE);
         d.setMessage(msg);
-        d.setIcon("[SKIN]warn.png");
+        d.setIcon("[SKIN]error.png");
         d.setCanDragResize(true);
         d.setCanDragReposition(Boolean.TRUE);
         d.setKeepInParentRect(Boolean.TRUE);

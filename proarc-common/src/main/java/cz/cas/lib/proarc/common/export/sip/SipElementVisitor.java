@@ -443,7 +443,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
 
             if (logicalMap.getDiv() != null) {
                 DivType divOriginalTitle = logicalMap.getDiv();
-                copyDiv(divTitle, divOriginalTitle, false, true);
+                copyDiv(divTitle, divOriginalTitle, true, false);
                 for (DivType divOriginalVolume : divOriginalTitle.getDiv()) {
                     DivType divVolume = new DivType();
                     copyDiv(divVolume, divOriginalVolume, true, false);
