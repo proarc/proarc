@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -169,7 +170,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             formats.clear();
             formats.add(new ElementType(input.getMime().toString(), null));
 
-            metadata.setMetadata(dm, message, "update");
+            metadata.setMetadata(dm, message, NdkMetadataHandler.OPERATION_UPDATE);
         }
 
         @Override

@@ -20,16 +20,17 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.mods.custom.NameMapperTest;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.io.IOUtils;
+import org.junit.Test;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -71,7 +72,8 @@ public class AuthorityMetadataInjectorTest {
 
         new Verifications() {{
             DescriptionMetadata<ModsDefinition> metadata;
-            metadataHandler.setMetadata(metadata = withCapture(), anyString, "update"); minTimes=0;
+            metadataHandler.setMetadata(metadata = withCapture(), anyString, NdkMetadataHandler.OPERATION_UPDATE);
+            minTimes=0;
             assertNotNull(metadata.getData());
             ModsDefinition mods = metadata.getData();
             assertEquals("", 6, mods.getName().size());

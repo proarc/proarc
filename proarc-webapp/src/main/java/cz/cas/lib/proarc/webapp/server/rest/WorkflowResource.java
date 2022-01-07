@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
@@ -545,9 +546,9 @@ public class WorkflowResource {
         dMetadata.setIgnoreValidation(ignoreValidation);
         try {
             if (isJsonData) {
-                mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), "update");
+                mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), NdkMetadataHandler.OPERATION_UPDATE);
             } else {
-                mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), "update");
+                mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), NdkMetadataHandler.OPERATION_UPDATE);
             }
         } catch (DigitalObjectValidationException ex) {
             return toValidationError(ex, session, httpHeaders);
