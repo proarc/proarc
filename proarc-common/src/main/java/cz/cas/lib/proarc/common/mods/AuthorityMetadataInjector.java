@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.mods;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
@@ -39,7 +40,7 @@ public class AuthorityMetadataInjector implements MetadataInjector {
         authority.setData(authorityCollectionMods.getMods().get(0));
         DescriptionMetadata<ModsDefinition> metadata = metadataHandler.getMetadata();
         metadata = insertAuthority(metadata, authority);
-        metadataHandler.setMetadata(metadata, "authority added", "update");
+        metadataHandler.setMetadata(metadata, "authority added", NdkMetadataHandler.OPERATION_UPDATE);
     }
 
     private DescriptionMetadata<ModsDefinition> insertAuthority(DescriptionMetadata<ModsDefinition> metadata, DescriptionMetadata<ModsDefinition> authority) {

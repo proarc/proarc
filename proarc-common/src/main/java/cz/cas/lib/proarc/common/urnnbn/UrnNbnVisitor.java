@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.object.VisitorException;
 import cz.cas.lib.proarc.common.object.ndk.DefaultNdkVisitor;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.Status;
 import cz.cas.lib.proarc.mix.Mix;
@@ -45,9 +46,6 @@ import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import cz.cas.lib.proarc.urnnbn.model.registration.Import;
 import cz.cas.lib.proarc.urnnbn.model.response.ErrorType;
 import cz.cas.lib.proarc.urnnbn.model.response.UrnNbn;
-import org.apache.commons.io.FileUtils;
-import org.xml.sax.SAXException;
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayDeque;
@@ -59,6 +57,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.core.Response;
+import org.apache.commons.io.FileUtils;
+import org.xml.sax.SAXException;
 
 /**
  * Walks down the NDK hierarchy and registers missing URN:NBN with {@link ResolverClient}.
@@ -775,7 +776,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             DigitalObjectHandler objectHandler = elm.getHandler();
             elmMods.getIdentifier().add(urnNbnId);
             elmDescription.setData(elmMods);
-            elmModsHandler.setMetadata(elmDescription, "URN:NBN registration", "update");
+            elmModsHandler.setMetadata(elmDescription, "URN:NBN registration", NdkMetadataHandler.OPERATION_URNNBN);
             objectHandler.commit();
             p.getStatus().ok(elm, urnnbn);
         } catch (Exception ex) {

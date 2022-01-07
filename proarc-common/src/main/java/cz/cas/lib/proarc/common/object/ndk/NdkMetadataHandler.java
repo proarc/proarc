@@ -99,6 +99,10 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
     public static final String DEFAULT_PAGE_TYPE = "normalPage";
 
+    public static final String OPERATION_NEW = "new";
+    public static final String OPERATION_UPDATE = "update";
+    public static final String OPERATION_URNNBN = "addUrnNbn";
+
     /**
      * The set of model IDs that should be checked for connected members.
      */
@@ -602,7 +606,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             ModsDefinition mods = mapper.createPage(
                     page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
             metadata.setIgnoreValidation(true);
-            write(modelId, mods, metadata, message, "update");
+            write(modelId, mods, metadata, message, NdkMetadataHandler.OPERATION_UPDATE);
         } else if (NdkPlugin.MODEL_NDK_PAGE.equals(modelId)) {
             DescriptionMetadata<ModsDefinition> metadata = new DescriptionMetadata<ModsDefinition>();
             metadata.setTimestamp(editor.getLastModified());
@@ -610,7 +614,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             ModsDefinition mods = mapper.createPage(
                     page.getPageIndex(), page.getPageNumber(), page.getPageType(), new Context(handler));
             metadata.setIgnoreValidation(true);
-            write(modelId, mods, metadata, message, "update");
+            write(modelId, mods, metadata, message, NdkMetadataHandler.OPERATION_UPDATE);
         } else {
             throw new DigitalObjectException(fobject.getPid(), "Unexpected model for NDK page: " + modelId);
         }
@@ -707,7 +711,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (timestamp > 0) {
             oldMods = editor.read();
         }
-        if (!"new".equals(typeRecord)) {
+        if (!(OPERATION_NEW.equals(typeRecord) || OPERATION_URNNBN.equals(typeRecord))) {
             checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
         }
         NdkMapper mapper = mapperFactory.get(modelId);

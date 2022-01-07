@@ -75,6 +75,7 @@ import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippin
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.object.technicalMetadata.TechnicalMetadataMapper;
@@ -1102,9 +1103,9 @@ public class DigitalObjectResource {
         dMetadata.setIgnoreValidation(ignoreValidation);
         try {
             if (isJsonData) {
-                mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), "update");
+                mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), NdkMetadataHandler.OPERATION_UPDATE);
             } else {
-                mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), "update");
+                mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), NdkMetadataHandler.OPERATION_UPDATE);
             }
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
