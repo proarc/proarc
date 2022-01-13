@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import com.smartgwt.client.data.fields.DataSourceTextField;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
  *
@@ -66,5 +66,33 @@ public class ChangeModelsDataSource extends ProarcDataSource {
 
     public static ChangeModelsDataSource changeNdkMonographTitleToClippingsTitle() {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE);
+    }
+
+    public static ChangeModelsDataSource changeNdkMonographTitleToNdkMonographVolume() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME);
+    }
+
+    public static ChangeModelsDataSource changeNdkMonographVolumeToNdkMonographTitle() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE);
+    }
+
+    public static ChangeModelsDataSource changeK4PeriodicalToNdkPeriodical() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL);
+    }
+
+    public static ChangeModelsDataSource changeK4PeriodicalVolumeToNdkPeriodicalVolume() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_PERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME);
+    }
+
+    public static ChangeModelsDataSource changeK4PeriodicalIssueToNdkPeriodicalIssue() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE);
+    }
+
+    public static ChangeModelsDataSource changeK4MonographToNdkMonographVolume() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME);
+    }
+
+    public static ChangeModelsDataSource changeK4MonographUnitToNdkMonographVolume() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME);
     }
 }

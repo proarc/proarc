@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Lukas Sykora
+ * Copyright (C) 2019 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,13 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action.administration.changeModels;
+package cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -28,28 +31,28 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.ChangeModelsDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
- * Change Clippings Volume to Ndk Monograph Volume
+ * Transfer page to NdkPage
  *
  * @author Lukas Sykora
  */
-public class ChangeClippingsVolumeToNdkMonographVolumeAction extends AbstractAction {
+public class ChangePageToNdkPageAction extends AbstractAction {
 
     private final ClientMessages i18n;
 
-    public ChangeClippingsVolumeToNdkMonographVolumeAction(ClientMessages i18n) {
-        this(i18n, i18n.ChangeClippingVolumeToNdkMonographVolumeAction_Title(),
+    public ChangePageToNdkPageAction(ClientMessages i18n) {
+        this(i18n, i18n.ChangePageToNdkPageAction_Title(),
                 "[SKIN]/headerIcons/transfer.png",
                 i18n.ChangeModelAction_Hint());
     }
 
-    public ChangeClippingsVolumeToNdkMonographVolumeAction(ClientMessages i18n, String title, String icon, String tooltip) {
+    public ChangePageToNdkPageAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
     }
@@ -83,11 +86,16 @@ public class ChangeClippingsVolumeToNdkMonographVolumeAction extends AbstractAct
     private boolean acceptModel(Record[] records) {
         boolean accept = false;
         for (Record record : records) {
-            DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
+            DigitalObject dobj = DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (modelId != null && CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME.equals(modelId) ||
-                CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE.equals(modelId)) {
+                if (NdkPlugin.MODEL_NDK_PAGE.equals(modelId)
+                        || OldPrintPlugin.MODEL_PAGE.equals(modelId)
+                        || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)
+                        || NdkAudioPlugin.MODEL_PAGE.equals(modelId)) {
+                    accept = false;
+                    continue;
+                } else if (modelId != null) {
                     accept = true;
                     continue;
                 }
@@ -101,12 +109,12 @@ public class ChangeClippingsVolumeToNdkMonographVolumeAction extends AbstractAct
     private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        ChangeModelsDataSource ds = ChangeModelsDataSource.changeClippingsVolumeToNdkMonographVolume();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changePageToNdkPage();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.ChangeClippingVolumeToNdkMonographVolumeAction_FinishStep_Msg());
+                    StatusView.getInstance().show(i18n.ChangePageToNdkPageAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);

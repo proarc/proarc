@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.object;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -46,10 +47,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
 /**
  * The plugin to support digital objects described by K4 flavor of MODS.
@@ -70,6 +75,15 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
     public static final String MODEL_PERIODICAL="model:periodical";
     public static final String MODEL_PERIODICALITEM="model:periodicalitem";
     public static final String MODEL_PERIODICALVOLUME="model:periodicalvolume";
+
+    public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
+        put(FEDORAPREFIX + MODEL_MONOGRAPH, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + MODEL_MONOGRAPHUNIT, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + MODEL_PAGE, Const.PAGE);
+        put(FEDORAPREFIX + MODEL_PERIODICAL, Const.PERIODICAL_TITLE);
+        put(FEDORAPREFIX + MODEL_PERIODICALVOLUME, Const.PERIODICAL_VOLUME);
+        put(FEDORAPREFIX + MODEL_PERIODICALITEM, Const.ISSUE);
+    }});
 
     @Override
     public String getId() {

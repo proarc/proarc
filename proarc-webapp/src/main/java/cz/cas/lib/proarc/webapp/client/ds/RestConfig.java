@@ -16,6 +16,14 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.core.client.GWT;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.OperationBinding;
+import com.smartgwt.client.rpc.RPCResponse;
+import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
+import com.smartgwt.client.types.DSProtocol;
 import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.AuthorityCatalogResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
@@ -31,14 +39,6 @@ import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.util.HashMap;
 import java.util.Map;
-import com.google.gwt.core.client.GWT;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.OperationBinding;
-import com.smartgwt.client.rpc.RPCResponse;
-import com.smartgwt.client.types.DSDataFormat;
-import com.smartgwt.client.types.DSOperationType;
-import com.smartgwt.client.types.DSProtocol;
 
 /**
  * @author Jan Pokorsky
@@ -106,8 +106,15 @@ public final class RestConfig {
     public static final String URL_CHANGE_NDK_PAGE_TO_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE);
     public static final String URL_CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME);
     public static final String URL_CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME);
+    public static final String URL_CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE);
     public static final String URL_CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE);
     public static final String URL_CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE);
+    public static final String URL_CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME);
+    public static final String URL_CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL);
+    public static final String URL_CHANGE_K4_PERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME);
+    public static final String URL_CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE);
+    public static final String URL_CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME);
+    public static final String URL_CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME);
     public static final String URL_UPDATE_NDK_ARTICLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_ARTICLE);
     public static final String URL_UPDATE_NDK_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_PAGE);
     public static final String URL_LOCALIZATION = path(URL_ROOT, LocalizationResourceApi.PATH);

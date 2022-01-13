@@ -29,6 +29,7 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
+import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.menu.MenuItemSeparator;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
@@ -50,14 +51,21 @@ import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.UpdateAllObjectsAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsTitleToNdkMonographTitleAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeClippingsVolumeToNdkMonographVolumeAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkMonographTitleToClippingsTitleAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkMonographVolumeToClippingsVolumeAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToPageAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeNdkPageToSttPageAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangePageToNdkPageAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ChangeSttPageToNdkPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.clippings.ChangeClippingsTitleToNdkMonographTitleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.clippings.ChangeClippingsVolumeToNdkMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.ChangeK4MonographToNdkMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.ChangeK4MonographUnitToNdkMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.ChangeK4PeriodicalIssueToNdkPeriodicalIssueAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.ChangeK4PeriodicalToNdkPeriodicalAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.ChangeK4PeriodicalVolumeToNdkPeriodicalVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographTitleToClippingsTitleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographTitleToNdkMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographVolumeToClippingsVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographVolumeToNdkMonographTitleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeNdkPageToPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeNdkPageToSttPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangePageToNdkPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeSttPageToNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
@@ -132,7 +140,14 @@ public final class DigitalObjectManager {
     private ChangeClippingsVolumeToNdkMonographVolumeAction changeClippingsVolumeToNdkMonographVolumeAction;
     private ChangeClippingsTitleToNdkMonographTitleAction changeClippingsTitleToNdkMonographTitleAction;
     private ChangeNdkMonographVolumeToClippingsVolumeAction changeNdkMonographVolumeToClippingsVolumeAction;
+    private ChangeNdkMonographVolumeToNdkMonographTitleAction changeNdkMonographVolumeToNdkMonographTitleAction;
     private ChangeNdkMonographTitleToClippingsTitleAction changeNdkMonographTitleToClippingsTitleAction;
+    private ChangeNdkMonographTitleToNdkMonographVolumeAction changeNdkMonographTitleToNdkMonographVolumeAction;
+    private ChangeK4PeriodicalIssueToNdkPeriodicalIssueAction changeK4PeriodicalIssueToNdkPeriodicalIssueAction;
+    private ChangeK4PeriodicalVolumeToNdkPeriodicalVolumeAction changeK4PeriodicalVolumeToNdkPeriodicalVolumeAction;
+    private ChangeK4MonographToNdkMonographVolumeAction changeK4MonographToNdkMonographVolumeAction;
+    private ChangeK4MonographUnitToNdkMonographVolumeAction changeK4MonographUnitToNdkMonographVolumeAction;
+    private ChangeK4PeriodicalToNdkPeriodicalAction changeK4PeriodicalToNdkPeriodicalAction;
     private UpdateNdkArticleAction updateNdkArticleAction;
     private UpdateNdkPageAction updateNdkPageAction;
     private TreeExpandAction expandTreeAction;
@@ -305,7 +320,14 @@ public final class DigitalObjectManager {
         changeClippingsVolumeToNdkMonographVolumeAction = new ChangeClippingsVolumeToNdkMonographVolumeAction(i18n);
         changeClippingsTitleToNdkMonographTitleAction = new ChangeClippingsTitleToNdkMonographTitleAction(i18n);
         changeNdkMonographVolumeToClippingsVolumeAction = new ChangeNdkMonographVolumeToClippingsVolumeAction(i18n);
+        changeNdkMonographVolumeToNdkMonographTitleAction = new ChangeNdkMonographVolumeToNdkMonographTitleAction(i18n);
         changeNdkMonographTitleToClippingsTitleAction = new ChangeNdkMonographTitleToClippingsTitleAction(i18n);
+        changeNdkMonographTitleToNdkMonographVolumeAction = new ChangeNdkMonographTitleToNdkMonographVolumeAction(i18n);
+        changeK4PeriodicalIssueToNdkPeriodicalIssueAction = new ChangeK4PeriodicalIssueToNdkPeriodicalIssueAction(i18n);
+        changeK4PeriodicalVolumeToNdkPeriodicalVolumeAction = new ChangeK4PeriodicalVolumeToNdkPeriodicalVolumeAction(i18n);
+        changeK4MonographToNdkMonographVolumeAction =  new ChangeK4MonographToNdkMonographVolumeAction(i18n);
+        changeK4MonographUnitToNdkMonographVolumeAction = new ChangeK4MonographUnitToNdkMonographVolumeAction(i18n);
+        changeK4PeriodicalToNdkPeriodicalAction = new ChangeK4PeriodicalToNdkPeriodicalAction(i18n);
         updateNdkArticleAction = new UpdateNdkArticleAction(i18n);
         updateNdkPageAction = new UpdateNdkPageAction(i18n);
         expandTreeAction = new TreeExpandAction(
@@ -377,14 +399,11 @@ public final class DigitalObjectManager {
         //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
         //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
-        menuAdministration.addItem(Actions.asMenuItem(changePageToNdkPageAction, actionSource, false));
-        menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToPageAction, actionSource, false));
-        menuAdministration.addItem(Actions.asMenuItem(changeSttPageToNdkPageAction, actionSource, false));
-        menuAdministration.addItem(Actions.asMenuItem(changeNdkPageToSttPageAction, actionSource, false));
-        menuAdministration.addItem(Actions.asMenuItem(changeClippingsVolumeToNdkMonographVolumeAction, actionSource, false));
-        menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
-        //menuAdministration.addItem(Actions.asMenuItem(changeNdkMonographVolumeToClippingsVolumeAction, actionSource, false));
-        //menuAdministration.addItem(Actions.asMenuItem(changeNdkMonographTitleToClippingsTitleAction, actionSource, false));
+        menuAdministration.addItem(initChangePageMenu(actionSource));
+        menuAdministration.addItem(initChangeNdkModelsMenu(actionSource));
+        menuAdministration.addItem(initChangeK4ModelsMenu(actionSource));
+        //menuAdministration.addItem(Actions.asMenuItem(changeClippingsVolumeToNdkMonographVolumeAction, actionSource, false));
+        //menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(updateNdkArticleAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(updateNdkPageAction, actionSource, false));
@@ -415,6 +434,40 @@ public final class DigitalObjectManager {
         if (menuType == MenuType.TREE_VIEW) {
             toolbar.addMember(Actions.asIconButton(expandTreeAction, actionSource));
         }
+    }
+
+    private MenuItem initChangePageMenu(ActionSource actionSource) {
+        MenuItem changePageModels = new MenuItem(i18n.ChangePageModels());
+        Menu changePageModelsMenu = Actions.createMenu();
+        changePageModelsMenu.addItem(Actions.asMenuItem(changePageToNdkPageAction, actionSource, false));
+        changePageModelsMenu.addItem(Actions.asMenuItem(changeNdkPageToPageAction, actionSource, false));
+        changePageModelsMenu.addItem(Actions.asMenuItem(changeSttPageToNdkPageAction, actionSource, false));
+        changePageModelsMenu.addItem(Actions.asMenuItem(changeNdkPageToSttPageAction, actionSource, false));
+        changePageModels.setSubmenu(changePageModelsMenu);
+        return changePageModels;
+    }
+
+    private MenuItem initChangeNdkModelsMenu(ActionSource actionSource) {
+        MenuItem changeNdkModels = new MenuItem(i18n.ChangeNdkModels());
+        Menu changeNdkModelsMenu = Actions.createMenu();
+        //changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMonographVolumeToClippingsVolumeAction, actionSource, false));
+        //changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMonographTitleToClippingsTitleAction, actionSource, false));
+        changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMonographTitleToNdkMonographVolumeAction, actionSource, false));
+        changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMonographVolumeToNdkMonographTitleAction, actionSource, false));
+        changeNdkModels.setSubmenu(changeNdkModelsMenu);
+        return changeNdkModels;
+    }
+
+    private MenuItem initChangeK4ModelsMenu(ActionSource actionSource) {
+        MenuItem changeK4Models = new MenuItem(i18n.ChangeK4Models());
+        Menu changeK4ModelsMenu = Actions.createMenu();
+        changeK4ModelsMenu.addItem(Actions.asMenuItem(changeK4PeriodicalToNdkPeriodicalAction, actionSource, false));
+        changeK4ModelsMenu.addItem(Actions.asMenuItem(changeK4PeriodicalVolumeToNdkPeriodicalVolumeAction, actionSource, false));
+        changeK4ModelsMenu.addItem(Actions.asMenuItem(changeK4PeriodicalIssueToNdkPeriodicalIssueAction, actionSource, false));
+        changeK4ModelsMenu.addItem(Actions.asMenuItem(changeK4MonographToNdkMonographVolumeAction, actionSource, false));
+        changeK4ModelsMenu.addItem(Actions.asMenuItem(changeK4MonographUnitToNdkMonographVolumeAction, actionSource, false));
+        changeK4Models.setSubmenu(changeK4ModelsMenu);
+        return changeK4Models;
     }
 
     private void initContextMenu(Menu menu, ActionSource actionSource) {
