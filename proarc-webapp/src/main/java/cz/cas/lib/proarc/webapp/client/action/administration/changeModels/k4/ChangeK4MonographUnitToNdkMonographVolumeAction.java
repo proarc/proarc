@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Lukas Sykora
+ * Copyright (C) 2022 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,12 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action.administration.changeModels;
+package cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
@@ -35,21 +36,21 @@ import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
- * Change Ndk Monograph Volume to Clippings Volume
+ * Change K4 Monograph Unit to Ndk Monograph Volume
  *
  * @author Lukas Sykora
  */
-public class ChangeNdkMonographVolumeToClippingsVolumeAction extends AbstractAction {
+public class ChangeK4MonographUnitToNdkMonographVolumeAction extends AbstractAction {
 
     private final ClientMessages i18n;
 
-    public ChangeNdkMonographVolumeToClippingsVolumeAction(ClientMessages i18n) {
-        this(i18n, i18n.ChangeNdkMonographVolumeToClippingVolumeAction_Title(),
+    public ChangeK4MonographUnitToNdkMonographVolumeAction(ClientMessages i18n) {
+        this(i18n, i18n.ChangeK4MonographUnitToNdkMonographVolumeAction_Title(),
                 "[SKIN]/headerIcons/transfer.png",
                 i18n.ChangeModelAction_Hint());
     }
 
-    public ChangeNdkMonographVolumeToClippingsVolumeAction(ClientMessages i18n, String title, String icon, String tooltip) {
+    public ChangeK4MonographUnitToNdkMonographVolumeAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
     }
@@ -86,8 +87,9 @@ public class ChangeNdkMonographVolumeToClippingsVolumeAction extends AbstractAct
             DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (modelId != null && NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) ||
-                NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
+                if (modelId != null && (K4Plugin.MODEL_MONOGRAPHUNIT.equals(modelId) ||
+                        K4Plugin.MODEL_MONOGRAPH.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)
+                        || NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId))) {
                     accept = true;
                     continue;
                 }
@@ -101,12 +103,12 @@ public class ChangeNdkMonographVolumeToClippingsVolumeAction extends AbstractAct
     private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkMonographVolumeToClippingsVolume();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeK4MonographUnitToNdkMonographVolume();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.ChangeNdkMonographVolumeToClippingVolumeAction_FinishStep_Msg());
+                    StatusView.getInstance().show(i18n.ChangeK4MonographUnitToNdkMonographVolumeAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);

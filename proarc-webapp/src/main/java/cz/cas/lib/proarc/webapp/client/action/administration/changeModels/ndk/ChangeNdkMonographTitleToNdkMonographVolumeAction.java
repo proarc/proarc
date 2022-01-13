@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Lukas Sykora
+ * Copyright (C) 2022 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,13 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action.administration.changeModels;
+package cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -35,21 +35,21 @@ import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
- * Change Clippings Title to Ndk Monograph Title
+ * Change Ndk Monograph Title to Ndk Monograph Volume
  *
  * @author Lukas Sykora
  */
-public class ChangeClippingsTitleToNdkMonographTitleAction extends AbstractAction {
+public class ChangeNdkMonographTitleToNdkMonographVolumeAction extends AbstractAction {
 
     private final ClientMessages i18n;
 
-    public ChangeClippingsTitleToNdkMonographTitleAction(ClientMessages i18n) {
-        this(i18n, i18n.ChangeClippingTitleToNdkMonographTitleAction_Title(),
+    public ChangeNdkMonographTitleToNdkMonographVolumeAction(ClientMessages i18n) {
+        this(i18n, i18n.ChangeNdkMonographTitleToNdkMonographVolumeAction_Title(),
                 "[SKIN]/headerIcons/transfer.png",
                 i18n.ChangeModelAction_Hint());
     }
 
-    public ChangeClippingsTitleToNdkMonographTitleAction(ClientMessages i18n, String title, String icon, String tooltip) {
+    public ChangeNdkMonographTitleToNdkMonographVolumeAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
     }
@@ -86,7 +86,7 @@ public class ChangeClippingsTitleToNdkMonographTitleAction extends AbstractActio
             DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (modelId != null && CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE.equals(modelId)) {
+                if (modelId != null && NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
                     accept = true;
                     continue;
                 }
@@ -100,12 +100,12 @@ public class ChangeClippingsTitleToNdkMonographTitleAction extends AbstractActio
     private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        ChangeModelsDataSource ds = ChangeModelsDataSource.changeClippingsTitleToNdkMonographTitle();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkMonographTitleToNdkMonographVolume();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.ChangeClippingTitleToNdkMonographTitleAction_FinishStep_Msg());
+                    StatusView.getInstance().show(i18n.ChangeNdkMonographTitleToClippingTitleAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);

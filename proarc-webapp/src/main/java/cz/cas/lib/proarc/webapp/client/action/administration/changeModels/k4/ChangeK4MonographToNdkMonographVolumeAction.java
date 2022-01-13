@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Lukas Sykora
+ * Copyright (C) 2022 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,16 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action.administration.changeModels;
+package cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -31,28 +28,28 @@ import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
 import cz.cas.lib.proarc.webapp.client.ds.ChangeModelsDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
- * Transfer NdkPage to STT page
+ * Change K4 Monograph to Ndk Monograph Volume
  *
  * @author Lukas Sykora
  */
-public class ChangeNdkPageToSttPageAction extends AbstractAction {
+public class ChangeK4MonographToNdkMonographVolumeAction extends AbstractAction {
 
     private final ClientMessages i18n;
 
-    public ChangeNdkPageToSttPageAction(ClientMessages i18n) {
-        this(i18n, i18n.ChangeNdkPageToSttPageAction_Title(),
+    public ChangeK4MonographToNdkMonographVolumeAction(ClientMessages i18n) {
+        this(i18n, i18n.ChangeK4MonographToNdkMonographVolumeAction_Title(),
                 "[SKIN]/headerIcons/transfer.png",
                 i18n.ChangeModelAction_Hint());
     }
 
-    public ChangeNdkPageToSttPageAction(ClientMessages i18n, String title, String icon, String tooltip) {
+    public ChangeK4MonographToNdkMonographVolumeAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
     }
@@ -86,16 +83,10 @@ public class ChangeNdkPageToSttPageAction extends AbstractAction {
     private boolean acceptModel(Record[] records) {
         boolean accept = false;
         for (Record record : records) {
-            DigitalObject dobj = DigitalObject.createOrNull(record);
+            DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (NdkPlugin.MODEL_PAGE.equals(modelId)
-                        || OldPrintPlugin.MODEL_PAGE.equals(modelId)
-                        || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)
-                        || NdkAudioPlugin.MODEL_PAGE.equals(modelId)) {
-                    accept = false;
-                    continue;
-                } else if (modelId != null) {
+                if (modelId != null && (K4Plugin.MODEL_MONOGRAPH.equals(modelId))) {
                     accept = true;
                     continue;
                 }
@@ -109,12 +100,12 @@ public class ChangeNdkPageToSttPageAction extends AbstractAction {
     private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkPageToSttPage();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeK4MonographToNdkMonographVolume();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.ChangeNdkPageToSttPageAction_FinishStep_Msg());
+                    StatusView.getInstance().show(i18n.ChangeK4MonographToNdkMonographVolumeAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);

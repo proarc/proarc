@@ -239,8 +239,16 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_NDK_PAGE_TO_STT_PAGE = "changeNdkPageToSttPage";
     public static final String CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME = "changeClippingsVolumeToNdkMonographVolume";
     public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME = "changeNdkMonographVolumeToClippingsVolume";
+    public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE = "changeNdkMonographVolumeToNdkMonographTitle";
     public static final String CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = "changeClippingsTitleToNdkMonographTitle";
     public static final String CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE = "changeNdkMonographTitleToClippingsTitle";
+    public static final String CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME = "changeNdkMonographTitleToNdkMonographVolume";
+    public static final String CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL = "changeK4PeriodicalToNdkPeriodical";
+    public static final String CHANGE_K4_PERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME = "changeK4PeriodicalVolumeToNdkPeriodicalVolume";
+    public static final String CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE = "changeK4PeriodicalIssueToNdkPeriodicalIssue";
+    public static final String CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME = "changeK4MonographToNdkMonographVolume";
+    public static final String CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME = "changeK4MonographUnitToNdkMonographVolume";
+
 
     public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
     public static final String UPDATE_NDK_PAGE = "updateNdkPage";
