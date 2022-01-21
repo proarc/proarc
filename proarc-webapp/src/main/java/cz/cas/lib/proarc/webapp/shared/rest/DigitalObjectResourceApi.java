@@ -217,7 +217,6 @@ public final class DigitalObjectResourceApi {
 
     /** Resource /object/thumb */
     public static final String URNNBN_PATH = "urnnbn";
-    public static final String COPYOBJECT_PATH = "copyObject";
     public static final String URNNBN_HIERARCHY = "hierarchy";
     public static final String URNNBN_RESOLVER = "resolverId";
     public static final String REINDEX_PATH = "reindexObjects";
@@ -229,6 +228,10 @@ public final class DigitalObjectResourceApi {
     public static final String URNNBN_ITEM_WARNING = "warning";
     public static final String URNNBN_ITEM_LOG = "log";
     public static final String WORKFLOW_JOB_ID = "wfJobId";
+
+    public static final String COPYOBJECT_PATH = "copyObject";
+    public static final String LOCK_OBJECT_PATH = "lockObject";
+    public static final String UNLOCK_OBJECT_PATH = "unlockObject";
 
     public static final String GENERATE_JP2_PATH = "generateJp2";
     public static final String GENERATE_TYPE = "generateType";
