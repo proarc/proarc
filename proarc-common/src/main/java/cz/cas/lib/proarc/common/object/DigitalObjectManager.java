@@ -36,6 +36,7 @@ import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -480,7 +481,7 @@ public class DigitalObjectManager {
 
             DescriptionMetadata<String> descMetadata = new DescriptionMetadata<>();
             descMetadata.setData(xml);
-            doHandler.metadata().setMetadataAsXml(descMetadata, message, "new");
+            doHandler.metadata().setMetadataAsXml(descMetadata, message, NdkMetadataHandler.OPERATION_NEW);
 
             if (parentHandler != null) {
                 RelationEditor parentRelsExt = parentHandler.relations();

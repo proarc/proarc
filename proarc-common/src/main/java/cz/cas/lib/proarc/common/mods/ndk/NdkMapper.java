@@ -22,11 +22,13 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.chronicle.ChronicleMapperFactory;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsMapperFactory;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsMapperFactory;
 import cz.cas.lib.proarc.common.object.graphic.GraphicMapperFactory;
 import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
+import cz.cas.lib.proarc.common.object.k4.K4MapperFactory;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
@@ -55,6 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.empire.commons.StringUtils;
+
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
@@ -78,6 +81,7 @@ public abstract class NdkMapper {
     private static final CollectionOfClippingsMapperFactory clippingMapperFactory = new CollectionOfClippingsMapperFactory();
     private static final GraphicMapperFactory graphicMapperFactory = new GraphicMapperFactory();
     private static final BornDigitalModsMapperFactory bornDigitalMapperFactory = new BornDigitalModsMapperFactory();
+    private static final K4MapperFactory k4MapperFactory = new K4MapperFactory();
 
     /**
      * Gets a NDK mapper for the given model ID.
@@ -97,8 +101,10 @@ public abstract class NdkMapper {
             mapper = graphicMapperFactory.get(modelId);
         } else if (isBornDigitalModel(modelId)) {
             mapper = bornDigitalMapperFactory.get(modelId);
-        } else {
+        } else if(isOldprintModel(modelId)) {
             mapper = oldprintMapperFacotry.get(modelId);
+        } else {
+            mapper = k4MapperFactory.get(modelId);
         }
         mapper.modelId = modelId;
         return mapper;
@@ -130,6 +136,15 @@ public abstract class NdkMapper {
 
     public static boolean isOldprintModel(String modelId) {
         return modelId != null && (modelId.contains(OldPrintPlugin.ID));
+    }
+
+    public static boolean isK4Model(String modelId) {
+        return modelId != null &&
+                (modelId.equals(K4Plugin.MODEL_MONOGRAPH) ||
+                        modelId.equals(K4Plugin.MODEL_MONOGRAPHUNIT) ||
+                        modelId.equals(K4Plugin.MODEL_PERIODICAL) ||
+                        modelId.equals(K4Plugin.MODEL_PERIODICALVOLUME) ||
+                        modelId.equals(K4Plugin.MODEL_PERIODICALITEM));
     }
 
     public String getModelId() {

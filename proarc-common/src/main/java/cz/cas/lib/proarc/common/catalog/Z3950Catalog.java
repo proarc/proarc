@@ -19,7 +19,17 @@ package cz.cas.lib.proarc.common.catalog;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogQueryField;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
+import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
 import cz.cas.lib.proarc.common.xml.Transformers;
+import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.DateOtherDefinition;
+import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PlaceDefinition;
+import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import cz.cas.lib.proarc.z3950.Z3950Client;
 import cz.cas.lib.proarc.z3950.Z3950ClientException;
 import java.io.ByteArrayInputStream;
@@ -28,10 +38,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
@@ -40,7 +52,14 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Z39.50 metadata provider.
@@ -160,7 +179,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
                     transformers.dump(new DOMSource(marcXml), sb);
                     LOG.fine(sb.toString());
                 }
-                MetadataItem item = createResponse(index++, catalog, new DOMSource(marcXml), locale);
+                MetadataItem item = createResponse(index++, catalog, marcXml, locale);
                 result.add(item);
             }
             return result;
@@ -202,12 +221,14 @@ public final class Z3950Catalog implements BibliographicCatalog {
         return query;
     }
 
-    private MetadataItem createResponse(int entryIdx, String catalog, Source marcxmlSrc, Locale locale)
+    private MetadataItem createResponse(int entryIdx, String catalog, Document marcXml, Locale locale)
             throws TransformerException, UnsupportedEncodingException {
 
 
+        Source marcxmlSrc = new DOMSource(marcXml);
         byte[] modsBytes = transformers.transformAsBytes(
                 marcxmlSrc, Transformers.Format.MarcxmlAsMods3);
+        modsBytes = repairModsBytes(modsBytes, marcXml);
         byte[] modsHtmlBytes = modsAsHtmlBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), locale);
         byte[] modsTitleBytes = transformers.transformAsBytes(
                 new StreamSource(new ByteArrayInputStream(modsBytes)),
@@ -218,6 +239,279 @@ public final class Z3950Catalog implements BibliographicCatalog {
 
         return new MetadataItem(entryIdx, catalog, new String(modsBytes, "UTF-8"),
                 repairHtml(new String(modsHtmlBytes, "UTF-8")), new String(modsTitleBytes, "UTF-8"));
+    }
+
+    private byte[] repairModsBytes(byte[] modsBytes, Document marcXml) throws UnsupportedEncodingException {
+        String modsAsString = new String(modsBytes, "UTF-8");
+        ModsCollectionDefinition modsCollection = ModsUtils.unmarshal(modsAsString, ModsCollectionDefinition.class);
+        List<String> couples = new ArrayList<>();
+        int updateNode = 0;
+
+        if (containsNode(marcXml, "260")) {
+            couples = findAndSplitNode(marcXml, "260");
+            updateNode = 260;
+        } else if (containsNode(marcXml, "264")) {
+            couples = findAndSplitNode(marcXml, "264");
+            updateNode = 264;
+        }
+
+        if (couples.size() < 2) {
+            return modsBytes;
+        } else { //knav monografie isbn 80-200-0953-1
+            if (260 == updateNode) {
+                modsAsString = repairMods(modsCollection, couples);
+                return modsAsString.getBytes(StandardCharsets.UTF_8);
+            } else if (264 == updateNode) { // knav monografie - name: History of nanotechnology from pre-historic to modern times; isbn: 978-1-119-46008-4
+                modsAsString = repairMods_264(modsCollection, couples);
+                return modsAsString.getBytes(StandardCharsets.UTF_8);
+            } else {
+                return modsBytes;
+            }
+        }
+    }
+
+    private String repairMods_264(ModsCollectionDefinition modsCollection, List<String> couples) {
+        List<OriginInfoDefinition> fixedOriginInfo = new ArrayList<>();
+        ModsDefinition mods = modsCollection.getMods().get(0);
+        for (String couple : couples) {
+            OriginInfoDefinition newOriginInfo = null;
+            if (couple.contains("a")) {
+                for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
+                    if (oldOriginInfo.getEventType() != null) {
+                        for (PlaceDefinition oldPlace : oldOriginInfo.getPlace()) {
+                            boolean delete = false;
+                            for (PlaceTermDefinition oldPlaceTerm : oldPlace.getPlaceTerm()) {
+                                if (oldPlaceTerm.getAuthority() == null) {
+                                    PlaceDefinition newPlace = new PlaceDefinition();
+                                    newPlace.getPlaceTerm().add(oldPlaceTerm);
+                                    if (newOriginInfo == null) {
+                                        newOriginInfo = new OriginInfoDefinition();
+                                        newOriginInfo.setEventType(oldOriginInfo.getEventType());
+                                    }
+                                    newOriginInfo.getPlace().add(newPlace);
+                                    oldPlace.getPlaceTerm().remove(oldPlace);
+                                    delete = true;
+                                    break;
+                                }
+                            }
+                            if (delete == true) {
+                                oldOriginInfo.getPlace().remove(oldPlace);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (couple.contains("b")) {
+                for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
+                    if (oldOriginInfo.getEventType() != null) {
+                        for (StringPlusLanguagePlusSupplied oldPublisher : oldOriginInfo.getPublisher()) {
+                            if (newOriginInfo == null) {
+                                newOriginInfo = new OriginInfoDefinition();
+                                newOriginInfo.setEventType(oldOriginInfo.getEventType());
+                            }
+                            newOriginInfo.getPublisher().add(oldPublisher);
+                            oldOriginInfo.getPublisher().remove(oldPublisher);
+                            break;
+                        }
+                    }
+                }
+            }
+            if (couple.contains("c")) {
+                for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
+                    if (oldOriginInfo.getEventType() != null) {
+                        for (DateDefinition oldDate : oldOriginInfo.getDateIssued()) {
+                            if (newOriginInfo == null) {
+                                newOriginInfo = new OriginInfoDefinition();
+                                newOriginInfo.setEventType(oldOriginInfo.getEventType());
+                            }
+                            newOriginInfo.getDateIssued().add(oldDate);
+                            oldOriginInfo.getDateIssued().remove(oldDate);
+                            break;
+                        }
+                        for (DateDefinition oldDate : oldOriginInfo.getDateCreated()) {
+                            if (newOriginInfo == null) {
+                                newOriginInfo = new OriginInfoDefinition();
+                                newOriginInfo.setEventType(oldOriginInfo.getEventType());
+                            }
+                            newOriginInfo.getDateCreated().add(oldDate);
+                            oldOriginInfo.getDateCreated().remove(oldDate);
+                            break;
+                        }
+                        for (DateDefinition oldDate : oldOriginInfo.getCopyrightDate()) {
+                            if (newOriginInfo == null) {
+                                newOriginInfo = new OriginInfoDefinition();
+                                newOriginInfo.setEventType(oldOriginInfo.getEventType());
+                            }
+                            newOriginInfo.getCopyrightDate().add(oldDate);
+                            oldOriginInfo.getCopyrightDate().remove(oldDate);
+                            break;
+                        }
+                        for (DateOtherDefinition oldDate : oldOriginInfo.getDateOther()) {
+                            if (newOriginInfo == null) {
+                                newOriginInfo = new OriginInfoDefinition();
+                                newOriginInfo.setEventType(oldOriginInfo.getEventType());
+                            }
+                            newOriginInfo.getDateOther().add(oldDate);
+                            oldOriginInfo.getDateOther().remove(oldDate);
+                            break;
+                        }
+                    }
+                }
+            }
+            if (newOriginInfo != null) {
+                fixedOriginInfo.add(newOriginInfo);
+            }
+        }
+        mods.getOriginInfo().addAll(fixedOriginInfo);
+        cleanOriginInfo(mods);
+        return ModsUtils.toXml(mods, true);
+    }
+
+    private void cleanOriginInfo(ModsDefinition mods) {
+        ListIterator<OriginInfoDefinition> iterator = mods.getOriginInfo().listIterator();
+        while (iterator.hasNext()) {
+            OriginInfoDefinition originInfo = iterator.next();
+            if (originInfo.getEventType() != null &&
+                    originInfo.getPlace().isEmpty() &&
+                    originInfo.getPublisher().isEmpty() &&
+                    originInfo.getDateCreated().isEmpty() &&
+                    originInfo.getDateIssued().isEmpty() &&
+                    originInfo.getCopyrightDate().isEmpty() &&
+                    originInfo.getDateOther().isEmpty()) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private String repairMods(ModsCollectionDefinition modsCollection, List<String> couples) {
+        List<OriginInfoDefinition> fixedOriginInfo = new ArrayList<>();
+        ModsDefinition mods = modsCollection.getMods().get(0);
+        for (String couple : couples) {
+            OriginInfoDefinition newOriginInfo = null;
+            if (couple.contains("a")) {
+                for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
+                    for (PlaceDefinition oldPlace : oldOriginInfo.getPlace()) {
+                        boolean delete = false;
+                        for (PlaceTermDefinition oldPlaceTerm : oldPlace.getPlaceTerm()) {
+                            if (oldPlaceTerm.getAuthority() == null) {
+                                PlaceDefinition newPlace = new PlaceDefinition();
+                                newPlace.getPlaceTerm().add(oldPlaceTerm);
+                                if (newOriginInfo == null) {
+                                    newOriginInfo = new OriginInfoDefinition();
+                                }
+                                newOriginInfo.getPlace().add(newPlace);
+                                oldPlace.getPlaceTerm().remove(oldPlace);
+                                delete = true;
+                                break;
+                            }
+                        }
+                        if (delete == true) {
+                            oldOriginInfo.getPlace().remove(oldPlace);
+                            break;
+                        }
+                    }
+                }
+            }
+            if (couple.contains("b")) {
+                for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
+                    for (StringPlusLanguagePlusSupplied oldPublisher : oldOriginInfo.getPublisher()) {
+                        if (newOriginInfo == null) {
+                            newOriginInfo = new OriginInfoDefinition();
+                        }
+                        newOriginInfo.getPublisher().add(oldPublisher);
+                        oldOriginInfo.getPublisher().remove(oldPublisher);
+                        break;
+                    }
+                }
+            }
+            if (couple.contains("c")) {
+                for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
+                    for (DateDefinition oldDate : oldOriginInfo.getDateIssued()) {
+                        if (newOriginInfo == null) {
+                            newOriginInfo = new OriginInfoDefinition();
+                        }
+                        newOriginInfo.getDateIssued().add(oldDate);
+                        oldOriginInfo.getDateIssued().remove(oldDate);
+                        break;
+                    }
+                }
+            }
+
+            if (couple.contains("g")) {
+                for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
+                    for (DateDefinition oldDate : oldOriginInfo.getDateCreated()) {
+                        if (newOriginInfo == null) {
+                            newOriginInfo = new OriginInfoDefinition();
+                        }
+                        newOriginInfo.getDateCreated().add(oldDate);
+                        oldOriginInfo.getDateCreated().remove(oldDate);
+                        break;
+                    }
+                }
+            }
+            if (newOriginInfo != null) {
+                fixedOriginInfo.add(newOriginInfo);
+            }
+        }
+        mods.getOriginInfo().addAll(fixedOriginInfo);
+        return ModsUtils.toXml(mods, true);
+    }
+
+    private List<String> findAndSplitNode(Document marcXml, String tagValue) {
+        List<String> couples = new ArrayList<>();
+        try {
+            XPathFactory xPathFactory = ProarcXmlUtils.defaultXPathFactory();
+            XPath xPath = xPathFactory.newXPath();
+            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
+            XPathExpression originInfoPath = xPath.compile("m:collection/m:record/m:datafield[@tag=" + tagValue + "]");
+            Node node = (Node) originInfoPath.evaluate(marcXml, XPathConstants.NODE);
+            List<String> listOfSubelements = new ArrayList<>();
+            if (node != null && node.hasChildNodes()) {
+                NodeList listOfNodes = node.getChildNodes();
+                for (int i = 0; i < listOfNodes.getLength(); i++) {
+                    Node subelement = listOfNodes.item(i);
+                    if (subelement.getAttributes() != null && subelement.getAttributes().getNamedItem("code") != null) {
+                        listOfSubelements.add(subelement.getAttributes().getNamedItem("code").getNodeValue());
+                    }
+                }
+            }
+            int position = 0;
+            for (String subelement : listOfSubelements) {
+                if (couples.isEmpty()) {
+                    couples.add(subelement);
+                } else {
+                    if (couples.get(position).contains(subelement)) {
+                        couples.add(subelement);
+                        position++;
+                    } else {
+                        String element = couples.get(position);
+                        couples.set(position, element + subelement);
+                    }
+                }
+            }
+        } catch (XPathExpressionException e) {
+            LOG.warning("Impossible to parse node with tag " + tagValue + " from downloaded marcXml");
+            e.printStackTrace();
+        }
+        return couples;
+    }
+
+
+    private boolean containsNode(Document marcXml, String tagValue) {
+        Node node = null;
+        try {
+            XPathFactory xPathFactory = ProarcXmlUtils.defaultXPathFactory();
+            XPath xPath = xPathFactory.newXPath();
+            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
+            XPathExpression originInfoPath = xPath.compile("m:collection/m:record/m:datafield[@tag=" + tagValue + "]");
+            node = (Node) originInfoPath.evaluate(marcXml, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            LOG.warning("Impossible to parse node with tag " + tagValue + " from downloaded marcXml");
+            e.printStackTrace();
+        } finally {
+            return node != null;
+        }
     }
 
     private String repairHtml(String s) {

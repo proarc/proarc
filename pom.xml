@@ -74,7 +74,15 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-
+        <!-- org.jzkit:jzkit_z3950_plugin -->
+        <repository>
+            <id>k-int</id>
+            <name>k-int Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>rd.repository</id>
             <name>RD Repository</name>
@@ -102,17 +110,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-
-        <!-- org.jzkit:jzkit_z3950_plugin -->
-        <repository>
-            <id>k-int</id>
-            <name>k-int Repository</name>
-            <url>http://maven.k-int.com/content/repositories/releases/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
     </repositories>
 
     <dependencyManagement>

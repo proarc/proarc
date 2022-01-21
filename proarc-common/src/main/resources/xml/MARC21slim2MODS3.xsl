@@ -643,303 +643,306 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <!-- originInfo 250 and 260 -->
 
         <xsl:if test="marc:datafield[(@tag=260 or @tag=250)]">
-        <originInfo>
-            <xsl:call-template name="scriptCode"/>
-            <xsl:for-each
-                select="marc:datafield[(@tag=260 or @tag=250) and marc:subfield[@code='a' or code='b' or @code='c' or code='g']]">
-                <xsl:call-template name="z2xx880"/>
-            </xsl:for-each>
+            <originInfo>
+                <xsl:call-template name="scriptCode"/>
+                <xsl:for-each
+                        select="marc:datafield[(@tag=260 or @tag=250) and marc:subfield[@code='a' or code='b' or @code='c' or code='g']]">
+                    <xsl:call-template name="z2xx880"/>
+                </xsl:for-each>
 
-            <xsl:variable name="MARCpublicationCode"
-                select="normalize-space(substring($controlField008,16,3))"/>
-            <xsl:if test="translate($MARCpublicationCode,'|','')">
-                <place>
-                    <placeTerm>
-                        <xsl:attribute name="type">code</xsl:attribute>
-                        <xsl:attribute name="authority">marccountry</xsl:attribute>
-                        <xsl:value-of select="$MARCpublicationCode"/>
-                    </placeTerm>
-                </place>
-            </xsl:if>
-            <xsl:for-each select="marc:datafield[@tag=044]/marc:subfield[@code='c']">
-                <place>
-                    <placeTerm>
-                        <xsl:attribute name="type">code</xsl:attribute>
-                        <xsl:attribute name="authority">iso3166</xsl:attribute>
-                        <xsl:value-of select="."/>
-                    </placeTerm>
-                </place>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag=260]/marc:subfield[@code='a']">
-                <place>
-                    <placeTerm>
-                        <xsl:attribute name="type">text</xsl:attribute>
-                        <xsl:call-template name="chopPunctuationFront">
-                            <xsl:with-param name="chopString">
-                                <xsl:call-template name="chopPunctuation">
-                                    <xsl:with-param name="chopString" select="."/>
-                                </xsl:call-template>
-                            </xsl:with-param>
-                        </xsl:call-template>
-                    </placeTerm>
-                </place>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='m']">
-                <dateValid point="start">
-                    <xsl:value-of select="."/>
-                </dateValid>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='n']">
-                <dateValid point="end">
-                    <xsl:value-of select="."/>
-                </dateValid>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='j']">
-                <dateModified>
-                    <xsl:value-of select="."/>
-                </dateModified>
-            </xsl:for-each>
-
-            <!-- tmee 1.52 -->
-
-            <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='c']">
-                <dateIssued encoding="marc" point="start">
-                    <xsl:value-of select="."/>
-                </dateIssued>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='e']">
-                <dateIssued encoding="marc" point="end">
-                    <xsl:value-of select="."/>
-                </dateIssued>
-            </xsl:for-each>
-
-            <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='k']">
-                <dateCreated encoding="marc" point="start">
-                    <xsl:value-of select="."/>
-                </dateCreated>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='l']">
-                <dateCreated encoding="marc" point="end">
-                    <xsl:value-of select="."/>
-                </dateCreated>
-            </xsl:for-each>
-
-            <!-- tmee 1.35 1.36 dateIssued/nonMSS vs dateCreated/MSS -->
-            <xsl:for-each
-                select="marc:datafield[@tag=260]/marc:subfield[@code='b' or @code='c' or @code='g']">
-                <xsl:choose>
-                    <xsl:when test="@code='b'">
-                        <publisher>
-                            <xsl:call-template name="chopPunctuation">
-                                <xsl:with-param name="chopString" select="."/>
-                                <xsl:with-param name="punctuation">
-                                    <xsl:text>:,;/ </xsl:text>
+                <xsl:variable name="MARCpublicationCode"
+                              select="normalize-space(substring($controlField008,16,3))"/>
+                <xsl:if test="translate($MARCpublicationCode,'|','')">
+                    <place>
+                        <placeTerm>
+                            <xsl:attribute name="type">code</xsl:attribute>
+                            <xsl:attribute name="authority">marccountry</xsl:attribute>
+                            <xsl:value-of select="$MARCpublicationCode"/>
+                        </placeTerm>
+                    </place>
+                </xsl:if>
+                <xsl:for-each select="marc:datafield[@tag=044]/marc:subfield[@code='c']">
+                    <place>
+                        <placeTerm>
+                            <xsl:attribute name="type">code</xsl:attribute>
+                            <xsl:attribute name="authority">iso3166</xsl:attribute>
+                            <xsl:value-of select="."/>
+                        </placeTerm>
+                    </place>
+                </xsl:for-each>
+                <xsl:for-each select="marc:datafield[@tag=260]/marc:subfield[@code='a']">
+                    <place>
+                        <placeTerm>
+                            <xsl:attribute name="type">text</xsl:attribute>
+                            <xsl:call-template name="chopPunctuationFront">
+                                <xsl:with-param name="chopString">
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
                                 </xsl:with-param>
                             </xsl:call-template>
-                        </publisher>
-                    </xsl:when>
-                    <xsl:when test="(@code='c')">
-                        <xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
-                            <dateCreated>
-                                <xsl:call-template name="chopPunctuation">
-                                    <xsl:with-param name="chopString" select="."/>
-                                </xsl:call-template>
-                            </dateCreated>
-                        </xsl:if>
+                        </placeTerm>
+                    </place>
+                </xsl:for-each>
+                <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='m']">
+                    <dateValid point="start">
+                        <xsl:value-of select="."/>
+                    </dateValid>
+                </xsl:for-each>
+                <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='n']">
+                    <dateValid point="end">
+                        <xsl:value-of select="."/>
+                    </dateValid>
+                </xsl:for-each>
+                <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='j']">
+                    <dateModified>
+                        <xsl:value-of select="."/>
+                    </dateModified>
+                </xsl:for-each>
 
-                        <xsl:if
-                            test="not($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
-                            <dateIssued>
+                <!-- tmee 1.52 -->
+
+                <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='c']">
+                    <dateIssued encoding="marc" point="start">
+                        <xsl:value-of select="."/>
+                    </dateIssued>
+                </xsl:for-each>
+                <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='e']">
+                    <dateIssued encoding="marc" point="end">
+                        <xsl:value-of select="."/>
+                    </dateIssued>
+                </xsl:for-each>
+
+                <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='k']">
+                    <dateCreated encoding="marc" point="start">
+                        <xsl:value-of select="."/>
+                    </dateCreated>
+                </xsl:for-each>
+                <xsl:for-each select="marc:datafield[@tag=046]/marc:subfield[@code='l']">
+                    <dateCreated encoding="marc" point="end">
+                        <xsl:value-of select="."/>
+                    </dateCreated>
+                </xsl:for-each>
+
+                <!-- tmee 1.35 1.36 dateIssued/nonMSS vs dateCreated/MSS -->
+                <xsl:for-each
+                        select="marc:datafield[@tag=260]/marc:subfield[@code='b' or @code='c' or @code='g']">
+                    <xsl:choose>
+                        <xsl:when test="@code='b'">
+                            <publisher>
                                 <xsl:call-template name="chopPunctuation">
                                     <xsl:with-param name="chopString" select="."/>
+                                    <xsl:with-param name="punctuation">
+                                        <xsl:text>:,;/ </xsl:text>
+                                    </xsl:with-param>
                                 </xsl:call-template>
-                            </dateIssued>
-                        </xsl:if>
-                    </xsl:when>
-                    <xsl:when test="@code='g'">
-                        <xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
-                            <dateCreated>
-                                <xsl:value-of select="."/>
-                            </dateCreated>
-                        </xsl:if>
-                        <xsl:if
-                            test="not($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
-                            <dateCreated>
-                                <xsl:value-of select="."/>
-                            </dateCreated>
-                        </xsl:if>
-                    </xsl:when>
-                </xsl:choose>
-            </xsl:for-each>
-            <xsl:variable name="dataField260c">
-                <xsl:call-template name="chopPunctuation">
-                    <xsl:with-param name="chopString"
-                        select="marc:datafield[@tag=260]/marc:subfield[@code='c']"/>
-                </xsl:call-template>
-            </xsl:variable>
-            <xsl:variable name="controlField008-7-10"
-                select="normalize-space(substring($controlField008, 8, 4))"/>
-            <xsl:variable name="controlField008-11-14"
-                select="normalize-space(substring($controlField008, 12, 4))"/>
-            <xsl:variable name="controlField008-6"
-                select="normalize-space(substring($controlField008, 7, 1))"/>
+                            </publisher>
+                        </xsl:when>
+                        <xsl:when test="(@code='c')">
+                            <xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
+                                <dateCreated>
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </dateCreated>
+                            </xsl:if>
+
+                            <xsl:if
+                                    test="not($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
+                                <dateIssued>
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </dateIssued>
+                            </xsl:if>
+                        </xsl:when>
+                        <xsl:when test="@code='g'">
+                            <xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
+                                <dateCreated>
+                                    <xsl:value-of select="."/>
+                                </dateCreated>
+                            </xsl:if>
+                            <xsl:if
+                                    test="not($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
+                                <dateCreated>
+                                    <xsl:value-of select="."/>
+                                </dateCreated>
+                            </xsl:if>
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:for-each>
+                <xsl:variable name="dataField260c">
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString"
+                                        select="marc:datafield[@tag=260]/marc:subfield[@code='c']"/>
+                    </xsl:call-template>
+                </xsl:variable>
+                <xsl:variable name="controlField008-7-10"
+                              select="normalize-space(substring($controlField008, 8, 4))"/>
+                <xsl:variable name="controlField008-11-14"
+                              select="normalize-space(substring($controlField008, 12, 4))"/>
+                <xsl:variable name="controlField008-6"
+                              select="normalize-space(substring($controlField008, 7, 1))"/>
 
 
 
             <!-- tmee 1.35 and 1.36 and 1.84-->
 
-            <xsl:if
-                test="($controlField008-6='e' or $controlField008-6='p' or $controlField008-6='r' or $controlField008-6='s' or $controlField008-6='t') and ($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
-                <xsl:if test="$controlField008-7-10 and ($controlField008-7-10 != $dataField260c)">
-                    <dateCreated encoding="marc">
-                        <xsl:value-of select="$controlField008-7-10"/>
-                    </dateCreated>
-                </xsl:if>
-            </xsl:if>
-
-            <xsl:if
-                test="($controlField008-6='e' or $controlField008-6='p' or $controlField008-6='r' or $controlField008-6='s' or $controlField008-6='t') and not($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
-                <xsl:if test="$controlField008-7-10 and ($controlField008-7-10 != $dataField260c)">
-                    <dateIssued encoding="marc">
-                        <xsl:value-of select="$controlField008-7-10"/></dateIssued>
-                </xsl:if>
-            </xsl:if>
-
-            <xsl:if
-                test="$controlField008-6='c' or $controlField008-6='d' or $controlField008-6='i' or $controlField008-6='k' or $controlField008-6='m' or $controlField008-6='u'">
-                <xsl:if test="$controlField008-7-10">
-                    <dateIssued encoding="marc" point="start">
-                        <xsl:value-of select="$controlField008-7-10"/>
-                    </dateIssued>
-                </xsl:if>
-            </xsl:if>
-
-            <xsl:if
-                test="$controlField008-6='c' or $controlField008-6='d' or $controlField008-6='i' or $controlField008-6='k' or $controlField008-6='m' or $controlField008-6='u'">
-                <xsl:if test="$controlField008-11-14">
-                    <dateIssued encoding="marc" point="end">
-                        <xsl:value-of select="$controlField008-11-14"/>
-                    </dateIssued>
-                </xsl:if>
-            </xsl:if>
-
-            <xsl:if test="$controlField008-6='q'">
-                <xsl:if test="$controlField008-7-10">
-                    <dateIssued encoding="marc" point="start" qualifier="questionable">
-                        <xsl:value-of select="$controlField008-7-10"/>
-                    </dateIssued>
-                </xsl:if>
-            </xsl:if>
-            <xsl:if test="$controlField008-6='q'">
-                <xsl:if test="$controlField008-11-14">
-                    <dateIssued encoding="marc" point="end" qualifier="questionable">
-                        <xsl:value-of select="$controlField008-11-14"/>
-                    </dateIssued>
-                </xsl:if>
-            </xsl:if>
-
-
-            <!-- tmee 1.77 008-06 dateIssued for value 's' 1.89 removed 20130920
-            <xsl:if test="$controlField008-6='s'">
-                <xsl:if test="$controlField008-7-10">
-                    <dateIssued encoding="marc">
-                        <xsl:value-of select="$controlField008-7-10"/>
-                    </dateIssued>
-                </xsl:if>
-            </xsl:if>
-            -->
-
-            <xsl:if test="$controlField008-6='t'">
-                <xsl:if test="$controlField008-11-14">
-                    <copyrightDate encoding="marc">
-                        <xsl:value-of select="$controlField008-11-14"/>
-                    </copyrightDate>
-                </xsl:if>
-            </xsl:if>
-            <xsl:for-each
-                select="marc:datafield[@tag=033][@ind1=0 or @ind1=1]/marc:subfield[@code='a']">
-                <dateCaptured encoding="iso8601">
-                    <xsl:value-of select="."/>
-                </dateCaptured>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag=033][@ind1=2]/marc:subfield[@code='a'][1]">
-                <dateCaptured encoding="iso8601" point="start">
-                    <xsl:value-of select="."/>
-                </dateCaptured>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag=033][@ind1=2]/marc:subfield[@code='a'][2]">
-                <dateCaptured encoding="iso8601" point="end">
-                    <xsl:value-of select="."/>
-                </dateCaptured>
-            </xsl:for-each>
-            <xsl:for-each select="marc:datafield[@tag=250]/marc:subfield[@code='a']">
-                <edition>
-                    <xsl:value-of select="."/>
-                </edition>
-            </xsl:for-each>
-            <xsl:for-each select="marc:leader">
-                <issuance>
-                    <xsl:choose>
-                        <xsl:when
-                            test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'"
-                            >monographic</xsl:when>
-                        <xsl:when
-                            test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')"
-                            >multipart monograph</xsl:when>
-                        <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
-                        <xsl:when test="$leader7='i'">integrating resource</xsl:when>
-                        <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
-                    </xsl:choose>
-                </issuance>
-            </xsl:for-each>
-
-            <!-- 1.96 20140422 -->
-            <xsl:for-each select="marc:datafield[@tag=310]|marc:datafield[@tag=321]">
-                <frequency>
-                    <xsl:call-template name="subfieldSelect">
-                        <xsl:with-param name="codes">ab</xsl:with-param>
-                    </xsl:call-template>
-                </frequency>
-            </xsl:for-each>
-
-            <!--    1.67 1.72 updated fixed location issue 201308 1.86    -->
-
-            <xsl:if test="$typeOf008='SE'">
-                <xsl:for-each select="marc:controlfield[@tag=008]">
-                    <xsl:variable name="controlField008-18" select="substring($controlField008,19,1)"/>
-                    <xsl:variable name="frequency">
-                        <frequency>
-                            <xsl:choose>
-                                <xsl:when test="$controlField008-18='a'">Annual</xsl:when>
-                                <xsl:when test="$controlField008-18='b'">Bimonthly</xsl:when>
-                                <xsl:when test="$controlField008-18='c'">Semiweekly</xsl:when>
-                                <xsl:when test="$controlField008-18='d'">Daily</xsl:when>
-                                <xsl:when test="$controlField008-18='e'">Biweekly</xsl:when>
-                                <xsl:when test="$controlField008-18='f'">Semiannual</xsl:when>
-                                <xsl:when test="$controlField008-18='g'">Biennial</xsl:when>
-                                <xsl:when test="$controlField008-18='h'">Triennial</xsl:when>
-                                <xsl:when test="$controlField008-18='i'">Three times a week</xsl:when>
-                                <xsl:when test="$controlField008-18='j'">Three times a month</xsl:when>
-                                <xsl:when test="$controlField008-18='k'">Continuously updated</xsl:when>
-                                <xsl:when test="$controlField008-18='m'">Monthly</xsl:when>
-                                <xsl:when test="$controlField008-18='q'">Quarterly</xsl:when>
-                                <xsl:when test="$controlField008-18='s'">Semimonthly</xsl:when>
-                                <xsl:when test="$controlField008-18='t'">Three times a year</xsl:when>
-                                <xsl:when test="$controlField008-18='u'">Unknown</xsl:when>
-                                <xsl:when test="$controlField008-18='w'">Weekly</xsl:when>
-                                <xsl:when test="$controlField008-18='#'">Completely irregular</xsl:when>
-                                <xsl:otherwise/>
-                            </xsl:choose>
-                        </frequency>
-                    </xsl:variable>
-                    <xsl:if test="$frequency!=''">
-                        <frequency authority="marcfrequency">
-                            <xsl:value-of select="$frequency"/>
-                        </frequency>
+                <xsl:if
+                        test="($controlField008-6='e' or $controlField008-6='p' or $controlField008-6='r' or $controlField008-6='s' or $controlField008-6='t') and ($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
+                    <xsl:if test="$controlField008-7-10 and ($controlField008-7-10 != $dataField260c)">
+                        <dateCreated encoding="marc">
+                            <xsl:value-of select="$controlField008-7-10"/>
+                        </dateCreated>
                     </xsl:if>
+                </xsl:if>
+
+                <xsl:if
+                        test="($controlField008-6='e' or $controlField008-6='p' or $controlField008-6='r' or $controlField008-6='s' or $controlField008-6='t') and not($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
+                    <xsl:if test="$controlField008-7-10 and ($controlField008-7-10 != $dataField260c)">
+                        <dateIssued encoding="marc">
+                            <xsl:value-of select="$controlField008-7-10"/>
+                        </dateIssued>
+                    </xsl:if>
+                </xsl:if>
+
+                <xsl:if
+                        test="$controlField008-6='c' or $controlField008-6='d' or $controlField008-6='i' or $controlField008-6='k' or $controlField008-6='m' or $controlField008-6='u'">
+                    <xsl:if test="$controlField008-7-10">
+                        <dateIssued encoding="marc" point="start">
+                            <xsl:value-of select="$controlField008-7-10"/>
+                        </dateIssued>
+                    </xsl:if>
+                </xsl:if>
+
+                <xsl:if
+                        test="$controlField008-6='c' or $controlField008-6='d' or $controlField008-6='i' or $controlField008-6='k' or $controlField008-6='m' or $controlField008-6='u'">
+                    <xsl:if test="$controlField008-11-14">
+                        <dateIssued encoding="marc" point="end">
+                            <xsl:value-of select="$controlField008-11-14"/>
+                        </dateIssued>
+                    </xsl:if>
+                </xsl:if>
+
+                <xsl:if test="$controlField008-6='q'">
+                    <xsl:if test="$controlField008-7-10">
+                        <dateIssued encoding="marc" point="start" qualifier="questionable">
+                            <xsl:value-of select="$controlField008-7-10"/>
+                        </dateIssued>
+                    </xsl:if>
+                </xsl:if>
+                <xsl:if test="$controlField008-6='q'">
+                    <xsl:if test="$controlField008-11-14">
+                        <dateIssued encoding="marc" point="end" qualifier="questionable">
+                            <xsl:value-of select="$controlField008-11-14"/>
+                        </dateIssued>
+                    </xsl:if>
+                </xsl:if>
+
+
+                <!-- tmee 1.77 008-06 dateIssued for value 's' 1.89 removed 20130920
+                <xsl:if test="$controlField008-6='s'">
+                    <xsl:if test="$controlField008-7-10">
+                        <dateIssued encoding="marc">
+                            <xsl:value-of select="$controlField008-7-10"/>
+                        </dateIssued>
+                    </xsl:if>
+                </xsl:if>
+                -->
+
+                <xsl:if test="$controlField008-6='t'">
+                    <xsl:if test="$controlField008-11-14">
+                        <copyrightDate encoding="marc">
+                            <xsl:value-of select="$controlField008-11-14"/>
+                        </copyrightDate>
+                    </xsl:if>
+                </xsl:if>
+                <xsl:for-each
+                        select="marc:datafield[@tag=033][@ind1=0 or @ind1=1]/marc:subfield[@code='a']">
+                    <dateCaptured encoding="iso8601">
+                        <xsl:value-of select="."/>
+                    </dateCaptured>
                 </xsl:for-each>
-            </xsl:if>
-        </originInfo>
+                <xsl:for-each select="marc:datafield[@tag=033][@ind1=2]/marc:subfield[@code='a'][1]">
+                    <dateCaptured encoding="iso8601" point="start">
+                        <xsl:value-of select="."/>
+                    </dateCaptured>
+                </xsl:for-each>
+                <xsl:for-each select="marc:datafield[@tag=033][@ind1=2]/marc:subfield[@code='a'][2]">
+                    <dateCaptured encoding="iso8601" point="end">
+                        <xsl:value-of select="."/>
+                    </dateCaptured>
+                </xsl:for-each>
+                <xsl:for-each select="marc:datafield[@tag=250]/marc:subfield[@code='a']">
+                    <edition>
+                        <xsl:value-of select="."/>
+                    </edition>
+                </xsl:for-each>
+                <xsl:for-each select="marc:leader">
+                    <issuance>
+                        <xsl:choose>
+                            <xsl:when
+                                    test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'"
+                            >monographic
+                            </xsl:when>
+                            <xsl:when
+                                    test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')"
+                            >multipart monograph
+                            </xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
+                            <xsl:when test="$leader7='i'">integrating resource</xsl:when>
+                            <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
+                        </xsl:choose>
+                    </issuance>
+                </xsl:for-each>
+
+                <!-- 1.96 20140422 -->
+                <xsl:for-each select="marc:datafield[@tag=310]|marc:datafield[@tag=321]">
+                    <frequency>
+                        <xsl:call-template name="subfieldSelect">
+                            <xsl:with-param name="codes">ab</xsl:with-param>
+                        </xsl:call-template>
+                    </frequency>
+                </xsl:for-each>
+
+                <!--    1.67 1.72 updated fixed location issue 201308 1.86    -->
+
+                <xsl:if test="$typeOf008='SE'">
+                    <xsl:for-each select="marc:controlfield[@tag=008]">
+                        <xsl:variable name="controlField008-18" select="substring($controlField008,19,1)"/>
+                        <xsl:variable name="frequency">
+                            <frequency>
+                                <xsl:choose>
+                                    <xsl:when test="$controlField008-18='a'">Annual</xsl:when>
+                                    <xsl:when test="$controlField008-18='b'">Bimonthly</xsl:when>
+                                    <xsl:when test="$controlField008-18='c'">Semiweekly</xsl:when>
+                                    <xsl:when test="$controlField008-18='d'">Daily</xsl:when>
+                                    <xsl:when test="$controlField008-18='e'">Biweekly</xsl:when>
+                                    <xsl:when test="$controlField008-18='f'">Semiannual</xsl:when>
+                                    <xsl:when test="$controlField008-18='g'">Biennial</xsl:when>
+                                    <xsl:when test="$controlField008-18='h'">Triennial</xsl:when>
+                                    <xsl:when test="$controlField008-18='i'">Three times a week</xsl:when>
+                                    <xsl:when test="$controlField008-18='j'">Three times a month</xsl:when>
+                                    <xsl:when test="$controlField008-18='k'">Continuously updated</xsl:when>
+                                    <xsl:when test="$controlField008-18='m'">Monthly</xsl:when>
+                                    <xsl:when test="$controlField008-18='q'">Quarterly</xsl:when>
+                                    <xsl:when test="$controlField008-18='s'">Semimonthly</xsl:when>
+                                    <xsl:when test="$controlField008-18='t'">Three times a year</xsl:when>
+                                    <xsl:when test="$controlField008-18='u'">Unknown</xsl:when>
+                                    <xsl:when test="$controlField008-18='w'">Weekly</xsl:when>
+                                    <xsl:when test="$controlField008-18='#'">Completely irregular</xsl:when>
+                                    <xsl:otherwise/>
+                                </xsl:choose>
+                            </frequency>
+                        </xsl:variable>
+                        <xsl:if test="$frequency!=''">
+                            <frequency authority="marcfrequency">
+                                <xsl:value-of select="$frequency"/>
+                            </frequency>
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:if>
+            </originInfo>
         </xsl:if>
 
         <!-- originInfo - 264 -->
@@ -948,116 +951,132 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <originInfo eventType="production">
                 <!-- Template checks for altRepGroup - 880 $6 -->
                 <xsl:call-template name="xxx880"/>
-                <place>
-                    <placeTerm type="text">
+                <xsl:for-each select="marc:subfield[@code='a']">
+                    <place>
+                        <placeTerm type="text">
+                            <xsl:call-template name="chopPunctuationFront">
+                                <xsl:with-param name="chopString">
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </xsl:with-param>
+                            </xsl:call-template>
+                        </placeTerm>
+                    </place>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='b']">
+                    <publisher>
                         <xsl:call-template name="chopPunctuation">
-                            <xsl:with-param name="chopString">
-                                <xsl:value-of select="marc:subfield[@code='a']"/>
-                            </xsl:with-param>
+                            <xsl:with-param name="chopString" select="."/>
                         </xsl:call-template>
-                    </placeTerm>
-                </place>
-                <publisher>
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='b']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </publisher>
-                <dateOther type="production">
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='c']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </dateOther>
+                    </publisher>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='c']">
+                    <dateOther type="production">
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString" select="."/>
+                        </xsl:call-template>
+                    </dateOther>
+                </xsl:for-each>
             </originInfo>
         </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag=264][@ind2=1]">
             <originInfo eventType="publication">
                 <!-- Template checks for altRepGroup - 880 $6 1.88 20130829 added chopPunc-->
                 <xsl:call-template name="xxx880"/>
-                <place>
-                    <placeTerm type="text">
+                <xsl:for-each select="marc:subfield[@code='a']">
+                    <place>
+                        <placeTerm type="text">
+                            <xsl:call-template name="chopPunctuationFront">
+                                <xsl:with-param name="chopString">
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </xsl:with-param>
+                            </xsl:call-template>
+                        </placeTerm>
+                    </place>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='b']">
+                    <publisher>
                         <xsl:call-template name="chopPunctuation">
-                            <xsl:with-param name="chopString">
-                                <xsl:value-of select="marc:subfield[@code='a']"/>
-                            </xsl:with-param>
+                            <xsl:with-param name="chopString" select="."/>
                         </xsl:call-template>
-                    </placeTerm>
-                </place>
-                <publisher>
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='b']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </publisher>
-                <dateIssued>
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='c']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </dateIssued>
+                    </publisher>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='c']">
+                    <dateIssued>
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString" select="."/>
+                        </xsl:call-template>
+                    </dateIssued>
+                </xsl:for-each>
             </originInfo>
         </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag=264][@ind2=2]">
             <originInfo eventType="distribution">
                 <!-- Template checks for altRepGroup - 880 $6 -->
                 <xsl:call-template name="xxx880"/>
-                <place>
-                    <placeTerm type="text">
+                <xsl:for-each select="marc:subfield[@code='a']">
+                    <place>
+                        <placeTerm type="text">
+                            <xsl:call-template name="chopPunctuationFront">
+                                <xsl:with-param name="chopString">
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </xsl:with-param>
+                            </xsl:call-template>
+                        </placeTerm>
+                    </place>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='b']">
+                    <publisher>
                         <xsl:call-template name="chopPunctuation">
-                            <xsl:with-param name="chopString">
-                                <xsl:value-of select="marc:subfield[@code='a']"/>
-                            </xsl:with-param>
+                            <xsl:with-param name="chopString" select="."/>
                         </xsl:call-template>
-                    </placeTerm>
-                </place>
-                <publisher>
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='b']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </publisher>
-                <dateOther type="distribution">
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='c']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </dateOther>
+                    </publisher>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='c']">
+                    <dateOther type="distribution">
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString" select="."/>
+                        </xsl:call-template>
+                    </dateOther>
+                </xsl:for-each>
             </originInfo>
         </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag=264][@ind2=3]">
             <originInfo eventType="manufacture">
                 <!-- Template checks for altRepGroup - 880 $6 -->
                 <xsl:call-template name="xxx880"/>
-                <place>
-                    <placeTerm type="text">
+                <xsl:for-each select="marc:subfield[@code='a']">
+                    <place>
+                        <placeTerm type="text">
+                            <xsl:call-template name="chopPunctuationFront">
+                                <xsl:with-param name="chopString">
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </xsl:with-param>
+                            </xsl:call-template>
+                        </placeTerm>
+                    </place>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='b']">
+                    <publisher>
                         <xsl:call-template name="chopPunctuation">
-                            <xsl:with-param name="chopString">
-                                <xsl:value-of select="marc:subfield[@code='a']"/>
-                            </xsl:with-param>
+                            <xsl:with-param name="chopString" select="."/>
                         </xsl:call-template>
-                    </placeTerm>
-                </place>
-                <publisher>
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='b']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </publisher>
-                <dateOther type="manufacture">
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='c']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </dateOther>
+                    </publisher>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='c']">
+                    <dateOther type="manufacture">
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString" select="."/>
+                        </xsl:call-template>
+                    </dateOther>
+                </xsl:for-each>
             </originInfo>
         </xsl:for-each>
         <!--Revision 1.97.proarc.12.298-->
@@ -1065,30 +1084,33 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <originInfo eventType="copyright">
                 <!-- Template checks for altRepGroup - 880 $6 -->
                 <xsl:call-template name="xxx880"/>
-                <place>
-                    <placeTerm type="text">
+                <xsl:for-each select="marc:subfield[@code='a']">
+                    <place>
+                        <placeTerm type="text">
+                            <xsl:call-template name="chopPunctuationFront">
+                                <xsl:with-param name="chopString">
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </xsl:with-param>
+                            </xsl:call-template>
+                        </placeTerm>
+                    </place>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='b']">
+                    <publisher>
                         <xsl:call-template name="chopPunctuation">
-                            <xsl:with-param name="chopString">
-                                <xsl:value-of select="marc:subfield[@code='a']"/>
-                            </xsl:with-param>
+                            <xsl:with-param name="chopString" select="."/>
                         </xsl:call-template>
-                    </placeTerm>
-                </place>
-                <publisher>
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='b']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </publisher>
-                <copyrightDate>
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="marc:subfield[@code='c']"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-
-                </copyrightDate>
+                    </publisher>
+                </xsl:for-each>
+                <xsl:for-each select="marc:subfield[@code='c']">
+                    <copyrightDate>
+                        <xsl:call-template name="chopPunctuation">
+                            <xsl:with-param name="chopString" select="."/>
+                        </xsl:call-template>
+                    </copyrightDate>
+                </xsl:for-each>
             </originInfo>
         </xsl:for-each>
 
@@ -3166,18 +3188,18 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:with-param name="codes">aq</xsl:with-param>
             </xsl:call-template>
         </xsl:param>
-                <namePart type ="given">
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:call-template name="subfieldSelect">
-                                <xsl:with-param name="codes">aq</xsl:with-param>
-                            </xsl:call-template>
-                        </xsl:with-param>
-                        <xsl:with-param name="punctuation">
-                            <xsl:text>,</xsl:text>
-                        </xsl:with-param>
+        <namePart type="given">
+            <xsl:call-template name="chopPunctuation">
+                <xsl:with-param name="chopString">
+                    <xsl:call-template name="subfieldSelect">
+                        <xsl:with-param name="codes">aq</xsl:with-param>
                     </xsl:call-template>
-                </namePart>
+                </xsl:with-param>
+                <xsl:with-param name="punctuation">
+                    <xsl:text>,</xsl:text>
+                </xsl:with-param>
+            </xsl:call-template>
+        </namePart>
         <xsl:call-template name="termsOfAddress"/>
         <xsl:call-template name="nameDate"/>
     </xsl:template>
@@ -3999,7 +4021,6 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
     </xsl:template>
 
 
-
     <xsl:template name="true880">
         <xsl:variable name="sf06" select="normalize-space(marc:subfield[@code='6'])"/>
         <xsl:variable name="sf06a" select="substring($sf06, 1, 3)"/>
@@ -4536,7 +4557,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="role"/>
                 <xsl:call-template name="nameIdentifier"/>
             </name>
-        </xsl:if><xsl:if test="@ind1='1'">
+        </xsl:if>
+        <xsl:if test="@ind1='1'">
             <name type="personal">
                 <xsl:attribute name="usage">
                     <xsl:text>primary</xsl:text>
@@ -4589,7 +4611,9 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <xsl:variable name="subfield7" select="marc:subfield[@code='7']"/>
         <xsl:if test="$subfield7">
             <xsl:attribute name="authorityURI">http://aut.nkp.cz</xsl:attribute>
-            <xsl:attribute name="valueURI">http://aut.nkp.cz/<xsl:value-of select="$subfield7" /></xsl:attribute>
+            <xsl:attribute name="valueURI">http://aut.nkp.cz/
+                <xsl:value-of select="$subfield7" />
+            </xsl:attribute>
         </xsl:if>
     </xsl:template>
 
