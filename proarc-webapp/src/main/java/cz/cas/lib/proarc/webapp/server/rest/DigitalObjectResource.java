@@ -486,6 +486,7 @@ public class DigitalObjectResource {
     }
 
     private void repairItemsModel(List<Item> items) {
+        int i = 0;
         for (Item item : items) {
             if (item.getOrganization() != null && item.getOrganization().startsWith("info:fedora/")) {
                 item.setOrganization(item.getOrganization().substring(12));
@@ -495,6 +496,10 @@ public class DigitalObjectResource {
             }
             if (item.getStatus() != null && item.getStatus().startsWith("info:fedora/")) {
                 item.setStatus(item.getStatus().substring(12));
+            }
+            i++;
+            if (i > 2) {
+                item.setK5("1");
             }
         }
     }

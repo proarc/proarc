@@ -105,4 +105,8 @@ public abstract class AnnotatedSearchViewItem extends Item {
     @Override
     public abstract String getStatus();
 
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_LOCKED)
+    @Override
+    public abstract Integer isLocked();
+
 }

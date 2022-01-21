@@ -16,6 +16,12 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.client.request.RiSearch;
+import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
+import com.yourmediashelf.fedora.client.response.RiSearchResponse;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
@@ -35,12 +41,6 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.request.RiSearch;
-import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
-import com.yourmediashelf.fedora.client.response.RiSearchResponse;
 
 /**
  * Implements search queries with ITQL.
@@ -951,6 +951,7 @@ public final class SearchView {
         private String k2;
         private String k3;
         private String k4;
+        private String k5;
 
         public Item() {
         }
@@ -1053,6 +1054,21 @@ public final class SearchView {
 
         public void setBatchId(Integer batchId) {
             this.batchId = batchId;
+        }
+
+        public Integer isLocked() {
+            if (k5 != null && !k5.isEmpty()) {
+                try {
+                    return Integer.parseInt(k5);
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
+            }
+            return null;
+        }
+
+        public void setK5(String k5) {
+            this.k5 = k5;
         }
 
         public String getK0() {

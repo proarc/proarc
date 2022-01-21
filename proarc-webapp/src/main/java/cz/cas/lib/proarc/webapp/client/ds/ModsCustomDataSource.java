@@ -71,6 +71,7 @@ public final class ModsCustomDataSource extends ProarcDataSource implements Mods
     public static final String FIELD_EDITOR = DigitalObjectResourceApi.MODS_CUSTOM_EDITORID;
     public static final String FIELD_TIMESTAMP = DigitalObjectResourceApi.TIMESTAMP_PARAM;
     public static final String FIELD_DATA = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA;
+    public static final String FIELD_IS_LOCKED = DigitalObjectResourceApi.MEMBERS_ITEM_LOCKED;
     
     // follows custom field names
     // custom field names are defined by ModsConstants for now

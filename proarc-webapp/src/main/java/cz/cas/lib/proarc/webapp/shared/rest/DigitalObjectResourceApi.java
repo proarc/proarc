@@ -105,6 +105,8 @@ public final class DigitalObjectResourceApi {
 
     public static final String MEMBERS_ROOT_PARAM = "root";
 
+    public static final String MEMBERS_ITEM_LOCKED = "isLocked";
+
     // resource /object/member/move
     public static final String MEMBERS_MOVE_PATH = "move";
     public static final String MEMBERS_MOVE_SRCPID = "srcPid";

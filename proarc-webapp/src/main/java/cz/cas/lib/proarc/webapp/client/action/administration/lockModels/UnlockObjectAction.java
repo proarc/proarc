@@ -54,29 +54,24 @@ public class UnlockObjectAction extends AbstractAction {
     @Override
     public boolean accept(ActionEvent event) {
         Object[] selection = Actions.getSelection(event);
-        boolean accept = false;
         if (selection != null && selection instanceof Record[]) {
             Record[] records = (Record[]) selection;
-            accept = acceptModel(records);
+            return acceptRecords(records);
         }
-        return accept;
+        return true;
     }
 
-    private boolean acceptModel(Record[] records) {
-        boolean accept = false;
+    private boolean acceptRecords(Record[] records) {
         for (Record record : records) {
             DigitalObject dobj = DigitalObject.createOrNull(record);
             if (dobj != null) {
-                String modelId = dobj.getModelId();
-                if (modelId != null) {
-                    accept = true;
-                    continue;
+                boolean isLocked = dobj.isLocked();
+                if (!isLocked) {
+                    return false;
                 }
             }
-            accept = false;
-            break;
         }
-        return accept;
+        return true;
     }
 
     @Override
