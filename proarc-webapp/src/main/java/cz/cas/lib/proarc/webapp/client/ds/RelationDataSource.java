@@ -34,6 +34,7 @@ import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -194,6 +195,10 @@ public class RelationDataSource extends ProarcDataSource {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (response.getStatus() == -41) {
+                    onLockedError();
+                    return;
+                }
                 if (!RestConfig.isStatusOk(response)) {
                     call.execute(false);
                     return;
@@ -227,6 +232,10 @@ public class RelationDataSource extends ProarcDataSource {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (response.getStatus() == -41) {
+                    onLockedError();
+                    return;
+                }
                 if (!RestConfig.isStatusOk(response)) {
                     call.execute(false);
                     return;
@@ -281,6 +290,10 @@ public class RelationDataSource extends ProarcDataSource {
 
             @Override
             public void execute(DSResponse response, Object data, DSRequest request) {
+                if (response.getStatus() == -41) {
+                    onLockedError();
+                    return;
+                }
                 if (!RestConfig.isStatusOk(response)) {
                     call.execute(false);
                     return;
@@ -321,6 +334,10 @@ public class RelationDataSource extends ProarcDataSource {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
+                if (response.getStatus() == -41) {
+                    onLockedError();
+                    return;
+                }
                 if (!RestConfig.isStatusOk(response)) {
                     call.execute(false);
                     return;
@@ -328,6 +345,11 @@ public class RelationDataSource extends ProarcDataSource {
                 call.execute(true);
             }
         }, dsRequest);
+    }
+
+    protected void onLockedError() {
+        String msg = "LOCKED";
+        SC.warn(msg);
     }
 
     /**

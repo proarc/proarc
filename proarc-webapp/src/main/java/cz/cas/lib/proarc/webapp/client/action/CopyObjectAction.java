@@ -30,8 +30,10 @@ import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Copy Object.
@@ -73,19 +75,15 @@ public class CopyObjectAction extends AbstractAction {
     @Override
     public void performAction(ActionEvent event) {
         Record[] records = Actions.getSelection(event);
-        String modelId = "";
-        String pidOld = "";
         Record record = new Record();
         for (Record recordLocal : records){
             DigitalObject dobj = DigitalObject.createOrNull(recordLocal);
             if (dobj != null) {
-                modelId = dobj.getModelId();
-                pidOld = dobj.getPid();
                 record = recordLocal;
                 continue;
             }
         }
-        register(pidOld, pidOld, modelId, record);
+        register(record);
     }
 
     private boolean acceptModel(Record[] records) {
@@ -105,14 +103,16 @@ public class CopyObjectAction extends AbstractAction {
         return accept;
     }
 
-    private void register(String pidOld, String pidNew, String modelId, Record record) {
+    private void register(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
         CopyObjectDataSource ds = CopyObjectDataSource.getInstance();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
+                if (hasValidationError(response)) {
+                    handleValidations(response);
+                } else if (RestConfig.isStatusOk(response)) {
                     StatusView.getInstance().show(i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
                     CopyObjectDataSource.getInstance().updateCaches(response, request);
                     SearchDataSource.getInstance().updateCaches(response, request);

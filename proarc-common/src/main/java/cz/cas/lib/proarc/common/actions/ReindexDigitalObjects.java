@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.actions;
 
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.Const;
@@ -45,7 +46,8 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.File;
 import java.io.IOException;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Reindex all digital objects
@@ -105,6 +107,14 @@ public class ReindexDigitalObjects {
         mc.setAllowMissingURNNBN(false);
         mc.setConfig(null);
         return mc;
+    }
+
+    public List<String> getPids(IMetsElement parentElement) {
+        List<String> pids = new ArrayList<>();
+        for (IMetsElement element : parentElement.getChildren()) {
+            pids.add(element.getOriginalPid());
+        }
+        return pids;
     }
 
 

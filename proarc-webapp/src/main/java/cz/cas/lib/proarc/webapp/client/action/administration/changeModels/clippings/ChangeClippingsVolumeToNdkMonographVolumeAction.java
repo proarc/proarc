@@ -105,7 +105,9 @@ public class ChangeClippingsVolumeToNdkMonographVolumeAction extends AbstractAct
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
+                if (hasValidationError(response)) {
+                    handleValidations(response);
+                } else if (RestConfig.isStatusOk(response)) {
                     StatusView.getInstance().show(i18n.ChangeClippingVolumeToNdkMonographVolumeAction_FinishStep_Msg());
                 }
             }

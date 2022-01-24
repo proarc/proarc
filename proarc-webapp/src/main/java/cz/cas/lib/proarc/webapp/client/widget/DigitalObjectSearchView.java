@@ -148,7 +148,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         ListGridField owner = new ListGridField(SearchDataSource.FIELD_OWNER,
                 i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
         ListGridField isLocked = new ListGridField(SearchDataSource.FIELD_IS_LOCKED,
-                "locked", 100);
+                i18n.DigitalObjectSearchView_ListHeaderIsLocked_Title(), 50);
         isLocked.setHidden(false);
         isLocked.setCellFormatter(new CellFormatter() {
             @Override

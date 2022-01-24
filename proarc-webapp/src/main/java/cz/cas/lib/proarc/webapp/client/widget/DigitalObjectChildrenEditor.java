@@ -42,6 +42,7 @@ import com.smartgwt.client.data.events.DataChangedHandler;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.IconButton;
 import com.smartgwt.client.widgets.events.ClickEvent;
@@ -751,6 +752,10 @@ public final class DigitalObjectChildrenEditor implements DatastreamEditor,
 
                         return;
                     }
+                } else if (response.getStatus() == -41) {
+                    String msg = i18n.SaveAction_Validation_Msg(i18n.SaveAction_Locked_Msg());
+                    SC.warn(msg);
+                    return;
                 }
             }
         }, dsRequest);

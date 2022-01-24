@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
+import cz.cas.lib.proarc.common.actions.LockObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.UpdateObjects;
 import cz.cas.lib.proarc.common.actions.UpdatePages;
@@ -156,6 +157,7 @@ import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_PROCESSING;
 
 /**
@@ -186,6 +188,9 @@ public class DigitalObjectResource {
     private final HttpHeaders httpHeaders;
     private final UserProfile user;
     private final SessionContext session;
+
+    private final String ERR_IS_LOCKED = "Err_is_locked";
+    public static final String STATUS_LOCKED = "locked";
 
     public DigitalObjectResource(
             @Context Request request,
@@ -239,6 +244,9 @@ public class DigitalObjectResource {
         Set<String> models = MetaModelRepository.getInstance().find()
                 .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
 
+        if (isLocked(parentPid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+        }
 
         if (modelId == null || !models.contains(modelId)) {
             throw RestException.plainBadRequest(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
@@ -321,6 +329,10 @@ public class DigitalObjectResource {
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
             @DefaultValue("false") boolean restore
             ) throws IOException, PurgeException {
+
+        if (isLocked(pids)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+        }
 
         RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
         ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
@@ -486,7 +498,6 @@ public class DigitalObjectResource {
     }
 
     private void repairItemsModel(List<Item> items) {
-        int i = 0;
         for (Item item : items) {
             if (item.getOrganization() != null && item.getOrganization().startsWith("info:fedora/")) {
                 item.setOrganization(item.getOrganization().substring(12));
@@ -496,10 +507,6 @@ public class DigitalObjectResource {
             }
             if (item.getStatus() != null && item.getStatus().startsWith("info:fedora/")) {
                 item.setStatus(item.getStatus().substring(12));
-            }
-            i++;
-            if (i > 2) {
-                item.setK5("1");
             }
         }
     }
@@ -629,6 +636,10 @@ public class DigitalObjectResource {
         if (batchId == null && parentPid == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT, null);
         }
+
+        if (isLocked(parentPid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+        }
         boolean batchImportMembers = batchId != null;
         if (toSetPids == null || toSetPids.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PID, null);
@@ -751,6 +762,9 @@ public class DigitalObjectResource {
         if (toAddPids.contains(parentPid)) {
             throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
         }
+        if (isLocked(parentPid) || isLocked(toAddPids)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+        }
         HashSet<String> addPidSet = new HashSet<String>(toAddPids);
         if (addPidSet.size() != toAddPids.size()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Duplicate children in the request!");
@@ -847,6 +861,10 @@ public class DigitalObjectResource {
         }
         if (toRemovePids.contains(parentPid)) {
             throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
+        }
+
+        if (isLocked(parentPid) || isLocked(toRemovePids)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
         }
 
         HashSet<String> toRemovePidSet = new HashSet<String>(toRemovePids);
@@ -948,6 +966,10 @@ public class DigitalObjectResource {
         }
         if (movePids == null || movePids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing children PIDs!");
+        }
+
+        if (isLocked(srcParentPid) || isLocked(dstParentPid) || isLocked(movePids)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
         }
 
         HashSet<String> movePidSet = new HashSet<String>(movePids);
@@ -1093,6 +1115,12 @@ public class DigitalObjectResource {
                 return WorkflowResource.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, session, httpHeaders);
             }
         }
+
+        if (isLocked(pid)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pid, null, null, "Locked",null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED);
+            return toError(validationException, STATUS_LOCKED);
+        }
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
         }
@@ -1133,6 +1161,11 @@ public class DigitalObjectResource {
     ) throws DigitalObjectException {
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        if (isLocked(pid)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pid, null, null, "Locked",null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED);
+            return toError(validationException, STATUS_LOCKED);
         }
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
@@ -1176,6 +1209,11 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
         }
+        if (isLocked(pids)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids, null, null, "Locked",null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED);
+            return toError(validationException, STATUS_LOCKED);
+        }
         UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage);
         updatePages.createListOfPids(pids);
         updatePages.createIndex(startIndex);
@@ -1184,6 +1222,10 @@ public class DigitalObjectResource {
     }
 
     private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
+        return toError(ex, null);
+    }
+
+    private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex, String type) {
         if (ex.getValidations().isEmpty()) {
             return SmartGwtResponse.asError(ex);
         }
@@ -1200,7 +1242,7 @@ public class DigitalObjectResource {
             }
             error.error(validation.getName(), msg);
         }
-        return error.build();
+        return error.build(type);
     }
 
     @GET
@@ -1590,6 +1632,10 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.STRINGRECORD_CONTENT) String content
             ) throws IOException, DigitalObjectException {
 
+        if (isLocked(pid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+        }
+
         if (timestamp == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
@@ -1657,6 +1703,9 @@ public class DigitalObjectResource {
 
         if (timestamp == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
+        }
+        if (isLocked(pid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
         }
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
@@ -1744,6 +1793,9 @@ public class DigitalObjectResource {
 
         if (timestamp == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
+        }
+        if (isLocked(pid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
         }
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
@@ -1871,6 +1923,10 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String model
             ) throws IOException, DigitalObjectException {
 
+        if (isLocked(transform(pids))) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+        }
+
         ArrayList<AtmItem> result = new ArrayList<AtmItem>(pids.size());
         Locale locale = session.getLocale(httpHeaders);
         RemoteStorage storage = RemoteStorage.getInstance(appConfig);
@@ -1907,6 +1963,9 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
             ) {
 
+        if (isLocked(pids)){
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+        }
         List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
         if (!pids.isEmpty()) {
             UrnNbnConfiguration config = appConfig.getUrnNbnConfiguration();
@@ -1946,6 +2005,48 @@ public class DigitalObjectResource {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.LOCK_OBJECT_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> lockObject(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+        if (pids == null || pids.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        for (String pid : pids) {
+            LockObject lockObject = new LockObject(appConfig, pid, user.getUserName());
+            lockObject.findObjects();
+            LockObject.LockObjectResult result = lockObject.setLocked();
+            if (result != null) {
+                lockObject.setUnlocked();
+                throw result.getEx();
+            }
+        }
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UNLOCK_OBJECT_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> unlockObject(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+        if (pids == null || pids.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        for (String pid : pids) {
+            LockObject lockObject = new LockObject(appConfig, pid, user.getUserName());
+            lockObject.findObjects();
+            LockObject.LockObjectResult result = lockObject.setUnlocked();
+            if (result != null) {
+                lockObject.setLocked();
+                throw result.getEx();
+            }
+        }
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.COPYOBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> copyObject(
@@ -1953,6 +2054,10 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
+        if (isLocked(pidOld)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+
         CopyObject copyObject = new CopyObject(appConfig, user, pidOld, modelId);
         try {
             copyObject.copy();
@@ -1960,8 +2065,12 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
+        Item item = new Item();
+        item.setValidation("Objekt je zamknuty");
+        List list = new ArrayList();
+        list.add(item);
 
-        return new SmartGwtResponse<>();
+        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, list);
     }
 
     @POST
@@ -1987,9 +2096,19 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PAGE);
@@ -2010,9 +2129,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_NDK_PAGE);
@@ -2032,9 +2159,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_PAGE);
@@ -2054,9 +2189,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_NDK_PAGE);
@@ -2076,9 +2219,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
@@ -2099,9 +2250,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
@@ -2122,9 +2281,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_MONOGRAPHTITLE, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHTITLE);
@@ -2145,9 +2312,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, NdkPlugin.MODEL_MONOGRAPHTITLE);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE);
@@ -2166,9 +2341,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, K4Plugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICAL);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_PERIODICAL);
@@ -2187,9 +2370,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, K4Plugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALVOLUME);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
@@ -2209,9 +2400,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, K4Plugin.MODEL_PERIODICALITEM, NdkPlugin.MODEL_PERIODICALISSUE);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
@@ -2231,9 +2430,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, K4Plugin.MODEL_MONOGRAPH, NdkPlugin.MODEL_MONOGRAPHVOLUME);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
@@ -2253,9 +2460,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, K4Plugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
@@ -2275,9 +2490,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHVOLUME);
             changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
@@ -2297,9 +2520,17 @@ public class DigitalObjectResource {
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHTITLE);
             changeModels.findObjects(false);
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
@@ -2321,6 +2552,11 @@ public class DigitalObjectResource {
         ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, user, pid, modelId);
         IMetsElement parentElement = reindexObjects.getParentElement();
         if (parentElement != null) {
+
+            if (isLocked(reindexObjects.getPids(parentElement))) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
             reindexObjects.reindex(parentElement);
         }
         return new SmartGwtResponse<>();
@@ -2352,6 +2588,11 @@ public class DigitalObjectResource {
         Locale locale = session.getLocale(httpHeaders);
         UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
         updateObjects.findObjects(pid, NdkPlugin.MODEL_ARTICLE);
+
+        if (isLocked(updateObjects.getPids())) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+
         updateObjects.repair(NdkPlugin.MODEL_ARTICLE);
         return new SmartGwtResponse<>();
     }
@@ -2366,6 +2607,11 @@ public class DigitalObjectResource {
         Locale locale = session.getLocale(httpHeaders);
         UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
         updateObjects.findObjects(pid, NdkPlugin.MODEL_NDK_PAGE);
+
+        if (isLocked(updateObjects.getPids())) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+
         updateObjects.repair(NdkPlugin.MODEL_NDK_PAGE);
         return new SmartGwtResponse<>();
     }
@@ -2516,5 +2762,52 @@ public class DigitalObjectResource {
 
         public DigitalObject() {
         }
+    }
+
+    private SmartGwtResponse<Item> returnValidationError(String key) {
+        Item item = new Item();
+        item.setValidation(returnValidationMessage(key));
+        List list = new ArrayList();
+        list.add(item);
+
+        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, list);
+    }
+
+    private String returnValidationMessage(String key) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key);
+    }
+
+    private boolean isLocked(String pid) {
+        List<String> pids = new ArrayList<>();
+        pids.add(pid);
+        return isLocked(pids);
+    }
+
+    private boolean isLocked(List<String> pids) {
+        try {
+            Locale locale = session.getLocale(httpHeaders);
+            RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+            SearchView search = remote.getSearch(locale);
+            List<Item> items = search.find(pids);
+            for (Item item : items) {
+                if (item.isLocked() > 0) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (IOException | FedoraClientException e) {
+            LOG.log(Level.SEVERE, e.getMessage());
+            return true;
+        }
+    }
+
+    private List<String> transform(Set<String> set) {
+        List<String> pids = new ArrayList<>();
+        for (String uuid : set) {
+            pids.add(uuid);
+        }
+        return pids;
     }
 }

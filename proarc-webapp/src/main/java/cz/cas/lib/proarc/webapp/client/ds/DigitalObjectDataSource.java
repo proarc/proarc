@@ -27,6 +27,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.PromptStyle;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.BooleanItem;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
@@ -177,6 +178,8 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
                     callback.onFailure(null);
                 } else if (RestConfig.isConcurrentModification(response)) {
                     callback.onFailure(ErrorSavingDigitalObject.CONCURRENT_MODIFICATION);
+                } else if (response.getStatus() == -41) {
+                    SC.warn("OBJECT is locked");
                 } else {
                     Record[] data = response.getData();
                     if (data != null && data.length > 0) {
@@ -216,6 +219,8 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
                     DigitalObjectDataSource.this.updateCaches(response, request);
                     SearchDataSource.getInstance().updateCaches(response, request);
                     RelationDataSource.getInstance().updateCaches(response, request);
+                } else if (response.getStatus() == -41) {
+                    SC.warn("LOCKED");
                 }
             }
         }, dsRequest);

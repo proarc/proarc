@@ -36,6 +36,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import static cz.cas.lib.proarc.webapp.server.rest.DigitalObjectResource.STATUS_LOCKED;
+
 /**
  * Wrapper suitable as a RestDataSource response
  *
@@ -54,6 +56,8 @@ public class SmartGwtResponse<T> {
     public static final int STATUS_SUCCESS = 0;
     public static final int STATUS_TRANSPORT_ERROR = -90;
     public static final int STATUS_VALIDATION_ERROR = -4;
+    public static final int STATUS_OBJECT_LOCKED = -41;
+
 
     private int status;
     private Integer startRow;
@@ -199,9 +203,23 @@ public class SmartGwtResponse<T> {
         }
 
         public SmartGwtResponse<T> build() {
+            return build(null);
+        }
+
+        public SmartGwtResponse<T> build(String type) {
+            if (type == null) {
+                type="";
+            }
             SmartGwtResponse<T> result = new SmartGwtResponse<T>();
             result.errors = errors;
-            result.status = STATUS_VALIDATION_ERROR;
+            switch (type) {
+                case STATUS_LOCKED:
+                    result.status = STATUS_OBJECT_LOCKED;
+                    break;
+                default:
+                    result.status = STATUS_VALIDATION_ERROR;
+                    break;
+            }
             return result;
         }
     }

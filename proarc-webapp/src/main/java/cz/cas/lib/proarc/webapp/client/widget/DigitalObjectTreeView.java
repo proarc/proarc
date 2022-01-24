@@ -103,7 +103,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         TreeGridField owner = new TreeGridField(RelationDataSource.FIELD_OWNER,
                 i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
         ListGridField isLocked = new ListGridField(SearchDataSource.FIELD_IS_LOCKED,
-                "locked", 100);
+                i18n.DigitalObjectSearchView_ListHeaderIsLocked_Title(), 100);
         isLocked.setCellFormatter(new CellFormatter() {
             @Override
             public String format(Object value, ListGridRecord record, int rowNum, int colNum) {

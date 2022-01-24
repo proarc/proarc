@@ -16,6 +16,10 @@
  */
 package cz.cas.lib.proarc.webapp.client.action.administration.updateModels;
 
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -27,10 +31,6 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UpdateObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.Record;
 
 /**
  * Update Ndk Page
@@ -113,7 +113,9 @@ public class UpdateNdkPageAction extends AbstractAction {
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
+                if (hasValidationError(response)) {
+                    handleValidations(response);
+                } else if (RestConfig.isStatusOk(response)) {
                     StatusView.getInstance().show(i18n.DigitalObjectUpdateAllObjectsAction_FinishMessage());
                 }
             }

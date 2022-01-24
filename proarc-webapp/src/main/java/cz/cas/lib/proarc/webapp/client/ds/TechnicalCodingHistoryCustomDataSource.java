@@ -236,11 +236,18 @@ public class TechnicalCodingHistoryCustomDataSource extends ProarcDataSource imp
                 }
             } else if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
                 onValidationError();
+            } else if (response.getStatus() == -41) {
+                onLockedError();
             } else if (RestConfig.isConcurrentModification(response)) { // concurrency conflict
                 onConcurrencyError();
             } else {
                 onError();
             }
+        }
+
+        protected void onLockedError() {
+            String msg = i18n.SaveAction_Validation_Msg(i18n.SaveAction_Locked_Msg());
+            SC.warn(msg);
         }
 
         protected void onSave(DescriptionMetadata dm) {

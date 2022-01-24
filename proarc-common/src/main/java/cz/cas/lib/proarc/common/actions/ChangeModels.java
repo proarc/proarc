@@ -63,6 +63,10 @@ public class ChangeModels {
         this.pids = new ArrayList<>();
     }
 
+    public List<String> getPids() {
+        return pids;
+    }
+
     public List<String> findObjects() throws DigitalObjectException {
         return findObjects(true);
     }

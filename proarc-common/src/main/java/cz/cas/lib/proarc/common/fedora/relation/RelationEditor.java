@@ -24,11 +24,12 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
-import org.w3c.dom.Element;
-import javax.xml.transform.Source;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import javax.xml.transform.Source;
+import org.w3c.dom.Element;
 
 /**
  * RDF relations editor.
@@ -271,6 +272,25 @@ public final class RelationEditor {
     }
 
     /**
+     * Set date and user who locked object
+     */
+    public void setLock(String name) throws DigitalObjectException {
+        getRdf().getDescription().setIsLocked(Boolean.TRUE.toString());
+        getRdf().getDescription().setLockedDate(new Date());
+        getRdf().getDescription().setLockedUser(name);
+    }
+
+    /**
+     * Set unlocked object
+     */
+    public void setUnlock() throws DigitalObjectException {
+        getRdf().getDescription().setIsLocked(null);
+        getRdf().getDescription().setLockedDate(null);
+        getRdf().getDescription().setLockedUser(null);
+    }
+
+
+    /**
      * Relations defining object hierarchy graph.
      *
      * @return list of PIDs.
@@ -422,5 +442,4 @@ public final class RelationEditor {
         }
         return relations;
     }
-
 }

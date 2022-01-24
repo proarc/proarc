@@ -941,6 +941,7 @@ public final class SearchView {
         private String organization;
         private String user;
         private String status;
+        private String validation;
         /**
          * Synthetic name of count query. count(hasExport)
          * @see <a href='http://docs.mulgara.org/itqlcommands/select.html#o194'>
@@ -1166,6 +1167,13 @@ public final class SearchView {
             return null;
         }
 
+        public String getValidation() {
+            return validation;
+        }
+
+        public void setValidation(String validation) {
+            this.validation = validation;
+        }
     }
 
     static class Result {
