@@ -289,6 +289,17 @@ public final class RelationEditor {
         getRdf().getDescription().setLockedUser(null);
     }
 
+    public boolean isLocked() throws DigitalObjectException {
+        return Boolean.parseBoolean(getRdf().getDescription().getIsLocked());
+    }
+
+    public String getLockedBy() throws DigitalObjectException {
+        return getRdf().getDescription().getLockedUser();
+    }
+
+    public Date getLockedDate() throws DigitalObjectException {
+        return getRdf().getDescription().getLockedDate();
+    }
 
     /**
      * Relations defining object hierarchy graph.

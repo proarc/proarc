@@ -22,7 +22,9 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.widgets.Canvas;
 import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.BooleanItem;
 import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
+import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.layout.VLayout;
@@ -280,7 +282,22 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             status.setWidth(250);
             status.setValueMap(DigitalObjectState.getMap(i18n));
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status);
+            BooleanItem locked = new BooleanItem(DigitalObjectAdministrationDataSource.FIELD_LOCKED,
+                    i18n.DigitalObjectEditor_AdministrationAction_Locked());
+            locked.setWidth(250);
+            locked.setCanEdit(Boolean.FALSE);
+
+            TextItem lockedBy = new TextItem(DigitalObjectAdministrationDataSource.FIELD_LOCKED_BY,
+                    i18n.DigitalObjectEditor_AdministrationAction_Locked_By());
+            lockedBy.setWidth("*");
+            lockedBy.setCanEdit(Boolean.FALSE);
+
+            DateItem lockedDate = new DateItem(DigitalObjectAdministrationDataSource.FIELD_LOCKED_DATE,
+                    i18n.DigitalObjectEditor_AdministrationAction_Locked_Datum());
+            lockedDate.setWidth("*");
+            lockedDate.setCanEdit(Boolean.FALSE);
+
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status, locked, lockedBy, lockedDate);
             widget.setMembers(form);
         }
 

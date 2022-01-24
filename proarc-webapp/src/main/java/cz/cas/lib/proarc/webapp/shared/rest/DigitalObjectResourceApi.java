@@ -218,6 +218,10 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_OWNER = MEMBERS_ITEM_OWNER;
     public static final String ATM_ITEM_PID = DIGITALOBJECT_PID;
     public static final String ATM_ITEM_STATE = MEMBERS_ITEM_STATE;
+    public static final String ATM_ITEM_LOCKED = "locked";
+    public static final String ATM_ITEM_LOCKED_BY = "lockedBy";
+    public static final String ATM_ITEM_LOCKED_DATE = "lockedDate";
+
 
     /** Resource /object/thumb */
     public static final String URNNBN_PATH = "urnnbn";
