@@ -257,8 +257,8 @@ public final class Z3950Catalog implements BibliographicCatalog {
 
         if (couples.size() < 2) {
             return modsBytes;
-        } else { //knav monografie isbn 80-200-0953-1
-            if (260 == updateNode) {
+        } else {
+            if (260 == updateNode) { //knav monografie isbn 80-200-0953-1
                 modsAsString = repairMods(modsCollection, couples);
                 return modsAsString.getBytes(StandardCharsets.UTF_8);
             } else if (264 == updateNode) { // knav monografie - name: History of nanotechnology from pre-historic to modern times; isbn: 978-1-119-46008-4
@@ -365,6 +365,8 @@ public final class Z3950Catalog implements BibliographicCatalog {
         }
         mods.getOriginInfo().addAll(fixedOriginInfo);
         cleanOriginInfo(mods);
+        mergeFirstTwoOriginInfo(mods);
+        copyPlaceDatePublisher(mods);
         return ModsUtils.toXml(mods, true);
     }
 
@@ -455,7 +457,92 @@ public final class Z3950Catalog implements BibliographicCatalog {
             }
         }
         mods.getOriginInfo().addAll(fixedOriginInfo);
+        mergeFirstTwoOriginInfo(mods);
+        copyPlaceDatePublisher(mods);
         return ModsUtils.toXml(mods, true);
+    }
+
+    private void copyPlaceDatePublisher(ModsDefinition mods) {
+        DateDefinition dateValue = null;
+        StringPlusLanguagePlusSupplied publisherValue = null;
+        PlaceTermDefinition placeValue = null;
+
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
+                if (publisher.getValue() != null) {
+                    if (publisherValue == null) {
+                        publisherValue = publisher;
+                        break;
+                    } else {
+                        publisherValue = null;
+                        break;
+                    }
+                }
+            }
+            for (DateDefinition date : originInfo.getDateIssued()) {
+                if (date.getValue() != null) {
+                    if (dateValue == null) {
+                        dateValue = date;
+                        break;
+                    } else {
+                        dateValue = null;
+                        break;
+                    }
+                }
+            }
+            for (PlaceDefinition place : originInfo.getPlace()) {
+                for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
+                    if (placeTerm.getType().equals("text") && placeTerm.getValue() != null) {
+                        if (placeValue == null) {
+                            placeValue = placeTerm;
+                            break;
+                        } else {
+                            placeValue = null;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            for (PlaceDefinition place : originInfo.getPlace()) {
+                if (placeValue != null && !place.getPlaceTerm().contains(placeValue)) {
+                    place.getPlaceTerm().add(placeValue);
+                }
+            }
+            if (dateValue != null && !originInfo.getDateIssued().contains(dateValue)) {
+                originInfo.getDateIssued().add(dateValue);
+            }
+            if (publisherValue != null && !originInfo.getPublisher().contains(publisherValue)) {
+                originInfo.getPublisher().add(publisherValue);
+            }
+        }
+    }
+
+    private void mergeFirstTwoOriginInfo(ModsDefinition mods) {
+        List<OriginInfoDefinition> originInfos = mods.getOriginInfo();
+        OriginInfoDefinition firstInfo = null;
+        OriginInfoDefinition secondInfo = null;
+
+        if (originInfos.size() > 1) {
+            firstInfo = originInfos.get(0);
+            secondInfo = originInfos.get(1);
+            firstInfo.getPlace().addAll(secondInfo.getPlace());
+            firstInfo.getPublisher().addAll(secondInfo.getPublisher());
+            firstInfo.getDateIssued().addAll(secondInfo.getDateIssued());
+            firstInfo.getDateCreated().addAll(secondInfo.getDateCreated());
+            firstInfo.getDateCaptured().addAll(secondInfo.getDateCaptured());
+            firstInfo.getDateValid().addAll(secondInfo.getDateValid());
+            firstInfo.getDateModified().addAll(secondInfo.getDateModified());
+            firstInfo.getCopyrightDate().addAll(secondInfo.getCopyrightDate());
+            firstInfo.getDateOther().addAll(secondInfo.getDateOther());
+            firstInfo.getEdition().addAll(secondInfo.getEdition());
+            firstInfo.getIssuance().addAll(secondInfo.getIssuance());
+            firstInfo.getFrequency().addAll(secondInfo.getFrequency());
+            firstInfo.setEventType(secondInfo.getEventType());
+            originInfos.remove(secondInfo);
+        }
     }
 
     private List<String> findAndSplitNode(Document marcXml, String tagValue) {
