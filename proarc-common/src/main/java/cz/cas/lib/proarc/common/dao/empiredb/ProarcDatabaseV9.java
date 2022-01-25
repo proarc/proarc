@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2021 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,8 +47,9 @@ import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
  *
- * @author Jan Pokorsky
+ * @author Lukas Sykora
  */
+@Deprecated
 public class ProarcDatabaseV9 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
@@ -78,7 +79,7 @@ public class ProarcDatabaseV9 extends DBDatabase {
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
 
     public static int upgradeToVersion10(
-            int currentSchemaVersion, ProarcDatabase schema,
+            int currentSchemaVersion,
             Connection conn, EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion < VERSION) {
@@ -90,7 +91,7 @@ public class ProarcDatabaseV9 extends DBDatabase {
         } else if (currentSchemaVersion != VERSION) {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
-        //ProarcDatabaseV10 schema = new ProarcDatabaseV10();
+        ProarcDatabaseV10 schema = new ProarcDatabaseV10();
         try {
             schema.open(conf.getDriver(), conn);
             upgradeDdl(schema, conn);
@@ -103,7 +104,7 @@ public class ProarcDatabaseV9 extends DBDatabase {
         }
     }
 
-    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+    private static void upgradeDdl(ProarcDatabaseV10 schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();

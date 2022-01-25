@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
@@ -53,7 +54,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 10;
+    public static final int VERSION = 11;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -194,6 +195,8 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn timestamp;
         public final DBTableColumn changeModelFunction;
         public final DBTableColumn updateModelFunction;
+        public final DBTableColumn lockObjectFunction;
+        public final DBTableColumn unlockObjectFunction;
 
         public UserTable(DBDatabase db) {
             super("PROARC_USERS", db);
@@ -221,6 +224,8 @@ public class ProarcDatabase extends DBDatabase {
             role = addColumn("ROLE", DataType.TEXT, 100, false);
             changeModelFunction = addColumn("CHANGE_MODEL_FUNCTION", DataType.BOOL, 0, false);
             updateModelFunction = addColumn("UPDATE_MODEL_FUNCTION", DataType.BOOL, 0, false);
+            lockObjectFunction = addColumn("LOCK_OBJECT_FUNCTION", DataType.BOOL, 0, false);
+            unlockObjectFunction = addColumn("UNLOCK_OBJECT_FUNCTION", DataType.BOOL, 0, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
@@ -539,7 +544,8 @@ public class ProarcDatabase extends DBDatabase {
         try {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
-                schemaVersion = ProarcDatabaseV9.upgradeToVersion10(
+                LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
+                schemaVersion = ProarcDatabaseV10.upgradeToVersion11(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);
