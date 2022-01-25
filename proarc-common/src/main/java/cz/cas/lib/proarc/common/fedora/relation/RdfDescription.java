@@ -16,14 +16,15 @@
  */
 package cz.cas.lib.proarc.common.fedora.relation;
 
-import org.w3c.dom.Element;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import java.util.ArrayList;
-import java.util.List;
+import org.w3c.dom.Element;
 
 /**
  * RDF description of given object.
@@ -38,6 +39,15 @@ public class RdfDescription {
 
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private RdfRelation user;
+
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String isLocked;
+
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private Date lockedDate;
+
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private String lockedUser;
 
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private RdfRelation status;
@@ -323,5 +333,29 @@ public class RdfDescription {
 
     public void setHasCrossrefExport(String hasCrossrefExport) {
         this.hasCrossrefExport = hasCrossrefExport;
+    }
+
+    public String getIsLocked() {
+        return isLocked;
+    }
+
+    public void setIsLocked(String isLocked) {
+        this.isLocked = isLocked;
+    }
+
+    public Date getLockedDate() {
+        return lockedDate;
+    }
+
+    public void setLockedDate(Date lockedDate) {
+        this.lockedDate = lockedDate;
+    }
+
+    public String getLockedUser() {
+        return lockedUser;
+    }
+
+    public void setLockedUser(String lockedUser) {
+        this.lockedUser = lockedUser;
     }
 }

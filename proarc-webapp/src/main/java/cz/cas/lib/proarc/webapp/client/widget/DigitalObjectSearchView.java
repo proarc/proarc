@@ -147,6 +147,17 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         modified.setAlign(Alignment.CENTER);
         ListGridField owner = new ListGridField(SearchDataSource.FIELD_OWNER,
                 i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
+        ListGridField isLocked = new ListGridField(SearchDataSource.FIELD_IS_LOCKED,
+                i18n.DigitalObjectSearchView_ListHeaderIsLocked_Title(), 50);
+        isLocked.setHidden(false);
+        isLocked.setCellFormatter(new CellFormatter() {
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
         ListGridField state = new ListGridField(SearchDataSource.FIELD_STATE,
                 i18n.DigitalObjectSearchView_ListHeaderState_Title(), 100);
         state.setHidden(true);
@@ -227,7 +238,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        grid.setFields(label, model, pid, created, modified, owner, state, organization, user, status, export, ndkExport, krameriusExport, archiveExport,crossrefExport);
+        grid.setFields(label, model, isLocked, pid, created, modified, owner, state, organization, user, status, export, ndkExport, krameriusExport, archiveExport,crossrefExport);
         grid.setContextMenu(Actions.createMenu());
         grid.addSelectionUpdatedHandler((event) -> {
             selectionCache.setSelection();

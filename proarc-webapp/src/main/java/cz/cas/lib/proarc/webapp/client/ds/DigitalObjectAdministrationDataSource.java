@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.client.ds;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
+import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.FieldType;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -50,6 +51,9 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
     public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION;
     public static final String FIELD_STATUS = DigitalObjectResourceApi.ATM_ITEM_STATUS;
     public static final String FIELD_USER = DigitalObjectResourceApi.ATM_ITEM_USER;
+    public static final String FIELD_LOCKED = DigitalObjectResourceApi.ATM_ITEM_LOCKED;
+    public static final String FIELD_LOCKED_BY = DigitalObjectResourceApi.ATM_ITEM_LOCKED_BY;
+    public static final String FIELD_LOCKED_DATE = DigitalObjectResourceApi.ATM_ITEM_LOCKED_DATE;
 
 
     public static DigitalObjectAdministrationDataSource getInstance() {
@@ -81,8 +85,11 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
         DataSourceTextField organization = new DataSourceTextField(FIELD_ORGANIZATION);
         DataSourceTextField status = new DataSourceTextField(FIELD_STATUS);
         DataSourceTextField user = new DataSourceTextField(FIELD_USER);
+        DataSourceBooleanField locked = new DataSourceBooleanField(FIELD_LOCKED);
+        DataSourceTextField lockedBy = new DataSourceTextField(FIELD_LOCKED_BY);
+        DataSourceTextField lockedDate = new DataSourceTextField(FIELD_LOCKED_DATE);
 
-        setFields(pid, model, state, owner, created, modified, device, filename, export, organization, user, ndkExport, archiveExport, krameriusExport, crossrefExport, status);
+        setFields(pid, model, state, owner, created, modified, device, filename, export, organization, user, ndkExport, archiveExport, krameriusExport, crossrefExport, status, locked, lockedBy, lockedDate);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

@@ -44,6 +44,7 @@ import cz.cas.lib.proarc.webapp.client.action.CopyObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.LockObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
@@ -66,6 +67,7 @@ import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.C
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeNdkPageToSttPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangePageToNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeSttPageToNdkPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.UnlockObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkPageAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
@@ -132,6 +134,8 @@ public final class DigitalObjectManager {
     private DigitalObjectEditAction technicalMetadataAction;
     private UrnNbnAction registerUrnNbnAction;
     private CopyObjectAction copyObjectAction;
+    private LockObjectAction lockObjectAction;
+    private UnlockObjectAction unlockObjectAction;
     private GenerateMasterCopyAction generateMasterCopyAction;
     private ChangePageToNdkPageAction changePageToNdkPageAction;
     private ChangeNdkPageToPageAction changeNdkPageToPageAction;
@@ -317,6 +321,8 @@ public final class DigitalObjectManager {
                 places);
         registerUrnNbnAction = new UrnNbnAction(i18n);
         copyObjectAction = new CopyObjectAction(i18n);
+        lockObjectAction = new LockObjectAction(i18n);
+        unlockObjectAction = new UnlockObjectAction(i18n);
         generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
         changePageToNdkPageAction = new ChangePageToNdkPageAction(i18n);
         changeNdkPageToPageAction = new ChangeNdkPageToPageAction(i18n);
@@ -383,8 +389,12 @@ public final class DigitalObjectManager {
 
             @Override
             public boolean accept(ActionEvent event) {
-                if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION))) {
-                //if (!Editor.getInstance().hasPermission("proarc.permission.admin") || !Editor.getInstance().hasPermission("superAdmin") || !Editor.getInstance().hasPermission("test")) {
+                if (!(Editor.getInstance().hasPermission("proarc.permission.admin") ||
+                        Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION))) {
                     return false;
                 } else {
                     Object[] selection = Actions.getSelection(event);
@@ -403,6 +413,9 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(Actions.asMenuItem(restoreAction, actionSource, false));
         //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
         //menuAdministration.addItem(Actions.asMenuItem(generateMasterCopyAction, actionSource, false));
+        menuAdministration.addItem(new MenuItemSeparator());
+        menuAdministration.addItem(Actions.asMenuItem(lockObjectAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(unlockObjectAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(initChangePageMenu(actionSource));
         menuAdministration.addItem(initChangeNdkModelsMenu(actionSource));

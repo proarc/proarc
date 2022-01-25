@@ -16,6 +16,19 @@
  */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.Overflow;
+import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
+import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
+import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -55,19 +68,6 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.google.gwt.event.shared.HandlerRegistration;
-import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.Overflow;
-import com.smartgwt.client.util.BooleanCallback;
-import com.smartgwt.client.util.SC;
-import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.events.SubmitValuesHandler;
-import com.smartgwt.client.widgets.layout.VLayout;
 
 /**
  * Edits subset of MODS data. It shows different form for each dig. object model.

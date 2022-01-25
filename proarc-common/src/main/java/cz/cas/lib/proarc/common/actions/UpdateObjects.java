@@ -1,5 +1,7 @@
 package cz.cas.lib.proarc.common.actions;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
@@ -32,8 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 public class UpdateObjects {
@@ -52,6 +53,10 @@ public class UpdateObjects {
         this.locale = locale;
         pids = new ArrayList<>();
         updatedObjects = 0;
+    }
+
+    public List<String> getPids() {
+        return pids;
     }
 
     public List<SearchView.Item> findAllObjects() throws IOException, FedoraClientException {

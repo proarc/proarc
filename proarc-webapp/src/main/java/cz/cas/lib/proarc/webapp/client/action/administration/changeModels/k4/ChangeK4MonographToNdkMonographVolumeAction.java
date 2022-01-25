@@ -104,7 +104,9 @@ public class ChangeK4MonographToNdkMonographVolumeAction extends AbstractAction 
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                if (RestConfig.isStatusOk(response)) {
+                if (hasValidationError(response)) {
+                    handleValidations(response);
+                } else if (RestConfig.isStatusOk(response)) {
                     StatusView.getInstance().show(i18n.ChangeK4MonographToNdkMonographVolumeAction_FinishStep_Msg());
                 }
             }

@@ -4,6 +4,7 @@ count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasKrameriusExport>       $export)
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasArchiveExport>       $export)
 count (select $export from <#ri> where $pid <http://proarc.lib.cas.cz/relations#hasCrossrefExport>       $export)
+count (select $locked from <#ri> where $pid <http://proarc.lib.cas.cz/relations#isLocked>       $locked)
 from       <#ri>
 where      $pid     <info:fedora/fedora-system:def/model#hasModel>        $model
 ${MODEL_FILTER}

@@ -105,6 +105,10 @@ public final class DigitalObjectResourceApi {
 
     public static final String MEMBERS_ROOT_PARAM = "root";
 
+    public static final String MEMBERS_ITEM_LOCKED = "isLocked";
+
+    public static final String ITEM_VALIDATION = "validation";
+
     // resource /object/member/move
     public static final String MEMBERS_MOVE_PATH = "move";
     public static final String MEMBERS_MOVE_SRCPID = "srcPid";
@@ -214,10 +218,13 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_OWNER = MEMBERS_ITEM_OWNER;
     public static final String ATM_ITEM_PID = DIGITALOBJECT_PID;
     public static final String ATM_ITEM_STATE = MEMBERS_ITEM_STATE;
+    public static final String ATM_ITEM_LOCKED = "locked";
+    public static final String ATM_ITEM_LOCKED_BY = "lockedBy";
+    public static final String ATM_ITEM_LOCKED_DATE = "lockedDate";
+
 
     /** Resource /object/thumb */
     public static final String URNNBN_PATH = "urnnbn";
-    public static final String COPYOBJECT_PATH = "copyObject";
     public static final String URNNBN_HIERARCHY = "hierarchy";
     public static final String URNNBN_RESOLVER = "resolverId";
     public static final String REINDEX_PATH = "reindexObjects";
@@ -229,6 +236,10 @@ public final class DigitalObjectResourceApi {
     public static final String URNNBN_ITEM_WARNING = "warning";
     public static final String URNNBN_ITEM_LOG = "log";
     public static final String WORKFLOW_JOB_ID = "wfJobId";
+
+    public static final String COPYOBJECT_PATH = "copyObject";
+    public static final String LOCK_OBJECT_PATH = "lockObject";
+    public static final String UNLOCK_OBJECT_PATH = "unlockObject";
 
     public static final String GENERATE_JP2_PATH = "generateJp2";
     public static final String GENERATE_TYPE = "generateType";

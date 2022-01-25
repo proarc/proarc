@@ -102,6 +102,16 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
         modified.setAlign(Alignment.CENTER);
         TreeGridField owner = new TreeGridField(RelationDataSource.FIELD_OWNER,
                 i18n.DigitalObjectSearchView_ListHeaderOwner_Title(), 100);
+        ListGridField isLocked = new ListGridField(SearchDataSource.FIELD_IS_LOCKED,
+                i18n.DigitalObjectSearchView_ListHeaderIsLocked_Title(), 100);
+        isLocked.setCellFormatter(new CellFormatter() {
+            @Override
+            public String format(Object value, ListGridRecord record, int rowNum, int colNum) {
+                return value == null || "0".equals(value)
+                        ? i18nSmartGwt.dialog_NoButtonTitle()
+                        : i18nSmartGwt.dialog_YesButtonTitle();
+            }
+        });
         TreeGridField export = new TreeGridField(SearchDataSource.FIELD_EXPORT,
                 i18n.DigitalObjectSearchView_ListHeaderExport_Title(), 100);
         export.setCellFormatter(new CellFormatter() {
@@ -180,7 +190,7 @@ public final class DigitalObjectTreeView implements Selectable<Record>, RefreshA
                         : i18nSmartGwt.dialog_YesButtonTitle();
             }
         });
-        treeGrid.setFields(parentId, label, model, pid, created, modified, owner, organization, user, status, export, ndkExport, archiveExport, krameriusExport, crossrefExport);
+        treeGrid.setFields(parentId, label, model, isLocked, pid, created, modified, owner, organization, user, status, export, ndkExport, archiveExport, krameriusExport, crossrefExport);
         treeGrid.setTitleField(RelationDataSource.FIELD_LABEL);
         treeGrid.setShowConnectors(true);
         treeGrid.setEmptyMessage(i18n.DigitalObjectTreeView_EmptySelection_Msg());

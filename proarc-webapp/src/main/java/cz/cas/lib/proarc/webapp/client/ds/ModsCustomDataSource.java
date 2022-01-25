@@ -71,6 +71,7 @@ public final class ModsCustomDataSource extends ProarcDataSource implements Mods
     public static final String FIELD_EDITOR = DigitalObjectResourceApi.MODS_CUSTOM_EDITORID;
     public static final String FIELD_TIMESTAMP = DigitalObjectResourceApi.TIMESTAMP_PARAM;
     public static final String FIELD_DATA = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA;
+    public static final String FIELD_IS_LOCKED = DigitalObjectResourceApi.MEMBERS_ITEM_LOCKED;
     
     // follows custom field names
     // custom field names are defined by ModsConstants for now
@@ -274,11 +275,18 @@ public final class ModsCustomDataSource extends ProarcDataSource implements Mods
                 }
             } else if (response.getStatus() == RPCResponse.STATUS_VALIDATION_ERROR) {
                 onValidationError();
+            } else if (response.getStatus() == -41) {
+                onLockedError();
             } else if (RestConfig.isConcurrentModification(response)) { // concurrency conflict
                 onConcurrencyError();
             } else {
                 onError();
             }
+        }
+
+        protected void onLockedError() {
+            String msg = i18n.SaveAction_Validation_Msg(i18n.SaveAction_Locked_Msg());
+            SC.warn(msg);
         }
 
         protected void onSave(DescriptionMetadata dm) {

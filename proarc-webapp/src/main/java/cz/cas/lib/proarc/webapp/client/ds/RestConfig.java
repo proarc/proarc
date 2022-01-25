@@ -95,6 +95,8 @@ public final class RestConfig {
     public static final String URL_URNNBN_RESOLVER = path(URL_ROOT, UrnNbnResourceApi.PATH);
     public static final String URL_DIGOBJECT_COPYOBJECT = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.COPYOBJECT_PATH);
+    public static final String URL_DIGOBJECT_LOCK_OBJECT = path(URL_DIGOBJECT, DigitalObjectResourceApi.LOCK_OBJECT_PATH);
+    public static final String URL_DIGOBJECT_UNLOCK_OBJECT = path(URL_DIGOBJECT, DigitalObjectResourceApi.UNLOCK_OBJECT_PATH);
     public static final String URL_DIGOBJEKT_REINDEX_OBJECTS = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.REINDEX_PATH);
     public static final String URL_DIGOBJEKT_UPDATE_ALL_OBJECTS = path(

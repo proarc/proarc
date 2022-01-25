@@ -16,6 +16,12 @@
  */
 package cz.cas.lib.proarc.webapp.client.action;
 
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.util.SC;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+
 /**
  * A basic implementation of {@link Action} interface.
  *
@@ -66,6 +72,19 @@ public abstract class AbstractAction implements Action {
     @Override
     public void setTooltip(String tooltip) {
         this.tooltip = tooltip;
+    }
+
+    public static boolean hasValidationError(DSResponse response) {
+        return RestConfig.isStatusOk(response) && response.getTotalRows() == -1;
+    }
+
+    public static void handleValidations(DSResponse response) {
+        if (response.getData() != null && response.getData().length == 1) {
+            Record record = response.getData()[0];
+            if (record != null) {
+                SC.warn(record.getAttributeAsString(DigitalObjectResourceApi.ITEM_VALIDATION));
+            }
+        }
     }
 
 }

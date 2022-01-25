@@ -147,7 +147,9 @@ public final class RestoreAction extends AbstractAction {
 
                     @Override
                     public void execute(DSResponse response, Object rawData, DSRequest request) {
-                        if (RestConfig.isStatusOk(response)) {
+                        if (hasValidationError(response)) {
+                            handleValidations(response);
+                        } else if (RestConfig.isStatusOk(response)) {
                             itemIndex++;
                             if (itemIndex < items.length) {
                                 restoreItem();

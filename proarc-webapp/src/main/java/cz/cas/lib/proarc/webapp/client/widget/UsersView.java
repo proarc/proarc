@@ -234,6 +234,10 @@ public final class UsersView implements RefreshAction.Refreshable {
         changeModelFunction.setCanEdit(admin);
         BooleanItem updateModelFunction = new BooleanItem(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION);
         updateModelFunction.setCanEdit(admin);
+        BooleanItem lockObjectFunction = new BooleanItem(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION);
+        lockObjectFunction.setCanEdit(admin);
+        BooleanItem unlockObjectFunction = new BooleanItem(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION);
+        unlockObjectFunction.setCanEdit(admin);
         TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
         email.setColSpan("*");
         email.setWidth(300);
@@ -275,7 +279,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         cancel.setStartRow(false);
 
         form.setFields(username, password, forename, surname, email,
-                remoteName, remoteType, organization, role, home, changeModelFunction, updateModelFunction,
+                remoteName, remoteType, organization, role, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction,
                 new RowSpacerItem(), submit, cancel);
 
         return form;

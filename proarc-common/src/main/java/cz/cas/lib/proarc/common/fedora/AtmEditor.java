@@ -31,7 +31,9 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_ASSIGN;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_CONNECTED;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_DESCRIBED;
@@ -222,6 +224,9 @@ public final class AtmEditor {
         atm.krameriusExport = relationEditor.getKrameriusExportResult();
         atm.ndkExport = relationEditor.getNdkExportResult();
         atm.crossrefExport = relationEditor.getCrossrefExportResult();
+        atm.isLocked = relationEditor.isLocked();
+        atm.lockedBy = relationEditor.getLockedBy();
+        atm.lockedDate = relationEditor.getLockedDate();
         return atm;
     }
 
@@ -309,6 +314,9 @@ public final class AtmEditor {
         private String archiveExport;
         private String crossrefExport;
         private String status;
+        private boolean isLocked;
+        private String lockedBy;
+        private Date lockedDate;
 
         public AtmItem() {
         }
@@ -383,6 +391,18 @@ public final class AtmEditor {
 
         public String getStatus() {
             return status;
+        }
+
+        public boolean isLocked() {
+            return isLocked;
+        }
+
+        public String getLockedBy() {
+            return lockedBy;
+        }
+
+        public Date getLockedDate() {
+            return lockedDate;
         }
     }
 

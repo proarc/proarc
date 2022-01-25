@@ -27,6 +27,7 @@ import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.rpc.RPCResponse;
 import com.smartgwt.client.types.PromptStyle;
+import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.BooleanItem;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
@@ -177,6 +178,8 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
                     callback.onFailure(null);
                 } else if (RestConfig.isConcurrentModification(response)) {
                     callback.onFailure(ErrorSavingDigitalObject.CONCURRENT_MODIFICATION);
+                } else if (response.getStatus() == -41) {
+                    SC.warn("OBJECT is locked");
                 } else {
                     Record[] data = response.getData();
                     if (data != null && data.length > 0) {
@@ -216,6 +219,8 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
                     DigitalObjectDataSource.this.updateCaches(response, request);
                     SearchDataSource.getInstance().updateCaches(response, request);
                     RelationDataSource.getInstance().updateCaches(response, request);
+                } else if (response.getStatus() == -41) {
+                    SC.warn("LOCKED");
                 }
             }
         }, dsRequest);
@@ -270,15 +275,16 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         private final String batchId;
         private final String modelId;
         private final Long workflowJobId;
+        private final boolean isLocked;
         private MetaModelRecord model;
         private Record record;
 
         public static DigitalObject create(String pid, String batchId, MetaModelRecord model) {
-            return new DigitalObject(pid, batchId, null, model, null, null);
+            return new DigitalObject(pid, batchId, null, model, null, false, null);
         }
 
         public static DigitalObject create(String pid, String batchId, String modelId) {
-            return new DigitalObject(pid, batchId, modelId, null, null, null);
+            return new DigitalObject(pid, batchId, modelId, null, null, false, null);
         }
 
         public static DigitalObject create(Record r) {
@@ -338,8 +344,11 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
                 return null;
             }
             String batchId = r.getAttribute(ModsCustomDataSource.FIELD_BATCHID);
+            String lock = r.getAttribute(ModsCustomDataSource.FIELD_IS_LOCKED);
+            boolean isLocked = !(lock == null || lock.isEmpty() || lock.equals("0"));
+
             MetaModelRecord model = MetaModelDataSource.getModel(r);
-            return new DigitalObject(pid, batchId, modelId, model, workflowJobId, r);
+            return new DigitalObject(pid, batchId, modelId, model, workflowJobId, isLocked,  r);
         }
 
         public static boolean hasPid(Record r) {
@@ -354,7 +363,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
             return attr;
         }
 
-        private DigitalObject(String pid, String batchId, String modelId, MetaModelRecord model, Long worfklowjobId, Record record) {
+        private DigitalObject(String pid, String batchId, String modelId, MetaModelRecord model, Long worfklowjobId, boolean isLocked, Record record) {
             if ((pid == null || pid.isEmpty()) && worfklowjobId == null) {
                 throw new IllegalArgumentException("No PID or WorkflowJobId was set");
             }
@@ -363,6 +372,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
             this.modelId = model == null ? modelId : model.getId();
             this.model = model;
             this.workflowJobId = worfklowjobId;
+            this.isLocked = isLocked;
 
             if (this.modelId == null || this.modelId.isEmpty()) {
                 throw new IllegalArgumentException("No model for: " + pid);
@@ -402,6 +412,10 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
                 record = toRecord();
             }
             return record;
+        }
+
+        public boolean isLocked() {
+            return isLocked;
         }
 
         /**

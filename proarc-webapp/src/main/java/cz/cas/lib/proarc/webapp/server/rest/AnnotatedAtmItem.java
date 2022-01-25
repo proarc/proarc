@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import java.util.Date;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -99,4 +100,16 @@ public abstract class AnnotatedAtmItem extends AtmItem {
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_STATUS)
     @Override
     public abstract String getStatus();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_LOCKED)
+    @Override
+    public abstract boolean isLocked();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_LOCKED_BY)
+    @Override
+    public abstract String getLockedBy();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_LOCKED_DATE)
+    @Override
+    public abstract Date getLockedDate();
 }

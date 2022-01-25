@@ -49,6 +49,9 @@ public final class UserDataSource extends ProarcDataSource {
     public static final String FIELD_WHOAMI = UserResourceApi.USER_WHOAMI_PARAM;
     public static final String FIELD_CHANGE_MODEL_FUNCTION = UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION;
     public static final String FIELD_UPDATE_MODEL_FUNCTION = UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION;
+    public static final String FIELD_LOCK_OBJECT_FUNCTION = UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION;
+    public static final String FIELD_UNLOCK_OBJECT_FUNCTION = UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION;
+
     private static UserDataSource INSTANCE;
 
     public UserDataSource() {
@@ -98,6 +101,12 @@ public final class UserDataSource extends ProarcDataSource {
         DataSourceBooleanField updateModelFunction = new DataSourceBooleanField(FIELD_UPDATE_MODEL_FUNCTION);
         updateModelFunction.setTitle(i18n.UsersView_ListHeader_UpdateModelFunction_Title());
 
+        DataSourceBooleanField lockObjectFunction = new DataSourceBooleanField(FIELD_LOCK_OBJECT_FUNCTION);
+        lockObjectFunction.setTitle(i18n.UsersView_ListHeader_LockObjectFunction_Title());
+
+        DataSourceBooleanField unlockObjectFunction = new DataSourceBooleanField(FIELD_UNLOCK_OBJECT_FUNCTION);
+        unlockObjectFunction.setTitle(i18n.UsersView_ListHeader_UnlockObjectFunction_Title());
+
         DataSourceTextField email = new DataSourceTextField(UserResourceApi.USER_EMAIL);
         email.setTitle(i18n.UsersView_ListHeader_Email_Title());
 
@@ -122,7 +131,8 @@ public final class UserDataSource extends ProarcDataSource {
         remoteType.setCanEdit(false);
         remoteType.setHidden(true);
 
-        setFields(userId, userName, passwd, surname, forename, organization, role, email, created, remoteName, remoteType, home, changeModelFunction, updateModelFunction);
+        setFields(userId, userName, passwd, surname, forename, organization, role, email, created, remoteName,
+                remoteType, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
