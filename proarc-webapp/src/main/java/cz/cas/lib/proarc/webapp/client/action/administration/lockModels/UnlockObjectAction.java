@@ -21,6 +21,7 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
 import cz.cas.lib.proarc.webapp.client.action.Actions;
@@ -30,6 +31,7 @@ import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 
 /**
  * Unlock Object.
@@ -53,6 +55,11 @@ public class UnlockObjectAction extends AbstractAction {
 
     @Override
     public boolean accept(ActionEvent event) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") ||
+                Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) ||
+                Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION))) {
+            return false;
+        }
         Object[] selection = Actions.getSelection(event);
         if (selection != null && selection instanceof Record[]) {
             Record[] records = (Record[]) selection;

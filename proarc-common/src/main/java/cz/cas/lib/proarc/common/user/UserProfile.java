@@ -48,6 +48,8 @@ public class UserProfile {
     private String email;
     private Boolean changeModelFunction;
     private Boolean updateModelFunction;
+    private Boolean lockObjectFunction;
+    private Boolean unlockObjectFunction;
     private Date created;
     private Date lastLogin;
     private String status;
@@ -272,6 +274,22 @@ public class UserProfile {
 
     public void setUpdateModelFunction(Boolean updateModelFunction) {
         this.updateModelFunction = updateModelFunction;
+    }
+
+    public Boolean getLockObjectFunction() {
+        return lockObjectFunction;
+    }
+
+    public void setLockObjectFunction(Boolean lockObjectFunction) {
+        this.lockObjectFunction = lockObjectFunction;
+    }
+
+    public Boolean getUnlockObjectFunction() {
+        return unlockObjectFunction;
+    }
+
+    public void setUnlockObjectFunction(Boolean unlockObjectFunction) {
+        this.unlockObjectFunction = unlockObjectFunction;
     }
 
     @Override

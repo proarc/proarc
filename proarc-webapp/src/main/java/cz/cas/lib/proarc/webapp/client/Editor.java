@@ -212,17 +212,23 @@ public class Editor implements EntryPoint {
                 String role = "none";
                 String permissionRunChangeFunction = "none";
                 String permissionRunUpdateFunction = "none";
+                String permissionRunLockFunction = "none";
+                String permissionRunUnlockFunction = "none";
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
                     if (data.length > 0) {
                         role = data[0].getAttribute(UserDataSource.FIELD_ROLE);
                         permissionRunChangeFunction = data[0].getAttribute(UserDataSource.FIELD_CHANGE_MODEL_FUNCTION);
                         permissionRunUpdateFunction = data[0].getAttribute(UserDataSource.FIELD_UPDATE_MODEL_FUNCTION);
+                        permissionRunLockFunction = data[0].getAttribute(UserDataSource.FIELD_LOCK_OBJECT_FUNCTION);
+                        permissionRunUnlockFunction = data[0].getAttribute(UserDataSource.FIELD_UNLOCK_OBJECT_FUNCTION);
                     }
                     permissions.clear();
                     permissions.add(role);
                     permissions.add("true".equals(permissionRunChangeFunction) ? UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION : "none");
                     permissions.add("true".equals(permissionRunUpdateFunction) ? UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION : "none");
+                    permissions.add("true".equals(permissionRunLockFunction) ? UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION : "none");
+                    permissions.add("true".equals(permissionRunUnlockFunction) ? UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION : "none");
                     sweepTask.release();
                 }
             }

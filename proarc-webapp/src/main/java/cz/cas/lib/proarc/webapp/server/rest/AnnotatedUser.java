@@ -108,6 +108,14 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract Boolean getUpdateModelFunction();
 
+    @XmlElement(name = UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION)
+    @Override
+    public abstract Boolean getLockObjectFunction();
+
+    @XmlElement(name = UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION)
+    @Override
+    public abstract Boolean getUnlockObjectFunction();
+
     @XmlTransient
     @Override
     public abstract URI getImportFolder();
@@ -127,5 +135,7 @@ public abstract class AnnotatedUser extends UserProfile {
     @XmlTransient
     @Override
     public abstract String getUserPasswordDigest();
+
+
 
 }
