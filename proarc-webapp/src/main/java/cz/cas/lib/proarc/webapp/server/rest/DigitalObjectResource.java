@@ -2065,12 +2065,7 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
-        Item item = new Item();
-        item.setValidation("Objekt je zamknuty");
-        List list = new ArrayList();
-        list.add(item);
-
-        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, list);
+        return new SmartGwtResponse<>();
     }
 
     @POST

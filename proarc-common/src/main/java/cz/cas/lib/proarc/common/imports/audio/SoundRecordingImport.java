@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.imports.audio;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 
@@ -78,7 +79,7 @@ public class SoundRecordingImport extends FileSetImport {
     }
 
     @Override
-    public void start(ImportProcess.ImportOptions importConfig, ImportBatchManager batchManager) throws Exception {
+    public void start(ImportProcess.ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration configuration) throws Exception {
         File importFolder = importConfig.getImportFolder();
         Batch batch = importConfig.getBatch();
         ImportFileScanner scanner = new ImportFileScanner();

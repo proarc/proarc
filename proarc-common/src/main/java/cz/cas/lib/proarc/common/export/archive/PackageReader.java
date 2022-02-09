@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
@@ -52,6 +53,8 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -97,10 +100,12 @@ public class PackageReader {
     private String pkgModelId;
     private boolean isParentObject;
     private final List<String> physicalPath = new ArrayList<String>();
+    private final AppConfiguration configuration;
 
-    public PackageReader(File targetFolder, ImportSession session) {
+    public PackageReader(File targetFolder, ImportSession session, AppConfiguration config) {
         this.targetFolder = targetFolder;
         this.iSession = session;
+        this.configuration = config;
     }
 
     public void read(File metsFile, ImportOptions ctx) throws IllegalStateException {
@@ -122,14 +127,14 @@ public class PackageReader {
             throw new IllegalStateException("Unknown mets@TYPE:" + pkgModelId);
         }
         StructMapType otherMap = getStructMap(mets, PackageBuilder.STRUCTMAP_OTHERS_TYPE);
-        processDevices(otherMap, ctx);
+        HashMap<String, String> devices = processDevices(otherMap, ctx);
 
         StructMapType physicalMap = getStructMap(mets, PackageBuilder.STRUCTMAP_PHYSICAL_TYPE);
         DivType div = physicalMap.getDiv();
-        processObject(1, div, null, ctx);
+        processObject(1, div, null, devices, ctx);
     }
 
-    private List<String> processChildObjects(List<DivType> divs, ImportOptions ctx) throws DigitalObjectException {
+    private List<String> processChildObjects(List<DivType> divs, HashMap<String, String> devices, ImportOptions ctx) throws DigitalObjectException {
         ArrayList<String> pids = new ArrayList<String>(100);
         for (DivType div : divs) {
             String pid = toPid(div);
@@ -145,7 +150,7 @@ public class PackageReader {
         }
         int childIndex = 1;
         for (DivType div : divs) {
-            processObject(childIndex++, div, newArchive, ctx);
+            processObject(childIndex++, div, newArchive, devices, ctx);
         }
         return pids;
     }
@@ -169,7 +174,7 @@ public class PackageReader {
         return null;
     }
 
-    private void processDevices(StructMapType structMap, ImportOptions ctx) {
+    private HashMap<String, String> processDevices(StructMapType structMap, ImportOptions ctx) {
         DivType devicesDiv = null;
         if (structMap != null) {
             DivType div = structMap.getDiv();
@@ -177,15 +182,17 @@ public class PackageReader {
                 devicesDiv = div;
             }
         }
+        HashMap<String, String> devices = new HashMap<>();
         if (devicesDiv != null) {
             int index = 1;
             for (DivType deviceDiv : devicesDiv.getDiv()) {
-                processDevice(index++, deviceDiv, ctx);
+                devices = processDevice(index++, deviceDiv, devices, ctx);
             }
         }
+        return devices;
     }
 
-    private void processDevice(int divIndex, DivType deviceDiv, ImportOptions ctx) {
+    private HashMap<String, String> processDevice(int divIndex, DivType deviceDiv, HashMap devices, ImportOptions ctx) {
         if (!DeviceRepository.METAMODEL_ID.equals(deviceDiv.getTYPE())) {
             throw new IllegalStateException("Unexpected type of device: " + toString(deviceDiv));
         }
@@ -205,6 +212,21 @@ public class PackageReader {
                 } catch (DigitalObjectNotFoundException ex) {
                     // no remote
                 }
+                if (dObj == null) { // zkousi najit hlavni pid a s tim pote pracovat
+                    String mainPid = getMainPid(pid);
+                    if (mainPid != null) {
+                        remote = iSession.getRemotes().find(mainPid);
+                        try {
+                            String foxml = remote.asText();
+                            dObj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
+                            devices.put(pid, mainPid);
+                            isNewObject = false;
+                        } catch (DigitalObjectNotFoundException ex) {
+                            // no remote
+                        }
+                    }
+                }
+
 
                 if (dObj == null) {
                     dObj = FoxmlUtils.createFoxml(pid);
@@ -219,18 +241,25 @@ public class PackageReader {
                 importItem = iSession.addObject(lObj, physicalPath.isEmpty());
 
                 if (isNewObject) {
-                    createDatastreams(lObj, deviceDiv, Collections.<String>emptyList(), null, ctx);
+                    createDatastreams(lObj, deviceDiv, Collections.<String>emptyList(), null, devices, ctx);
                 }
                 lObj.flush();
                 importItem.setState(ObjectState.LOADED);
                 iSession.getImportManager().update(importItem);
+                return devices;
             }
         } catch (Exception ex) {
             throw new IllegalStateException(toString(deviceDiv), ex);
         }
+        return devices;
     }
 
-    private void processObject(int divIndex, DivType div, File ndkFolder, ImportOptions ctx) throws DigitalObjectException {
+    private String getMainPid(String pid) {
+        String mainPid = configuration.getDevices().getMainUUid(pid);
+        return mainPid;
+    }
+
+    private void processObject(int divIndex, DivType div, File ndkFolder, HashMap<String, String> devices, ImportOptions ctx) throws DigitalObjectException {
         String modelId = div.getTYPE();
         boolean isPkgModel = pkgModelId.equals(modelId);
         String pid = toPid(div);
@@ -278,10 +307,10 @@ public class PackageReader {
                 iSession.checkObjectParent(physicalPath, pid);
             }
             physicalPath.add(pid);
-            List<String> childPids = processChildObjects(div.getDiv(), ctx);
+            List<String> childPids = processChildObjects(div.getDiv(), devices, ctx);
             physicalPath.remove(pid);
             if (isNewObject) {
-                createDatastreams(lObj, div, childPids, ndkFolder, ctx);
+                createDatastreams(lObj, div, childPids, ndkFolder, devices, ctx);
             } else {
                 mergeDatastreams(lObj, div, childPids);
             }
@@ -339,13 +368,13 @@ public class PackageReader {
         }
     }
 
-    private void createDatastreams(LocalObject lObj, DivType objectDiv, List<String> childPids, File ndkFolder, ImportOptions ctx) throws DigitalObjectException {
+    private void createDatastreams(LocalObject lObj, DivType objectDiv, List<String> childPids, File ndkFolder, HashMap<String, String> devices, ImportOptions ctx) throws DigitalObjectException {
         List<Fptr> fPtrs = objectDiv.getFptr();
         for (Fptr fPtr : fPtrs) {
             Object fileid = fPtr.getFILEID();
             if (fileid instanceof FileType) {
                 FileType fileType = (FileType) fileid;
-                createDatastream(lObj, fileType, childPids, ctx);
+                createDatastream(lObj, fileType, childPids, devices, ctx);
             } else {
                 throw new IllegalStateException(
                         "METS: Unexpected <fptr> " + fileid + ", div@id: " + objectDiv.getID());
@@ -442,7 +471,7 @@ public class PackageReader {
         }
     }
 
-    private void createDatastream(LocalObject lObj, FileType fileType, List<String> childPids, ImportOptions ctx) throws DigitalObjectException {
+    private void createDatastream(LocalObject lObj, FileType fileType, List<String> childPids, HashMap<String, String> devices, ImportOptions ctx) throws DigitalObjectException {
         File dsFile = toFile(fileType);
         URI dsUri = dsFile.toURI();
         String dsId = toValidDsId(fileType);
@@ -465,6 +494,11 @@ public class PackageReader {
             }
 
             relationEditor.setMembers(childPids);
+            if (NdkPlugin.MODEL_PAGE.equals(modelId) || NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || NdkAudioPlugin.MODEL_PAGE.equals(modelId)) {
+                if (devices.keySet().contains(relationEditor.getDevice())) {
+                    relationEditor.setDevice(devices.get(relationEditor.getDevice()));
+                }
+            }
             // XXX check group IDs; for now the groups are used just with DESA that is not supported by archive yet
             // see FOXML for owner handling
 //            relationEditor.getOwners();

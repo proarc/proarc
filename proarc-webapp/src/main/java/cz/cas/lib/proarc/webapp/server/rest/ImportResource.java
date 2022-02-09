@@ -40,23 +40,6 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import org.apache.commons.io.IOUtils;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -73,6 +56,23 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Resource to handle imports.
@@ -207,7 +207,7 @@ public class ImportResource {
         File folder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, profileId);
         ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                importManager, device, indices, appConfig.getImportConfiguration(profile));
+                importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -240,7 +240,7 @@ public class ImportResource {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, indices, appConfig.getImportConfiguration(profile));
+                        importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {
