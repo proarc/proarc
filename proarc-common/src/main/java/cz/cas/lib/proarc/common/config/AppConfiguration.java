@@ -136,6 +136,10 @@ public final class AppConfiguration {
         return new Catalogs(config);
     }
 
+    public Devices getDevices() {
+        return new Devices(config);
+    }
+
     public File getConfigHome() {
         return configHome;
     }

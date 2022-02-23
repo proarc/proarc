@@ -2587,7 +2587,7 @@ public class DigitalObjectResource {
     }
 
 
-    @POST
+    @PUT
     @Path(DigitalObjectResourceApi.REINDEX_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> reindex(

@@ -52,16 +52,16 @@ public class ArchiveImport implements ImportHandler {
     }
 
     @Override
-    public void start(ImportOptions importConfig, ImportBatchManager batchManager) throws Exception {
+    public void start(ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration config) throws Exception {
         isession = new ImportSession(ImportBatchManager.getInstance(), importConfig);
-        load(importConfig);
+        load(importConfig, config);
         ingest(importConfig);
     }
 
-    public void load(ImportOptions importConfig) throws Exception {
+    public void load(ImportOptions importConfig, AppConfiguration config) throws Exception {
         File importFolder = importConfig.getImportFolder();
         List<File> metsFiles = ArchiveScanner.findMets(importFolder);
-        consume(metsFiles, importConfig);
+        consume(metsFiles, importConfig, config);
         Batch batch = importConfig.getBatch();
         batch.setState(State.LOADED);
         isession.getImportManager().update(batch);
@@ -75,18 +75,18 @@ public class ArchiveImport implements ImportHandler {
         ingest.importBatch(batch, importConfig.getUsername(), null);
     }
 
-    public void consume(List<File> metsFiles, ImportOptions ctx) throws InterruptedException {
+    public void consume(List<File> metsFiles, ImportOptions ctx, AppConfiguration config) throws InterruptedException {
         for (File metsFile : metsFiles) {
             if (Thread.interrupted()) {
                 throw new InterruptedException();
             }
-            consumeArchive(metsFile, ctx);
+            consumeArchive(metsFile, ctx, config);
         }
     }
 
-    public void consumeArchive(File metsFile, ImportOptions ctx) {
+    public void consumeArchive(File metsFile, ImportOptions ctx, AppConfiguration config) {
         File targetFolder = ctx.getTargetFolder();
-        PackageReader reader = new PackageReader(targetFolder, isession);
+        PackageReader reader = new PackageReader(targetFolder, isession, config);
         reader.read(metsFile, ctx);
     }
 
