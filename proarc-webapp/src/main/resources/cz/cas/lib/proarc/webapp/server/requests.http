@@ -31,6 +31,14 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
+POST http://localhost:8081/proarc/rest/v1/object/mods/addBrackets
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&pids=[uuid%3A18ab20d4-6c85-480b-8799-24e17639cc08]&_operationType=update&_dataSource=ModsCustomDataSource}
+
+###
+
 POST http://localhost:8081/proarc/rest/v1/import/batches
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8

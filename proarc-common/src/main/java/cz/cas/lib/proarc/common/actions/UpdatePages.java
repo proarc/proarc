@@ -53,6 +53,9 @@ public class UpdatePages {
     private int applyTo;
     private boolean applyToFirstPage;
 
+    public UpdatePages() {
+    }
+
     public UpdatePages(String applyTo, String applyToFirstPage) throws DigitalObjectException {
         index = -1;
         this.updatedPids = new ArrayList<>();
@@ -262,5 +265,66 @@ public class UpdatePages {
                 }
             }
         }
+    }
+
+    public void addBrackets(List<String> pids) throws DigitalObjectException {
+        for (String pid : pids) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            FedoraObject fo = dom.find(pid, null);
+            this.model = new RelationEditor(fo).getModel();
+            XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
+                    MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                    MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+            ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
+            ModsDefinition mods = modsStreamEditor.read();
+            putPageNumberIntoBrackets(mods);
+            modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
+
+            String model = new RelationEditor(fo).getModel();
+            DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
+            NdkMapper mapper = NdkMapper.get(model);
+            mapper.setModelId(model);
+
+            NdkMapper.Context context = new NdkMapper.Context(handler);
+            OaiDcType dc = mapper.toDc(mods, context);
+            DcStreamEditor dcEditor = handler.objectMetadata();
+            DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+            dcr.setDc(dc);
+            dcEditor.write(handler, dcr, null);
+
+            fo.setLabel(mapper.toLabel(mods));
+            fo.flush();
+        }
+    }
+
+    private void putPageNumberIntoBrackets(ModsDefinition mods) throws DigitalObjectException {
+        if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
+            if (mods != null) {
+                for (PartDefinition part : mods.getPart()) {
+                    if (part.getDetail().size() == 0) {
+                        DetailDefinition detail = new DetailDefinition();
+                        StringPlusLanguage detailNumber = new StringPlusLanguage();
+                        detailNumber.setValue(addNumberIntoBrackets(detailNumber.getValue()));
+                        detail.getNumber().add(detailNumber);
+                        detail.setType("pageNumber");
+                        part.getDetail().add(detail);
+                    } else {
+                        for (DetailDefinition detail : part.getDetail()) {
+                            if ("pageNumber".equals(detail.getType()) || "page number".equals(detail.getType())) {
+                                if (!detail.getNumber().isEmpty()) {
+                                    detail.getNumber().get(0).setValue(addNumberIntoBrackets(detail.getNumber().get(0).getValue()));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            throw new DigitalObjectException("Unsupported model: " + model);
+        }
+    }
+
+    private String addNumberIntoBrackets(String value) {
+        return "[" + value + "]";
     }
 }

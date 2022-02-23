@@ -1190,7 +1190,7 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
-    @POST
+    @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadataPages(
@@ -1226,6 +1226,27 @@ public class DigitalObjectResource {
 
 
     @POST
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_BRACKETS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> updatePagesAddBrackets (
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray
+    ) throws DigitalObjectException {
+        LOG.fine(String.format("pid: %s", pidsArray));
+
+        if (pidsArray == null || pidsArray.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pidsArray);
+        }
+        List<String> pids = UpdatePages.createListFromArray(pidsArray);
+        if (isLocked(pids)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked",null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED);
+            return toError(validationException, STATUS_LOCKED);
+        }
+
+        UpdatePages updatePages = new UpdatePages();
+        updatePages.addBrackets(pids);
+        return new SmartGwtResponse<>();
+    }
 
 
     private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
