@@ -19,7 +19,31 @@ PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-{&pids=[uuid%3A341dfe44-2ba1-4ac6-a987-c2e49f148dde,uuid%3Af5a48346-c4b3-4e7d-a496-ce7f571d9aa0,uuid%3Af593ee5d-2941-44af-b3c8-8996d4fd87dd,uuid%3A7cef5162-b3ae-4017-9378-6bf80031b84a]&_operationType=update&_dataSource=ModsCustomDataSource&sequence=ALPHABET_LOWER_SERIES&applyTo=2&pageType=titlePage&prefix=[&suffix=]&startNumber=28&incrementNumber=1&applyToFirstPage=true}
+{&isc_metaDataPrefix=_&isc_dataFormat=json&pids=[uuid%3A18ab20d4-6c85-480b-8799-24e17639cc08]&_operationType=update&_dataSource=ModsCustomDataSource&sequence=ALPHABET_LOWER_SERIES&applyTo=2&pageType=titlePage&prefix=[&suffix=]&startNumber=28&incrementNumber=1&applyToFirstPage=true&useBrackets=true}
+
+###
+
+PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&pids=[uuid%3A18ab20d4-6c85-480b-8799-24e17639cc08]&_operationType=update&_dataSource=ModsCustomDataSource&useBrackets=true}
+
+###
+
+POST http://localhost:8081/proarc/rest/v1/object/mods/addBrackets
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&pids=[uuid%3A18ab20d4-6c85-480b-8799-24e17639cc08]&_operationType=update&_dataSource=ModsCustomDataSource}
+
+###
+
+POST http://localhost:8081/proarc/rest/v1/object/mods/removeBrackets
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&pids=[uuid%3A18ab20d4-6c85-480b-8799-24e17639cc08]&_operationType=update&_dataSource=ModsCustomDataSource}
 
 ###
 
