@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
@@ -102,7 +103,7 @@ public class FileSetImport implements ImportHandler {
     }
 
     @Override
-    public void start(ImportOptions importConfig, ImportBatchManager batchManager) throws Exception {
+    public void start(ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration configuration) throws Exception {
         File importFolder = importConfig.getImportFolder();
         Batch batch = importConfig.getBatch();
         ImportFileScanner scanner = new ImportFileScanner();
