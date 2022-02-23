@@ -1224,7 +1224,6 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<>();
     }
 
-
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_BRACKETS)
     @Produces({MediaType.APPLICATION_JSON})
@@ -1244,10 +1243,32 @@ public class DigitalObjectResource {
         }
 
         UpdatePages updatePages = new UpdatePages();
-        updatePages.addBrackets(pids);
+        updatePages.editBrackets(pids, true, false);
         return new SmartGwtResponse<>();
     }
 
+    @POST
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> updatePagesRemoveBrackets (
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray
+    ) throws DigitalObjectException {
+        LOG.fine(String.format("pid: %s", pidsArray));
+
+        if (pidsArray == null || pidsArray.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pidsArray);
+        }
+        List<String> pids = UpdatePages.createListFromArray(pidsArray);
+        if (isLocked(pids)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked",null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED);
+            return toError(validationException, STATUS_LOCKED);
+        }
+
+        UpdatePages updatePages = new UpdatePages();
+        updatePages.editBrackets(pids, false, true);
+        return new SmartGwtResponse<>();
+    }
 
     private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
         return toError(ex, null);

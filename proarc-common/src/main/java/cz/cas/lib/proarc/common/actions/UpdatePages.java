@@ -189,28 +189,14 @@ public class UpdatePages {
         if (series.isAllowToUpdateNumber()) {
             number = series.getNextValue();
         }
-        if (NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
-            updateNdkPageMods(mods, number);
-        } else if (NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
-            updatePageMods(mods, number);
+        if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
+            if (mods != null) {
+                setPageIndex(mods);
+                setPageNumber(mods, number);
+                setPageType(mods, true);
+            }
         } else {
             throw new DigitalObjectException("Unsupported model: " + model);
-        }
-    }
-
-    private void updatePageMods(ModsDefinition mods, String number) {
-        if (mods != null) {
-            setPageIndex(mods);
-            setPageNumber(mods, number);
-            setPageType(mods, false);
-        }
-    }
-
-    private void updateNdkPageMods(ModsDefinition mods, String number) {
-        if (mods != null) {
-            setPageIndex(mods);
-            setPageNumber(mods, number);
-            setPageType(mods, true);
         }
     }
 
@@ -267,7 +253,7 @@ public class UpdatePages {
         }
     }
 
-    public void addBrackets(List<String> pids) throws DigitalObjectException {
+    public void editBrackets(List<String> pids, boolean addBrackets, boolean removeBrackets) throws DigitalObjectException {
         for (String pid : pids) {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
             FedoraObject fo = dom.find(pid, null);
@@ -277,7 +263,11 @@ public class UpdatePages {
                     MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
             ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
             ModsDefinition mods = modsStreamEditor.read();
-            putPageNumberIntoBrackets(mods);
+            if (addBrackets) {
+                addBrackets(mods);
+            } else if (removeBrackets) {
+                removeBrackets(mods);
+            }
             modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
 
             String model = new RelationEditor(fo).getModel();
@@ -297,7 +287,34 @@ public class UpdatePages {
         }
     }
 
-    private void putPageNumberIntoBrackets(ModsDefinition mods) throws DigitalObjectException {
+    private void removeBrackets(ModsDefinition mods) throws DigitalObjectException {
+        if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
+            if (mods != null) {
+                for (PartDefinition part : mods.getPart()) {
+                    if (part.getDetail().size() == 0) {
+                        DetailDefinition detail = new DetailDefinition();
+                        StringPlusLanguage detailNumber = new StringPlusLanguage();
+                        detailNumber.setValue(removePageNumberFromBrackets(detailNumber.getValue()));
+                        detail.getNumber().add(detailNumber);
+                        detail.setType("pageNumber");
+                        part.getDetail().add(detail);
+                    } else {
+                        for (DetailDefinition detail : part.getDetail()) {
+                            if ("pageNumber".equals(detail.getType()) || "page number".equals(detail.getType())) {
+                                if (!detail.getNumber().isEmpty()) {
+                                    detail.getNumber().get(0).setValue(removePageNumberFromBrackets(detail.getNumber().get(0).getValue()));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            throw new DigitalObjectException("Unsupported model: " + model);
+        }
+    }
+
+    private void addBrackets(ModsDefinition mods) throws DigitalObjectException {
         if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
             if (mods != null) {
                 for (PartDefinition part : mods.getPart()) {
@@ -326,5 +343,9 @@ public class UpdatePages {
 
     private String addNumberIntoBrackets(String value) {
         return "[" + value + "]";
+    }
+
+    private String removePageNumberFromBrackets(String value) {
+        return trim(value, "[", "]");
     }
 }
