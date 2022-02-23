@@ -554,7 +554,7 @@ public class DigitalObjectResource {
     /**
      * Gets members of a digital object.
      * @param parent PID of digital object to query its members. {@code root} parameter is ignored.
-     * @param root PID of digital object to return itself as a member with {@link Item#parent} as {@code null}.
+     * @param root PID of digital object to return itself as a member with parent as {@code null}.
      *          Useful to show root of the member hierarchy.
      * @return ordered list of members
      */
@@ -1190,36 +1190,43 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
-    @PUT
+    @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadataPages(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pids,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO) String applyTo,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE) String applyToFirstPage,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_PREFIX) String prefix,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_SUFFIX) String suffix,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_USE_BRACKETS) @DefaultValue("false") String useBrackets,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_SEQUENCE_TYPE) String sequenceType,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_START_NUMBER) String startNumber,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER) String incrementNumber,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_INDEX_START_NUMBER) String startIndex,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_TYPE_PAGE) String pageType
     ) throws IOException, DigitalObjectException {
-        LOG.fine(String.format("pid: %s", pids));
-        if (pids == null || pids.isEmpty()) {
-            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
+        LOG.fine(String.format("pid: %s", pidsArray));
+
+        if (pidsArray == null || pidsArray.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pidsArray);
         }
+        List<String> pids = UpdatePages.createListFromArray(pidsArray);
         if (isLocked(pids)) {
-            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids, null, null, "Locked",null);
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked",null);
             validationException.addValidation("Locked", ERR_IS_LOCKED);
             return toError(validationException, STATUS_LOCKED);
         }
         UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage);
         updatePages.createListOfPids(pids);
         updatePages.createIndex(startIndex);
-        updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType);
+        updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets);
         return new SmartGwtResponse<>();
     }
+
+
+    @POST
+
 
     private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
         return toError(ex, null);
@@ -2065,12 +2072,8 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
-        Item item = new Item();
-        item.setValidation("Objekt je zamknuty");
-        List list = new ArrayList();
-        list.add(item);
 
-        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, list);
+        return new SmartGwtResponse<>();
     }
 
     @POST
@@ -2542,7 +2545,7 @@ public class DigitalObjectResource {
     }
 
 
-    @PUT
+    @POST
     @Path(DigitalObjectResourceApi.REINDEX_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> reindex(

@@ -147,6 +147,7 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE = "applyToFirstPage";
     public static final String MODS_PAGE_RULES_NUMBER_PREFIX = "prefix";
     public static final String MODS_PAGE_RULES_NUMBER_SUFFIX = "suffix";
+    public static final String MODS_PAGE_RULES_USE_BRACKETS = "useBrackets";
     public static final String MODS_PAGE_RULES_NUMBER_SEQUENCE_TYPE = "sequence";
     public static final String MODS_PAGE_RULES_NUMBER_START_NUMBER = "startNumber";
     public static final String MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER = "incrementNumber";

@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -70,7 +71,7 @@ public class UpdatePages {
         }
     }
 
-    private String trim(String value, String start, String end) {
+    private static String trim(String value, String start, String end) {
         if (value != null && !value.isEmpty()) {
             if (value.startsWith(start)) {
                 value = value.substring(start.length());
@@ -94,23 +95,31 @@ public class UpdatePages {
         }
     }
 
-    public void createListOfPids(String pids) {
-        pids = trim(pids, "{", "}");
-        pids = trim(pids, "[", "]");
-        String[] selectedPids = pids.split(",");
-        if (selectedPids.length > 0) {
+    public static List<String> createListFromArray(String pidsArray) {
+        pidsArray = trim(pidsArray, "{", "}");
+        pidsArray = trim(pidsArray, "[", "]");
+        String[] selectedPids = pidsArray.split(",");
+        return Arrays.asList(selectedPids);
+    }
+
+    public void createListOfPids(List<String> pids) {
+        if (pids.size() > 0) {
             if (applyToFirstPage) {
-                for (int i = 0; i < selectedPids.length; i++) {
+                int i = 0;
+                for (String pid : pids) {
                     if (i % this.applyTo == 0) {
-                        this.updatedPids.add(selectedPids[i]);
+                        this.updatedPids.add(pid);
                     }
+                    i++;
                 }
             } else {
-                for (int i = 0; i < selectedPids.length; i++) {
+                int i = 0;
+                for (String pid : pids) {
                     int value = i - this.applyTo + 1;
                     if (value % this.applyTo == 0) {
-                        this.updatedPids.add(selectedPids[i]);
+                        this.updatedPids.add(pid);
                     }
+                    i++;
                 }
             }
         }
@@ -126,10 +135,22 @@ public class UpdatePages {
         }
     }
 
-    public void updatePages(String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType) throws DigitalObjectException {
+    private boolean setUseBrackets(String useBrackets) {
+        useBrackets = trim(useBrackets, "{", "}");
+        if (useBrackets != null && !useBrackets.isEmpty()) {
+            if ("true".equals(useBrackets) || "1".equals(useBrackets.replaceAll("[^0-9]", ""))) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public void updatePages(String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets) throws DigitalObjectException {
         this.pageType = pageType;
 
-        SeriesNumber series = new SeriesNumber(sequenceType, startNumber, incrementNumber, prefix, suffix);
+        SeriesNumber series = new SeriesNumber(sequenceType, startNumber, incrementNumber, prefix, suffix, setUseBrackets(useBrackets));
 
         for (String pid : updatedPids) {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
