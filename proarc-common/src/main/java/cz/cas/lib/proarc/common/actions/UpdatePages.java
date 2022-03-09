@@ -342,6 +342,7 @@ public class UpdatePages {
     }
 
     private String addNumberIntoBrackets(String value) {
+        value = removePageNumberFromBrackets(value);
         return "[" + value + "]";
     }
 
