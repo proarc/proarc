@@ -16,6 +16,12 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
@@ -80,12 +86,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
@@ -413,7 +414,7 @@ public final class Kramerius4Export {
                 Integer expectedPageIndex = informations.getExpectedPageIndex(parentPid);
 
                 if (!containPageNumber(mods)) {
-                    throw new MetsExportException(pid, "Strana nemá vyplněný číslo stránky.", false, null);
+                    throw new MetsExportException(pid, "Strana nemá vyplněné číslo stránky.", false, null);
                 }
                 if (NdkPlugin.MODEL_NDK_PAGE.equals(model) && !containPageType(mods)) {
                     throw new MetsExportException(pid, "Strana nemá vyplněný typ stránky.", false, null);

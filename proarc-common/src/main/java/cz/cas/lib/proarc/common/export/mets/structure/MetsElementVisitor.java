@@ -1933,7 +1933,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         ModsDefinition mods = getMods(metsElement);
         int pageIndex = getPageIndex(mods);
         if (!containPageNumber(mods)) {
-            throw new MetsExportException(metsElement.getOriginalPid(), "Strana nemá vyplněný číslo stránky.", false, null);
+            throw new MetsExportException(metsElement.getOriginalPid(), "Strana nemá vyplněné číslo stránky.", false, null);
         }
         if (pageIndexExpected != pageIndex) {
             if (pageIndex == -1) {
