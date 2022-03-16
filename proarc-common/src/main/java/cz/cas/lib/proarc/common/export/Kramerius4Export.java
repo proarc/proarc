@@ -215,6 +215,12 @@ public final class Kramerius4Export {
             result.setEnd();
             ExportUtils.writeExportResult(target, reslog);
             krameriusResult.setValidationError(ex);
+        } catch (Exception ex) {
+            result.setStatus(ResultStatus.FAILED);
+            result.getError().add(new ResultError(null, ex));
+            result.setEnd();
+            krameriusResult.setException(ex);
+            ExportUtils.writeExportResult(target, reslog);
         }
         return krameriusResult;
     }
@@ -982,6 +988,7 @@ public final class Kramerius4Export {
         private File file;
         private Integer pageCount;
         private MetsExportException validationError;
+        private Exception ex;
 
         public File getFile() {
             return file;
@@ -1005,6 +1012,14 @@ public final class Kramerius4Export {
 
         public void setValidationError(MetsExportException validationError) {
             this.validationError = validationError;
+        }
+
+        public Exception getException() {
+            return ex;
+        }
+
+        public void setException(Exception ex) {
+            this.ex = ex;
         }
     }
 
