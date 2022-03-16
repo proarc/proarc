@@ -67,7 +67,7 @@ public class LockObject {
             }
             return MetsElement.getElement(dobj, null, metsContext, true);
         } catch (IOException | MetsExportException ex) {
-            throw new DigitalObjectException(pid, "ChangeModels:getElement - impossible to find element");
+            throw new DigitalObjectException(pid, "ChangeModels:getElement - impossible to find element", ex);
         }
     }
 

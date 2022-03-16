@@ -256,7 +256,7 @@ public final class Kramerius4Export {
             }
             return MetsElement.getElement(dobj, null, metsContext, true);
         } catch (IOException | MetsExportException ex) {
-            throw new DigitalObjectException("K4 export: imposible to find element " + pid);
+            throw new DigitalObjectException(pid, "K4 export: imposible to find element.", ex);
         }
     }
 
