@@ -21,8 +21,15 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.MimeType;
+import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -52,16 +59,20 @@ public final class DataStreamExport {
     private static final Logger LOG = Logger.getLogger(DataStreamExport.class.getName());
 
     private RemoteStorage rstorage;
-    /** already exported PIDs to prevent loops */
+    /**
+     * already exported PIDs to prevent loops
+     */
     private HashSet<String> exportedPids = new HashSet<String>();
-    /** PIDs scheduled for export */
+    /**
+     * PIDs scheduled for export
+     */
     private Queue<String> toExport = new LinkedList<String>();
-    private byte[] buffer = new byte[10*1024];
-    private final ExportOptions options;
+    private byte[] buffer = new byte[10 * 1024];
+    private final AppConfiguration appConfig;
 
-    public DataStreamExport(RemoteStorage rstorage, ExportOptions options) {
+    public DataStreamExport(RemoteStorage rstorage, AppConfiguration configuration) {
         this.rstorage = rstorage;
-        this.options = options;
+        this.appConfig = configuration;
     }
 
     public File export(File output, boolean hierarchy, List<String> pids, List<String> dsIds) throws ExportException {
@@ -72,7 +83,7 @@ public final class DataStreamExport {
             throw new IllegalArgumentException();
         }
 
-        File target = ExportUtils.createFolder(output, filename(pids.get(0), dsIds.get(0)), options.isOverwritePackage());
+        File target = ExportUtils.createFolder(output, (dsIds.get(0) + "_" + FoxmlUtils.pidAsUuid(pids.get(0))).toLowerCase(), appConfig.getExportOptions().isOverwritePackage());
         toExport.addAll(pids);
         for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
             exportPid(target, hierarchy, pid, dsIds);
@@ -88,7 +99,7 @@ public final class DataStreamExport {
         exportedPids.add(pid);
 
         RemoteObject remote = rstorage.find(pid);
-        
+
         try {
             extension = getExtension(dsIds, getDataStreams(remote));
             dsIds = filterDataStreams(dsIds, getDataStreams(remote));
@@ -115,14 +126,21 @@ public final class DataStreamExport {
                 throw new ExportException(filename(pid, dsId), ex);
             } catch (MetsExportException ex) {
                 throw new ExportException(filename(pid, dsId), ex);
+            } catch (DigitalObjectException ex) {
+                throw new ExportException(filename(pid, dsId), ex);
             }
         }
 
     }
 
-    private void exportPid(File target, RemoteObject remote, String dsId, String extension) throws FedoraClientException, IOException, MetsExportException {
+    private void exportPid(File target, RemoteObject remote, String dsId, String extension) throws FedoraClientException, IOException, MetsExportException, DigitalObjectException {
         InputStream input = getDataStreamDissemination(remote, dsId);
-        File f = new File(target, filename(remote.getPid(), MimeType.getExtension(extension)));
+        String filename = filename(remote.getPid(), MimeType.getExtension(extension));
+        if (Const.RAW_GRP_ID.equals(dsId)) {
+            IMetsElement element = getElement(remote.getPid());
+            filename = (Const.RAW_GRP_ID + "_" + element.getElementType() + "_" + String.format("%04d", element.getModsStart()) + "_" + FoxmlUtils.pidAsUuid(remote.getPid())).toLowerCase() + '.' + MimeType.getExtension(extension);
+        }
+        File f = new File(target, filename);
         boolean done = false;
         try {
             FileOutputStream output = new FileOutputStream(f);
@@ -151,6 +169,33 @@ public final class DataStreamExport {
                 }
             }
         }
+    }
+
+    private IMetsElement getElement(String pid) throws DigitalObjectException {
+        try {
+            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+            RemoteStorage.RemoteObject robject = rstorage.find(pid);
+            MetsContext metsContext = buildContext(robject, null, rstorage);
+            DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+            if (dobj == null) {
+                return null;
+            }
+            return MetsElement.getElement(dobj, null, metsContext, true);
+        } catch (IOException | MetsExportException ex) {
+            throw new DigitalObjectException(pid, "Export Data Stream - element not found", ex);
+        }
+    }
+
+    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, RemoteStorage rstorage) {
+        MetsContext mc = new MetsContext();
+        mc.setFedoraClient(fo.getClient());
+        mc.setRemoteStorage(rstorage);
+        mc.setPackageID(packageId);
+        mc.setOutputPath(null);
+        mc.setAllowNonCompleteStreams(false);
+        mc.setAllowMissingURNNBN(false);
+        mc.setConfig(null);
+        return mc;
     }
 
     private InputStream getDataStreamDissemination(RemoteObject remote, String dsId) throws FedoraClientException {
