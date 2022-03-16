@@ -339,7 +339,7 @@ public class DigitalObjectResource {
         PurgeFedoraObject service = new PurgeFedoraObject(fedora);
         for (String pid : pids) {
             try {
-                setWorkflow("task.deletionPA", getIMetsElement(pid));
+                setWorkflow("task.deletionPA", getIMetsElement(pid, false));
             } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
                 throw new IOException(e);
             }
@@ -999,7 +999,7 @@ public class DigitalObjectResource {
         dstHandler.commit();
 
         try {
-            setWorkflow("task.metadataDescriptionInProArc", getIMetsElement(dstParentPid));
+            setWorkflow("task.metadataDescriptionInProArc", getIMetsElement(dstParentPid, true));
         } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
             LOG.severe("Nepodarilo se ukoncit ukol \"task.metadataDescriptionInProArc\" pro " + dstParentPid + " - " + e.getMessage());
         }
@@ -1384,11 +1384,11 @@ public class DigitalObjectResource {
         }
     }
 
-    private IMetsElement getIMetsElement(String pid) throws MetsExportException {
+    private IMetsElement getIMetsElement(String pid, boolean validation) throws MetsExportException {
         RemoteStorage rstorage = RemoteStorage.getInstance();
         RemoteStorage.RemoteObject fo = rstorage.find(pid);
         MetsContext mc = buildContext(rstorage, fo, null, null);
-        IMetsElement element = getMetsElement(fo, mc, true);
+        IMetsElement element = getMetsElement(fo, mc, true, validation);
         return element == null ? null : element;
     }
 
@@ -1404,13 +1404,13 @@ public class DigitalObjectResource {
         return mc;
     }
 
-    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy, boolean validation) throws MetsExportException {
         dc.resetContext();
         com.yourmediashelf.fedora.generated.foxml.DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
         if (dobj == null) {
             return null;
         }
-        return MetsElement.getElement(dobj, null, dc, hierarchy);
+        return MetsElement.getElement(dobj, null, dc, hierarchy, validation);
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)

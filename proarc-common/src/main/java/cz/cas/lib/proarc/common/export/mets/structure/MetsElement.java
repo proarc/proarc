@@ -257,6 +257,10 @@ public class MetsElement implements IMetsElement {
      * @throws MetsExportException
      */
     public MetsElement(DigitalObject digitalObject, Object parent, MetsContext metsContext, boolean fillChildren) throws MetsExportException {
+        this(digitalObject, parent,  metsContext, fillChildren, true);
+    }
+
+    public MetsElement(DigitalObject digitalObject, Object parent, MetsContext metsContext, boolean fillChildren, boolean validation) throws MetsExportException {
         this.metsContext = metsContext;
         this.sourceObject = digitalObject;
         this.originalPid = digitalObject.getPID();
@@ -351,7 +355,9 @@ public class MetsElement implements IMetsElement {
             this.descriptor = null;
         }
 
-        validateDCMODS();
+        if (!validation) {
+            validateDCMODS();
+        }
 
         String modsName = Const.typeNameMap.get(this.elementType);
         if (modsName == null) {
@@ -557,6 +563,10 @@ public class MetsElement implements IMetsElement {
      * @throws MetsExportException
      */
     public static MetsElement getElement(DigitalObject object, MetsElement parent, MetsContext metsContext, boolean withChildren) throws MetsExportException {
+        return getElement(object, parent, metsContext, withChildren, true);
+    }
+
+    public static MetsElement getElement(DigitalObject object, MetsElement parent, MetsContext metsContext, boolean withChildren, boolean validation) throws MetsExportException {
         List<Element> relsExt = FoxmlUtils.findDatastream(object, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
         String model = MetsUtils.getModel(relsExt);
         String type = MetsUtils.getElementType(model);
