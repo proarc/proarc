@@ -327,7 +327,8 @@ public final class RemoteStorage {
                 FedoraClient.purgeObject(getPid()).logMessage(qpEncode(logMessage)).execute(client);
             } catch (FedoraClientException ex) {
                 if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                    //throw new DigitalObjectNotFoundException(getPid(), ex);
+                    LOG.info("Error in object purge " + ex.getMessage() + " " + ex.getStackTrace());
                 } else {
                     throw new DigitalObjectException(getPid(), ex);
                 }
