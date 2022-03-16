@@ -26,11 +26,12 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -72,7 +73,7 @@ public class DataStreamExportTest {
         boolean hierarchy = true;
         List<String> pids = Arrays.asList("uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2");
         List<String> dsIds = Arrays.asList(StringEditor.OCR_ID, "PREVIEW");
-        DataStreamExport instance = new DataStreamExport(fedora.getRemoteStorage(), appConfig.getExportOptions());
+        DataStreamExport instance = new DataStreamExport(fedora.getRemoteStorage(), appConfig);
         File target = instance.export(output, hierarchy, pids, dsIds);
         assertNotNull(target);
 

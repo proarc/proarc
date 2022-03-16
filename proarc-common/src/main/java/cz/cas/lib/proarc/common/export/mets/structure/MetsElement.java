@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.MdSecType;
+import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
@@ -300,7 +301,7 @@ public class MetsElement implements IMetsElement {
             LOG.log(Level.FINE, "Root element found:" + getOriginalPid() + "(" + getElementType() + ")");
         }
 
-        if (!Const.PAGE.equals(elementType) || model.contains(NdkPlugin.MODEL_NDK_PAGE)) {
+        if (!Const.PAGE.equals(elementType))  {
             NdkMapper mapper = NdkMapper.get(model.replaceAll("info:fedora/", ""));
             Document modsDocument = MetsUtils.getDocumentFromList(modsStream);
             DOMSource modsDOMSource = new DOMSource(modsDocument);
@@ -344,6 +345,51 @@ public class MetsElement implements IMetsElement {
             String parentModel = null;
             if (this.parent != null) {
                parentModel = Const.typeMap.get(this.parent.getModel());
+            }
+            NdkMapper.Context context = new NdkMapper.Context(digitalObject.getPID(), parentModel);
+            OaiDcType dcType = mapper.toDc(modsDefinition, context);
+            DOMResult dcDOMResult = new DOMResult();
+            DcUtils.marshal(dcDOMResult, dcType, true);
+            this.descriptor = new ArrayList<Element>();
+            this.descriptor.add((Element) dcDOMResult.getNode().getFirstChild());
+        } else if (model.contains(NdkPlugin.MODEL_NDK_PAGE) || model.contains(NdkPlugin.MODEL_PAGE)) {
+            NdkMapper mapper = NdkMapper.get(model.replaceAll("info:fedora/", ""));
+            Document modsDocument = MetsUtils.getDocumentFromList(modsStream);
+            DOMSource modsDOMSource = new DOMSource(modsDocument);
+            ModsDefinition modsDefinition = ModsUtils.unmarshalModsType(modsDOMSource);
+            if (modsDefinition.getPart().size() > 0) {
+                for (PartDefinition part : modsDefinition.getPart()) {
+                    if (part.getType() == null) {
+                        if (part.getDetail().size() > 0) {
+                            try {
+                                DetailDefinition detail = getDetail(part.getDetail());
+                                if (detail.getNumber() != null && detail.getNumber().size() > 0) {
+                                    this.modsStart = new BigInteger(detail.getNumber().get(0).getValue().replaceAll("\\D", ""));
+                                    break;
+                                }
+                            } catch (NumberFormatException ex) {
+                                throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);
+                            }
+                        }
+                    }
+                }
+                if (this.modsStart == null) { // rozsireni pro model NdkPlugin.MODEL_PAGE
+                    if (modsDefinition.getPart().get(0).getDetail().size() > 0) {
+                        try {
+                            DetailDefinition detail = getDetail(modsDefinition.getPart().get(0).getDetail());
+                            if (detail.getNumber() != null && detail.getNumber().size() > 0) {
+                                this.modsStart = new BigInteger(detail.getNumber().get(0).getValue().replaceAll("\\D", ""));
+                            }
+                        } catch (NumberFormatException ex) {
+                            throw new MetsExportException(digitalObject.getPID(), "Unable to parse detail number from mods", false, ex);
+                        }
+                    }
+                }
+            }
+
+            String parentModel = null;
+            if (this.parent != null) {
+                parentModel = Const.typeMap.get(this.parent.getModel());
             }
             NdkMapper.Context context = new NdkMapper.Context(digitalObject.getPID(), parentModel);
             OaiDcType dcType = mapper.toDc(modsDefinition, context);
@@ -426,6 +472,44 @@ public class MetsElement implements IMetsElement {
             return pageNotFill;
         } else {
             return extents.get(0);
+        }
+    }
+
+    private DetailDefinition getDetail(List<DetailDefinition> details) {
+        DetailDefinition pageIndex = null;
+        DetailDefinition pageNumber = null;
+        DetailDefinition pageNotFill = null;
+
+        for (DetailDefinition detail : details) {
+            if (detail.getType() != null && !detail.getType().isEmpty()) {
+                switch (detail.getType().toLowerCase()) {
+                    case "page number":
+                    case "pagenumber":
+                        if (pageNumber == null) {
+                            pageNumber = detail;
+                        }
+                        break;
+                    case "pageindex":
+                        if (pageIndex == null) {
+                            pageIndex = detail;
+                        }
+                        break;
+                    default:
+                        if (pageNotFill == null) {
+                            pageNotFill = detail;
+                        }
+                }
+            }
+        }
+
+        if (pageIndex != null) {
+            return pageIndex;
+        } else if (pageNumber != null) {
+            return pageNumber;
+        } else if (pageNotFill != null) {
+            return pageNotFill;
+        } else {
+            return details.get(0);
         }
     }
 

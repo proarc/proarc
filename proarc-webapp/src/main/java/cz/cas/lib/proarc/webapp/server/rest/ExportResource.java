@@ -149,7 +149,7 @@ public class ExportResource {
         if (dsIds.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
-        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig.getExportOptions());
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
@@ -781,7 +781,7 @@ public class ExportResource {
         if (dsIds.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
-        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig.getExportOptions());
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
