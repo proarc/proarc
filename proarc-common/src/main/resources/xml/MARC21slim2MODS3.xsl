@@ -1985,7 +1985,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:for-each>
 
         <xsl:for-each
-            select="marc:datafield[@tag=501 or @tag=507 or @tag=513 or @tag=514 or @tag=516 or @tag=522 or @tag=525 or @tag=526 or @tag=544 or @tag=547 or @tag=550 or @tag=552 or @tag=555 or @tag=556 or @tag=565 or @tag=567 or @tag=580 or @tag=584 or @tag=586]">
+            select="marc:datafield[@tag=501 or @tag=507 or @tag=510 or @tag=513 or @tag=514 or @tag=516 or @tag=522 or @tag=525 or @tag=526 or @tag=544 or @tag=547 or @tag=550 or @tag=552 or @tag=555 or @tag=556 or @tag=563 or @tag=565 or @tag=567 or @tag=580 or @tag=584 or @tag=586 or @tag=590]">
             <xsl:call-template name="createNoteFrom5XX"/>
         </xsl:for-each>
 
