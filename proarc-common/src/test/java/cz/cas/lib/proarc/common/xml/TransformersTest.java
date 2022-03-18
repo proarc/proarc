@@ -109,7 +109,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");// from test
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -130,7 +130,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -161,7 +161,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("frequencyAuthority.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -190,7 +190,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -224,7 +224,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -254,7 +254,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -282,7 +282,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -331,7 +331,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -367,7 +367,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_relatedItem_787.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -405,7 +405,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_subject_65X_X9.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -433,7 +433,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_originInfo_264_ind4.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
@@ -460,7 +460,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsOaiMarc.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.OaimarcAsMarc21slim);
@@ -480,7 +480,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("../catalog/alephXServerDetailResponse.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
 
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.AlephOaiMarcFix);
@@ -501,7 +501,7 @@ public class TransformersTest {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMods.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
         Map<String, Object> params = ModsUtils.modsAsHtmlParameters(Locale.ENGLISH);
 
         try {
@@ -555,7 +555,7 @@ public class TransformersTest {
     private String modsAsFedoraLabel(InputStream xmlIS, String model) throws Exception {
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
-        Transformers mt = new Transformers();
+        Transformers mt = new Transformers(null);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("MODEL", model);
         try {

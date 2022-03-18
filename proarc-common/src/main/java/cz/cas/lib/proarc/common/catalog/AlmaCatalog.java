@@ -72,7 +72,7 @@ public final class AlmaCatalog implements BibliographicCatalog {
     static final String PROPERTY_RECORD_CHARSET = "recordCharset";
 
     private static final Logger LOG = Logger.getLogger(AlmaCatalog.class.getName());
-    private Transformers transformers = new Transformers();
+    private Transformers transformers;
     private final String url;
     private final String apikey;
     private final Charset recordCharset;
@@ -84,7 +84,7 @@ public final class AlmaCatalog implements BibliographicCatalog {
      */
     private final Map<String, AlmaField> fields;
 
-    public static AlmaCatalog get(CatalogConfiguration c) {
+    public static AlmaCatalog get(CatalogConfiguration c, String customTemplatePath) {
         if (c == null || !TYPE.equals(c.getType())) {
             return null;
         }
@@ -116,7 +116,7 @@ public final class AlmaCatalog implements BibliographicCatalog {
         }
 
         Map<String, AlmaField> fields = readFields(c);
-        return new AlmaCatalog(url, apikey, charset, fields);
+        return new AlmaCatalog(url, apikey, charset, fields, customTemplatePath);
     }
 
     static Map<String, AlmaField> readFields(CatalogConfiguration c) {
@@ -128,11 +128,12 @@ public final class AlmaCatalog implements BibliographicCatalog {
         return fields;
     }
 
-    public AlmaCatalog(String url, String apikey, Charset recordCharset, Map<String, AlmaField> fields) {
+    public AlmaCatalog(String url, String apikey, Charset recordCharset, Map<String, AlmaField> fields, String customTemplatePath) {
         this.url = url;
         this.apikey = apikey;
         this.recordCharset = recordCharset;
         this.fields = fields;
+        this.transformers = new Transformers(customTemplatePath);
     }
 
     @Override
