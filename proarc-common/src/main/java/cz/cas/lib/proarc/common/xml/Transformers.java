@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.Collections;
@@ -73,7 +74,10 @@ public final class Transformers {
         FORMAT2XSL.put(Format.ModsAsAuthorityTitle, MODS2AUTHORITYTITLE_XSL_PATH);
         FORMAT2XSL.put(Format.ModsAsFedoraLabel, MODS2FEDORA_LABEL_XSL_PATH);
         FORMAT2XSL.put(Format.AlephOaiMarcFix, ALEPHXSERVERFIX_XSL_PATH);
-        initTemplates();
+    }
+
+    public Transformers(String customTemplatePath) {
+        initTemplates(customTemplatePath);
     }
 
     public Source transform(Source input, Format format) throws TransformerException {
@@ -139,10 +143,10 @@ public final class Transformers {
         return resolver.resolve(path, path);
     }
 
-    private static Templates createTemplates(Format recordFormat) throws TransformerException {
+    private static Templates createTemplates(Format recordFormat, String customTemplatePath) throws TransformerException {
         TransformerFactory factory = TransformerFactory.newInstance();
 //        factory.setAttribute("debug", true);
-        SimpleResolver resolver = new SimpleResolver();
+        SimpleResolver resolver = new SimpleResolver(customTemplatePath);
         factory.setURIResolver(resolver);
         Templates templates = factory.newTemplates(getXsl(recordFormat, resolver));
         return templates;
@@ -156,10 +160,10 @@ public final class Transformers {
         return templates.newTransformer();
     }
 
-    private static void initTemplates() {
+    private static void initTemplates(String customTemplatePath) {
         for (Map.Entry<Format, String> entry : FORMAT2XSL.entrySet()) {
             try {
-                Templates templates = createTemplates(entry.getKey());
+                Templates templates = createTemplates(entry.getKey(), customTemplatePath);
                 FORMAT2TEMPLATES.put(entry.getKey(), templates);
             } catch (TransformerException ex) {
                 LOG.log(Level.SEVERE, entry.getValue(), ex);
@@ -175,6 +179,8 @@ public final class Transformers {
         /** mapping to offline resources */
         private static final Map<String, String> CATALOG = new HashMap<String, String>();
 
+        private final String customPath;
+
         static {
             CATALOG.put(MODS_3_XSL_PATH, "/xml/MARC21slim2MODS3.xsl");
 //            CATALOG.put(DC_RDF_XSL_PATH, "/xslts/MARC21slim2RDFDC.xsl");
@@ -189,8 +195,18 @@ public final class Transformers {
             CATALOG.put(ALEPHXSERVERFIX_XSL_PATH, ALEPHXSERVERFIX_XSL_PATH);
         }
 
-        @Override
+        public SimpleResolver(String customTemplatePath) {
+            this.customPath = customTemplatePath;
+        }
+
         public Source resolve(String href, String base) throws TransformerException {
+            if (MODS_3_XSL_PATH.equals(href) && (customPath != null)) {
+                File file = new File(customPath);
+                if (file.exists() && file.isFile()) {
+                    return new StreamSource(file);
+                }
+            }
+
             String path = CATALOG.get(href);
             if (path == null) {
                 path = "/xml/" + href;

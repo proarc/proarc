@@ -83,7 +83,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
     static final String PROPERTY_FIELD_QUERY = "query";
 
     private static final Logger LOG = Logger.getLogger(Z3950Catalog.class.getName());
-    private Transformers transformers = new Transformers();
+    private Transformers transformers;
     private final Z3950Client client;
     private final String host;
     private final String base;
@@ -94,7 +94,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
      */
     private final Map<String, Z3950Field> fields;
 
-    public static Z3950Catalog get(CatalogConfiguration c) {
+    public static Z3950Catalog get(CatalogConfiguration c, String customTemplatePath) {
         if (c == null || !TYPE.equals(c.getType())) {
             return null;
         }
@@ -131,7 +131,7 @@ public final class Z3950Catalog implements BibliographicCatalog {
         }
 
         Map<String, Z3950Field> fields = readFields(c);
-        return new Z3950Catalog(host, port, base, charset, fields);
+        return new Z3950Catalog(host, port, base, charset, fields, customTemplatePath);
     }
 
     static Map<String, Z3950Field> readFields(CatalogConfiguration c) {
@@ -143,13 +143,14 @@ public final class Z3950Catalog implements BibliographicCatalog {
         return fields;
     }
 
-    public Z3950Catalog(String host, int port, String base, Charset recordCharset, Map<String, Z3950Field> fields) {
+    public Z3950Catalog(String host, int port, String base, Charset recordCharset, Map<String, Z3950Field> fields, String customTemplatePath) {
         this.host = host;
         this.port = port;
         this.base = base;
         this.recordCharset = recordCharset;
         client = new Z3950Client(host, port, base);
         this.fields = fields;
+        this.transformers = new Transformers(customTemplatePath);
     }
 
     @Override

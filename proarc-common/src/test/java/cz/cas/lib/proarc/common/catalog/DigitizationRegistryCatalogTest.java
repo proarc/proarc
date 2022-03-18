@@ -70,7 +70,7 @@ public class DigitizationRegistryCatalogTest {
         String fieldName = "barcode";
         String value = "26005405857";
         Locale locale = new Locale("cs");
-        DigitizationRegistryCatalog instance = new DigitizationRegistryCatalog(url, user, passwd);
+        DigitizationRegistryCatalog instance = new DigitizationRegistryCatalog(url, user, passwd, null);
         List<MetadataItem> details = instance.find(null, fieldName, value, locale);
         assertEquals(1, details.size());
         MetadataItem detail = details.get(0);

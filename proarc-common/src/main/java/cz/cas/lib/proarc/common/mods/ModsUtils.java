@@ -218,7 +218,7 @@ public final class ModsUtils {
         try {
             JAXBSource src = new JAXBSource(
                     defaultMarshaller(false), new ObjectFactory().createMods(mods));
-            Transformers t = new Transformers();
+            Transformers t = new Transformers(null);
             byte[] contents = t.transformAsBytes(src, Format.ModsAsFedoraLabel, Collections.<String, Object>singletonMap("MODEL", model));
             int threshold = Math.min(contents.length, 2000);
             String label = contents.length == 0 ? "?" : new String(contents, 0, threshold, "UTF-8");

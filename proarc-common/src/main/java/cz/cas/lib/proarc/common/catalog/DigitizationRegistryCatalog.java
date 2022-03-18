@@ -48,20 +48,21 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
     private static final int MAX_RESULTS = 10;
 
     private final DigitizationRegistry register;
-    private Transformers transformers = new Transformers();
+    private Transformers transformers;
 
-    public static DigitizationRegistryCatalog get(CatalogConfiguration c) {
+    public static DigitizationRegistryCatalog get(CatalogConfiguration c, String customTemplatePath) {
         if (c == null || !TYPE.equals(c.getType())) {
             return null;
         }
         String url = c.getUrl();
         String user = c.getProperty(CatalogConfiguration.PROPERTY_USER);
         String passwd = c.getProperty(CatalogConfiguration.PROPERTY_PASSWD);
-        return new DigitizationRegistryCatalog(url, user, passwd);
+        return new DigitizationRegistryCatalog(url, user, passwd, customTemplatePath);
     }
 
-    public DigitizationRegistryCatalog(String url, String user, String passwd) {
+    public DigitizationRegistryCatalog(String url, String user, String passwd, String customTemplatePath) {
         DigitizationRegistryClient client = new DigitizationRegistryClient(url, user, passwd);
+        this.transformers = new Transformers(customTemplatePath);
         register = client.getRegistery();
     }
 

@@ -61,13 +61,13 @@ public final class AlephXServer implements BibliographicCatalog {
 
     private static final Logger LOG = Logger.getLogger(AlephXServer.class.getName());
 
-    private final Transformers transformers = new Transformers();
+    private final Transformers transformers;
     private final URI server;
     private boolean loadBarcodes = false;
 
     final FieldConfig fields = new FieldConfig();
 
-    public static AlephXServer get(CatalogConfiguration c) {
+    public static AlephXServer get(CatalogConfiguration c, String customTemplatePath) {
         if (c == null || !TYPE.equals(c.getType())) {
             return null;
         }
@@ -75,7 +75,7 @@ public final class AlephXServer implements BibliographicCatalog {
         String url = c.getUrl();
         if (url != null) {
             try {
-                AlephXServer aleph = new AlephXServer(url);
+                AlephXServer aleph = new AlephXServer(url, customTemplatePath);
                 aleph.loadFields(c);
 
                 String loadBarcodes = c.getProperty(PROPERTY_LOAD_BARCODES);
@@ -98,13 +98,14 @@ public final class AlephXServer implements BibliographicCatalog {
         }
     }
 
-    public AlephXServer(URI uri) {
+    public AlephXServer(URI uri, String customTemplatePath) {
         this.server = uri;
+        this.transformers = new Transformers(customTemplatePath);
     }
 
-    public AlephXServer(String url) throws URISyntaxException, MalformedURLException {
+    public AlephXServer(String url, String customTemplatePath) throws URISyntaxException, MalformedURLException {
         // parse with URL that offers better error notification
-        this(new URL(url).toURI());
+        this(new URL(url).toURI(), customTemplatePath);
     }
 
     public List<MetadataItem> find(String catalog, String fieldName, String value) throws TransformerException, IOException {
