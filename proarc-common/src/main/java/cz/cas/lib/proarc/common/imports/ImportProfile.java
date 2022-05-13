@@ -61,6 +61,7 @@ public final class ImportProfile {
     public static final String PREVIEW_SUFFIX = "import.preview.file.suffix";
     public static final String PROCESSOR = "processor";
     public static final String REQUIRED_DATASTREAM = "import.requiredDatastreamId";
+    public static final String SKIPPED_DATASTREAM = "import.skippedDatastreamId";
     public static final String THUMBNAIL_JAVA_SCALING = "import.image.thumbnail.java.scalingMethod";
     public static final String THUMBNAIL_MAX_HEIGHT = "import.image.thumbnail.maxHeight";
     public static final String THUMBNAIL_MAX_WIDTH = "import.image.thumbnail.maxWidth";
@@ -329,6 +330,10 @@ public final class ImportProfile {
 
     public List<Object> getRequiredDatastreamId() {
         return config.getList(REQUIRED_DATASTREAM);
+    }
+
+    public List<Object> getSkippedDatastreamId() {
+        return config.getList(SKIPPED_DATASTREAM);
     }
 
     public Configuration getThumbnailProcessor() {
