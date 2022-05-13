@@ -41,6 +41,8 @@ public final class Catalogs {
     static final String PROPERTY_AUTHORITY_CATALOGS = "authorityCatalogs";
     static final String AUTHORITY_CATALOG_PREFIX = "authorityCatalog";
 
+    public static final String PROPERTY_CUSTOM_TEMPLATE_PATH = "catalogs.customTemplate.path";
+
     private final Configuration config;
 
     public Catalogs(Configuration config) {
@@ -84,6 +86,8 @@ public final class Catalogs {
      */
     public BibliographicCatalog findCatalog(String id) {
         CatalogConfiguration props = findConfiguration(id);
+        String customTemplatePath = config.getString(PROPERTY_CUSTOM_TEMPLATE_PATH, null);
+
         if (props == null) {
             props = findAuthorityConfiguration(id);
 
@@ -91,23 +95,23 @@ public final class Catalogs {
                 return null;
             }
         }
-        BibliographicCatalog catalog = DigitizationRegistryCatalog.get(props);
+        BibliographicCatalog catalog = DigitizationRegistryCatalog.get(props, customTemplatePath);
         if (catalog != null) {
             return catalog;
         }
-        catalog = AlephXServer.get(props);
+        catalog = AlephXServer.get(props, customTemplatePath);
         if (catalog != null) {
             return catalog;
         }
-        catalog = OaiCatalog.get(props);
+        catalog = OaiCatalog.get(props, customTemplatePath);
         if (catalog != null) {
             return catalog;
         }
-        catalog = Z3950Catalog.get(props);
+        catalog = Z3950Catalog.get(props, customTemplatePath);
         if (catalog != null) {
             return catalog;
         }
-        catalog = AlmaCatalog.get(props);
+        catalog = AlmaCatalog.get(props, customTemplatePath);
         return catalog;
     }
 

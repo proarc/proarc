@@ -60,7 +60,7 @@ public class OaiCatalogTest {
 
     @Test
     public void testOaiResponseTransformation() throws Exception {
-        OaiCatalog c = new OaiCatalog("", "");
+        OaiCatalog c = new OaiCatalog("", "", null);
         String srcUrl = OaiCatalogTest.class.getResource("oaiResponse.xml").toExternalForm();
         StreamResult result = c.transformOaiResponse(new StreamSource(srcUrl), new StreamResult(new StringWriter()));
         assertNotNull(result);
@@ -74,7 +74,7 @@ public class OaiCatalogTest {
 
     @Test
     public void testOaiIdNotExistResponseTransformation() throws Exception {
-        OaiCatalog c = new OaiCatalog("", "");
+        OaiCatalog c = new OaiCatalog("", "", null);
         String srcUrl = OaiCatalogTest.class.getResource("oaiIdNotExistResponse.xml").toExternalForm();
         StringWriter resultWriter = new StringWriter();
         StreamResult result = c.transformOaiResponse(new StreamSource(srcUrl), new StreamResult(resultWriter));
@@ -83,7 +83,7 @@ public class OaiCatalogTest {
 
     @Test
     public void testOaiErrorResponseTransformation() throws Exception {
-        OaiCatalog c = new OaiCatalog("", "");
+        OaiCatalog c = new OaiCatalog("", "", null);
         String srcUrl = OaiCatalogTest.class.getResource("oaiErrorResponse.xml").toExternalForm();
         try {
             c.transformOaiResponse(new StreamSource(srcUrl), new StreamResult(new StringWriter()));
@@ -96,7 +96,7 @@ public class OaiCatalogTest {
 
     @Test
     public void testOaiInvalidResponseTransformation() throws Exception {
-        OaiCatalog c = new OaiCatalog("", "");
+        OaiCatalog c = new OaiCatalog("", "", null);
         String srcUrl = OaiCatalogTest.class.getResource("oaiInvalidResponse.xml").toExternalForm();
         try {
             c.transformOaiResponse(new StreamSource(srcUrl), new StreamResult(new StringWriter()));

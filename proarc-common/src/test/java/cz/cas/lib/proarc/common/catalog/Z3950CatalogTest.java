@@ -75,7 +75,7 @@ public class Z3950CatalogTest {
             addProperty(Z3950Catalog.PROPERTY_BASE, "testbase");
             addProperty(Z3950Catalog.PROPERTY_RECORD_CHARSET, "UTF-8");
         }});
-        Z3950Catalog result = Z3950Catalog.get(c);
+        Z3950Catalog result = Z3950Catalog.get(c, null);
         assertNotNull(result);
         assertEquals(host, result.getHost());
         assertEquals(port, result.getPort());
@@ -101,7 +101,7 @@ public class Z3950CatalogTest {
         }});
         Z3950Catalog instance = new Z3950Catalog(host, Integer.parseInt(port), base,
                 recordCharset == null ? null : Charset.forName(recordCharset),
-                Z3950Catalog.readFields(c)
+                Z3950Catalog.readFields(c), null
                 );
         List<MetadataItem> result = instance.find(null, fieldName, value, locale);
         assertFalse(result.isEmpty());
