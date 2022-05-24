@@ -244,7 +244,9 @@ public class UpdatePages {
                     if ("pageIndex".equals(detail.getType())) {
                         if (!detail.getNumber().isEmpty()) {
                             detail.getNumber().get(0).setValue(String.valueOf(this.index));
-                            part.setType(null);
+                            if (NdkPlugin.MODEL_NDK_PAGE.equals(this.model)) {
+                                part.setType(null);
+                            }
                             this.index++;
                         }
                     }
