@@ -105,6 +105,7 @@ public class LockObjectAction extends AbstractAction {
                 if (RestConfig.isStatusOk(response)) {
                     StatusView.getInstance().show(i18n.LockObjectAction_Done_Msg());
                     SearchDataSource.getInstance().updateCaches(response, request);
+                    LockObjectDataSource.lockObject().updateCaches(response, request);
                     RelationDataSource.getInstance().updateCaches(response, request);
                 }
             }
