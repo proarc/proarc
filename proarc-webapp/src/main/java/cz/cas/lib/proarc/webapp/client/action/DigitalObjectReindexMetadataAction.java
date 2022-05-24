@@ -23,6 +23,7 @@ import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectReindexMetadataDataSource;
@@ -47,7 +48,7 @@ public class DigitalObjectReindexMetadataAction extends AbstractAction{
     private final ClientMessages i18n;
 
     private static final Set<String> REINDEX_MODELS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList(NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE, NdkAudioPlugin.MODEL_PAGE)));
+            Arrays.asList(NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE, NdkAudioPlugin.MODEL_PAGE, OldPrintPlugin.MODEL_PAGE)));
 
     public DigitalObjectReindexMetadataAction(ClientMessages i18n) {
         this(i18n, i18n.DigitalObjectReindexMetadataAction_Title(),
