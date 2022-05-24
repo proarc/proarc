@@ -38,6 +38,9 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -156,7 +159,7 @@ public class ReindexDigitalObjects {
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
         ModsDefinition mods = modsStreamEditor.read();
-        setIndexToMods(mods, index);
+        setIndexToMods(mods, index, model);
         modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
 
         fo.flush();
@@ -186,7 +189,7 @@ public class ReindexDigitalObjects {
         fo.flush();
     }
 
-    private void setIndexToMods(ModsDefinition mods, int index) {
+    private void setIndexToMods(ModsDefinition mods, int index, String model) {
         if (mods != null && mods.getPart() != null) {
             for (PartDefinition part : mods.getPart()) {
                 DetailDefinition detailDefinition = null;
@@ -198,7 +201,19 @@ public class ReindexDigitalObjects {
                         }
                     }
                 }
-                if (part.getType() == null) {
+                if (NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
+                    if (part.getType() == null) {
+                        if (detailDefinition == null) {
+                            detailDefinition = new DetailDefinition();
+                            part.getDetail().add(detailDefinition);
+                            detailDefinition.setType("pageIndex");
+                        }
+                        detailDefinition.getNumber().clear();
+                        StringPlusLanguage number = new StringPlusLanguage();
+                        number.setValue(String.valueOf(index));
+                        detailDefinition.getNumber().add(number);
+                    }
+                } else if (NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model) || NdkAudioPlugin.MODEL_PAGE.equals(model)) {
                     if (detailDefinition == null) {
                         detailDefinition = new DetailDefinition();
                         part.getDetail().add(detailDefinition);
