@@ -61,7 +61,7 @@ public class OldPrintForms {
             f = new OldPrintCartographicForm().build();
         } else if (OldPrintPlugin.MODEL_GRAPHICS.equals(modelId)) {
             f = new OldPrintGraphicsForm().build();
-        } else if (OldPrintPlugin.MODEL_OMNIBUSVOLUME.equals(modelId)) {
+        } else if (OldPrintPlugin.MODEL_CONVOLUTTE.equals(modelId)) {
             f = new OldPrintOmnibusVolumeForm().build();
         } else if (OldPrintPlugin.MODEL_SHEETMUSIC.equals(modelId)) {
             f = new OldPrintSheetMusicForm().build();

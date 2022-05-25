@@ -44,6 +44,7 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
@@ -79,7 +80,10 @@ public class UrnNbnAction extends AbstractAction {
                     NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
                     NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME,
                     NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, NdkEbornPlugin.MODEL_ECHAPTER,
-                    NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH
+                    NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
+                    OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
+                    OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC, OldPrintPlugin.MODEL_CHAPTER, OldPrintPlugin.MODEL_GRAPHICS,
+                    OldPrintPlugin.MODEL_CONVOLUTTE
                     )));
 
     public UrnNbnAction(ClientMessages i18n) {

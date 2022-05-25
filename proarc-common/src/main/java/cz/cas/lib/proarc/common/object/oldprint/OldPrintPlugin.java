@@ -95,7 +95,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     /**
      * The convolute of oldprints.
      */
-    public static final String MODEL_OMNIBUSVOLUME = "model:oldprintomnibusvolume";
+    public static final String MODEL_CONVOLUTTE = "model:oldprintomnibusvolume";
 
     /**
      * The graphics of oldprints.
@@ -121,7 +121,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHTITLE, Const.MONOGRAPH_MULTIPART);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_CHAPTER, Const.CHAPTER);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_PAGE, Const.PAGE);
-        put(FEDORAPREFIX + OldPrintPlugin.MODEL_OMNIBUSVOLUME, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_CONVOLUTTE, Const.MONOGRAPH_MULTIPART);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_GRAPHICS, Const.MONOGRAPH_UNIT);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_CARTOGRAPHIC, Const.MONOGRAPH_UNIT);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_SHEETMUSIC, Const.MONOGRAPH_UNIT);
@@ -157,7 +157,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.ATM),
                 new RelationCriteria[]{
                         new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
+                        new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_SUPPLEMENT, true, null,
@@ -191,17 +191,17 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 new RelationCriteria[]{
                         new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_SUPPLEMENT, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_GRAPHICS, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
                 }
                 ));
         models.add(new MetaModel(
-                MODEL_OMNIBUSVOLUME, true, null,
+                MODEL_CONVOLUTTE, true, null,
                 Arrays.asList(new ElementType("Old Print Omnibus volume", "en"), new ElementType("STT Konvolut", "cs")),
                 ModsConstants.NS,
-                MODEL_OMNIBUSVOLUME,
+                MODEL_CONVOLUTTE,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
@@ -217,7 +217,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
                 new RelationCriteria[] {new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
+                        new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
                 MODEL_CARTOGRAPHIC, true, null,
@@ -229,7 +229,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
                 new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
+                        new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
                 MODEL_SHEETMUSIC, true, null,
@@ -241,7 +241,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
                 new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_OMNIBUSVOLUME, RelationCriteria.Type.PID)}
+                        new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
         ));
         return models;
     }
