@@ -585,10 +585,10 @@ public class ExportResource {
         List<ExportResult> resultList = new ArrayList<>();
         ArchiveProducer export = null;
         switch (typeOfPackage) {
-            case "PSP":
+            case Const.EXPORT_NDK_BASIC:
                 export = new ArchiveProducer(appConfig);;
                 break;
-            case "STT":
+            case Const.EXPORT_NDK4STT:
                 export = new ArchiveOldPrintProducer(appConfig);;
                 break;
             default:
@@ -624,11 +624,15 @@ public class ExportResource {
             return new SmartGwtResponse<>(resultList);
         }
         NdkExport exportNdk;
+        typeOfPackage = getTypeOfPackage(pids, typeOfPackage);
         switch (typeOfPackage) {
-            case "PSP":
+            case Const.EXPORT_NDK_BASIC:
                 exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
                 break;
-            case "STT":
+            case Const.EXPORT_NDK4SIP:
+                exportNdk = new NdkSipExport(RemoteStorage.getInstance(), appConfig);
+                break;
+            case Const.EXPORT_NDK4STT:
                 exportNdk = new NdkSttExport(RemoteStorage.getInstance(), appConfig);
                 break;
             default:
