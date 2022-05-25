@@ -16,6 +16,12 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import com.yourmediashelf.fedora.client.FedoraClient;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
@@ -80,12 +86,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
@@ -214,6 +215,12 @@ public final class Kramerius4Export {
             result.setEnd();
             ExportUtils.writeExportResult(target, reslog);
             krameriusResult.setValidationError(ex);
+        } catch (Exception ex) {
+            result.setStatus(ResultStatus.FAILED);
+            result.getError().add(new ResultError(null, ex));
+            result.setEnd();
+            krameriusResult.setException(ex);
+            ExportUtils.writeExportResult(target, reslog);
         }
         return krameriusResult;
     }
@@ -249,7 +256,7 @@ public final class Kramerius4Export {
             }
             return MetsElement.getElement(dobj, null, metsContext, true);
         } catch (IOException | MetsExportException ex) {
-            throw new DigitalObjectException("K4 export: imposible to find element " + pid);
+            throw new DigitalObjectException(pid, "K4 export: imposible to find element.", ex);
         }
     }
 
@@ -413,7 +420,7 @@ public final class Kramerius4Export {
                 Integer expectedPageIndex = informations.getExpectedPageIndex(parentPid);
 
                 if (!containPageNumber(mods)) {
-                    throw new MetsExportException(pid, "Strana nemá vyplněný číslo stránky.", false, null);
+                    throw new MetsExportException(pid, "Strana nemá vyplněné číslo stránky.", false, null);
                 }
                 if (NdkPlugin.MODEL_NDK_PAGE.equals(model) && !containPageType(mods)) {
                     throw new MetsExportException(pid, "Strana nemá vyplněný typ stránky.", false, null);
@@ -981,6 +988,7 @@ public final class Kramerius4Export {
         private File file;
         private Integer pageCount;
         private MetsExportException validationError;
+        private Exception ex;
 
         public File getFile() {
             return file;
@@ -1004,6 +1012,14 @@ public final class Kramerius4Export {
 
         public void setValidationError(MetsExportException validationError) {
             this.validationError = validationError;
+        }
+
+        public Exception getException() {
+            return ex;
+        }
+
+        public void setException(Exception ex) {
+            this.ex = ex;
         }
     }
 

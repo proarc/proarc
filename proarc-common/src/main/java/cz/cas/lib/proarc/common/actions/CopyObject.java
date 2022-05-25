@@ -45,6 +45,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Create digital copy of selected model
@@ -142,6 +143,22 @@ public class CopyObject {
     private void removeDateIssued(ModsDefinition mods) {
         for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
             originInfo.getDateIssued().clear();
+        }
+        clearOriginInfo(mods);
+    }
+
+    private void clearOriginInfo(ModsDefinition mods) {
+        ListIterator<OriginInfoDefinition> iterator = mods.getOriginInfo().listIterator();
+        while (iterator.hasNext()) {
+            OriginInfoDefinition originInfo = iterator.next();
+            if (originInfo.getPlace().isEmpty() &&
+                    originInfo.getPublisher().isEmpty() &&
+                    originInfo.getDateCreated().isEmpty() &&
+                    originInfo.getDateIssued().isEmpty() &&
+                    originInfo.getCopyrightDate().isEmpty() &&
+                    originInfo.getDateOther().isEmpty()) {
+                iterator.remove();
+            }
         }
     }
 

@@ -34,15 +34,15 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.mets.info.Info;
-import org.apache.commons.lang.Validate;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import org.apache.commons.lang.Validate;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.
@@ -117,6 +117,16 @@ public class NdkExport {
                 logItem.getError().add(new ResultError(null, ex));
                 ExportUtils.writeExportResult(target, reslog);
                 throw new ExportException(ex);
+            } catch (Exception ex) {
+                logItem.setStatus(ResultStatus.FAILED);
+                logItem.getError().add(new ResultError(null, ex));
+                ExportUtils.writeExportResult(target, reslog);
+                Result r = new Result();
+                r.setError(ex);
+                r.setPid(pid);
+                r.setTargetFolder(target);
+                results.add(r);
+                return results;
             } finally {
                 logItem.setEnd();
             }
@@ -164,6 +174,16 @@ public class NdkExport {
                 logItem.getError().add(new ResultError(null, ex));
                 ExportUtils.writeExportResult(target, reslog);
                 throw new ExportException(ex);
+            } catch (Exception ex) {
+                logItem.setStatus(ResultStatus.FAILED);
+                logItem.getError().add(new ResultError(null, ex));
+                ExportUtils.writeExportResult(target, reslog);
+                Result r = new Result();
+                r.setError(ex);
+                r.setPid(pid);
+                r.setTargetFolder(target);
+                results.add(r);
+                return results;
             } finally {
                 logItem.setEnd();
             }
@@ -431,6 +451,7 @@ public class NdkExport {
 
         private File targetFolder;
         private MetsExportException validationError;
+        private Exception error;
         private String pid;
         private Integer pageIndexCount;
 
@@ -438,8 +459,17 @@ public class NdkExport {
             return validationError;
         }
 
-        Result setValidationError(MetsExportException validationError) {
+        public Result setValidationError(MetsExportException validationError) {
             this.validationError = validationError;
+            return this;
+        }
+
+        public Exception getError() {
+            return error;
+        }
+
+        public Result setError(Exception exception) {
+            this.error = exception;
             return this;
         }
 

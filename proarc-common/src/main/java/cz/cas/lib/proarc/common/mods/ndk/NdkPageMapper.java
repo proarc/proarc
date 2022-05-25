@@ -24,14 +24,12 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.DetailDefinition;
-import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
-import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.Text;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
@@ -39,7 +37,6 @@ import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -58,9 +55,9 @@ public class NdkPageMapper extends NdkMapper {
 
     private static final Logger LOG = Logger.getLogger(NdkPageMapper.class.getName());
     /** {@code /mods/part/detail@type} */
-    private static final String NUMBER_TYPE_PAGE_INDEX = "pageIndex";
+    protected static final String NUMBER_TYPE_PAGE_INDEX = "pageIndex";
     /** {@code /mods/part/detail@type} */
-    private static final String NUMBER_TYPE_PAGE_NUMBER = "pageNumber";
+    protected static final String NUMBER_TYPE_PAGE_NUMBER = "pageNumber";
     /** {@code /mods/part@type} */
     public static final String PAGE_TYPE_NORMAL = "normalPage";
     /** A default value of {@code /mods/typeOfResource}. */
@@ -290,7 +287,7 @@ public class NdkPageMapper extends NdkMapper {
 
 
 
-    private DetailDefinition getDetail(List<DetailDefinition> details, String type) {
+    protected DetailDefinition getDetail(List<DetailDefinition> details, String type) {
         for (DetailDefinition detail : details) {
             if (type.equals(detail.getType())) {
                 return detail;
@@ -299,7 +296,7 @@ public class NdkPageMapper extends NdkMapper {
         return null;
     }
 
-    private String getNumber(DetailDefinition detail) {
+    protected String getNumber(DetailDefinition detail) {
         if (detail != null) {
             List<StringPlusLanguage> numbers = detail.getNumber();
             if (!numbers.isEmpty()) {
@@ -309,7 +306,7 @@ public class NdkPageMapper extends NdkMapper {
         return null;
     }
 
-    private List<IdentifierItem> getIdentifierItems(List<IdentifierDefinition> ids) {
+    protected List<IdentifierItem> getIdentifierItems(List<IdentifierDefinition> ids) {
         List<IdentifierItem> iis = new ArrayList<>(ids.size());
         for (IdentifierDefinition id : ids) {
             iis.add(new IdentifierItem(id.getType(), id.getValue()));

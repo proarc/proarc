@@ -149,7 +149,7 @@ public class ExportResource {
         if (dsIds.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
-        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig.getExportOptions());
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
@@ -164,7 +164,7 @@ public class ExportResource {
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
-            ) throws IOException {
+            ) throws Exception {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
@@ -176,7 +176,10 @@ public class ExportResource {
         Kramerius4Export.Result k4Result = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
 
         ExportResult result = null;
-        if (k4Result.getValidationError() != null) {
+        if (k4Result.getException() != null) {
+            MetsUtils.renameFolder(exportFolder, k4Result.getFile(), null);
+            throw k4Result.getException();
+        } else if (k4Result.getValidationError() != null) {
             MetsUtils.renameFolder(exportFolder, k4Result.getFile(), null);
             result = new ExportResult(k4Result.getValidationError().getExceptions());
         } else {
@@ -302,7 +305,7 @@ public class ExportResource {
 //            @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
 //            @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
 //            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
-            ) throws ExportException, MetsExportException {
+            ) throws Exception {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
@@ -332,7 +335,10 @@ public class ExportResource {
 
         List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, null, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
-            if (r.getValidationError() != null) {
+            if (r.getError() != null) {
+                MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
+                throw r.getError();
+            } else if (r.getValidationError() != null) {
                 if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
                     MetsUtils.deleteFolder(r.getTargetFolder());
                 } else {
@@ -568,7 +574,7 @@ public class ExportResource {
     public SmartGwtResponse<ExportResult> newArchive(
             @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage
-            ) throws ExportException {
+            ) throws Exception {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.ARCHIVE_PID_PARAM);
@@ -579,10 +585,10 @@ public class ExportResource {
         List<ExportResult> resultList = new ArrayList<>();
         ArchiveProducer export = null;
         switch (typeOfPackage) {
-            case "PSP":
+            case Const.EXPORT_NDK_BASIC:
                 export = new ArchiveProducer(appConfig);;
                 break;
-            case "STT":
+            case Const.EXPORT_NDK4STT:
                 export = new ArchiveOldPrintProducer(appConfig);;
                 break;
             default:
@@ -618,11 +624,15 @@ public class ExportResource {
             return new SmartGwtResponse<>(resultList);
         }
         NdkExport exportNdk;
+        typeOfPackage = getTypeOfPackage(pids, typeOfPackage);
         switch (typeOfPackage) {
-            case "PSP":
+            case Const.EXPORT_NDK_BASIC:
                 exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
                 break;
-            case "STT":
+            case Const.EXPORT_NDK4SIP:
+                exportNdk = new NdkSipExport(RemoteStorage.getInstance(), appConfig);
+                break;
+            case Const.EXPORT_NDK4STT:
                 exportNdk = new NdkSttExport(RemoteStorage.getInstance(), appConfig);
                 break;
             default:
@@ -640,6 +650,10 @@ public class ExportResource {
         }
         List<NdkExport.Result> ndkResults = exportNdk.exportNdkArchive(targetFolder, pids, true, true, true, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
+            if (r.getError() != null) {
+                MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                throw r.getError();
+            }
             if (r.getValidationError() != null) {
                 if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
                     //MetsUtils.deleteFolder(r.getTargetFolder());
@@ -705,7 +719,7 @@ public class ExportResource {
             @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
-    ) throws IOException, ExportException {
+    ) throws Exception {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
@@ -744,7 +758,7 @@ public class ExportResource {
         return new SmartGwtResponse<>(result);
     }
 
-    private URI runK4Export(List<String> pids, boolean hierarchy, String policy, String exportPageContext) throws IOException {
+    private URI runK4Export(List<String> pids, boolean hierarchy, String policy, String exportPageContext) throws Exception {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
@@ -753,6 +767,10 @@ public class ExportResource {
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         Kramerius4Export.Result target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
+        if (target.getException() != null) {
+            MetsUtils.renameFolder(exportFolder, target.getFile(), null);
+            throw target.getException();
+        }
         return user.getUserHomeUri().relativize(target.getFile().toURI());
     }
 
@@ -767,7 +785,7 @@ public class ExportResource {
         if (dsIds.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
-        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig.getExportOptions());
+        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);

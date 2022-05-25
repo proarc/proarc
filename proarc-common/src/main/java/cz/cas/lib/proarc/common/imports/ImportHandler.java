@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +51,6 @@ public interface ImportHandler {
      * @param batchManager
      * @throws Exception failure
      */
-    void start(ImportOptions importConfig, ImportBatchManager batchManager) throws Exception;
+    void start(ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration config) throws Exception;
 
 }

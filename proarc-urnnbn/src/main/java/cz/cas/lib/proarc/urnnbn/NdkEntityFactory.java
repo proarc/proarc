@@ -45,12 +45,15 @@ public class NdkEntityFactory {
 
     public Import createMultipartMonographImport(
             ModsDefinition titleMods,  ModsDefinition volumeMods,
-            MixType mix, ErrorHandler status
+            MixType mix, ErrorHandler status, boolean oldPrint
             ) throws SAXException {
 
         MonographVolume m = new MonographVolume();
         m.setCcnb(ResolverUtils.getIdentifier("ccnb", volumeMods, titleMods));
         m.setDigitalBorn(false);
+        if (oldPrint) {
+            m.setDocumentType("oldprint-monographVolume");
+        }
         m.setIsbn(ResolverUtils.getIdentifier("isbn", volumeMods, titleMods));
         //mods:name[@type='personal' and not(@usage='primary')]//mods:namePart[not(@type= 'date')]
         m.setOtherOriginator(ResolverUtils.getOriginator("personal", false, volumeMods, titleMods));
@@ -81,12 +84,15 @@ public class NdkEntityFactory {
     }
 
     public Import createMonographImport(
-            ModsDefinition volumeMods, MixType mix, ErrorHandler status, boolean eBorn
+            ModsDefinition volumeMods, MixType mix, ErrorHandler status, boolean eBorn, boolean oldPrint
             ) throws SAXException {
 
         Monograph m = new Monograph();
         m.setCcnb(ResolverUtils.getIdentifier("ccnb", volumeMods));
         m.setDigitalBorn(eBorn);
+        if (oldPrint) {
+            m.setDocumentType("oldprint-monograph");
+        }
         m.setIsbn(ResolverUtils.getIdentifier("isbn", volumeMods));
         //mods:name[@type='personal' and not(@usage='primary')]//mods:namePart[not(@type= 'date')]
         m.setOtherOriginator(ResolverUtils.getOriginator("personal", false, volumeMods));

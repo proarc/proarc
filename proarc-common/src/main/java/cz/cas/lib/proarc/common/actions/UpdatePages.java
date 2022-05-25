@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -51,6 +52,9 @@ public class UpdatePages {
     private String model;
     private int applyTo;
     private boolean applyToFirstPage;
+
+    public UpdatePages() {
+    }
 
     public UpdatePages(String applyTo, String applyToFirstPage) throws DigitalObjectException {
         index = -1;
@@ -70,7 +74,7 @@ public class UpdatePages {
         }
     }
 
-    private String trim(String value, String start, String end) {
+    private static String trim(String value, String start, String end) {
         if (value != null && !value.isEmpty()) {
             if (value.startsWith(start)) {
                 value = value.substring(start.length());
@@ -94,23 +98,31 @@ public class UpdatePages {
         }
     }
 
-    public void createListOfPids(String pids) {
-        pids = trim(pids, "{", "}");
-        pids = trim(pids, "[", "]");
-        String[] selectedPids = pids.split(",");
-        if (selectedPids.length > 0) {
+    public static List<String> createListFromArray(String pidsArray) {
+        pidsArray = trim(pidsArray, "{", "}");
+        pidsArray = trim(pidsArray, "[", "]");
+        String[] selectedPids = pidsArray.split(",");
+        return Arrays.asList(selectedPids);
+    }
+
+    public void createListOfPids(List<String> pids) {
+        if (pids.size() > 0) {
             if (applyToFirstPage) {
-                for (int i = 0; i < selectedPids.length; i++) {
+                int i = 0;
+                for (String pid : pids) {
                     if (i % this.applyTo == 0) {
-                        this.updatedPids.add(selectedPids[i]);
+                        this.updatedPids.add(pid);
                     }
+                    i++;
                 }
             } else {
-                for (int i = 0; i < selectedPids.length; i++) {
+                int i = 0;
+                for (String pid : pids) {
                     int value = i - this.applyTo + 1;
                     if (value % this.applyTo == 0) {
-                        this.updatedPids.add(selectedPids[i]);
+                        this.updatedPids.add(pid);
                     }
+                    i++;
                 }
             }
         }
@@ -126,10 +138,22 @@ public class UpdatePages {
         }
     }
 
-    public void updatePages(String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType) throws DigitalObjectException {
+    private boolean setUseBrackets(String useBrackets) {
+        useBrackets = trim(useBrackets, "{", "}");
+        if (useBrackets != null && !useBrackets.isEmpty()) {
+            if ("true".equals(useBrackets) || "1".equals(useBrackets.replaceAll("[^0-9]", ""))) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public void updatePages(String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets) throws DigitalObjectException {
         this.pageType = pageType;
 
-        SeriesNumber series = new SeriesNumber(sequenceType, startNumber, incrementNumber, prefix, suffix);
+        SeriesNumber series = new SeriesNumber(sequenceType, startNumber, incrementNumber, prefix, suffix, setUseBrackets(useBrackets));
 
         for (String pid : updatedPids) {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
@@ -165,28 +189,14 @@ public class UpdatePages {
         if (series.isAllowToUpdateNumber()) {
             number = series.getNextValue();
         }
-        if (NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
-            updateNdkPageMods(mods, number);
-        } else if (NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
-            updatePageMods(mods, number);
+        if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
+            if (mods != null) {
+                setPageIndex(mods);
+                setPageNumber(mods, number);
+                setPageType(mods, true);
+            }
         } else {
             throw new DigitalObjectException("Unsupported model: " + model);
-        }
-    }
-
-    private void updatePageMods(ModsDefinition mods, String number) {
-        if (mods != null) {
-            setPageIndex(mods);
-            setPageNumber(mods, number);
-            setPageType(mods, false);
-        }
-    }
-
-    private void updateNdkPageMods(ModsDefinition mods, String number) {
-        if (mods != null) {
-            setPageIndex(mods);
-            setPageNumber(mods, number);
-            setPageType(mods, true);
         }
     }
 
@@ -234,12 +244,111 @@ public class UpdatePages {
                     if ("pageIndex".equals(detail.getType())) {
                         if (!detail.getNumber().isEmpty()) {
                             detail.getNumber().get(0).setValue(String.valueOf(this.index));
-                            part.setType(null);
+                            if (NdkPlugin.MODEL_NDK_PAGE.equals(this.model)) {
+                                part.setType(null);
+                            }
                             this.index++;
                         }
                     }
                 }
             }
         }
+    }
+
+    public void editBrackets(List<String> pids, boolean addBrackets, boolean removeBrackets) throws DigitalObjectException {
+        for (String pid : pids) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            FedoraObject fo = dom.find(pid, null);
+            this.model = new RelationEditor(fo).getModel();
+            XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
+                    MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                    MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+            ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
+            ModsDefinition mods = modsStreamEditor.read();
+            if (addBrackets) {
+                addBrackets(mods);
+            } else if (removeBrackets) {
+                removeBrackets(mods);
+            }
+            modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
+
+            String model = new RelationEditor(fo).getModel();
+            DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
+            NdkMapper mapper = NdkMapper.get(model);
+            mapper.setModelId(model);
+
+            NdkMapper.Context context = new NdkMapper.Context(handler);
+            OaiDcType dc = mapper.toDc(mods, context);
+            DcStreamEditor dcEditor = handler.objectMetadata();
+            DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+            dcr.setDc(dc);
+            dcEditor.write(handler, dcr, null);
+
+            fo.setLabel(mapper.toLabel(mods));
+            fo.flush();
+        }
+    }
+
+    private void removeBrackets(ModsDefinition mods) throws DigitalObjectException {
+        if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
+            if (mods != null) {
+                for (PartDefinition part : mods.getPart()) {
+                    if (part.getDetail().size() == 0) {
+                        DetailDefinition detail = new DetailDefinition();
+                        StringPlusLanguage detailNumber = new StringPlusLanguage();
+                        detailNumber.setValue(removePageNumberFromBrackets(detailNumber.getValue()));
+                        detail.getNumber().add(detailNumber);
+                        detail.setType("pageNumber");
+                        part.getDetail().add(detail);
+                    } else {
+                        for (DetailDefinition detail : part.getDetail()) {
+                            if ("pageNumber".equals(detail.getType()) || "page number".equals(detail.getType())) {
+                                if (!detail.getNumber().isEmpty()) {
+                                    detail.getNumber().get(0).setValue(removePageNumberFromBrackets(detail.getNumber().get(0).getValue()));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            throw new DigitalObjectException("Unsupported model: " + model);
+        }
+    }
+
+    private void addBrackets(ModsDefinition mods) throws DigitalObjectException {
+        if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
+            if (mods != null) {
+                for (PartDefinition part : mods.getPart()) {
+                    if (part.getDetail().size() == 0) {
+                        DetailDefinition detail = new DetailDefinition();
+                        StringPlusLanguage detailNumber = new StringPlusLanguage();
+                        detailNumber.setValue(addNumberIntoBrackets(detailNumber.getValue()));
+                        detail.getNumber().add(detailNumber);
+                        detail.setType("pageNumber");
+                        part.getDetail().add(detail);
+                    } else {
+                        for (DetailDefinition detail : part.getDetail()) {
+                            if ("pageNumber".equals(detail.getType()) || "page number".equals(detail.getType())) {
+                                if (!detail.getNumber().isEmpty()) {
+                                    detail.getNumber().get(0).setValue(addNumberIntoBrackets(detail.getNumber().get(0).getValue()));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            throw new DigitalObjectException("Unsupported model: " + model);
+        }
+    }
+
+    private String addNumberIntoBrackets(String value) {
+        value = removePageNumberFromBrackets(value);
+        return "[" + value + "]";
+    }
+
+    private String removePageNumberFromBrackets(String value) {
+        return trim(value, "[", "]");
     }
 }

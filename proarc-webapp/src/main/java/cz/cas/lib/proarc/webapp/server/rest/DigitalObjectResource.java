@@ -291,7 +291,7 @@ public class DigitalObjectResource {
                 items = handler.create();
             }
 
-            if (OldPrintPlugin.MODEL_OMNIBUSVOLUME.equals(modelId)) {
+            if (OldPrintPlugin.MODEL_CONVOLUTTE.equals(modelId)) {
                 CreateHandler hierarchyModelsHandler = dom.create(OldPrintPlugin.MODEL_VOLUME, null, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
                 hierarchyModelsHandler.create();
                 CreateHierarchyHandler hierarchyHandler = dom.createHierarchyHandler(OldPrintPlugin.MODEL_VOLUME, pid, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
@@ -339,7 +339,7 @@ public class DigitalObjectResource {
         PurgeFedoraObject service = new PurgeFedoraObject(fedora);
         for (String pid : pids) {
             try {
-                setWorkflow("task.deletionPA", getIMetsElement(pid));
+                setWorkflow("task.deletionPA", getIMetsElement(pid, false));
             } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
                 throw new IOException(e);
             }
@@ -554,7 +554,7 @@ public class DigitalObjectResource {
     /**
      * Gets members of a digital object.
      * @param parent PID of digital object to query its members. {@code root} parameter is ignored.
-     * @param root PID of digital object to return itself as a member with {@link Item#parent} as {@code null}.
+     * @param root PID of digital object to return itself as a member with parent as {@code null}.
      *          Useful to show root of the member hierarchy.
      * @return ordered list of members
      */
@@ -999,7 +999,7 @@ public class DigitalObjectResource {
         dstHandler.commit();
 
         try {
-            setWorkflow("task.metadataDescriptionInProArc", getIMetsElement(dstParentPid));
+            setWorkflow("task.metadataDescriptionInProArc", getIMetsElement(dstParentPid, true));
         } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
             LOG.severe("Nepodarilo se ukoncit ukol \"task.metadataDescriptionInProArc\" pro " + dstParentPid + " - " + e.getMessage());
         }
@@ -1194,30 +1194,79 @@ public class DigitalObjectResource {
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadataPages(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pids,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO) String applyTo,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE) String applyToFirstPage,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_PREFIX) String prefix,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_SUFFIX) String suffix,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_USE_BRACKETS) @DefaultValue("false") String useBrackets,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_SEQUENCE_TYPE) String sequenceType,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_START_NUMBER) String startNumber,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER) String incrementNumber,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_INDEX_START_NUMBER) String startIndex,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_TYPE_PAGE) String pageType
     ) throws IOException, DigitalObjectException {
-        LOG.fine(String.format("pid: %s", pids));
-        if (pids == null || pids.isEmpty()) {
-            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
+        LOG.fine(String.format("pid: %s", pidsArray));
+
+        if (pidsArray == null || pidsArray.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pidsArray);
         }
+        List<String> pids = UpdatePages.createListFromArray(pidsArray);
         if (isLocked(pids)) {
-            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids, null, null, "Locked",null);
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked",null);
             validationException.addValidation("Locked", ERR_IS_LOCKED);
             return toError(validationException, STATUS_LOCKED);
         }
         UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage);
         updatePages.createListOfPids(pids);
         updatePages.createIndex(startIndex);
-        updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType);
+        updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_BRACKETS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> updatePagesAddBrackets (
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray
+    ) throws DigitalObjectException {
+        LOG.fine(String.format("pid: %s", pidsArray));
+
+        if (pidsArray == null || pidsArray.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pidsArray);
+        }
+        List<String> pids = UpdatePages.createListFromArray(pidsArray);
+        if (isLocked(pids)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked",null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED);
+            return toError(validationException, STATUS_LOCKED);
+        }
+
+        UpdatePages updatePages = new UpdatePages();
+        updatePages.editBrackets(pids, true, false);
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Item> updatePagesRemoveBrackets (
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray
+    ) throws DigitalObjectException {
+        LOG.fine(String.format("pid: %s", pidsArray));
+
+        if (pidsArray == null || pidsArray.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pidsArray);
+        }
+        List<String> pids = UpdatePages.createListFromArray(pidsArray);
+        if (isLocked(pids)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked",null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED);
+            return toError(validationException, STATUS_LOCKED);
+        }
+
+        UpdatePages updatePages = new UpdatePages();
+        updatePages.editBrackets(pids, false, true);
         return new SmartGwtResponse<>();
     }
 
@@ -1335,11 +1384,11 @@ public class DigitalObjectResource {
         }
     }
 
-    private IMetsElement getIMetsElement(String pid) throws MetsExportException {
+    private IMetsElement getIMetsElement(String pid, boolean validation) throws MetsExportException {
         RemoteStorage rstorage = RemoteStorage.getInstance();
         RemoteStorage.RemoteObject fo = rstorage.find(pid);
         MetsContext mc = buildContext(rstorage, fo, null, null);
-        IMetsElement element = getMetsElement(fo, mc, true);
+        IMetsElement element = getMetsElement(fo, mc, true, validation);
         return element == null ? null : element;
     }
 
@@ -1355,13 +1404,13 @@ public class DigitalObjectResource {
         return mc;
     }
 
-    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy, boolean validation) throws MetsExportException {
         dc.resetContext();
         com.yourmediashelf.fedora.generated.foxml.DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
         if (dobj == null) {
             return null;
         }
-        return MetsElement.getElement(dobj, null, dc, hierarchy);
+        return MetsElement.getElement(dobj, null, dc, hierarchy, validation);
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -2065,12 +2114,8 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
-        Item item = new Item();
-        item.setValidation("Objekt je zamknuty");
-        List list = new ArrayList();
-        list.add(item);
 
-        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, list);
+        return new SmartGwtResponse<>();
     }
 
     @POST

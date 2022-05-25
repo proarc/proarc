@@ -21,6 +21,7 @@ import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -32,6 +33,7 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
  * Unlock Object.
@@ -84,13 +86,11 @@ public class UnlockObjectAction extends AbstractAction {
     @Override
     public void performAction(ActionEvent event) {
         Record[] records = Actions.getSelection(event);
+        String[] pids = ClientUtils.toFieldValues(records, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         Record record = new Record();
-        for (Record recordLocal : records){
-            DigitalObject dobj = DigitalObject.createOrNull(recordLocal);
-            if (dobj != null) {
-                record = recordLocal;
-                continue;
-            }
+        record.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
+        if (records != null && records.length > 0) {
+            record.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, records[0].getAttribute(DigitalObjectResourceApi.DIGITALOBJECT_MODEL));
         }
         register(record);
     }
@@ -105,6 +105,7 @@ public class UnlockObjectAction extends AbstractAction {
                 if (RestConfig.isStatusOk(response)) {
                     StatusView.getInstance().show(i18n.UnlockObjectAction_Done_Msg());
                     SearchDataSource.getInstance().updateCaches(response, request);
+                    LockObjectDataSource.lockObject().updateCaches(response, request);
                     RelationDataSource.getInstance().updateCaches(response, request);
                 }
             }

@@ -78,13 +78,13 @@ public class OaiCatalog implements BibliographicCatalog {
     private String identifierPrefix;
     private final Transformers transformers;
 
-    public static OaiCatalog get(CatalogConfiguration c) {
+    public static OaiCatalog get(CatalogConfiguration c, String customTemplatePath) {
         if (c == null || !TYPE.equals(c.getType())) {
             return null;
         }
         String url = c.getUrl();
         String metadataPrefix = c.getProperty(PROPERTY_METADATA_PREFIX);
-        OaiCatalog cat = new OaiCatalog(url, metadataPrefix);
+        OaiCatalog cat = new OaiCatalog(url, metadataPrefix, customTemplatePath);
         cat.setIdentifierPrefix(c.getProperty(PROPERTY_IDENTIFIER_PREFIX, null));
         cat.setUser(c.getProperty(CatalogConfiguration.PROPERTY_USER, null));
         cat.setPassword(c.getProperty(CatalogConfiguration.PROPERTY_PASSWD, null));
@@ -92,15 +92,15 @@ public class OaiCatalog implements BibliographicCatalog {
         return cat;
     }
 
-    public OaiCatalog(String url, String metadataPrefix) {
-        this(url, metadataPrefix, null);
+    public OaiCatalog(String url, String metadataPrefix, String customTemplatePath) {
+        this(url, metadataPrefix, null, customTemplatePath);
     }
 
-    public OaiCatalog(String url, String metadataPrefix, String identifierPrefix) {
+    public OaiCatalog(String url, String metadataPrefix, String identifierPrefix, String customTemplatePath) {
         this.url = url;
         this.metadataPrefix = metadataPrefix;
         this.identifierPrefix = identifierPrefix;
-        this.transformers = new Transformers();
+        this.transformers = new Transformers(customTemplatePath);
     }
 
     public void setDebug(boolean debug) {

@@ -44,8 +44,6 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
-import javax.imageio.stream.FileImageOutputStream;
-import javax.ws.rs.core.MediaType;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -55,6 +53,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.ws.rs.core.MediaType;
+
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 
@@ -292,7 +293,9 @@ public class WaveImporter implements ImageImporter {
         }
         for (Entry entry : entries) {
             if (WAVE.equals(entry.getType())) {
-                if (entry.getEntry() != null) {
+                if (config.getSkippedDatastreamId().contains(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID)) {
+                    LOG.info("Skip import " + BinaryEditor.NDK_AUDIO_ARCHIVAL_ID + " for uuid " + fo.getPid());
+                } else if (entry.getEntry() != null) {
                     File entryFile = entry.getEntry().getFile();
                     if (!InputUtils.isWave(entryFile)) {
                         throw new IllegalStateException("Not a WAVE content: " + entryFile);
@@ -304,14 +307,16 @@ public class WaveImporter implements ImageImporter {
                             wave.getParentFile(), fileSet.getName() + config.getNdkArchivalAudioFileSuffix()).toString());
                 }
             } else if (FLAC.equals(entry.getType())) {
-                if (entry.getEntry() != null) {
+                if (config.getSkippedDatastreamId().contains(BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID)) {
+                    LOG.info("Skip import " + BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID + " for uuid " + fo.getPid());
+                } else if (entry.getEntry() != null) {
                     File entryFile = entry.getEntry().getFile();
                     if (!InputUtils.isFlac(entryFile)) {
                         throw new IllegalStateException("Not a FLAC content: " + entryFile);
                     }
                     BinaryEditor binaryEditor = BinaryEditor.dissemination(fo, BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID, BinaryEditor.AUDIO_FLAC);
                     binaryEditor.write(entryFile, 0, null);
-                } else if (config.getRequiredDatastreamId().contains(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID)) {
+                } else if (config.getRequiredDatastreamId().contains(BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID)) {
                     throw new FileNotFoundException("Missing archival FLAC: " + new File(
                             wave.getParentFile(), fileSet.getName() + config.getNdkArchivalAudioFileSuffix()).toString());
                 }
@@ -328,7 +333,9 @@ public class WaveImporter implements ImageImporter {
         }
         for (Entry entry : entries) {
             if (MP3.equals(entry.getType())) {
-                if (entry.getEntry() != null) {
+                if (config.getSkippedDatastreamId().contains(BinaryEditor.NDK_AUDIO_USER_ID)) {
+                    LOG.info("Skip import " + BinaryEditor.NDK_AUDIO_USER_ID + " for uuid " + fo.getPid());
+                } else if (entry.getEntry() != null) {
                     File entryFile = entry.getEntry().getFile();
                     if (!InputUtils.isMp3(entryFile)) {
                         throw new IllegalStateException("Not a MP3 content: " + entryFile);
@@ -340,7 +347,9 @@ public class WaveImporter implements ImageImporter {
                             wave.getParentFile(), fileSet.getName() + config.getNdkUserAudioFileSuffix()).toString());
                 }
             } else if (OGG.equals(entry.getType())) {
-                if (entry.getEntry() != null) {
+                if (config.getSkippedDatastreamId().contains(BinaryEditor.NDK_AUDIO_USER_OGG_ID)) {
+                    LOG.info("Skip import " + BinaryEditor.NDK_AUDIO_USER_OGG_ID + " for uuid " + fo.getPid());
+                } else if (entry.getEntry() != null) {
                     File entryFile = entry.getEntry().getFile();
                     if (!InputUtils.isOgg(entryFile)) {
                         throw new IllegalStateException("Not a OGG content: " + entryFile);

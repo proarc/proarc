@@ -127,7 +127,11 @@ public final class Kramerius4ExportOptions {
             put(OldPrintPlugin.MODEL_PAGE, "model:page");
             put(OldPrintPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
             put(OldPrintPlugin.MODEL_CHAPTER, "model:chapter");
-            put(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, "model:oldprintomnibusvolume");
+            put(OldPrintPlugin.MODEL_GRAPHICS, "model:graphic");
+            put(OldPrintPlugin.MODEL_CARTOGRAPHIC, "model:map");
+            put(OldPrintPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
+            put(OldPrintPlugin.MODEL_CONVOLUTTE, "model:omnibusvolume");
+            put(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, "model:omnibusvolume");
         }
     };
 

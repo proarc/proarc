@@ -35,6 +35,7 @@ public final class SeriesNumber {
     private String incrementNumber;
     private String prefix;
     private String suffix;
+    private boolean useBrackets;
     private int number;
     private int increment;
 
@@ -58,13 +59,14 @@ public final class SeriesNumber {
 
     }
 
-    public SeriesNumber(String sequence, String startNumber, String incrementNumber, String prefix, String suffix) {
+    public SeriesNumber(String sequence, String startNumber, String incrementNumber, String prefix, String suffix, boolean useBrackets) {
         this.sequence = sequence;
         this.startNumber = startNumber;
         this.incrementNumber = incrementNumber;
         this.prefix = prefix;
         this.suffix = suffix;
         this.number = -1;
+        this.useBrackets = useBrackets;
     }
 
     public boolean isAllowToUpdateNumber(){
@@ -165,6 +167,9 @@ public final class SeriesNumber {
 
     public String getNextValue() throws DigitalObjectException {
         StringBuilder retVal = new StringBuilder();
+        if (useBrackets) {
+            retVal.append("[");
+        }
         String value = getPrefix();
         if (value != null) {
             retVal.append(value);
@@ -176,6 +181,9 @@ public final class SeriesNumber {
         value = getSuffix();
         if (value != null) {
             retVal.append(value);
+        }
+        if (useBrackets) {
+            retVal.append("]");
         }
         return retVal.toString();
 

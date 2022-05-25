@@ -190,6 +190,7 @@ public class TiffImporter implements ImageImporter {
         String originalFilename = fileSet.getName();
         ImportProfile config = options.getConfig();
         List<Object> requiredDatastreamId = config.getRequiredDatastreamId();
+        List<Object> skippedDatastreamId = config.getSkippedDatastreamId();
 
         FileEntry ocrEntry = findSibling(fileSet, config.getPlainOcrFileSuffix());
         FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
@@ -201,8 +202,10 @@ public class TiffImporter implements ImageImporter {
             ocrEntry = new FileEntry(ocrFiles[0]);
             altoEntry = new FileEntry(ocrFiles[1]);
         }
-        if (ocrEntry != null) {
-            doOcrEditor(tempBatchFolder, originalFilename, ocrEntry.getFile(), config, fo);
+        if (skippedDatastreamId.contains(StringEditor.OCR_ID))  {
+            LOG.info("Skip import " + StringEditor.OCR_ID + " for uuid " + fo.getPid());
+        } else if (ocrEntry != null) {
+            importOcr(tempBatchFolder, originalFilename, ocrEntry.getFile(), config, fo);
         } else if (existsFile(options.getImportFolder(), originalFilename, config.getPlainOcrFilePath(), config.getPlainOcrFileSuffix(), config.getOcrAltoFolderPath())) {
             File ocr = createFile(options.getImportFolder(), originalFilename, config.getPlainOcrFilePath(), config.getPlainOcrFileSuffix(), config.getOcrAltoFolderPath());
             if (ocr != null) {
@@ -218,7 +221,9 @@ public class TiffImporter implements ImageImporter {
                     originalFilename + config.getPlainOcrFileSuffix()).toString());
         }
         // ALTO OCR
-        if (altoEntry != null) {
+        if (skippedDatastreamId.contains(AltoDatastream.ALTO_ID))  {
+            LOG.info("Skip import " + AltoDatastream.ALTO_ID + " for uuid " + fo.getPid());
+        } else if (altoEntry != null) {
             URI altoUri = altoEntry.getFile().toURI();
             AltoDatastream altoDatastrem = new AltoDatastream(config);
             altoDatastrem.importAlto(fo, altoUri, null);
@@ -302,7 +307,11 @@ public class TiffImporter implements ImageImporter {
         StringEditor.copy(ocrEntry, config.getPlainOcrCharset(), ocrFile, "UTF-8");
         XmlStreamEditor ocrEditor = fo.getEditor(StringEditor.ocrProfile());
         ocrEditor.write(ocrFile.toURI(), 0, null);
+    }
 
+    public void importOcr(File tempBatchFolder, String originalFilename, File ocrEntry, ImportProfile config, FedoraObject fo) throws IOException, DigitalObjectException {
+        XmlStreamEditor ocrEditor = fo.getEditor(StringEditor.ocrProfile());
+        ocrEditor.write(ocrEntry.toURI(), 0, null);
     }
 
     private FileEntry findSibling(FileSet fileSet, String filenameSuffix) {
@@ -319,6 +328,10 @@ public class TiffImporter implements ImageImporter {
         ImportProfile config = options.getConfig();
         FileEntry entry = findSibling(fileSet, config.getNdkArchivalFileSuffix());
         String dsId = BinaryEditor.NDK_ARCHIVAL_ID;
+        if (config.getSkippedDatastreamId().contains(dsId))  {
+            LOG.info("Skip import " + dsId + " for uuid " + fo.getPid());
+            return;
+        }
         if (entry == null) {
             entry = processJp2Copy(fileSet, tiff, options.getTargetFolder(), dsId, config.getNdkArchivalProcessor());
         }
@@ -340,6 +353,10 @@ public class TiffImporter implements ImageImporter {
         ImportProfile config = options.getConfig();
         FileEntry entry = findSibling(fileSet, config.getNdkUserFileSuffix());
         String dsId = BinaryEditor.NDK_USER_ID;
+        if (config.getSkippedDatastreamId().contains(dsId))  {
+            LOG.info("Skip import " + dsId + " for uuid " + fo.getPid());
+            return;
+        }
         if (entry == null) {
             entry = processJp2Copy(fileSet, tiff, options.getTargetFolder(), dsId, config.getNdkUserProcessor());
         }
@@ -388,13 +405,7 @@ public class TiffImporter implements ImageImporter {
         long start;
         long endRead = 0;
         BufferedImage tiff = null;
-        File f;
-
-        if (!runCustomConversion) {
-            start = System.nanoTime();
-            tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
-            endRead = System.nanoTime() - start;
-        }
+        File f = null;
 
         ImageMimeType imageType = ImageMimeType.JPEG;
         MediaType mediaType = MediaType.valueOf(imageType.getMimeType());
@@ -405,7 +416,9 @@ public class TiffImporter implements ImageImporter {
         FileEntry fullEntry = findSibling(fileSet, config.getNdkFullFileSuffix());
         String fullId = BinaryEditor.FULL_ID;
 
-        if (fullEntry != null) {
+        if (config.getSkippedDatastreamId().contains(fullId))  {
+            LOG.info("Skip import " + fullId + " for uuid " + foxml.getPid());
+        } else if (fullEntry != null) {
             f = fullEntry.getFile();
         } else if (config.getRequiredDatastreamId().contains(fullId)) {
             throw new FileNotFoundException("Missing full jpg: " + new File(
@@ -420,6 +433,11 @@ public class TiffImporter implements ImageImporter {
                     throw new IllegalStateException("Converting tiff to FULL jpg failed: " + p.getFullOutput());
                 }
             } else {
+                if (tiff == null) {
+                    start = System.nanoTime();
+                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    endRead = System.nanoTime() - start;
+                }
                 f = writeImage(tiff, tempBatchFolder, targetName, imageType);
             }
         }
@@ -434,7 +452,9 @@ public class TiffImporter implements ImageImporter {
 
         FileEntry entry = findSibling(fileSet, config.getNdkPreviewFileSuffix());
         String previewId = BinaryEditor.PREVIEW_ID;
-        if (entry != null) {
+        if (config.getSkippedDatastreamId().contains(previewId))  {
+            LOG.info("Skip import " + previewId + " for uuid " + foxml.getPid());
+        } else if (entry != null) {
             f = entry.getFile();
         } else if (config.getRequiredDatastreamId().contains(previewId)) {
             throw new FileNotFoundException("Missing preview: " + new File(
@@ -453,6 +473,11 @@ public class TiffImporter implements ImageImporter {
                     throw new IllegalStateException("Converting tiff to PREVIEW jpg failed: " + p.getFullOutput());
                 }
             } else {
+                if (tiff == null) {
+                    start = System.nanoTime();
+                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    endRead = System.nanoTime() - start;
+                }
                 f = writeImage(
                         scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
                         tempBatchFolder, targetName, imageType);
@@ -469,7 +494,9 @@ public class TiffImporter implements ImageImporter {
 
         FileEntry thumbnailEntry = findSibling(fileSet, config.getNdkThumbnailFileSuffix());
         String thumbnailId = BinaryEditor.THUMB_ID;
-        if (thumbnailEntry != null) {
+        if (config.getSkippedDatastreamId().contains(thumbnailId))  {
+            LOG.info("Skip import " + thumbnailId + " for uuid " + foxml.getPid());
+        } else if (thumbnailEntry != null) {
             f = thumbnailEntry.getFile();
         } else if (config.getRequiredDatastreamId().contains(thumbnailId)) {
             throw new FileNotFoundException("Missing thumbnail: " + new File(
@@ -490,6 +517,11 @@ public class TiffImporter implements ImageImporter {
                     throw new IllegalStateException("Converting tiff to THUMBNAIL jpg failed: " + p.getFullOutput());
                 }
             } else {
+                if (tiff == null) {
+                    start = System.nanoTime();
+                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    endRead = System.nanoTime() - start;
+                }
                 f = createThumbnail(tempBatchFolder, originalFilename, original, tiff, config);
             }
         }
@@ -497,7 +529,7 @@ public class TiffImporter implements ImageImporter {
         long endThumb = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, thumbnailId, mediaType).write(f, 0, null);
 
-        LOG.fine(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
+        LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                 originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
     }
 

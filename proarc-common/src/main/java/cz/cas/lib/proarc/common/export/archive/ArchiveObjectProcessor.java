@@ -120,7 +120,7 @@ public class ArchiveObjectProcessor {
                 }
                 return MetsElement.getElement(dobj, null, metsContext, true);
             } catch (IOException | MetsExportException ex) {
-                throw new DigitalObjectException("Process: Archive export failed - imposible to find element. " + ex.getMessage() + ex.getStackTrace());
+                throw new DigitalObjectException("Process: Archive export failed - imposible to find element.", ex);
             }
         }
     }

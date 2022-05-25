@@ -54,6 +54,7 @@ public final class ImportProcess implements Runnable {
     private final ImportBatchManager batchManager;
     private static List<ImageImporter> consumerRegistery;
     private final ImportOptions importConfig;
+    private final AppConfiguration config;
 
     private static Map<String, String> myMimeType= new HashMap<>();
 
@@ -66,9 +67,10 @@ public final class ImportProcess implements Runnable {
         myMimeType.put("ogm", "audio/ogg");
     }
 
-    ImportProcess(ImportOptions importConfig, ImportBatchManager batchManager) {
+    ImportProcess(ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration config) {
         this.importConfig = importConfig;
         this.batchManager = batchManager;
+        this.config = config;
     }
 
     /**
@@ -79,12 +81,12 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, ImportBatchManager batchManager,
             String device, boolean generateIndices,
-            ImportProfile profile
+            ImportProfile profile, AppConfiguration config
             ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device,
                 generateIndices, user, profile);
-        ImportProcess process = new ImportProcess(options, batchManager);
+        ImportProcess process = new ImportProcess(options, batchManager, config);
         process.prepare(description, user);
         return process;
     }
@@ -101,7 +103,7 @@ public final class ImportProcess implements Runnable {
         ImportOptions options = ImportOptions.fromBatch(
                 batch, importFolder, user, profile);
         // if necessary reset old computed batch items
-        ImportProcess process = new ImportProcess(options, ibm);
+        ImportProcess process = new ImportProcess(options, ibm, ibm.getAppConfig());
         process.removeCaches(options.getImportFolder(), options);
         process.removeBatchItems(batch);
         return process;
@@ -222,7 +224,7 @@ public final class ImportProcess implements Runnable {
             }
             File targetFolder = createTargetFolder(importFolder, importConfig.getConfig());
             importConfig.setTargetFolder(targetFolder);
-            importConfig.getImporter().start(importConfig, batchManager);
+            importConfig.getImporter().start(importConfig, batchManager, config);
             if (batch.getState() == Batch.State.LOADING) {
                 batch.setState(Batch.State.LOADED);
             }

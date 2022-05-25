@@ -144,7 +144,7 @@ public class UpdateObjects {
             }
             return MetsElement.getElement(dobj, null, metsContext, true);
         } catch (IOException | MetsExportException ex) {
-            throw new DigitalObjectException("Process: Changing models failed - imposible to find element");
+            throw new DigitalObjectException("Process: Changing models failed - imposible to find element", ex);
         }
     }
 

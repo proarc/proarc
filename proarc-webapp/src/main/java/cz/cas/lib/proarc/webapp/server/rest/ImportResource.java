@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.Item;
@@ -40,23 +41,6 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import org.apache.commons.io.IOUtils;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -73,6 +57,26 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+import org.apache.commons.io.IOUtils;
+
+import static cz.cas.lib.proarc.common.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
+import static cz.cas.lib.proarc.common.imports.ImportProcess.TMP_DIR_NAME;
 
 /**
  * Resource to handle imports.
@@ -207,7 +211,7 @@ public class ImportResource {
         File folder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, profileId);
         ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                importManager, device, indices, appConfig.getImportConfiguration(profile));
+                importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -240,7 +244,7 @@ public class ImportResource {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, indices, appConfig.getImportConfiguration(profile));
+                        importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {
@@ -398,7 +402,7 @@ public class ImportResource {
 
             if (user.getId() != batch.getUserId()) {
                 // batch was imported by different user (store metadata editor userid instead)
-                File batchDir = new File(appConfig.getDefaultUsersHome(), batch.getFolder() + "/" + ImportProcess.TMP_DIR_NAME);
+                File batchDir = new File(appConfig.getDefaultUsersHome(), batch.getFolder() + "/" + TMP_DIR_NAME);
                 File [] batchFiles = batchDir.listFiles((dir, name) -> name.endsWith(".foxml") && !name.startsWith(".proarc"));
 
                 if (batchFiles == null) {
@@ -565,6 +569,43 @@ public class ImportResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Unknown profile: " + profileId);
         }
         return profile;
+    }
+
+    @POST
+    @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.IMPORT_FUNCTION_UNLOCK_FOLDER)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<BatchView> unlockFolder(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
+    ) throws URISyntaxException {
+        if ((path == null || path.isEmpty()) && batchId == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "missing values in parameter \"folderPath\" or \"id\".");
+        }
+
+        BatchView batchView = null;
+
+        if ((path == null || path.isEmpty()) && batchId != null) {
+            Batch batch = importManager.get(batchId);
+            batchView = importManager.viewBatch(batchId);
+            path = batch.getFolder();
+        }
+        String folderPath = validateParentPath(path);
+        URI userRoot = user.getImportFolder();
+        URI folderUri = (folderPath != null)
+                // URI multi param constructor escapes input unlike single param constructor or URI.create!
+                ? userRoot.resolve(new URI(null, null, folderPath, null))
+                : userRoot;
+        File folder = new File(folderUri);
+        if (!folder.exists()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Folder " + folder.getAbsolutePath() + " does not exist.");
+        }
+        for (File file : folder.listFiles()) {
+            if (IMPORT_STATE_FILENAME.equals(file.getName()) || TMP_DIR_NAME.equals(file.getName())) {
+                LOG.log(Level.INFO, "Deleting file/folder " + file.getName());
+                MetsUtils.deleteFolder(file);
+            }
+        }
+        return new SmartGwtResponse<>(batchView);
     }
 
 }

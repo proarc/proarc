@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.Status;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixType;
@@ -93,7 +94,12 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkEbornPlugin.MODEL_EARTICLE,
             NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT,
-            NdkAudioPlugin.MODEL_PHONOGRAPH
+            NdkAudioPlugin.MODEL_PHONOGRAPH,
+            OldPrintPlugin.MODEL_VOLUME,
+            OldPrintPlugin.MODEL_SUPPLEMENT,
+            OldPrintPlugin.MODEL_CARTOGRAPHIC,
+            OldPrintPlugin.MODEL_SHEETMUSIC,
+            OldPrintPlugin.MODEL_GRAPHICS
             ));
     private static final Logger LOG = Logger.getLogger(UrnNbnVisitor.class.getName());
 
@@ -392,6 +398,128 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
     }
 
+    @Override
+    public Void visitOldPrintSheetmusic(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The oldprint sheet music under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            return processOtherEntity(elm, "oldprint-sheetmusic", p, null);
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    @Override
+    public Void visitOldPrintGraphics(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT, "The oldprint graphic under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            MixType mixType = searchMixElement(getParent(elm), p);
+            return processOtherEntity(elm, "oldprint-picture", p, mixType);
+        } catch (DigitalObjectException ex) {
+            throw  new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    @Override
+    public Void visitOldPrintChapter(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            return super.visitNdkChapter(elm, p);
+        } else {
+            return visitEnclosingElement2Register(elm, p);
+        }
+    }
+
+    @Override
+    public Void visitOldPrintCartographic(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The oldprint cartographic under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            return processOtherEntity(elm, "oldprint-cartographic", p, null);
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    @Override
+    public Void visitOldPrintMonographSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            if (!OldPrintPlugin.MODEL_VOLUME.equals(registeringObject.getModelId())) {
+                // supplement under monograph volume - ignore
+                // invalid hierarchy
+                p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                        "The oldprint supplement under " + registeringObject.toLog());
+            }
+            return null;
+        }
+        try {
+            DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
+            if (parent == DigitalObjectElement.NULL || OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(parent.getModelId())) {
+                try {
+                    registeringObject = elm;
+                    return processOldPrintMonographVolumeOrSupplement(elm, p);
+                } finally {
+                    registeringObject = null;
+                }
+            } else {
+                // the visitor started on volume's supplement
+                return visitEnclosingElement2Register(elm, p);
+            }
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        }
+    }
+
+    @Override
+    public Void visitOldPrintMonographVolume(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The oldprint volume under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            return processOldPrintMonographVolumeOrSupplement(elm, p);
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    @Override
+    public Void visitOldPrintPage(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject == null) {
+            // unknown enclosing object to register
+            return visitEnclosingElement2Register(elm, p);
+        }
+        MixType mix = getMix(elm, p);
+        if (mix != null) {
+            throw new StopOnFirstMixException(mix);
+        }
+        return null;
+    }
+
     private Void processNdkMusicDocument(DigitalObjectElement elm, UrnNbnContext p) throws DigitalObjectException {
         final DigitalObjectHandler handler = elm.getHandler();
         final MetadataHandler<ModsDefinition> modsHandler = handler.<ModsDefinition>metadata();
@@ -607,9 +735,62 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             Import monographImport;
             ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
             if (titleElm == null) {
-                monographImport = resolverEntities.createMonographImport(volumeMods, mix, xmlHandler, false);
+                monographImport = resolverEntities.createMonographImport(volumeMods, mix, xmlHandler, false, false);
             } else {
-                monographImport = resolverEntities.createMultipartMonographImport(titleMods, volumeMods, mix, xmlHandler);
+                monographImport = resolverEntities.createMultipartMonographImport(titleMods, volumeMods, mix, xmlHandler, false);
+            }
+            if (!validateEntity(xmlHandler, elm, p)) {
+                return null;
+            }
+            UrnNbn urnNbnResponse = registerEntity(monographImport, elm, p);
+            updateModsWithUrnNbn(urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
+        } catch (SAXException ex) {
+            // registration request not valid
+            p.getStatus().error(elm, ex);
+        }
+        return null;
+    }
+
+    private Void processOldPrintMonographVolumeOrSupplement(DigitalObjectElement elm, UrnNbnContext p)
+            throws DigitalObjectException, VisitorException {
+
+        final String pid = elm.getPid();
+        final DigitalObjectHandler volumeHandler = elm.getHandler();
+        final MetadataHandler<ModsDefinition> volumeModsHandler = volumeHandler.<ModsDefinition>metadata();
+        final DescriptionMetadata<ModsDefinition> volumeDescription = volumeModsHandler.getMetadata();
+        ModsDefinition volumeMods = volumeDescription.getData();
+        ModsDefinition titleMods = null;
+        // check URNNBN exists
+        String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
+        if (urnnbn != null) {
+            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
+            return null;
+        }
+        Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
+        DigitalObjectElement titleElm = null;
+        if (path.hasNext()) {
+            titleElm = path.next();
+            if (!(OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(titleElm.getModelId()) || OldPrintPlugin.MODEL_CONVOLUTTE.equals(titleElm.getModelId()))) {
+                p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
+                        "Requires Multipart Monograph or Convolutte or nothing as parent instead of %s!",
+                        titleElm.toLog()));
+                return null;
+            }
+            titleMods = titleElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
+        }
+
+        MixType mix = searchMix(elm, p);
+        if (mix == null) {
+            return null;
+        }
+
+        try {
+            Import monographImport;
+            ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+            if (titleElm == null) {
+                monographImport = resolverEntities.createMonographImport(volumeMods, mix, xmlHandler, false, true);
+            } else {
+                monographImport = resolverEntities.createMultipartMonographImport(titleMods, volumeMods, mix, xmlHandler, true);
             }
             if (!validateEntity(xmlHandler, elm, p)) {
                 return null;
@@ -640,7 +821,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             Import eMonographImport;
             ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
-            eMonographImport = resolverEntities.createMonographImport(volumeMods, null, xmlHandler, true);
+            eMonographImport = resolverEntities.createMonographImport(volumeMods, null, xmlHandler, true, false);
             if (!validateEntity(xmlHandler, elm, p)) {
                 return null;
             }

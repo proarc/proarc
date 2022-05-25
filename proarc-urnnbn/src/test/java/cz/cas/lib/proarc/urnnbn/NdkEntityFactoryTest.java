@@ -142,7 +142,7 @@ public class NdkEntityFactoryTest {
     public void testCreateMonographImport() throws Exception {
         ModsDefinition monographMods = mods("registration/ndkMonograph.xml");
         MixType mix = mix("registration/mix.xml");
-        Import imp = factory.createMonographImport(monographMods, mix, null, false);
+        Import imp = factory.createMonographImport(monographMods, mix, null, false, false);
         assertNotNull(imp);
         Monograph mv = imp.getMonograph();
         assertNotNull(mv);
@@ -159,7 +159,7 @@ public class NdkEntityFactoryTest {
         ModsDefinition titleMods = mods("registration/ndkMultipartTitle.xml");
         ModsDefinition volumeMods = mods("registration/ndkMultipartVolume.xml");
         MixType mix = mix("registration/mix.xml");
-        Import imp = factory.createMultipartMonographImport(titleMods, volumeMods, mix, null);
+        Import imp = factory.createMultipartMonographImport(titleMods, volumeMods, mix, null, false);
         assertNotNull(imp);
         MonographVolume mv = imp.getMonographVolume();
         assertNotNull(mv);
@@ -176,7 +176,7 @@ public class NdkEntityFactoryTest {
         ModsDefinition titleMods = mods("registration/ndkMultipartTitle2.xml");
         ModsDefinition volumeMods = mods("registration/ndkMultipartTitle2Supplement.xml");
         MixType mix = mix("registration/mix.xml");
-        Import imp = factory.createMultipartMonographImport(titleMods, volumeMods, mix, null);
+        Import imp = factory.createMultipartMonographImport(titleMods, volumeMods, mix, null, false);
         assertNotNull(imp);
         MonographVolume mv = imp.getMonographVolume();
         assertNotNull(mv);
