@@ -56,6 +56,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.w3c.dom.Node;
+
 import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_MULTIPART;
 import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_UNIT;
 import static cz.cas.lib.proarc.common.export.mets.Const.OC_GRP_ID_CREATION;
@@ -197,18 +198,26 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         String fileName ="oc_" + metsElement.getMetsContext().getPackageID();
         fileType.setID(fileName);
 
+        String extension = null;
+
         try {
             DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
             GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
             InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
 
             FileMD5Info fileMD5Info = MetsUtils.getDigest(is);
-            fileMD5Info.setFileName(fileName + ".pdf");
+            if (rawDS != null && rawDS.getDatastreamVersion() != null && rawDS.getDatastreamVersion().size() > 0 && rawDS.getDatastreamVersion().get(0) != null) {
+                extension = Const.mimeToExtensionMap.get(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+            }
+            if (extension == null) {
+                extension = ".pdf";
+            }
+            fileMD5Info.setFileName(fileName + extension);
             fileMD5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
             md5InfosMap.put(OC_GRP_ID_CREATION, fileMD5Info);
 
             FileMD5Info fileMD5InfoValidation = MetsUtils.getDigest(is);
-            fileMD5InfoValidation.setFileName(fileName + ".pdf");
+            fileMD5InfoValidation.setFileName(fileName + extension);
             fileMD5InfoValidation.setCreated(calendar);
             md5InfosMap.put(OC_GRP_ID_VALIDATION, fileMD5InfoValidation);
 
@@ -220,7 +229,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         }
         FileType.FLocat fLocat = new FileType.FLocat();
         fLocat.setLOCTYPE("URL");
-        URI uri = URI.create("original/" + fileName + ".pdf");
+        URI uri = URI.create("original/" + fileName + extension);
         fLocat.setHref(uri.toASCIIString());
         fileType.getFLocat().add(fLocat);
         return fileType;
@@ -301,9 +310,17 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
 
             Optional<DatastreamType> rawDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "RAW".equalsIgnoreCase(stream.getID())).findFirst();
             if (rawDatastream.isPresent()) {
+                DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
                 GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
                 InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                String name = "original/oc_" + metsElement.getMetsContext().getPackageID() + ".pdf";
+                String extension = null;
+                if (rawDS != null && rawDS.getDatastreamVersion() != null && rawDS.getDatastreamVersion().size() > 0 && rawDS.getDatastreamVersion().get(0) != null) {
+                    extension = Const.mimeToExtensionMap.get(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                }
+                if (extension == null) {
+                    extension = ".pdf";
+                }
+                String name = "original/oc_" + metsElement.getMetsContext().getPackageID() + extension;
                 Path originalPathDoc = packageDir.resolve(name);
 
                 // check null
