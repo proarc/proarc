@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.HierarchyObjectVisitor;
 import cz.cas.lib.proarc.common.object.VisitorException;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 
 /**
  * It is a helper class to implement {@link NdkVisitor}.
@@ -77,6 +78,24 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkEChapter(elm, p);
         } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(model) || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(model)) {
             return visitNdkMusicDocument(elm, p);
+        } else if (OldPrintPlugin.MODEL_PAGE.equals(model)) {
+            return visitOldPrintPage(elm, p);
+        } else if (OldPrintPlugin.MODEL_CONVOLUTTE.equals(model)) {
+            return visitOldPrintConvolutte(elm, p);
+        } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(model)) {
+            return visitOldPrintMonographtTitle(elm, p);
+        } else if (OldPrintPlugin.MODEL_VOLUME.equals(model)) {
+            return visitOldPrintMonographVolume(elm, p);
+        } else if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(model)) {
+            return visitOldPrintMonographSupplement(elm, p);
+        } else if (OldPrintPlugin.MODEL_CARTOGRAPHIC.equals(model)) {
+            return visitOldPrintCartographic(elm, p);
+        } else if (OldPrintPlugin.MODEL_CHAPTER.equals(model)) {
+            return visitOldPrintChapter(elm, p);
+        } else if (OldPrintPlugin.MODEL_GRAPHICS.equals(model)) {
+            return visitOldPrintGraphics(elm, p);
+        } else if (OldPrintPlugin.MODEL_SHEETMUSIC.equals(model)) {
+            return visitOldPrintSheetmusic(elm, p);
         }
         return super.visit(elm, p);
     }
@@ -170,4 +189,38 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
         return visitChildren(elm, p);
     }
 
+    public R visitOldPrintPage(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+    public R visitOldPrintSheetmusic(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitOldPrintGraphics(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitOldPrintChapter(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitOldPrintCartographic(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitOldPrintMonographSupplement(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitOldPrintMonographVolume(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitOldPrintMonographtTitle(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitOldPrintConvolutte(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
 }

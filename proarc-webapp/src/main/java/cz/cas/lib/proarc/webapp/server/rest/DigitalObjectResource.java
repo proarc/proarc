@@ -291,7 +291,7 @@ public class DigitalObjectResource {
                 items = handler.create();
             }
 
-            if (OldPrintPlugin.MODEL_OMNIBUSVOLUME.equals(modelId)) {
+            if (OldPrintPlugin.MODEL_CONVOLUTTE.equals(modelId)) {
                 CreateHandler hierarchyModelsHandler = dom.create(OldPrintPlugin.MODEL_VOLUME, null, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
                 hierarchyModelsHandler.create();
                 CreateHierarchyHandler hierarchyHandler = dom.createHierarchyHandler(OldPrintPlugin.MODEL_VOLUME, pid, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());

@@ -49,7 +49,7 @@ public class ArchiveOldPrintObjectSelector extends ArchiveObjectSelector {
                 || OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
             addSelection(entryPath);
         } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)
-                || OldPrintPlugin.MODEL_OMNIBUSVOLUME.equals(modelId)) {
+                || OldPrintPlugin.MODEL_CONVOLUTTE.equals(modelId)) {
             searchChildren(entry, entryPath);
         } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)
                 || OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
