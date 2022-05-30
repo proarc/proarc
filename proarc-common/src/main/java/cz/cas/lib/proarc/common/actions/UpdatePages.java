@@ -52,15 +52,28 @@ public class UpdatePages {
     private String model;
     private int applyTo;
     private boolean applyToFirstPage;
+    private boolean doubleColumns;
 
     public UpdatePages() {
     }
 
-    public UpdatePages(String applyTo, String applyToFirstPage) throws DigitalObjectException {
+    public UpdatePages(String applyTo, String applyToFirstPage, String doubleColumns) throws DigitalObjectException {
         index = -1;
         this.updatedPids = new ArrayList<>();
         setApplyTo(applyTo);
         setApplyToFirstPage(applyToFirstPage);
+        setDoubleColumns(doubleColumns);
+    }
+
+    private void setDoubleColumns(String doubleColumns) {
+        doubleColumns = trim(doubleColumns, "{", "}");
+        if (doubleColumns != null && !doubleColumns.isEmpty()) {
+            if ("true".equals(doubleColumns) || "1".equals(doubleColumns.replaceAll("[^0-9]", ""))) {
+                this.doubleColumns = true;
+            } else {
+                this.doubleColumns = false;
+            }
+        }
     }
 
     private void setApplyToFirstPage(String applyToFirstPage) {
@@ -187,7 +200,11 @@ public class UpdatePages {
     private void updateMods(ModsDefinition mods, SeriesNumber series) throws DigitalObjectException {
         String number = null;
         if (series.isAllowToUpdateNumber()) {
-            number = series.getNextValue();
+            if (doubleColumns) {
+                number = series.getNextValue() + ", " + series.getNextValue();
+            } else {
+                number = series.getNextValue();
+            }
         }
         if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
             if (mods != null) {

@@ -153,6 +153,7 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER = "incrementNumber";
     public static final String MODS_PAGE_RULES_INDEX_START_NUMBER = "startIndex";
     public static final String MODS_PAGE_RULES_TYPE_PAGE = "pageType";
+    public static final String MODS_PAGE_RULES_DOUBLE_COLUMNS = "doubleColumns";
 
     public static final String MODS_CUSTOM_FUNCTION_ADD_BRACKETS = "addBrackets";
     public static final String MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS = "removeBrackets";

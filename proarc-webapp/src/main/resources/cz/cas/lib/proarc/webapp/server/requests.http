@@ -27,6 +27,14 @@ PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
+{&pids=[uuid%3Aa17a419d-d847-44f9-8d03-53a86dea6bec,uuid%3A50c5c2a5-7823-4a66-bffd-85c53a85a0ff,uuid%3Af95a1c52-9934-434e-aa19-87b27cafb5b1,uuid%3A58229239-adfc-4fca-87cb-cdb8f953cb76,uuid%3Aeee4fda9-ff2b-4be5-9be5-5d09e41be946]&startNumber=28&incrementNumber=1&applyToFirstPage=true&useBrackets=true&doubleColumns=true&sequence=ALPHABET_LOWER_SERIES}
+
+###
+
+PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
 {&isc_metaDataPrefix=_&isc_dataFormat=json&pids=[uuid%3A18ab20d4-6c85-480b-8799-24e17639cc08]&_operationType=update&_dataSource=ModsCustomDataSource&sequence=ALPHABET_LOWER_SERIES&applyTo=2&pageType=titlePage&prefix=[&suffix=]&startNumber=28&incrementNumber=1&applyToFirstPage=true&useBrackets=true}
 
 ###
