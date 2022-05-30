@@ -426,7 +426,13 @@ public class DigitalObjectResource {
                     // unsupported type
                     throw new WebApplicationException(Status.FORBIDDEN);
                 }
-                items = search.findPhrase(phrase);
+                if (username == null) {
+                    username = queryProcessor;
+                }
+                if (organization == null) {
+                    organization = queryOrganization;
+                }
+                items = search.findPhrase(phrase, null, null, null, queryModel, false, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
                 total = items.size();
                 page = 1;
                 break;

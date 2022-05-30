@@ -302,14 +302,18 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
         FormItemIfFunction showIfQuery = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED);
         FormItemIfFunction showIfPhrase = new StringMatchFunction(filterType, FILTER_PHRASE);
-        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ALPHABETICAL, FILTER_ADVANCED);
-        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL, FILTER_ADVANCED);
+        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE);
+        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE);
         FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_ADVANCED);
+        FormItemIfFunction showSortField = new StringMatchFunction(filterType, FILTER_PHRASE, FILTER_ADVANCED);
         FormItemIfFunction showIfQueryOrAdvanced = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED, FILTER_ADVANCED);
 
         final TextItem phrase = createAdvancedItem(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM,
                 i18n.DigitalObjectSearchView_FilterPhrase_Title(), showIfPhrase);
+        phrase.setWidth("100%");
+        phrase.setColSpan(3);
         phrase.setValidators(new RequiredIfValidator(new RequiredIfFunction() {
+
 
             @Override
             public boolean execute(FormItem formItem, Object value) {
@@ -323,6 +327,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
         form.setFields(filterType, createSpacerItem("100%", null),
                 phrase,
+                createSpacerItem("100%", showIfPhrase),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_TITLE_PARAM,
                         i18n.DigitalObjectSearchView_FilterAdvancedTitle_Title(), showIfQuery), createSpacerItem("100%", showIfQuery),
                 createAdvancedItem(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM,
@@ -338,7 +343,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
                 createProcessorItem(i18n.UsersView_ListHeader_Proccesor_Title(), showIfAdvanced), createSpacerItem("100%", showIfAdvanced),
                 createModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Title(), showIfCreatedModifiedQuery),
                 createRememberModelItem(i18n.DigitalObjectSearchView_FilterAdvancedModel_Remember_Title(), showIfCreatedModifiedQuery),
-                createSortFieldItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfAdvanced),
+                createSortFieldItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showSortField),
                 createSortItem(i18n.DigitalObjectSearchView_FilterSort_Title(), showIfAplhabetical),
                 //, createSpacerItem("100%", showIfCreatedModifiedQuery),
                 submit);
@@ -540,6 +545,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
             checkbox.setValue(false);
             Offline.put(sourceName, filters.getField(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM).getValue());
             Offline.put(sourceName + "_sort", filters.getField(DigitalObjectResourceApi.SEARCH_SORT_PARAM).getValue());
+            Offline.put(sourceName  + "_sortField", filters.getField(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM).getValue());
         }
         Criteria valuesAsCriteria = filters.getValuesAsCriteria();
         foundGrid.deselectAllRecords();
