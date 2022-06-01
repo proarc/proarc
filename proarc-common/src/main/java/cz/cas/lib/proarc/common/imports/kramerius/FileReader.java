@@ -16,9 +16,17 @@
  */
 package cz.cas.lib.proarc.common.imports.kramerius;
 
+import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -28,12 +36,18 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.imports.FileSet;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.imports.ImportFileScanner;
+import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.imports.TiffAsJpegImporter;
+import cz.cas.lib.proarc.common.imports.TiffImporter;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.DateDefinition;
@@ -47,6 +61,7 @@ import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,12 +77,6 @@ import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
-import com.yourmediashelf.fedora.util.DateUtility;
 
 /**
  * It reads the kramerius package and generates digital objects for a batch import.
@@ -91,7 +100,15 @@ public class FileReader {
             "kramerius:hasPage", "hasPage", "kramerius:hasUnit", "hasInit", "kramerius:hasVolume", "hasVolume")));
 
     private final Set<String> KRAMERIUS_DATASTREAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            "RELS-EXT", "IMG_FULL", "IMG_PREVIEW", "IMG_THUMB", "TEXT_OCR", "ALTO", "BIBLIO_MODS", "DC", "NDK_ARCHIVAL", "NDK_USER")));
+            "RELS-EXT", "IMG_FULL", "IMG_PREVIEW", "IMG_THUMB", "TEXT_OCR", "ALTO", "BIBLIO_MODS", "DC", "NDK_ARCHIVAL", "NDK_USER", "FULL", "PREVIEW", "THUMBNAIL")));
+
+    private final Map<String, String> datastreamVersionId = new HashMap<String, String>() {
+        {
+            put("IMG_FULL", "FULL");
+            put("IMG_THUMB", "THUMBNAIL");
+            put("IMG_PREVIEW", "PREVIEW");
+        }
+    };
 
     // K4 model mapping
     private final Map<String, String> modelMonographMap = new HashMap<String, String>() {
@@ -186,8 +203,9 @@ public class FileReader {
                 dObj = FoxmlUtils.unmarshal(new StreamSource(file), DigitalObject.class);
             }
             setDateAndUser(dObj);
+            repairDatastreams(dObj);
             removeDataStreams(dObj);
-            createDataStreams(dObj);
+            createDataStreams(dObj, ctx);
             lObj = iSession.getLocals().create(objFile, dObj);
             updateLocalObject(lObj, ctx);
             importItem = iSession.addObject(lObj, true);
@@ -199,6 +217,18 @@ public class FileReader {
         //modifyMetadataStreams(lObj.getPid(), model);
         importItem.setState(BatchItem.ObjectState.LOADED);
         iSession.getImportManager().update(importItem);
+    }
+
+    private void repairDatastreams(DigitalObject dObj) {
+        List<DatastreamType> datastreams = dObj.getDatastream();
+        for (DatastreamType datastream : datastreams) {
+            datastream.setCONTROLGROUP("M");
+            if (datastreamVersionId.containsKey(datastream.getID())) {
+                String newId = datastreamVersionId.get(datastream.getID());
+                datastream.setID(newId);
+                datastream.getDatastreamVersion().get(0).setID(newId + ".0");
+            }
+        }
     }
 
     private void removePart(ModsDefinition mods, String model) {
@@ -328,27 +358,99 @@ public class FileReader {
         return datastreams;
     }
 
-    private void createDataStreams(DigitalObject digitalObject) {
-        DatastreamType ndkArchival = null, ndkUser = null, full;
+    private void createDataStreams(DigitalObject digitalObject, ImportOptions ctx) {
+        DatastreamType ndkArchival = null, ndkUser = null, raw = null, full;
         boolean containsArchival = containsDataStream(digitalObject, "NDK_ARCHIVAL");
         boolean containsUser = containsDataStream(digitalObject, "NDK_USER");
+        boolean containsRaw = containsDataStream(digitalObject, "RAW");
         for (int i = 0; i < digitalObject.getDatastream().size(); i++) {
-            if ("IMG_FULL".equals(digitalObject.getDatastream().get(i).getID())) {
+            replacePathInContentLocations(digitalObject.getDatastream().get(i), ctx);
+            if ("FULL".equals(digitalObject.getDatastream().get(i).getID())) {
                 full = digitalObject.getDatastream().get(i);
+                if (!containsRaw) {
+                    raw = createRaw(full, ctx);
+                }
                 if (!containsArchival) {
-                    ndkArchival = createNdkArchivalDatastream(full);
+                    ndkArchival = createNdkArchivalDatastream(full, raw, ctx);
                 }
                 if (!containsUser) {
-                    ndkUser = createNdkUserDatastream(full);
+                    ndkUser = createNdkUserDatastream(full, raw, ctx);
                 }
-                break;
             }
+        }
+        if (raw != null) {
+            digitalObject.getDatastream().add(raw);
         }
         if (ndkArchival != null) {
             digitalObject.getDatastream().add(ndkArchival);
         }
         if (ndkUser != null) {
             digitalObject.getDatastream().add(ndkUser);
+        }
+    }
+
+    private DatastreamType createRaw(DatastreamType full, ImportOptions ctx) {
+        if (full != null && full.getDatastreamVersion() != null && full.getDatastreamVersion().get(0) != null) {
+            ContentLocationType fullContentLocation = full.getDatastreamVersion().get(0).getContentLocation();
+            if (fullContentLocation != null && fullContentLocation.getREF() != null) {
+                String path = fullContentLocation.getREF();
+                boolean containsFilePrefix = false;
+                if (path.startsWith("file:/")) {
+                    containsFilePrefix = true;
+                    path = path.substring(6);
+                }
+                File file = new File(path);
+                FileSet fileSet =  new FileSet(ImportFileScanner.getName(file));
+                fileSet.getFiles().add(new FileSet.FileEntry(file));
+                if (file.exists()) {
+                    TiffAsJpegImporter importer = new TiffAsJpegImporter(null);
+                    File tiff = importer.getTiff(fileSet, ctx);
+                    if (tiff != null) {
+                        DatastreamType raw = new DatastreamType();
+                        DatastreamVersionType datastreamVersionType = new DatastreamVersionType();
+
+                        raw.setID(BinaryEditor.RAW_ID);
+                        raw.setCONTROLGROUP(full.getCONTROLGROUP());
+                        raw.setSTATE(full.getSTATE());
+                        raw.setVERSIONABLE(full.isVERSIONABLE());
+                        raw.getDatastreamVersion().add(datastreamVersionType);
+
+                        datastreamVersionType.setID(BinaryEditor.RAW_ID + ".0");
+                        datastreamVersionType.setLABEL(BinaryEditor.RAW_LABEL);
+                        datastreamVersionType.setCREATED(full.getDatastreamVersion().get(0).getCREATED());
+                        datastreamVersionType.setMIMETYPE(ImportProcess.findMimeType(tiff));
+                        ContentLocationType contentLocation = new ContentLocationType();
+                        contentLocation.setTYPE("URL");
+                        if (containsFilePrefix) {
+                            contentLocation.setREF("file:/" + tiff.getAbsolutePath());
+                        } else {
+                            contentLocation.setREF(tiff.getAbsolutePath());
+                        }
+                        datastreamVersionType.setContentLocation(contentLocation);
+
+                        return raw;
+                    }
+                }
+
+            }
+        }
+        return null;
+    }
+
+    private void replacePathInContentLocations(DatastreamType datastream, ImportOptions ctx) {
+        if (datastream != null && datastream.getDatastreamVersion() != null && datastream.getDatastreamVersion().get(0) != null &&
+        datastream.getDatastreamVersion().get(0).getContentLocation() != null) {
+            ContentLocationType contentLocation = datastream.getDatastreamVersion().get(0).getContentLocation();
+            if (contentLocation.getREF() != null) {
+                String path = contentLocation.getREF();
+                if (ctx.getFoxmlFolderPath() != null && ctx.getFoxmlImageServerPath() != null) {
+                    if (path.contains(ctx.getFoxmlImageServerPath())) {
+                        path = path.replaceAll(ctx.getFoxmlImageServerPath(), ctx.getFoxmlFolderPath());
+                    }
+                }
+                contentLocation.setREF(path);
+            }
+            datastream.getDatastreamVersion().get(0).setContentLocation(contentLocation);
         }
     }
 
@@ -364,7 +466,7 @@ public class FileReader {
         return false;
     }
 
-    private DatastreamType createNdkArchivalDatastream(DatastreamType full) {
+    private DatastreamType createNdkArchivalDatastream(DatastreamType full, DatastreamType raw, ImportOptions ctx) {
         DatastreamType ndkArchival = new DatastreamType();
         DatastreamVersionType datastreamVersionType = new DatastreamVersionType();
 
@@ -377,14 +479,58 @@ public class FileReader {
         datastreamVersionType.setID("NDK_ARCHIVAL.0");
         datastreamVersionType.setLABEL("NDK archive copy of RAW");
         datastreamVersionType.setCREATED(full.getDatastreamVersion().get(0).getCREATED());
-        datastreamVersionType.setMIMETYPE(full.getDatastreamVersion().get(0).getMIMETYPE());
-        datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
-        datastreamVersionType.setBinaryContent(full.getDatastreamVersion().get(0).getBinaryContent());
 
-        return ndkArchival;
+        if (raw != null && raw.getDatastreamVersion() != null && raw.getDatastreamVersion().get(0) != null) {
+                ContentLocationType rawContentLocation = raw.getDatastreamVersion().get(0).getContentLocation();
+                if (rawContentLocation != null && rawContentLocation.getREF() != null) {
+                    String path = rawContentLocation.getREF();
+                    boolean containsFilePrefix = false;
+                    if (path.startsWith("file:/")) {
+                        containsFilePrefix = true;
+                        path = path.substring(6);
+                    }
+                    File file = new File(path);
+                    FileSet fileSet = new FileSet(ImportFileScanner.getName(file));
+                    fileSet.getFiles().add(new FileSet.FileEntry(file));
+                    FileSet.FileEntry entry = null;
+                    if (file.exists()) {
+                        TiffImporter importer = new TiffImporter(ImportBatchManager.getInstance());
+                        try {
+                            entry = importer.processJp2Copy(fileSet, file, ctx.getTargetFolder(), BinaryEditor.NDK_ARCHIVAL_ID, ctx.getConfig().getNdkArchivalProcessor());
+                            if (entry != null && entry.getFile() != null) {
+                                datastreamVersionType.setMIMETYPE(ImportProcess.findMimeType(entry.getFile()));
+                                ContentLocationType contentLocation = new ContentLocationType();
+                                datastreamVersionType.setContentLocation(contentLocation);
+                                contentLocation.setTYPE("URL");
+                                if (containsFilePrefix) {
+                                    contentLocation.setREF("file:/" + entry.getFile().getAbsolutePath());
+                                } else {
+                                    contentLocation.setREF(entry.getFile().getAbsolutePath());
+                                }
+                                return ndkArchival;
+                            }
+                        } catch(IOException e){
+                            LOG.log(Level.SEVERE, file.toString(), e);
+                            return null;
+                        }
+                    }
+                }
+        } else {
+            datastreamVersionType.setMIMETYPE(full.getDatastreamVersion().get(0).getMIMETYPE());
+            datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
+
+            if (full.getDatastreamVersion().get(0).getBinaryContent() != null) {
+                datastreamVersionType.setBinaryContent(full.getDatastreamVersion().get(0).getBinaryContent());
+            } else if (full.getDatastreamVersion().get(0).getContentLocation() != null) {
+                ContentLocationType contentLocation = full.getDatastreamVersion().get(0).getContentLocation();
+                datastreamVersionType.setContentLocation(contentLocation);
+            }
+            return ndkArchival;
+        }
+        return null;
     }
 
-    private DatastreamType createNdkUserDatastream(DatastreamType full) {
+    private DatastreamType createNdkUserDatastream(DatastreamType full, DatastreamType raw, ImportOptions ctx) {
         DatastreamType ndkUser = new DatastreamType();
         DatastreamVersionType datastreamVersionType = new DatastreamVersionType();
 
@@ -397,11 +543,55 @@ public class FileReader {
         datastreamVersionType.setID("NDK_USER.0");
         datastreamVersionType.setLABEL("NDK user copy of RAW");
         datastreamVersionType.setCREATED(full.getDatastreamVersion().get(0).getCREATED());
-        datastreamVersionType.setMIMETYPE(full.getDatastreamVersion().get(0).getMIMETYPE());
-        datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
-        datastreamVersionType.setBinaryContent(full.getDatastreamVersion().get(0).getBinaryContent());
 
-        return ndkUser;
+        if (raw != null && raw.getDatastreamVersion() != null && raw.getDatastreamVersion().get(0) != null) {
+            ContentLocationType rawContentLocation = raw.getDatastreamVersion().get(0).getContentLocation();
+            if (rawContentLocation != null && rawContentLocation.getREF() != null) {
+                String path = rawContentLocation.getREF();
+                boolean containsFilePrefix = false;
+                if (path.startsWith("file:/")) {
+                    containsFilePrefix = true;
+                    path = path.substring(6);
+                }
+                File file = new File(path);
+                FileSet fileSet = new FileSet(ImportFileScanner.getName(file));
+                fileSet.getFiles().add(new FileSet.FileEntry(file));
+                FileSet.FileEntry entry = null;
+                if (file.exists()) {
+                    TiffImporter importer = new TiffImporter(ImportBatchManager.getInstance());
+                    try {
+                        entry = importer.processJp2Copy(fileSet, file, ctx.getTargetFolder(), BinaryEditor.NDK_USER_ID, ctx.getConfig().getNdkUserProcessor());
+                        if (entry != null && entry.getFile() != null) {
+                            datastreamVersionType.setMIMETYPE(ImportProcess.findMimeType(entry.getFile()));
+                            ContentLocationType contentLocation = new ContentLocationType();
+                            datastreamVersionType.setContentLocation(contentLocation);
+                            contentLocation.setTYPE("URL");
+                            if (containsFilePrefix) {
+                                contentLocation.setREF("file:/" + entry.getFile().getAbsolutePath());
+                            } else {
+                                contentLocation.setREF(entry.getFile().getAbsolutePath());
+                            }
+                            return ndkUser;
+                        }
+                    } catch(IOException e){
+                        LOG.log(Level.SEVERE, file.toString(), e);
+                        return null;
+                    }
+                }
+            }
+        } else {
+            datastreamVersionType.setMIMETYPE(full.getDatastreamVersion().get(0).getMIMETYPE());
+            datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
+
+            if (full.getDatastreamVersion().get(0).getBinaryContent() != null) {
+                datastreamVersionType.setBinaryContent(full.getDatastreamVersion().get(0).getBinaryContent());
+            } else if (full.getDatastreamVersion().get(0).getContentLocation() != null) {
+                ContentLocationType contentLocation = full.getDatastreamVersion().get(0).getContentLocation();
+                datastreamVersionType.setContentLocation(contentLocation);
+            }
+            return ndkUser;
+        }
+        return null;
     }
 
     private void updateLocalObject(LocalObject localObject, ImportOptions ctx) throws DigitalObjectException {
@@ -428,6 +618,11 @@ public class FileReader {
             }
 
             relationEditor.setRelations(new ArrayList<>());
+
+            relationEditor.setOrganization(ctx.getOrganization());
+            relationEditor.setStatus(DigitalObjectStatusUtils.STATUS_NEW);
+            relationEditor.setUser(ctx.getConfig().getDefaultProcessor());
+
             relationEditor.write(relationEditor.getLastModified(), null);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Element RELS-EXT can not be override." + localObject.getPid());

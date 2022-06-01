@@ -85,6 +85,8 @@ public final class ImportProfile {
     public static final String DELETE_PACKAGE_IMPORT = "import.delete_package";
     public static final String DEFAULT_IMPORT_FOLDER = "import.folder.default";
     public static final String IMPORT_FOLDER_PATH = "import.folder.path";
+    public static final String IMPORT_FOXML_IMAGE_SERVER_PATH = "import.foxml.imageServer.path";
+    public static final String IMPORT_FOXML_FOLDER_PATH = "import.foxml.folder.path";
 
 
 
@@ -305,6 +307,16 @@ public final class ImportProfile {
     public Boolean getCreateModelsHierarchy() {
         String createHierarchy = config.getString(CREATE_MODELS_HIERARCHY, "false");
         return  Boolean.parseBoolean(createHierarchy);
+    }
+
+    public String getFoxmlImageServerPath() {
+        String imageServerPath = config.getString(IMPORT_FOXML_IMAGE_SERVER_PATH);
+        return imageServerPath;
+    }
+
+    public String getFoxmlFolderPath() {
+        String folderPath = config.getString(IMPORT_FOXML_FOLDER_PATH);
+        return folderPath;
     }
 
     public String getDefaultProcessor() {

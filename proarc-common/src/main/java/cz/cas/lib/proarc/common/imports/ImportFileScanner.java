@@ -153,7 +153,7 @@ public final class ImportFileScanner {
         return filename;
     }
 
-    static String getName(File f) {
+    public static String getName(File f) {
         String fname = f.getName();
         int index = fname.indexOf('.');
         return index > 0 ? fname.substring(0, index) : fname;

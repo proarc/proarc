@@ -65,6 +65,7 @@ public final class ImportProcess implements Runnable {
         myMimeType.put("oga", "audio/ogg");
         myMimeType.put("ogx", "audio/ogg");
         myMimeType.put("ogm", "audio/ogg");
+        myMimeType.put("jp2", "image/jp2");
     }
 
     ImportProcess(ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration config) {
@@ -452,6 +453,13 @@ public final class ImportProcess implements Runnable {
             return options;
         }
 
+        public String getFoxmlImageServerPath() {
+            return profile.getFoxmlImageServerPath();
+        }
+
+        public String getFoxmlFolderPath() {
+            return profile.getFoxmlFolderPath();
+        }
     }
 
 }
