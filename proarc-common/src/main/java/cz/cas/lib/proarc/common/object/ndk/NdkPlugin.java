@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.object.HasMetadataHandler;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
+import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
@@ -257,20 +258,22 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
                 new RelationCriteria[]{
-                        new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
                         new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),
-                        new RelationCriteria(GraphicPlugin.MODEL_GRAPHIC, RelationCriteria.Type.PID)
+                        new RelationCriteria(GraphicPlugin.MODEL_GRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(ChroniclePlugin.MODEL_CHRONICLEVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT, RelationCriteria.Type.PID),
                 }
-                ).setPriority(3)) // override K4 plugin
+                ).setPriority(10)) // override K4 plugin
                 ;
 
         return models;
