@@ -29,8 +29,10 @@ import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -118,6 +120,62 @@ public class ReindexDigitalObjects {
             pids.add(element.getOriginalPid());
         }
         return pids;
+    }
+
+    public void reindexLocal(List<ImportBatchManager.BatchItemObject> objectList) throws DigitalObjectException {
+        if (objectList != null && !objectList.isEmpty()) {
+            int pageIndex = 1;
+            int audioPageIndex = 1;
+
+            for (ImportBatchManager.BatchItemObject object : objectList) {
+                reindexLocalMods(pageIndex++, object, fixModel(modelId));
+                reindexLocalDc(object, fixModel(modelId));
+            }
+        }
+    }
+
+    private void reindexLocalDc(ImportBatchManager.BatchItemObject object, String model) throws DigitalObjectException {
+        File foxml = object.getFile();
+        if (foxml == null || !foxml.exists() || !foxml.canRead()) {
+            throw new IllegalStateException("Cannot read foxml: " + foxml);
+        }
+        LocalStorage.LocalObject lobj = new LocalStorage().load(pid, foxml);
+
+        XmlStreamEditor xml = lobj.getEditor(FoxmlUtils.inlineProfile(
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, lobj);
+        ModsDefinition mods = modsStreamEditor.read();
+
+        DigitalObjectHandler handler = new DigitalObjectHandler(lobj, MetaModelRepository.getInstance());
+        NdkMapper mapper = NdkMapper.get(model);
+        mapper.setModelId(model);
+
+        NdkMapper.Context context = new NdkMapper.Context(handler);
+        OaiDcType dc = mapper.toDc(mods, context);
+        DcStreamEditor dcEditor = handler.objectMetadata();
+        DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+        dcr.setDc(dc);
+        dcEditor.write(handler, dcr, null);
+
+        lobj.setLabel(mapper.toLabel(mods));
+        lobj.flush();
+    }
+
+    private void reindexLocalMods(int index, ImportBatchManager.BatchItemObject object, String model) throws DigitalObjectException {
+        File foxml = object.getFile();
+        if (foxml == null || !foxml.exists() || !foxml.canRead()) {
+            throw new IllegalStateException("Cannot read foxml: " + foxml);
+        }
+        LocalStorage.LocalObject lobj = new LocalStorage().load(pid, foxml);
+        XmlStreamEditor xml = lobj.getEditor(FoxmlUtils.inlineProfile(
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, lobj);
+        ModsDefinition mods = modsStreamEditor.read();
+        setIndexToMods(mods, index, model);
+        modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
+        lobj.flush();
     }
 
 

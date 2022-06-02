@@ -102,6 +102,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
@@ -110,6 +111,7 @@ import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -2599,17 +2601,24 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<Item> reindex(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
+            @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException {
         ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, user, pid, modelId);
-        IMetsElement parentElement = reindexObjects.getParentElement();
-        if (parentElement != null) {
+        if (batchId != null) {
+            Batch batch = importManager.get(batchId);
+            List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
+            reindexObjects.reindexLocal(objects);
+        } else {
+            IMetsElement parentElement = reindexObjects.getParentElement();
+            if (parentElement != null) {
 
-            if (isLocked(reindexObjects.getPids(parentElement))) {
-                return returnValidationError(ERR_IS_LOCKED);
+                if (isLocked(reindexObjects.getPids(parentElement))) {
+                    return returnValidationError(ERR_IS_LOCKED);
+                }
+
+                reindexObjects.reindex(parentElement);
             }
-
-            reindexObjects.reindex(parentElement);
         }
         return new SmartGwtResponse<>();
     }
