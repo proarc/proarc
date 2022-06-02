@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 
 /**
  *
@@ -27,6 +28,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 public class DigitalObjectReindexMetadataDataSource extends ProarcDataSource {
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
+    public static final String FIELD_BATCH_ID = ImportResourceApi.BATCHITEM_BATCHID;
 
     private static DigitalObjectReindexMetadataDataSource INSTANCE;
 
@@ -42,7 +44,8 @@ public class DigitalObjectReindexMetadataDataSource extends ProarcDataSource {
         setDataURL(RestConfig.URL_DIGOBJEKT_REINDEX_OBJECTS);
         DataSourceTextField pid = new DataSourceTextField(FIELD_PID);
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
-        setFields(pid, model);
+        DataSourceTextField batchId = new DataSourceTextField(FIELD_BATCH_ID);
+        setFields(pid, model, batchId);
         setOperationBindings(RestConfig.createUpdateOperation());
     }
 }
