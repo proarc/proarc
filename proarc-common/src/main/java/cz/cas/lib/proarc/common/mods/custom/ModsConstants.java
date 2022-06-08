@@ -104,4 +104,9 @@ public interface ModsConstants {
 
     public static final String VALUE_DESCRIPTIONSTANDARD_RDA = "rda";
     public static final String VALUE_DESCRIPTIONSTANDARD_AACR = "aacr";
+
+    public static final String VALUE_PAGE_NOTE_LEFT = "left";
+    public static final String VALUE_PAGE_NOTE_RIGHT = "right";
+    public static final String VALUE_PAGE_NOTE_SINGLE_PAGE = "singlePage";
+
 }

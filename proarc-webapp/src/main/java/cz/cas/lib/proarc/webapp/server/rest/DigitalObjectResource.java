@@ -1235,7 +1235,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER) String incrementNumber,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_INDEX_START_NUMBER) String startIndex,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_TYPE_PAGE) String pageType,
-            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_DOUBLE_COLUMNS) String doubleColumns
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_DOUBLE_COLUMNS) String doubleColumns,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_PAGE_POSSITION) String pagePossition
     ) throws IOException, DigitalObjectException {
         LOG.fine(String.format("pid: %s", pidsArray));
 
@@ -1251,7 +1252,7 @@ public class DigitalObjectResource {
         UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
         updatePages.createListOfPids(pids);
         updatePages.createIndex(startIndex);
-        updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets);
+        updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePossition);
         return new SmartGwtResponse<>();
     }
 
