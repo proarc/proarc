@@ -30,6 +30,7 @@ public class DescriptionMetadata<T> {
     private String editor;
     private T data;
     private boolean ignoreValidation = false;
+    private DigitalObjectHandler parentHandler;
 
     /**
      * an alternative id of a digital object from the workflow
@@ -94,5 +95,9 @@ public class DescriptionMetadata<T> {
 
     public void setWorfklowJobId(Long worfklowJobId) {
         this.worfklowJobId = worfklowJobId;
+    }
+
+    public void setParentHandler(DigitalObjectHandler parentHandler) {
+        this.parentHandler = parentHandler;
     }
 }
