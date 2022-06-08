@@ -217,6 +217,12 @@ public class UpdatePages {
         }
     }
 
+    private String fixDoubleBrackets(String number) {
+        number = number.replace("[[", "[");
+        number = number.replace("]]", "]");
+        return number;
+    }
+
     private void setPageType(ModsDefinition mods, boolean setGenre) {
         if (this.pageType != null && !this.pageType.isEmpty()) {
             for (PartDefinition part : mods.getPart()) {
@@ -233,6 +239,7 @@ public class UpdatePages {
     private void setPageNumber(ModsDefinition mods, String number) {
         boolean updated = false;
         if (number != null && !number.isEmpty()) {
+            number = fixDoubleBrackets(number);
             for (PartDefinition part : mods.getPart()) {
                 if (part.getDetail().size() == 0) {
                     DetailDefinition detail = new DetailDefinition();
