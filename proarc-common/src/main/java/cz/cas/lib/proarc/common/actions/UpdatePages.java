@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -49,10 +50,12 @@ public class UpdatePages {
     private List<String> updatedPids;
     private int index;
     private String pageType;
+    private String pagePosition;
     private String model;
     private int applyTo;
     private boolean applyToFirstPage;
     private boolean doubleColumns;
+    private int pagePositionIndex;
 
     public UpdatePages() {
     }
@@ -163,8 +166,10 @@ public class UpdatePages {
         return false;
     }
 
-    public void updatePages(String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets) throws DigitalObjectException {
+    public void updatePages(String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition) throws DigitalObjectException {
         this.pageType = pageType;
+        this.pagePosition = trim(pagePosition, "{", "}");
+        this.pagePositionIndex = 0;
 
         SeriesNumber series = new SeriesNumber(sequenceType, startNumber, incrementNumber, prefix, suffix, setUseBrackets(useBrackets));
 
@@ -208,12 +213,59 @@ public class UpdatePages {
         }
         if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
             if (mods != null) {
+                if (NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
+                    setPagePosition(mods);
+                }
                 setPageIndex(mods);
                 setPageNumber(mods, number);
                 setPageType(mods, true);
             }
         } else {
             throw new DigitalObjectException("Unsupported model: " + model);
+        }
+    }
+
+    private void setPagePosition(ModsDefinition mods) {
+        String pagePosition = getPagePosition();
+        if (pagePosition != null) {
+            NoteDefinition noteDefinition = null;
+            for (NoteDefinition note : mods.getNote()) {
+                if (ModsConstants.VALUE_PAGE_NOTE_LEFT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_RIGHT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_SINGLE_PAGE.equals(note.getValue())) {
+                    noteDefinition = note;
+                    break;
+                }
+            }
+            if (noteDefinition == null) {
+                noteDefinition = new NoteDefinition();
+                mods.getNote().add(noteDefinition);
+            }
+            noteDefinition.setValue(pagePosition);
+            pagePositionIndex ++;
+        }
+    }
+
+    private String getPagePosition() {
+        switch (pagePosition) {
+            case "left":
+                return ModsConstants.VALUE_PAGE_NOTE_LEFT;
+            case "right":
+                return ModsConstants.VALUE_PAGE_NOTE_RIGHT;
+            case "singlePage":
+                return ModsConstants.VALUE_PAGE_NOTE_SINGLE_PAGE;
+            case "left_right":
+                if (pagePositionIndex % 2 == 0) {
+                    return ModsConstants.VALUE_PAGE_NOTE_LEFT;
+                } else {
+                    return ModsConstants.VALUE_PAGE_NOTE_RIGHT;
+                }
+            case "right_left":
+                if (pagePositionIndex % 2 == 0) {
+                    return ModsConstants.VALUE_PAGE_NOTE_RIGHT;
+                } else {
+                    return ModsConstants.VALUE_PAGE_NOTE_LEFT;
+                }
+            default:
+                return null;
         }
     }
 
