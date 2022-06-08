@@ -245,6 +245,9 @@ public class UpdatePages {
     }
 
     private String getPagePosition() {
+        if (pagePosition == null) {
+            return null;
+        }
         switch (pagePosition) {
             case "left":
                 return ModsConstants.VALUE_PAGE_NOTE_LEFT;

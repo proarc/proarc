@@ -359,6 +359,10 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<DigitalObject>(result);
     }
 
+    public SmartGwtResponse<Item> search(String pid) throws IOException, FedoraClientException {
+        return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, null, 0, null, null);
+    }
+
     @GET
     @Path(DigitalObjectResourceApi.SEARCH_PATH)
     @Produces({MediaType.APPLICATION_JSON})
@@ -2134,19 +2138,23 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pidOld,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
-    ) throws DigitalObjectException {
+    ) throws DigitalObjectException, IOException, FedoraClientException {
         if (isLocked(pidOld)) {
             return returnValidationError(ERR_IS_LOCKED);
         }
 
         CopyObject copyObject = new CopyObject(appConfig, user, pidOld, modelId);
+        List<Item> items = null;
         try {
-            copyObject.copy();
+            items = copyObject.copy();
             copyObject.copyMods();
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
-
+        if (items != null && items.size() > 0) {
+            Item item = items.get(0);
+            return search(item.getPid());
+        }
         return new SmartGwtResponse<>();
     }
 
