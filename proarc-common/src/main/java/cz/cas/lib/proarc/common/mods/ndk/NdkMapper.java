@@ -408,8 +408,11 @@ public abstract class NdkMapper {
         private String pid;
         private String parentModel = null;
 
-        public Context(DigitalObjectHandler handler) {
+        public Context(DigitalObjectHandler handler) throws DigitalObjectException {
             this.handler = handler;
+            if (handler.getParameterParent() != null && handler.getParameterParent().getModel() != null) {
+                this.parentModel = handler.getParameterParent().getModel().getPid();
+            }
         }
 
         /**

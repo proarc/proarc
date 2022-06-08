@@ -620,7 +620,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations, String modelId) throws DigitalObjectException {
+    private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations, String modelId, Context context) throws DigitalObjectException {
         if (ignoreValidations) {
             checkIdentifiers(mods, oldMods, null);
             return ;
@@ -639,6 +639,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
         RdaRules rdaRules = new RdaRules(modelId, mods, ex);
         rdaRules.check();
+
+        ModsRules modsRules = new ModsRules(modelId, mods, ex, context);
+        modsRules.check();
     }
 
     private void checkIdentifiers(ModsDefinition mods, ModsDefinition oldMods, DigitalObjectValidationException ex) throws DigitalObjectException {
@@ -711,12 +714,14 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (timestamp > 0) {
             oldMods = editor.read();
         }
+        Context context = new Context(handler);
+
         if (!(OPERATION_NEW.equals(typeRecord) || OPERATION_URNNBN.equals(typeRecord))) {
-            checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId);
+            checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId, context);
         }
         NdkMapper mapper = mapperFactory.get(modelId);
         mapper.setModelId(modelId);
-        Context context = new Context(handler);
+
         mapper.createMods(mods, context);
         if (LOG.isLoggable(Level.FINE)) {
             String toXml = ModsUtils.toXml(mods, true);

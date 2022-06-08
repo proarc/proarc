@@ -102,7 +102,6 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
-import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
@@ -1111,7 +1110,7 @@ public class DigitalObjectResource {
             @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String model,
             @DefaultValue("false")
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
-            ) throws IOException, DigitalObjectException {
+            ) throws DigitalObjectException {
 
         LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
                 pid, editorId, timestamp, ignoreValidation, jsonData, xmlData));
@@ -1143,6 +1142,19 @@ public class DigitalObjectResource {
         dMetadata.setData(data);
         dMetadata.setTimestamp(timestamp);
         dMetadata.setIgnoreValidation(ignoreValidation);
+
+        try {
+            RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+            List<Item> parents = searchParent(batchId, pidToList(pid), remote.getSearch(session.getLocale(httpHeaders)));
+            if (parents.size() > 0) {
+                FedoraObject parentObject = find(parents.get(0).getPid(), null);
+                DigitalObjectHandler parentHandler = DigitalObjectManager.getDefault().createHandler(parentObject);
+                doHandler.setParameterParent(parentHandler);
+            }
+        } catch (Exception ex) {
+            LOG.info("Impossible to find parent handler.");
+        }
+
         try {
             if (isJsonData) {
                 mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), NdkMetadataHandler.OPERATION_UPDATE);
@@ -1155,6 +1167,16 @@ public class DigitalObjectResource {
         DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    private FedoraObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
+        return DigitalObjectManager.getDefault().find(pid, batchId);
+    }
+
+    private List<String> pidToList(String pid) {
+        List<String> pids = new ArrayList<>();
+        pids.add(pid);
+        return pids;
     }
 
     @PUT
