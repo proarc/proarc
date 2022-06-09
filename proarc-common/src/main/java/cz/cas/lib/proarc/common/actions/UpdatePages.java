@@ -177,20 +177,20 @@ public class UpdatePages {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
             FedoraObject fo = dom.find(pid, null);
             this.model = new RelationEditor(fo).getModel();
+            String model = new RelationEditor(fo).getModel();
+            DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
+            NdkMapper.Context context = new NdkMapper.Context(handler);
+            NdkMapper mapper = NdkMapper.get(model);
+            mapper.setModelId(model);
+
             XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
                     MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
                     MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
             ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
             ModsDefinition mods = modsStreamEditor.read();
             updateMods(mods, series);
+            mapper.createMods(mods, context);
             modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
-
-            String model = new RelationEditor(fo).getModel();
-            DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
-            NdkMapper mapper = NdkMapper.get(model);
-            mapper.setModelId(model);
-
-            NdkMapper.Context context = new NdkMapper.Context(handler);
             OaiDcType dc = mapper.toDc(mods, context);
             DcStreamEditor dcEditor = handler.objectMetadata();
             DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
