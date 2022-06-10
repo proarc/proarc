@@ -316,6 +316,7 @@ public class ImportResource {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_TO) DateTimeParam modifiedTo,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_DESCRIPTION) String filePattern,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profile,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId,
             @QueryParam("_startRow") int startRow,
             @QueryParam("_size") int size,
             @QueryParam("_sortBy") String sortBy
@@ -328,6 +329,7 @@ public class ImportResource {
         BatchViewFilter filterAll = new BatchViewFilter()
                     .setBatchId(batchId)
                     .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
+                    .setCreatorId(user.getId() == 1 ? creatorId : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? creatorId : user.getId()))
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                     .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -344,6 +346,7 @@ public class ImportResource {
                 .setBatchId(batchId)
                 // admin may see all users; XXX use permissions for this!
                 .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
+                .setCreatorId(user.getId() == 1 ? creatorId : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? creatorId : user.getId()))
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                 .setCreatedTo(createTo == null ? null : createTo.toTimestamp())

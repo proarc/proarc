@@ -1039,6 +1039,17 @@ public class DigitalObjectResource {
     }
 
     @GET
+    @Path(DigitalObjectResourceApi.CREATE_PID_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord createPid() {
+        String pid = FoxmlUtils.createPid();
+        StringRecord record = new StringRecord();
+        record.setPid(pid);
+        record.setTimestamp(System.nanoTime());
+        return record;
+    }
+
+    @GET
     @Path(DigitalObjectResourceApi.DC_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public DublinCoreRecord getDublinCoreJson(
