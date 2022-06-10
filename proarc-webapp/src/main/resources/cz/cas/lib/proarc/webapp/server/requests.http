@@ -92,3 +92,8 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 {&folderPath=Monografie%2FKratkaBezAlto%2F&_textMatchStyle=exact&isc_dataFormat=json}
 
+###
+
+GET http://localhost:8081/proarc/rest/v1/object/createPid
+
+###

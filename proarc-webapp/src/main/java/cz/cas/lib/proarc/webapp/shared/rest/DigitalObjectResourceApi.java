@@ -73,6 +73,9 @@ public final class DigitalObjectResourceApi {
     // resource /object/dc
     public static final String DC_PATH = "dc";
 
+    // resource /object/createPid
+    public static final String CREATE_PID_PATH = "createPid";
+
     // DublinCoreRecord
     public static final String DUBLINCORERECORD_ELEMENT = "dcRecord";
     public static final String DUBLINCORERECORD_NS = "http://proarc.lib.cas.cz/xml/dor/v1/";

@@ -28,6 +28,7 @@ import java.util.Set;
 public class BatchViewFilter {
 
     private Integer userId;
+    private Integer creatorId;
     private Integer batchId;
     private Set<State> state;
     private String filePattern;
@@ -39,6 +40,15 @@ public class BatchViewFilter {
     private String sortBy;
     private int offset = 0;
     private int maxCount = Integer.MAX_VALUE;
+
+    public Integer getCreatorId() {
+        return creatorId;
+    }
+
+    public BatchViewFilter setCreatorId(Integer creatorId) {
+        this.creatorId = creatorId;
+        return this;
+    }
 
     public Integer getUserId() {
         return userId;
