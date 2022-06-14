@@ -955,6 +955,7 @@ public final class SearchView {
         private String k3;
         private String k4;
         private String k5;
+        private String content;
 
         public Item() {
         }
@@ -1175,6 +1176,14 @@ public final class SearchView {
 
         public void setValidation(String validation) {
             this.validation = validation;
+        }
+
+        public String getJsonData() {
+            return content;
+        }
+
+        public void setJsonData(String content) {
+            this.content = content;
         }
     }
 
