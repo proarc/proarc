@@ -1251,70 +1251,101 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_INDEX_START_NUMBER) String startIndex,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_TYPE_PAGE) String pageType,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_DOUBLE_COLUMNS) String doubleColumns,
-            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_PAGE_POSSITION) String pagePossition
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_PAGE_POSSITION) String pagePossition,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) throws IOException, DigitalObjectException {
         LOG.fine(String.format("pid: %s", pidsArray));
 
         if (pidsArray == null || pidsArray.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pidsArray);
         }
-        List<String> pids = UpdatePages.createListFromArray(pidsArray);
-        if (isLocked(pids)) {
-            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked",null);
-            validationException.addValidation("Locked", ERR_IS_LOCKED);
-            return toError(validationException, STATUS_LOCKED);
+        if (batchId != null) {
+            Batch batch = importManager.get(batchId);
+            List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
+            List<String> pids = UpdatePages.createListFromArray(pidsArray);
+            UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
+            updatePages.createIndex(startIndex);
+            updatePages.updatePagesLocal(objects, pids, sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePossition);
+            return new SmartGwtResponse<>();
+        } else {
+            List<String> pids = UpdatePages.createListFromArray(pidsArray);
+            if (isLocked(pids)) {
+                DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
+                validationException.addValidation("Locked", ERR_IS_LOCKED);
+                return toError(validationException, STATUS_LOCKED);
+            }
+            UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
+            updatePages.createListOfPids(pids);
+            updatePages.createIndex(startIndex);
+            updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePossition);
+            return new SmartGwtResponse<>();
         }
-        UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
-        updatePages.createListOfPids(pids);
-        updatePages.createIndex(startIndex);
-        updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePossition);
-        return new SmartGwtResponse<>();
     }
 
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_BRACKETS)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> updatePagesAddBrackets (
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException {
         LOG.fine(String.format("pid: %s", pidsArray));
 
         if (pidsArray == null || pidsArray.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pidsArray);
         }
-        List<String> pids = UpdatePages.createListFromArray(pidsArray);
-        if (isLocked(pids)) {
-            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked",null);
-            validationException.addValidation("Locked", ERR_IS_LOCKED);
-            return toError(validationException, STATUS_LOCKED);
-        }
+        if (batchId != null) {
+            Batch batch = importManager.get(batchId);
+            List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
+            List<String> pids = UpdatePages.createListFromArray(pidsArray);
+            UpdatePages updatePages = new UpdatePages();
+            updatePages.editBracketsLocal(objects, pids, true, false);
+            return new SmartGwtResponse<>();
+        } else {
+            List<String> pids = UpdatePages.createListFromArray(pidsArray);
+            if (isLocked(pids)) {
+                DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
+                validationException.addValidation("Locked", ERR_IS_LOCKED);
+                return toError(validationException, STATUS_LOCKED);
+            }
 
-        UpdatePages updatePages = new UpdatePages();
-        updatePages.editBrackets(pids, true, false);
-        return new SmartGwtResponse<>();
+            UpdatePages updatePages = new UpdatePages();
+            updatePages.editBrackets(pids, true, false);
+            return new SmartGwtResponse<>();
+        }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Item> updatePagesRemoveBrackets (
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException {
         LOG.fine(String.format("pid: %s", pidsArray));
 
         if (pidsArray == null || pidsArray.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pidsArray);
         }
-        List<String> pids = UpdatePages.createListFromArray(pidsArray);
-        if (isLocked(pids)) {
-            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked",null);
-            validationException.addValidation("Locked", ERR_IS_LOCKED);
-            return toError(validationException, STATUS_LOCKED);
-        }
+        if (batchId != null) {
+            Batch batch = importManager.get(batchId);
+            List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
+            List<String> pids = UpdatePages.createListFromArray(pidsArray);
+            UpdatePages updatePages = new UpdatePages();
+            updatePages.editBracketsLocal(objects, pids, false, true);
+            return new SmartGwtResponse<>();
+        } else {
+            List<String> pids = UpdatePages.createListFromArray(pidsArray);
+            if (isLocked(pids)) {
+                DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
+                validationException.addValidation("Locked", ERR_IS_LOCKED);
+                return toError(validationException, STATUS_LOCKED);
+            }
 
-        UpdatePages updatePages = new UpdatePages();
-        updatePages.editBrackets(pids, false, true);
-        return new SmartGwtResponse<>();
+            UpdatePages updatePages = new UpdatePages();
+            updatePages.editBrackets(pids, false, true);
+            return new SmartGwtResponse<>();
+        }
     }
 
     private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
