@@ -21,8 +21,10 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -39,6 +41,7 @@ import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -188,7 +191,7 @@ public class UpdatePages {
                     MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
             ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
             ModsDefinition mods = modsStreamEditor.read();
-            updateMods(mods, series);
+            updateMods(mods, series, model);
             mapper.createMods(mods, context);
             modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
             OaiDcType dc = mapper.toDc(mods, context);
@@ -202,7 +205,47 @@ public class UpdatePages {
         }
     }
 
-    private void updateMods(ModsDefinition mods, SeriesNumber series) throws DigitalObjectException {
+    public void updatePagesLocal(List<ImportBatchManager.BatchItemObject> objects, List<String> pids, String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition) throws DigitalObjectException {
+        this.pageType = trim(pageType, "{", "}");
+        this.pagePosition = trim(pagePosition, "{", "}");
+        this.pagePositionIndex = 0;
+
+        SeriesNumber series = new SeriesNumber(sequenceType, startNumber, incrementNumber, prefix, suffix, setUseBrackets(useBrackets));
+
+        objects = getRelevantObjects(objects, pids);
+        if (objects != null && !objects.isEmpty()) {
+            for (ImportBatchManager.BatchItemObject object : objects) {
+                File foxml = object.getFile();
+                if (foxml == null || !foxml.exists() || !foxml.canRead()) {
+                    throw new IllegalStateException("Cannot read foxml: " + foxml);
+                }
+                LocalStorage.LocalObject lobj = new LocalStorage().load(object.getPid(), foxml);
+                XmlStreamEditor xml = lobj.getEditor(FoxmlUtils.inlineProfile(
+                        MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                        MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+                DigitalObjectHandler handler = new DigitalObjectHandler(lobj, MetaModelRepository.getInstance());
+                NdkMapper.Context context = new NdkMapper.Context(handler);
+                NdkMapper mapper = NdkMapper.get(handler.getModel().getPid());
+                mapper.setModelId(handler.getModel().getPid());
+                ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, lobj);
+                ModsDefinition mods = modsStreamEditor.read();
+                updateMods(mods, series, handler.getModel().getPid());
+                mapper.createMods(mods, context);
+                modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
+                //lobj.flush();
+                OaiDcType dc = mapper.toDc(mods, context);
+                DcStreamEditor dcEditor = handler.objectMetadata();
+                DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+                dcr.setDc(dc);
+                dcEditor.write(handler, dcr, null);
+
+                lobj.setLabel(mapper.toLabel(mods));
+                lobj.flush();
+            }
+        }
+    }
+
+    private void updateMods(ModsDefinition mods, SeriesNumber series, String model) throws DigitalObjectException {
         String number = null;
         if (series.isAllowToUpdateNumber()) {
             if (doubleColumns) {
@@ -345,9 +388,9 @@ public class UpdatePages {
             ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
             ModsDefinition mods = modsStreamEditor.read();
             if (addBrackets) {
-                addBrackets(mods);
+                addBrackets(mods, model);
             } else if (removeBrackets) {
-                removeBrackets(mods);
+                removeBrackets(mods, model);
             }
             modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
 
@@ -368,7 +411,60 @@ public class UpdatePages {
         }
     }
 
-    private void removeBrackets(ModsDefinition mods) throws DigitalObjectException {
+    public void editBracketsLocal(List<ImportBatchManager.BatchItemObject> objects, List<String> pids, boolean addBrackets, boolean removeBrackets) throws DigitalObjectException {
+        objects = getRelevantObjects(objects, pids);
+        if (objects != null && !objects.isEmpty()) {
+            for (ImportBatchManager.BatchItemObject object : objects) {
+                File foxml = object.getFile();
+                if (foxml == null || !foxml.exists() || !foxml.canRead()) {
+                    throw new IllegalStateException("Cannot read foxml: " + foxml);
+                }
+                LocalStorage.LocalObject lobj = new LocalStorage().load(object.getPid(), foxml);
+                XmlStreamEditor xml = lobj.getEditor(FoxmlUtils.inlineProfile(
+                        MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                        MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+                DigitalObjectHandler handler = new DigitalObjectHandler(lobj, MetaModelRepository.getInstance());
+                NdkMapper.Context context = new NdkMapper.Context(handler);
+                NdkMapper mapper = NdkMapper.get(handler.getModel().getPid());
+                mapper.setModelId(handler.getModel().getPid());
+                ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, lobj);
+                ModsDefinition mods = modsStreamEditor.read();
+                if (addBrackets) {
+                    addBrackets(mods, handler.getModel().getPid());
+                } else if (removeBrackets) {
+                    removeBrackets(mods, handler.getModel().getPid());
+                }
+                mapper.createMods(mods, context);
+                modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
+                //lobj.flush();
+                OaiDcType dc = mapper.toDc(mods, context);
+                DcStreamEditor dcEditor = handler.objectMetadata();
+                DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+                dcr.setDc(dc);
+                dcEditor.write(handler, dcr, null);
+
+                lobj.setLabel(mapper.toLabel(mods));
+                lobj.flush();
+            }
+        }
+    }
+
+    private List<ImportBatchManager.BatchItemObject> getRelevantObjects(List<ImportBatchManager.BatchItemObject> objects, List<String> pids) {
+        if (pids == null || pids.isEmpty() || objects == null || objects.isEmpty()) {
+            return null;
+        }
+        List<ImportBatchManager.BatchItemObject> selectedList = new ArrayList<>();
+        for (String pid : pids) {
+            for (ImportBatchManager.BatchItemObject object :objects) {
+                if (object.getPid().equals(pid)) {
+                    selectedList.add(object);
+                }
+            }
+        }
+        return selectedList;
+    }
+
+    private void removeBrackets(ModsDefinition mods, String model) throws DigitalObjectException {
         if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
             if (mods != null) {
                 for (PartDefinition part : mods.getPart()) {
@@ -395,7 +491,7 @@ public class UpdatePages {
         }
     }
 
-    private void addBrackets(ModsDefinition mods) throws DigitalObjectException {
+    private void addBrackets(ModsDefinition mods, String model) throws DigitalObjectException {
         if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
             if (mods != null) {
                 for (PartDefinition part : mods.getPart()) {
