@@ -176,7 +176,7 @@ public class DigitalObjectManager {
             String modelId, String pid,
             String parentPid, UserProfile user, String xml, String message
             ) throws DigitalObjectException, DigitalObjectExistException {
-        return create(modelId, pid, parentPid, user, xml, message).createDigitalObject();
+        return create(modelId, pid, parentPid, user, xml, message).createDigitalObject(true);
     }
 
     public CreateHandler create(
@@ -362,11 +362,15 @@ public class DigitalObjectManager {
 
 
         public List<Item> create() throws DigitalObjectException {
+            return create(true);
+        }
+
+        public List<Item> create(boolean createObject) throws DigitalObjectException {
             boolean isBatch = isBatch();
             if (isBatch) {
-                return createBatch();
+                return createBatch(createObject);
             } else {
-                return Collections.singletonList(createDigitalObject());
+                return Collections.singletonList(createDigitalObject(createObject));
             }
         }
 
@@ -378,7 +382,7 @@ public class DigitalObjectManager {
          * @throws DigitalObjectException
          * @throws WorkflowException
          */
-        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId, Locale locale) throws WorkflowException {
+        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId, Locale locale, boolean createObject) throws WorkflowException {
             if (isBatch()) {
                 throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");
             } else if (wfJobId == null) {
@@ -395,7 +399,7 @@ public class DigitalObjectManager {
                 throw new WorkflowException("Wrong number of physical materials").addUnexpectedError();
             }
 
-            MaterialView digitalMaterial = workflowManager.createDigitalMaterialFromPhysical(this, physicalMaterials.get(0));
+            MaterialView digitalMaterial = workflowManager.createDigitalMaterialFromPhysical(this, physicalMaterials.get(0), createObject);
 
             Item item = new Item(digitalMaterial.getPid());
             item.setLabel(digitalMaterial.getLabel());
@@ -436,17 +440,17 @@ public class DigitalObjectManager {
             return tasks;
         }
 
-        private List<Item> createBatch() throws DigitalObjectException {
+        private List<Item> createBatch(boolean createObject) throws DigitalObjectException {
             ArrayList<Item> items = new ArrayList<>();
             while (hasNext()) {
                 // adjust series params
                 next();
-                items.add(createDigitalObject());
+                items.add(createDigitalObject(createObject));
             }
             return items;
         }
 
-        public Item createDigitalObject() throws DigitalObjectException, DigitalObjectExistException {
+        public Item createDigitalObject(boolean createObject) throws DigitalObjectException, DigitalObjectExistException {
             DigitalObjectHandler parentHandler = getParentHandler();
 
             LocalObject localObject = new LocalStorage().create(pid);
@@ -492,9 +496,11 @@ public class DigitalObjectManager {
             }
             doHandler.commit();
 
-            getRemotes().ingest(localObject, user.getUserName(), message);
-            if (parentHandler != null) {
-                parentHandler.commit();
+            if (createObject) {
+                getRemotes().ingest(localObject, user.getUserName(), message);
+                if (parentHandler != null) {
+                    parentHandler.commit();
+                }
             }
 
             if (tx != null) {
@@ -506,6 +512,7 @@ public class DigitalObjectManager {
             item.setModel(modelId);
             item.setOwner(localObject.getOwner());
             item.setParentPid(parentPid);
+            item.setJsonData(doHandler.metadata().getMetadataAsXml().getData());
             return item;
         }
     }

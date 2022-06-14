@@ -178,7 +178,7 @@ public class WorkflowManager {
      * @param view physical material
      * @return digital material with PID
      */
-    public MaterialView createDigitalMaterialFromPhysical(DigitalObjectManager.CreateHandler handler, MaterialView view) throws ConcurrentModificationException, WorkflowException {
+    public MaterialView createDigitalMaterialFromPhysical(DigitalObjectManager.CreateHandler handler, MaterialView view, boolean createObject) throws ConcurrentModificationException, WorkflowException {
         RemoteStorage remoteStorage = RemoteStorage.getInstance();
         FedoraTransaction ftx = new FedoraTransaction(remoteStorage);
         Transaction tx = daoFactory.createTransaction();
@@ -202,7 +202,7 @@ public class WorkflowManager {
             }
 
             handler.setMetadataXml(view.getMetadata());
-            Item items = handler.createDigitalObject();
+            Item items = handler.createDigitalObject(createObject);
             digitalMaterial.setPid(items.getPid());
             updateMaterial(digitalMaterial, tx);
 
