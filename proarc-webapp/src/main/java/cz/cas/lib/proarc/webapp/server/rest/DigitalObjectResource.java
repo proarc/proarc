@@ -1266,7 +1266,8 @@ public class DigitalObjectResource {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
             UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
             updatePages.createIndex(startIndex);
-            updatePages.updatePagesLocal(objects, pids, sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePossition);
+            updatePages.createListOfPids(pids);
+            updatePages.updatePagesLocal(objects, sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePossition);
             return new SmartGwtResponse<>();
         } else {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);

@@ -205,14 +205,14 @@ public class UpdatePages {
         }
     }
 
-    public void updatePagesLocal(List<ImportBatchManager.BatchItemObject> objects, List<String> pids, String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition) throws DigitalObjectException {
+    public void updatePagesLocal(List<ImportBatchManager.BatchItemObject> objects, String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition) throws DigitalObjectException {
         this.pageType = trim(pageType, "{", "}");
         this.pagePosition = trim(pagePosition, "{", "}");
         this.pagePositionIndex = 0;
 
         SeriesNumber series = new SeriesNumber(sequenceType, startNumber, incrementNumber, prefix, suffix, setUseBrackets(useBrackets));
 
-        objects = getRelevantObjects(objects, pids);
+        objects = getRelevantObjects(objects, updatedPids);
         if (objects != null && !objects.isEmpty()) {
             for (ImportBatchManager.BatchItemObject object : objects) {
                 File foxml = object.getFile();
@@ -260,7 +260,7 @@ public class UpdatePages {
                     setPagePosition(mods);
                 }
                 setPageIndex(mods);
-                setPageNumber(mods, number);
+                setPageNumber(mods, number, model);
                 setPageType(mods, true);
             }
         } else {
@@ -334,24 +334,57 @@ public class UpdatePages {
         }
     }
 
-    private void setPageNumber(ModsDefinition mods, String number) {
+    private void setPageNumber(ModsDefinition mods, String number, String model) {
         boolean updated = false;
         if (number != null && !number.isEmpty()) {
             number = fixDoubleBrackets(number);
-            for (PartDefinition part : mods.getPart()) {
-                if (part.getDetail().size() == 0) {
-                    DetailDefinition detail = new DetailDefinition();
+            if (NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
+                for (PartDefinition part : mods.getPart()) {
+                    if (part.getDetail().size() == 0) {
+                        DetailDefinition detail = new DetailDefinition();
+                        StringPlusLanguage detailNumber = new StringPlusLanguage();
+                        detailNumber.setValue(number);
+                        detail.getNumber().add(detailNumber);
+                        detail.setType(ModsConstants.FIELD_PAGE_NUMBER);
+                        part.getDetail().add(detail);
+                    } else {
+                        for (DetailDefinition detail : part.getDetail()) {
+                            if (ModsConstants.FIELD_PAGE_NUMBER.equals(detail.getType()) || ModsConstants.FIELD_PAGE_NUMBER_SPLIT.equals(detail.getType())) {
+                                if (!detail.getNumber().isEmpty()) {
+                                    detail.getNumber().get(0).setValue(number);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                DetailDefinition detailDefinition  = null;
+                for (PartDefinition part : mods.getPart()) {
+                    for (DetailDefinition detail : part.getDetail()) {
+                        if (ModsConstants.FIELD_PAGE_NUMBER.equals(detail.getType()) || ModsConstants.FIELD_PAGE_NUMBER_SPLIT.equals(detail.getType())) {
+                            detailDefinition = detail;
+                        }
+                    }
+                }
+                if (detailDefinition == null) {
+                    detailDefinition = new DetailDefinition();
+                    detailDefinition.setType(ModsConstants.FIELD_PAGE_NUMBER);
+                    if (mods.getPart().isEmpty()) {
+                        mods.getPart().add(new PartDefinition());
+                    }
+                    mods.getPart().get(0).getDetail().add(detailDefinition);
                     StringPlusLanguage detailNumber = new StringPlusLanguage();
                     detailNumber.setValue(number);
-                    detail.getNumber().add(detailNumber);
-                    detail.setType("pageNumber");
-                    part.getDetail().add(detail);
+                    detailDefinition.getNumber().add(detailNumber);
                 } else {
-                    for (DetailDefinition detail : part.getDetail()) {
-                        if ("pageNumber".equals(detail.getType()) || "page number".equals(detail.getType())) {
-                            if (!detail.getNumber().isEmpty()) {
-                                detail.getNumber().get(0).setValue(number);
-                            }
+                    detailDefinition.setType(ModsConstants.FIELD_PAGE_NUMBER);
+                    if (detailDefinition.getNumber().isEmpty()) {
+                        StringPlusLanguage detailNumber = new StringPlusLanguage();
+                        detailNumber.setValue(number);
+                        detailDefinition.getNumber().add(detailNumber);
+                    } else {
+                        for (StringPlusLanguage detailNumber : detailDefinition.getNumber()) {
+                            detailNumber.setValue(number);
                         }
                     }
                 }
