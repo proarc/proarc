@@ -36,7 +36,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
+import org.w3c.dom.Document;
+
+import static cz.cas.lib.proarc.common.catalog.CatalogUtils.repairModsBytes;
 
 /**
  *
@@ -117,6 +121,7 @@ public final class DigitizationRegistryCatalog implements BibliographicCatalog {
 
         byte[] modsBytes = transformers.transformAsBytes(
                 marcxmlSrc, Transformers.Format.MarcxmlAsMods3);
+        modsBytes = repairModsBytes(modsBytes, (Document) ((DOMSource) marcxmlSrc).getNode());
         byte[] modsHtmlBytes = modsAsHtmlBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), locale);
         byte[] modsTitleBytes = transformers.transformAsBytes(
                 new StreamSource(new ByteArrayInputStream(modsBytes)),

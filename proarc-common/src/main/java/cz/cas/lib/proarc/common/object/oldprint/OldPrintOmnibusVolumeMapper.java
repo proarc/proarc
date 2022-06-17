@@ -100,6 +100,6 @@ public class OldPrintOmnibusVolumeMapper extends RdaNdkMapper {
     }
 
     protected void addGenre(ModsDefinition mods) {
-        MapperUtils.addGenre(mods, Const.GENRE_OLDPRINT_OMNIBUS);
+        MapperUtils.addGenre(mods, Const.GENRE_CONVOLUTE);
     }
 }

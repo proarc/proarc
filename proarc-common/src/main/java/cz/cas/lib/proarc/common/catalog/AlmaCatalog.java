@@ -53,6 +53,10 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.logging.LoggingFeature;
+import org.w3c.dom.Document;
+
+import static cz.cas.lib.proarc.common.catalog.CatalogUtils.repairHtml;
+import static cz.cas.lib.proarc.common.catalog.CatalogUtils.repairModsBytes;
 
 /**
  * Alma metadata provider.
@@ -257,6 +261,7 @@ public final class AlmaCatalog implements BibliographicCatalog {
             throws TransformerException, UnsupportedEncodingException {
         byte[] modsBytes = transformers.transformAsBytes(
                 marcxmlSrc, Transformers.Format.MarcxmlAsMods3);
+        modsBytes = repairModsBytes(modsBytes, (Document) ((DOMSource) marcxmlSrc).getNode());
         byte[] modsHtmlBytes = modsAsHtmlBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), locale);
         byte[] modsTitleBytes = transformers.transformAsBytes(
                 new StreamSource(new ByteArrayInputStream(modsBytes)),
@@ -267,41 +272,6 @@ public final class AlmaCatalog implements BibliographicCatalog {
 
         return new MetadataItem(entryIdx, catalog, new String(modsBytes, "UTF-8"),
                 repairHtml(new String(modsHtmlBytes, "UTF-8")), new String(modsTitleBytes, "UTF-8"));
-    }
-
-    private String repairHtml(String s) {
-        s = s.replaceAll("\\n", "");
-        s = s.replaceAll("\\r", "");
-        s = replaceMoreSpace(s);
-        s = s.replace(") </b>", ") ");
-        s = s.replace("( ", "</b>( ");
-        s = s.replace("( ", " (");
-        s = s.replace("=\" ", " = ");
-        s = s.replace("\"", "");
-        s = repairGeographicCode(s);
-        return s;
-    }
-
-    private String repairGeographicCode(String s) {
-        s = s.replace("e-xr---", "Česko");
-        s = s.replace("e-xr-cc", "Čechy");
-        s = s.replace("e-xr-pg", "Praha (Česko : kraj)");
-        s = s.replace("e-xr-st", "Středočeský kraj");
-        s = s.replace("e-xr-kr", "Královéhradecký kraj");
-        s = s.replace("e-xr-pa", "Pardubický kraj");
-        s = s.replace("e-xr-us", "Ústecký kraj");
-        s = s.replace("e-xr-li", "Liberecký kraj");
-        s = s.replace("e-xr-pl", "Plzeňský kraj");
-        s = s.replace("e-xr-ka", "Karlovarský kraj");
-        s = s.replace("e-xr-jc", "Jihočeský kraj");
-        s = s.replace("e-xr-jm", "Jihomoravský kraj");
-        s = s.replace("e-xr-zl", "Zlínský kraj");
-        s = s.replace("e-xr-vy", "Vysočina");
-        s = s.replace("e-xr-mo", "Moravskoslezský kraj");
-        s = s.replace("e-xr-ol", "Olomoucký kraj");
-        s = s.replace("e-xr-mr", "Morava");
-        s = s.replace("e-xr-sl", "Slezsko (Česko)");
-        return s;
     }
 
     private String updateMarc(String marc) {
@@ -318,13 +288,6 @@ public final class AlmaCatalog implements BibliographicCatalog {
         marc = marc.replace("datafield", "m:datafield");
         marc = marc.replace("subfield", "m:subfield");
         return marc;
-    }
-
-    private String replaceMoreSpace(String s) {
-        while (s.contains("  ")) {
-            s = s.replace("  ", " ");
-        }
-        return s;
     }
 
     private byte[] modsAsHtmlBytes(Source source, Locale locale) throws TransformerException {
