@@ -343,7 +343,13 @@ public class DigitalObjectResource {
             try {
                 setWorkflow("task.deletionPA", getIMetsElement(pid, false));
             } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
-                throw new IOException(e);
+                if (e.getMessage() != null && e.getMessage().contains("low-level storage")) {
+                    LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
+                } else if (e.getMessage() != null && e.getMessage().contains("Unable to get")) {
+                    LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
+                } else {
+                    throw new IOException(e);
+                }
             }
         }
         if (purge) {
