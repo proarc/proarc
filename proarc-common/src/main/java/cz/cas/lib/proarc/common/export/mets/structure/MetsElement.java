@@ -135,6 +135,15 @@ public class MetsElement implements IMetsElement {
     private final String elementType;
     private String elementID;
     private String modsElementID;
+    private boolean ignoreValidation;
+
+    public boolean getIgnoreMissingUrnNbn() {
+        return ignoreValidation;
+    }
+
+    public void setIgnoreValidation(boolean ignoreValidation) {
+        this.ignoreValidation = ignoreValidation;
+    }
 
     @Override
     public void setModsElementID(String modsElementID) {

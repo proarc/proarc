@@ -57,6 +57,7 @@ public final class ExportResourceApi {
 
     public static final String NDK_PATH = "ndk";
     public static final String NDK_PID_PARAM = "pid";
+    public static final String IGNORE_MISSING_URNNBN = "ignoreMissingUrnNbn";
 
     public static final String NDK_PACKAGE = "package";
     public enum Package {SIP, PSP, STT, CHRONICLE};

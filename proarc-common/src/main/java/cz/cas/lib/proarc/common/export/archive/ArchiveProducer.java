@@ -63,17 +63,17 @@ public class ArchiveProducer {
      * @return the result folder that contains folders with archive packages.
      * @throws IllegalStateException failure. See {@link #getResultLog() } for details.
      */
-    public File archive(List<String> pids, File archiveRootFolder) throws IllegalStateException {
+    public File archive(List<String> pids, File archiveRootFolder, boolean ignoreMissingUrnNbn) throws IllegalStateException {
         reslog = new ExportResultLog();
         //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
-        archiveImpl(pids, archiveRootFolder);
+        archiveImpl(pids, archiveRootFolder, ignoreMissingUrnNbn);
         return archiveRootFolder;
     }
 
-    private void archiveImpl(List<String> pids, File archiveRootFolder) {
+    private void archiveImpl(List<String> pids, File archiveRootFolder, boolean ignoreMissingUrnNbn) {
         List<List<DigitalObjectElement>> objectPaths = selectObjects(pids);
 
-        ArchiveObjectProcessor processor = new ArchiveObjectProcessor(crawler, archiveRootFolder, appConfig);
+        ArchiveObjectProcessor processor = new ArchiveObjectProcessor(crawler, archiveRootFolder, appConfig, ignoreMissingUrnNbn);
         for (List<DigitalObjectElement> path : objectPaths) {
             ExportResult result = new ExportResult();
             DigitalObjectElement dobj = path.get(0);

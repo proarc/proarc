@@ -213,4 +213,5 @@ public interface IMetsElement {
      */
     BigInteger getModsEnd();
 
+    boolean getIgnoreMissingUrnNbn();
 }

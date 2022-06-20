@@ -301,7 +301,8 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newNdkExport(
             @FormParam(ExportResourceApi.NDK_PID_PARAM) List<String> pids,
-            @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage
+            @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage,
+            @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn
 //            @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
 //            @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
 //            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
@@ -333,7 +334,7 @@ public class ExportResource {
                 throw new IllegalArgumentException("Unsupported type of package");
         }
 
-        List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, null, session.asFedoraLog());
+        List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, null, ignoreMissingUrnNbn, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
             if (r.getError() != null) {
                 MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
@@ -344,7 +345,13 @@ public class ExportResource {
                 } else {
                     MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
                 }
-                result.add(new ExportResult(r.getValidationError().getExceptions()));
+                if (Const.EXPORT_NDK4STT.equals(typeOfPackage)) {
+                    ExportResult exportResult = new ExportResult(r.getValidationError().getExceptions());
+                    exportResult.setIgnoreMissingUrnNbn(true);
+                    result.add(exportResult);
+                } else {
+                    result.add(new ExportResult(r.getValidationError().getExceptions()));
+                }
             } else {
                 // XXX not used for now
                 result.add(new ExportResult((Integer) null, "done"));
@@ -573,7 +580,8 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newArchive(
             @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids,
-            @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage
+            @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage,
+            @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn
             ) throws Exception {
 
         if (pids.isEmpty()) {
@@ -598,7 +606,7 @@ public class ExportResource {
         File targetFolder = ExportUtils.createFolder(exportFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)), appConfig.getExportOptions().isOverwritePackage());
         try {
             //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
-            targetFolder = export.archive(pids, targetFolder);
+            targetFolder = export.archive(pids, targetFolder, ignoreMissingUrnNbn);
             if (targetFolder != null) {
                 result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
             }
@@ -615,8 +623,13 @@ public class ExportResource {
                 } else {
                     MetsUtils.renameFolder(exportFolder, targetFolder, null);
                 }
-                result.getErrors().add(new ExportError(
-                        error.getPid(), error.getMessage(), false, error.getDetails()));
+                if (Const.EXPORT_NDK4STT.equals(typeOfPackage)) {
+                    ExportError exportResult = new ExportError(error.getPid(), error.getMessage(), false, error.getDetails());
+                    exportResult.setIgnoreMissingUrnNbn(true);
+                    result.getErrors().add(exportResult);
+                } else {
+                    result.getErrors().add(new ExportError(error.getPid(), error.getMessage(), false, error.getDetails()));
+                }
             }
         }
         resultList.add(result);
@@ -648,7 +661,7 @@ public class ExportResource {
         if (target == null) {
             target = targetFolder;
         }
-        List<NdkExport.Result> ndkResults = exportNdk.exportNdkArchive(targetFolder, pids, true, true, true, session.asFedoraLog());
+        List<NdkExport.Result> ndkResults = exportNdk.exportNdkArchive(targetFolder, pids, true, true, true, ignoreMissingUrnNbn, session.asFedoraLog());
         for (NdkExport.Result r : ndkResults) {
             if (r.getError() != null) {
                 MetsUtils.renameFolder(exportFolder, targetFolder, target);
@@ -660,7 +673,13 @@ public class ExportResource {
                 } else {
                     MetsUtils.renameFolder(exportFolder, targetFolder, target);
                 }
-                resultList.add(new ExportResult(r.getValidationError().getExceptions()));
+                if (Const.EXPORT_NDK4STT.equals(typeOfPackage)) {
+                    ExportResult exportResult = new ExportResult(r.getValidationError().getExceptions());
+                    exportResult.setIgnoreMissingUrnNbn(true);
+                    resultList.add(exportResult);
+                } else {
+                    resultList.add(new ExportResult(r.getValidationError().getExceptions()));
+                }
             } else {
                 // XXX not used for now
                 resultList.add(new ExportResult((Integer) null, "done"));
@@ -833,6 +852,9 @@ public class ExportResource {
         @XmlElement(name = ExportResourceApi.RESULT_ERRORS)
         private List<ExportError> errors;
 
+        @XmlElement(name = ExportResourceApi.IGNORE_MISSING_URNNBN)
+        private Boolean ignoreMissingUrnNbn;
+
         public ExportResult() {
         }
 
@@ -898,6 +920,13 @@ public class ExportResource {
             this.token = token;
         }
 
+        public Boolean getIgnoreMissingUrnNbn() {
+            return ignoreMissingUrnNbn;
+        }
+
+        public void setIgnoreMissingUrnNbn(boolean ignoreMissingUrnNbn) {
+            this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
+        }
     }
 
     /**
@@ -917,6 +946,9 @@ public class ExportResource {
 
         @XmlElement(name = ExportResourceApi.RESULT_ERROR_LOG)
         private String log;
+
+        @XmlElement(name = ExportResourceApi.IGNORE_MISSING_URNNBN)
+        private boolean ignoreMissingUrnNbn;
 
         public ExportError() {
         }
@@ -952,6 +984,9 @@ public class ExportResource {
             }
         }
 
+        public void setIgnoreMissingUrnNbn(boolean ignoreMissingUrnNbn) {
+            this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
+        }
     }
 
 }

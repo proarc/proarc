@@ -82,7 +82,7 @@ public class NdkExport {
      */
     public List<Result> export(File exportsFolder, List<String> pids,
             boolean hierarchy, boolean keepResult, Boolean overwrite,
-            String log) throws ExportException {
+            boolean ignoreMissingUrnNbn, String log) throws ExportException {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
@@ -98,7 +98,7 @@ public class NdkExport {
             logItem.setInputPid(pid);
             reslog.getExports().add(logItem);
             try {
-                Result r = export(target, pid, hierarchy, keepResult, log);
+                Result r = export(target, pid, hierarchy, keepResult, ignoreMissingUrnNbn, log);
                 results.add(r);
                 deleteUnnecessaryFolder(target);
                 Info info = getInfo(getInfoFile(target));
@@ -137,7 +137,7 @@ public class NdkExport {
 
     public List<Result> exportNdkArchive(File exportsFolder, List<String> pids,
                                          boolean hierarchy, boolean keepResult, Boolean overwrite,
-                                         String log) throws ExportException {
+                                         boolean ignoreMissingUrnNbn, String log) throws ExportException {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
@@ -154,7 +154,7 @@ public class NdkExport {
             logItem.setInputPid(pid);
             reslog.getExports().add(logItem);
             try {
-                Result r = exportNdk(target, pid, hierarchy, keepResult, log);
+                Result r = exportNdk(target, pid, hierarchy, keepResult, ignoreMissingUrnNbn, log);
                 target = r.getTargetFolder();
                 results.add(r);
                 deleteUnnecessaryFolder(target);
@@ -193,7 +193,7 @@ public class NdkExport {
     }
 
     private Result exportNdk(File target, String pid,
-                             boolean hierarchy, boolean keepResult, String log) throws ExportException {
+                             boolean hierarchy, boolean keepResult, boolean ignoreMissingUrnNbn, String log) throws ExportException {
 
         Result result = new Result();
         result.setPid(pid);
@@ -207,6 +207,7 @@ public class NdkExport {
         try {
             MetsElement metsElement = getMetsElement(fo, dc, hierarchy);
             if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
+                metsElement.setIgnoreValidation(ignoreMissingUrnNbn);
                 metsElement.accept(new MetsElementVisitor());
             } else {
                 List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
@@ -222,6 +223,7 @@ public class NdkExport {
                     result.setTargetFolder(targetFolder);
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
                     MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                    mElm.setIgnoreValidation(ignoreMissingUrnNbn);
                     mElm.accept(createMetsVisitor());
                     // XXX use relative path to users folder?
                 }
@@ -327,7 +329,7 @@ public class NdkExport {
      * @throws ExportException contains PID and exception
      */
     private Result export(File target, String pid,
-                          boolean hierarchy, boolean keepResult, String log) throws ExportException {
+                          boolean hierarchy, boolean keepResult, boolean ignoreMissingUrnNbn, String log) throws ExportException {
 
         Result result = new Result();
         result.setPid(pid);
@@ -340,6 +342,7 @@ public class NdkExport {
         try {
             MetsElement metsElement = getMetsElement(fo, dc, hierarchy);
             if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
+                metsElement.setIgnoreValidation(ignoreMissingUrnNbn);
                 metsElement.accept(new MetsElementVisitor());
             } else {
                 List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
@@ -350,6 +353,7 @@ public class NdkExport {
                     dc.resetContext();
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
                     MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                    mElm.setIgnoreValidation(ignoreMissingUrnNbn);
                     mElm.accept(createMetsVisitor());
                     // XXX use relative path to users folder?
                 }
