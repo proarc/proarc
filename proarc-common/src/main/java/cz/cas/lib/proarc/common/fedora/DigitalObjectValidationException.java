@@ -36,11 +36,12 @@ public class DigitalObjectValidationException extends DigitalObjectException {
         super(pid, batchId, dsId, message, cause);
     }
 
-    public DigitalObjectValidationException addValidation(String name, String bundleKey, Object... values) {
+    public DigitalObjectValidationException addValidation(String name, String bundleKey, boolean canBeIgnored, Object... values) {
         ValidationResult vr = new ValidationResult();
         vr.setName(name);
         vr.setBundleKey(bundleKey);
         vr.setValues(values);
+        vr.setCanBeIgnored(canBeIgnored);
         validations.add(vr);
         return this;
     }
@@ -53,6 +54,7 @@ public class DigitalObjectValidationException extends DigitalObjectException {
         private String name;
         private String bundleKey;
         private Object[] values;
+        private boolean canBeIgnored;
 
         public String getName() {
             return name;
@@ -88,6 +90,14 @@ public class DigitalObjectValidationException extends DigitalObjectException {
          */
         public void setValues(Object[] values) {
             this.values = values;
+        }
+
+        public boolean isCanBeIgnored() {
+            return canBeIgnored;
+        }
+
+        public void setCanBeIgnored(boolean canBeIgnored) {
+            this.canBeIgnored = canBeIgnored;
         }
     }
 }

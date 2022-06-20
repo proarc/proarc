@@ -192,6 +192,7 @@ public class DigitalObjectResource {
 
     private final String ERR_IS_LOCKED = "Err_is_locked";
     public static final String STATUS_LOCKED = "locked";
+    public static final String STATUS_DONT_BE_IGNORED = "dontIgnored";
 
     public DigitalObjectResource(
             @Context Request request,
@@ -1147,7 +1148,7 @@ public class DigitalObjectResource {
 
         if (isLocked(pid)) {
             DigitalObjectValidationException validationException = new DigitalObjectValidationException(pid, null, null, "Locked",null);
-            validationException.addValidation("Locked", ERR_IS_LOCKED);
+            validationException.addValidation("Locked", ERR_IS_LOCKED, false);
             return toError(validationException, STATUS_LOCKED);
         }
         if (timestamp == null) {
@@ -1216,7 +1217,7 @@ public class DigitalObjectResource {
         }
         if (isLocked(pid)) {
             DigitalObjectValidationException validationException = new DigitalObjectValidationException(pid, null, null, "Locked",null);
-            validationException.addValidation("Locked", ERR_IS_LOCKED);
+            validationException.addValidation("Locked", ERR_IS_LOCKED, false);
             return toError(validationException, STATUS_LOCKED);
         }
         if (timestamp == null) {
@@ -1279,7 +1280,7 @@ public class DigitalObjectResource {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
             if (isLocked(pids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
-                validationException.addValidation("Locked", ERR_IS_LOCKED);
+                validationException.addValidation("Locked", ERR_IS_LOCKED, false);
                 return toError(validationException, STATUS_LOCKED);
             }
             UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
@@ -1313,7 +1314,7 @@ public class DigitalObjectResource {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
             if (isLocked(pids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
-                validationException.addValidation("Locked", ERR_IS_LOCKED);
+                validationException.addValidation("Locked", ERR_IS_LOCKED, false);
                 return toError(validationException, STATUS_LOCKED);
             }
 
@@ -1346,7 +1347,7 @@ public class DigitalObjectResource {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
             if (isLocked(pids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
-                validationException.addValidation("Locked", ERR_IS_LOCKED);
+                validationException.addValidation("Locked", ERR_IS_LOCKED, false);
                 return toError(validationException, STATUS_LOCKED);
             }
 
@@ -1367,8 +1368,12 @@ public class DigitalObjectResource {
         ErrorBuilder<T> error = SmartGwtResponse.asError();
         Locale locale = session.getLocale(httpHeaders);
         ServerMessages msgs = ServerMessages.get(locale);
+        boolean canBeIgnored = true;
         for (ValidationResult validation : ex.getValidations()) {
             String msg;
+            if (!validation.isCanBeIgnored()) {
+                canBeIgnored = false;
+            }
             try {
                 msg = msgs.getFormattedMessage(validation.getBundleKey(), validation.getValues());
             } catch (MissingResourceException mrex) {
@@ -1377,7 +1382,7 @@ public class DigitalObjectResource {
             }
             error.error(validation.getName(), msg);
         }
-        return error.build(type);
+        return canBeIgnored ? error.build(type) : type == null ? error.build(STATUS_DONT_BE_IGNORED) : error.build(type);
     }
 
     @GET
