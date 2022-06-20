@@ -34,8 +34,7 @@ public class ModsRules {
     private NdkMapper.Context context;
     private static final String PROP_MODS_RULES = "metadata.mods.rules";
 
-    private static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE_ISSUE ="Err_Ndk_Supplement_Genre_Type_Issue";
-    private static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE_VOLUME ="Err_Ndk_Supplement_Genre_Type_Volume";
+    private static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE ="Err_Ndk_Supplement_Genre_Type";
 
     ModsRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex, NdkMapper.Context context) {
         this.modelId = modelId;
@@ -60,7 +59,7 @@ public class ModsRules {
                 if (expectedType == null) {
                     continue; // nenalezen expected type
                 } else if (!expectedType.equals(genre.getType())) {
-                    exception.addValidation("MODS rules", ERR_NDK_SUPPLEMENT_GENRE_TYPE_ISSUE, expectedType, genre.getType());
+                    exception.addValidation("MODS rules", ERR_NDK_SUPPLEMENT_GENRE_TYPE, false, expectedType, genre.getType());
                 }
             }
         }

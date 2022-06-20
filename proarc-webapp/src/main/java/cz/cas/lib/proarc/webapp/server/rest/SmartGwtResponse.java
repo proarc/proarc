@@ -36,6 +36,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import static cz.cas.lib.proarc.webapp.server.rest.DigitalObjectResource.STATUS_DONT_BE_IGNORED;
 import static cz.cas.lib.proarc.webapp.server.rest.DigitalObjectResource.STATUS_LOCKED;
 
 /**
@@ -215,6 +216,10 @@ public class SmartGwtResponse<T> {
             switch (type) {
                 case STATUS_LOCKED:
                     result.status = STATUS_OBJECT_LOCKED;
+                    break;
+                case STATUS_DONT_BE_IGNORED:
+                    result.status = STATUS_VALIDATION_ERROR;
+                    result.data = "cantIgnore";
                     break;
                 default:
                     result.status = STATUS_VALIDATION_ERROR;

@@ -101,7 +101,7 @@ public class RdaRules {
             }
             checkDateNull(oi.getDateOther(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
         } else {
-            exception.addValidation("RDA rules", ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE, eventType);
+            exception.addValidation("RDA rules", ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE, true, eventType);
         }
     }
 
@@ -110,9 +110,9 @@ public class RdaRules {
         for (Object date : dates) {
             Object dateValue = ((DateDefinition) date).getValue();
             if (mustBeFill && dateValue == null) {
-                exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE);
+                exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, true);
             } else if (!mustBeFill && dateValue != null) {
-                exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYVALUE, element, event);
+                exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYVALUE, true, element, event);
             }
         }
     }
@@ -120,10 +120,10 @@ public class RdaRules {
     /** Checks if the list is empty */
     private boolean checkDateEmpty(List dates, String event, String element, boolean mustBeFill) {
         if (mustBeFill && dates.isEmpty()) {
-            exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, element, event);
+            exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, true, element, event);
             return true;
         } else if (!mustBeFill && !dates.isEmpty()) {
-            exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYVALUE, element, event);
+            exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYVALUE, true, element, event);
             return true;
         }
         return false;
@@ -139,7 +139,7 @@ public class RdaRules {
         if (isDescriptionStandardNull(descriptionStandard)) {
             setDescriptionStandard(mods);
         } else if (unallowedValueinDescriptionStandard(descriptionStandard)) {
-            exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD);
+            exception.addValidation("RDA rules", ERR_NDK_DESCRIPTIONSTANDARD, true);
         }
         if (ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(descriptionStandard)) {
             checkAACR(mods);
@@ -162,7 +162,7 @@ public class RdaRules {
             }
         }
         if (!fillEventType) {
-            exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYEVENTTYPE);
+            exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYEVENTTYPE, true);
         }
     }
 
@@ -170,13 +170,13 @@ public class RdaRules {
     private void checkAACR(ModsDefinition mods) {
         for (OriginInfoDefinition oi : mods.getOriginInfo()) {
             if (oi.getEventType() != null) {
-                exception.addValidation("RDA rules", ERR_NDK_AACR_EMPTYVALUE);
+                exception.addValidation("RDA rules", ERR_NDK_AACR_EMPTYVALUE, true);
             }
         }
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             String authority = pd.getForm().isEmpty() ? null : pd.getForm().get(0).getAuthority();
             if ("rdamedia".equals(authority) || "rdacarrier".equals(authority)) {
-                exception.addValidation("RDA rules", ERR_NDK_AACR_INVALIDVALUE);
+                exception.addValidation("RDA rules", ERR_NDK_AACR_INVALIDVALUE, true);
             }
         }
     }

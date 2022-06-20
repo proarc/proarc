@@ -506,7 +506,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 checkValidation(errHandler, xmlData);
                 throw new DigitalObjectValidationException(xmlData.getPid(),
                             xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
-                        .addValidation("mods", ex.getMessage());
+                        .addValidation("mods", ex.getMessage(), true);
             }
         } else {
             mods = createDefault(modelId);
@@ -519,7 +519,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (!errHandler.getValidationErrors().isEmpty()) {
             String msg = errHandler.getValidationErrors().stream().collect(Collectors.joining("\n"));
             throw new DigitalObjectValidationException(xmlData.getPid(), xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, msg, null)
-                    .addValidation("mods", msg);
+                    .addValidation("mods", msg, true);
         }
     }
 
@@ -631,7 +631,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         RelationEditor relations = handler.relations();
         List<String> members = relations.getMembers();
         if (HAS_MEMBER_VALIDATION_MODELS.contains(relations.getModel()) && !members.isEmpty()) {
-            ex.addValidation("mods", ERR_NDK_CHANGE_MODS_WITH_MEMBERS);
+            ex.addValidation("mods", ERR_NDK_CHANGE_MODS_WITH_MEMBERS, true);
         }
         if (!ex.getValidations().isEmpty()) {
             throw ex;
@@ -662,12 +662,12 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 }
                 if (missingId) {
                     if (ex != null) {
-                        ex.addValidation("mods.identifier", ERR_NDK_REMOVE_URNNBN, oldId.getValue());
+                        ex.addValidation("mods.identifier", ERR_NDK_REMOVE_URNNBN, true, oldId.getValue());
                     } else {
                         mods.getIdentifier().add(oldId);
                     }
                 } else if (ex != null) {
-                    ex.addValidation("mods.identifier", ERR_NDK_CHANGE_MODS_WITH_URNNBN, oldId.getValue());
+                    ex.addValidation("mods.identifier", ERR_NDK_CHANGE_MODS_WITH_URNNBN, true, oldId.getValue());
                 }
             }
         }
@@ -691,7 +691,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                                 // ignore the self-reference
                                 continue;
                             }
-                            ex.addValidation("mods.identifier", ERR_NDK_DOI_DUPLICITY, doi);
+                            ex.addValidation("mods.identifier", ERR_NDK_DOI_DUPLICITY, true, doi);
                         }
                     } catch (FedoraClientException ex1) {
                         throw new DigitalObjectException(fobject.getPid(), ex1);
