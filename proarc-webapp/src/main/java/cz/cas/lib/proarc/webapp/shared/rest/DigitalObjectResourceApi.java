@@ -73,6 +73,9 @@ public final class DigitalObjectResourceApi {
     // resource /object/dc
     public static final String DC_PATH = "dc";
 
+    // resource /object/createPid
+    public static final String CREATE_PID_PATH = "createPid";
+
     // DublinCoreRecord
     public static final String DUBLINCORERECORD_ELEMENT = "dcRecord";
     public static final String DUBLINCORERECORD_NS = "http://proarc.lib.cas.cz/xml/dor/v1/";
@@ -138,6 +141,7 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_CUSTOM_CUSTOMXMLDATA = "xmlData";
     public static final String MODS_CUSTOM_IGNOREVALIDATION = "ignoreValidation";
     public static final String MODS_CUSTOM_CATALOGID = "catalogId";
+    public static final String MODS_CUSTOM_CREATE_OBJECT = "createObject";
 
     public static final String TECHNICAL_CUSTOM_XMLDATA = "xmlData";
     public static final String TECHNICAL_CUSTOM_JSONDATA = "jsonData";
@@ -153,6 +157,8 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_PAGE_RULES_NUMBER_INCREMENT_NUMBER = "incrementNumber";
     public static final String MODS_PAGE_RULES_INDEX_START_NUMBER = "startIndex";
     public static final String MODS_PAGE_RULES_TYPE_PAGE = "pageType";
+    public static final String MODS_PAGE_RULES_DOUBLE_COLUMNS = "doubleColumns";
+    public static final String MODS_PAGE_RULES_PAGE_POSSITION = "pagePosition";
 
     public static final String MODS_CUSTOM_FUNCTION_ADD_BRACKETS = "addBrackets";
     public static final String MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS = "removeBrackets";

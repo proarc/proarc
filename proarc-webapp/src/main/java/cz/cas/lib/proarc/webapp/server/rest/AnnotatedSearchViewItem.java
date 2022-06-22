@@ -113,4 +113,8 @@ public abstract class AnnotatedSearchViewItem extends Item {
     @Override
     public abstract String getValidation();
 
+    @XmlElement(name = DigitalObjectResourceApi.STRINGRECORD_CONTENT)
+    @Override
+    public abstract String getJsonData();
+
 }

@@ -71,6 +71,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     private int issueCounter = 0;
     private int articleCounter = 0;
     HashMap<String, FileMD5Info> md5InfosMap = new HashMap<>();
+    private boolean ignoreMissingUrnNbn = false;
 
     @Override
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
@@ -82,13 +83,14 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     @Override
     public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
         Objects.requireNonNull(metsElement, "metsElement can not be null");
+        this.ignoreMissingUrnNbn = metsElement.getIgnoreMissingUrnNbn();
         mets = prepareMets(metsElement);
         initHeader(metsElement);
         LOG.log(Level.FINE, "Inserting into Mets:" + metsElement.getOriginalPid() + "(" + metsElement.getElementType() + ")");
         IMetsElement rootElement = metsElement.getMetsContext().getRootElement();
 
         Collection<Path> packageFiles = new ArrayList<>();
-        metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
+        metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement, ignoreMissingUrnNbn));
         Path packageRoot = createPackageDirection(rootElement);
 
         boolean saveMets = false;
@@ -404,7 +406,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         if (!containsUnit) {
             logicalDiv.setID("MONOGRAPH_0001");
             physicalDiv.setID("DIV_P_0000");
-            metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement));
+            metsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(metsElement, ignoreMissingUrnNbn));
             insertVolume(logicalDiv, physicalDiv, metsElement, false);
             createStructureMap(metsElement, false);
         } else {
@@ -430,7 +432,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         }
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
             if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
-                childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement));
+                childMetsElement.getMetsContext().setPackageID(MetsUtils.getPackageID(childMetsElement, ignoreMissingUrnNbn));
                 insertVolume(logicalDiv, physicalDiv, childMetsElement, true);
                 createStructureMap(metsElement, true);
             }

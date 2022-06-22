@@ -374,7 +374,7 @@ public class TiffImporter implements ImageImporter {
         }
     }
 
-    private FileEntry processJp2Copy(FileSet fileSet, File tiff, File tempBatchFolder, String dsId, Configuration processorConfig) throws IOException {
+    public FileEntry processJp2Copy(FileSet fileSet, File tiff, File tempBatchFolder, String dsId, Configuration processorConfig) throws IOException {
         if (processorConfig != null && !processorConfig.isEmpty()) {
             File acFile = new File(tempBatchFolder, fileSet.getName() + '.' + dsId + ".jp2");
             String processorType = processorConfig.getString("type");

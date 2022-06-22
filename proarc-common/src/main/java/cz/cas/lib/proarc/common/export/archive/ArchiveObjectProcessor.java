@@ -48,6 +48,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ReadonlyDisseminationHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -79,15 +80,17 @@ public class ArchiveObjectProcessor {
 
     private final HashSet<String> devicePids = new HashSet<String>();
     private AppConfiguration appConfig;
+    private boolean ignoreMissingUrnNbn = false;
 
     public static final Set<String> ARCHIVE_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
-                    NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_PERIODICALISSUE)));
+                    NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_PERIODICALISSUE, OldPrintPlugin.MODEL_VOLUME)));
 
-    public ArchiveObjectProcessor(DigitalObjectCrawler crawler, File targetFolder, AppConfiguration appConfiguration) {
+    public ArchiveObjectProcessor(DigitalObjectCrawler crawler, File targetFolder, AppConfiguration appConfiguration, boolean ignoreMissingUrnNbn) {
         this.crawler = crawler;
         this.targetFolder = targetFolder;
         this.appConfig = appConfiguration;
+        this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
     }
 
     /**
@@ -175,7 +178,8 @@ public class ArchiveObjectProcessor {
                 if (!(parentElm != null &&
                         ((NdkPlugin.MODEL_PERIODICALISSUE.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))
                         || (NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))
-                        || (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))))) {
+                        || (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))))
+                        || (OldPrintPlugin.MODEL_VOLUME.equals(elm.getModelId()))) {
                     checkUrnNbn(cache);
                 }
 
@@ -211,14 +215,22 @@ public class ArchiveObjectProcessor {
         RelationEditor relationEditor = new RelationEditor(foNew);
         String model = relationEditor.getModel();
         if (ARCHIVE_VALIDATION_MODELS.contains(model) && !containUrnNbn(mods.getIdentifier())) {
-            throw new MetsExportException(pid, "URNNBN identifier is missing", true, null);
+            if (!(isOldPrintPlugin(model) && ignoreMissingUrnNbn)) {
+                throw new MetsExportException(pid, "URNNBN identifier is missing", true, null);
+            }
         }
+    }
+
+    private static boolean isOldPrintPlugin(String element) {
+        return element != null && element.contains("oldprint");
     }
 
     private boolean containUrnNbn(List<IdentifierDefinition> identifiers) {
         for (IdentifierDefinition identifier : identifiers) {
             if (Const.URNNBN.equals(identifier.getType())) {
-                return true;
+                if (identifier.getInvalid() == null || "false".equals(identifier.getInvalid())) {
+                    return true;
+                }
             }
         }
         return false;

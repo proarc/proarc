@@ -98,6 +98,6 @@ public class GraphicMapper extends RdaNdkMapper {
     }
 
     protected void addGenre(ModsDefinition mods) {
-        MapperUtils.addGenre(mods, Const.GENRE_GRAPHIC);
+        MapperUtils.addGenre(mods, Const.GENRE_GRAPHICS);
     }
 }

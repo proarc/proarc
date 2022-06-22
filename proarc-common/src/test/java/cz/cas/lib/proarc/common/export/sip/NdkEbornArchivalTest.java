@@ -29,14 +29,14 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.TemporaryFolder;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Mocked;
 
 public class NdkEbornArchivalTest {
 
@@ -86,7 +86,7 @@ public class NdkEbornArchivalTest {
 
         try {
             File target = ExportUtils.createFolder(folder.getRoot(), "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)), appConfig.getExportOptions().isOverwritePackage());
-            export.archive(pids, target);
+            export.archive(pids, target, false);
         } catch (IllegalStateException ex) {
             collector.addError(ex.getCause());
         }

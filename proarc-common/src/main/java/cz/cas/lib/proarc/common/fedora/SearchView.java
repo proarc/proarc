@@ -179,7 +179,7 @@ public final class SearchView {
      * @return limited list of objects.
      * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Basic+Search'>Fedora Basic Search</a>
      */
-    public List<Item> findPhrase(String phrase) throws FedoraClientException, IOException {
+    public List<Item> findPhrase(String phrase, String status, String organization, String processor, String model, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
         final int objectsLimit = 80;
         phrase = normalizePhrase(phrase);
         FindObjectsResponse response = FedoraClient.findObjects().terms(phrase).resultFormat("xml")
@@ -191,8 +191,10 @@ public final class SearchView {
             LOG.fine("pids count: " + pids.size() + ", token: " + response.getToken() + ", pids: " + pids.toString());
         }
         List<Item> result = new ArrayList<Item>();
+        sortField = createSortField(sortField);
+        sort = createSort(sort);
         while (!pids.isEmpty()) {
-            List<Item> items = find(true, pids.toArray(new String[pids.size()]));
+            List<Item> items = findAdvancedObjects(pids, status, organization, processor, model, allowAllForProcessor, filterWithoutExtension,sortField + " " + sort, offset, limit);
             result.addAll(items);
             String token = response.getToken();
             if (token == null || result.size() + objectsLimit > maxLimit) {
@@ -953,6 +955,7 @@ public final class SearchView {
         private String k3;
         private String k4;
         private String k5;
+        private String content;
 
         public Item() {
         }
@@ -1173,6 +1176,14 @@ public final class SearchView {
 
         public void setValidation(String validation) {
             this.validation = validation;
+        }
+
+        public String getJsonData() {
+            return content;
+        }
+
+        public void setJsonData(String content) {
+            this.content = content;
         }
     }
 

@@ -43,15 +43,15 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.TemporaryFolder;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Mocked;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
@@ -118,7 +118,7 @@ public class NdkSipExportTest {
         String pid = "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6";
 
         List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
-                true, true, null, null);
+                true, true, null, false, null);
 
         resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
                 .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));
@@ -146,7 +146,7 @@ public class NdkSipExportTest {
         String pid = "uuid:26342028-12c8-4446-9217-d3c9f249bd13";
 
         List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
-                true, true, null, null);
+                true, true, null, false, null);
 
         resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
                 .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));

@@ -30,11 +30,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
-import mockit.Mocked;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import mockit.Mocked;
 
 import static junit.framework.TestCase.assertNotNull;
 
@@ -85,7 +85,7 @@ public class DigitalObjectPluginTest {
                 UserProfile userProfile = new UserProfile();
                 userProfile.setUserName("junit");
                 DigitalObjectManager.CreateHandler createHandler = dom.create(metaModel.getPid(), null, null, userProfile, null, "");
-                createHandler.createDigitalObject();
+                createHandler.createDigitalObject(true);
             }
 
         }

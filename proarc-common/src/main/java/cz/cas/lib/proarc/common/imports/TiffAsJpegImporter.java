@@ -67,10 +67,11 @@ public class TiffAsJpegImporter implements ImageImporter {
 
         try {
             FileEntry tiff;
+            File tiffFile = new File(jpegEntry.getFile().getParent(), FilenameUtils.removeExtension(jpegEntry.getFile().getName()) + ".tiff");
             if (jpegEntry.getFile().length() > SMALL_IMAGE_SIZE_LIMIT) {
-                tiff = convertToTiff(jpegEntry, ctx.getConfig().getConvertorJpgLargeProcessor());
+                tiff = convertToTiff(jpegEntry, ctx.getConfig().getConvertorJpgLargeProcessor(), tiffFile);
             } else {
-                tiff = convertToTiff(jpegEntry, ctx.getConfig().getConvertorJpgSmallProcessor());
+                tiff = convertToTiff(jpegEntry, ctx.getConfig().getConvertorJpgSmallProcessor(), tiffFile);
             }
 
             if (tiff == null) {
@@ -100,14 +101,10 @@ public class TiffAsJpegImporter implements ImageImporter {
         return null;
     }
 
-    private FileEntry convertToTiff(FileEntry jp, Configuration processorConfig) throws IOException {
+    private FileEntry convertToTiff(FileEntry jp, Configuration processorConfig, File tiff) throws IOException {
         if (processorConfig == null || processorConfig.isEmpty()) {
             throw new IllegalArgumentException("Convertor config must be set.");
         }
-
-        File tiff = new File(
-                jp.getFile().getParent(),
-                FilenameUtils.removeExtension(jp.getFile().getName()) + ".tiff");
 
         //conversion was done before
         if (tiff.exists()) {
@@ -128,5 +125,31 @@ public class TiffAsJpegImporter implements ImageImporter {
             throw new IOException(tiff.toString() + "\n" + process.getFullOutput());
         }
         return new FileEntry(tiff);
+    }
+
+    public File getTiff(FileSet fileSet, ImportOptions ctx) {
+        FileEntry jpegEntry = findJpeg(fileSet);
+        // check jpeg file
+        if (jpegEntry == null) {
+            return null;
+        }
+
+        try {
+            FileEntry tiff;
+            File tiffFile = new File(ctx.getTargetFolder(), jpegEntry.getFile().getParentFile().getName() + ".tiff");
+            if (jpegEntry.getFile().length() > SMALL_IMAGE_SIZE_LIMIT) {
+                tiff = convertToTiff(jpegEntry, ctx.getConfig().getConvertorJpgLargeProcessor(), tiffFile);
+            } else {
+                tiff = convertToTiff(jpegEntry, ctx.getConfig().getConvertorJpgSmallProcessor(), tiffFile);
+            }
+
+            if (tiff == null) {
+                return null;
+            }
+            return tiff.getFile();
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, jpegEntry.toString(), ex);
+        }
+        return null;
     }
 }

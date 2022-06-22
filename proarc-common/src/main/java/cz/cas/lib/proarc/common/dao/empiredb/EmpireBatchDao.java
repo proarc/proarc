@@ -27,14 +27,6 @@ import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchItemTable;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchTable;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserTable;
-import org.apache.empire.data.bean.BeanResult;
-import org.apache.empire.db.DBCommand;
-import org.apache.empire.db.DBReader;
-import org.apache.empire.db.DBRecord;
-import org.apache.empire.db.DBRecordData;
-import org.apache.empire.db.exceptions.RecordNotFoundException;
-import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
-import org.apache.empire.db.expr.compare.DBCompareExpr;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -44,6 +36,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.apache.empire.data.bean.BeanResult;
+import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBReader;
+import org.apache.empire.db.DBRecord;
+import org.apache.empire.db.DBRecordData;
+import org.apache.empire.db.exceptions.RecordNotFoundException;
+import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
+import org.apache.empire.db.expr.compare.DBCompareExpr;
 
 /**
  *
@@ -166,9 +166,13 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
                 table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber);
         cmd.select(ut.username);
         cmd.join(table.userId, ut.id);
-        if (filter.getUserId() != null) {
-            cmd.where(ut.id.in(new Integer[]{1, filter.getUserId()}));
-            //cmd.where(ut.id.is(filter.getUserId()));
+        if (filter.getCreatorId() != null) {
+            cmd.where(ut.id.is(filter.getCreatorId()));
+        } else {
+            if (filter.getUserId() != null) {
+                cmd.where(ut.id.in(new Integer[]{1, filter.getUserId()}));
+                //cmd.where(ut.id.is(filter.getUserId()));
+            }
         }
         if (filter.getBatchId() != null) {
             cmd.where(table.id.is(filter.getBatchId()));
@@ -197,8 +201,8 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             BatchItemTable bitems = db.tableBatchItem;
             cmd.selectDistinct();
             cmd.join(table.id, bitems.batchId);
-            cmd.where(table.folder.like('%' + filePattern + '%')
-                    .or(bitems.type.is(BatchItem.Type.FILE).and(bitems.file.like('%' + filePattern + '%')))
+            cmd.where(table.title.likeUpper('%' + filePattern.toUpperCase() + '%')
+                    .or(bitems.type.is(BatchItem.Type.FILE).and(bitems.file.likeUpper('%' + filePattern.toUpperCase() + '%')))
             );
         }
         String profileId = filter.getProfile();

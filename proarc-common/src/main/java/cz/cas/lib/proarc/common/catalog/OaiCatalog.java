@@ -45,6 +45,10 @@ import javax.xml.transform.stream.StreamSource;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
+import org.w3c.dom.Document;
+
+import static cz.cas.lib.proarc.common.catalog.CatalogUtils.repairHtml;
+import static cz.cas.lib.proarc.common.catalog.CatalogUtils.repairModsBytes;
 
 /**
  * The catalog can query OAI repositories with
@@ -193,6 +197,7 @@ public class OaiCatalog implements BibliographicCatalog {
 
         byte[] modsBytes = transformers.transformAsBytes(
                 marcxmlSrc, Transformers.Format.MarcxmlAsMods3);
+        modsBytes = repairModsBytes(modsBytes, (Document) ((DOMSource) marcxmlSrc).getNode());
         byte[] modsHtmlBytes = modsAsHtmlBytes(new StreamSource(new ByteArrayInputStream(modsBytes)), locale);
         byte[] modsTitleBytes = transformers.transformAsBytes(
                 new StreamSource(new ByteArrayInputStream(modsBytes)),
@@ -202,25 +207,6 @@ public class OaiCatalog implements BibliographicCatalog {
         }
         return new MetadataItem(entryIdx, new String(modsBytes, "UTF-8"),
                 repairHtml(new String(modsHtmlBytes, "UTF-8")), new String(modsTitleBytes, "UTF-8"));
-    }
-
-    private String repairHtml(String s) {
-        s = s.replaceAll("\\n", "");
-        s = s.replaceAll("\\r", "");
-        s = replaceMoreSpace(s);
-        s = s.replace(") </b>", ") ");
-        s = s.replace("( ", "</b>( ");
-        s = s.replace("( ", " (");
-        s = s.replace("=\" ", " = ");
-        s = s.replace("\"", "");
-        return s;
-    }
-
-    private String replaceMoreSpace(String s) {
-        while (s.contains("  ")) {
-            s = s.replace("  ", " ");
-        }
-        return s;
     }
 
     private byte[] modsAsHtmlBytes(Source source, Locale locale) throws TransformerException {
