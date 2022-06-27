@@ -174,9 +174,9 @@ public class DigitalObjectManager {
 
     public Item createDigitalObject(
             String modelId, String pid,
-            String parentPid, UserProfile user, String xml, String message
+            String parentPid, UserProfile user, String xml, String message, boolean validation
             ) throws DigitalObjectException, DigitalObjectExistException {
-        return create(modelId, pid, parentPid, user, xml, message).createDigitalObject(true);
+        return create(modelId, pid, parentPid, user, xml, message).createDigitalObject(true, validation);
     }
 
     public CreateHandler create(
@@ -362,15 +362,15 @@ public class DigitalObjectManager {
 
 
         public List<Item> create() throws DigitalObjectException {
-            return create(true);
+            return create(true, false);
         }
 
-        public List<Item> create(boolean createObject) throws DigitalObjectException {
+        public List<Item> create(boolean createObject, boolean validation) throws DigitalObjectException {
             boolean isBatch = isBatch();
             if (isBatch) {
-                return createBatch(createObject);
+                return createBatch(createObject, validation);
             } else {
-                return Collections.singletonList(createDigitalObject(createObject));
+                return Collections.singletonList(createDigitalObject(createObject, validation));
             }
         }
 
@@ -382,7 +382,7 @@ public class DigitalObjectManager {
          * @throws DigitalObjectException
          * @throws WorkflowException
          */
-        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId, Locale locale, boolean createObject) throws WorkflowException {
+        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId, Locale locale, boolean createObject, boolean validation) throws WorkflowException {
             if (isBatch()) {
                 throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");
             } else if (wfJobId == null) {
@@ -399,7 +399,7 @@ public class DigitalObjectManager {
                 throw new WorkflowException("Wrong number of physical materials").addUnexpectedError();
             }
 
-            MaterialView digitalMaterial = workflowManager.createDigitalMaterialFromPhysical(this, physicalMaterials.get(0), createObject);
+            MaterialView digitalMaterial = workflowManager.createDigitalMaterialFromPhysical(this, physicalMaterials.get(0), createObject, validation);
 
             Item item = new Item(digitalMaterial.getPid());
             item.setLabel(digitalMaterial.getLabel());
@@ -440,17 +440,17 @@ public class DigitalObjectManager {
             return tasks;
         }
 
-        private List<Item> createBatch(boolean createObject) throws DigitalObjectException {
+        private List<Item> createBatch(boolean createObject, boolean validation) throws DigitalObjectException {
             ArrayList<Item> items = new ArrayList<>();
             while (hasNext()) {
                 // adjust series params
                 next();
-                items.add(createDigitalObject(createObject));
+                items.add(createDigitalObject(createObject, validation));
             }
             return items;
         }
 
-        public Item createDigitalObject(boolean createObject) throws DigitalObjectException, DigitalObjectExistException {
+        public Item createDigitalObject(boolean createObject, boolean validation) throws DigitalObjectException, DigitalObjectExistException {
             DigitalObjectHandler parentHandler = getParentHandler();
 
             LocalObject localObject = new LocalStorage().create(pid);
@@ -485,7 +485,11 @@ public class DigitalObjectManager {
 
             DescriptionMetadata<String> descMetadata = new DescriptionMetadata<>();
             descMetadata.setData(xml);
-            doHandler.metadata().setMetadataAsXml(descMetadata, message, NdkMetadataHandler.OPERATION_NEW);
+            if (validation) {
+                doHandler.metadata().setMetadataAsXml(descMetadata, message, NdkMetadataHandler.OPERATION_VALIDATE);
+            } else {
+                doHandler.metadata().setMetadataAsXml(descMetadata, message, NdkMetadataHandler.OPERATION_NEW);
+            }
 
             if (parentHandler != null) {
                 RelationEditor parentRelsExt = parentHandler.relations();

@@ -85,7 +85,7 @@ public class DigitalObjectPluginTest {
                 UserProfile userProfile = new UserProfile();
                 userProfile.setUserName("junit");
                 DigitalObjectManager.CreateHandler createHandler = dom.create(metaModel.getPid(), null, null, userProfile, null, "");
-                createHandler.createDigitalObject(true);
+                createHandler.createDigitalObject(true, true);
             }
 
         }

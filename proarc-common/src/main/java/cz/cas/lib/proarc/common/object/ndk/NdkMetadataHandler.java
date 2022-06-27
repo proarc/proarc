@@ -100,6 +100,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String DEFAULT_PAGE_TYPE = "normalPage";
 
     public static final String OPERATION_NEW = "new";
+    public static final String OPERATION_VALIDATE = "validate";
     public static final String OPERATION_UPDATE = "update";
     public static final String OPERATION_URNNBN = "addUrnNbn";
 
@@ -716,7 +717,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
         Context context = new Context(handler);
 
-        if (!(OPERATION_NEW.equals(typeRecord) || OPERATION_URNNBN.equals(typeRecord))) {
+        if (OPERATION_VALIDATE.equals(typeRecord)) {
+            checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId, context);
+        } else if (!(OPERATION_NEW.equals(typeRecord) || OPERATION_URNNBN.equals(typeRecord))) {
             checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId, context);
         }
         NdkMapper mapper = mapperFactory.get(modelId);

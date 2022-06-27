@@ -241,7 +241,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata,
             @FormParam(DigitalObjectResourceApi.WORKFLOW_JOB_ID) BigDecimal workflowJobId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId,
-            @DefaultValue("true") @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CREATE_OBJECT) boolean createObject
+            @DefaultValue("true") @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CREATE_OBJECT) boolean createObject,
+            @DefaultValue("true") @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_VALIDATE_OBJECT) boolean validation
             ) throws DigitalObjectException {
 
         Set<String> models = MetaModelRepository.getInstance().find()
@@ -289,9 +290,9 @@ public class DigitalObjectResource {
             List<Item> items;
             if (workflowJobId != null) {
                 Locale locale = session.getLocale(httpHeaders);
-                items = handler.createAndConnectToWorkflowJob(workflowJobId, locale, createObject);
+                items = handler.createAndConnectToWorkflowJob(workflowJobId, locale, createObject, validation);
             } else {
-                items = handler.create(createObject);
+                items = handler.create(createObject, validation);
             }
 
             if (OldPrintPlugin.MODEL_CONVOLUTTE.equals(modelId)) {

@@ -249,7 +249,7 @@ public class UpdatePages {
         String number = null;
         if (series.isAllowToUpdateNumber()) {
             if (doubleColumns) {
-                number = series.getNextValue() + ", " + series.getNextValue();
+                number = series.getNextValue() + "," + series.getNextValue();
             } else {
                 number = series.getNextValue();
             }
