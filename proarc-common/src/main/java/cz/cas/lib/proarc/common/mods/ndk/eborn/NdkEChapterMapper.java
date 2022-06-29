@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
 import cz.cas.lib.proarc.common.mods.ndk.NdkChapterMapper;
 import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
+import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -29,7 +30,13 @@ public class NdkEChapterMapper extends NdkChapterMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
+        if (mods.getPhysicalDescription().isEmpty()) {
+            mods.getPhysicalDescription().add(new PhysicalDescriptionDefinition());
+        }
         mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getDigitalOrigin).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
+        FormDefinition formDefinition = new FormDefinition();
+        formDefinition.setValue("electronic");
+        mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getForm).filter(form -> form.isEmpty()).forEach(form -> form.add(formDefinition));
     }
 
     @Override
