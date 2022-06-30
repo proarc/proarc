@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.imports;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.imports.FileSet.FileEntry;
 import java.io.File;
 import java.io.FileFilter;
@@ -40,7 +42,7 @@ import java.util.TreeMap;
 public final class ImportFileScanner {
     
     public enum State {
-        IMPORTED, NEW, EMPTY;
+        IMPORTED, NEW, EMPTY, NOT_SET;
     }
 
     public static final String IMPORT_STATE_FILENAME = "proarc_import_status.log";
@@ -172,12 +174,13 @@ public final class ImportFileScanner {
     }
 
     static State folderImportState(File folder, ImportHandler importer) {
-        State state = isImported(folder) ? State.IMPORTED : State.NEW;
-        // check file content for more details
-        if (state == State.NEW) {
-            state = importer.isImportable(folder) ? State.NEW : State.EMPTY;
+        if (isImported(folder)) {
+            return State.IMPORTED;
         }
-        return state;
+        if (importer == null) {
+            return State.NOT_SET;
+        }
+        return importer.isImportable(folder) ? State.NEW : State.EMPTY;
     }
 
     static boolean isImported(File folder) {
@@ -193,7 +196,15 @@ public final class ImportFileScanner {
     public static final class Folder {
         private File handle;
         private State status;
+        private State statusDefault;
+        private State statusArchive;
+        private State statusKrameriusK4;
+        private State statusKrameriusNdkMonograph;
+        private State statusKrameriusNdkPeriodical;
+        private State statusKrameriusStt;
+        private State statusSoundrecording;
         private transient ImportHandler importer;
+
 
         private Folder(File handle, ImportHandler importer) {
             this.handle = handle;
@@ -209,6 +220,64 @@ public final class ImportFileScanner {
                 status = folderImportState(handle, importer);
             }
             return status;
+        }
+
+        public State getStatusDefault(AppConfiguration appConfig) {
+            if (statusDefault == null) {
+                statusDefault = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.DEFAULT));
+            }
+            return statusDefault;
+        }
+
+        public State getStatusArchive(AppConfiguration appConfig) {
+            if (statusArchive == null) {
+                statusArchive = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT));
+            }
+            return statusArchive;
+        }
+
+        public State getStatusKrameriusK4(AppConfiguration appConfig) {
+            if (statusKrameriusK4 == null) {
+                statusKrameriusK4 = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT));
+            }
+            return statusKrameriusK4;
+        }
+
+        public State getStatusKrameriusNdkMonograph(AppConfiguration appConfig) {
+            if (statusKrameriusNdkMonograph == null) {
+                statusKrameriusNdkMonograph = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT));
+            }
+            return statusKrameriusNdkMonograph;
+        }
+
+        public State getStatusKrameriusNdkPeriodical(AppConfiguration appConfig) {
+            if (statusKrameriusNdkPeriodical == null) {
+                statusKrameriusNdkPeriodical = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT));
+            }
+            return statusKrameriusNdkPeriodical;
+        }
+
+        public State getStatusKrameriusStt(AppConfiguration appConfig) {
+            if (statusKrameriusStt == null) {
+                statusKrameriusStt = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.STT_KRAMERIUS_IMPORT));
+            }
+            return statusKrameriusStt;
+        }
+
+        public State getStatusSoundrecording(AppConfiguration appConfig) {
+            if (statusSoundrecording == null) {
+                statusSoundrecording = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT));
+            }
+            return statusSoundrecording;
+        }
+
+        private ImportHandler createImporter(AppConfiguration appConfig, String profileId) {
+            ConfigurationProfile profile = appConfig.getProfiles().getProfile(ImportProfile.PROFILES, profileId);
+            if (profile == null) {
+                return null;
+            }
+            ImportProfile importProfile = appConfig.getImportConfiguration(profile);
+            return importProfile.createImporter();
         }
     }
 
