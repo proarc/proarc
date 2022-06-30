@@ -246,7 +246,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
             if (partNode == null){
                 throw new MetsExportException("Error - missing date issued. Please insert it.");
             }
-            return " " + partNode.getTextContent();
+            return ", " + partNode.getTextContent();
         }
         return "";
     }
@@ -383,7 +383,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     }
 
     protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
-        mets.setTYPE("Electronic_Monograph");
+        mets.setTYPE("electronic_monograph");
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
         DivType physicalDiv = new DivType();

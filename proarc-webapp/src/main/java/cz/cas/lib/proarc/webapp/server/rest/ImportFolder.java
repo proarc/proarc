@@ -16,7 +16,9 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.webapp.server.ProfileStates;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -36,15 +38,16 @@ public class ImportFolder {
     private transient String parent;
     @XmlElement(name = ImportResourceApi.IMPORT_FOLDER_PATH)
     private String path;
+    @XmlElement(name = "states")
+    private List<ProfileStates> states;
 
-    public ImportFolder() {
-    }
 
-    public ImportFolder(String name, String state, String parent, String path) {
+    public ImportFolder(String name, String state, String parent, String path, List<ProfileStates> states) {
         this.name = name;
         this.state = state;
         this.parent = parent;
         this.path = path;
+        this.states = states;
     }
 
     public String getName() {
@@ -77,6 +80,14 @@ public class ImportFolder {
 
     public void setState(String state) {
         this.state = state;
+    }
+
+    public List<ProfileStates> getStates() {
+        return states;
+    }
+
+    public void setStates(List<ProfileStates> states) {
+        this.states = states;
     }
 
     @Override
