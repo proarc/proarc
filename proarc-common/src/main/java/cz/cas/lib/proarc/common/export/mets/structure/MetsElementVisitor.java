@@ -2196,7 +2196,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (Const.PAGE.equals(element.getElementType())) {
 
                 if (Const.PERIODICAL_VOLUME.equals(metsElement.getElementType())) {
-                    throw new MetsExportException(metsElement.getOriginalPid(), "Moodel " + metsElement.getElementType() + " nesmí mít přímo pod sebou model strana.", false, null);
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Model " + metsElement.getElementType() + " nesmí mít přímo pod sebou model strana.", false, null);
                 }
                 insertPage(physicalDiv, element, pageCounter, metsElement, pageIndex++);
                 pageCounter++;
@@ -2214,7 +2214,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
     private void containChildren(IMetsElement metsElement) throws MetsExportException {
         if (metsElement.getChildren().size() == 0) {
-            throw new MetsExportException(metsElement.getOriginalPid(), "Moodel " + metsElement.getElementType() + " s identifikátorem " + metsElement.getOriginalPid() + " neobsahuje žádné navázané objekty, proto nebyl export úspěšný.", false, null);
+            throw new MetsExportException(metsElement.getOriginalPid(), "Model " + metsElement.getElementType() + " s identifikátorem " + metsElement.getOriginalPid() + " neobsahuje žádné navázané objekty, proto nebyl export úspěšný.", false, null);
         }
     }
 

@@ -36,7 +36,6 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import javax.xml.bind.JAXB;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,6 +50,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXB;
 
 /**
  *
@@ -276,6 +276,7 @@ public class ImportBatchManager {
         String folderPath = relativizeBatchFile(folder);
         batch.setFolder(folderPath);
         batch.setGenerateIndices(options.isGenerateIndices());
+        batch.setGeneratePageNumber(options.isGeneratePageNumber());
         batch.setState(Batch.State.LOADING);
         batch.setTitle(title);
         batch.setUserId(user.getId());

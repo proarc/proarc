@@ -221,11 +221,25 @@ public class ImportResource {
                 : userRoot;
         File folder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, profileId);
-        ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
-        ImportDispatcher.getDefault().addImport(process);
-        Batch batch = process.getBatch();
-        return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
+        if (ConfigurationProfile.IMPORT_WITH_CREATION_PARENT.equals(profileId)) {
+            List<Batch> listBatches = new ArrayList<>();
+            ImportProcess.lockImportFolder(folder);
+            for (File importFile : folder.listFiles()) {
+                if (importFile.exists() && importFile.isDirectory()) {
+                    ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
+                            importManager, device, indices, true, appConfig.getImportConfiguration(profile), appConfig);
+                    ImportDispatcher.getDefault().addImport(process);
+                    listBatches.add(process.getBatch());
+                }
+            }
+            return new SmartGwtResponse<BatchView>();
+        } else {
+            ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
+                    importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
+            ImportDispatcher.getDefault().addImport(process);
+            Batch batch = process.getBatch();
+            return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
+        }
     }
 
     @POST

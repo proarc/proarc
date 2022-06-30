@@ -43,6 +43,7 @@ public class Batch {
     // user input fields
     private String device;
     private boolean generateIndices;
+    private boolean generatePageNumber;
     private String log;
     private String profileId;
 
@@ -140,6 +141,14 @@ public class Batch {
 
     public void setGenerateIndices(boolean generateIndices) {
         this.generateIndices = generateIndices;
+    }
+
+    public boolean isGeneratePageNumber() {
+        return generatePageNumber;
+    }
+
+    public void setGeneratePageNumber(boolean generatePageNumber) {
+        this.generatePageNumber = generatePageNumber;
     }
 
     public String getLog() {
