@@ -83,6 +83,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     @Override
     public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
         Objects.requireNonNull(metsElement, "metsElement can not be null");
+        metsElement.getMetsContext().getFileList().clear();
         this.ignoreMissingUrnNbn = metsElement.getIgnoreMissingUrnNbn();
         mets = prepareMets(metsElement);
         initHeader(metsElement);
