@@ -143,6 +143,12 @@ public class TiffImporter implements ImageImporter {
             String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
             PageViewItem page = new PageViewItem();
             page.setPageIndex(pageIndex);
+            if (ctx.isGeneratePageNumber()) {
+                if (pageIndex == null && pageIndex.isEmpty()) {
+                    pageIndex = String.valueOf(ctx.getConsumedFileCounter() + 1);
+                }
+                page.setPageNumber(pageIndex); // number is same as pageIndex
+            }
             page.setPageType("normalPage");
             pvHandler.setPage(page, null);
         } else {

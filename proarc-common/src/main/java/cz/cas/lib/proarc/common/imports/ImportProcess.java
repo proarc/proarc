@@ -84,9 +84,22 @@ public final class ImportProcess implements Runnable {
             String device, boolean generateIndices,
             ImportProfile profile, AppConfiguration config
             ) throws IOException {
+        return prepare(importFolder, description, user, batchManager, device, generateIndices, false, profile, config);
+    }
+
+    /**
+     * Prepares a new import process. Creates batch, locks import folder. The process is ready
+     * to run with {@link #start} immediately or later with {@link ImportDispatcher}.
+     */
+    public static ImportProcess prepare(
+            File importFolder, String description,
+            UserProfile user, ImportBatchManager batchManager,
+            String device, boolean generateIndices, boolean generatePageNumber,
+            ImportProfile profile, AppConfiguration config
+            ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device,
-                generateIndices, user, profile);
+                generateIndices, generatePageNumber, user, profile);
         ImportProcess process = new ImportProcess(options, batchManager, config);
         process.prepare(description, user);
         return process;
@@ -279,7 +292,7 @@ public final class ImportProcess implements Runnable {
         return folder;
     }
 
-    private void lockImportFolder(File folder) throws IOException {
+    public static void lockImportFolder(File folder) throws IOException {
         File statusFile = new File(folder, ImportFileScanner.IMPORT_STATE_FILENAME);
         if (!statusFile.createNewFile()) {
             throw new IOException("Folder already imported: " + folder);
@@ -346,6 +359,7 @@ public final class ImportProcess implements Runnable {
         private File targetFolder;
         private String device;
         private boolean generateIndices;
+        private boolean generatePageNumber;
         private int consumedFileCounter;
         private final UserProfile user;
         private Batch batch;
@@ -353,12 +367,17 @@ public final class ImportProcess implements Runnable {
         private JhoveContext jhoveContext;
         private ImportHandler importer;
 
+        public ImportOptions(File importFolder, String device, boolean generateIndices, UserProfile username, ImportProfile profile) {
+            this(importFolder, device, generateIndices, false, username, profile);
+        }
+
         public ImportOptions(File importFolder, String device,
-                boolean generateIndices, UserProfile username,
+                boolean generateIndices, boolean gerenatePageNumber, UserProfile username,
                 ImportProfile profile
                 ) {
             this.device = device;
             this.generateIndices = generateIndices;
+            this.generatePageNumber = gerenatePageNumber;
             this.user = username;
             this.importFolder = importFolder;
             this.profile = profile;
@@ -385,6 +404,10 @@ public final class ImportProcess implements Runnable {
 
         public boolean isGenerateIndices() {
             return generateIndices;
+        }
+
+        public boolean isGeneratePageNumber() {
+            return generatePageNumber;
         }
 
         public String getDevice() {
@@ -448,7 +471,7 @@ public final class ImportProcess implements Runnable {
 
             ImportOptions options = new ImportOptions(
                     importFolder, batch.getDevice(),
-                    batch.isGenerateIndices(), username, profile);
+                    batch.isGenerateIndices(), batch.isGeneratePageNumber(), username, profile);
             options.setBatch(batch);
             return options;
         }

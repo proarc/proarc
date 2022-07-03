@@ -88,6 +88,7 @@ import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.PidResult;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.StatusEntry;
 import cz.cas.lib.proarc.common.user.Group;
+import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -241,7 +242,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata,
             @FormParam(DigitalObjectResourceApi.WORKFLOW_JOB_ID) BigDecimal workflowJobId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId,
-            @DefaultValue("true") @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CREATE_OBJECT) boolean createObject
+            @DefaultValue("true") @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CREATE_OBJECT) boolean createObject,
+            @DefaultValue("true") @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_VALIDATE_OBJECT) boolean validation
             ) throws DigitalObjectException {
 
         Set<String> models = MetaModelRepository.getInstance().find()
@@ -289,9 +291,9 @@ public class DigitalObjectResource {
             List<Item> items;
             if (workflowJobId != null) {
                 Locale locale = session.getLocale(httpHeaders);
-                items = handler.createAndConnectToWorkflowJob(workflowJobId, locale, createObject);
+                items = handler.createAndConnectToWorkflowJob(workflowJobId, locale, createObject, validation);
             } else {
-                items = handler.create(createObject);
+                items = handler.create(createObject, validation);
             }
 
             if (OldPrintPlugin.MODEL_CONVOLUTTE.equals(modelId)) {
@@ -2150,6 +2152,9 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> lockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2171,6 +2176,9 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> unlockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2233,6 +2241,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2266,6 +2276,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2295,6 +2307,8 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeSttPageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
@@ -2326,6 +2340,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2355,6 +2371,8 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeClippingsVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
@@ -2387,6 +2405,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2417,6 +2437,8 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeNdkMonographTitleToClippingsTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
@@ -2449,6 +2471,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2478,6 +2502,9 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeK4PeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2507,6 +2534,9 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2537,6 +2567,9 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeK4PeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2567,6 +2600,9 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeK4MonographToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2597,6 +2633,9 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeK4MonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2627,6 +2666,9 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeNdkMonographTitleToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2657,6 +2699,9 @@ public class DigitalObjectResource {
     public SmartGwtResponse<Item> changeNdkMonographVolumeToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
         if (pids == null || pids.isEmpty()) {
             return new SmartGwtResponse<>();
         }
@@ -2716,6 +2761,10 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException, IOException, FedoraClientException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION);
+
+
         Locale locale = session.getLocale(httpHeaders);
         UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
         List<Item> objects = updateObjects.findAllObjects();
@@ -2732,6 +2781,9 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+
         Locale locale = session.getLocale(httpHeaders);
         UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
         updateObjects.findObjects(pid, NdkPlugin.MODEL_ARTICLE);
@@ -2751,6 +2803,9 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+
         Locale locale = session.getLocale(httpHeaders);
         UpdateObjects updateObjects = new UpdateObjects(appConfig, user, locale);
         updateObjects.findObjects(pid, NdkPlugin.MODEL_NDK_PAGE);
@@ -2761,6 +2816,30 @@ public class DigitalObjectResource {
 
         updateObjects.repair(NdkPlugin.MODEL_NDK_PAGE);
         return new SmartGwtResponse<>();
+    }
+
+    private void checkPermission(String role, Permission permission, String... attributes) {
+        if (!(session.checkPermission(permission) || session.checkRole(role) || hasAttribute(attributes))) {
+            throw new WebApplicationException(Status.FORBIDDEN);
+        }
+    }
+
+    private boolean hasAttribute(String[] attributes) {
+        for (String attribute : attributes) {
+            if (UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getLockObjectFunction())) {
+                return true;
+            }
+            if (UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getUnlockObjectFunction())) {
+                return true;
+            }
+            if (UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getUpdateModelFunction())) {
+                return true;
+            }
+            if (UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getChangeModelFunction())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)

@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.server.ProfileStates;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
@@ -185,7 +186,17 @@ public class ImportResource {
             String subfolderName = subfolder.getHandle().getName();
             String subfolderStatus = subfolder.getStatus().name();
             String subfolderPath = userRoot.relativize(subfolder.getHandle().toURI()).getPath();
-            result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath));
+
+
+            List<ProfileStates> states = new ArrayList();
+            states.add(new ProfileStates(ConfigurationProfile.DEFAULT, subfolder.getStatusDefault(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, subfolder.getStatusArchive(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusK4(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.STT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusStt(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, subfolder.getStatusSoundrecording(appConfig).name()));
+            result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath, states));
         }
         return result;
     }
@@ -210,11 +221,25 @@ public class ImportResource {
                 : userRoot;
         File folder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, profileId);
-        ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
-        ImportDispatcher.getDefault().addImport(process);
-        Batch batch = process.getBatch();
-        return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
+        if (ConfigurationProfile.IMPORT_WITH_CREATION_PARENT.equals(profileId)) {
+            List<Batch> listBatches = new ArrayList<>();
+            ImportProcess.lockImportFolder(folder);
+            for (File importFile : folder.listFiles()) {
+                if (importFile.exists() && importFile.isDirectory()) {
+                    ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
+                            importManager, device, indices, true, appConfig.getImportConfiguration(profile), appConfig);
+                    ImportDispatcher.getDefault().addImport(process);
+                    listBatches.add(process.getBatch());
+                }
+            }
+            return new SmartGwtResponse<BatchView>();
+        } else {
+            ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
+                    importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
+            ImportDispatcher.getDefault().addImport(process);
+            Batch batch = process.getBatch();
+            return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
+        }
     }
 
     @POST

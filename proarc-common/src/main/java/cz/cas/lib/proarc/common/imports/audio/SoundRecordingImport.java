@@ -93,7 +93,8 @@ public class SoundRecordingImport extends FileSetImport {
         }
     }
 
-    private void consumeFileSets(Batch batch, List<FileSet> fileSets, ImportProcess.ImportOptions ctx) throws InterruptedException {
+    @Override
+    protected void consumeFileSets(Batch batch, List<FileSet> fileSets, ImportProcess.ImportOptions ctx) throws InterruptedException {
         ImportBatchManager batchManager = ImportBatchManager.getInstance();
         long start = System.currentTimeMillis();
         for (FileSet fileSet : fileSets) {

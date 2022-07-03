@@ -28,6 +28,8 @@ public class ConfigurationProfile {
 
     /** The ID of {@code proarc.cfg}. */
     public static final String DEFAULT = "profile.default";
+    /** The ID of the default import with creation a parent and setting parents metadata that is based on {@code proarc.cfg}. */
+    public static final String IMPORT_WITH_CREATION_PARENT = "profile.createObjectWithMetadata_import";
     /** The ID of the default archive import profile that is based on {@code proarc.cfg}. */
     public static final String DEFAULT_ARCHIVE_IMPORT = "profile.default_archive_import";
     /** The ID of the default soundrecording import profile that is based on (@code proarc.cfg]. */

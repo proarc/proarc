@@ -83,6 +83,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     @Override
     public void insertIntoMets(IMetsElement metsElement) throws MetsExportException {
         Objects.requireNonNull(metsElement, "metsElement can not be null");
+        metsElement.getMetsContext().getFileList().clear();
         this.ignoreMissingUrnNbn = metsElement.getIgnoreMissingUrnNbn();
         mets = prepareMets(metsElement);
         initHeader(metsElement);
@@ -246,7 +247,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
             if (partNode == null){
                 throw new MetsExportException("Error - missing date issued. Please insert it.");
             }
-            return " " + partNode.getTextContent();
+            return ", " + partNode.getTextContent();
         }
         return "";
     }
@@ -383,7 +384,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     }
 
     protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
-        mets.setTYPE("Electronic_Monograph");
+        mets.setTYPE("electronic_monograph");
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
         DivType physicalDiv = new DivType();

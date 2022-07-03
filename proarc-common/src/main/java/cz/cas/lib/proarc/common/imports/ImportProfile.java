@@ -120,6 +120,8 @@ public final class ImportProfile {
                 return new KrameriusImport(FileReader.STT_MAP);
             case ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT:
                 return new SoundRecordingImport();
+            case ConfigurationProfile.IMPORT_WITH_CREATION_PARENT:
+                return new FileSetImportWithParentCreated();
             default:
                 return new FileSetImport();
         }

@@ -375,7 +375,7 @@ public class FileSetImport implements ImportHandler {
         return (ImportArchiveCatalog) unmarshaller.unmarshal(catalogFile);
     }
 
-    private void consumeFileSets(Batch batch, List<FileSet> fileSets, ImportOptions ctx) throws InterruptedException {
+    protected void consumeFileSets(Batch batch, List<FileSet> fileSets, ImportOptions ctx) throws InterruptedException {
         ImportBatchManager batchManager = ImportBatchManager.getInstance();
         long start = System.currentTimeMillis();
         for (FileSet fileSet : fileSets) {
