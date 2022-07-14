@@ -38,6 +38,7 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin.NdkSearchViewHandler;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -252,6 +253,17 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
 
         @Override
         public <O> DescriptionMetadata<O> getMetadataAsJsonObject(String mappingId) throws DigitalObjectException {
+            String modelId = null;
+            if (mappingId == null || ModsCutomEditorType.EDITOR_PAGE.equals(mappingId)) {
+                modelId = handler.relations().getModel();
+                MetaModel model = modelId == null ? null : MetaModelRepository.getInstance().find(modelId);
+                if (model == null) {
+                    throw new DigitalObjectException(fobject.getPid(), null, "ds", "Missing mappingId!", null);
+                }
+                if (mappingId == null) {
+                    mappingId = model.getModsCustomEditor();
+                }
+            }
             if (mappingId == null) {
                 throw new NullPointerException("mappingId");
             }
