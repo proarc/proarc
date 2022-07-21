@@ -67,6 +67,10 @@ public final class ImportDispatcher {
         stop(60, TimeUnit.SECONDS);
     }
 
+    public void stopNow() {
+        stop(5, TimeUnit.SECONDS);
+    }
+
     public void stop(long timeout, TimeUnit unit) {
         if (pool == null) {
             return ;
@@ -104,6 +108,12 @@ public final class ImportDispatcher {
         }
         if (pool.isShutdown()) {
             throw new IllegalStateException("needs restart");
+        }
+    }
+
+    public void restart() {
+        if (pool != null && pool.isShutdown()) {
+            pool = Executors.newFixedThreadPool(threadCount, new ImportDispatcherThreadFactory());
         }
     }
 

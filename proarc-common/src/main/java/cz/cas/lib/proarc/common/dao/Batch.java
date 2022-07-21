@@ -28,7 +28,7 @@ public class Batch {
 
     public enum State {
 
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED
+        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED
     }
     
     private Integer id;

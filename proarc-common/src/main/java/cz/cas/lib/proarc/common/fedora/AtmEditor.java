@@ -70,7 +70,7 @@ public final class AtmEditor {
      * @param role
      * @throws DigitalObjectException
      */
-    public void write(String deviceId, String organization, String user, String status, String message, String role) throws DigitalObjectException {
+    public void write(String deviceId, String organization, String user, String status, String donator, String message, String role) throws DigitalObjectException {
         boolean changedUser = false;
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
@@ -117,6 +117,14 @@ public final class AtmEditor {
                 write = true;
             }
         }
+        if (donator != null && !donator.isEmpty()) {
+            String oldVal = relationEditor.getDonator();
+            String newVal = NULL.equals(donator) ? null : donator;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                relationEditor.setDonator(donator);
+                write = true;
+            }
+        }
         if (write) {
             relationEditor.write(relationEditor.getLastModified(), message);
         }
@@ -131,7 +139,7 @@ public final class AtmEditor {
      * @param fobject
      * @throws DigitalObjectException
      */
-    public void writeOrganizationUserState(String organization, String user, String status, String message, FedoraObject fobject) throws DigitalObjectException {
+    public void writeOrganizationUserState(String organization, String user, String status, String donator, String message, FedoraObject fobject) throws DigitalObjectException {
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
         if (user != null && !user.isEmpty()) {
@@ -165,6 +173,15 @@ public final class AtmEditor {
                     relationEditor.setStatus(status);
                     write = true;
                 }
+            }
+        }
+
+        if (donator != null && !donator.isEmpty()) {
+            String oldVal = relationEditor.getDonator();
+            String newVal = NULL.equals(donator) ? null : donator;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                relationEditor.setDonator(donator);
+                write = true;
             }
         }
         if (write) {
@@ -227,15 +244,16 @@ public final class AtmEditor {
         atm.isLocked = relationEditor.isLocked();
         atm.lockedBy = relationEditor.getLockedBy();
         atm.lockedDate = relationEditor.getLockedDate();
+        atm.donator = relationEditor.getDonator();
         return atm;
     }
 
-    public void setChild(String parentPid, String organization, String user, String state, AppConfiguration appConfig, SearchView search, String sessionLog) throws DigitalObjectException, IOException {
+    public void setChild(String parentPid, String organization, String user, String state, String donator, AppConfiguration appConfig, SearchView search, String sessionLog) throws DigitalObjectException, IOException {
         List<String> pids = findElements(parentPid, appConfig);
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, appConfig);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.writeOrganizationUserState(organization, user, state, sessionLog, fobject);
+            editor.writeOrganizationUserState(organization, user, state, donator, sessionLog, fobject);
             fobject.flush();
         }
     }
@@ -317,6 +335,7 @@ public final class AtmEditor {
         private boolean isLocked;
         private String lockedBy;
         private Date lockedDate;
+        private String donator;
 
         public AtmItem() {
         }
@@ -404,6 +423,8 @@ public final class AtmEditor {
         public Date getLockedDate() {
             return lockedDate;
         }
+
+        public String getDonator() { return donator;}
     }
 
 }
