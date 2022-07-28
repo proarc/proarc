@@ -399,6 +399,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
                         accept = true;
                         break;
                     case LOADING_FAILED:
+                    case STOPPED:
                     case LOADED:
                         setTitle(i18n.ImportBatchChooser_ActionResetLoad_Title());
                         setTooltip(i18n.ImportBatchChooser_ActionResetLoad_Hint());

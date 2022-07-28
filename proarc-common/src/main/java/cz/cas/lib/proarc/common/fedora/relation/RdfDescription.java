@@ -52,6 +52,9 @@ public class RdfDescription {
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private RdfRelation status;
 
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private RdfRelation hasDonator;
+
     @XmlAttribute(namespace = Relations.RDF_NS)
     private RelationResource about;
 
@@ -293,6 +296,14 @@ public class RdfDescription {
 
     public void setStatus(RdfRelation status) {
         this.status = status;
+    }
+
+    public RdfRelation getDonator() {
+        return hasDonator;
+    }
+
+    public void setDonator(RdfRelation donator) {
+        this.hasDonator = donator;
     }
 
     public String getHasNdkExport() {

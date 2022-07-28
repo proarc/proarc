@@ -33,7 +33,7 @@ public class BatchItem {
     }
 
     public enum ObjectState {
-        EXCLUDED, LOADING, LOADING_FAILED, LOADED, INGESTING_FAILED, INGESTED;
+        EXCLUDED, LOADING, LOADING_FAILED, LOADED, INGESTING_FAILED, INGESTED, STOPPED;
     }
 
     public enum StreamState {

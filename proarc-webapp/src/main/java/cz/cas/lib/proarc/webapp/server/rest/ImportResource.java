@@ -37,9 +37,9 @@ import cz.cas.lib.proarc.common.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-import cz.cas.lib.proarc.webapp.server.ProfileStates;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
@@ -411,6 +411,24 @@ public class ImportResource {
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, loadingBatches);
     }
 
+    @POST
+    @Path(ImportResourceApi.BATCH_STOP_PATH)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<BatchView> stopBatch(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
+    ) {
+        session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+
+        Batch batch = importManager.get(batchId);
+        if (batch == null) {
+            throw RestException.plainNotFound(
+                    ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
+        }
+        ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
+        BatchView batchView = importManager.viewBatch(batch.getId());
+        return new SmartGwtResponse<BatchView>(batchView);
+    }
+
     @PUT
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
@@ -463,16 +481,22 @@ public class ImportResource {
 
             batch = new FedoraImport(appConfig, RemoteStorage.getInstance(appConfig), importManager, user)
                     .importBatch(batch, user.getUserName(), session.asFedoraLog());
-        } else if (state == Batch.State.LOADING_FAILED) {
+        } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED) {
             Batch.State realState = batch.getState();
             // try to reset import
-            if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED) {
+            if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED && realState != Batch.State.STOPPED) {
                 throw new UnsupportedOperationException("Cannot reset: " + batch);
             }
             ConfigurationProfile profile = findImportProfile(batchId, profileId);
             ImportProcess resume = ImportProcess.resume(batch, importManager,
                     appConfig.getImportConfiguration(profile));
-            ImportDispatcher.getDefault().addImport(resume);
+            try {
+                ImportDispatcher.getDefault().addImport(resume);
+            } catch (IllegalStateException ex) {
+                batch.setState(Batch.State.LOADING_FAILED);
+                importManager.update(batch);
+                throw ex;
+            }
         } else if (parentPid != null) {
             checkBatchState(batch);
             // XXX check PID is valid and exists

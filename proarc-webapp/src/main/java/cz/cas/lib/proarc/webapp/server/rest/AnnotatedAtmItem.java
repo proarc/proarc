@@ -112,4 +112,8 @@ public abstract class AnnotatedAtmItem extends AtmItem {
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_LOCKED_DATE)
     @Override
     public abstract Date getLockedDate();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_DONATOR)
+    @Override
+    public abstract String getDonator();
 }

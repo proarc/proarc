@@ -2062,7 +2062,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_STATUS) String status,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String model
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String model,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DONATOR) String donator
             ) throws IOException, DigitalObjectException {
 
         if (isLocked(transform(pids))) {
@@ -2084,10 +2085,10 @@ public class DigitalObjectResource {
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, organization, userName, status, session.asFedoraLog(), user.getRole());
+            editor.write(deviceId, organization, userName, status, donator, session.asFedoraLog(), user.getRole());
             fobject.flush();
             if (!(model != null && model.length() > 0 && model.contains("page"))) {
-                editor.setChild(pid, organization, userName, status, appConfig, search, session.asFedoraLog());
+                editor.setChild(pid, organization, userName, status, donator, appConfig, search, session.asFedoraLog());
             }
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);

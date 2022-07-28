@@ -16,12 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import cz.cas.lib.proarc.common.config.ConfigurationProfile;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
-import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
@@ -36,6 +30,12 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  *
@@ -90,6 +90,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         states.put(State.INGESTING.name(), i18n.ImportBatchDataSource_State_INGESTING());
         states.put(State.INGESTING_FAILED.name(), i18n.ImportBatchDataSource_State_INGESTING_FAILED());
         states.put(State.INGESTED.name(), i18n.ImportBatchDataSource_State_INGESTED());
+        states.put(State.STOPPED.name(), i18n.ImportBatchDataSource_State_STOPPED());
         state.setValueMap(states);
 
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
@@ -257,7 +258,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
      * XXX make it GWT accessible and remove this.
      */
     public enum State {
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED;
+        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED;
 
         public static State fromString(String value) {
             try {

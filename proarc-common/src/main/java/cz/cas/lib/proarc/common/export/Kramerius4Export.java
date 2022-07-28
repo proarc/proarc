@@ -734,6 +734,8 @@ public final class Kramerius4Export {
 
             setPolicy(policy, relations, doc);
 
+            setDonator(relations, doc, editor);
+
             editor.setDevice(null);
             editor.setExportResult(null);
             editor.setKrameriusExportResult(null);
@@ -796,6 +798,20 @@ public final class Kramerius4Export {
             throw new IllegalStateException(e);
         } catch (FedoraClientException e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    private void setDonator(List<Element> relations, Document doc, RelationEditor editor) throws DigitalObjectException {
+        for (Element relation : relations) {
+            if ("hasDonator".equals(relation.getTagName())) {
+                return ;
+            }
+        }
+        if (editor.getDonator() != null) {
+            Element hasDonator = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":hasDonator");
+            hasDonator.setAttributeNS(Relations.RDF_NS, "rdf:resource", RelationResource.fromPid(editor.getDonator()).getResource());
+            relations.add(hasDonator);
+            editor.setEmptyDonator();
         }
     }
 

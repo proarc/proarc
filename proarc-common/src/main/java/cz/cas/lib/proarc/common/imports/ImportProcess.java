@@ -144,6 +144,18 @@ public final class ImportProcess implements Runnable {
         }
     }
 
+    public static void stopLoadingBatch(Batch batch, ImportBatchManager ibm, AppConfiguration config) {
+        ImportDispatcher importDispatcher = ImportDispatcher.getDefault();
+        importDispatcher.stopNow();
+
+        LOG.log(Level.INFO, batch.toString(), "has been stopped");
+        batch.setState(Batch.State.STOPPED);
+        ibm.update(batch);
+
+        importDispatcher.restart();
+        resumeAll(ibm, importDispatcher, config);
+    }
+
     private static ConfigurationProfile resolveProfile(Batch batch, Profiles profiles) {
         String profileId = batch.getProfileId();
         if (profileId == null) {
