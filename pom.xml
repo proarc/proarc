@@ -52,7 +52,7 @@
             in proarc-webapp/src/main/webapp/META-INF/context.xml
         -->
         <jerseyVersion2>2.23.1</jerseyVersion2>
-        <smartGwtVersion>6.0-p20171208</smartGwtVersion>
+        <smartGwtVersion>6.0-p20220528</smartGwtVersion>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <!--
@@ -92,20 +92,29 @@
             </snapshots>
         </repository>
 
-        <repository>
+        <!--repository>
             <id>smartclient.com</id>
             <name>Smartclient Repository</name>
             <url>http://www.smartclient.com/maven2</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-        </repository>
+        </repository-->
 
         <!--org.moxieapps.gwt:org.moxieapps.gwt.uploader-->
-        <repository>
+        <!--repository>
             <id>geosdi</id>
             <name>geoSDI Repository</name>
             <url>http://repo.geosdi.org</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository-->
+
+        <repository>
+            <id>kramerius</id>
+            <name>Kramerius Repository</name>
+            <url>https://maven.pkg.github.com/ceskaexpedice/kramerius</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -115,6 +124,11 @@
     <dependencyManagement>
 
         <dependencies>
+            <dependency>
+                <groupId>cz.incad.kramerius</groupId>
+                <artifactId>common</artifactId>
+                <version>7.0.2</version>
+            </dependency>
 
             <dependency>
                 <groupId>commons-io</groupId>
@@ -298,7 +312,7 @@
                 <plugin>
                     <groupId>org.jvnet.jaxb2.maven2</groupId>
                     <artifactId>maven-jaxb2-plugin</artifactId>
-                    <version>0.13.1</version>
+                    <version>0.15.1</version>
                 </plugin>
 
                 <plugin>
