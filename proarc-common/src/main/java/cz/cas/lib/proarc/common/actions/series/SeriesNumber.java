@@ -90,7 +90,7 @@ public final class SeriesNumber {
         if (incrementNumber != null && !incrementNumber.isEmpty()) {
             try {
                 int increment = Integer.parseInt(incrementNumber.replaceAll("[^0-9]", ""));
-                if (increment > 0) {
+                if (increment >= 0) {
                     this.increment = increment;
                 } else {
                     this.increment = 1;

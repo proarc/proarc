@@ -463,6 +463,18 @@ public final class SearchView {
 
     private List<String> findAdvancedPids(Query q) throws FedoraClientException {
         List<String> objectsPid = new ArrayList<>();
+        if (q.getIdentifier() == null) {
+            return getAdvancedPids(q, null);
+        } else {
+            for (String identifier : q.getIdentifier().split(",")) {
+                objectsPid.addAll(getAdvancedPids(q, identifier));
+            }
+            return objectsPid;
+        }
+    }
+
+    private List<String> getAdvancedPids(Query q, String identifier) throws FedoraClientException {
+        List<String> objectsPid = new ArrayList<>();
         List<String> pids = new ArrayList<>();
         StringBuilder query = new StringBuilder();
         if (q.getModel() != null && !q.getModel().isEmpty()) {
@@ -471,7 +483,7 @@ public final class SearchView {
         buildQuery(query, "label", q.getLabel());
         buildQuery(query, "ownerId", q.getOwner());
         buildQuery(query, "creator", q.getCreator());
-        buildQuery(query, "identifier", q.getIdentifier());
+        buildQuery(query, "identifier", identifier);
 
         final String queryString = query.toString().trim();
         LOG.fine(queryString);
@@ -490,7 +502,6 @@ public final class SearchView {
             objectsPid.addAll(pids);
         }
         return objectsPid;
-
     }
 
 

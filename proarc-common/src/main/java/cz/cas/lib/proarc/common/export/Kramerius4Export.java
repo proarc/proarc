@@ -809,7 +809,7 @@ public final class Kramerius4Export {
         }
         if (editor.getDonator() != null) {
             Element hasDonator = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":hasDonator");
-            hasDonator.setAttributeNS(Relations.RDF_NS, "rdf:resource", RelationResource.fromPid(editor.getDonator()).getResource());
+            hasDonator.setAttributeNS(Relations.RDF_NS, "rdf:resource", RelationResource.fromPid(editor.getElementDonator()).getResource());
             relations.add(hasDonator);
             editor.setEmptyDonator();
         }

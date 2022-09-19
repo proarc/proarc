@@ -277,6 +277,7 @@ public class ImportBatchManager {
         batch.setFolder(folderPath);
         batch.setGenerateIndices(options.isGenerateIndices());
         batch.setGeneratePageNumber(options.isGeneratePageNumber());
+        batch.setPriority(options.getPriority());
         batch.setState(Batch.State.LOADING);
         batch.setTitle(title);
         batch.setUserId(user.getId());

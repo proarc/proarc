@@ -65,6 +65,14 @@
     </properties>
 
     <repositories>
+        <repository>
+            <id>kramerius</id>
+            <name>Kramerius</name>
+            <url>https://maven.pkg.github.com/ceskaexpedice/kramerius</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
 
         <repository>
             <id>proarc.repository</id>
