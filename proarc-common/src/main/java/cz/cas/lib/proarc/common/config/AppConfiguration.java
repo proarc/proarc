@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
+import cz.cas.lib.proarc.common.export.KwisExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
 import cz.cas.lib.proarc.common.fedora.SearchOptions;
@@ -181,6 +182,10 @@ public final class AppConfiguration {
 
     public Kramerius4ExportOptions getKramerius4Export() {
         return Kramerius4ExportOptions.from(config);
+    }
+
+    public KwisExportOptions getKwisExportOptions() {
+        return KwisExportOptions.from(config);
     }
 
     public NdkExportOptions getNdkExportOptions() {
