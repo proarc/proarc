@@ -43,6 +43,7 @@ import com.smartgwt.client.widgets.tree.TreeGridField;
 import com.smartgwt.client.widgets.tree.TreeNode;
 import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
+import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -58,6 +59,7 @@ import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
 import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource.ImportRecord;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.ProfileGroup;
+import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -158,6 +160,10 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         return (Boolean) optionsForm.getValue(ImportBatchDataSource.FIELD_INDICES);
     }
 
+    public String getPriority() {
+        return optionsForm.getValueAsString(ImportBatchDataSource.FIELD_PRIORITY);
+    }
+
     public String getDevice() {
         return optionsForm.getValueAsString(ImportBatchDataSource.FIELD_DEVICE);
     }
@@ -254,6 +260,7 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
         cbiPageIndexes.setValue(true);
 
         final SelectItem selectScanner = createScannerSelection();
+        final SelectItem selectPriority = createPrioritySelection();
         final SelectItem selectProfile = ProfileChooser.createProfileSelection(ProfileGroup.IMPORTS, i18n);
         selectProfile.setName(ImportBatchDataSource.FIELD_PROFILE_ID);
         selectProfile.addChangedHandler(new ChangedHandler() {
@@ -282,8 +289,23 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
             }
         });
 
-        form.setFields(selectProfile, selectScanner, cbiPageIndexes);
+        form.setFields(selectProfile, selectScanner, selectPriority, cbiPageIndexes);
         return form;
+    }
+
+    private SelectItem createPrioritySelection() {
+        final SelectItem selectPriority = new SelectItem(ImportBatchDataSource.FIELD_PRIORITY, i18n.ImportSourceChooser_OptionPriority_Title());
+        selectPriority.setAllowEmptyValue(false);
+        selectPriority.setDefaultValue(Batch.PRIORITY_MEDIUM);
+        selectPriority.setRequired(true);
+        selectPriority.setWidth(300);
+
+        LinkedHashMap<String, String> priorities = new LinkedHashMap<>();
+        priorities.put(Batch.PRIORITY_LOW, i18n.ImportSourceChooser_OptionPriority_Low());
+        priorities.put(Batch.PRIORITY_MEDIUM, i18n.ImportSourceChooser_OptionPriority_Medium());
+        priorities.put(Batch.PRIORITY_HIGH, i18n.ImportSourceChooser_OptionPriority_High());
+        selectPriority.setValueMap(priorities);
+        return  selectPriority;
     }
 
     private SelectItem createScannerSelection() {

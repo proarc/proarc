@@ -163,7 +163,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         UserTable ut = db.tableUser;
         DBCommand cmd = db.createCommand();
         cmd.select(table.id, table.state, table.userId, table.folder, table.title,
-                table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber);
+                table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber, table.priority);
         cmd.select(ut.username);
         cmd.join(table.userId, ut.id);
         if (filter.getCreatorId() != null) {
@@ -195,6 +195,13 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         if (filter.getModifiedTo() != null) {
             cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
                     table.timestamp.isLessOrEqual(filter.getModifiedTo())));
+        }
+        if (filter.getPriority() != null) {
+            if (Batch.PRIORITY_MEDIUM.equals(filter.getPriority())) {
+                cmd.where(table.priority.is(filter.getPriority()).or(table.priority.is(null)));
+            } else {
+                cmd.where(table.priority.is(filter.getPriority()));
+            }
         }
         String filePattern = filter.getFilePattern();
         if (filePattern != null) {

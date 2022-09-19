@@ -54,7 +54,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 11;
+    public static final int VERSION = 12;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -110,6 +110,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn generateIndices;
         public final DBTableColumn log;
         public final DBTableColumn profileId;
+        public final DBTableColumn priority;
 
         public BatchTable(DBDatabase db) {
             super("PROARC_BATCH", db);
@@ -128,6 +129,7 @@ public class ProarcDatabase extends DBDatabase {
             generateIndices = addColumn("GENERATE_INDICES", DataType.BOOL, 0, false);
             log = addColumn("LOG", DataType.CLOB, 0, false);
             profileId = addColumn("PROFILE_ID", DataType.TEXT, 2000, false);
+            priority = addColumn("PRIORITY", DataType.TEXT, 50, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
         }
@@ -545,7 +547,7 @@ public class ProarcDatabase extends DBDatabase {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
                 LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
-                schemaVersion = ProarcDatabaseV10.upgradeToVersion11(
+                schemaVersion = ProarcDatabaseV11.upgradeToVersion12(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);

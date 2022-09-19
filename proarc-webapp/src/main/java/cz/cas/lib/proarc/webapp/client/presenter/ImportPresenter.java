@@ -370,7 +370,8 @@ public class ImportPresenter {
                 Record newBatch = dsBatch.newBatch(importRecord.getPath(),
                         importSourceChooser.getImportProfile(),
                         importSourceChooser.getDevice(),
-                        importSourceChooser.getGenerateIndices());
+                        importSourceChooser.getGenerateIndices(),
+                        importSourceChooser.getPriority());
                 dsBatch.addData(newBatch, new DSCallback() {
 
                     @Override

@@ -31,6 +31,7 @@ import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
@@ -55,6 +56,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
     public static final String FIELD_PARENT = ImportResourceApi.IMPORT_BATCH_PARENTPID;
     public static final String FIELD_LOG = ImportResourceApi.IMPORT_BATCH_FAILURE;
     public static final String FIELD_PROFILE_ID = ImportResourceApi.IMPORT_BATCH_PROFILE;
+    public static final String FIELD_PRIORITY = ImportResourceApi.IMPORT_BATCH_PRIORITY;
 
     public static final String FIELD_DEVICE = ImportResourceApi.NEWBATCH_DEVICE_PARAM;
     public static final String FIELD_INDICES = ImportResourceApi.NEWBATCH_INDICES_PARAM;
@@ -75,6 +77,16 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 
         DataSourceIntegerField userId = new DataSourceIntegerField(FIELD_USER_ID);
         userId.setForeignKey(UserDataSource.ID + '.' + UserDataSource.FIELD_ID);
+
+        DataSourceTextField priority = new DataSourceTextField(FIELD_PRIORITY);
+        LinkedHashMap<String, String> priorities = new LinkedHashMap<>();
+        priorities.put(Batch.PRIORITY_LOWEST, i18n.ImportSourceChooser_OptionPriority_Lowest());
+        priorities.put(Batch.PRIORITY_LOW, i18n.ImportSourceChooser_OptionPriority_Low());
+        priorities.put(Batch.PRIORITY_MEDIUM, i18n.ImportSourceChooser_OptionPriority_Medium());
+        priorities.put(Batch.PRIORITY_HIGH, i18n.ImportSourceChooser_OptionPriority_High());
+        priorities.put(Batch.PRIORITY_HIGHEST, i18n.ImportSourceChooser_OptionPriority_Highest());
+        priority.setValueMap(priorities);
+
 
         DataSourceDateTimeField create = new DataSourceDateTimeField(FIELD_CREATE);
         create.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
@@ -113,7 +125,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 
         DataSourceTextField log = new DataSourceTextField(FIELD_LOG);
 
-        setFields(id, description, userId, user, create, timestamp, state, parent, log, profileId);
+        setFields(id, description, userId, user, create, timestamp, state, parent, log, profileId, priority);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
@@ -167,7 +179,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         }
     }
 
-    public Record newBatch(String folderPath, String profile, String device, Boolean indices) {
+    public Record newBatch(String folderPath, String profile, String device, Boolean indices, String priority) {
         Record r = new Record();
         r.setAttribute(FIELD_PATH, folderPath);
         if (profile != null) {
@@ -178,6 +190,9 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         }
         if (device != null) {
             r.setAttribute(FIELD_DEVICE, device);
+        }
+        if (priority != null) {
+            r.setAttribute(FIELD_PRIORITY, priority);
         }
         return r;
     }

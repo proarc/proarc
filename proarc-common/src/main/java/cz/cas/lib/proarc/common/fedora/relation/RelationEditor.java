@@ -160,6 +160,14 @@ public final class RelationEditor {
     }
 
     /**
+     * @return donator of model
+     */
+    public String getElementDonator() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getDonator());
+    }
+
+    /**
      * @param donator of model
      */
     public void setDonator(String donator) throws DigitalObjectException {

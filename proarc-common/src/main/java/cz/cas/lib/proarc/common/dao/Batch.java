@@ -26,6 +26,12 @@ import java.sql.Timestamp;
  */
 public class Batch {
 
+    public static final String PRIORITY_LOWEST = "lowest";
+    public static final String PRIORITY_LOW = "low";
+    public static final String PRIORITY_MEDIUM = "medium";
+    public static final String PRIORITY_HIGH = "high";
+    public static final String PRIORITY_HIGHEST = "highest";
+
     public enum State {
 
         EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED
@@ -46,6 +52,7 @@ public class Batch {
     private boolean generatePageNumber;
     private String log;
     private String profileId;
+    private String priority;
 
     public Integer getId() {
         return id;
@@ -167,6 +174,14 @@ public class Batch {
         this.profileId = profileId;
     }
 
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
     @Override
     public String toString() {
         return "Batch{" + "id=" + id + ", folder=" + folder + ", title=" + title
@@ -174,7 +189,8 @@ public class Batch {
                 + ", timestamp=" + timestamp + ", state=" + state
                 + ", userId=" + userId + ", estimateItemNumber=" + estimateItemNumber
                 + ", device=" + device + ", generateIndices=" + generateIndices
-                + ", profileId=" + profileId + ", log=" + log + '}';
+                + ", profileId=" + profileId + ", log=" + log
+                + ", priority=" + priority + '}';
     }
 
 }

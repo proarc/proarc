@@ -38,6 +38,7 @@ public class BatchViewFilter {
     private Timestamp modifiedTo;
     private String profile;
     private String sortBy;
+    private String priority;
     private int offset = 0;
     private int maxCount = Integer.MAX_VALUE;
 
@@ -158,6 +159,15 @@ public class BatchViewFilter {
 
     public BatchViewFilter setProfile(String profile) {
         this.profile = profile;
+        return this;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public BatchViewFilter setPriority(String priority) {
+        this.priority = priority;
         return this;
     }
 }

@@ -43,6 +43,16 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import org.apache.commons.io.FileUtils;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
@@ -58,16 +68,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import javax.xml.XMLConstants;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -198,7 +199,7 @@ public class WaveImporterTest {
         assertNotNull(mimetype);
 
         ImportOptions ctx = new ImportOptions(ac1.getParentFile(), "scanner:scanner1",
-                true, junit, config.getImportConfiguration());
+                true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);
@@ -269,7 +270,7 @@ public class WaveImporterTest {
         assertTrue(targetFolder.exists());
 
         ImportOptions ctx = new ImportOptions(ac1.getParentFile(),
-                "scanner:scanner1", true, junit, config.getImportConfiguration());
+                "scanner:scanner1", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);

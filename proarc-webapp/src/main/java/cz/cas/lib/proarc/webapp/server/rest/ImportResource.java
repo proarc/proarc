@@ -208,7 +208,8 @@ public class ImportResource {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority
             ) throws URISyntaxException, IOException {
         
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -227,7 +228,7 @@ public class ImportResource {
             for (File importFile : folder.listFiles()) {
                 if (importFile.exists() && importFile.isDirectory()) {
                     ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
-                            importManager, device, indices, true, appConfig.getImportConfiguration(profile), appConfig);
+                            importManager, device, indices, true, priority, appConfig.getImportConfiguration(profile), appConfig);
                     ImportDispatcher.getDefault().addImport(process);
                     listBatches.add(process.getBatch());
                 }
@@ -235,7 +236,7 @@ public class ImportResource {
             return new SmartGwtResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                    importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
+                    importManager, device, indices, priority, appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
             return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -249,7 +250,8 @@ public class ImportResource {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -269,7 +271,7 @@ public class ImportResource {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
+                        importManager, device, indices, priority, appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {
@@ -342,6 +344,7 @@ public class ImportResource {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_DESCRIPTION) String filePattern,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profile,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) String priority,
             @QueryParam("_startRow") int startRow,
             @QueryParam("_size") int size,
             @QueryParam("_sortBy") String sortBy
@@ -362,6 +365,7 @@ public class ImportResource {
                     .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                     .setFilePattern(filePattern)
                     .setProfile(profile)
+                    .setPriority(priority)
                     .setMaxCount(100000)
                     .setSortBy(sortBy);
         List<BatchView> allBatches = importManager.viewBatch(filterAll);
@@ -379,6 +383,7 @@ public class ImportResource {
                 .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                 .setFilePattern(filePattern)
                 .setProfile(profile)
+                .setPriority(priority)
                 .setOffset(startRow).setMaxCount(size)
                 .setSortBy(sortBy)
                 ;
