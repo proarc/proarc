@@ -27,7 +27,7 @@ import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportUtils;
-import cz.cas.lib.proarc.common.export.KWISExport;
+import cz.cas.lib.proarc.common.export.KwisExport;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
@@ -745,20 +745,27 @@ public class ExportResource {
         }
         ExportResult result = new ExportResult();
 
-        URI imagesPath = runDatastreamExport(pids, Collections.singletonList("NDK_USER"), hierarchy);
-        URI k4Path = runK4Export(pids, hierarchy, policy, "public");
+        String outputPath = appConfig.getKwisExportOptions().getKwisPath();
+        if (outputPath == null) {
+            outputPath = user.getExportFolder().getPath();
+        }
+        if (!outputPath.endsWith(File.separator)) {
+            outputPath = outputPath + File.separator;
+        }
 
-        String outputPath = user.getExportFolder().getPath();
+        URI imagesPath = runDatastreamExport(outputPath, pids, Collections.singletonList("NDK_USER"), hierarchy);
+        URI k4Path = runK4Export(outputPath, pids, hierarchy, policy, "public");
+
         String imp = imagesPath.getPath();
         String k4p = k4Path.getPath();
         String exportPackPath = outputPath + pids.get(0).substring(5) + "_KWIS";
         File exportFolder = new File(exportPackPath);
         exportFolder.mkdir();
 
-        imp = outputPath + imp.substring(imp.indexOf('/') + 1);
-        k4p = outputPath + k4p.substring(k4p.indexOf('/') + 1);
+        //imp = outputPath + imp.substring(imp.indexOf('/') + 1);
+        //k4p = outputPath + k4p.substring(k4p.indexOf('/') + 1);
 
-        KWISExport export = new KWISExport(
+        KwisExport export = new KwisExport(
                 appConfig,
                 imp,
                 k4p,
@@ -768,7 +775,7 @@ public class ExportResource {
             export.run();
         } catch (Exception ex) {
             result.setErrors(new ArrayList<>());
-            result.getErrors().add(new ExportError(pids.get(0), ex.getMessage(), false, "Not configurated KWIS export."));
+            result.getErrors().add(new ExportError(pids.get(0), ex.getMessage(), false, "ERROR in postProcessing ."));
             MetsUtils.renameFolder(new File(outputPath), exportFolder, null);
         } finally {
             FileUtils.deleteDirectory(new File(imp));
@@ -777,14 +784,16 @@ public class ExportResource {
         return new SmartGwtResponse<>(result);
     }
 
-    private URI runK4Export(List<String> pids, boolean hierarchy, String policy, String exportPageContext) throws Exception {
+    private URI runK4Export(String path, List<String> pids, boolean hierarchy, String policy, String exportPageContext) throws Exception {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
 
         Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(appConfig), appConfig, policy);
-        URI exportUri = user.getExportFolder();
-        File exportFolder = new File(exportUri);
+        if (path == null || path.isEmpty()) {
+            path = user.getExportFolder().getPath();
+        }
+        File exportFolder = new File(path);
         Kramerius4Export.Result target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
         if (target.getException() != null) {
             MetsUtils.renameFolder(exportFolder, target.getFile(), null);
@@ -794,6 +803,7 @@ public class ExportResource {
     }
 
     private URI runDatastreamExport(
+            String path,
             List<String> pids,
             List<String> dsIds,
             boolean hierarchy
@@ -805,8 +815,11 @@ public class ExportResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
         DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig);
-        URI exportUri = user.getExportFolder();
-        File exportFolder = new File(exportUri);
+
+        if (path == null || path.isEmpty()) {
+            path = user.getExportFolder().getPath();
+        }
+        File exportFolder = new File(path);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
         return user.getUserHomeUri().relativize(target.toURI());
     }
