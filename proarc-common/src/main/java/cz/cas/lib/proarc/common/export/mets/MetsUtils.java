@@ -1162,7 +1162,7 @@ public class MetsUtils {
         return fileGrpMap;
     }
 
-    public static void renameFolder(File exportFolder, File targetFolder, File archiveTargetFolder) {
+    public static String renameFolder(File exportFolder, File targetFolder, File archiveTargetFolder) {
         if (archiveTargetFolder != null) {
             for (File file : targetFolder.listFiles()) {
                 if (file.isFile()) {
@@ -1221,8 +1221,10 @@ public class MetsUtils {
             }
             Path path = Paths.get(targetFolder.toURI());
             Files.move(path, path.resolveSibling("error_" + targetFolder.getName()), StandardCopyOption.REPLACE_EXISTING);
+            return file.getAbsolutePath();
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Cannot move " + targetFolder.getName() + "error_" + targetFolder.getName());
+            return targetFolder.getAbsolutePath();
         }
     }
 }

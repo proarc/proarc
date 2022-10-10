@@ -155,7 +155,6 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfProfile.setWidth(150);
         lgfProfile.setCanSort(true);
         lgfProfile.setCanFilter(true);
-        lgfProfile.setHidden(true);
 
         ListGridField lgfPriority = new ListGridField(ImportBatchDataSource.FIELD_PRIORITY, i18n.ImportSourceChooser_OptionPriority_Title());
         lgfPriority.setWidth(150);

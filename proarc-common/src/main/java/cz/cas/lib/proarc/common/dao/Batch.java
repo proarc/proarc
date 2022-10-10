@@ -32,9 +32,22 @@ public class Batch {
     public static final String PRIORITY_HIGH = "high";
     public static final String PRIORITY_HIGHEST = "highest";
 
+    public static final String EXPORT_KRAMERIUS = "exportProfile.kramerius";
+    public static final String EXPORT_NDK = "exportProfile.ndk";
+    public static final String EXPORT_ARCHIVE = "exportProfile.archive";
+    public static final String EXPORT_DESA = "exportProfile.desa";
+    public static final String EXPORT_CEJSH = "exportProfile.cejsh";
+    public static final String EXPORT_CROSSREF = "exportProfile.crossref";
+    public static final String EXPORT_KWIS = "exportProfile.kwis";
+    public static final String EXPORT_ALEPH = "exportProfile.aleph";
+
+    public static final String INTERNAL_REINDEX = "internalProfile.reindex";
+
     public enum State {
 
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED
+        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,
+        EXPORTING, EXPORT_FAILED, EXPORT_DONE,
+        REINDEXING, REINDEX_FAILED, REINDEX_DONE
     }
     
     private Integer id;

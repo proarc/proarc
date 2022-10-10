@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
@@ -2736,23 +2737,30 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException {
-        ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, user, pid, modelId);
-        if (batchId != null) {
-            Batch batch = importManager.get(batchId);
-            List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
-            reindexObjects.reindexLocal(objects);
-        } else {
-            IMetsElement parentElement = reindexObjects.getParentElement();
-            if (parentElement != null) {
+        Batch internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING);
+        try {
+            ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, user, pid, modelId);
+            if (batchId != null) {
+                Batch batch = importManager.get(batchId);
+                List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
+                reindexObjects.reindexLocal(objects);
+            } else {
+                IMetsElement parentElement = reindexObjects.getParentElement();
+                if (parentElement != null) {
 
-                if (isLocked(reindexObjects.getPids(parentElement))) {
-                    return returnValidationError(ERR_IS_LOCKED);
+                    if (isLocked(reindexObjects.getPids(parentElement))) {
+                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnValidationMessage(ERR_IS_LOCKED), Batch.State.REINDEX_FAILED);
+                        return returnValidationError(ERR_IS_LOCKED);
+                    }
+                    reindexObjects.reindex(parentElement);
                 }
-
-                reindexObjects.reindex(parentElement);
             }
+            BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), Batch.State.REINDEX_DONE);
+            return new SmartGwtResponse<>();
+        } catch (Exception ex) {
+            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), ImportBatchManager.toString(ex), Batch.State.REINDEX_FAILED);
+            throw ex;
         }
-        return new SmartGwtResponse<>();
     }
 
     @POST
