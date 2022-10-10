@@ -103,6 +103,12 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         states.put(State.INGESTING_FAILED.name(), i18n.ImportBatchDataSource_State_INGESTING_FAILED());
         states.put(State.INGESTED.name(), i18n.ImportBatchDataSource_State_INGESTED());
         states.put(State.STOPPED.name(), i18n.ImportBatchDataSource_State_STOPPED());
+        states.put(State.EXPORTING.name(), i18n.ImportBatchDataSource_State_EXPORTING());
+        states.put(State.EXPORT_FAILED.name(), i18n.ImportBatchDataSource_State_EXPORT_FAILED());
+        states.put(State.EXPORT_DONE.name(), i18n.ImportBatchDataSource_State_EXPORT_DONE());
+        states.put(State.REINDEXING.name(), i18n.ImportBatchDataSource_State_REINDEXING());
+        states.put(State.REINDEX_FAILED.name(), i18n.ImportBatchDataSource_State_REINDEX_FAILED());
+        states.put(State.REINDEX_DONE.name(), i18n.ImportBatchDataSource_State_REINDEX_DONE());
         state.setValueMap(states);
 
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
@@ -111,15 +117,24 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         DataSourceTextField profileId = new DataSourceTextField(FIELD_PROFILE_ID);
         LinkedHashMap<String, String> profiles = new LinkedHashMap<>();
         profiles.put(ConfigurationProfile.DEFAULT, i18n.ImportProfile_DEFAULT());
-        profiles.put(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, i18n.ImportProfile_DEFAULT_ARCHIVE_IMPORT());
-        profiles.put(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_IMPORT());
-        profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_STT_IMPORT());
-        profiles.put(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_MONOGRAPH_IMPORT());
-        profiles.put(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_PERIODIKA_IMPORT());
-        profiles.put("profile.chronicle", i18n.ImportProfile_DEFAULT_CHRONICLE_IMPORT());
-        profiles.put("profile.oldprint", i18n.ImportProfile_DEFAULT_OLDPRINT_IMPORT());
-        profiles.put("profile.ndk_full_import", i18n.ImportProfile_DEFAULT_NDK_FULL_IMPORT());
-        profiles.put(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, i18n.ImportProfile_DEFAULT_SOUNDRECORDING_IMPORT());
+        profiles.put(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, i18n.ImportProfile_ARCHIVE_IMPORT());
+        profiles.put(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_IMPORT());
+        profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_STT_IMPORT());
+        profiles.put(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_MONOGRAPH_IMPORT());
+        profiles.put(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_PERIODIKA_IMPORT());
+        profiles.put("profile.chronicle", i18n.ImportProfile_CHRONICLE_IMPORT());
+        profiles.put("profile.oldprint", i18n.ImportProfile_OLDPRINT_IMPORT());
+        profiles.put("profile.ndk_full_import", i18n.ImportProfile_NDK_FULL_IMPORT());
+        profiles.put(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, i18n.ImportProfile_SOUNDRECORDING_IMPORT());
+        profiles.put("exportProfile.kramerius", i18n.ExportProfile_Kramerius());
+        profiles.put("exportProfile.ndk", i18n.ExportProfile_Ndk());
+        profiles.put("exportProfile.archive", i18n.ExportProfile_Archive());
+        profiles.put("exportProfile.desa", i18n.ExportProfile_Desa());
+        profiles.put("exportProfile.cejsh", i18n.ExportProfile_Cejsh());
+        profiles.put("exportProfile.crossref", i18n.ExportProfile_Crossref());
+        profiles.put("exportProfile.kwis", i18n.ExportProfile_Kwis());
+        profiles.put("exportProfile.aleph", i18n.ExportProfile_Aleph());
+        profiles.put("internalProfile.reindex", i18n.InternalProfile_Reindex());
         profileId.setValueMap(profiles);
         profileId.setHidden(true);
 
@@ -273,7 +288,9 @@ public final class ImportBatchDataSource extends ProarcDataSource {
      * XXX make it GWT accessible and remove this.
      */
     public enum State {
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED;
+        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,
+        EXPORTING, EXPORT_FAILED, EXPORT_DONE,
+        REINDEXING, REINDEX_FAILED, REINDEX_DONE;
 
         public static State fromString(String value) {
             try {

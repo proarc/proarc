@@ -286,6 +286,20 @@ public class ImportBatchManager {
         updateFolderStatus(updated);
         return updated;
     }
+    public Batch add(String pid, UserProfile user, String profile, State state) {
+        Batch batch = new Batch();
+        batch.setCreate(new Timestamp(System.currentTimeMillis()));
+        batch.setDevice(null);
+        batch.setEstimateItemNumber(null);
+        batch.setFolder(pid);
+        batch.setPriority(Batch.PRIORITY_MEDIUM);
+        batch.setState(state);
+        batch.setTitle(pid);
+        batch.setUserId(user.getId());
+        batch.setProfileId(profile);
+        Batch updated = update(batch);
+        return updated;
+    }
 
     public Batch update(Batch update) {
         if (update == null) {

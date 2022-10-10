@@ -207,10 +207,14 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         if (filePattern != null) {
             BatchItemTable bitems = db.tableBatchItem;
             cmd.selectDistinct();
-            cmd.join(table.id, bitems.batchId);
-            cmd.where(table.title.likeUpper('%' + filePattern.toUpperCase() + '%')
-                    .or(bitems.type.is(BatchItem.Type.FILE).and(bitems.file.likeUpper('%' + filePattern.toUpperCase() + '%')))
-            );
+            if (filePattern.startsWith("uuid:")) {
+                cmd.where(table.title.likeUpper('%' + filePattern.toUpperCase() + '%'));
+            } else {
+                cmd.join(table.id, bitems.batchId);
+                cmd.where(table.title.likeUpper('%' + filePattern.toUpperCase() + '%')
+                        .or(bitems.type.is(BatchItem.Type.FILE).and(bitems.file.likeUpper('%' + filePattern.toUpperCase() + '%')))
+                );
+            }
         }
         String profileId = filter.getProfile();
         if (profileId != null) {

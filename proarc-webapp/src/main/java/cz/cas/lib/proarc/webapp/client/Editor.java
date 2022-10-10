@@ -295,7 +295,7 @@ public class Editor implements EntryPoint {
 
     private Canvas createButtonImportHistory() {
         IconButton btn = new IconButton();
-        btn.setTitle(i18n.MainMenu_Import_Edit_Title_Btn());
+        btn.setTitle(i18n.MainMenu_Process_History_Title());
         btn.addClickHandler(new ClickHandler() {
             @Override
             public void onClick(ClickEvent clickEvent) {
@@ -443,9 +443,13 @@ public class Editor implements EntryPoint {
 
     private TreeNode[] createMenuContent() {
         TreeNode[] trees = new TreeNode[] {
+                createTreeNode("Process", i18n.MainMenu_Process_Title(),
+                        createTreeNode("ProcessHistory", i18n.MainMenu_Process_History_Title(), new ImportPlace(Type.HISTORY))
+                ),
                 createTreeNode("Import", i18n.MainMenu_Import_Title(),
-                        createTreeNode("New Batch", i18n.MainMenu_Import_NewBatch_Title(), new ImportPlace(Type.CONTENT)),
-                        createTreeNode("History", i18n.MainMenu_Import_Edit_Title(), new ImportPlace(Type.HISTORY))),
+                        createTreeNode("New Batch", i18n.MainMenu_Import_NewBatch_Title(), new ImportPlace(Type.CONTENT))
+                        //createTreeNode("History", i18n.MainMenu_Import_Edit_Title(), new ImportPlace(Type.HISTORY))
+                        ),
                 createTreeNode("Edit", i18n.MainMenu_Edit_Title(),
                         createTreeNode("New Object", i18n.MainMenu_Edit_NewObject_Title(), new DigitalObjectCreatorPlace()),
                         createTreeNode("Search", i18n.MainMenu_Edit_Edit_Title(), new DigitalObjectManagerPlace())
@@ -459,7 +463,7 @@ public class Editor implements EntryPoint {
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
                 createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin", UserRole.ROLE_SUPERADMIN)),
                 createProtectedTreeNode("Console", i18n.MainMenu_Console_Title(), Arrays.asList("proarc.permission.admin")),
-                createTreeNode("About", i18n.AboutWindow_Title()),
+                createTreeNode("About", i18n.AboutWindow_Title())
         };
         trees = reduce(trees);
         for (int i = 0; i < trees.length; i++) {

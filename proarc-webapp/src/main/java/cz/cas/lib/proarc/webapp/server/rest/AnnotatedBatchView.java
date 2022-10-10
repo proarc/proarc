@@ -22,7 +22,6 @@ import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Helper class to annotate {@link BatchView} properties.
@@ -41,7 +40,7 @@ public abstract class AnnotatedBatchView extends BatchView {
         return super.getId();
     }
 
-    @XmlTransient
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_FOLDER)
     @Override
     public abstract String getFolder();
 
