@@ -133,7 +133,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put("exportProfile.cejsh", i18n.ExportProfile_Cejsh());
         profiles.put("exportProfile.crossref", i18n.ExportProfile_Crossref());
         profiles.put("exportProfile.kwis", i18n.ExportProfile_Kwis());
-        profiles.put("exportProfile.aleph", i18n.ExportProfile_Aleph());
+//        profiles.put("exportProfile.aleph", i18n.ExportProfile_Aleph());
         profiles.put("internalProfile.reindex", i18n.InternalProfile_Reindex());
         profileId.setValueMap(profiles);
         profileId.setHidden(true);

@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
@@ -37,8 +38,19 @@ public class NdkMonographTitleMapper extends RdaNdkMapper {
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
         addGenre(mods);
+        updateOriginInfo(mods);
         fillAbstract(mods);
         fillRecordInfo(mods);
+    }
+
+    private void updateOriginInfo(ModsDefinition mods) {
+        removeIssuance(mods);
+    }
+
+    private void removeIssuance(ModsDefinition mods) {
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            originInfo.getIssuance().clear();
+        }
     }
 
 
