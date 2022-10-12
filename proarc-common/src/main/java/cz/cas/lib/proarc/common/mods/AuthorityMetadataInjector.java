@@ -62,6 +62,7 @@ public class AuthorityMetadataInjector implements MetadataInjector {
         if (authority != null && authority.getData() != null && authority.getData().getName() != null && authority.getData().getName().size() > 0) {
             for (NameDefinition name : authority.getData().getName()) {
                 name.setUsage(null);
+                name.getDescription().clear();
             }
             metadata.getData().getName().addAll(authority.getData().getName());
         }
