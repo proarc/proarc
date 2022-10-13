@@ -714,6 +714,7 @@ public class ExportResource {
             }
             File target = null;
             for (File file : targetFolder.listFiles()) {
+                deleteRawFolder(typeOfPackage, file);
                 if (file.isDirectory()) {
                     target = ExportUtils.createFolder(file, "NDK", false);
                     continue;
@@ -795,6 +796,15 @@ public class ExportResource {
             }
             BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
             throw ex;
+        }
+    }
+
+    private void deleteRawFolder(String typeOfPackage, File archiveFolder) {
+        for (File file : archiveFolder.listFiles()) {
+            if (Const.EXPORT_NDK4SIP.equals(typeOfPackage) && file.isDirectory() && "RAW".equals(file.getName())) {
+                MetsUtils.deleteFolder(file);
+                break;
+            }
         }
     }
 
