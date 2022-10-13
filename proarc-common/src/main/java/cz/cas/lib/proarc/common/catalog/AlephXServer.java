@@ -46,11 +46,9 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import static cz.cas.lib.proarc.common.catalog.CatalogUtils.repairHtml;
-import static cz.cas.lib.proarc.common.catalog.CatalogUtils.repairModsBytes;
 
 /**
  * Aleph X Server metadata provider
@@ -249,7 +247,7 @@ public final class AlephXServer implements BibliographicCatalog {
 //        marcxmlSrc = transformers.dump2Temp(marcxmlSrc, "3OaimarcAsMarc21slim.xml");
         byte[] modsBytes = transformers.transformAsBytes(
                 marcxmlSrc, Transformers.Format.MarcxmlAsMods3);
-        modsBytes = repairModsBytes(modsBytes, (Document) ((DOMSource) source).getNode());
+//        modsBytes = repairModsBytes(modsBytes, (Document) ((DOMSource) source).getNode());
 //        try {
 //            FileOutputStream tmp = new FileOutputStream("/tmp/aleph/4mods.xml");
 //            tmp.write(modsBytes);

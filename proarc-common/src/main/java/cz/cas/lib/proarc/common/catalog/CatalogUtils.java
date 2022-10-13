@@ -373,6 +373,12 @@ public class CatalogUtils {
             if (placeValue != null) {
                 boolean containsPlace = false;
                 for (PlaceDefinition place : originInfo.getPlace()) {
+                    for (PlaceTermDefinition placeTermDefinition : place.getPlaceTerm()) {
+                        if (placeTermDefinition.getValue().equals(placeValue.getValue())) {
+                            containsPlace = true;
+                            break;
+                        }
+                    }
                     if (!place.getPlaceTerm().contains(placeValue)) {
                         containsPlace = true;
                     }
