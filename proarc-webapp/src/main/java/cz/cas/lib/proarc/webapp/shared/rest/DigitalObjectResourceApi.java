@@ -271,7 +271,8 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE = "changeK4PeriodicalIssueToNdkPeriodicalIssue";
     public static final String CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME = "changeK4MonographToNdkMonographVolume";
     public static final String CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME = "changeK4MonographUnitToNdkMonographVolume";
-
+    public static final String CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET = "changeNdkMusicsheetToSttMusicsheet";
+    public static final String CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET = "changeSttMusicsheetToNdkMusicsheet";
 
     public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
     public static final String UPDATE_NDK_PAGE = "updateNdkPage";

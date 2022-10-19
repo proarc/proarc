@@ -159,6 +159,8 @@ public class ChangeModels {
             fixModsFromK4(pid, mods, parentPid);
         } else if (NdkMapper.isNdkModel(oldModel)) {
             fixModsFromNdk(pid, mods, parentPid);
+        } else if (NdkMapper.isOldprintModel(oldModel)) {
+            fixModsFromOldPrint(pid, mods, parentPid);
         } else {
             switch (newModel) {
                 case NdkPlugin.MODEL_NDK_PAGE:
@@ -173,6 +175,19 @@ public class ChangeModels {
                 default:
                     throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
             }
+        }
+    }
+
+    private void fixModsFromOldPrint(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
+        switch (newModel) {
+            case NdkPlugin.MODEL_NDK_PAGE:
+                fixNdkPageMods(mods);
+                break;
+            case NdkPlugin.MODEL_SHEETMUSIC:
+                // no metadata change needed
+                break;
+            default:
+                throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
         }
     }
 
@@ -207,6 +222,9 @@ public class ChangeModels {
             case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME:
             case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE:
                 fixCollectionOfClippingsVolumeMods(mods, parentPid);
+                break;
+            case OldPrintPlugin.MODEL_SHEETMUSIC:
+                // no metadata change needed
                 break;
             default:
                 throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
