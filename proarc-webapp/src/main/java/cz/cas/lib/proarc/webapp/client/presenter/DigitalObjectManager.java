@@ -44,6 +44,8 @@ import cz.cas.lib.proarc.webapp.client.action.CopyObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMusicsheetToSttMusicsheetAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeSttMusicsheetToNdkMusicsheetAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.LockObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
@@ -152,6 +154,8 @@ public final class DigitalObjectManager {
     private ChangeK4MonographToNdkMonographVolumeAction changeK4MonographToNdkMonographVolumeAction;
     private ChangeK4MonographUnitToNdkMonographVolumeAction changeK4MonographUnitToNdkMonographVolumeAction;
     private ChangeK4PeriodicalToNdkPeriodicalAction changeK4PeriodicalToNdkPeriodicalAction;
+    private ChangeNdkMusicsheetToSttMusicsheetAction changeNdkMusicsheetToSttMusicsheetAction;
+    private ChangeSttMusicsheetToNdkMusicsheetAction changeSttMusicsheetToNdkMusicsheetAction;
     private UpdateNdkArticleAction updateNdkArticleAction;
     private UpdateNdkPageAction updateNdkPageAction;
     private TreeExpandAction expandTreeAction;
@@ -218,7 +222,7 @@ public final class DigitalObjectManager {
 
     public void init() {
         if (initialized) {
-            return ;
+            return;
         }
         initialized = true;
         fetchModels(false);
@@ -336,9 +340,11 @@ public final class DigitalObjectManager {
         changeNdkMonographTitleToNdkMonographVolumeAction = new ChangeNdkMonographTitleToNdkMonographVolumeAction(i18n);
         changeK4PeriodicalIssueToNdkPeriodicalIssueAction = new ChangeK4PeriodicalIssueToNdkPeriodicalIssueAction(i18n);
         changeK4PeriodicalVolumeToNdkPeriodicalVolumeAction = new ChangeK4PeriodicalVolumeToNdkPeriodicalVolumeAction(i18n);
-        changeK4MonographToNdkMonographVolumeAction =  new ChangeK4MonographToNdkMonographVolumeAction(i18n);
+        changeK4MonographToNdkMonographVolumeAction = new ChangeK4MonographToNdkMonographVolumeAction(i18n);
         changeK4MonographUnitToNdkMonographVolumeAction = new ChangeK4MonographUnitToNdkMonographVolumeAction(i18n);
         changeK4PeriodicalToNdkPeriodicalAction = new ChangeK4PeriodicalToNdkPeriodicalAction(i18n);
+        changeNdkMusicsheetToSttMusicsheetAction = new ChangeNdkMusicsheetToSttMusicsheetAction(i18n);
+        changeSttMusicsheetToNdkMusicsheetAction = new ChangeSttMusicsheetToNdkMusicsheetAction(i18n);
         updateNdkArticleAction = new UpdateNdkArticleAction(i18n);
         updateNdkPageAction = new UpdateNdkPageAction(i18n);
         expandTreeAction = new TreeExpandAction(
@@ -420,6 +426,7 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(initChangePageMenu(actionSource));
         menuAdministration.addItem(initChangeNdkModelsMenu(actionSource));
         menuAdministration.addItem(initChangeK4ModelsMenu(actionSource));
+        menuAdministration.addItem(initChangeOldprintModelsMenu(actionSource));
         //menuAdministration.addItem(Actions.asMenuItem(changeClippingsVolumeToNdkMonographVolumeAction, actionSource, false));
         //menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
@@ -428,7 +435,6 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(updateAllObjectsAction, actionSource, false));
         btnAdministration.setMenu(menuAdministration);
-
 
 
         toolbar.addMember(Actions.asIconButton(new RefreshAction(i18n),
@@ -454,6 +460,14 @@ public final class DigitalObjectManager {
         }
     }
 
+    private MenuItem initChangeOldprintModelsMenu(ActionSource actionSource) {
+        MenuItem changeNdkModels = new MenuItem(i18n.ChangeSttModels());
+        Menu changeSttModelsMenu = Actions.createMenu();
+        changeSttModelsMenu.addItem(Actions.asMenuItem(changeSttMusicsheetToNdkMusicsheetAction, actionSource, false));
+        changeNdkModels.setSubmenu(changeSttModelsMenu);
+        return changeNdkModels;
+    }
+
     private MenuItem initChangePageMenu(ActionSource actionSource) {
         MenuItem changePageModels = new MenuItem(i18n.ChangePageModels());
         Menu changePageModelsMenu = Actions.createMenu();
@@ -472,6 +486,7 @@ public final class DigitalObjectManager {
         //changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMonographTitleToClippingsTitleAction, actionSource, false));
         changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMonographTitleToNdkMonographVolumeAction, actionSource, false));
         changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMonographVolumeToNdkMonographTitleAction, actionSource, false));
+        changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMusicsheetToSttMusicsheetAction, actionSource, false));
         changeNdkModels.setSubmenu(changeNdkModelsMenu);
         return changeNdkModels;
     }

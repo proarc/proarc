@@ -117,6 +117,8 @@ public final class RestConfig {
     public static final String URL_CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE);
     public static final String URL_CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME);
     public static final String URL_CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME);
+    public static final String URl_CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET);
+    public static final String URl_CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET);
     public static final String URL_UPDATE_NDK_ARTICLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_ARTICLE);
     public static final String URL_UPDATE_NDK_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_PAGE);
     public static final String URL_LOCALIZATION = path(URL_ROOT, LocalizationResourceApi.PATH);

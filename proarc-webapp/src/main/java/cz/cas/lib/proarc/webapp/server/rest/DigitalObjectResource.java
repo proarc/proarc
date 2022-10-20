@@ -2728,6 +2728,72 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<>();
     }
 
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeNdkMusicsheetToOldprintMusicsheet(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
+        if (pids == null || pids.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, NdkPlugin.MODEL_SHEETMUSIC, OldPrintPlugin.MODEL_SHEETMUSIC);
+            changeModels.findObjects(false);
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_SHEETMUSIC);
+                throw result.getEx();
+            }
+        }
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<Item> changeSttMusicsheetToNdkMusicsheet(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
+        if (pids == null || pids.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, pid, OldPrintPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_SHEETMUSIC);
+            changeModels.findObjects(false);
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_SHEETMUSIC);
+                throw result.getEx();
+            }
+        }
+        return new SmartGwtResponse<>();
+    }
+
 
     @PUT
     @Path(DigitalObjectResourceApi.REINDEX_PATH)

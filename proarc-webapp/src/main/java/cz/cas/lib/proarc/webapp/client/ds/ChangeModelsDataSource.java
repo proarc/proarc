@@ -95,4 +95,12 @@ public class ChangeModelsDataSource extends ProarcDataSource {
     public static ChangeModelsDataSource changeK4MonographUnitToNdkMonographVolume() {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME);
     }
+
+    public static ChangeModelsDataSource changeNdkMusicsheetToSttMusicsheet() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET);
+    }
+
+    public static ChangeModelsDataSource changeSttMusicsheetToNdkMusicsheet() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET);
+    }
 }
