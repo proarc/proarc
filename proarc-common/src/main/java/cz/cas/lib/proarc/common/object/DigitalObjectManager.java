@@ -29,8 +29,11 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
@@ -97,17 +100,19 @@ public class DigitalObjectManager {
     }
 
     private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
     private final ImportBatchManager ibm;
     private RemoteStorage remotes;
+    private AkubraStorage akubraStorage;
     private final MetaModelRepository models;
     private final UserManager userManager;
 
-    public DigitalObjectManager(AppConfiguration appConfig, ImportBatchManager ibm,
-            RemoteStorage remotes, MetaModelRepository models, UserManager userManager) {
+    public DigitalObjectManager(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, ImportBatchManager ibm,
+                                MetaModelRepository models, UserManager userManager) {
 
         this.appConfig = appConfig;
+        this.akubraConfiguration = akubraConfiguration;
         this.ibm = ibm;
-        this.remotes = remotes;
         this.models = models;
         this.userManager = userManager;
     }
@@ -167,12 +172,18 @@ public class DigitalObjectManager {
             if (pid == null) {
                 throw new NullPointerException("pid");
             }
-            fobject = getRemotes().find(pid);
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                fobject = getRemotes().find(pid);
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                fobject = getAkubraStorage().find(pid);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
         }
         return fobject;
     }
 
-    public Item createDigitalObject(
+    public SearchViewItem createDigitalObject(
             String modelId, String pid,
             String parentPid, UserProfile user, String xml, String message, boolean validation
             ) throws DigitalObjectException, DigitalObjectExistException {
@@ -199,6 +210,17 @@ public class DigitalObjectManager {
             }
         }
         return remotes;
+    }
+
+    private AkubraStorage getAkubraStorage() {
+        if (akubraStorage == null) {
+            try {
+                akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        return akubraStorage;
     }
 
     static void checkPid(String pid) {
@@ -361,11 +383,11 @@ public class DigitalObjectManager {
         }
 
 
-        public List<Item> create() throws DigitalObjectException {
+        public List<SearchViewItem> create() throws DigitalObjectException {
             return create(true, false);
         }
 
-        public List<Item> create(boolean createObject, boolean validation) throws DigitalObjectException {
+        public List<SearchViewItem> create(boolean createObject, boolean validation) throws DigitalObjectException {
             boolean isBatch = isBatch();
             if (isBatch) {
                 return createBatch(createObject, validation);
@@ -382,7 +404,7 @@ public class DigitalObjectManager {
          * @throws DigitalObjectException
          * @throws WorkflowException
          */
-        public List<Item> createAndConnectToWorkflowJob(BigDecimal wfJobId, Locale locale, boolean createObject, boolean validation) throws WorkflowException {
+        public List<SearchViewItem> createAndConnectToWorkflowJob(BigDecimal wfJobId, Locale locale, boolean createObject, boolean validation) throws WorkflowException {
             if (isBatch()) {
                 throw new IllegalArgumentException("Only single object (usually top level) is supported to be connected to job");
             } else if (wfJobId == null) {
@@ -401,7 +423,7 @@ public class DigitalObjectManager {
 
             MaterialView digitalMaterial = workflowManager.createDigitalMaterialFromPhysical(this, physicalMaterials.get(0), createObject, validation);
 
-            Item item = new Item(digitalMaterial.getPid());
+            SearchViewItem item = new SearchViewItem(digitalMaterial.getPid());
             item.setLabel(digitalMaterial.getLabel());
 
             return Collections.singletonList(item);
@@ -440,8 +462,8 @@ public class DigitalObjectManager {
             return tasks;
         }
 
-        private List<Item> createBatch(boolean createObject, boolean validation) throws DigitalObjectException {
-            ArrayList<Item> items = new ArrayList<>();
+        private List<SearchViewItem> createBatch(boolean createObject, boolean validation) throws DigitalObjectException {
+            ArrayList<SearchViewItem> items = new ArrayList<>();
             while (hasNext()) {
                 // adjust series params
                 next();
@@ -450,7 +472,7 @@ public class DigitalObjectManager {
             return items;
         }
 
-        public Item createDigitalObject(boolean createObject, boolean validation) throws DigitalObjectException, DigitalObjectExistException {
+        public SearchViewItem createDigitalObject(boolean createObject, boolean validation) throws DigitalObjectException, DigitalObjectExistException {
             DigitalObjectHandler parentHandler = getParentHandler();
 
             LocalObject localObject = new LocalStorage().create(pid);
@@ -501,7 +523,13 @@ public class DigitalObjectManager {
             doHandler.commit();
 
             if (createObject) {
-                getRemotes().ingest(localObject, user.getUserName(), message);
+                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                    getRemotes().ingest(localObject, user.getUserName(), message);
+                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                    getAkubraStorage().ingest(localObject, user.getUserName(), message);
+                } else {
+                    throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+                }
                 if (parentHandler != null) {
                     parentHandler.commit();
                 }
@@ -511,7 +539,7 @@ public class DigitalObjectManager {
                 tx.addPid(localObject.getPid());
             }
 
-            Item item = new Item(localObject.getPid());
+            SearchViewItem item = new SearchViewItem(localObject.getPid());
             item.setLabel(localObject.getLabel());
             item.setModel(modelId);
             item.setOwner(localObject.getOwner());

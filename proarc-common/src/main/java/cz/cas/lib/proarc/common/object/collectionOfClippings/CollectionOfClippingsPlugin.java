@@ -19,8 +19,8 @@ package cz.cas.lib.proarc.common.object.collectionOfClippings;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
@@ -43,8 +43,15 @@ import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
@@ -168,7 +175,7 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
     private static class ClippingsSearchViewHandler implements SearchViewHandler {
 
         @Override
-        public String getObjectLabel(Item item, Locale locale) {
+        public String getObjectLabel(SearchViewItem item, Locale locale) {
             if (MODEL_PAGE.equals(item.getModel())) {
                 return PageView.resolveFedoraObjectLabel(
                         item.getLabel(), NdkPageMapper.getPageTypeLabels(locale));

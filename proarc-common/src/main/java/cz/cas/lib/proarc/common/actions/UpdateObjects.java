@@ -14,7 +14,11 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -35,6 +39,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 public class UpdateObjects {
@@ -42,13 +48,15 @@ public class UpdateObjects {
     private static final Logger LOG = Logger.getLogger(UpdateObjects.class.getName());
 
     private static AppConfiguration config;
+    private static AkubraConfiguration akubraConfiguration;
     private static UserProfile user;
     private static Locale locale;
     private List<String> pids;
     private int updatedObjects;
 
-    public UpdateObjects(AppConfiguration appConfig, UserProfile user, Locale locale) {
+    public UpdateObjects(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, UserProfile user, Locale locale) {
         this.config = appConfig;
+        this.akubraConfiguration = akubraConfiguration;
         this.user = user;
         this.locale = locale;
         pids = new ArrayList<>();
@@ -59,15 +67,23 @@ public class UpdateObjects {
         return pids;
     }
 
-    public List<SearchView.Item> findAllObjects() throws IOException, FedoraClientException {
-        RemoteStorage remote = RemoteStorage.getInstance(config);
-        SearchView search = remote.getSearch(locale);
-        List<SearchView.Item> items = search.findAllObjects();
+    public List<SearchViewItem> findAllObjects() throws IOException, FedoraClientException {
+        SearchView search = null;
+        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
+            RemoteStorage remote = RemoteStorage.getInstance(config);
+            search = remote.getSearch(locale);
+        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+            search = akubraStorage.getSearch(locale);
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
+        }
+        List<SearchViewItem> items = search.findAllObjects();
         return items;
     }
 
-    public void setOrganization(List<SearchView.Item> items, String defaultProcessor) throws DigitalObjectException {
-        for (SearchView.Item item : items) {
+    public void setOrganization(List<SearchViewItem> items, String defaultProcessor) throws DigitalObjectException {
+        for (SearchViewItem item : items) {
             setOrganization(item.getPid(), defaultProcessor);
         }
     }
@@ -93,14 +109,14 @@ public class UpdateObjects {
             relations.write(relations.getLastModified(), "Add organization to foxml");
             doh.commit();
             updatedObjects++;
-        } catch (DigitalObjectException ex)  {
+        } catch (DigitalObjectException ex) {
             LOG.log(Level.WARNING, "Unable to update object " + pid);
         }
     }
 
-    public Map<String, Integer> countObjects(List<SearchView.Item>  items) {
+    public Map<String, Integer> countObjects(List<SearchViewItem> items) {
         Map<String, Integer> map = new HashMap<>();
-        for (SearchView.Item item : items) {
+        for (SearchViewItem item : items) {
             if (map.containsKey(item.getModel())) {
                 Integer value = map.get(item.getModel());
                 value++;
@@ -135,10 +151,20 @@ public class UpdateObjects {
 
     public IMetsElement getElement(String pid) throws DigitalObjectException {
         try {
-            RemoteStorage rstorage = RemoteStorage.getInstance(config);
-            RemoteStorage.RemoteObject robject = rstorage.find(pid);
-            MetsContext metsContext = buildContext(robject, null, rstorage);
-            DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+            MetsContext metsContext = null;
+            FedoraObject object = null;
+            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
+                RemoteStorage rstorage = RemoteStorage.getInstance(config);
+                object = rstorage.find(pid);
+                metsContext = buildFedoraContext(object, null, null, rstorage, config.getNdkExportOptions());
+            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(pid);
+                metsContext = buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
+            }
+            DigitalObject dobj = MetsUtils.readFoXML(metsContext, object);
             if (dobj == null) {
                 return null;
             }
@@ -146,18 +172,6 @@ public class UpdateObjects {
         } catch (IOException | MetsExportException ex) {
             throw new DigitalObjectException("Process: Changing models failed - imposible to find element", ex);
         }
-    }
-
-    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, RemoteStorage rstorage) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(null);
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(null);
-        return mc;
     }
 
     public void repair(String model) throws DigitalObjectException {

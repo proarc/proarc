@@ -30,9 +30,13 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -92,7 +96,9 @@ public final class DeviceRepository {
     public static final String METAMODEL_ID_LABEL = "Skener";
     public static final String METAMODEL_AUDIODEVICE_ID_LABEL = "Audio linka";
 
-    private final RemoteStorage remoteStorage;
+    private RemoteStorage remoteStorage;
+    private final Storage typeOfStorage;
+    private AkubraStorage akubraStorage;
 
     private final Logger LOG = Logger.getLogger(DeviceRepository.class.getName());
 
@@ -101,13 +107,23 @@ public final class DeviceRepository {
             throw new NullPointerException("remoteStorage");
         }
         this.remoteStorage = remoteStorage;
+        this.typeOfStorage = Storage.FEDORA;
+    }
+
+    public DeviceRepository(AkubraStorage akubraStorage) {
+        if (akubraStorage == null) {
+            throw new NullPointerException("akubraStorage");
+        }
+        this.akubraStorage = akubraStorage;
+        this.typeOfStorage = Storage.AKUBRA;
     }
 
     /**
      * Adds a new device.
+     *
      * @param owner owner of the object
      * @param label device label
-     * @param log log message
+     * @param log   log message
      * @return the device
      * @throws DeviceException failure
      */
@@ -123,26 +139,39 @@ public final class DeviceRepository {
 
     /**
      * Deletes a device.
-     * @param id device PID
+     *
+     * @param id  device PID
      * @param log log message
      * @return {@code true} if deleted or {@code false} if the device is connected by any digital object.
-     * @throws DeviceException failure
+     * @throws DeviceException         failure
      * @throws DeviceNotFoundException device not found
      */
     public boolean deleteDevice(String id, String log) throws DeviceException, DeviceNotFoundException {
         checkDeviceId(id);
-        RemoteObject robject = remoteStorage.find(id);
         try {
             // check fedora usages
             // device may be still used by any import item
-            if (remoteStorage.getSearch().isDeviceInUse(id)) {
-                return false;
+            if (Storage.FEDORA.equals(typeOfStorage)) {
+                RemoteObject object = remoteStorage.find(id);
+                if (remoteStorage.getSearch().isDeviceInUse(id)) {
+                    return false;
+                } else {
+                    object.purge(log);
+                    return true;
+                }
+            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                AkubraObject object = akubraStorage.find(id);
+                if (akubraStorage.getSearch().isDeviceInUse(id)) {
+                    return false;
+                } else {
+                    object.purge(log);
+                    return true;
+                }
             } else {
-                robject.purge(log);
-                return true;
+                throw new DeviceException("Not implemented or missing typeOfStorage");
             }
         } catch (DigitalObjectNotFoundException ex) {
-                throw new DeviceNotFoundException(null, ex, id);
+            throw new DeviceNotFoundException(null, ex, id);
         } catch (FedoraClientException ex) {
             if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new DeviceNotFoundException(null, ex, id);
@@ -156,6 +185,7 @@ public final class DeviceRepository {
 
     /**
      * Finds a device without description.
+     *
      * @param id device PID or {@code null} for all devices.
      * @return list of devices
      * @throws DeviceException failure
@@ -166,7 +196,8 @@ public final class DeviceRepository {
 
     /**
      * Finds a device.
-     * @param id device PID or {@code null} for all devices.
+     *
+     * @param id               device PID or {@code null} for all devices.
      * @param fetchDescription whether to include device descriptions in response
      * @return list of devices
      * @throws DeviceException failure
@@ -193,6 +224,7 @@ public final class DeviceRepository {
 
     /**
      * Fetches device descriptions.
+     *
      * @param devices devices to query
      * @throws DeviceException failure
      */
@@ -204,6 +236,7 @@ public final class DeviceRepository {
 
     /**
      * Fetches a device description.
+     *
      * @param device a device with ID
      * @return the device or {@code null} if not found
      * @throws DeviceException failure
@@ -214,9 +247,14 @@ public final class DeviceRepository {
         }
         String id = device.getId();
         try {
-            RemoteObject robj = remoteStorage.find(id);
-            XmlStreamEditor editor = getMixDescriptionEditor(robj);
-            XmlStreamEditor audioeditor = getPremisDescriptionEditor(robj);
+            FedoraObject object = null;
+            if (Storage.FEDORA.equals(typeOfStorage)) {
+                object = remoteStorage.find(id);
+            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                object = akubraStorage.find(id);
+            }
+            XmlStreamEditor editor = getMixDescriptionEditor(object);
+            XmlStreamEditor audioeditor = getPremisDescriptionEditor(object);
             Source src = editor.read();
             Source audiosrc = audioeditor.read();
             Mets audiodesc;
@@ -232,7 +270,7 @@ public final class DeviceRepository {
                 try {
                     JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
                     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-                    audiodesc = (Mets)unmarshaller.unmarshal(audiosrc);
+                    audiodesc = (Mets) unmarshaller.unmarshal(audiosrc);
                     audiodesc = repairNkComplexType(audiodesc);
                 } catch (JAXBException e) {
                     LOG.log(Level.SEVERE, "Unable get Mets metadata");
@@ -255,8 +293,9 @@ public final class DeviceRepository {
 
     /**
      * Updates a device.
+     *
      * @param update data to update
-     * @param log log message
+     * @param log    log message
      * @return the updated device
      * @throws DeviceException failure
      */
@@ -266,11 +305,16 @@ public final class DeviceRepository {
         String model = transformModel(update.getModel());
         checkDeviceId(id);
         try {
-            RemoteObject robj = remoteStorage.find(id);
+            FedoraObject object = null;
+            if (Storage.FEDORA.equals(typeOfStorage)) {
+                object = remoteStorage.find(id);
+            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                object = akubraStorage.find(id);
+            }
 
-            updateDc(robj, id, model, label, log);
+            updateDc(object, id, model, label, log);
 
-            XmlStreamEditor descriptionEditor = getMixDescriptionEditor(robj);
+            XmlStreamEditor descriptionEditor = getMixDescriptionEditor(object);
             Source oldDescSrc = descriptionEditor.read();
             if (oldDescSrc == null) {
                 update.setTimestamp(descriptionEditor.getLastModified());
@@ -284,7 +328,7 @@ public final class DeviceRepository {
                 descriptionEditor.write(result, update.getTimestamp(), log);
             }
 
-            XmlStreamEditor audiodescriptionEditor = getPremisDescriptionEditor(robj);
+            XmlStreamEditor audiodescriptionEditor = getPremisDescriptionEditor(object);
             Source oldAudioDescSrc = audiodescriptionEditor.read();
             if (oldAudioDescSrc == null) {
                 update.setAudioTimestamp(audiodescriptionEditor.getLastModified());
@@ -305,8 +349,8 @@ public final class DeviceRepository {
                 }
             }
 
-            robj.setLabel(label);
-            robj.flush();
+            object.setLabel(label);
+            object.flush();
 
             Device device = new Device();
             device.setId(id);
@@ -337,7 +381,11 @@ public final class DeviceRepository {
         relationEditor.write(relationEditor.getLastModified(), log);
         lobject.flush();
 
-        remoteStorage.ingest(lobject, owner);
+        if (Storage.FEDORA.equals(typeOfStorage)) {
+            remoteStorage.ingest(lobject, owner);
+        } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            akubraStorage.ingest(lobject, owner);
+        }
         Device device = new Device();
         device.setId(pid);
         device.setLabel(label);
@@ -346,24 +394,37 @@ public final class DeviceRepository {
     }
 
     public List<Device> findAllDevices(int offset) throws DeviceException {
-        List<Item> items = new ArrayList<>();
+        List<SearchViewItem> items = new ArrayList<>();
         try {
-            items = remoteStorage.getSearch().findByModels(offset, METAMODEL_ID, METAMODEL_AUDIODEVICE_ID);
-        } catch (IOException  | FedoraClientException ex) {
+            SearchView searchView = null;
+            if (Storage.FEDORA.equals(typeOfStorage)) {
+                searchView = remoteStorage.getSearch();
+            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                searchView = akubraStorage.getSearch();
+            }
+            items = searchView.findByModels(offset, METAMODEL_ID, METAMODEL_AUDIODEVICE_ID);
+        } catch (IOException | FedoraClientException ex) {
             throw new DeviceException(ex.getMessage());
         }
         return objectAsDevice(items, null);
     }
 
     private List<Device> findDevice(String... pids) throws IOException, FedoraClientException {
-        List<Item> items = remoteStorage.getSearch().findByModel(METAMODEL_ID);
-        items.addAll(remoteStorage.getSearch().findByModel(METAMODEL_AUDIODEVICE_ID));
+        SearchView searchView = null;
+        if (Storage.FEDORA.equals(typeOfStorage)) {
+            searchView = remoteStorage.getSearch();
+        } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            searchView = akubraStorage.getSearch();
+        }
+
+        List<SearchViewItem> items = searchView.findByModel(METAMODEL_ID);
+        items.addAll(searchView.findByModel(METAMODEL_AUDIODEVICE_ID));
         return objectAsDevice(items, new HashSet<String>(Arrays.asList(pids)));
     }
 
-    private List<Device> objectAsDevice(List<Item> items, Set<String> includes) {
+    private List<Device> objectAsDevice(List<SearchViewItem> items, Set<String> includes) {
         ArrayList<Device> devices = new ArrayList<Device>(items.size());
-        for (Item item : items) {
+        for (SearchViewItem item : items) {
             String label = item.getLabel();
             String pid = item.getPid();
             String model = item.getModel();
@@ -412,6 +473,7 @@ public final class DeviceRepository {
 
     /**
      * Gets a datastream editor for MIX format.
+     *
      * @param robj an object to edit
      * @return the editor
      */
@@ -434,14 +496,18 @@ public final class DeviceRepository {
      * Gets a datastream editor for MIX format.
      *
      * @param id
-     *
      * @return
      * @throws DeviceException
      */
     public XmlStreamEditor getDescriptionEditor(String id) throws DeviceException {
         checkDeviceId(id);
-        RemoteObject robj = remoteStorage.find(id);
-        return getMixDescriptionEditor(robj);
+        FedoraObject object = null;
+        if (Storage.FEDORA.equals(typeOfStorage)) {
+            object = remoteStorage.find(id);
+        } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            object = akubraStorage.find(id);
+        }
+        return getMixDescriptionEditor(object);
     }
 
     public Mets repairNkComplexType(Mets mets) {
@@ -464,7 +530,7 @@ public final class DeviceRepository {
             if (extension != null) {
                 try {
                     if ("manufacturer".equals(extension.getFirstChild().getLocalName())) {
-                        manufacturer =  extension.getFirstChild().getFirstChild().getNodeValue();
+                        manufacturer = extension.getFirstChild().getFirstChild().getNodeValue();
                     } else if ("serialNumber".equals(extension.getFirstChild().getLocalName())) {
                         serialNumber = extension.getFirstChild().getFirstChild().getNodeValue();
                     } else if ("settings".equals(extension.getFirstChild().getLocalName()))

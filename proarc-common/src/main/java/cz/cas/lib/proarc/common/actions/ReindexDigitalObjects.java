@@ -31,7 +31,10 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -54,6 +57,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+
 /**
  * Reindex all digital objects
  *
@@ -65,10 +71,12 @@ public class ReindexDigitalObjects {
     public static String pid;
     public static String modelId;
     public static AppConfiguration appConfig;
+    public static AkubraConfiguration akubraConfiguration;
     public static UserProfile user;
 
-    public ReindexDigitalObjects(AppConfiguration appConfig, UserProfile user, String pid, String modelId) {
+    public ReindexDigitalObjects(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, UserProfile user, String pid, String modelId) {
         this.appConfig = appConfig;
+        this.akubraConfiguration = akubraConfiguration;
         this.user = user;
         this.pid = pid;
         this.modelId = modelId;
@@ -85,10 +93,21 @@ public class ReindexDigitalObjects {
     }
 
     private IMetsElement getParentElement(String parentPid) throws IOException, MetsExportException {
-        RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
-        RemoteStorage.RemoteObject robject = rstorage.find(parentPid);
-        MetsContext metsContext = buildContext(robject, null, null, rstorage);
-        DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+        MetsContext metsContext = null;
+        FedoraObject object = null;
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+            object = rstorage.find(pid);
+            metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())){
+            AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+            object = akubraStorage.find(pid);
+            metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
+
+        DigitalObject dobj = MetsUtils.readFoXML(metsContext, object);
         if (dobj == null) {
             return null;
         }
@@ -96,22 +115,20 @@ public class ReindexDigitalObjects {
     }
 
     private String getParentPid(String pid) throws IOException, MetsExportException {
-        RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
-        RemoteStorage.RemoteObject robject = rstorage.find(pid);
-        MetsContext metsContext = buildContext(robject, null, null, rstorage);
-        return MetsUtils.getParent(pid, metsContext.getRemoteStorage());
-    }
-
-    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, File targetFolder, RemoteStorage rstorage) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(null);
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(null);
-        return mc;
+        MetsContext metsContext = null;
+        FedoraObject object = null;
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+            object = rstorage.find(pid);
+            metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+            object = akubraStorage.find(pid);
+            metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
+        return MetsUtils.getParent(pid, metsContext);
     }
 
     public List<String> getPids(IMetsElement parentElement) {

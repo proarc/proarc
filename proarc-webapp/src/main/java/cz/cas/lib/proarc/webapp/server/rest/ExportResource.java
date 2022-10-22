@@ -49,8 +49,13 @@ import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
 import cz.cas.lib.proarc.common.export.workflow.WorkflowExport;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -101,6 +106,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.server.CloseableService;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+
 /**
  * REST resource to export data from the system.
  *
@@ -110,6 +118,7 @@ import org.glassfish.jersey.server.CloseableService;
 public class ExportResource {
 
     private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
     private final UserProfile user;
     private final SessionContext session;
     private final ImportBatchManager batchManager;
@@ -121,6 +130,11 @@ public class ExportResource {
     ) throws AppConfigurationException {
 
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
         this.httpHeaders = httpHeaders;
         session = SessionContext.from(httpRequest);
         this.batchManager = ImportBatchManager.getInstance();
@@ -134,6 +148,11 @@ public class ExportResource {
             ) throws AppConfigurationException {
 
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
         this.httpHeaders = httpHeaders;
         session = SessionContext.from(httpRequest);
         this.batchManager = ImportBatchManager.getInstance();
@@ -156,7 +175,7 @@ public class ExportResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
 
-        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig);
+        DataStreamExport export = new DataStreamExport(appConfig, akubraConfiguration);
         URI exportUri = user.getExportFolder();
         File exportFolder = new File(exportUri);
         File target = export.export(exportFolder, hierarchy, pids, dsIds);
@@ -178,8 +197,7 @@ public class ExportResource {
         }
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS);
         try {
-            Kramerius4Export export = new Kramerius4Export(
-                    RemoteStorage.getInstance(appConfig), appConfig, policy);
+            Kramerius4Export export = new Kramerius4Export(appConfig, akubraConfiguration, policy);
             URI exportUri = user.getExportFolder();
             File exportFolder = new File(exportUri);
             Kramerius4Export.Result k4Result = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
@@ -239,8 +257,7 @@ public class ExportResource {
         }
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_DESA);
         try {
-            DesaExport export = new DesaExport(RemoteStorage.getInstance(appConfig),
-                    appConfig.getDesaServices(), MetaModelRepository.getInstance(), appConfig.getExportOptions());
+            DesaExport export = new DesaExport(appConfig, akubraConfiguration, MetaModelRepository.getInstance());
             URI exportUri = user.getExportFolder();
             File exportFolder = new File(exportUri);
             List<ExportResult> result = new ArrayList<>(pids.size());
@@ -346,16 +363,16 @@ public class ExportResource {
 
             switch (typeOfPackage) {
                 case Const.EXPORT_NDK_BASIC:
-                    export = new NdkExport(RemoteStorage.getInstance(), appConfig);
+                    export = new NdkExport(appConfig, akubraConfiguration);
                     break;
                 case Const.EXPORT_NDK4SIP:
-                    export = new NdkSipExport(RemoteStorage.getInstance(), appConfig);
+                    export = new NdkSipExport(appConfig, akubraConfiguration);
                     break;
                 case Const.EXPORT_NDK4STT:
-                    export = new NdkSttExport(RemoteStorage.getInstance(), appConfig);
+                    export = new NdkSttExport(appConfig, akubraConfiguration);
                     break;
                 case Const.EXPORT_NDK4CHRONICLE:
-                    export = new NdkExport(RemoteStorage.getInstance(), appConfig);
+                    export = new NdkExport(appConfig, akubraConfiguration);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported type of package");
@@ -415,10 +432,21 @@ public class ExportResource {
         if (!Const.EXPORT_NDK_BASIC.equals(typeOfPackage)) {
             return typeOfPackage;
         }
-        RemoteStorage remoteStorage = RemoteStorage.getInstance();
-        RemoteStorage.RemoteObject fo = remoteStorage.find(pids.get(0));
-        MetsContext mc = buildContext(remoteStorage, fo, null, null);
-        IMetsElement element = getMetsElement(fo, mc, true);
+        MetsContext metsContext = null;
+        FedoraObject object = null;
+
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            RemoteStorage remoteStorage = RemoteStorage.getInstance();
+            object = remoteStorage.find(pids.get(0));
+            metsContext = buildFedoraContext(object, null, null, remoteStorage, appConfig.getNdkExportOptions());
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = AkubraStorage.getInstance();
+            object = akubraStorage.find(pids.get(0));
+            metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
+        IMetsElement element = getMetsElement(object, metsContext, true);
         if (element != null) {
             String modelId = element.getModel().substring(12);
             if (NdkMapper.isOldprintModel(modelId)) {
@@ -435,35 +463,30 @@ public class ExportResource {
     }
 
     private IMetsElement getRoot(String pid, File exportFolder) throws MetsExportException {
-        RemoteStorage rstorage = RemoteStorage.getInstance();
-        RemoteStorage.RemoteObject fo = rstorage.find(pid);
-        MetsContext mc = buildContext(rstorage, fo, null, exportFolder);
-        return getMetsElement(fo, mc, true);
+        MetsContext metsContext = null;
+        FedoraObject object = null;
+
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            RemoteStorage remoteStorage = RemoteStorage.getInstance();
+            object = remoteStorage.find(pid);
+            metsContext = buildFedoraContext(object, null, exportFolder, remoteStorage, appConfig.getNdkExportOptions());
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = AkubraStorage.getInstance();
+            object = akubraStorage.find(pid);
+            metsContext = buildAkubraContext(object, null, exportFolder, akubraStorage, appConfig.getNdkExportOptions());
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
+        return getMetsElement(object, metsContext, true);
     }
 
-    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+    private MetsElement getMetsElement(FedoraObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
         dc.resetContext();
-        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), dc);
         if (dobj == null) {
             throw new MetsExportException("Missing uuid");
         }
         return MetsElement.getElement(dobj, null, dc, hierarchy);
-    }
-
-    private MetsContext buildContext(RemoteStorage rstorage, RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        if (targetFolder == null) {
-            mc.setOutputPath(null);
-        } else {
-            mc.setOutputPath(targetFolder.getAbsolutePath());
-        }
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(appConfig.getNdkExportOptions());
-        return mc;
     }
 
     private void setWorkflowExport(String taskName, String parameterName, Integer pageCount, IMetsElement root) throws DigitalObjectException, WorkflowException {
@@ -538,7 +561,7 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newCejshExport(
             @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids
-            ) {
+            ) throws Exception {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CEJSH_PID_PARAM);
@@ -549,7 +572,7 @@ public class ExportResource {
             File exportFolder = new File(exportUri);
             CejshConfig cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
             CejshExport export = new CejshExport(
-                    DigitalObjectManager.getDefault(), RemoteStorage.getInstance(), appConfig);
+                    DigitalObjectManager.getDefault(), appConfig, akubraConfiguration);
             CejshStatusHandler status = export.export(exportFolder, pids);
             File targetFolder = status.getTargetFolder();
             ExportResult result = new ExportResult();
@@ -586,7 +609,7 @@ public class ExportResource {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newCrossrefExport(
             @FormParam(ExportResourceApi.CROSSREF_PID_PARAM) List<String> pids
-            ) {
+            ) throws Exception {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CROSSREF_PID_PARAM);
@@ -597,7 +620,7 @@ public class ExportResource {
             File exportFolder = new File(exportUri);
 //        CejshConfig cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
             CrossrefExport export = new CrossrefExport(
-                    DigitalObjectManager.getDefault(), RemoteStorage.getInstance(), appConfig.getExportOptions());
+                    DigitalObjectManager.getDefault(), appConfig, akubraConfiguration);
             CejshStatusHandler status = new CejshStatusHandler();
             export.export(exportFolder, pids, status);
             File targetFolder = status.getTargetFolder();
@@ -651,11 +674,11 @@ public class ExportResource {
             ArchiveProducer export = null;
             switch (typeOfPackage) {
                 case Const.EXPORT_NDK_BASIC:
-                    export = new ArchiveProducer(appConfig);
+                    export = new ArchiveProducer(appConfig, akubraConfiguration);
                     ;
                     break;
                 case Const.EXPORT_NDK4STT:
-                    export = new ArchiveOldPrintProducer(appConfig);
+                    export = new ArchiveOldPrintProducer(appConfig, akubraConfiguration);
                     ;
                     break;
                 default:
@@ -701,13 +724,13 @@ public class ExportResource {
             typeOfPackage = getTypeOfPackage(pids, typeOfPackage);
             switch (typeOfPackage) {
                 case Const.EXPORT_NDK_BASIC:
-                    exportNdk = new NdkExport(RemoteStorage.getInstance(), appConfig);
+                    exportNdk = new NdkExport(appConfig, akubraConfiguration);
                     break;
                 case Const.EXPORT_NDK4SIP:
-                    exportNdk = new NdkSipExport(RemoteStorage.getInstance(), appConfig);
+                    exportNdk = new NdkSipExport(appConfig, akubraConfiguration);
                     break;
                 case Const.EXPORT_NDK4STT:
-                    exportNdk = new NdkSttExport(RemoteStorage.getInstance(), appConfig);
+                    exportNdk = new NdkSttExport(appConfig, akubraConfiguration);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported type of package");
@@ -780,7 +803,7 @@ public class ExportResource {
                     }
                 }
 
-                WorkflowExport exportWorkflow = new WorkflowExport(appConfig, user, session.getLocale(httpHeaders));
+                WorkflowExport exportWorkflow = new WorkflowExport(appConfig, akubraConfiguration, user, session.getLocale(httpHeaders));
                 try {
                     exportWorkflow.export(targetFolder, ndkResults, session.asFedoraLog());
                 } catch (Exception ex) {
@@ -880,7 +903,7 @@ public class ExportResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
 
-        Kramerius4Export export = new Kramerius4Export(RemoteStorage.getInstance(appConfig), appConfig, policy);
+        Kramerius4Export export = new Kramerius4Export(appConfig, akubraConfiguration, policy);
         if (path == null || path.isEmpty()) {
             path = user.getExportFolder().getPath();
         }
@@ -905,7 +928,7 @@ public class ExportResource {
         if (dsIds.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
-        DataStreamExport export = new DataStreamExport(RemoteStorage.getInstance(appConfig), appConfig);
+        DataStreamExport export = new DataStreamExport(appConfig, akubraConfiguration);
 
         if (path == null || path.isEmpty()) {
             path = user.getExportFolder().getPath();
@@ -992,10 +1015,6 @@ public class ExportResource {
             return target;
         }
 
-        /**
-         * Muset be mutable {@link ExportResource#newArchive(List)}
-         * @return
-         */
         @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
         public List<ExportError> getErrors() {
             if (errors == null) {

@@ -43,6 +43,13 @@ import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapSource;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import java.io.File;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -59,13 +66,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import java.io.File;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -139,7 +140,7 @@ public class WorkflowManagerTest {
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
         UserManager users = UserUtil.createUserManagerPostgressImpl(config, null, daos);
-        WorkflowManager wm = new WorkflowManager(wp, daos, users);
+        WorkflowManager wm = new WorkflowManager(wp, daos, users, config);
         return wm;
     }
 

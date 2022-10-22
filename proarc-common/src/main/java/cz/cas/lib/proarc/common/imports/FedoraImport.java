@@ -29,13 +29,15 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -61,6 +63,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.imports.ImportProcess.getTargetFolder;
 
 /**
@@ -171,31 +175,25 @@ public final class FedoraImport {
     }
 
     private IMetsElement getRoot(String pid, File file) throws MetsExportException {
-        RemoteStorage rstorage = RemoteStorage.getInstance();
-        RemoteStorage.RemoteObject fo = rstorage.find(pid);
-        MetsContext mc = buildContext(rstorage, fo, null, file);
-        IMetsElement element = getMetsElement(fo, mc, true);
+        MetsContext metsContext = null;
+        FedoraObject object = null;
+
+        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
+            object = fedora.find(pid);
+            metsContext = buildFedoraContext(object, null, file, fedora, config.getNdkExportOptions());
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
+        }
+        IMetsElement element = getMetsElement(object, metsContext, true);
         if (element == null) {
             return null;
         }
         return element.getMetsContext().getRootElement();
     }
 
-    private MetsContext buildContext(RemoteStorage rstorage, RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(targetFolder == null ? null : targetFolder.getAbsolutePath());
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(config.getNdkExportOptions());
-        return mc;
-    }
-
-    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+    private MetsElement getMetsElement(FedoraObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
         dc.resetContext();
-        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), dc);
         if (dobj == null) {
             return null;
         }
@@ -305,7 +303,7 @@ public final class FedoraImport {
         } else if (state == ObjectState.INGESTED) {
             // check parent
             String itemPid = item.getPid();
-            List<Item> parents = search.findReferrers(itemPid);
+            List<SearchViewItem> parents = search.findReferrers(itemPid);
             if (parents.isEmpty()) {
                 boolean existRemotely = fedora.exist(itemPid);
                 if (existRemotely) {

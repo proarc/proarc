@@ -17,6 +17,13 @@
 
 package cz.cas.lib.proarc.common.export.desa.structure;
 
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.export.desa.Const;
+import cz.cas.lib.proarc.common.export.desa.DesaContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,19 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-
-import cz.cas.lib.proarc.common.export.desa.Const;
-import cz.cas.lib.proarc.common.export.desa.DesaContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 
 /**
  * Class that represents the element of Desa export
@@ -226,14 +223,7 @@ public class DesaElement implements IDesaElement {
      * @throws MetsExportException
      */
     private DesaElement initParent() throws MetsExportException {
-        String parentId;
-        if (desaContext.getFedoraClient() != null) {
-            parentId = MetsUtils.getParent(originalPid, desaContext.getRemoteStorage());
-            LOG.fine("Parent found from Fedora:" + parentId);
-        } else {
-            parentId = MetsUtils.getParent(originalPid, desaContext.getFsParentMap());
-            LOG.fine("Parent found from Local:" + parentId);
-        }
+        String parentId = MetsUtils.getParent(originalPid, desaContext);
 
         if (parentId == null) {
             LOG.fine("Parent not found - returning null");
@@ -241,11 +231,7 @@ public class DesaElement implements IDesaElement {
         }
 
         DigitalObject parentObject = null;
-        if (desaContext.getFedoraClient() != null) {
-            parentObject = MetsUtils.readRelatedFoXML(parentId, desaContext.getFedoraClient());
-        } else {
-            parentObject = MetsUtils.readRelatedFoXML(desaContext.getPath(), parentId);
-        }
+        parentObject = MetsUtils.readRelatedFoXML(parentId, desaContext);
         DesaElement parentInit = new DesaElement(parentObject, null, desaContext, false);
         parentInit.children.add(this);
         return parentInit;
@@ -342,12 +328,7 @@ public class DesaElement implements IDesaElement {
                 Node rdfResourceNode = hasPageNodes.item(a).getAttributes().getNamedItem("rdf:resource");
                 String fileName = rdfResourceNode.getNodeValue();
 
-                DigitalObject object = null;
-                if (desaContext.getFedoraClient() != null) {
-                    object = MetsUtils.readRelatedFoXML(fileName, desaContext.getFedoraClient());
-                } else {
-                    object = MetsUtils.readRelatedFoXML(desaContext.getPath(), fileName);
-                }
+                DigitalObject object = MetsUtils.readRelatedFoXML(fileName, desaContext);
                 DesaElement child = new DesaElement(object, this, desaContext, true);
                 this.children.add(child);
                 LOG.log(Level.FINE, "Child found for:" + getOriginalPid() + "(" + getElementType() + ") - " + child.getOriginalPid() + "(" + child.getElementType() + ")");
@@ -382,8 +363,6 @@ public class DesaElement implements IDesaElement {
 
     /**
      * Checks if fileName is correct
-     *
-     * @param folder
      */
     private boolean checkZipFileOK() {
         File file = null;

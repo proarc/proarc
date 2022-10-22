@@ -17,23 +17,23 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gwt.user.client.Window;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
-import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.Device;
+import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceNotFoundException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.json.JsonUtils;
-import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
-import cz.cas.lib.proarc.premis.PremisComplexType;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -55,11 +55,6 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.stream.StreamResult;
 
 /**
  * Resource to manage devices producing digital objects.
@@ -71,6 +66,7 @@ public class DeviceResource {
 
     private static final Logger LOG = Logger.getLogger(DeviceResource.class.getName());
     private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
     private final SessionContext session;
@@ -88,7 +84,15 @@ public class DeviceResource {
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         this.session = SessionContext.from(httpRequest);
-        this.devRepo = new DeviceRepository(RemoteStorage.getInstance(appConfig));
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            this.devRepo = new DeviceRepository(RemoteStorage.getInstance(appConfig));
+            this.akubraConfiguration = null;
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+            this.devRepo = new DeviceRepository(AkubraStorage.getInstance(akubraConfiguration));
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
     }
 
     @DELETE
@@ -126,7 +130,6 @@ public class DeviceResource {
             @QueryParam(DeviceResourceApi.DEVICE_START_ROW_PARAM) int startRow
             ) throws DeviceException, IOException {
 
-        RemoteStorage remote = RemoteStorage.getInstance(appConfig);
         int total = 0;
         boolean fetchDescription = id != null && !id.isEmpty();
         List<Device> result = new ArrayList<>();

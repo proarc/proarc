@@ -25,6 +25,9 @@ import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.fedora.FedoraStorageInitializer;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
@@ -36,6 +39,7 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.incad.kramerius.fedora.om.impl.HazelcastServerNode;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -74,7 +78,6 @@ public final class ProarcInitializer {
 
     /**
      * Passes when the initialization is done.
-     * @throws init failure
      */
     public void isReady() throws Exception {
         asyncTask.get(2, TimeUnit.MINUTES);
@@ -88,12 +91,17 @@ public final class ProarcInitializer {
     public void start(Map<String, String> env) {
 //        LOG.info("Starting " + AppConfiguration.FULL_VERSION);
         AppConfiguration config = initConfig(env);
+        AkubraConfiguration akubraConfiguration = null;
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            akubraConfiguration = initAkubraConfig(env, config);
+        }
+        HazelcastServerNode.ensureHazelcastNode();
         initProarcModel(config);
         DataSource proarcSource = initProarcDb();
         initUsers(config, proarcSource, daoFactory);
         initImport(config, daoFactory);
         DigitalObjectManager.setDefault(new DigitalObjectManager(
-                config, ImportBatchManager.getInstance(), null,
+                config, akubraConfiguration, ImportBatchManager.getInstance(),
                 MetaModelRepository.getInstance(), UserUtil.getDefaultManger()));
         Authenticators.setInstance(new Authenticators(config.getAuthenticators()));
         initWorkflow(config, daoFactory, UserUtil.getDefaultManger());
@@ -102,7 +110,7 @@ public final class ProarcInitializer {
 
             @Override
             public Void call() throws Exception {
-                asyncInitialization();
+                asyncInitialization(config.getTypeOfStorage());
                 return null;
             }
         });
@@ -114,6 +122,8 @@ public final class ProarcInitializer {
      */
     public void destroy() {
 //        LOG.info("Destroing " + AppConfiguration.FULL_VERSION);
+        HazelcastServerNode hazelcastServerNode = new HazelcastServerNode();
+        hazelcastServerNode.contextDestroyed(null);
         ImportDispatcher importDispatcher = ImportDispatcher.getDefault();
         importDispatcher.stop();
         daoFactory = null;
@@ -124,11 +134,30 @@ public final class ProarcInitializer {
      * blocking the servlet context initialization in case
      * it runs in the same container.
      */
-    private void asyncInitialization() {
-        FedoraStorageInitializer rsi = new FedoraStorageInitializer(RemoteStorage.getInstance());
-        rsi.init();
+    private void asyncInitialization(Storage storage) {
+
+        if (Storage.FEDORA.equals(storage)) {
+            FedoraStorageInitializer rsi = new FedoraStorageInitializer(RemoteStorage.getInstance());
+            rsi.init();
+        }
         UserUtil.initDefaultAdmin();
     }
+
+    /**
+     * Creates configuration of the application. The lookup of default properties
+     * searches servlet init parameters, system properties and system environment.
+     **/
+     private AkubraConfiguration initAkubraConfig(Map<String, String> env, AppConfiguration appConfiguration) {
+         try {
+             AkubraConfigurationFactory configFactory = AkubraConfigurationFactory.getInstance();
+             AkubraConfiguration config = configFactory.create(env, appConfiguration.getConfigHome());
+             configFactory.setDefaultInstance(config);
+             config.copyConfigTemplate();
+             return configFactory.defaultInstance(appConfiguration.getConfigHome());
+         } catch (AppConfigurationException ex) {
+             throw new IllegalStateException(ex);
+         }
+     }
 
     /**
      * Creates configuration of the application. The lookup of default properties
@@ -189,8 +218,7 @@ public final class ProarcInitializer {
             File workflowFile = config.getWorkflowConfiguration();
             WorkflowProfiles.copyDefaultFile(config.getWorkflowConfiguration());
             WorkflowProfiles.setInstance(new WorkflowProfiles(workflowFile));
-            WorkflowManager.setInstance(new WorkflowManager(
-                    WorkflowProfiles.getInstance(), daoFactory, users));
+            WorkflowManager.setInstance(new WorkflowManager(WorkflowProfiles.getInstance(), daoFactory, users, config));
         } catch (Exception ex) {
             throw new IllegalStateException("The workflow initialization failed!", ex);
         }

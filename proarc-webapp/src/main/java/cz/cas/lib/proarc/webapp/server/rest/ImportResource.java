@@ -29,6 +29,10 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.Item;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.imports.FedoraImport;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
@@ -101,6 +105,7 @@ public class ImportResource {
     // XXX inject with guice
     private final ImportBatchManager importManager;
     private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
 
     private final UserProfile user;
     private final SessionContext session;
@@ -115,6 +120,11 @@ public class ImportResource {
 
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
         this.importManager = ImportBatchManager.getInstance();
         session = SessionContext.from(httpRequest);
         user = session.getUser();
@@ -350,7 +360,6 @@ public class ImportResource {
             @QueryParam("_sortBy") String sortBy
             ) throws IOException {
 
-        RemoteStorage remote = RemoteStorage.getInstance(appConfig);
         if (size == 0 || size < 0 || size > 1000) {
             size = 100;
         }
@@ -483,9 +492,15 @@ public class ImportResource {
                     IOUtils.write(fileContents, new FileOutputStream(batchFile), Charset.defaultCharset());
                 }
             }
-
-            batch = new FedoraImport(appConfig, RemoteStorage.getInstance(appConfig), importManager, user)
-                    .importBatch(batch, user.getUserName(), session.asFedoraLog());
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                batch = new FedoraImport(appConfig, RemoteStorage.getInstance(appConfig), importManager, user)
+                        .importBatch(batch, user.getUserName(), session.asFedoraLog());
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                batch = new AkubraImport(appConfig, akubraConfiguration, importManager, user)
+                        .importBatch(batch, user.getUserName(), session.asFedoraLog());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
         } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED) {
             Batch.State realState = batch.getState();
             // try to reset import

@@ -25,6 +25,9 @@ import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.mockrepository.MockSearchView;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.File;
 import java.util.Arrays;
@@ -47,6 +50,7 @@ public class NdkEbornArchivalTest {
     private FedoraClient client;
 
     private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+    private AkubraConfiguration akubraConfiguration = null;
 
     @Rule
     public ErrorCollector collector = new ErrorCollector();
@@ -55,7 +59,13 @@ public class NdkEbornArchivalTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws AppConfigurationException {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
+
         new MockSearchView();
 
         new MockUp<RemoteStorage>() {
@@ -66,9 +76,8 @@ public class NdkEbornArchivalTest {
         };
 
         DigitalObjectManager.setDefault(new DigitalObjectManager(
-                appConfig,
+                appConfig, akubraConfiguration,
                 null,
-                RemoteStorage.getInstance(),
                 null,
                 null));
     }
@@ -80,7 +89,7 @@ public class NdkEbornArchivalTest {
      * {@see cz.cas.lib.proarc.common.export.archive.ArchiveObjectSelector#searchPath(List)}
      */
     public void ebornExportArchivalTest() {
-        ArchiveProducer export = new ArchiveProducer(appConfig);
+        ArchiveProducer export = new ArchiveProducer(appConfig, akubraConfiguration);
 
         List<String> pids = Arrays.asList("uuid:26342028-12c8-4446-9217-d3c9f249bd13"); //etitle
 

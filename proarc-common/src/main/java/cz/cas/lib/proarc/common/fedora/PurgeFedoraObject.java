@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import java.io.IOException;
 import java.util.Collections;
@@ -112,8 +111,8 @@ public final class PurgeFedoraObject {
             return ;
         }
         if (hierarchy) {
-            List<Item> items = getHierarchy(pid);
-            for (Item item : items) {
+            List<SearchViewItem> items = getHierarchy(pid);
+            for (SearchViewItem item : items) {
                 toPurge.add(item.getPid());
             }
         }
@@ -129,15 +128,15 @@ public final class PurgeFedoraObject {
         //where
         //$pid <info:fedora/fedora-system:def/relations-external#hasMember> <info:fedora/uuid:tree1-child1-child1-child1>
         //or $pid <info:fedora/fedora-system:def/relations-external#hasMember> <info:fedora/uuid:tree1-child1-child1>
-        List<Item> parents = getParent(pid);
-        for (Item parent : parents) {
+        List<SearchViewItem> parents = getParent(pid);
+        for (SearchViewItem parent : parents) {
             toUpdate.add(parent.getPid());
         }
     }
 
-    private List<Item> getHierarchy(String pid) throws PurgeException {
+    private List<SearchViewItem> getHierarchy(String pid) throws PurgeException {
         try {
-            List<Item> pids = storage.getSearch().findChildrenHierarchy(pid);
+            List<SearchViewItem> pids = storage.getSearch().findChildrenHierarchy(pid);
             return pids;
         } catch (FedoraClientException ex) {
             throw new PurgeException(pid, ex);
@@ -146,8 +145,8 @@ public final class PurgeFedoraObject {
         }
     }
 
-    private List<Item> getParent(String pid) throws PurgeException {
-        List<Item> pids = null;
+    private List<SearchViewItem> getParent(String pid) throws PurgeException {
+        List<SearchViewItem> pids = null;
         try {
             pids = storage.getSearch().findReferrers(pid);
         } catch (IOException ex) {

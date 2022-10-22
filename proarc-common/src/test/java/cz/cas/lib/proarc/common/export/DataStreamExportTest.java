@@ -18,9 +18,13 @@ package cz.cas.lib.proarc.common.export;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +34,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -40,6 +45,7 @@ import static org.junit.Assert.assertTrue;
 public class DataStreamExportTest {
 
     private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+    private AkubraConfiguration akubraConfiguration = null;
 
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
@@ -56,7 +62,12 @@ public class DataStreamExportTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws AppConfigurationException {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
     }
 
     @After
@@ -73,7 +84,7 @@ public class DataStreamExportTest {
         boolean hierarchy = true;
         List<String> pids = Arrays.asList("uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2");
         List<String> dsIds = Arrays.asList(StringEditor.OCR_ID, "PREVIEW");
-        DataStreamExport instance = new DataStreamExport(fedora.getRemoteStorage(), appConfig);
+        DataStreamExport instance = new DataStreamExport(fedora.getRemoteStorage(), appConfig, akubraConfiguration);
         File target = instance.export(output, hierarchy, pids, dsIds);
         assertNotNull(target);
 

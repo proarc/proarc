@@ -21,6 +21,9 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -44,6 +47,7 @@ public class DigitalObjectPluginTest {
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
 
     private AppConfiguration config;
+    private AkubraConfiguration akubraConfiguration;
 
     @Mocked
     RemoteStorage remoteStorage;
@@ -55,15 +59,19 @@ public class DigitalObjectPluginTest {
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
         MetaModelRepository.setInstance(
                 StreamSupport.stream(pluginLoader.spliterator(), false)
                         .map(digitalObjectPlugin -> digitalObjectPlugin.getId())
                         .toArray(String[]::new)
         );
         DigitalObjectManager.setDefault(new DigitalObjectManager(
-                config,
+                config, akubraConfiguration,
                 EasyMock.createNiceMock(ImportBatchManager.class),
-                remoteStorage,
                 MetaModelRepository.getInstance(),
                 EasyMock.createNiceMock(UserManager.class)));
     }

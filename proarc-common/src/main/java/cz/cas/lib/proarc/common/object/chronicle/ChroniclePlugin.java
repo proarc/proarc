@@ -3,15 +3,21 @@ package cz.cas.lib.proarc.common.object.chronicle;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.ModsCutomEditorType;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
-import cz.cas.lib.proarc.common.object.*;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
+import cz.cas.lib.proarc.common.object.HasDataHandler;
+import cz.cas.lib.proarc.common.object.HasMetadataHandler;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.RelationCriteria;
+import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
@@ -21,8 +27,15 @@ import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
@@ -156,7 +169,7 @@ public class ChroniclePlugin implements DigitalObjectPlugin, HasMetadataHandler<
     private static class ChronicleSearchViewHandler implements SearchViewHandler {
 
         @Override
-        public String getObjectLabel(Item item, Locale locale) {
+        public String getObjectLabel(SearchViewItem item, Locale locale) {
             if (MODEL_PAGE.equals(item.getModel())) {
                 return PageView.resolveFedoraObjectLabel(
                         item.getLabel(), NdkPageMapper.getPageTypeLabels(locale));

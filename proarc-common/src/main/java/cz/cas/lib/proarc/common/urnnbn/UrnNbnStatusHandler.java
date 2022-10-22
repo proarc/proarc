@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.urnnbn;
 
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -105,7 +105,7 @@ public class UrnNbnStatusHandler {
     public void log(LogType logType, String pid, Status status, String msg, String urnNbn) {
         PidResult entry = getEntry(pid);
         if (entry.getPid() == null) {
-            entry.setPid(new Item(pid));
+            entry.setPid(new SearchViewItem(pid));
         }
         entry.getLogs(logType).add(new StatusEntry(status, msg, urnNbn));
     }
@@ -136,7 +136,7 @@ public class UrnNbnStatusHandler {
 
         private Map<LogType, List<StatusEntry>> logs = new HashMap<LogType, List<StatusEntry>>();
         private String urnNbn;
-        private Item pid;
+        private SearchViewItem pid;
 
         List<StatusEntry> getLogs(LogType type) {
             List<StatusEntry> entries = logs.get(type);
@@ -156,11 +156,11 @@ public class UrnNbnStatusHandler {
             return urnNbn;
         }
 
-        public Item getPid() {
+        public SearchViewItem getPid() {
             return pid;
         }
 
-        public PidResult setPid(Item pid) {
+        public PidResult setPid(SearchViewItem pid) {
             this.pid = pid;
             return this;
         }

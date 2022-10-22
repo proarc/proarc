@@ -21,7 +21,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement.Factory;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public class DigitalObjectCrawler {
         this.elmFactory = elmFactory != null ? elmFactory : new Factory();
     }
 
-    public DigitalObjectElement getEntry(Item item) throws DigitalObjectException {
+    public DigitalObjectElement getEntry(SearchViewItem item) throws DigitalObjectException {
         String pid = item.getPid();
         return getEntry(pid);
     }
@@ -66,7 +66,7 @@ public class DigitalObjectCrawler {
     public DigitalObjectElement getEntry(String pid) throws DigitalObjectException {
         DigitalObjectElement entry = cache.get(pid);
         if (entry == null) {
-            Item item = searchItem(pid);
+            SearchViewItem item = searchItem(pid);
             if (item != null) {
                 entry = createEntry(item);
                 cache.put(pid, entry);
@@ -77,13 +77,13 @@ public class DigitalObjectCrawler {
         return entry;
     }
 
-    private DigitalObjectHandler createHandler(Item item) throws DigitalObjectNotFoundException {
+    private DigitalObjectHandler createHandler(SearchViewItem item) throws DigitalObjectNotFoundException {
         FedoraObject fo = dom.find(item.getPid(), null);
         DigitalObjectHandler doHandler = dom.createHandler(fo);
         return doHandler;
     }
 
-    private DigitalObjectElement createEntry(Item item) throws DigitalObjectNotFoundException {
+    private DigitalObjectElement createEntry(SearchViewItem item) throws DigitalObjectNotFoundException {
         DigitalObjectElement entry = elmFactory.create(item, createHandler(item));
         return entry;
     }
@@ -97,7 +97,7 @@ public class DigitalObjectCrawler {
     public DigitalObjectElement getParent(String pid) throws DigitalObjectNotFoundException {
         DigitalObjectElement parentEntry = parents.get(pid);
         if (parentEntry == null) {
-            Item parentItem = searchParentItem(pid);
+            SearchViewItem parentItem = searchParentItem(pid);
             if (parentItem == null) {
                 parentEntry = DigitalObjectElement.NULL;
             } else {
@@ -113,9 +113,9 @@ public class DigitalObjectCrawler {
     }
 
     public List<DigitalObjectElement> getChildren(String pid) throws DigitalObjectException {
-        List<Item> children = searchChildren(pid);
+        List<SearchViewItem> children = searchChildren(pid);
         ArrayList<DigitalObjectElement> result = new ArrayList<DigitalObjectElement>();
-        for (Item item : children) {
+        for (SearchViewItem item : children) {
             DigitalObjectElement childElement = cache.get(item.getPid());
             if (childElement == null) {
                 childElement = createEntry(item);
@@ -150,8 +150,8 @@ public class DigitalObjectCrawler {
         return path;
     }
 
-    Item searchParentItem(String pid) {
-        List<Item> issueParents;
+    SearchViewItem searchParentItem(String pid) {
+        List<SearchViewItem> issueParents;
         try {
             issueParents = search.findReferrers(pid);
         } catch (Exception ex) {
@@ -163,9 +163,9 @@ public class DigitalObjectCrawler {
         return issueParents.get(0);
     }
 
-    Item searchItem(String pid) throws DigitalObjectException {
+    SearchViewItem searchItem(String pid) throws DigitalObjectException {
         try {
-            List<Item> items = search.find(pid);
+            List<SearchViewItem> items = search.find(pid);
             if (items.isEmpty()) {
                 return null;
             }
@@ -177,9 +177,9 @@ public class DigitalObjectCrawler {
         }
     }
 
-    List<Item> searchChildren(String pid) throws DigitalObjectException {
+    List<SearchViewItem> searchChildren(String pid) throws DigitalObjectException {
         try {
-            List<Item> children = search.findSortedChildren(pid);
+            List<SearchViewItem> children = search.findSortedChildren(pid);
             return children;
         } catch (FedoraClientException ex) {
             throw new DigitalObjectException(pid, ex);

@@ -35,9 +35,11 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -62,6 +64,9 @@ import java.util.List;
 import java.util.Set;
 import org.w3c.dom.Element;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+
 /**
  * Processes a path of digital objects to build a package.
  *
@@ -80,16 +85,18 @@ public class ArchiveObjectProcessor {
 
     private final HashSet<String> devicePids = new HashSet<String>();
     private AppConfiguration appConfig;
+    private AkubraConfiguration akubraConfiguration;
     private boolean ignoreMissingUrnNbn = false;
 
     public static final Set<String> ARCHIVE_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
                     NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_PERIODICALISSUE, OldPrintPlugin.MODEL_VOLUME)));
 
-    public ArchiveObjectProcessor(DigitalObjectCrawler crawler, File targetFolder, AppConfiguration appConfiguration, boolean ignoreMissingUrnNbn) {
+    public ArchiveObjectProcessor(DigitalObjectCrawler crawler, File targetFolder, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration,  boolean ignoreMissingUrnNbn) {
         this.crawler = crawler;
         this.targetFolder = targetFolder;
         this.appConfig = appConfiguration;
+        this.akubraConfiguration = akubraConfiguration;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
     }
 
@@ -98,7 +105,7 @@ public class ArchiveObjectProcessor {
      * @param objectPath a leaf to root list of objects.
      * @throws DigitalObjectException a failure
      */
-    public void process(List<DigitalObjectElement> objectPath) throws DigitalObjectException, MetsExportException {
+    public void process(List<DigitalObjectElement> objectPath) throws DigitalObjectException, MetsExportException, IOException {
         builder = new PackageBuilder(targetFolder);
         DigitalObjectElement entry = objectPath.get(0);
         DigitalObjectHandler handler = entry.getHandler();
@@ -114,10 +121,20 @@ public class ArchiveObjectProcessor {
             return null;
         } else {
             try {
-                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
-                RemoteStorage.RemoteObject robject = rstorage.find(digitalObjectElement.getPid());
-                MetsContext metsContext = buildContext(robject, null, rstorage);
-                DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+                MetsContext metsContext = null;
+                FedoraObject object = null;
+                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                    RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                    object = rstorage.find(digitalObjectElement.getPid());
+                    metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
+                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                    AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                    object = akubraStorage.find(digitalObjectElement.getPid());
+                    metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
+                } else {
+                    throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+                }
+                DigitalObject dobj = MetsUtils.readFoXML(metsContext, object);
                 if (dobj == null) {
                     return null;
                 }
@@ -128,19 +145,9 @@ public class ArchiveObjectProcessor {
         }
     }
 
-    private MetsContext buildContext(RemoteObject fo, String packageId, RemoteStorage rstorage) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(null);
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(null);
-        return mc;
-    }
 
-    private void processParents(List<DigitalObjectElement> objectPath) throws DigitalObjectException, MetsExportException {
+
+    private void processParents(List<DigitalObjectElement> objectPath) throws DigitalObjectException, MetsExportException, IOException {
         for (int i = objectPath.size() - 1; i >= 1 ; i--) {
             DigitalObjectElement elm = objectPath.get(i);
             LocalObject elmCache = getLocalObject(elm.getHandler().getFedoraObject());
@@ -148,7 +155,7 @@ public class ArchiveObjectProcessor {
         }
     }
 
-    private void processObject(int siblingIdx, List<DigitalObjectElement> objectPath, LocalObject cache) throws DigitalObjectException, MetsExportException {
+    private void processObject(int siblingIdx, List<DigitalObjectElement> objectPath, LocalObject cache) throws DigitalObjectException, MetsExportException, IOException {
         DigitalObjectElement entry = objectPath.get(0);
         RelationEditor relsEditor = new RelationEditor(cache);
 
@@ -165,7 +172,7 @@ public class ArchiveObjectProcessor {
     private void processDatastreams(
             int siblingIdx, List<DigitalObjectElement> objectPath, LocalObject cache,
             RelationEditor relsEditor
-    ) throws DigitalObjectException, MetsExportException {
+    ) throws DigitalObjectException, MetsExportException, IOException {
         DigitalObjectElement elm = objectPath.get(0);
         DigitalObjectElement parentElm = objectPath.size() <= 1 ? null : objectPath.get(1);
         DigitalObjectHandler handler = elm.getHandler();
@@ -236,16 +243,24 @@ public class ArchiveObjectProcessor {
         return false;
     }
 
-    private void processDevice(String devicePid, String objPid) throws DigitalObjectException {
+    private void processDevice(String devicePid, String objPid) throws DigitalObjectException, IOException {
         if (devicePid == null) {
             return ;
         }
         boolean contains = devicePids.contains(devicePid);
         if (!contains) {
             devicePids.add(devicePid);
-            RemoteStorage remoteStorage = RemoteStorage.getInstance();
-            RemoteObject ro = remoteStorage.find(devicePid);
-            LocalObject cache = getLocalObject(ro);
+            FedoraObject object = null;
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                object = rstorage.find(devicePid);
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(devicePid);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+            LocalObject cache = getLocalObject(object);
             builder.addDevice(cache);
             final int deviceIdx = devicePids.size();
             final String modelId = DeviceRepository.METAMODEL_ID;
@@ -259,7 +274,7 @@ public class ArchiveObjectProcessor {
             // write description
             builder.addStreamAsFile(deviceIdx,
                     FoxmlUtils.findDatastream(dobj, DeviceRepository.DESCRIPTION_DS_ID),
-                    devicePid, modelId, new ReadonlyDisseminationHandler(ro, DeviceRepository.DESCRIPTION_DS_ID));
+                    devicePid, modelId, new ReadonlyDisseminationHandler(object, DeviceRepository.DESCRIPTION_DS_ID));
             // write audit
             builder.addStreamAsFile(deviceIdx,
                     FoxmlUtils.findDatastream(dobj, FoxmlUtils.DS_AUDIT_ID),
@@ -274,7 +289,7 @@ public class ArchiveObjectProcessor {
     private void processChildren(
             List<DigitalObjectElement> objectPath,
             List<DigitalObjectElement> children
-    ) throws DigitalObjectException, MetsExportException {
+    ) throws DigitalObjectException, MetsExportException, IOException {
         int i = 1;
         for (DigitalObjectElement child : children) {
             LocalObject lObj = getLocalObject(child.getHandler().getFedoraObject());

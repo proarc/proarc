@@ -19,8 +19,8 @@ package cz.cas.lib.proarc.common.object.graphic;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
 
 /**
@@ -159,7 +160,7 @@ public class GraphicPlugin implements DigitalObjectPlugin, HasMetadataHandler<Mo
     private static class GraphicSearchViewHandler implements SearchViewHandler {
 
         @Override
-        public String getObjectLabel(Item item, Locale locale) {
+        public String getObjectLabel(SearchViewItem item, Locale locale) {
             if (MODEL_PAGE.equals(item.getModel())) {
                 return PageView.resolveFedoraObjectLabel(
                         item.getLabel(), NdkPageMapper.getPageTypeLabels(locale));
