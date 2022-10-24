@@ -9,24 +9,40 @@ import org.apache.solr.common.SolrDocument;
 
 public class SolrUtils {
 
-    public enum SortOperation {DESC, ASC}
+    public enum SortOperation {DESC, ASC};
 
-    ;
+    public enum QueryOperator {AND, OR};
 
-    public enum QueryOperator {AND, OR}
+    public static final String FIELD_PID = "pid";
+    public static final String FIELD_MODEL = "model";
+    public static final String FIELD_OWNER = "owner";
+    public static final String FIELD_LABEL = "label";
+    public static final String FIELD_STATE = "state";
+    public static final String FIELD_CREATED = "created";
+    public static final String FIELD_MODIFIED = "modified";
+    public static final String FIELD_ORGANIZATION = "organization";
+    public static final String FIELD_USER = "user";
+    public static final String FIELD_STATUS = "status";
+    public static final String FIELD_EXPORT_NDK = "ndkExport";
+    public static final String FIELD_EXPORT_KRAMERIUS = "krameriusExport";
+    public static final String FIELD_EXPORT_ARCHIVE = "archiveExport";
+    public static final String FIELD_EXPORT_CROSSREF = "crossrefExport";
+    public static final String FIELD_LOCKED = "isLocked";
+    public static final String FIELD_DEVICE = "device";
+    public static final String FIELD_MEMBERS = "members";
+    public static final String FIELD_SOURCE = "source";
 
-    ;
 
     public static StringBuilder appendAndValue(StringBuilder queryBuilder, String value) {
-        return appendValue(queryBuilder, value, "AND");
+        return appendValue(queryBuilder, value, QueryOperator.AND.name());
     }
 
     public static StringBuilder appendORValue(StringBuilder queryBuilder, String value) {
-        return appendValue(queryBuilder, value, "OR");
+        return appendValue(queryBuilder, value, QueryOperator.OR.name());
     }
 
     private static StringBuilder appendListValue(StringBuilder queryBuilder, String value) {
-        return appendValue(queryBuilder, "\"" + value + "\"", "OR");
+        return appendValue(queryBuilder, "\"" + value + "\"", QueryOperator.OR.name());
     }
 
     private static StringBuilder appendValue(StringBuilder queryBuilder, String value, String operator) {
@@ -63,18 +79,18 @@ public class SolrUtils {
     }
 
     public static String getPidsQuery(List<String> pids) {
-        return getListQuery(pids, "pid");
+        return getListQuery(pids, FIELD_PID);
     }
 
     public static String getModelQuery(List<String> models) {
-        return getListQuery(models, "model");
+        return getListQuery(models, FIELD_MODEL);
     }
 
     public static String getUserQuery(List<String> usernames, Boolean allowAllForUser) {
         if (allowAllForUser == Boolean.TRUE) {
             usernames.add("all");
         }
-        return getListQuery(usernames, "user");
+        return getListQuery(usernames, FIELD_USER);
     }
 
     private static String getListQuery(List<String> list, String key) {
@@ -96,21 +112,21 @@ public class SolrUtils {
     public static SearchViewItem createItem(SolrDocument solrDocument) {
         SearchViewItem item = new SearchViewItem();
 
-        item.setPid(getString(solrDocument, "pid"));
-        item.setModel(getString(solrDocument, "model"));
-        item.setOwner(getString(solrDocument, "owner"));
-        item.setLabel(getString(solrDocument, "label"));
-        item.setState(getString(solrDocument, "state"));
-        item.setCreated(getDate(solrDocument, "created"));
-        item.setModified(getDate(solrDocument, "modified"));
-        item.setOrganization(getString(solrDocument, "organization"));
-        item.setUser(getString(solrDocument, "user"));
-        item.setStatus(getString(solrDocument, "status"));
-        item.setK1(getString(solrDocument, "ndkExport"));
-        item.setK2(getString(solrDocument, "krameriusExport"));
-        item.setK3(getString(solrDocument, "archiveExport"));
-        item.setK4(getString(solrDocument, "crossrefExport"));
-        item.setK5(getBooleanString(solrDocument, "isLocked"));
+        item.setPid(getString(solrDocument, FIELD_PID));
+        item.setModel(getString(solrDocument, FIELD_MODEL));
+        item.setOwner(getString(solrDocument, FIELD_OWNER));
+        item.setLabel(getString(solrDocument, FIELD_LABEL));
+        item.setState(getString(solrDocument, FIELD_STATE));
+        item.setCreated(getDate(solrDocument, FIELD_CREATED));
+        item.setModified(getDate(solrDocument, FIELD_MODIFIED));
+        item.setOrganization(getString(solrDocument, FIELD_ORGANIZATION));
+        item.setUser(getString(solrDocument, FIELD_USER));
+        item.setStatus(getString(solrDocument, FIELD_STATUS));
+        item.setK1(getString(solrDocument, FIELD_EXPORT_NDK));
+        item.setK2(getString(solrDocument, FIELD_EXPORT_KRAMERIUS));
+        item.setK3(getString(solrDocument, FIELD_EXPORT_ARCHIVE));
+        item.setK4(getString(solrDocument, FIELD_EXPORT_CROSSREF));
+        item.setK5(getBooleanString(solrDocument, FIELD_LOCKED));
         return item;
     }
 

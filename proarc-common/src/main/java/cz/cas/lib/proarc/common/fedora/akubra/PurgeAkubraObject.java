@@ -129,9 +129,7 @@ public final class PurgeAkubraObject {
         try {
             List<SearchViewItem> pids = akubraStorage.getSearch().findChildrenHierarchy(pid);
             return pids;
-        } catch (FedoraClientException ex) {
-            throw new PurgeException(pid, ex);
-        } catch (IOException ex) {
+        } catch (DigitalObjectException | IOException ex) {
             throw new PurgeException(pid, ex);
         }
     }

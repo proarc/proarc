@@ -8,6 +8,7 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.incad.kramerius.resourceindex.ProcessingIndexFeeder;
 import java.io.IOException;
+import java.util.List;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -18,6 +19,24 @@ import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_LABEL;
 import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_LASTMODIFIED;
 import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_OWNER;
 import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_STATE;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_CREATED;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_DEVICE;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_EXPORT_ARCHIVE;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_EXPORT_CROSSREF;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_EXPORT_KRAMERIUS;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_EXPORT_NDK;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_LABEL;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_LOCKED;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MEMBERS;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MODEL;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MODIFIED;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_ORGANIZATION;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_OWNER;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PID;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_SOURCE;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_STATE;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_STATUS;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_USER;
 
 public class SolrFeeder extends ProcessingIndexFeeder {
 
@@ -35,7 +54,7 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         String created = getProperties(object, PROPERTY_CREATEDATE);
         String modified = getProperties(object, PROPERTY_LASTMODIFIED);
 
-
+        String device = relationEditor.getDevice();
         String organization = relationEditor.getOrganization();
         String user = relationEditor.getUser();
         String status = relationEditor.getStatus();
@@ -46,31 +65,35 @@ public class SolrFeeder extends ProcessingIndexFeeder {
 
         Boolean isLocked = relationEditor.isLocked();
 
+        List<String> members = relationEditor.getMembers();
+
         try {
-            feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status, ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked);
+            feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status, ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members);
         } catch (SolrServerException | IOException ex) {
             throw new DigitalObjectException(pid, "Nepodarilo se zaindexovat objekt " + pid + " do SOLRu.");
         }
     }
 
-    private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user, String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked) throws SolrServerException, IOException {
+    private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user, String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
-        sdoc.addField("source", pid);
-        sdoc.addField("pid", pid);
-        sdoc.addField("model", model);
-        sdoc.addField("owner", owner);
-        sdoc.addField("label", label);
-        sdoc.addField("state", state);
-        sdoc.addField("created", created);
-        sdoc.addField("modified", modified);
-        sdoc.addField("organization", organization);
-        sdoc.addField("user", user);
-        sdoc.addField("status", status);
-        sdoc.addField("ndkExport", ndkExport);
-        sdoc.addField("krameriusExport", krameriusExport);
-        sdoc.addField("archiveExport", archiveExport);
-        sdoc.addField("crossrefExport", crossrefExport);
-        sdoc.addField("isLocked", isLocked);
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+        sdoc.addField(FIELD_MODEL, model);
+        sdoc.addField(FIELD_OWNER, owner);
+        sdoc.addField(FIELD_LABEL, label);
+        sdoc.addField(FIELD_STATE, state);
+        sdoc.addField(FIELD_CREATED, created);
+        sdoc.addField(FIELD_MODIFIED, modified);
+        sdoc.addField(FIELD_ORGANIZATION, organization);
+        sdoc.addField(FIELD_USER, user);
+        sdoc.addField(FIELD_STATUS, status);
+        sdoc.addField(FIELD_EXPORT_NDK, ndkExport);
+        sdoc.addField(FIELD_EXPORT_KRAMERIUS, krameriusExport);
+        sdoc.addField(FIELD_EXPORT_ARCHIVE, archiveExport);
+        sdoc.addField(FIELD_EXPORT_CROSSREF, crossrefExport);
+        sdoc.addField(FIELD_LOCKED, isLocked);
+        sdoc.addField(FIELD_DEVICE, device);
+        sdoc.addField(FIELD_MEMBERS, members);
 
         return feedDescriptionDocument(sdoc);
     }

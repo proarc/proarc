@@ -21,6 +21,15 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_CREATED;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_DEVICE;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_LABEL;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MEMBERS;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MODIFIED;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_ORGANIZATION;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_OWNER;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_STATE;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_STATUS;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.appendAndValue;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.createItem;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.getModelQuery;
@@ -55,31 +64,40 @@ public class SolrSearchView extends SearchView {
 
     @Override
     public boolean isDeviceInUse(String deviceId) throws IOException, FedoraClientException {
-        return super.isDeviceInUse(deviceId);
+        try {
+            String query = FIELD_DEVICE + ":\"" + deviceId + "\"";
+            SolrQuery solrQuery = new SolrQuery(query);
+            QueryResponse response = this.solrClient.query(solrQuery);
+            int total = response.getResults().size();
+            return total > 0;
+        } catch (SolrServerException ex) {
+            ex.printStackTrace();
+            throw new IOException(ex);
+        }
     }
 
     @Override
-    public List<SearchViewItem> find(String... pids) throws FedoraClientException, IOException {
+    public List<SearchViewItem> find(String... pids) throws IOException {
         return find(true, Arrays.asList(pids));
     }
 
     @Override
-    public List<SearchViewItem> find(String pid) throws FedoraClientException, IOException {
+    public List<SearchViewItem> find(String pid) throws IOException {
         return find(true, Arrays.asList(pid));
     }
 
     @Override
-    public List<SearchViewItem> find(List<String> pids) throws FedoraClientException, IOException {
+    public List<SearchViewItem> find(List<String> pids) throws IOException {
         return find(true, pids);
     }
 
     @Override
-    public List<SearchViewItem> find(boolean onlyActive, List<String> pids) throws FedoraClientException, IOException {
+    public List<SearchViewItem> find(boolean onlyActive, List<String> pids) throws IOException {
         return searchImplementation(0, null, null, null, onlyActive, null, pids);
     }
 
     @Override
-    public List<SearchViewItem> findAllObjects() throws FedoraClientException, IOException {
+    public List<SearchViewItem> findAllObjects() throws IOException {
         return searchImplementation(0, null, null, null, null, null, null);
 
     }
@@ -106,11 +124,28 @@ public class SolrSearchView extends SearchView {
 
     @Override
     public List<SearchViewItem> findReferrers(String pid) throws IOException, FedoraClientException {
-        return super.findReferrers(pid); //TODO
+        try {
+            StringBuilder queryBuilder = new StringBuilder();
+            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"Active\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_MEMBERS + "\"" + pid + "\"");
+            SolrQuery solrQuery = new SolrQuery(queryBuilder.toString());
+
+            List<SearchViewItem> items = new ArrayList<>();
+            QueryResponse response = this.solrClient.query(solrQuery);
+
+            for (SolrDocument solrDocument : response.getResults()) {
+                items.add(createItem(solrDocument));
+            }
+
+            return items;
+        } catch (SolrServerException ex) {
+            ex.printStackTrace();
+            throw new IOException(ex);
+        }
     }
 
     @Override
-    public List<SearchViewItem> findSortedChildren(String parentPid) throws FedoraClientException, IOException, DigitalObjectException {
+    public List<SearchViewItem> findSortedChildren(String parentPid) throws IOException, DigitalObjectException {
         AkubraObject parent = storage.find(parentPid);
         List<String> memberPids = new RelationEditor(parent).getMembers();
         List<SearchViewItem> items = find(memberPids);
@@ -129,42 +164,66 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
-    public List<SearchViewItem> findChildren(String pid) throws FedoraClientException, IOException {
-        return super.findChildren(pid); //TODO
+    public List<SearchViewItem> findChildren(String parentPid) throws IOException, DigitalObjectException {
+        AkubraObject parent = storage.find(parentPid);
+        List<String> memberPids = new RelationEditor(parent).getMembers();
+        List<SearchViewItem> items = find(memberPids);
+        return items;
     }
 
     @Override
-    public List<SearchViewItem> findChildrenHierarchy(String pid) throws FedoraClientException, IOException {
-        return super.findChildrenHierarchy(pid); //TODO
+    public List<SearchViewItem> findChildrenHierarchy(String parentPid) throws IOException, DigitalObjectException {
+        List<SearchViewItem> items = new ArrayList<>();
+
+        items = findChildrenHierarchy(items, parentPid);
+
+        return items;
+    }
+
+    private List<SearchViewItem> findChildrenHierarchy(List<SearchViewItem> items, String parentPid) throws IOException, DigitalObjectException {
+        if (items == null) {
+            items = new ArrayList<>();
+        }
+        AkubraObject parent = storage.find(parentPid);
+        List<String> memberPids = new RelationEditor(parent).getMembers();
+        if (memberPids.isEmpty()) {
+            return items;
+        } else {
+            items.addAll(find(memberPids));
+            for (String memberPid : memberPids) {
+                items = findChildrenHierarchy(items, memberPid);
+            }
+            return items;
+        }
     }
 
     @Override
-    public List<SearchViewItem> findLastCreated(int offset, String model, String user, Boolean filterWithoutExtension, String sort) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findLastCreated(int offset, String model, String user, Boolean filterWithoutExtension, String sort) throws IOException {
         return findLastCreated(offset, model, user, null, null, filterWithoutExtension, this.maxLimit, sort);
     }
 
     @Override
-    public List<SearchViewItem> findLastCreated(int offset, String model, String user, String organization, String username, Boolean filterWithoutExtension, int limit, String sort) throws FedoraClientException, IOException {
-        return findLastImp(offset, model, user, organization, username, filterWithoutExtension, limit, "created", sort);
+    public List<SearchViewItem> findLastCreated(int offset, String model, String user, String organization, String username, Boolean filterWithoutExtension, int limit, String sort) throws IOException {
+        return findLastImp(offset, model, user, organization, username, filterWithoutExtension, limit, FIELD_CREATED, sort);
     }
 
     @Override
     public List<SearchViewItem> findAlphabetical(int offset, String model, String user, String organization, String username, Boolean filterWithoutExtension, int limit, String sort) throws IOException, FedoraClientException {
-        return findLastImp(offset, model, user, organization, username, filterWithoutExtension, limit, "title", sort);
+        return findLastImp(offset, model, user, organization, username, filterWithoutExtension, limit, FIELD_LABEL, sort);
     }
 
     @Override
-    public List<SearchViewItem> findLastModified(int offset, String model, String user, String organization, String username, Boolean filterWithoutExtension, int limit, String sort) throws FedoraClientException, IOException {
-        return findLastImp(offset, model, user, organization, username, filterWithoutExtension, limit, "modified", sort);
+    public List<SearchViewItem> findLastModified(int offset, String model, String user, String organization, String username, Boolean filterWithoutExtension, int limit, String sort) throws IOException {
+        return findLastImp(offset, model, user, organization, username, filterWithoutExtension, limit, FIELD_MODIFIED, sort);
     }
 
     @Override
-    public List<SearchViewItem> findQuery(String title, String label, String identifier, String owner, String model, Collection<String> hasOwners) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findQuery(String title, String label, String identifier, String owner, String model, Collection<String> hasOwners) throws IOException {
         return findQuery(new SearchViewQuery().setTitle(title).setLabel(label).setIdentifier(identifier).setOwner(owner).setModel(model).setHasOwners(hasOwners), "active");
     }
 
     @Override
-    public List<SearchViewItem> findQuery(SearchViewQuery q, String status) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findQuery(SearchViewQuery q, String status) throws IOException {
         boolean onlyActive =  "active".equals(status) ? true : false;
         List<String> models = null;
         if (q.getModel() != null && !q.getModel().isEmpty()) {
@@ -179,7 +238,7 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
-    public int countModels(String model, String user, String organization, String username, Boolean filterWithoutExtension) throws FedoraClientException, IOException {
+    public int countModels(String model, String user, String organization, String username, Boolean filterWithoutExtension) throws IOException {
         return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), null, user, organization, username, null, null, true);
     }
 
@@ -189,7 +248,7 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
-    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension) throws FedoraClientException, IOException {
+    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension) throws IOException {
         return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), Collections.singletonList(identifier), owner, organization, processor, label, status, allowAllForProcessor);
     }
 
@@ -253,9 +312,9 @@ public class SolrSearchView extends SearchView {
     private StringBuilder createQuery(Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) {
         StringBuilder queryBuilder = new StringBuilder();
         if (onlyActive != null && onlyActive) {
-            queryBuilder = appendAndValue(queryBuilder, "state:\"Active\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"Active\"");
         } else if (onlyActive != null && !onlyActive){
-            queryBuilder = appendAndValue(queryBuilder, "state:\"Deactive\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"Deactive\"");
         }
         if (models != null && !models.isEmpty()) {
             queryBuilder = appendAndValue(queryBuilder, getModelQuery(models));
@@ -264,22 +323,20 @@ public class SolrSearchView extends SearchView {
             queryBuilder = appendAndValue(queryBuilder, getPidsQuery(pids));
         }
         if (owner != null && !owner.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, "owner:\"" + owner + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_OWNER + ":\"" + owner + "\"");
         }
         if (organization != null && !organization.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, "organization:\"" + organization + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_ORGANIZATION + ":\"" + organization + "\"");
         }
         if (user != null && !user.isEmpty()) {
             queryBuilder = appendAndValue(queryBuilder, getUserQuery(Collections.singletonList(user), allowAllForUser));
         }
         if (label != null && !label.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, "label:\"" + label + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_LABEL + ":\"" + label + "\"");
         }
         if (status != null && !status.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, "status:\"" + status + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_STATUS + ":\"" + status + "\"");
         }
         return queryBuilder;
     }
-
-
 }
