@@ -20,11 +20,6 @@ import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMonographTitleMapper;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.TitleInfoDefinition;
-import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-
-
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 
 public class NdkEMonographTitleMapper extends NdkMonographTitleMapper {
 
@@ -36,6 +31,7 @@ public class NdkEMonographTitleMapper extends NdkMonographTitleMapper {
     @Override
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="electronic_title"
+        MapperUtils.removeGenre(mods, "electronic title");
         MapperUtils.addGenre(mods, Const.GENRE_ETITLE);
     }
 }
