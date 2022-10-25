@@ -88,18 +88,7 @@ public class ImportUtils {
                     sortedList.put(id, batchItem);
                 }
             } catch (NumberFormatException ex) {
-                try {
-                    if (splitName[length - 3].length() == 2 && splitName[length - 2].length() == 2) {
-                        int song = Integer.valueOf(splitName[splitName.length - 3]);
-                        int track = Integer.valueOf(splitName[splitName.length - 2]);
-
-                        String id = String.format("%02d", song) + "_" + String.format("%02d", track) + "_picture";
-                        sortedList.put(id, batchItem);
-                    }
-                } catch (NumberFormatException e) {
-                    LOG.log(Level.INFO, e.getMessage(), e);
-                    continue;
-                }
+                sortedList.put(name, batchItem);
             }
         }
         Collection<ImportBatchManager.BatchItemObject> values = sortedList.values();
