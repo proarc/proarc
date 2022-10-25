@@ -546,12 +546,14 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
             if (logicalMap.getDiv() != null) {
                 DivType divOriginalTitle = logicalMap.getDiv();
                 copyDiv(divTitle, divOriginalTitle, true, false);
-                for (DivType divOriginalVolume : divOriginalTitle.getDiv()) {
+                for (int i = 0; i < divOriginalTitle.getDiv().size(); i++) {
+                    DivType divOriginalVolume = divOriginalTitle.getDiv().get(i);
+                    IMetsElement childElement = metsElement.getChildren().get(i);
                     DivType divVolume = new DivType();
                     copyDiv(divVolume, divOriginalVolume, true, false);
                     divTitle.getDiv().add(divVolume);
                     if (divOriginalVolume.getDiv().isEmpty()) {
-                        createDivDocument(docId++, divVolume, metsElement);
+                        createDivDocument(docId++, divVolume, childElement);
                     }
                 }
             }

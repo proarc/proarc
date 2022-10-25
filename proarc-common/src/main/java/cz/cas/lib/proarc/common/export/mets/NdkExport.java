@@ -195,7 +195,7 @@ public class NdkExport {
                 logItem.setEnd();
             }
         }
-        ExportUtils.writeExportResult(target, reslog);
+        //ExportUtils.writeExportResult(target, reslog);
         return results;
     }
 
@@ -220,7 +220,7 @@ public class NdkExport {
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
-            MetsContext metsContext = buildContext(pid);
+            MetsContext metsContext = buildContext(pid, target);
             File targetFolder = null;
             MetsElement metsElement = getMetsElement(object, metsContext, hierarchy);
             if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
@@ -263,15 +263,15 @@ public class NdkExport {
         }
     }
 
-    public MetsContext buildContext(String pid) {
+    public MetsContext buildContext(String pid, File target) {
         FedoraObject object = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
             object = remoteStorage.find(pid);
-            return buildFedoraContext(object, null, null, remoteStorage, appConfig.getNdkExportOptions());
+            return buildFedoraContext(object, null, target, remoteStorage, appConfig.getNdkExportOptions());
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance();
             object = akubraStorage.find(pid);
-            return buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
+            return buildAkubraContext(object, null, target, akubraStorage, appConfig.getNdkExportOptions());
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
         }

@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import java.io.File;
 
 /**
  * @see <a href="http://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf">Specification of emonograph</a>
@@ -44,8 +45,8 @@ public class NdkSipExport extends NdkExport {
     }
 
     @Override
-    public MetsContext buildContext(String pid) {
-        MetsContext context = super.buildContext(pid);
+    public MetsContext buildContext(String pid, File target) {
+        MetsContext context = super.buildContext(pid, target);
         context.setPackageVersion(PACKAGE_VERSION);
         return context;
     }
