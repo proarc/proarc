@@ -25,7 +25,8 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_ASSIGN;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_CONNECTED;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_DESCRIBED;
@@ -217,8 +220,8 @@ public final class AtmEditor {
             // times take from FOXML or File?
         } else {
             try {
-                List<Item> searchItems = search.find(pid);
-                Item searchItem = searchItems.get(0);
+                List<SearchViewItem> searchItems = search.find(pid);
+                SearchViewItem searchItem = searchItems.get(0);
                 atm.owner = searchItem.getOwner();
                 atm.created = searchItem.getCreated();
                 atm.modified = searchItem.getModified();
@@ -248,8 +251,8 @@ public final class AtmEditor {
         return atm;
     }
 
-    public void setChild(String parentPid, String organization, String user, String state, String donator, AppConfiguration appConfig, SearchView search, String sessionLog) throws DigitalObjectException, IOException {
-        List<String> pids = findElements(parentPid, appConfig);
+    public void setChild(String parentPid, String organization, String user, String state, String donator, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, SearchView search, String sessionLog) throws DigitalObjectException, IOException {
+        List<String> pids = findElements(parentPid, appConfig, akubraConfiguration);
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, appConfig);
             AtmEditor editor = new AtmEditor(fobject, search);
@@ -265,9 +268,9 @@ public final class AtmEditor {
         return RemoteStorage.getInstance(appConfig).find(pid);
     }
 
-    private List<String> findElements(String parentPid, AppConfiguration config) throws DigitalObjectException {
+    private List<String> findElements(String parentPid, AppConfiguration config, AkubraConfiguration akubraConfiguration) throws DigitalObjectException {
         List<String> pids = new ArrayList<>();
-        IMetsElement element = getElement(parentPid, config);
+        IMetsElement element = getElement(parentPid, config, akubraConfiguration);
         if (element == null) {
             throw new DigitalObjectException("Process: Set organization failed - impossible to get element");
         }
@@ -286,12 +289,23 @@ public final class AtmEditor {
         }
     }
 
-    public IMetsElement getElement(String parentPid, AppConfiguration config) throws DigitalObjectException {
+    public IMetsElement getElement(String parentPid, AppConfiguration config, AkubraConfiguration akubraConfiguration) throws DigitalObjectException {
         try {
-            RemoteStorage rstorage = RemoteStorage.getInstance(config);
-            RemoteStorage.RemoteObject robject = rstorage.find(parentPid);
-            MetsContext metsContext = buildContext(robject, null, rstorage);
-            DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+            MetsContext metsContext = null;
+            FedoraObject object = null;
+
+            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
+                RemoteStorage remoteStorage = RemoteStorage.getInstance(config);
+                object = remoteStorage.find(parentPid);
+                metsContext = buildFedoraContext(object, null, null, remoteStorage, config.getNdkExportOptions());
+            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(parentPid);
+                metsContext = buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
+            }
+            DigitalObject dobj = MetsUtils.readFoXML(object.getPid(), metsContext);
             if (dobj == null) {
                 throw new DigitalObjectException(parentPid, "Process: Changing models failed - imposible to find element");
             }
@@ -299,18 +313,6 @@ public final class AtmEditor {
         } catch (IOException | MetsExportException ex) {
             throw new DigitalObjectException(parentPid, "Process: Changing models failed - imposible to find element", ex);
         }
-    }
-
-    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, RemoteStorage rstorage) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(null);
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(null);
-        return mc;
     }
 
     public static class AtmItem {

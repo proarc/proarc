@@ -18,8 +18,8 @@ package cz.cas.lib.proarc.common.object.ndk;
 
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
@@ -355,7 +355,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     public static class NdkSearchViewHandler implements SearchViewHandler {
 
         @Override
-        public String getObjectLabel(Item item, Locale locale) {
+        public String getObjectLabel(SearchViewItem item, Locale locale) {
             if (MODEL_PAGE.equals(item.getModel()) || MODEL_NDK_PAGE.equals(item.getModel())) {
                 return PageView.resolveFedoraObjectLabel(
                         item.getLabel(), NdkPageMapper.getPageTypeLabels(locale));

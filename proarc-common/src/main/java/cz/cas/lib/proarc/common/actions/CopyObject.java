@@ -25,8 +25,11 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -42,10 +45,12 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Create digital copy of selected model
@@ -57,13 +62,15 @@ public class CopyObject {
     public static String pidNew = "";
     public static String modelId = "";
     public static AppConfiguration appConfig = null;
+    public static AkubraConfiguration akubraConfig = null;
     public static DigitalObjectValidationException ex = null;
     public static UserProfile user = null;
 
     public static final String ERR_COPYVALUE_MISSINGVALUE = "Err_CopyValue_MissingValue";
 
-    public CopyObject(AppConfiguration appConfig, UserProfile user, String pidOld, String modelId) {
+    public CopyObject(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, UserProfile user, String pidOld, String modelId) {
         this.appConfig = appConfig;
+        this.akubraConfig = akubraConfiguration;
         this.pidOld = pidOld;
         this.modelId = modelId;
         this.pidNew = FoxmlUtils.createPid();
@@ -72,17 +79,28 @@ public class CopyObject {
                 "Copy Object", "Copy Object validation", null);
     }
 
-    public List<SearchView.Item> copy() throws DigitalObjectException {
+    public List<SearchViewItem> copy() throws DigitalObjectException {
         checkValues();
         try {
-            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
-            RemoteStorage.RemoteObject robject = rstorage.find(pidOld);
-            MetsContext metsContext = buildContext(robject, null, null, rstorage);
-            String parentId = MetsUtils.getParent(pidOld, metsContext.getRemoteStorage());
+            MetsContext metsContext = null;
+            FedoraObject object = null;
+
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                object = rstorage.find(pidOld);
+                metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfig);
+                object = akubraStorage.find(pidOld);
+                metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+            String parentId = MetsUtils.getParent(pidOld, metsContext);
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
 
             DigitalObjectManager.CreateHandler handler = dom.create(modelId, pidNew, parentId, user, null, "create new object with pid: " + pidNew);
-            List<SearchView.Item> items = null;
+            List<SearchViewItem> items = null;
             items = handler.create();
             return items;
         }
@@ -191,19 +209,6 @@ public class CopyObject {
 
     private String getUuid() {
         return this.pidNew.substring(5);
-    }
-
-
-    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, File targetFolder, RemoteStorage rstorage) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(null);
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(null);
-        return mc;
     }
 
     private void checkValues() throws DigitalObjectException {

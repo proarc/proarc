@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.export.sip;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import cz.cas.lib.proarc.common.export.mets.Const;
@@ -28,6 +27,9 @@ import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.FileType;
@@ -212,21 +214,29 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
 
                 String extension = null;
 
-                GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-
-                FileMD5Info fileMD5Info = MetsUtils.getDigest(is);
-                if (rawDS != null && rawDS.getDatastreamVersion() != null && rawDS.getDatastreamVersion().size() > 0 && rawDS.getDatastreamVersion().get(0) != null) {
-                    extension = Const.mimeToExtensionMap.get(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                InputStream inputStream = null;
+                if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
+                    inputStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                    AkubraObject object = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
+                    inputStream = AkubraUtils.getDatastreamDissemination(object, "RAW");
+                } else {
+                    throw new IllegalStateException("Unsupported type of Storage: " + metsElement.getMetsContext().getTypeOfStorage());
                 }
-                if (extension == null) {
-                    extension = ".pdf";
-                }
-                fileMD5Info.setFileName(fileName + extension);
-                fileMD5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
-                md5InfosMap.put(OC_GRP_ID_CREATION, fileMD5Info);
 
-                FileMD5Info fileMD5InfoValidation = MetsUtils.getDigest(is);
+            FileMD5Info fileMD5Info = MetsUtils.getDigest(inputStream);
+            if (rawDS != null && rawDS.getDatastreamVersion() != null && rawDS.getDatastreamVersion().size() > 0 && rawDS.getDatastreamVersion().get(0) != null) {
+                extension = Const.mimeToExtensionMap.get(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+            }
+            if (extension == null) {
+                extension = ".pdf";
+            }
+            fileMD5Info.setFileName(fileName + extension);
+            fileMD5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
+            md5InfosMap.put(OC_GRP_ID_CREATION, fileMD5Info);
+
+                FileMD5Info fileMD5InfoValidation = MetsUtils.getDigest(inputStream);
                 fileMD5InfoValidation.setFileName(fileName + extension);
                 fileMD5InfoValidation.setCreated(calendar);
                 md5InfosMap.put(OC_GRP_ID_VALIDATION, fileMD5InfoValidation);
@@ -328,8 +338,16 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
             Optional<DatastreamType> rawDatastream = metsElement.getSourceObject().getDatastream().stream().filter(stream -> "RAW".equalsIgnoreCase(stream.getID())).findFirst();
             if (rawDatastream.isPresent()) {
                 DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
-                GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                InputStream dsStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                InputStream inputStream = null;
+                if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
+                    inputStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                    AkubraObject object = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
+                    inputStream = AkubraUtils.getDatastreamDissemination(object, "RAW");
+                } else {
+                    throw new IllegalStateException("Unsupported type of Storage: " + metsElement.getMetsContext().getTypeOfStorage());
+                }
                 String extension = null;
                 if (rawDS != null && rawDS.getDatastreamVersion() != null && rawDS.getDatastreamVersion().size() > 0 && rawDS.getDatastreamVersion().get(0) != null) {
                     extension = Const.mimeToExtensionMap.get(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
@@ -341,7 +359,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                 Path originalPathDoc = packageDir.resolve(name);
 
                 // check null
-                if (Files.copy(dsStream, originalPathDoc) == 0) {
+                if (Files.copy(inputStream, originalPathDoc) == 0) {
                     throw new MetsExportException("empty RAW datastream " + metsElement.getOriginalPid());
                 }
                 packageFiles.add(originalPathDoc);
@@ -390,7 +408,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
             }*/
 
             return Collections.unmodifiableList(packageFiles);
-        } catch (FedoraClientException | IOException e) {
+        } catch (Exception e) {
             MetsExportException ex = new MetsExportException(e.getMessage());
             ex.addException(e.getMessage(), true, e);
             throw ex;

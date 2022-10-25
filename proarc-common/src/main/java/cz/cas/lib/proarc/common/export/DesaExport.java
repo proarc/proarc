@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.export;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.desa.Const;
 import cz.cas.lib.proarc.common.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
@@ -27,17 +28,21 @@ import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
-import org.apache.commons.io.FileUtils;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
 
 /**
  * The exporter of digital objects. It can build and validate SIP in format
@@ -48,16 +53,15 @@ import java.util.logging.Logger;
 public final class DesaExport {
 
     private static final Logger LOG = Logger.getLogger(DesaExport.class.getName());
-    private final RemoteStorage rstorage;
-    private final DesaServices desaServices;
+//    private final RemoteStorage rstorage;
+    private final AppConfiguration appConfiguration;
+    private final AkubraConfiguration akubraConfiguration;
     private final MetaModelRepository models;
-    private final ExportOptions options;
 
-    public DesaExport(RemoteStorage rstorage, DesaServices desaServices, MetaModelRepository models, ExportOptions options) {
-        this.rstorage = rstorage;
-        this.desaServices = desaServices;
+    public DesaExport(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, MetaModelRepository models) {
+        this.appConfiguration = appConfig;
+        this.akubraConfiguration = akubraConfiguration;
         this.models = models;
-        this.options = options;
     }
 
     /**
@@ -130,23 +134,34 @@ public final class DesaExport {
             UserProfile user
             ) throws ExportException {
 
-        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid), options.isOverwritePackage());
+        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid), this.appConfiguration.getExportOptions().isOverwritePackage());
         Result result = new Result();
         try {
             if (keepResult) {
                 result.setTargetFolder(target);
             }
-            RemoteObject fo = rstorage.find(pid);
-            DesaContext dc = buildContext(fo, packageId, target);
+            FedoraObject object = null;
+            DesaContext context = null;
+            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+                RemoteStorage remoteStorage = RemoteStorage.getInstance(appConfiguration);
+                object = remoteStorage.find(pid);
+                context = DesaContext.buildFedoraContext(object, null, null, remoteStorage);
+            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(pid);
+                context = DesaContext.buildAkubraContext(object, null, null, akubraStorage);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+            }
             try {
-                DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+                DigitalObject dobj = MetsUtils.readFoXML(context, object);
                 if (dobj == null) {
                     throw new ExportException(pid);
                 }
-                DesaElement dElm = DesaElement.getElement(dobj, null, dc, hierarchy);
+                DesaElement dElm = DesaElement.getElement(dobj, null, context, hierarchy);
                 DesaConfiguration desaCfg = transporterProperties(dryRun, dElm);
                 if (desaCfg != null) {
-                    dc.setTransporter(getSipTransporter(desaCfg, user));
+                    context.setTransporter(getSipTransporter(desaCfg, user));
                 }
                 dElm.accept(new DesaElementVisitor(), null);
                 // dc.getMetsExportException() should be ignored now; validation warnings are always thrown
@@ -165,6 +180,8 @@ public final class DesaExport {
                 keepResult = false;
                 throw new ExportException(pid, ex);
             }
+        } catch (IOException e) {
+            throw new ExportException(pid, e);
         } finally {
             if (!keepResult) {
                 // run asynchronously not to block client request?
@@ -177,23 +194,13 @@ public final class DesaExport {
     }
 
     private SIP2DESATransporter getSipTransporter(DesaConfiguration desaCfg, UserProfile operator) throws ExportException {
+        DesaServices desaServices = this.appConfiguration.getDesaServices();
         String operatorName = desaServices.getOperatorName(operator, desaCfg);
         String producerCode = desaServices.getProducerCode(operator, desaCfg);
         if (operatorName == null || producerCode == null) {
             throw new ExportException("Requires operator name and producer code!");
         }
         return desaServices.getDesaClient(desaCfg).getSipTransporter(operatorName, producerCode);
-    }
-
-    private DesaContext buildContext(RemoteObject fo, String packageId, File targetFolder) {
-        DesaContext dc = new DesaContext();
-        dc.setFedoraClient(fo.getClient());
-        dc.setRemoteStorage(rstorage);
-        dc.setPackageID(packageId);
-        dc.setOutputPath(targetFolder.getAbsolutePath());
-        // transporter logs
-        dc.setDesaResultPath(new File(targetFolder, "transporter").getAbsolutePath());
-        return dc;
     }
 
     /**
@@ -208,7 +215,7 @@ public final class DesaExport {
                 // uff, model is not model but fedora resource reference
                 modelId = new RelationResource(modelId).getPid();
             }
-            DesaConfiguration desaCfg = desaServices.findConfiguration(models.find(modelId));
+            DesaConfiguration desaCfg = this.appConfiguration.getDesaServices().findConfiguration(models.find(modelId));
             if (desaCfg != null) {
                 return desaCfg;
             } else {

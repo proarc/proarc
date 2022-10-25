@@ -27,7 +27,11 @@ import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
@@ -39,6 +43,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+
 /**
  * Get information from Workflow
  *
@@ -46,12 +53,14 @@ import java.util.Locale;
  */
 public class WorkflowExport {
 
-    private AppConfiguration appConfiguration;
+    private final AppConfiguration appConfiguration;
+    private final AkubraConfiguration akubraConfiguration;
     private Locale locale;
     private UserProfile user;
 
-    public WorkflowExport(AppConfiguration appConfig, UserProfile user, Locale locale) {
+    public WorkflowExport(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, UserProfile user, Locale locale) {
         this.appConfiguration = appConfig;
+        this.akubraConfiguration = akubraConfiguration;
         this.locale = locale;
         this.user = user;
     }
@@ -119,31 +128,30 @@ public class WorkflowExport {
     }
 
     private IMetsElement getRoot(String pid, File exportFolder) throws MetsExportException {
-        RemoteStorage rstorage = RemoteStorage.getInstance();
-        RemoteStorage.RemoteObject fo = rstorage.find(pid);
-        MetsContext mc = buildContext(rstorage, fo, null, exportFolder);
-        return getMetsElement(fo, mc, true);
+        MetsContext metsContext = null;
+        FedoraObject object = null;
+
+        if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+            RemoteStorage remoteStorage = RemoteStorage.getInstance();
+            object = remoteStorage.find(pid);
+            metsContext = buildFedoraContext(object, null, exportFolder, remoteStorage, appConfiguration.getNdkExportOptions());
+        } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = AkubraStorage.getInstance();
+            object = akubraStorage.find(pid);
+            metsContext = buildAkubraContext(object, null, exportFolder, akubraStorage, appConfiguration.getNdkExportOptions());
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+        }
+        return getMetsElement(object, metsContext, true);
     }
 
-    private MetsElement getMetsElement(RemoteStorage.RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
-        dc.resetContext();
-        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
+    private MetsElement getMetsElement(FedoraObject fo, MetsContext metsContext, boolean hierarchy) throws MetsExportException {
+        metsContext.resetContext();
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), metsContext);
         if (dobj == null) {
             throw new MetsExportException("Missing uuid");
         }
-        return MetsElement.getElement(dobj, null, dc, hierarchy);
-    }
-
-    private MetsContext buildContext(RemoteStorage rstorage, RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(targetFolder.getAbsolutePath());
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(appConfiguration.getNdkExportOptions());
-        return mc;
+        return MetsElement.getElement(dobj, null, metsContext, hierarchy);
     }
 
     private File getValidChildFolder(File targetFolder) {

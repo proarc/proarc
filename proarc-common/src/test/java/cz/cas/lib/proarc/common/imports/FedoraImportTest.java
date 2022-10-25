@@ -31,7 +31,7 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -49,10 +49,14 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestName;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -157,7 +161,7 @@ public class FedoraImportTest {
         result = ibm.findBatchObject(batch.getId(), item1.getPid());
         assertEquals(ObjectState.INGESTED, result.getState());
 
-        List<Item> fItems = search.find(lobj.getPid());
+        List<SearchViewItem> fItems = search.find(lobj.getPid());
         assertEquals(1, fItems.size());
         FedoraTestSupport.assertItem(fItems, lobj.getPid());
     }
@@ -203,7 +207,7 @@ public class FedoraImportTest {
         assertEquals(ObjectState.INGESTING_FAILED, result.getState());
         assertNotNull(result.getLog());
 
-        List<Item> fItems = search.find(lobj.getPid());
+        List<SearchViewItem> fItems = search.find(lobj.getPid());
         assertEquals(0, fItems.size());
     }
 
@@ -248,7 +252,7 @@ public class FedoraImportTest {
         assertEquals(ObjectState.INGESTED, result.getState());
         assertNull(result.getLog());
 
-        List<Item> fItems = search.find(lobj.getPid());
+        List<SearchViewItem> fItems = search.find(lobj.getPid());
         assertEquals(1, fItems.size());
         FedoraTestSupport.assertItem(fItems, lobj.getPid());
     }
@@ -293,7 +297,7 @@ public class FedoraImportTest {
         result = ibm.findBatchObject(batch.getId(), item1.getPid());
         assertEquals(ObjectState.INGESTED, result.getState());
 
-        List<Item> fItems = search.find(lobj.getPid());
+        List<SearchViewItem> fItems = search.find(lobj.getPid());
         assertEquals(1, fItems.size());
         FedoraTestSupport.assertItem(fItems, lobj.getPid());
     }
@@ -338,7 +342,7 @@ public class FedoraImportTest {
         result = ibm.findBatchObject(batch.getId(), item1.getPid());
         assertEquals(ObjectState.INGESTED, result.getState());
 
-        List<Item> fItems = search.find(lobj.getPid());
+        List<SearchViewItem> fItems = search.find(lobj.getPid());
         assertEquals(1, fItems.size());
         FedoraTestSupport.assertItem(fItems, lobj.getPid());
     }

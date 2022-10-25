@@ -21,7 +21,7 @@ import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import java.io.File;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 
 /**
  * @see <a href="http://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf">Specification of emonograph</a>
@@ -30,8 +30,12 @@ import java.io.File;
 public class NdkSipExport extends NdkExport {
     private static final float PACKAGE_VERSION = 2.2f;
 
-    public NdkSipExport(RemoteStorage rstorage, AppConfiguration appConfiguration) {
-        super(rstorage, appConfiguration);
+    public NdkSipExport(RemoteStorage remoteStorage, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
+        super(remoteStorage, appConfiguration, akubraConfiguration);
+    }
+
+    public NdkSipExport(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
+        super(appConfiguration, akubraConfiguration);
     }
 
     @Override
@@ -40,10 +44,9 @@ public class NdkSipExport extends NdkExport {
     }
 
     @Override
-    protected MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
-        MetsContext context = super.buildContext(fo, packageId, targetFolder);
+    public MetsContext buildContext(String pid) {
+        MetsContext context = super.buildContext(pid);
         context.setPackageVersion(PACKAGE_VERSION);
         return context;
     }
-
 }

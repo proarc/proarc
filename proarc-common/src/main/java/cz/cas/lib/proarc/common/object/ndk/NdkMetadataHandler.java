@@ -32,9 +32,11 @@ import cz.cas.lib.proarc.common.fedora.PageView.PageViewHandler;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
-import cz.cas.lib.proarc.common.fedora.SearchView.Query;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.fedora.SearchViewQuery;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
@@ -680,13 +682,20 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (ex == null) {
             return ;
         }
-        SearchView search = RemoteStorage.getInstance().getSearch();
+        SearchView search = null;
+        if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+            search = RemoteStorage.getInstance().getSearch();
+        } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            search = AkubraStorage.getInstance().getSearch();
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+        }
         for (IdentifierDefinition idDef : mods.getIdentifier()) {
             if ("doi".equals(idDef.getType()) && idDef.getValue() != null) {
                 String doi = idDef.getValue();
                 if (doi != null && !doi.isEmpty()) {
                     try {
-                        List<Item> results = search.findQuery(new Query().setIdentifier(doi), "active");
+                        List<SearchViewItem> results = search.findQuery(new SearchViewQuery().setIdentifier(doi), "active");
                         if (!results.isEmpty()) {
                             if (results.size() == 1 && results.get(0).getPid().equals(fobject.getPid())) {
                                 // ignore the self-reference
@@ -773,8 +782,13 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
     public DigitalObjectCrawler getCrawler() {
         if (crawler == null) {
-            crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(),
-                    RemoteStorage.getInstance().getSearch());
+            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+                crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), RemoteStorage.getInstance().getSearch());
+            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+                crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), AkubraStorage.getInstance().getSearch());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+            }
         }
         return crawler;
     }

@@ -16,11 +16,14 @@
  */
 package cz.cas.lib.proarc.common.urnnbn;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -43,10 +46,16 @@ public final class UrnNbnService {
     private final SearchView search;
     private final ResolverClient client;
 
-    public UrnNbnService(ResolverClient client) {
+    public UrnNbnService(AppConfiguration appConfig, UrnNbnConfiguration.ResolverConfiguration resolverConfig) {
         dom = DigitalObjectManager.getDefault();
-        search = RemoteStorage.getInstance().getSearch();
-        this.client = client;
+        this.client = appConfig.getUrnNbnConfiguration().getClient(resolverConfig);
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            search = RemoteStorage.getInstance().getSearch();
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            search = AkubraStorage.getInstance().getSearch();
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
     }
 
     public UrnNbnStatusHandler register(String pid, boolean hierarchy) {

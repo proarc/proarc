@@ -28,6 +28,7 @@
         <module>proarc-common</module>
 
         <module>proarc-aes57</module>
+        <module>proarc-foxml</module>
         <module>proarc-codingHistory</module>
         <module>proarc-auth</module>
         <module>proarc-desa</module>
@@ -73,7 +74,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-
         <repository>
             <id>proarc.repository</id>
             <name>ProArc Repository</name>
@@ -114,6 +114,14 @@
             <id>geosdi</id>
             <name>geoSDI Repository</name>
             <url>http://repo.geosdi.org</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>JBOSS</id>
+            <name>JBOSS Repository</name>
+            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>

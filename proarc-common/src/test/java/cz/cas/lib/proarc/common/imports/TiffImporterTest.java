@@ -31,7 +31,10 @@ import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
@@ -84,6 +87,7 @@ public class TiffImporterTest {
     private File ac1;
     private File uc1;
     private AppConfiguration config;
+    private AkubraConfiguration akubraConfiguration;
     private ArrayList<Object> toVerify = new ArrayList<Object>();;
     private JhoveContext jhoveContext;
     private UserProfile junit;
@@ -133,6 +137,11 @@ public class TiffImporterTest {
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
 
         jhoveContext = JhoveUtility.createContext(temp.newFolder("jhove"));
 
@@ -141,9 +150,8 @@ public class TiffImporterTest {
         
 //        MetaModelRepository.setInstance(new String[]{K4Plugin.ID});
         MetaModelRepository.setInstance(new String[]{NdkPlugin.ID});
-        DigitalObjectManager.setDefault(new DigitalObjectManager(config,
+        DigitalObjectManager.setDefault(new DigitalObjectManager(config, akubraConfiguration,
                 ibm,
-                null,
                 MetaModelRepository.getInstance(),
                 EasyMock.createNiceMock(UserManager.class))
         );

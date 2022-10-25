@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.crossref;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportUtils;
@@ -23,10 +24,15 @@ import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,18 +45,18 @@ import java.util.List;
 public class CrossrefExport {
 
     private DigitalObjectManager dom;
-    private final RemoteStorage remotes;
-    private final ExportOptions options;
+    private final AppConfiguration appConfiguration;
+    private final AkubraConfiguration akubraConfiguration;
     private List<String> pids;
 
-    public CrossrefExport(DigitalObjectManager dom, RemoteStorage remotes, ExportOptions options) {
+    public CrossrefExport(DigitalObjectManager dom, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
         this.dom = dom;
-        this.remotes = remotes;
-        this.options = options;
+        this.appConfiguration = appConfiguration;
+        this.akubraConfiguration = akubraConfiguration;
         this.pids = new ArrayList<>();
     }
 
-    public void export(File output, List<String> pids, CejshStatusHandler status) {
+    public void export(File output, List<String> pids, CejshStatusHandler status) throws IOException {
         try {
             exportImpl(output, pids, status);
             storeExportResult(output, "Export succesfull");
@@ -74,11 +80,18 @@ public class CrossrefExport {
         }
     }
 
-    private void exportImpl(File output, List<String> pids, CejshStatusHandler status) throws ExportException {
+    private void exportImpl(File output, List<String> pids, CejshStatusHandler status) throws ExportException, IOException {
         output = prepareExportFolder(output, pids, "crossref_" + FoxmlUtils.pidAsUuid(pids.get(0)));
         status.setTargetFolder(output);
-
-        DigitalObjectCrawler crawler = new DigitalObjectCrawler(dom, remotes.getSearch());
+        SearchView search = null;
+        if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+            search = RemoteStorage.getInstance(appConfiguration).getSearch();
+        } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+        }
+        final DigitalObjectCrawler crawler = new DigitalObjectCrawler(dom, search);
         CrossrefObjectSelector selector = new CrossrefObjectSelector(crawler, status);
         List<CrossrefPackage> packages = selector.select(pids);
         if (packages.isEmpty()) {
@@ -86,7 +99,7 @@ public class CrossrefExport {
             return ;
         }
 
-        CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0), options);
+        CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0), appConfiguration.getExportOptions());
         if (crossRefBuilder == null) {
             return ;
         }
@@ -106,7 +119,7 @@ public class CrossrefExport {
         if (pids == null || pids.isEmpty()) {
             throw new ExportException(null, "Nothing to export. Missing input PID!", null, null);
         }
-        return ExportUtils.createFolder(output, folderName, options.isOverwritePackage());
+        return ExportUtils.createFolder(output, folderName, this.appConfiguration.getExportOptions().isOverwritePackage());
     }
 
     private void exportPackage(

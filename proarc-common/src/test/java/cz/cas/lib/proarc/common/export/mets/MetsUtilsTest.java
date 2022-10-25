@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.export.mockrepository.MockFedoraClient;
 import cz.cas.lib.proarc.common.export.mockrepository.MockSearchView;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -40,7 +41,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
-import mockit.Mocked;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.junit.Assert;
@@ -48,6 +48,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import mockit.Mocked;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -133,6 +134,7 @@ public class MetsUtilsTest {
         String path = sourceDirPath + "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml";
         DigitalObject dbObj = MetsUtils.readFoXML(path);
         MetsContext context = new MetsContext();
+        context.setTypeOfStorage(Storage.LOCAL);
         context.setPath(sourceDirPath);
         context.setFsParentMap(TestConst.parents);
         context.setOutputPath(resultDir.getAbsolutePath());
@@ -155,6 +157,7 @@ public class MetsUtilsTest {
         String path = sourceDirPath + "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml";
         DigitalObject dbObj = MetsUtils.readFoXML(path);
         MetsContext context = new MetsContext();
+        context.setTypeOfStorage(Storage.LOCAL);
         context.setPath(sourceDirPath);
         context.setFsParentMap(TestConst.parents);
         context.setOutputPath(resultDir.getAbsolutePath());
@@ -196,6 +199,7 @@ public class MetsUtilsTest {
             config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
             config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
             MetsContext context = new MetsContext();
+            context.setTypeOfStorage(Storage.LOCAL);
             context.setPath(sourceDirPath);
             context.setFsParentMap(TestConst.parents);
             context.setOutputPath(resultDir.getAbsolutePath());
@@ -254,6 +258,7 @@ public class MetsUtilsTest {
             config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
             config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "");
             MetsContext context = new MetsContext();
+            context.setTypeOfStorage(Storage.LOCAL);
             context.setPath(sourceDirPath);
             context.setFsParentMap(TestConst.parents);
             context.setOutputPath(resultDir.getAbsolutePath());
@@ -284,6 +289,7 @@ public class MetsUtilsTest {
         config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
         config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
         MetsContext context = new MetsContext();
+        context.setTypeOfStorage(Storage.LOCAL);
         context.setPath(sourceDirPath);
         context.setFsParentMap(TestConst.parents);
         context.setOutputPath(resultDir.getAbsolutePath());
@@ -309,6 +315,7 @@ public class MetsUtilsTest {
         MetaModelRepository.setInstance("ndk", "ndkEborn");
         RemoteStorage remoteStorage = new RemoteStorage(client);
         MetsContext ctx = new MetsContext();
+        ctx.setTypeOfStorage(Storage.FEDORA);
         ctx.setRemoteStorage(remoteStorage);
         ctx.setFedoraClient(remoteStorage.getClient());
 

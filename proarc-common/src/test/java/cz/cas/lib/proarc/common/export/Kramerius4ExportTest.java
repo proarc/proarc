@@ -23,7 +23,10 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.Relations;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
@@ -32,6 +35,24 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
+import java.io.File;
+import java.io.StringWriter;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import javax.xml.bind.DatatypeConverter;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
@@ -47,24 +68,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-import javax.xml.bind.DatatypeConverter;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.StringWriter;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
+
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -86,19 +90,25 @@ public class Kramerius4ExportTest {
     public static void tearDownClass() {
     }
     private AppConfiguration config;
+    private AkubraConfiguration akubraConfiguration;
 
     @Before
     public void setUp() throws Exception {
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
+        } else {
+            akubraConfiguration = null;
+        }
+
         fedora = new FedoraTestSupport();
         fedora.cleanUp();
         MetaModelRepository.setInstance(config.getPlugins());
         DigitalObjectManager.setDefault(new DigitalObjectManager(
-                config,
+                config, akubraConfiguration,
                 EasyMock.createNiceMock(ImportBatchManager.class),
-                fedora.getRemoteStorage(),
                 MetaModelRepository.getInstance(),
                 EasyMock.createNiceMock(UserManager.class)));
 
@@ -157,7 +167,7 @@ public class Kramerius4ExportTest {
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
-        Kramerius4Export instance = new Kramerius4Export(storage, config);
+        Kramerius4Export instance = new Kramerius4Export(storage, config, akubraConfiguration);
         Kramerius4Export.Result k4Result = instance.export(output, hierarchy, "export status", pids);
         assertNotNull(k4Result);
         File foxml = ExportUtils.pidAsXmlFile(k4Result.getFile(), pids[0]);
@@ -181,7 +191,7 @@ public class Kramerius4ExportTest {
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
-        Kramerius4Export instance = new Kramerius4Export(storage, config);
+        Kramerius4Export instance = new Kramerius4Export(storage, config, akubraConfiguration);
         Kramerius4Export.Result k4Result = instance.export(output, hierarchy, "export status", pids);
         assertNotNull(k4Result);
 

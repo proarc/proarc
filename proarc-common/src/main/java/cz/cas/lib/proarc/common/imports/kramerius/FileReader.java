@@ -29,12 +29,14 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
@@ -188,9 +190,16 @@ public class FileReader {
 
         if (lObj == null) {
             File objFile = new File(targetFolder, getFoxmlFilename(index, pid));
-            RemoteObject remote = iSession.getRemotes().find(pid);
+            FedoraObject object = null;
+            if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
+                object = iSession.getRemotes().find(pid);
+            } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                object = iSession.getAkubraStorage().find(pid);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
+            }
             try {
-                String foxml = remote.asText();
+                String foxml = object.asText();
                 dObj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
                 isNewObject = false;
                 if (!isNewObject) {
@@ -747,13 +756,24 @@ public class FileReader {
         private final Batch batch;
         private final LocalStorage locals;
         private final SearchView search;
-        private final RemoteStorage remotes;
+        private final Storage typeOfStorage;
+        private RemoteStorage remotes;
+        private AkubraStorage akubraStorage;
         /** The user cache. */
         private final Map<String, String> external2internalUserMap = new HashMap<String, String>();
 
-        public ImportSession(ImportBatchManager ibm, ImportOptions options) {
-            this.remotes = RemoteStorage.getInstance();
-            this.search = remotes.getSearch();
+        public ImportSession(ImportBatchManager ibm, ImportOptions options, Storage typeOfStorage) {
+            if (Storage.FEDORA.equals(typeOfStorage)) {
+                this.typeOfStorage = typeOfStorage;
+                this.remotes = RemoteStorage.getInstance();
+                this.search = this.remotes.getSearch();
+            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                this.typeOfStorage = typeOfStorage;
+                this.akubraStorage = AkubraStorage.getInstance();
+                this.search = this.akubraStorage.getSearch();
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + typeOfStorage);
+            }
             this.locals = new LocalStorage();
             this.ibm = ibm;
             this.options = options;
@@ -770,6 +790,14 @@ public class FileReader {
 
         public RemoteStorage getRemotes() {
             return remotes;
+        }
+
+        public Storage getTypeOfStorage() {
+            return typeOfStorage;
+        }
+
+        public AkubraStorage getAkubraStorage() {
+            return akubraStorage;
         }
 
         public LocalObject findLocalObject(BatchItemObject bio) {

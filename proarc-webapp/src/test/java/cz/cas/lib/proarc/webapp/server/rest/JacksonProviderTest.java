@@ -23,7 +23,7 @@ import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -64,10 +64,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.stream.StreamResult;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test {@link JacksonProvider} configuration to comply with SmartGWT expectations.
@@ -271,7 +275,7 @@ public class JacksonProviderTest {
     @Test
     public void testMapSearchViewItemToJson() throws Exception {
         String input = "{\"pid\":\"pid\",\"model\":\"model:test\",\"k0\":1}";
-        Item item = JsonUtils.createObjectMapper().readValue(input, Item.class);
+        SearchViewItem item = JsonUtils.createObjectMapper().readValue(input, SearchViewItem.class);
         String json = toJson(item);
 //        System.out.println(json);
         assertNotNull(json);

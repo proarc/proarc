@@ -25,7 +25,11 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -118,7 +122,14 @@ public class FileSetImportWithParentCreated extends FileSetImport {
                         batch.setParentPid(pid);
                         batch.setState(Batch.State.LOADED);
                         batchManager.update(batch);
-                        batch = new FedoraImport(configuration, RemoteStorage.getInstance(configuration), batchManager, importConfig.getUser()).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
+                        if (Storage.FEDORA.equals(configuration.getTypeOfStorage())) {
+                            batch = new FedoraImport(configuration, RemoteStorage.getInstance(configuration), batchManager, importConfig.getUser()).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
+                        } else if (Storage.AKUBRA.equals(configuration.getTypeOfStorage())) {
+                            AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(configuration.getConfigHome());
+                            batch = new AkubraImport(configuration, akubraConfiguration, batchManager, importConfig.getUser()).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
+                        } else {
+                            throw new IllegalStateException("Unsupported type of storage: " + configuration.getTypeOfStorage());
+                        }
                     }
                 }
             } finally {

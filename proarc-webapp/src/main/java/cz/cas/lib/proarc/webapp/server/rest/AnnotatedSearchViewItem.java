@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -24,14 +24,14 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 /**
- * Helper class to annotate {@link Item} properties.
+ * Helper class to annotate {@link SearchViewItem} properties.
  *
  * @see JacksonProvider
  *
  * @author Jan Pokorsky
  */
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class AnnotatedSearchViewItem extends Item {
+public abstract class AnnotatedSearchViewItem extends SearchViewItem {
 
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED)
     @Override

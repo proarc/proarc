@@ -3,6 +3,7 @@ package cz.cas.lib.proarc.common.export.archive;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import java.util.List;
 import java.util.logging.Logger;
@@ -11,8 +12,8 @@ public class ArchiveOldPrintProducer extends ArchiveProducer {
 
     private static final Logger LOG = Logger.getLogger(ArchiveOldPrintProducer.class.getName());
 
-    public ArchiveOldPrintProducer(AppConfiguration appConfiguration) {
-        super(appConfiguration);
+    public ArchiveOldPrintProducer(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
+        super(appConfig, akubraConfiguration);
     }
 
     @Override

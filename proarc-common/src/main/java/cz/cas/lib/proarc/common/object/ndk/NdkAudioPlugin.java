@@ -20,15 +20,24 @@ import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
 import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.JsonValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
-import cz.cas.lib.proarc.common.object.*;
+import cz.cas.lib.proarc.common.object.DefaultDisseminationHandler;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
+import cz.cas.lib.proarc.common.object.DisseminationHandler;
+import cz.cas.lib.proarc.common.object.HasDataHandler;
+import cz.cas.lib.proarc.common.object.HasDisseminationHandler;
+import cz.cas.lib.proarc.common.object.HasMetadataHandler;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -194,7 +203,7 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     private static class SoundrecordingSearchViewHandler implements SearchViewHandler {
 
         @Override
-        public String getObjectLabel(Item item, Locale locale) {
+        public String getObjectLabel(SearchViewItem item, Locale locale) {
             if (MODEL_PAGE.equals(item.getModel())) {
                 return PageView.resolveFedoraObjectLabel(
                         item.getLabel(), NdkAudioPageMapper.getPageTypeLabels(locale));
