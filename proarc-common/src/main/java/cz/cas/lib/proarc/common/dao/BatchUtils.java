@@ -4,6 +4,7 @@ import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import java.io.StringWriter;
 import java.util.List;
 
 public class BatchUtils {
@@ -27,7 +28,16 @@ public class BatchUtils {
             if (exceptionElement.isWarning()) {
                 batch.setLog(exceptionElement.getMessage());
             } else {
-                batch.setLog(ImportBatchManager.toString(exceptionElement.getEx()));
+                StringWriter writer = new StringWriter();
+                if (exceptionElement.getMessage() != null) {
+                    writer.append(exceptionElement.getMessage());
+                } else if (exceptionElement.getEx() != null) {
+                    if (!writer.toString().isEmpty()) {
+                        writer.append("\n");
+                    }
+                    writer.append(ImportBatchManager.toString(exceptionElement.getEx()));
+                }
+                batch.setLog(writer.toString().isEmpty() ? null : writer.toString());
             }
         }
         return batchManager.update(batch);

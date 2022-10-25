@@ -1814,7 +1814,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      * @throws MetsExportException
      */
-    private void insertIssue(DivType physicalDiv, DivType logicalDiv, IMetsElement metsElement) throws MetsExportException {
+    protected void insertIssue(DivType physicalDiv, DivType logicalDiv, IMetsElement metsElement) throws MetsExportException {
         addDmdSec(metsElement);
         physicalDiv.setID("DIV_P_0000");
         physicalDiv.setLabel3(metsElement.getLabel());
@@ -2136,7 +2136,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      * @throws MetsExportException
      */
-    private void insertSupplement(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement) throws MetsExportException {
+    protected void insertSupplement(DivType logicalDiv, DivType physicalDiv, IMetsElement metsElement) throws MetsExportException {
         addDmdSec(metsElement);
         if (physicalDiv.getID() == null) {
             physicalDiv.setID("DIV_P_0000");
@@ -2244,8 +2244,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
-    private void containChildren(IMetsElement metsElement) throws MetsExportException {
-        if (metsElement.getChildren().size() == 0) {
+    protected void containChildren(IMetsElement metsElement) throws MetsExportException {
+        if (!metsElement.getModel().contains("ndke") && metsElement.getChildren().size() == 0) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Model " + metsElement.getElementType() + " s identifikátorem " + metsElement.getOriginalPid() + " neobsahuje žádné navázané objekty, proto nebyl export úspěšný.", false, null);
         }
     }
@@ -2417,7 +2417,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      * @throws MetsExportException
      */
-    private void insertPeriodical(IMetsElement metsElement) throws MetsExportException {
+    protected void insertPeriodical(IMetsElement metsElement) throws MetsExportException {
         mets.setTYPE("Periodical");
         addDmdSec(metsElement);
         DivType divType = new DivType();
