@@ -107,7 +107,7 @@ public class JhoveUtility {
     public static Node getNodeRecursive(Node node, String localName, String value) {
         if ((node.getLocalName() != null) &&
                 (node.getLocalName().startsWith(localName))) {
-            System.out.println(localName);
+            //System.out.println(localName);
         }
         if ((node.getLocalName() != null) &&
                 (node.getLocalName().startsWith(localName)) &&

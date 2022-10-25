@@ -30,7 +30,6 @@ import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
@@ -41,6 +40,7 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.imports.ImportUtils.Hierarchy;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
@@ -67,6 +67,7 @@ import java.util.logging.Logger;
 
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.imports.ImportProcess.getTargetFolder;
+import static cz.cas.lib.proarc.common.imports.ImportUtils.createPidHierarchy;
 
 public final class AkubraImport {
 
@@ -471,59 +472,6 @@ public final class AkubraImport {
         object.flush();
     }
 
-    private boolean createPidHierarchy(List<BatchItemObject> batchItems, String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, List<String> pids) {
-        pids.clear();
-        String pid = "";
-        for (BatchItemObject batchItem : batchItems) {
-            String name = nameWithoutExtention(batchItem.getFile().getName(), ".foxml");
-            String[] splitName = name.split("-");
-
-            try {
-                int length = splitName.length;
-                if (splitName[length-3].length() == 2 && splitName[length-2].length() == 2 && splitName[length-1].length() == 2) {
-                    int disc = Integer.valueOf(splitName[splitName.length-3]);
-                    int song = Integer.valueOf(splitName[splitName.length-2]);
-                    int track = Integer.valueOf(splitName[splitName.length-1]);
-
-                    if (disc < 1 || song < 1) {
-                        LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
-                        return false;
-                    }
-                    if (track > 0 ) {
-                        if (songsPid.size() < song) {
-                            pid = FoxmlUtils.createPid();
-                            Hierarchy songHierarchy = new Hierarchy(pid, null);
-                            songsPid.add(song - 1, songHierarchy);
-                            tracksPid.add(song - 1, new ArrayList<>());
-                        }
-                        if (tracksPid.get(song - 1).size() < track) {
-                            pid = FoxmlUtils.createPid();
-                            Hierarchy trackHierarchy = new Hierarchy(pid, batchItem.getPid());
-                            tracksPid.get(song - 1).add(track - 1, trackHierarchy);
-                        }
-                    } else if (track == 0) {
-                        if (songsPid.size() < song) {
-                            pid = FoxmlUtils.createPid();
-                            Hierarchy songHierarchy = new Hierarchy(pid, batchItem.getPid());
-                            songsPid.add(song - 1, songHierarchy);
-                            tracksPid.add(song - 1, new ArrayList<>());
-                        }
-                    } else {
-                        LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
-                        return false;
-                    }
-                } else {
-                    pids.add(batchItem.getPid());
-                    continue;
-                }
-            } catch (NumberFormatException ex) {
-                pids.add(batchItem.getPid());
-                continue;
-            }
-        }
-        return true;
-    }
-
     public File resolveBatchFile(String file) {
         URI uri = getBatchRoot().resolve(file);
         return new File(uri);
@@ -537,10 +485,6 @@ public final class AkubraImport {
         }
     }
 
-    private String nameWithoutExtention(String name, String extension) {
-        return name.substring(0, name.length() - extension.length());
-    }
-
     private void checkParent(String parent) throws DigitalObjectException {
         if (parent == null) {
             return ;
@@ -549,32 +493,4 @@ public final class AkubraImport {
         RelationEditor editor = new RelationEditor(object);
         editor.getModel();
     }
-
-    class Hierarchy {
-        String parent;
-        String child;
-
-        public Hierarchy(String parent, String child) {
-            this.parent = parent;
-            this.child = child;
-        }
-
-        public String getParent() {
-            return parent;
-        }
-
-        public void setParent(String parent) {
-            this.parent = parent;
-        }
-
-        public String getChild() {
-            return child;
-        }
-
-        public void setChild(String child) {
-            this.child = child;
-        }
-    }
-
-
 }

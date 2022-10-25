@@ -107,7 +107,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                 }
                 saveMets = true;
                 packageFiles.addAll(saveStreams(metsElement, packageRoot));
-                for (IMetsElement childElement: metsElement.getChildren()) {
+                for (IMetsElement childElement : metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
                 }
                 break;
@@ -119,7 +119,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                     metsElement.getMetsContext().setPackageDir(packageDirFile);
                 }
                 saveMets = true;
-                for (IMetsElement childElement: metsElement.getChildren()) {
+                for (IMetsElement childElement : metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
                 }
 
@@ -138,7 +138,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                 }
 
                 packageFiles.addAll(saveStreams(metsElement, packageRoot));
-                for (IMetsElement childElement: metsElement.getChildren()) {
+                for (IMetsElement childElement : metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
                 }
 
@@ -172,7 +172,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
 
         generateTechMetadata(metsElement);
         if (saveMets) {
-            saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator +"mets_"+ MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
+            saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator + "mets_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
         }
 
 
@@ -189,7 +189,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true, null);
     }
 
-    private void prepareFileType(IMetsElement metsElement) throws MetsExportException  {
+    private void prepareFileType(IMetsElement metsElement) throws MetsExportException {
         try {
             DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
             if (rawDS != null) {
@@ -209,7 +209,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                 fileType.setCREATED(calendar);
                 fileType.setSEQ(fileCounter++);
 
-                String fileName ="oc_" + metsElement.getMetsContext().getPackageID() + "_" + metsElement.getElementID().toLowerCase();
+                String fileName = "oc_" + metsElement.getMetsContext().getPackageID() + "_" + metsElement.getElementID().toLowerCase();
                 fileType.setID(fileName);
 
                 String extension = null;
@@ -225,16 +225,16 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                     throw new IllegalStateException("Unsupported type of Storage: " + metsElement.getMetsContext().getTypeOfStorage());
                 }
 
-            FileMD5Info fileMD5Info = MetsUtils.getDigest(inputStream);
-            if (rawDS != null && rawDS.getDatastreamVersion() != null && rawDS.getDatastreamVersion().size() > 0 && rawDS.getDatastreamVersion().get(0) != null) {
-                extension = Const.mimeToExtensionMap.get(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-            }
-            if (extension == null) {
-                extension = ".pdf";
-            }
-            fileMD5Info.setFileName(fileName + extension);
-            fileMD5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
-            md5InfosMap.put(OC_GRP_ID_CREATION, fileMD5Info);
+                FileMD5Info fileMD5Info = MetsUtils.getDigest(inputStream);
+                if (rawDS != null && rawDS.getDatastreamVersion() != null && rawDS.getDatastreamVersion().size() > 0 && rawDS.getDatastreamVersion().get(0) != null) {
+                    extension = Const.mimeToExtensionMap.get(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                }
+                if (extension == null) {
+                    extension = ".pdf";
+                }
+                fileMD5Info.setFileName(fileName + extension);
+                fileMD5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
+                md5InfosMap.put(OC_GRP_ID_CREATION, fileMD5Info);
 
                 FileMD5Info fileMD5InfoValidation = MetsUtils.getDigest(inputStream);
                 fileMD5InfoValidation.setFileName(fileName + extension);
@@ -268,7 +268,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     private String getDateIssued(IMetsElement metsElement) throws MetsExportException {
         if (isNdkEmonograph(metsElement)) {
             Node partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateIssued']");
-            if (partNode == null){
+            if (partNode == null) {
                 throw new MetsExportException("Error - missing date issued. Please insert it.");
             }
             return ", " + partNode.getTextContent();
@@ -293,10 +293,10 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
             }
             String name;
             if (fileName.length == 2) {
-                name = File.separator + fileName[fileName.length-1];
+                name = File.separator + fileName[fileName.length - 1];
                 file.setFileName(name);
-            } else if (fileName.length > 2){
-                name =  File.separator + fileName[fileName.length-2] + File.separator + fileName[fileName.length-1];
+            } else if (fileName.length > 2) {
+                name = File.separator + fileName[fileName.length - 2] + File.separator + fileName[fileName.length - 1];
                 file.setFileName(name);
             }
         }
@@ -432,10 +432,10 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                 break;
             }
         }
-            logicalDiv.setLabel3(metsElement.getLabel());
-            logicalDiv.setTYPE("TITLE");
-            physicalDiv.setLabel3(metsElement.getLabel());
-            physicalDiv.setTYPE("TITLE");
+        logicalDiv.setLabel3(metsElement.getLabel());
+        logicalDiv.setTYPE("TITLE");
+        physicalDiv.setLabel3(metsElement.getLabel());
+        physicalDiv.setTYPE("TITLE");
         if (!containsUnit) {
             logicalDiv.setID("MONOGRAPH_0001");
             physicalDiv.setID("DIV_P_0000");
