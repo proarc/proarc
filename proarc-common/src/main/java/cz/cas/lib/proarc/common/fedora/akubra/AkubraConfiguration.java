@@ -36,6 +36,7 @@ public class AkubraConfiguration extends KConfiguration {
     private Map<String, String> environment;
 
     public AkubraConfiguration(Map<String, String> environment, File configHome) throws IOException {
+        super(configHome.getAbsolutePath());
         this.environment = environment;
         this.config = init();
         this.configHome = configHome;

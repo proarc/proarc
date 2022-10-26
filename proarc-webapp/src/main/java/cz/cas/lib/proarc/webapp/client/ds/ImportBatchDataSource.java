@@ -117,6 +117,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         DataSourceTextField profileId = new DataSourceTextField(FIELD_PROFILE_ID);
         LinkedHashMap<String, String> profiles = new LinkedHashMap<>();
         profiles.put(ConfigurationProfile.DEFAULT, i18n.ImportProfile_DEFAULT());
+        profiles.put("profile.defaultocr", i18n.ImportProfile_DEFAULT_OCR());
         profiles.put(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, i18n.ImportProfile_ARCHIVE_IMPORT());
         profiles.put(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_IMPORT());
         profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_STT_IMPORT());
@@ -124,8 +125,14 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_PERIODIKA_IMPORT());
         profiles.put("profile.chronicle", i18n.ImportProfile_CHRONICLE_IMPORT());
         profiles.put("profile.oldprint", i18n.ImportProfile_OLDPRINT_IMPORT());
+        profiles.put("profile.oldprintocr", i18n.ImportProfile_OLDPRINT_OCR_IMPORT());
         profiles.put("profile.ndk_full_import", i18n.ImportProfile_NDK_FULL_IMPORT());
+        profiles.put("profile.ndk_without_ocr", i18n.ImportProfile_NDK_FULL_WITHOUR_OCR_IMPORT());
+        profiles.put("profile.oldprint_full_import", i18n.ImportProfile_OLDPRINT_FULL_IMPORT());
+        profiles.put("profile.oldprint_without_ocr", i18n.ImportProfile_OLDPRINT_FULL_WITHOUR_OCR_IMPORT());
         profiles.put(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, i18n.ImportProfile_SOUNDRECORDING_IMPORT());
+
+
         profiles.put("exportProfile.kramerius", i18n.ExportProfile_Kramerius());
         profiles.put("exportProfile.ndk", i18n.ExportProfile_Ndk());
         profiles.put("exportProfile.archive", i18n.ExportProfile_Archive());

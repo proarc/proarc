@@ -220,12 +220,12 @@
         <dependency>
             <groupId>cz.incad.kramerius</groupId>
             <artifactId>common</artifactId>
-            <version>7.0.3</version>
+            <version>7.0.9</version>
         </dependency>
         <dependency>
             <groupId>cz.incad.kramerius</groupId>
             <artifactId>import-jaxb</artifactId>
-            <version>7.0.3</version>
+            <version>7.0.9</version>
         </dependency>
         <dependency>
             <groupId>org.apache.solr</groupId>
