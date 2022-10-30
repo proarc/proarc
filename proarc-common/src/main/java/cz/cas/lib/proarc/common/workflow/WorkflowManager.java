@@ -28,7 +28,8 @@ import cz.cas.lib.proarc.common.dao.WorkflowParameterDao;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
 import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -73,6 +74,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 
+import static cz.cas.lib.proarc.common.sql.DbUtils.close;
+import static cz.cas.lib.proarc.common.sql.DbUtils.commit;
+import static cz.cas.lib.proarc.common.sql.DbUtils.rollback;
+
 /**
  *
  * @author Jan Pokorsky
@@ -80,6 +85,7 @@ import org.apache.commons.lang.StringUtils;
 public class WorkflowManager {
 
     private static WorkflowManager INSTANCE;
+    private final AppConfiguration appConfiguration;
     private static final Logger LOG = Logger.getLogger(WorkflowManager.class.getName());
     private final DaoFactory daoFactory;
     private final UserManager userMgr;
@@ -93,10 +99,11 @@ public class WorkflowManager {
     }
     private final WorkflowProfiles wp;
 
-    public WorkflowManager(WorkflowProfiles wp, DaoFactory daoFactory, UserManager users) {
+    public WorkflowManager(WorkflowProfiles wp, DaoFactory daoFactory, UserManager users, AppConfiguration appConfiguration) {
         this.daoFactory = daoFactory;
         this.userMgr = users;
         this.wp = wp;
+        this.appConfiguration = appConfiguration;
     }
 
     public Job getJob(BigDecimal id) {
@@ -179,12 +186,17 @@ public class WorkflowManager {
      * @return digital material with PID
      */
     public MaterialView createDigitalMaterialFromPhysical(DigitalObjectManager.CreateHandler handler, MaterialView view, boolean createObject, boolean validation) throws ConcurrentModificationException, WorkflowException {
-        RemoteStorage remoteStorage = RemoteStorage.getInstance();
-        FedoraTransaction ftx = new FedoraTransaction(remoteStorage);
         Transaction tx = daoFactory.createTransaction();
+        FedoraTransaction ftx = null;
 
         try {
-            handler.setTransaction(ftx);
+            // fedora
+            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+                RemoteStorage remoteStorage = RemoteStorage.getInstance();
+                ftx = new FedoraTransaction(remoteStorage);
+                handler.setTransaction(ftx);
+            }
+
             MaterialFilter filter = new MaterialFilter();
             filter.setLocale(Locale.ENGLISH);
             filter.setJobId(view.getJobId());
@@ -202,24 +214,20 @@ public class WorkflowManager {
             }
 
             handler.setMetadataXml(view.getMetadata());
-            Item items = handler.createDigitalObject(createObject, validation);
+            SearchViewItem items = handler.createDigitalObject(createObject, validation);
             digitalMaterial.setPid(items.getPid());
             updateMaterial(digitalMaterial, tx);
 
-            ftx.commit();
-            tx.commit();
-
+            commit(tx, ftx);
         } catch (ConcurrentModificationException | WorkflowException e) {
-            ftx.rollback();
-            tx.rollback();
+            rollback(tx, ftx);
             throw e;
         }
         catch (Throwable t) {
             tx.rollback();
             throw new WorkflowException("Cannot update material: " + view.getId(), t).addUnexpectedError();
         } finally {
-            ftx.close();
-            tx.close();
+            close(tx, ftx);
         }
 
         return view;

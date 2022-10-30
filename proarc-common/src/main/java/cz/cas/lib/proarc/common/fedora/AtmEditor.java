@@ -25,7 +25,8 @@ import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_ASSIGN;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_CONNECTED;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_DESCRIBED;
@@ -70,7 +73,7 @@ public final class AtmEditor {
      * @param role
      * @throws DigitalObjectException
      */
-    public void write(String deviceId, String organization, String user, String status, String message, String role) throws DigitalObjectException {
+    public void write(String deviceId, String organization, String user, String status, String donator, String message, String role) throws DigitalObjectException {
         boolean changedUser = false;
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
@@ -117,6 +120,14 @@ public final class AtmEditor {
                 write = true;
             }
         }
+        if (donator != null && !donator.isEmpty()) {
+            String oldVal = relationEditor.getDonator();
+            String newVal = NULL.equals(donator) ? null : donator;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                relationEditor.setDonator(donator);
+                write = true;
+            }
+        }
         if (write) {
             relationEditor.write(relationEditor.getLastModified(), message);
         }
@@ -131,7 +142,7 @@ public final class AtmEditor {
      * @param fobject
      * @throws DigitalObjectException
      */
-    public void writeOrganizationUserState(String organization, String user, String status, String message, FedoraObject fobject) throws DigitalObjectException {
+    public void writeOrganizationUserState(String organization, String user, String status, String donator, String message, FedoraObject fobject) throws DigitalObjectException {
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
         if (user != null && !user.isEmpty()) {
@@ -167,6 +178,15 @@ public final class AtmEditor {
                 }
             }
         }
+
+        if (donator != null && !donator.isEmpty()) {
+            String oldVal = relationEditor.getDonator();
+            String newVal = NULL.equals(donator) ? null : donator;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                relationEditor.setDonator(donator);
+                write = true;
+            }
+        }
         if (write) {
             relationEditor.write(relationEditor.getLastModified(), message);
         }
@@ -200,8 +220,8 @@ public final class AtmEditor {
             // times take from FOXML or File?
         } else {
             try {
-                List<Item> searchItems = search.find(pid);
-                Item searchItem = searchItems.get(0);
+                List<SearchViewItem> searchItems = search.find(pid);
+                SearchViewItem searchItem = searchItems.get(0);
                 atm.owner = searchItem.getOwner();
                 atm.created = searchItem.getCreated();
                 atm.modified = searchItem.getModified();
@@ -227,15 +247,16 @@ public final class AtmEditor {
         atm.isLocked = relationEditor.isLocked();
         atm.lockedBy = relationEditor.getLockedBy();
         atm.lockedDate = relationEditor.getLockedDate();
+        atm.donator = relationEditor.getDonator();
         return atm;
     }
 
-    public void setChild(String parentPid, String organization, String user, String state, AppConfiguration appConfig, SearchView search, String sessionLog) throws DigitalObjectException, IOException {
-        List<String> pids = findElements(parentPid, appConfig);
+    public void setChild(String parentPid, String organization, String user, String state, String donator, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, SearchView search, String sessionLog) throws DigitalObjectException, IOException {
+        List<String> pids = findElements(parentPid, appConfig, akubraConfiguration);
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, appConfig);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.writeOrganizationUserState(organization, user, state, sessionLog, fobject);
+            editor.writeOrganizationUserState(organization, user, state, donator, sessionLog, fobject);
             fobject.flush();
         }
     }
@@ -247,9 +268,9 @@ public final class AtmEditor {
         return RemoteStorage.getInstance(appConfig).find(pid);
     }
 
-    private List<String> findElements(String parentPid, AppConfiguration config) throws DigitalObjectException {
+    private List<String> findElements(String parentPid, AppConfiguration config, AkubraConfiguration akubraConfiguration) throws DigitalObjectException {
         List<String> pids = new ArrayList<>();
-        IMetsElement element = getElement(parentPid, config);
+        IMetsElement element = getElement(parentPid, config, akubraConfiguration);
         if (element == null) {
             throw new DigitalObjectException("Process: Set organization failed - impossible to get element");
         }
@@ -268,12 +289,23 @@ public final class AtmEditor {
         }
     }
 
-    public IMetsElement getElement(String parentPid, AppConfiguration config) throws DigitalObjectException {
+    public IMetsElement getElement(String parentPid, AppConfiguration config, AkubraConfiguration akubraConfiguration) throws DigitalObjectException {
         try {
-            RemoteStorage rstorage = RemoteStorage.getInstance(config);
-            RemoteStorage.RemoteObject robject = rstorage.find(parentPid);
-            MetsContext metsContext = buildContext(robject, null, rstorage);
-            DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+            MetsContext metsContext = null;
+            FedoraObject object = null;
+
+            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
+                RemoteStorage remoteStorage = RemoteStorage.getInstance(config);
+                object = remoteStorage.find(parentPid);
+                metsContext = buildFedoraContext(object, null, null, remoteStorage, config.getNdkExportOptions());
+            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(parentPid);
+                metsContext = buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
+            }
+            DigitalObject dobj = MetsUtils.readFoXML(object.getPid(), metsContext);
             if (dobj == null) {
                 throw new DigitalObjectException(parentPid, "Process: Changing models failed - imposible to find element");
             }
@@ -281,18 +313,6 @@ public final class AtmEditor {
         } catch (IOException | MetsExportException ex) {
             throw new DigitalObjectException(parentPid, "Process: Changing models failed - imposible to find element", ex);
         }
-    }
-
-    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, RemoteStorage rstorage) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(null);
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(null);
-        return mc;
     }
 
     public static class AtmItem {
@@ -317,6 +337,7 @@ public final class AtmEditor {
         private boolean isLocked;
         private String lockedBy;
         private Date lockedDate;
+        private String donator;
 
         public AtmItem() {
         }
@@ -404,6 +425,8 @@ public final class AtmEditor {
         public Date getLockedDate() {
             return lockedDate;
         }
+
+        public String getDonator() { return donator;}
     }
 
 }

@@ -155,8 +155,13 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfProfile.setWidth(150);
         lgfProfile.setCanSort(true);
         lgfProfile.setCanFilter(true);
-        lgfProfile.setHidden(true);
-        lg.setFields(lgfFolder, lgfDate, lgfModified, lgfImported, lgfUser, lgfProfile);
+
+        ListGridField lgfPriority = new ListGridField(ImportBatchDataSource.FIELD_PRIORITY, i18n.ImportSourceChooser_OptionPriority_Title());
+        lgfPriority.setWidth(150);
+        lgfPriority.setCanSort(true);
+        lgfPriority.setCanFilter(true);
+
+        lg.setFields(lgfFolder, lgfDate, lgfModified, lgfImported, lgfUser, lgfProfile, lgfPriority);
 
         lg.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
@@ -399,6 +404,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
                         accept = true;
                         break;
                     case LOADING_FAILED:
+                    case STOPPED:
                     case LOADED:
                         setTitle(i18n.ImportBatchChooser_ActionResetLoad_Title());
                         setTooltip(i18n.ImportBatchChooser_ActionResetLoad_Hint());

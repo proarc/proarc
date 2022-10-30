@@ -17,33 +17,29 @@
 
 package cz.cas.lib.proarc.common.export.desa;
 
-import static org.junit.Assert.assertEquals;
-
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.export.desa.structure.DesaElement;
+import cz.cas.lib.proarc.common.export.desa.structure.DesaElementVisitor;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.mets.FileType;
+import cz.cas.lib.proarc.mets.Mets;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
-
-import net.lingala.zip4j.core.ZipFile;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import net.lingala.zip4j.core.ZipFile;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-
-import cz.cas.lib.proarc.common.export.desa.structure.DesaElement;
-import cz.cas.lib.proarc.common.export.desa.structure.DesaElementVisitor;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.mets.FileType;
-import cz.cas.lib.proarc.mets.Mets;
+import static org.junit.Assert.assertEquals;
 
 public class DesaExportTest {
     private static final Map<String, String> testParentMap = new HashMap<String, String>();
@@ -62,8 +58,6 @@ public class DesaExportTest {
 
     /**
      * Copies the files for a test from jar file to a temporary file system
-     *
-     * @param testElement
      */
     private void copyFiles(String directory, String zipName) {
         File destination = null;
@@ -108,6 +102,7 @@ public class DesaExportTest {
         File resultDir = tmp.newFolder("result" + directory);
         String path = sourceDirPath + "d18329c6-2f2a-48b3-b315-0da2a896ba3e.xml";
         DesaContext desaContext = new DesaContext();
+        desaContext.setTypeOfStorage(Storage.LOCAL);
         desaContext.setFsParentMap(testParentMap);
         desaContext.setOutputPath(resultDir.getAbsolutePath());
         desaContext.setPackageID("SAMPLEDESA");

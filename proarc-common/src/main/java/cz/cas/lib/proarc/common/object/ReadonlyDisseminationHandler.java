@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
@@ -28,17 +28,17 @@ import javax.ws.rs.core.Response;
  */
 public class ReadonlyDisseminationHandler implements DisseminationHandler {
 
-    private final RemoteObject remote;
+    private final FedoraObject object;
     private final String dsId;
 
-    public ReadonlyDisseminationHandler(RemoteObject remote, String dsId) {
-        this.remote = remote;
+    public ReadonlyDisseminationHandler(FedoraObject object, String dsId) {
+        this.object = object;
         this.dsId = dsId;
     }
 
     @Override
     public Response getDissemination(Request httpRequest) throws DigitalObjectException {
-        return DefaultDisseminationHandler.getResponse(remote, dsId);
+        return DefaultDisseminationHandler.getResponse(object, dsId);
     }
 
     @Override

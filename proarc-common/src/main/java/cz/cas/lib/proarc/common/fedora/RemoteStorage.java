@@ -114,8 +114,8 @@ public final class RemoteStorage {
         }
     }
 
-    public SearchView getSearch(Locale locale) {
-        SearchView sv = new SearchView(this);
+    public RemoteStorageSearchView getSearch(Locale locale) {
+        RemoteStorageSearchView sv = new RemoteStorageSearchView(this);
         if (locale != null) {
             sv.setLocale(locale);
         }
@@ -123,7 +123,7 @@ public final class RemoteStorage {
     }
 
 
-    public SearchView getSearch() {
+    public RemoteStorageSearchView getSearch() {
         return getSearch(null);
     }
 
@@ -178,7 +178,7 @@ public final class RemoteStorage {
         if (ingestUser == null || ingestUser.isEmpty()) {
             throw new IllegalArgumentException("ingestUser");
         }
-        if (log == null || ingestUser.isEmpty()) {
+        if (log == null || log.isEmpty()) {
             throw new IllegalArgumentException("log");
         }
         if (object.getOwner() == null) {

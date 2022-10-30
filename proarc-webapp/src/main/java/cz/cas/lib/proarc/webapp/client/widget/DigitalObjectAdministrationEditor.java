@@ -40,6 +40,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import java.util.LinkedHashMap;
 
 /**
  * Edits administration and technical meta data of digital object.
@@ -297,7 +298,17 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             lockedDate.setWidth("*");
             lockedDate.setCanEdit(Boolean.FALSE);
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status, locked, lockedBy, lockedDate);
+            ComboBoxItem donator = new ComboBoxItem(DigitalObjectAdministrationDataSource.FIELD_DONATOR,
+            i18n.DigitalObjectEditor_AdministrationAction_Donator_Title());
+            LinkedHashMap<String, String> valueMap = new LinkedHashMap<>();
+            valueMap.put("norway", "Norské fondy");
+            donator.setValueMap(valueMap);
+            donator.setAllowEmptyValue(true);
+            donator.setEmptyDisplayValue(ClientUtils.format("<i>&lt;%s&gt;</i>",
+                    i18n.DigitalObjectEditor_AdministrationAction_NoDonator_Title()));
+            donator.setWidth(250);
+
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status, locked, lockedBy, lockedDate, donator);
             widget.setMembers(form);
         }
 
@@ -311,8 +322,8 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
 
         public void invalidateCache() {
             form.invalidateCache();
-            form.getField(DigitalObjectAdministrationDataSource.FIELD_DEVICE)
-                    .invalidateDisplayValueCache();
+            form.getField(DigitalObjectAdministrationDataSource.FIELD_DEVICE).invalidateDisplayValueCache();
+            form.getField(DigitalObjectAdministrationDataSource.FIELD_DONATOR).invalidateDisplayValueCache();
         }
 
     }
@@ -352,8 +363,8 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
 
         public void invalidateCache() {
             form.invalidateCache();
-            form.getField(DigitalObjectAdministrationDataSource.FIELD_DEVICE)
-                    .invalidateDisplayValueCache();
+            form.getField(DigitalObjectAdministrationDataSource.FIELD_DEVICE).invalidateDisplayValueCache();
+            form.getField(DigitalObjectAdministrationDataSource.FIELD_DONATOR).invalidateDisplayValueCache();
         }
 
     }

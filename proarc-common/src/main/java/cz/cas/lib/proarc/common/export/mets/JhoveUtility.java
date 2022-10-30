@@ -24,8 +24,9 @@ import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.Compression;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.ObjectIdentifier;
@@ -41,18 +42,14 @@ import cz.cas.lib.proarc.mix.OrientationType;
 import cz.cas.lib.proarc.mix.StringType;
 import cz.cas.lib.proarc.mix.TypeOfDateType;
 import cz.cas.lib.proarc.mix.TypeOfOrientationType;
-import edu.harvard.hul.ois.jhove.App;
-import edu.harvard.hul.ois.jhove.JhoveBase;
-import edu.harvard.hul.ois.jhove.Module;
-import edu.harvard.hul.ois.jhove.OutputHandler;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-import org.aes.audioobject.AudioObject;
-import org.aes.audioobject.AudioObjectType;
-import org.apache.commons.io.FileUtils;
-import org.apache.xerces.dom.DeferredTextImpl;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import java.io.File;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.URL;
+import java.util.Calendar;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -62,14 +59,18 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URL;
-import java.util.Calendar;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.aes.audioobject.AudioObject;
+import org.aes.audioobject.AudioObjectType;
+import org.apache.commons.io.FileUtils;
+import org.apache.xerces.dom.DeferredTextImpl;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import edu.harvard.hul.ois.jhove.App;
+import edu.harvard.hul.ois.jhove.JhoveBase;
+import edu.harvard.hul.ois.jhove.Module;
+import edu.harvard.hul.ois.jhove.OutputHandler;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
 /**
  * @author Robert Simonovsky
@@ -106,7 +107,7 @@ public class JhoveUtility {
     public static Node getNodeRecursive(Node node, String localName, String value) {
         if ((node.getLocalName() != null) &&
                 (node.getLocalName().startsWith(localName))) {
-            System.out.println(localName);
+            //System.out.println(localName);
         }
         if ((node.getLocalName() != null) &&
                 (node.getLocalName().startsWith(localName)) &&
@@ -277,7 +278,7 @@ public class JhoveUtility {
      *
      * @param targetFile
      * @param metsContext
-     * @param deviceMix
+     * @param aes
      * @param dateCreated
      * @param originalFileName
      * @return
@@ -318,6 +319,38 @@ public class JhoveUtility {
         return getCodingHistory(targetFile, jhoveContext, dateCreated, originalFileName);
     }
 
+    public static JHoveOutput getMix(IMetsElement metsElement, String streamName, String path, Mix mixDevice, XMLGregorianCalendar rawCreated, String originalFile) throws MetsExportException {
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            return getMixFromStorage(metsElement, streamName);
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+            return getMixFromStorage(metsElement, streamName);
+        } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            JHoveOutput jHoveOutput =  getMix(new File(path), metsElement.getMetsContext(), mixDevice, rawCreated, originalFile);
+            if (jHoveOutput.getMix() == null) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for " + streamName + "image", false, null);
+            }
+            return jHoveOutput;
+        } else {
+            return null;
+        }
+    }
+
+    public static JHoveOutput getCodingHistory(IMetsElement metsElement, String streamName, String path, XMLGregorianCalendar rawCreated, String originalFile) throws MetsExportException {
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            return getCodingHistoryFromStorage(metsElement, streamName);
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+            return getCodingHistoryFromStorage(metsElement, streamName);
+        } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            JHoveOutput jHoveOutput = getCodingHistory(new File(path), metsElement.getMetsContext(), rawCreated, null);
+            if (jHoveOutput.getCodingHistory() == null) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Coding history information for " + streamName + " object", false, null);
+            }
+            return jHoveOutput;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Returns the MIX information from the fedoraStream
      *
@@ -326,16 +359,21 @@ public class JhoveUtility {
      * @return
      * @throws MetsExportException
      */
-    public static JHoveOutput getMixFromFedora(IMetsElement metsElement, String streamName) throws MetsExportException {
+    public static JHoveOutput getMixFromStorage(IMetsElement metsElement, String streamName) throws MetsExportException {
 //        Document document = null;
         // hotfix of issue 250
         JHoveOutput jhoveOutput = new JHoveOutput();
         MixEditor mixEditor;
-        RemoteObject fObj = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        FedoraObject fedoraObject = null;
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            fedoraObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+            fedoraObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
+        }
         if (MixEditor.RAW_ID.equals(streamName)) {
-            mixEditor = MixEditor.raw(fObj);
+            mixEditor = MixEditor.raw(fedoraObject);
         } else if (MixEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
-            mixEditor = MixEditor.ndkArchival(fObj);
+            mixEditor = MixEditor.ndkArchival(fedoraObject);
         } else {
             return null;
         }
@@ -365,6 +403,22 @@ public class JhoveUtility {
         return jhoveOutput;
     }
 
+    public static JHoveOutput getAes(IMetsElement metsElement, String streamName, String path, AudioObjectType aes, XMLGregorianCalendar rawCreated, String originalFile) throws MetsExportException {
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            return getAesFromStorage(metsElement, streamName);
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+            return getAesFromStorage(metsElement, streamName);
+        } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            JHoveOutput jHoveOutput =  getAes(new File(path), metsElement.getMetsContext(), aes, rawCreated, originalFile);
+            if (jHoveOutput.getMix() == null) {
+                LOG.warning("U objektu " + metsElement.getOriginalPid() + " nejsou vyplněna technická metadata a nejdou ani najít v RAW souboru pro tento objekt " + metsElement.getOriginalPid() + ".");
+            }
+            return jHoveOutput;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Returns the AES information from the fedoraStream
      *
@@ -373,16 +427,21 @@ public class JhoveUtility {
      * @return
      * @throws MetsExportException
      */
-    public static JHoveOutput getAesFromFedora(IMetsElement metsElement, String streamName) throws MetsExportException {
+    public static JHoveOutput getAesFromStorage(IMetsElement metsElement, String streamName) throws MetsExportException {
 //        Document document = null;
         // hotfix of issue 250
         JHoveOutput jhoveOutput = new JHoveOutput();
         AesEditor aesEditor;
-        RemoteObject fObj = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        FedoraObject fedoraObject = null;
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            fedoraObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+            fedoraObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
+        }
         if (AesEditor.RAW_ID.equals(streamName)) {
-            aesEditor = AesEditor.raw(fObj);
+            aesEditor = AesEditor.raw(fedoraObject);
         } else if (AesEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
-            aesEditor = AesEditor.ndkArchival(fObj);
+            aesEditor = AesEditor.ndkArchival(fedoraObject);
         } else {
             return null;
         }
@@ -419,16 +478,21 @@ public class JhoveUtility {
      * @return
      * @throws MetsExportException
      */
-    public static JHoveOutput getCodingHistoryFromFedora(IMetsElement metsElement, String streamName) throws MetsExportException {
+    public static JHoveOutput getCodingHistoryFromStorage(IMetsElement metsElement, String streamName) throws MetsExportException {
 //        Document document = null;
         // hotfix of issue 250
         JHoveOutput jhoveOutput = new JHoveOutput();
         CodingHistoryEditor editor;
-        RemoteObject fObj = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        FedoraObject fedoraObject = null;
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            fedoraObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+            fedoraObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
+        }
         if (CodingHistoryEditor.RAW_ID.equals(streamName)) {
-            editor = CodingHistoryEditor.raw(fObj);
+            editor = CodingHistoryEditor.raw(fedoraObject);
         } else if (CodingHistoryEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
-            editor = CodingHistoryEditor.ndkArchival(fObj);
+            editor = CodingHistoryEditor.ndkArchival(fedoraObject);
         } else {
             return null;
         }

@@ -16,17 +16,17 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -91,10 +91,10 @@ public class PurgeFedoraObjectTest {
         );
         ArrayList<String> shouldRemain = new ArrayList<String>(pids);
         shouldRemain.remove(pid);
-        List<Item> found = support.getRemoteStorage().getSearch().find(false, pids);
+        List<SearchViewItem> found = support.getRemoteStorage().getSearch().find(false, pids);
         FedoraTestSupport.assertItem(found, shouldRemain);
         FedoraTestSupport.assertNoItem(found, pid);
-        List<Item> children = support.getRemoteStorage().getSearch().findChildren(parentPid);
+        List<SearchViewItem> children = support.getRemoteStorage().getSearch().findChildren(parentPid);
         FedoraTestSupport.assertNoItem(children, pid);
     }
 
@@ -119,10 +119,10 @@ public class PurgeFedoraObjectTest {
         List<String> removed = Arrays.asList(pid, "uuid:tree1-child2-child1", "uuid:tree1-child2-child1-child1");
         ArrayList<String> shouldRemain = new ArrayList<String>(pids);
         shouldRemain.removeAll(removed);
-        List<Item> found = support.getRemoteStorage().getSearch().find(false, pids);
+        List<SearchViewItem> found = support.getRemoteStorage().getSearch().find(false, pids);
         FedoraTestSupport.assertItem(found, shouldRemain);
         FedoraTestSupport.assertNoItem(found, removed);
-        List<Item> children = support.getRemoteStorage().getSearch().findChildren(parentPid);
+        List<SearchViewItem> children = support.getRemoteStorage().getSearch().findChildren(parentPid);
         FedoraTestSupport.assertNoItem(children, pid);
     }
 
@@ -147,10 +147,10 @@ public class PurgeFedoraObjectTest {
         List<String> removed = Arrays.asList(pid);
         ArrayList<String> shouldRemain = new ArrayList<String>(pids);
         shouldRemain.removeAll(removed);
-        List<Item> found = support.getRemoteStorage().getSearch().find(false, pids);
+        List<SearchViewItem> found = support.getRemoteStorage().getSearch().find(false, pids);
         FedoraTestSupport.assertItem(found, shouldRemain);
         FedoraTestSupport.assertNoItem(found, removed);
-        List<Item> children = support.getRemoteStorage().getSearch().findChildren(parentPid);
+        List<SearchViewItem> children = support.getRemoteStorage().getSearch().findChildren(parentPid);
         FedoraTestSupport.assertNoItem(children, pid);
     }
 
@@ -171,7 +171,7 @@ public class PurgeFedoraObjectTest {
                 "uuid:tree1-child2-child1",
                 "uuid:tree1-child2-child1-child1"
         };
-        List<Item> found = support.getRemoteStorage().getSearch().find(false, pids);
+        List<SearchViewItem> found = support.getRemoteStorage().getSearch().find(false, pids);
         FedoraTestSupport.assertNoItem(found, pids);
     }
 
@@ -192,9 +192,9 @@ public class PurgeFedoraObjectTest {
                 "uuid:tree1-child2-child1",
                 "uuid:tree1-child2-child1-child1"
         };
-        List<Item> found = support.getRemoteStorage().getSearch().find(false, pids);
+        List<SearchViewItem> found = support.getRemoteStorage().getSearch().find(false, pids);
         FedoraTestSupport.assertItem(found, pids);
-        for (Item item : found) {
+        for (SearchViewItem item : found) {
             assertEquals(item.getPid(), "fedora-system:def/model#Deleted", item.getState());
         }
 

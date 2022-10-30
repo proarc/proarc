@@ -31,16 +31,18 @@ import cz.cas.lib.proarc.common.export.archive.PackageBuilder.MdType;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.Rdf;
 import cz.cas.lib.proarc.common.fedora.relation.RdfRelation;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
@@ -203,10 +205,17 @@ public class PackageReader {
             boolean isNewObject = lObj == null;
             if (lObj == null) {
                 File objFile = new File(targetFolder, getFoxmlFilename("DESCRIPTION", divIndex, pid, DeviceRepository.METAMODEL_ID));
-                RemoteObject remote = iSession.getRemotes().find(pid);
+                FedoraObject object = null;
+                if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
+                    object = iSession.getRemotes().find(pid);
+                } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                    object = iSession.getAkubraStorage().find(pid);
+                } else {
+                    throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
+                }
                 DigitalObject dObj = null;
                 try {
-                    String foxml = remote.asText();
+                    String foxml = object.asText();
                     dObj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
                     isNewObject = false;
                 } catch (DigitalObjectNotFoundException ex) {
@@ -215,9 +224,15 @@ public class PackageReader {
                 if (dObj == null) { // zkousi najit hlavni pid a s tim pote pracovat
                     String mainPid = getMainPid(pid);
                     if (mainPid != null) {
-                        remote = iSession.getRemotes().find(mainPid);
+                        if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
+                            object = iSession.getRemotes().find(mainPid);
+                        } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                            object = iSession.getAkubraStorage().find(mainPid);
+                        } else {
+                            throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
+                        }
                         try {
-                            String foxml = remote.asText();
+                            String foxml = object.asText();
                             dObj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
                             devices.put(pid, mainPid);
                             isNewObject = false;
@@ -272,9 +287,16 @@ public class PackageReader {
             File objFile = new File(targetFolder, getFoxmlFilename("FOXML", divIndex, pid, modelId));
             DigitalObject dObj = null;
             if (isParentObject) {
-                RemoteObject remote = iSession.getRemotes().find(pid);
+                FedoraObject object = null;
+                if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
+                    object = iSession.getRemotes().find(pid);
+                } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                    object = iSession.getAkubraStorage().find(pid);
+                } else {
+                    throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
+                }
                 try {
-                    String foxml = remote.asText();
+                    String foxml = object.asText();
                     dObj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
                     isNewObject = false;
                 } catch (DigitalObjectNotFoundException ex) {
@@ -691,14 +713,14 @@ public class PackageReader {
                 fileType.getID(), fileType.getMIMETYPE(), toString(fileType.getFLocat()));
     }
 
-    private static String toString(Item item) {
+    private static String toString(SearchViewItem item) {
         return item == null ? "null" : String.format("Item{%s, %s}", item.getPid(), item.getModel());
     }
 
-    private static String toItemString(List<Item> items) {
+    private static String toItemString(List<SearchViewItem> items) {
         StringBuilder sb = new StringBuilder();
         sb.append('[');
-        for (Item item : items) {
+        for (SearchViewItem item : items) {
             if (sb.length() > 1) {
                 sb.append(", ");
             }
@@ -715,13 +737,24 @@ public class PackageReader {
         private final Batch batch;
         private final LocalStorage locals;
         private final SearchView search;
-        private final RemoteStorage remotes;
+        private final Storage typeOfStorage;
+        private RemoteStorage remotes;
+        private AkubraStorage akubraStorage;
         /** The user cache. */
         private final Map<String, String> external2internalUserMap = new HashMap<String, String>();
 
-        public ImportSession(ImportBatchManager ibm, ImportOptions options) {
-            this.remotes = RemoteStorage.getInstance();
-            this.search = remotes.getSearch();
+        public ImportSession(ImportBatchManager ibm, ImportOptions options, Storage typeOfStorage) throws IOException {
+            if (Storage.FEDORA.equals(typeOfStorage)) {
+                this.typeOfStorage = typeOfStorage;
+                this.remotes = RemoteStorage.getInstance();
+                this.search = this.remotes.getSearch();
+            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                this.typeOfStorage = typeOfStorage;
+                this.akubraStorage = AkubraStorage.getInstance();
+                this.search = this.akubraStorage.getSearch();
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + typeOfStorage);
+            }
             this.locals = new LocalStorage();
             this.ibm = ibm;
             this.options = options;
@@ -738,6 +771,14 @@ public class PackageReader {
 
         public RemoteStorage getRemotes() {
             return remotes;
+        }
+
+        public AkubraStorage getAkubraStorage() {
+            return akubraStorage;
+        }
+
+        public Storage getTypeOfStorage() {
+            return typeOfStorage;
         }
 
         public LocalObject findLocalObject(BatchItemObject bio) {
@@ -769,13 +810,13 @@ public class PackageReader {
         }
 
         public void checkRemote(List<String> pids) throws DigitalObjectException {
-            List<Item> items;
+            List<SearchViewItem> items;
             try {
                 items = search.find(false, pids);
             } catch (Exception ex) {
                 throw new DigitalObjectException(null, batch.getId(), null, null, ex);
             }
-            for (Item item : items) {
+            for (SearchViewItem item : items) {
                 // !!! RI states differ from FOXML 'fedora-system:def/model#Active' vs. StateType.A !!!
                 String state = item.getState();
 //                StateType state = StateType.valueOf(item.getState());
@@ -794,7 +835,7 @@ public class PackageReader {
             String parentPid = archiveRootLeafPath.isEmpty() ?
                     null : archiveRootLeafPath.get(archiveRootLeafPath.size() - 1);
             try {
-                List<Item> referrers = search.findReferrers(pid);
+                List<SearchViewItem> referrers = search.findReferrers(pid);
                 if (parentPid == null) {
                     if (!referrers.isEmpty()) {
                         String msg = String.format(
@@ -805,7 +846,7 @@ public class PackageReader {
                         return ;
                     }
                 }
-                for (Item referrer : referrers) {
+                for (SearchViewItem referrer : referrers) {
                     if (!parentPid.equals(referrer.getPid())) {
                         String msg = String.format(
                                 "Different archive and repository parent of pid %s, %s != %s:",

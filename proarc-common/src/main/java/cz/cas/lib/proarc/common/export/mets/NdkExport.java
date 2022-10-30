@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.common.export.mets;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportException;
-import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ItemList;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
@@ -30,9 +29,12 @@ import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.mets.info.Info;
 import java.io.File;
 import java.util.ArrayList;
@@ -44,6 +46,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import org.apache.commons.lang.Validate;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+
 /**
  * Exports digital object and transforms its data streams to NDK format.
  *
@@ -53,36 +58,38 @@ import org.apache.commons.lang.Validate;
 public class NdkExport {
 
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
-    protected final RemoteStorage rstorage;
-    protected final NdkExportOptions ndkExportOptions;
-    protected final ExportOptions exportOptions;
+    private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
+    private RemoteStorage remoteStorage;
 
-    public NdkExport(RemoteStorage rstorage, AppConfiguration config) {
-        this.rstorage = rstorage;
-        this.ndkExportOptions = config.getNdkExportOptions();
-        this.exportOptions = config.getExportOptions();
+    public NdkExport(RemoteStorage remoteStorage, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
+        this.appConfig = appConfig;
+        this.akubraConfiguration = akubraConfiguration;
+        this.remoteStorage = remoteStorage;
+    }
+
+    public NdkExport(AppConfiguration config, AkubraConfiguration akubraConfiguration) {
+        this.appConfig = config;
+        this.akubraConfiguration = akubraConfiguration;
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            this.remoteStorage = RemoteStorage.getInstance();
+        }
     }
 
     /**
      * Exports PIDs in Mets format
      *
-     * @param exportsFolder
-     *            folder with user exports
-     * @param pids
-     *            PID to export
-     * @param hierarchy
-     *            export PID and its children
-     * @param keepResult
-     *            delete or not export folder on exit
-     * @param log
-     *            message for storage logging
+     * @param exportsFolder folder with user exports
+     * @param pids          PID to export
+     * @param hierarchy     export PID and its children
+     * @param keepResult    delete or not export folder on exit
+     * @param log           message for storage logging
      * @return the result
-     * @throws ExportException
-     *             unexpected failure
+     * @throws ExportException unexpected failure
      */
     public List<Result> export(File exportsFolder, List<String> pids,
-            boolean hierarchy, boolean keepResult, Boolean overwrite,
-            boolean ignoreMissingUrnNbn, String log) throws ExportException {
+                               boolean hierarchy, boolean keepResult, Boolean overwrite,
+                               boolean ignoreMissingUrnNbn, String log) throws ExportException {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
@@ -90,7 +97,7 @@ public class NdkExport {
         if (exportsFolder != null && "NDK".equals(exportsFolder.getName())) {
             target = exportsFolder;
         } else {
-            target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, exportOptions.isOverwritePackage()));
+            target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, this.appConfig.getExportOptions().isOverwritePackage()));
         }
         List<Result> results = new ArrayList<>(pids.size());
         for (String pid : pids) {
@@ -104,7 +111,7 @@ public class NdkExport {
                 Info info = getInfo(getInfoFile(target));
                 if (info != null) {
                     logItem.getItemList().add(new ItemList(getTotalSize(info), getFileSize(info, "alto"), getFileSize(info, "txt"),
-                            getFileSize(info, "usercopy"),getFileSize(info, "mastercopy"),getFileSize(info, "amdsec"), getFileSize(info, "original")));
+                            getFileSize(info, "usercopy"), getFileSize(info, "mastercopy"), getFileSize(info, "amdsec"), getFileSize(info, "original")));
                 }
                 logResult(r, logItem);
             } catch (ExportException ex) {
@@ -147,7 +154,7 @@ public class NdkExport {
         } else {
             target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, exportOptions.isOverwritePackage()));
         }*/
-        target=exportsFolder;
+        target = exportsFolder;
         List<Result> results = new ArrayList<>(pids.size());
         for (String pid : pids) {
             ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
@@ -161,7 +168,7 @@ public class NdkExport {
                 Info info = getInfo(getInfoFile(target));
                 if (info != null) {
                     logItem.getItemList().add(new ItemList(getTotalSize(info), getFileSize(info, "alto"), getFileSize(info, "txt"),
-                            getFileSize(info, "usercopy"),getFileSize(info, "mastercopy"),getFileSize(info, "amdsec"), getFileSize(info, "original")));
+                            getFileSize(info, "usercopy"), getFileSize(info, "mastercopy"), getFileSize(info, "amdsec"), getFileSize(info, "original")));
                 }
                 logResult(r, logItem);
             } catch (ExportException ex) {
@@ -188,7 +195,7 @@ public class NdkExport {
                 logItem.setEnd();
             }
         }
-        ExportUtils.writeExportResult(target, reslog);
+        //ExportUtils.writeExportResult(target, reslog);
         return results;
     }
 
@@ -201,28 +208,38 @@ public class NdkExport {
         if (keepResult) {
             result.setTargetFolder(target);
         }
-        RemoteObject fo = rstorage.find(pid);
-        MetsContext dc = buildContext(fo, null, target);
-        File targetFolder = null;
+        FedoraObject object = null;
+
+
         try {
-            MetsElement metsElement = getMetsElement(fo, dc, hierarchy);
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                object = remoteStorage.find(pid);
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(pid);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+            MetsContext metsContext = buildContext(pid, target);
+            File targetFolder = null;
+            MetsElement metsElement = getMetsElement(object, metsContext, hierarchy);
             if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
                 metsElement.setIgnoreValidation(ignoreMissingUrnNbn);
                 metsElement.accept(new MetsElementVisitor());
             } else {
-                List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+                List<String> PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, hierarchy);
                 if (PSPs.size() == 0) {
                     throw new MetsExportException(pid, "Pod tímto modelem je očekáván model s přiděleným urn:nbn. Tento model chybí. Opravte a poté znovu exportujte.", false, null);
                 }
-                String output = dc.getOutputPath();
+                String output = metsContext.getOutputPath();
                 for (String pspPid : PSPs) {
-                    dc.resetContext();
+                    metsContext.resetContext();
                     String outputPath = output + File.separator + getUuidName(pspPid) + File.separator + "NDK";
                     targetFolder = new File(outputPath);
-                    dc.setOutputPath(outputPath);
+                    metsContext.setOutputPath(outputPath);
                     result.setTargetFolder(targetFolder);
-                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
-                    MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
+                    MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
                     mElm.setIgnoreValidation(ignoreMissingUrnNbn);
                     mElm.accept(createMetsVisitor());
                     // XXX use relative path to users folder?
@@ -231,7 +248,7 @@ public class NdkExport {
             if (targetFolder == null) {
                 targetFolder = target;
             }
-            storeExportResult(dc, targetFolder.toURI().toASCIIString(), "ARCHIVE", log);
+            storeExportResult(metsContext, targetFolder.toURI().toASCIIString(), "ARCHIVE", log);
             result.setPageIndexCount(countPageIndex(target));
             return result;
         } catch (MetsExportException ex) {
@@ -240,9 +257,23 @@ public class NdkExport {
             }
             return result.setValidationError(ex);
         } catch (NoSuchElementException exel) {
-            return result.setValidationError(new MetsExportException(pid, "Model obsahuje neočekávaný element {" + exel.getMessage() +"}.", false, null));
-        }catch (Throwable ex) {
+            return result.setValidationError(new MetsExportException(pid, "Model obsahuje neočekávaný element {" + exel.getMessage() + "}.", false, null));
+        } catch (Throwable ex) {
             throw new ExportException(pid, ex);
+        }
+    }
+
+    public MetsContext buildContext(String pid, File target) {
+        FedoraObject object = null;
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            object = remoteStorage.find(pid);
+            return buildFedoraContext(object, null, target, remoteStorage, appConfig.getNdkExportOptions());
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = AkubraStorage.getInstance();
+            object = akubraStorage.find(pid);
+            return buildAkubraContext(object, null, target, akubraStorage, appConfig.getNdkExportOptions());
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
         }
     }
 
@@ -297,7 +328,7 @@ public class NdkExport {
         if (target.isFile()) {
             return null;
         }
-        if (target.isDirectory()){
+        if (target.isDirectory()) {
             for (File file : target.listFiles()) {
                 File fileInfo = getInfoFile(file);
                 if (fileInfo != null) {
@@ -317,14 +348,14 @@ public class NdkExport {
 
     /**
      * Exports packages. These can be split by PSP identifier (some level of model, for example issue for periodical)
-     *
+     * <p>
      * Each digital object is processed by visitor. This visitor create package on his own (and can be overriden for other NDK formats)
      *
-     * @param target filepath to export
-     * @param pid pid of exported object. This can be a root of object.
-     * @param hierarchy recursive search for packages
+     * @param target     filepath to export
+     * @param pid        pid of exported object. This can be a root of object.
+     * @param hierarchy  recursive search for packages
      * @param keepResult delete or not export folder on exit
-     * @param log message for storage logging
+     * @param log        message for storage logging
      * @return Result with target path and possible errors
      * @throws ExportException contains PID and exception
      */
@@ -337,28 +368,38 @@ public class NdkExport {
         if (keepResult) {
             result.setTargetFolder(target);
         }
-        RemoteObject fo = rstorage.find(pid);
-        MetsContext dc = buildContext(fo, null, target);
+        MetsContext metsContext = null;
+        FedoraObject object = null;
         try {
-            MetsElement metsElement = getMetsElement(fo, dc, hierarchy);
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                object = remoteStorage.find(pid);
+                metsContext = buildFedoraContext(object, null, target, remoteStorage, appConfig.getNdkExportOptions());
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(pid);
+                metsContext = buildAkubraContext(object, null, target, akubraStorage, appConfig.getNdkExportOptions());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+            MetsElement metsElement = getMetsElement(object, metsContext, hierarchy);
             if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
                 metsElement.setIgnoreValidation(ignoreMissingUrnNbn);
                 metsElement.accept(new MetsElementVisitor());
             } else {
-                List<String> PSPs = MetsUtils.findPSPPIDs(fo.getPid(), dc, hierarchy);
+                List<String> PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, hierarchy);
                 if (PSPs.size() == 0) {
                     throw new MetsExportException(pid, "Pod tímto modelem je očekáván model s přiděleným urn:nbn. Tento model chybí. Opravte a poté znovu exportujte.", false, null);
                 }
                 for (String pspPid : PSPs) {
-                    dc.resetContext();
-                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, fo.getClient());
-                    MetsElement mElm = MetsElement.getElement(dobj, null, dc, hierarchy);
+                    metsContext.resetContext();
+                    DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
+                    MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
                     mElm.setIgnoreValidation(ignoreMissingUrnNbn);
                     mElm.accept(createMetsVisitor());
                     // XXX use relative path to users folder?
                 }
             }
-            storeExportResult(dc, target.toURI().toASCIIString(), "NDK", log);
+            storeExportResult(metsContext, target.toURI().toASCIIString(), "NDK", log);
             result.setPageIndexCount(countPageIndex(target));
             return result;
         } catch (MetsExportException ex) {
@@ -367,8 +408,8 @@ public class NdkExport {
             }
             return result.setValidationError(ex);
         } catch (NoSuchElementException exel) {
-            return result.setValidationError(new MetsExportException(pid, "Model obsahuje neočekávaný element {" + exel.getMessage() +"}.", false, null));
-        }catch (Throwable ex) {
+            return result.setValidationError(new MetsExportException(pid, "Model obsahuje neočekávaný element {" + exel.getMessage() + "}.", false, null));
+        } catch (Throwable ex) {
             throw new ExportException(pid, ex);
         }
     }
@@ -394,31 +435,17 @@ public class NdkExport {
         return new MetsElementVisitor();
     }
 
-    private MetsElement getMetsElement(RemoteObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
-        dc.resetContext();
-        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), fo.getClient());
-         return MetsElement.getElement(dobj, null, dc, hierarchy);
-    }
-
-    protected MetsContext buildContext(RemoteObject fo, String packageId, File targetFolder) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(targetFolder.getAbsolutePath());
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(ndkExportOptions);
-        return mc;
+    private MetsElement getMetsElement(FedoraObject fo, MetsContext metsContext, boolean hierarchy) throws MetsExportException {
+        metsContext.resetContext();
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), metsContext);
+        return MetsElement.getElement(dobj, null, metsContext, hierarchy);
     }
 
     /**
      * Stores logs to the digital object hierarchy.
      *
-     * @param metsContext
-     *            context with exported elements
-     * @throws MetsExportException
-     *             write failure
+     * @param metsContext context with exported elements
+     * @throws MetsExportException write failure
      */
     private void storeExportResult(MetsContext metsContext, String target, String type, String log) throws MetsExportException {
         for (String pid : metsContext.getPidElements().keySet()) {
@@ -479,6 +506,7 @@ public class NdkExport {
 
         /**
          * Gets the folder with exported packages.
+         *
          * @return {@code null} if the result should not be kept
          */
         public File getTargetFolder() {

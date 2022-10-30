@@ -24,6 +24,10 @@ import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -42,11 +46,20 @@ public class ArchiveProducer {
     protected final DigitalObjectCrawler crawler;
     protected ExportResultLog reslog;
     protected AppConfiguration appConfig;
+    protected AkubraConfiguration akubraConfiguration;
 
-    public ArchiveProducer(AppConfiguration appConfiguration) {
-        this.crawler = new DigitalObjectCrawler(
-                DigitalObjectManager.getDefault(), RemoteStorage.getInstance().getSearch());
+    public ArchiveProducer(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
         this.appConfig = appConfiguration;
+        this.akubraConfiguration = akubraConfiguration;
+        SearchView searchView = null;
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            searchView = RemoteStorage.getInstance().getSearch();
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            searchView = AkubraStorage.getInstance().getSearch();
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
+        this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), searchView);
     }
 
     /**
@@ -59,7 +72,6 @@ public class ArchiveProducer {
     /**
      * It selects object hierarchies to build archive packages of them.
      * @param pids a list of PIDS to archive
-     * @param targetFolder where to place the result folder
      * @return the result folder that contains folders with archive packages.
      * @throws IllegalStateException failure. See {@link #getResultLog() } for details.
      */
@@ -73,7 +85,7 @@ public class ArchiveProducer {
     private void archiveImpl(List<String> pids, File archiveRootFolder, boolean ignoreMissingUrnNbn) {
         List<List<DigitalObjectElement>> objectPaths = selectObjects(pids);
 
-        ArchiveObjectProcessor processor = new ArchiveObjectProcessor(crawler, archiveRootFolder, appConfig, ignoreMissingUrnNbn);
+        ArchiveObjectProcessor processor = new ArchiveObjectProcessor(crawler, archiveRootFolder, appConfig, akubraConfiguration, ignoreMissingUrnNbn);
         for (List<DigitalObjectElement> path : objectPaths) {
             ExportResult result = new ExportResult();
             DigitalObjectElement dobj = path.get(0);

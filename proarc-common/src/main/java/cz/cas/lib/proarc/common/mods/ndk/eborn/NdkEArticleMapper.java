@@ -40,6 +40,7 @@ public class NdkEArticleMapper extends NdkArticleMapper {
     @Override
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="electronic_article"
+        MapperUtils.removeGenre(mods, "electronic article");
         MapperUtils.addGenre(mods, Const.GENRE_EARTICLE);
     }
 

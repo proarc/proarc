@@ -151,6 +151,39 @@ public final class RelationEditor {
     }
 
     /**
+     * @return donator of model
+     */
+    public String getDonator() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        String donator =  RdfRelation.toPid(rdf.getDescription().getDonator());
+        return donator != null && donator.startsWith("donator:") ? donator.substring(8) : donator;
+    }
+
+    /**
+     * @return donator of model
+     */
+    public String getElementDonator() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getDonator());
+    }
+
+    /**
+     * @param donator of model
+     */
+    public void setDonator(String donator) throws DigitalObjectException {
+        if (!donator.startsWith("donator:")) {
+            donator = "donator:" + donator;
+        }
+        Rdf rdf = getRdf();
+        rdf.getDescription().setDonator(RdfRelation.fromPid(donator));
+    }
+
+    public void setEmptyDonator() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setDonator(RdfRelation.fromPid(null));
+    }
+
+    /**
      * @param device PID of the device
      */
     public void setDevice(String device) throws DigitalObjectException {

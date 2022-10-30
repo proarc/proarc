@@ -118,6 +118,18 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
+POST http://localhost:8081/proarc/rest/v1/indexer
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+###
+
 GET http://localhost:8081/proarc/rest/v1/object/createPid
 
 ###
+
+POST http://localhost:8081/proarc/rest/v1/import/batchStopped
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&id=476&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}

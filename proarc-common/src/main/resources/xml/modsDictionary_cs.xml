@@ -147,4 +147,7 @@
     <entry key="yes">Yes</entry>
     <entry key="no">No</entry>
     <entry key="dateLastAccessed">Date Last Accessed</entry>
+    <entry key="description">Description</entry>
+    <entry key="descriptionStandard">Description Standard</entry>
+    <entry key="languageOfCataloging">Language of Cataloging</entry>
 </dictionary>

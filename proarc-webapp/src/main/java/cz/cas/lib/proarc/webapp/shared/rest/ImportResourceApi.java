@@ -38,6 +38,7 @@ public final class ImportResourceApi {
     public static final String BATCH_PATH = "batch";
     public static final String BATCHES_PATH = "batches";
     public static final String BATCHES_IN_PROCESS_PATH = "processingBatches";
+    public static final String BATCH_STOP_PATH = "batchStopped";
     public static final String NEWBATCH_DEVICE_PARAM = "device";
     public static final String NEWBATCH_INDICES_PARAM = "indices";
 
@@ -61,6 +62,7 @@ public final class ImportResourceApi {
     public static final String IMPORT_BATCH_FAILURE = "failure";
     public static final String IMPORT_BATCH_ITEMS = "items";
     public static final String IMPORT_BATCH_PROFILE = "profile";
+    public static final String IMPORT_BATCH_PRIORITY = "priority";
     public static final String IMPORT_BATCH_PAGECOUNT = "pageCount";
     public static final String IMPORT_START_ROW_PARAM = "_startRow";
     public static final String IMPORT_FUNCTION_UNLOCK_FOLDER = "unlockFolder";

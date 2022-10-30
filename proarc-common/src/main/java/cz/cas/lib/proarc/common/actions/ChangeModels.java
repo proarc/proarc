@@ -12,7 +12,10 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -43,20 +46,25 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+
 
 public class ChangeModels {
 
     private static final Logger LOG = Logger.getLogger(ChangeModels.class.getName());
 
     private static AppConfiguration appConfig;
+    private static AkubraConfiguration akubraConfiguration;
     private static String pid;
     private static String oldModel;
     private static String newModel;
     private List<String> pids;
 
 
-    public ChangeModels(AppConfiguration appConfig, String pid, String oldModel, String newModel) {
+    public ChangeModels(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, String pid, String oldModel, String newModel) {
         this.appConfig = appConfig;
+        this.akubraConfiguration = akubraConfiguration;
         this.pid = pid;
         this.oldModel = oldModel;
         this.newModel = newModel;
@@ -159,6 +167,8 @@ public class ChangeModels {
             fixModsFromK4(pid, mods, parentPid);
         } else if (NdkMapper.isNdkModel(oldModel)) {
             fixModsFromNdk(pid, mods, parentPid);
+        } else if (NdkMapper.isOldprintModel(oldModel)) {
+            fixModsFromOldPrint(pid, mods, parentPid);
         } else {
             switch (newModel) {
                 case NdkPlugin.MODEL_NDK_PAGE:
@@ -173,6 +183,19 @@ public class ChangeModels {
                 default:
                     throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
             }
+        }
+    }
+
+    private void fixModsFromOldPrint(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
+        switch (newModel) {
+            case NdkPlugin.MODEL_NDK_PAGE:
+                fixNdkPageMods(mods);
+                break;
+            case NdkPlugin.MODEL_SHEETMUSIC:
+                // no metadata change needed
+                break;
+            default:
+                throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
         }
     }
 
@@ -207,6 +230,9 @@ public class ChangeModels {
             case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME:
             case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE:
                 fixCollectionOfClippingsVolumeMods(mods, parentPid);
+                break;
+            case OldPrintPlugin.MODEL_SHEETMUSIC:
+                // no metadata change needed
                 break;
             default:
                 throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
@@ -641,10 +667,20 @@ public class ChangeModels {
 
     public IMetsElement getElement() throws DigitalObjectException {
         try {
-            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
-            RemoteStorage.RemoteObject robject = rstorage.find(pid);
-            MetsContext metsContext = buildContext(robject, null, rstorage);
-            DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+            MetsContext metsContext = null;
+            FedoraObject object = null;
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                object = rstorage.find(pid);
+                metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(pid);
+                metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+            DigitalObject dobj = MetsUtils.readFoXML(metsContext, object);
             if (dobj == null) {
                 return null;
             }
@@ -652,18 +688,6 @@ public class ChangeModels {
         } catch (IOException | MetsExportException ex) {
             throw new DigitalObjectException(pid, "ChangeModels:getElement - impossible to find element", ex);
         }
-    }
-
-    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, RemoteStorage rstorage) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(null);
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(null);
-        return mc;
     }
 
     public class ChangeModelResult {

@@ -86,11 +86,11 @@ public class Const {
     public final static String GENRE_VOLUME = "volume";
 
     public static final String NDK_EBORN_MODELS_IDENTIFIER = "ndke";
-    public final static String GENRE_EARTICLE = "electronic article";
-    public final static String GENRE_ECHAPTER = "electronic chapter";
-    public final static String GENRE_EISSUE = "electronic issue";
-    public final static String GENRE_ETITLE = "electronic title";
-    public final static String GENRE_EVOLUME = "electronic volume";
+    public final static String GENRE_EARTICLE = "electronic_article";
+    public final static String GENRE_ECHAPTER = "electronic_chapter";
+    public final static String GENRE_EISSUE = "electronic_issue";
+    public final static String GENRE_ETITLE = "electronic_title";
+    public final static String GENRE_EVOLUME = "electronic_volume";
 
     public final static String GENRE_CONVOLUTE = "convolute";       //konvolut
     public final static String GENRE_GRAPHICS = "graphics";       //grafika

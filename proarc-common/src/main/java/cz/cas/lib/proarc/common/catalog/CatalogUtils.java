@@ -373,6 +373,12 @@ public class CatalogUtils {
             if (placeValue != null) {
                 boolean containsPlace = false;
                 for (PlaceDefinition place : originInfo.getPlace()) {
+                    for (PlaceTermDefinition placeTermDefinition : place.getPlaceTerm()) {
+                        if (placeTermDefinition.getValue().equals(placeValue.getValue())) {
+                            containsPlace = true;
+                            break;
+                        }
+                    }
                     if (!place.getPlaceTerm().contains(placeValue)) {
                         containsPlace = true;
                     }
@@ -405,20 +411,83 @@ public class CatalogUtils {
         if (originInfos.size() > 1) {
             firstInfo = originInfos.get(0);
             secondInfo = originInfos.get(1);
-            firstInfo.getPlace().addAll(secondInfo.getPlace());
-            firstInfo.getPublisher().addAll(secondInfo.getPublisher());
-            firstInfo.getDateIssued().addAll(secondInfo.getDateIssued());
-            firstInfo.getDateCreated().addAll(secondInfo.getDateCreated());
-            firstInfo.getDateCaptured().addAll(secondInfo.getDateCaptured());
-            firstInfo.getDateValid().addAll(secondInfo.getDateValid());
-            firstInfo.getDateModified().addAll(secondInfo.getDateModified());
-            firstInfo.getCopyrightDate().addAll(secondInfo.getCopyrightDate());
-            firstInfo.getDateOther().addAll(secondInfo.getDateOther());
-            firstInfo.getEdition().addAll(secondInfo.getEdition());
-            firstInfo.getIssuance().addAll(secondInfo.getIssuance());
-            firstInfo.getFrequency().addAll(secondInfo.getFrequency());
-            firstInfo.setEventType(secondInfo.getEventType());
-            originInfos.remove(secondInfo);
+            if (hasOnlyOnePlaceValue(firstInfo.getPlace(), secondInfo.getPlace()) &&
+                    hasOnlyOneValue(firstInfo.getDateIssued(), secondInfo.getDateIssued()) &&
+                    hasOnlyOneValue(firstInfo.getPublisher(), secondInfo.getPublisher())) {
+                firstInfo.getPlace().addAll(secondInfo.getPlace());
+                firstInfo.getPublisher().addAll(secondInfo.getPublisher());
+                firstInfo.getDateIssued().addAll(secondInfo.getDateIssued());
+                firstInfo.getDateCreated().addAll(secondInfo.getDateCreated());
+                firstInfo.getDateCaptured().addAll(secondInfo.getDateCaptured());
+                firstInfo.getDateValid().addAll(secondInfo.getDateValid());
+                firstInfo.getDateModified().addAll(secondInfo.getDateModified());
+                firstInfo.getCopyrightDate().addAll(secondInfo.getCopyrightDate());
+                firstInfo.getDateOther().addAll(secondInfo.getDateOther());
+                firstInfo.getEdition().addAll(secondInfo.getEdition());
+                firstInfo.getIssuance().addAll(secondInfo.getIssuance());
+                firstInfo.getFrequency().addAll(secondInfo.getFrequency());
+                firstInfo.setEventType(secondInfo.getEventType());
+                originInfos.remove(secondInfo);
+            }
+        }
+    }
+
+    private static boolean hasOnlyOneValue(List listFirst, List listSecond) {
+        if (listFirst == null || listFirst.isEmpty()) {
+            if (listSecond != null || !listSecond.isEmpty()) {
+                return true;
+            }
+            return false;
+        }
+        if (listSecond == null || listSecond.isEmpty()) {
+            if (listFirst != null || !listFirst.isEmpty()) {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    private static boolean hasOnlyOnePlaceValue(List<PlaceDefinition> placeFirst, List<PlaceDefinition> placeSecond) {
+        if (placeFirst == null || placeFirst.isEmpty()) {
+            if (placeSecond != null || !placeSecond.isEmpty()) {
+                return true;
+            }
+            return false;
+        }
+        if (placeSecond == null || placeSecond.isEmpty()) {
+            if (placeFirst != null || !placeFirst.isEmpty()) {
+                return true;
+            }
+            return false;
+        }
+        if (placeFirst.size() > 1) {
+            return false;
+        } else if (placeSecond.size() > 1) {
+            return false;
+        } else {
+            PlaceDefinition placeDefinitionFirst = placeFirst.get(0);
+            PlaceDefinition placeDefinitionSecond = placeSecond.get(0);
+            if (placeDefinitionFirst.getPlaceTerm().isEmpty() && placeDefinitionSecond.getPlaceTerm().isEmpty()) {
+                return false;
+            } else if (placeDefinitionFirst.getPlaceTerm().isEmpty() && !placeDefinitionSecond.getPlaceTerm().isEmpty()) {
+                return true;
+            } else if (!placeDefinitionFirst.getPlaceTerm().isEmpty() && placeDefinitionSecond.getPlaceTerm().isEmpty()) {
+                return true;
+            } else {
+                PlaceTermDefinition place1 = placeDefinitionFirst.getPlaceTerm().get(0);
+                PlaceTermDefinition place2 = placeDefinitionSecond.getPlaceTerm().get(0);
+                if (place1.getType() == null || place2.getType() == null) {
+                    if (place1.getValue() != null && place1.getValue().equals(place2.getValue())) {
+                        return false;
+                    }
+                    return true;
+                }
+                if (place1.getType().value().equals(place2.getType().value())) {
+                    return false;
+                }
+                return true;
+            }
         }
     }
 

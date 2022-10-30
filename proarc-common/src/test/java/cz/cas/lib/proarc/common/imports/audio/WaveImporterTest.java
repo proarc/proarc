@@ -30,6 +30,9 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
@@ -43,6 +46,16 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import org.apache.commons.io.FileUtils;
 import org.custommonkey.xmlunit.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.XMLAssert;
@@ -58,16 +71,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import javax.xml.XMLConstants;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -82,6 +86,7 @@ public class WaveImporterTest {
     private File ac1;
     private File uc1;
     private AppConfiguration config;
+    private AkubraConfiguration akubraConfiguration;
     private ArrayList<Object> toVerify = new ArrayList<Object>();;
     private JhoveContext jhoveContext;
     private UserProfile junit;
@@ -118,6 +123,11 @@ public class WaveImporterTest {
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
         }});
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
 
         jhoveContext = JhoveUtility.createContext(temp.newFolder("jhove"));
 
@@ -125,9 +135,8 @@ public class WaveImporterTest {
         ibm = new ImportBatchManager(config, daos);
 
         MetaModelRepository.setInstance(new String[]{NdkAudioPlugin.ID});
-        DigitalObjectManager.setDefault(new DigitalObjectManager(config,
+        DigitalObjectManager.setDefault(new DigitalObjectManager(config, akubraConfiguration,
                 ibm,
-                null,
                 MetaModelRepository.getInstance(),
                 EasyMock.createNiceMock(UserManager.class))
         );
@@ -198,7 +207,7 @@ public class WaveImporterTest {
         assertNotNull(mimetype);
 
         ImportOptions ctx = new ImportOptions(ac1.getParentFile(), "scanner:scanner1",
-                true, junit, config.getImportConfiguration());
+                true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);
@@ -269,7 +278,7 @@ public class WaveImporterTest {
         assertTrue(targetFolder.exists());
 
         ImportOptions ctx = new ImportOptions(ac1.getParentFile(),
-                "scanner:scanner1", true, junit, config.getImportConfiguration());
+                "scanner:scanner1", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);

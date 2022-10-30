@@ -38,6 +38,7 @@ public class BatchView {
     private String log;
     private Integer pageCount;
     private Integer estimateItemNumber;
+    private String priority;
 
     public Integer getId() {
         return id;
@@ -145,6 +146,17 @@ public class BatchView {
 
     public void setEstimateItemNumber(Integer estimateItemNumber) {
         this.estimateItemNumber = estimateItemNumber;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        if (priority == null) {
+            priority = Batch.PRIORITY_MEDIUM;
+        }
+        this.priority = priority;
     }
 
     @Override

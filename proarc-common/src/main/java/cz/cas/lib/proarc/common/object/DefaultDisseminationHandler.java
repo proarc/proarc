@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet;
 import cz.cas.lib.proarc.common.imports.TiffAsJp2Importer;
@@ -128,6 +129,35 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                         .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
                         .lastModified(lastModification).build();
 //            }
+        } else if (fobject instanceof AkubraObject) {
+            BinaryEditor loader = BinaryEditor.dissemination((AkubraObject) fobject, dsId);
+            if (loader == null) {
+                throw new DigitalObjectNotFoundException(pid, null, dsId, null, null);
+            }
+            File entity = loader.read();
+            if (entity == null) {
+                //throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                InputStream inputStream = loader.readStream();
+                if (inputStream == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                }
+                Date lastModification = new Date(loader.getLastModified());
+                ResponseBuilder evaluatePreconditions = httpRequest == null ? null : httpRequest.evaluatePreconditions(lastModification);
+                if (evaluatePreconditions != null) {
+                    return evaluatePreconditions.build();
+                }
+                return Response.ok(inputStream, loader.getProfile().getDsMIME()).lastModified(lastModification).build();
+            }
+
+            Date lastModification = new Date(loader.getLastModified());
+            ResponseBuilder evaluatePreconditions = httpRequest == null
+                    ? null : httpRequest.evaluatePreconditions(lastModification);
+            if (evaluatePreconditions != null) {
+                return evaluatePreconditions.build();
+            }
+            return Response.ok(entity, loader.getProfile().getDsMIME())
+                    .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
+                    .lastModified(lastModification).build();
         } else if (fobject instanceof RemoteObject) {
             RemoteObject remote = (RemoteObject) fobject;
             return getResponse(remote, dsId);
@@ -135,20 +165,21 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         throw new IllegalStateException("unsupported: " + fobject.getClass());
     }
 
-    public static Response getResponse(RemoteObject remote, String dsId) throws DigitalObjectException {
+    public static Response getResponse(FedoraObject object, String dsId) throws DigitalObjectException {
         // This should limit fedora calls to 1.
         // XXX It works around FedoraClient.FedoraClient.getDatastreamDissemination that hides HTTP headers of the response.
         // Unfortunattely fedora does not return modification date as HTTP header
         // In case of large images it could be faster to ask datastream for modification date first.
-        String pid = remote.getPid();
+        String pid = object.getPid();
         String path = String.format("objects/%s/datastreams/%s/content", pid, dsId);
-        ClientResponse response = remote.getClient().resource().path(path).get(ClientResponse.class);
-        if (Status.fromStatusCode(response.getStatus()) != Status.OK) {
-            throw new DigitalObjectNotFoundException(pid, null, dsId, response.getEntity(String.class), null);
-        }
-        MultivaluedMap<String, String> headers = response.getHeaders();
-        String filename = headers.getFirst("Content-Disposition");
-        filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
+        if (object instanceof RemoteObject) {
+            ClientResponse response = ((RemoteObject) object).getClient().resource().path(path).get(ClientResponse.class);
+            if (Status.fromStatusCode(response.getStatus()) != Status.OK) {
+                throw new DigitalObjectNotFoundException(pid, null, dsId, response.getEntity(String.class), null);
+            }
+            MultivaluedMap<String, String> headers = response.getHeaders();
+            String filename = headers.getFirst("Content-Disposition");
+            filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
 /*
         //transform jp2 or tiff to jpg
         if (NDK_ARCHIVAL_ID.equals(dsId) || NDK_USER_ID.equals(dsId) || RAW_ID.equals(dsId)) {
@@ -167,6 +198,9 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                     .header("Content-Disposition", filename)
                     .build();
 //        }
+        } else {
+            throw new DigitalObjectException(pid, "Missing implementation for DefaultDisseminationHandler:getResponse.");
+        }
     }
 
     private static byte[] convertToBrowserCompatible(InputStream entity, String dsId) throws IOException, AppConfigurationException {

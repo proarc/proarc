@@ -24,10 +24,15 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import cz.cas.lib.proarc.common.export.ExportUtils;
+import cz.cas.lib.proarc.common.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
@@ -155,12 +160,8 @@ public class MetsUtils {
                 Node rdfResourceNode = hasPageNodes.item(a).getAttributes().getNamedItem("rdf:resource");
                 String fileName = rdfResourceNode.getNodeValue();
 
-                DigitalObject object = null;
-                if (ctx.getFedoraClient() != null) {
-                    object = MetsUtils.readRelatedFoXML(fileName, ctx.getFedoraClient());
-                } else {
-                    object = MetsUtils.readRelatedFoXML(ctx.getPath(), fileName);
-                }
+                DigitalObject object = MetsUtils.readRelatedFoXML(fileName, ctx);
+
                 relsExt = FoxmlUtils.findDatastream(object, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
                 String model = MetsUtils.getModel(relsExt);
                 String elementType = getElementType(model);
@@ -177,6 +178,7 @@ public class MetsUtils {
             }
         }
     }
+
 
     /**
      *
@@ -253,12 +255,7 @@ public class MetsUtils {
      */
     public static List<String> findPSPPIDs(String pid, MetsContext ctx, boolean fillChildren) throws MetsExportException {
         List<String> result = new ArrayList<>();
-        DigitalObject dObj;
-        if (ctx.getFedoraClient() != null) {
-            dObj = readFoXML(pid, ctx.getFedoraClient());
-        } else {
-            dObj = readFoXML(ctx.getPath() + File.separator + pid + ".xml");
-        }
+        DigitalObject dObj = readFoXML(pid, ctx);
 
         String parentId = pid;
         String parentModel = null;
@@ -268,11 +265,7 @@ public class MetsUtils {
         String firstParentType = null;
 
         while (parentId != null) {
-            if (ctx.getFedoraClient() != null) {
-                parentdbObj = readFoXML(parentId, ctx.getFedoraClient());
-            } else {
-                parentdbObj = readFoXML(ctx.getPath() + File.separator + parentId + ".xml");
-            }
+            parentdbObj = readFoXML(parentId, ctx);
             parentRels = FoxmlUtils.findDatastream(parentdbObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
             parentModel = MetsUtils.getModel(parentRels);
             parentType =  getElementType(parentModel);
@@ -283,21 +276,12 @@ public class MetsUtils {
 
             String oldParentId = parentId;
 
-            if (ctx.getFedoraClient() != null) {
-                parentId = MetsUtils.getParent(parentId, ctx.getRemoteStorage());
-            } else {
-                parentId = MetsUtils.getParent(parentId, ctx.getFsParentMap());
-            }
+            parentId = MetsUtils.getParent(parentId, ctx);
 
             if (Const.PSPElements.contains(parentType)) {
                 if (Const.SUPPLEMENT.equals(parentType)) {
                     if (parentId != null) {
-                        DigitalObject parentdbObjSupp;
-                        if (ctx.getFedoraClient() != null) {
-                            parentdbObjSupp = readFoXML(parentId, ctx.getFedoraClient());
-                        } else {
-                            parentdbObjSupp = readFoXML(ctx.getPath() + File.separator + parentId + ".xml");
-                        }
+                        DigitalObject parentdbObjSupp = readFoXML(parentId, ctx);
                         List<Element> parentRelsSupp = FoxmlUtils.findDatastream(parentdbObjSupp, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
                         String parentTypeSupp =  getElementType(MetsUtils.getModel(parentRelsSupp));
                         if (Const.MONOGRAPH_UNIT.equals(parentTypeSupp) || (Const.ISSUE.equals(parentTypeSupp))) {
@@ -533,7 +517,7 @@ public class MetsUtils {
      * Returns the byteArray of the specified datastream from fedora
      *
      * @param fedoraClient
-     * @param pid
+     * @param metsElement
      * @param streamName
      * @return
      * @throws MetsExportException
@@ -556,11 +540,40 @@ public class MetsUtils {
         }
     }
 
+    public static byte[] getBinaryDataStreams(IMetsElement metsElement, String streamName) throws MetsExportException {
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            return getBinaryDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement, streamName);
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            return getBinaryDataStreams(metsElement.getMetsContext().getAkubraStorage(), metsElement, streamName);
+        } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            return getBinaryDataStreams(metsElement.getSourceObject().getDatastream(), "STRUCT_MAP");
+        } else {
+            return null;
+        }
+    }
+
+    private static byte[] getBinaryDataStreams(AkubraStorage akubraStorage, IMetsElement metsElement, String streamName) throws MetsExportException {
+        try {
+            DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName);
+            if (rawDS != null) {
+                AkubraObject object = akubraStorage.find(metsElement.getOriginalPid());
+                InputStream is = AkubraUtils.getDatastreamDissemination(object, streamName);
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                copyStream(is, bos);
+                bos.close();
+                return bos.toByteArray();
+            } else {
+                return null;
+            }
+        } catch (Exception ex) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting stream " + streamName + " from " + metsElement.getElementType(), false, ex);
+        }
+    }
+
     /**
      *
      * Inits the file groups in mets
      *
-     * @param mets
      * @return
      */
     public static HashMap<String, FileGrp> initFileGroups() {
@@ -602,7 +615,6 @@ public class MetsUtils {
      *
      * Inits the audio file groups in mets
      *
-     * @param mets
      * @return
      */
     public static HashMap<String, FileGrp> initAudioFileGroups() {
@@ -613,7 +625,6 @@ public class MetsUtils {
      *
      * Inits the audio file groups in mets
      *
-     * @param mets
      * @return
      */
     public static HashMap<String, FileGrp> initAudioFileGroups(HashMap<String, FileGrp> fileGrpMap) {
@@ -658,11 +669,52 @@ public class MetsUtils {
         }
     }
 
+    public static DigitalObject readFoXML(String pid, MetsContext metsContext) throws MetsExportException {
+        if (Storage.FEDORA.equals(metsContext.getTypeOfStorage())) {
+            return readFoXML(pid, metsContext.getFedoraClient());
+        } else if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = metsContext.getAkubraStorage();
+            AkubraObject object = akubraStorage.find(pid);
+            return readFoXML(metsContext, object);
+        } else if (Storage.LOCAL.equals(metsContext.getTypeOfStorage())) {
+            return readFoXML(metsContext.getPath() + File.separator + pid + ".xml");
+        } else {
+            return null;
+        }
+    }
+
+    public static DigitalObject readFoXML(MetsContext metsContext, FedoraObject object) throws MetsExportException {
+        if (Storage.FEDORA.equals(metsContext.getTypeOfStorage())) {
+            return readFoXML(object.getPid(), metsContext.getFedoraClient());
+        } else if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
+            try {
+                return AkubraUtils.getDigitalObjectProArc(((AkubraObject) object).getManager(), object.getPid());
+            } catch (JAXBException e) {
+                throw new MetsExportException("Unable to get " + object.getPid() + " from Akubra", false, e);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public static DigitalObject readFoXML(DesaContext context, FedoraObject object) throws MetsExportException {
+        if (Storage.FEDORA.equals(context.getTypeOfStorage())) {
+            return readFoXML(object.getPid(), context.getFedoraClient());
+        } else if (Storage.AKUBRA.equals(context.getTypeOfStorage())) {
+            try {
+                return AkubraUtils.getDigitalObjectProArc(((AkubraObject) object).getManager(), object.getPid());
+            } catch (JAXBException e) {
+                throw new MetsExportException("Unable to get " + object.getPid() + " from Akubra", false, e);
+            }
+        } else {
+            return null;
+        }
+    }
+
     /**
      *
      * Reads and unmarshalls Digital Object from Fedora
      *
-     * @param path
      * @return
      */
     public static DigitalObject readFoXML(String uuid, FedoraClient client) throws MetsExportException {
@@ -854,8 +906,6 @@ public class MetsUtils {
      *
      * Generates and saves info.xml
      *
-     * @param path
-     * @param mets
      */
     public static void saveInfoFile(String path, MetsContext metsContext, String md5, String fileMd5Name, File metsFile) throws MetsExportException {
         File infoFile = new File(path + File.separator + metsContext.getPackageID() + File.separator + "info_" + metsContext.getPackageID() + ".xml");
@@ -1016,6 +1066,34 @@ public class MetsUtils {
         return object;
     }
 
+    public static DigitalObject readRelatedFoXML(String uuid, MetsContext context) throws MetsExportException {
+        if (Storage.FEDORA.equals(context.getTypeOfStorage())) {
+            return readRelatedFoXML(uuid, context.getFedoraClient());
+        } else if (Storage.AKUBRA.equals(context.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = context.getAkubraStorage();
+            AkubraObject object = akubraStorage.find(uuid);
+            return readFoXML(context, object);
+        } else if (Storage.LOCAL.equals(context.getTypeOfStorage())) {
+            return readRelatedFoXML(context.getPath(), uuid);
+        } else {
+            return null;
+        }
+    }
+
+    public static DigitalObject readRelatedFoXML(String uuid, DesaContext context) throws MetsExportException {
+        if (Storage.FEDORA.equals(context.getTypeOfStorage())) {
+            return readRelatedFoXML(uuid, context.getFedoraClient());
+        } else if (Storage.AKUBRA.equals(context.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = context.getAkubraStorage();
+            AkubraObject object = akubraStorage.find(uuid);
+            return readFoXML(context, object);
+        } else if (Storage.LOCAL.equals(context.getTypeOfStorage())) {
+            return readRelatedFoXML(context.getPath(), uuid);
+        } else {
+            return null;
+        }
+    }
+
     /**
      *
      * Generates an MD5 checksum and copies a file (image) to defined
@@ -1050,7 +1128,6 @@ public class MetsUtils {
      * Generates an MD5 checksum OutputStream
      *
      * @param is
-     * @param os
      * @return
      * @throws NoSuchAlgorithmException
      * @throws IOException
@@ -1074,23 +1151,51 @@ public class MetsUtils {
      * Returns parent pid from Resource index
      *
      * @param uuid
-     * @param remoteStorage
+     * @param metsContext
      * @return
      */
-    public static String getParent(String uuid, RemoteStorage remoteStorage) throws MetsExportException {
-        List<Item> referrers;
+    public static String getParent(String uuid, MetsContext metsContext) throws MetsExportException {
+        List<SearchViewItem> referrers;
         try {
-            referrers = remoteStorage.getSearch().findReferrers(uuid);
+            if (Storage.FEDORA.equals(metsContext.getTypeOfStorage())) {
+                referrers = metsContext.getRemoteStorage().getSearch().findReferrers(uuid);
+            } else if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
+                referrers = metsContext.getAkubraStorage().getSearch().findReferrers(uuid);
+            } else if (Storage.LOCAL.equals(metsContext.getTypeOfStorage())) {
+                String parent = getParent(uuid, metsContext.getFsParentMap());
+                return parent;
+            } else {
+                return null;
+            }
         } catch (Exception e) {
             throw new MetsExportException("Error while finding parent for:" + uuid, false, e);
         }
         if (referrers.size() > 1) {
             throw new MetsExportException("More referrers for pid:" + uuid, false);
         }
-        if (referrers.size() == 0) {
-            return null;
+        return referrers.size() == 0 ? null : referrers.get(0).getPid();
+    }
+
+    public static String getParent(String uuid, DesaContext desaContext) throws MetsExportException {
+        List<SearchViewItem> referrers;
+        try {
+            if (Storage.FEDORA.equals(desaContext.getTypeOfStorage())) {
+                referrers = desaContext.getRemoteStorage().getSearch().findReferrers(uuid);
+                LOG.fine("Parent found from Fedora:" + uuid);
+            } else if (Storage.AKUBRA.equals(desaContext.getTypeOfStorage())) {
+                referrers = desaContext.getAkubraStorage().getSearch().findReferrers(uuid);
+                LOG.fine("Parent found from Fedora:" + uuid);
+            } else if (Storage.LOCAL.equals(desaContext.getAkubraStorage())) {
+                String parent = getParent(uuid, desaContext.getFsParentMap());
+                LOG.fine("Parent found from Local:" + uuid);
+                return parent;
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            throw new MetsExportException("Error while finding parent for:" + uuid, false, e);
         }
-        return referrers.get(0).getPid();
+        return referrers.size() == 0 ? null : referrers.get(0).getPid();
     }
 
     /**
@@ -1162,7 +1267,7 @@ public class MetsUtils {
         return fileGrpMap;
     }
 
-    public static void renameFolder(File exportFolder, File targetFolder, File archiveTargetFolder) {
+    public static String renameFolder(File exportFolder, File targetFolder, File archiveTargetFolder) {
         if (archiveTargetFolder != null) {
             for (File file : targetFolder.listFiles()) {
                 if (file.isFile()) {
@@ -1221,8 +1326,10 @@ public class MetsUtils {
             }
             Path path = Paths.get(targetFolder.toURI());
             Files.move(path, path.resolveSibling("error_" + targetFolder.getName()), StandardCopyOption.REPLACE_EXISTING);
+            return file.getAbsolutePath();
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Cannot move " + targetFolder.getName() + "error_" + targetFolder.getName());
+            return targetFolder.getAbsolutePath();
         }
     }
 }

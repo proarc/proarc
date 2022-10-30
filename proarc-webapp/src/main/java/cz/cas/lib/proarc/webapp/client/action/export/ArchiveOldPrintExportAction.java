@@ -42,7 +42,10 @@ public class ArchiveOldPrintExportAction extends ArchiveExportAction {
         if (modelId.equals(OldPrintPlugin.MODEL_MONOGRAPHTITLE) ||
                 modelId.equals(OldPrintPlugin.MODEL_VOLUME) ||
                 modelId.equals(OldPrintPlugin.MODEL_SUPPLEMENT) ||
-                modelId.equals(OldPrintPlugin.MODEL_CHAPTER)) {
+                modelId.equals(OldPrintPlugin.MODEL_CHAPTER) ||
+                modelId.equals(OldPrintPlugin.MODEL_SHEETMUSIC) ||
+                modelId.equals(OldPrintPlugin.MODEL_CARTOGRAPHIC) ||
+                modelId.equals(OldPrintPlugin.MODEL_GRAPHICS)) {
             return true;
         } else {
             return false;

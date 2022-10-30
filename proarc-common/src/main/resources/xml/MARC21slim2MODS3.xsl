@@ -7,8 +7,9 @@
     <xsl:strip-space elements="*"/>
 
     <!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
-    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 15.689) 20181116
+    MARC21slim2MODS3-5 (Revision 1.97) 20140521 / (ProArc patch 18.1352) 20221012
 
+Revision 1.98.proarc.18.1352 - Changed authority handling
 Revision 1.98.proarc.17.1054 - Changed handling of name:ValueURI
 Revision 1.98.proarc.16.884 - Changed handling 700: add @ind1=0
 Revision 1.98.proarc.15.689 - Changed handling 100: value is not split if @ind1=0
@@ -887,6 +888,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                             <xsl:when
                                     test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')"
                             >multipart monograph</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
                             <xsl:when test="$leader7='i'">integrating resource</xsl:when>
                             <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
@@ -2845,7 +2847,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <recordOrigin>machine generated</recordOrigin>
 
             <recordInfoNote>Converted from MARCXML to MODS version 3.6 using MARC21slim2MODS3.xsl
-                (Revision 1.98 2018/02/09, ProArc patch 16.884 2019/02/10)</recordInfoNote>
+                (Revision 1.98 2018/02/09, ProArc patch 18.1352 2022/10/12)</recordInfoNote>
 
             <xsl:for-each select="marc:datafield[@tag=040]/marc:subfield[@code='b']">
                 <languageOfCataloging>
@@ -4554,6 +4556,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
                 <xsl:call-template name="nameIdentifier"/>
+                <xsl:call-template name="roleSpecification"/>
             </name>
         </xsl:if>
         <xsl:if test="@ind1='1'">
@@ -4572,6 +4575,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
                 <xsl:call-template name="nameIdentifier"/>
+                <xsl:call-template name="roleSpecification"/>
             </name>
         </xsl:if>
         <xsl:if test="@ind1='3'">
@@ -4590,6 +4594,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
                 <xsl:call-template name="nameIdentifier"/>
+                <xsl:call-template name="roleSpecification"/>
             </name>
         </xsl:if>
     </xsl:template>
@@ -4601,6 +4606,17 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
            <nameIdentifier>
                <xsl:value-of select="$subfiled7"/>
            </nameIdentifier>
+        </xsl:if>
+    </xsl:template>
+
+    <!--Revision 1.98.proarc.18.1352-->
+    <xsl:template name="roleSpecification">
+        <xsl:variable name="subfieldT" select="marc:subfield[@code='t']"/>
+        <xsl:variable name="subfieldL" select="marc:subfield[@code='l']"/>
+        <xsl:if test="$subfieldT or $subfieldL">
+            <description>
+                <xsl:value-of select="concat('L:', $subfieldL, ' T:', $subfieldT)"/>
+            </description>
         </xsl:if>
     </xsl:template>
 
@@ -4626,6 +4642,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="nameABCDN"/>
             <xsl:call-template name="role"/>
             <xsl:call-template name="nameIdentifier"/>
+            <xsl:call-template name="roleSpecification"/>
         </name>
     </xsl:template>
 
@@ -4640,6 +4657,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="nameACDEQ"/>
             <xsl:call-template name="role"/>
             <xsl:call-template name="nameIdentifier"/>
+            <xsl:call-template name="roleSpecification"/>
         </name>
     </xsl:template>
 
@@ -4656,6 +4674,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
                 <xsl:call-template name="nameIdentifier"/>
+                <xsl:call-template name="roleSpecification"/>
             </name>
         </xsl:if>
         <xsl:if test="@ind1='3'">
@@ -4666,6 +4685,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
                 <xsl:call-template name="nameIdentifier"/>
+                <xsl:call-template name="roleSpecification"/>
             </name>
         </xsl:if>
     </xsl:template>
@@ -4676,6 +4696,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="nameABCDN"/>
             <xsl:call-template name="role"/>
             <xsl:call-template name="nameIdentifier"/>
+            <xsl:call-template name="roleSpecification"/>
         </name>
     </xsl:template>
 
@@ -4685,6 +4706,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="nameACDEQ"/>
             <xsl:call-template name="role"/>
             <xsl:call-template name="nameIdentifier"/>
+            <xsl:call-template name="roleSpecification"/>
         </name>
     </xsl:template>
 

@@ -16,12 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import cz.cas.lib.proarc.common.config.ConfigurationProfile;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
-import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
@@ -36,6 +30,13 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  *
@@ -55,6 +56,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
     public static final String FIELD_PARENT = ImportResourceApi.IMPORT_BATCH_PARENTPID;
     public static final String FIELD_LOG = ImportResourceApi.IMPORT_BATCH_FAILURE;
     public static final String FIELD_PROFILE_ID = ImportResourceApi.IMPORT_BATCH_PROFILE;
+    public static final String FIELD_PRIORITY = ImportResourceApi.IMPORT_BATCH_PRIORITY;
 
     public static final String FIELD_DEVICE = ImportResourceApi.NEWBATCH_DEVICE_PARAM;
     public static final String FIELD_INDICES = ImportResourceApi.NEWBATCH_INDICES_PARAM;
@@ -76,6 +78,16 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         DataSourceIntegerField userId = new DataSourceIntegerField(FIELD_USER_ID);
         userId.setForeignKey(UserDataSource.ID + '.' + UserDataSource.FIELD_ID);
 
+        DataSourceTextField priority = new DataSourceTextField(FIELD_PRIORITY);
+        LinkedHashMap<String, String> priorities = new LinkedHashMap<>();
+        priorities.put(Batch.PRIORITY_LOWEST, i18n.ImportSourceChooser_OptionPriority_Lowest());
+        priorities.put(Batch.PRIORITY_LOW, i18n.ImportSourceChooser_OptionPriority_Low());
+        priorities.put(Batch.PRIORITY_MEDIUM, i18n.ImportSourceChooser_OptionPriority_Medium());
+        priorities.put(Batch.PRIORITY_HIGH, i18n.ImportSourceChooser_OptionPriority_High());
+        priorities.put(Batch.PRIORITY_HIGHEST, i18n.ImportSourceChooser_OptionPriority_Highest());
+        priority.setValueMap(priorities);
+
+
         DataSourceDateTimeField create = new DataSourceDateTimeField(FIELD_CREATE);
         create.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
@@ -90,6 +102,13 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         states.put(State.INGESTING.name(), i18n.ImportBatchDataSource_State_INGESTING());
         states.put(State.INGESTING_FAILED.name(), i18n.ImportBatchDataSource_State_INGESTING_FAILED());
         states.put(State.INGESTED.name(), i18n.ImportBatchDataSource_State_INGESTED());
+        states.put(State.STOPPED.name(), i18n.ImportBatchDataSource_State_STOPPED());
+        states.put(State.EXPORTING.name(), i18n.ImportBatchDataSource_State_EXPORTING());
+        states.put(State.EXPORT_FAILED.name(), i18n.ImportBatchDataSource_State_EXPORT_FAILED());
+        states.put(State.EXPORT_DONE.name(), i18n.ImportBatchDataSource_State_EXPORT_DONE());
+        states.put(State.REINDEXING.name(), i18n.ImportBatchDataSource_State_REINDEXING());
+        states.put(State.REINDEX_FAILED.name(), i18n.ImportBatchDataSource_State_REINDEX_FAILED());
+        states.put(State.REINDEX_DONE.name(), i18n.ImportBatchDataSource_State_REINDEX_DONE());
         state.setValueMap(states);
 
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
@@ -98,21 +117,37 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         DataSourceTextField profileId = new DataSourceTextField(FIELD_PROFILE_ID);
         LinkedHashMap<String, String> profiles = new LinkedHashMap<>();
         profiles.put(ConfigurationProfile.DEFAULT, i18n.ImportProfile_DEFAULT());
-        profiles.put(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, i18n.ImportProfile_DEFAULT_ARCHIVE_IMPORT());
-        profiles.put(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_IMPORT());
-        profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_STT_IMPORT());
-        profiles.put(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_MONOGRAPH_IMPORT());
-        profiles.put(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_DEFAULT_KRAMERIUS_PERIODIKA_IMPORT());
-        profiles.put("profile.chronicle", i18n.ImportProfile_DEFAULT_CHRONICLE_IMPORT());
-        profiles.put("profile.oldprint", i18n.ImportProfile_DEFAULT_OLDPRINT_IMPORT());
-        profiles.put("profile.ndk_full_import", i18n.ImportProfile_DEFAULT_NDK_FULL_IMPORT());
-        profiles.put(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, i18n.ImportProfile_DEFAULT_SOUNDRECORDING_IMPORT());
+        profiles.put("profile.defaultocr", i18n.ImportProfile_DEFAULT_OCR());
+        profiles.put(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, i18n.ImportProfile_ARCHIVE_IMPORT());
+        profiles.put(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_IMPORT());
+        profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_STT_IMPORT());
+        profiles.put(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_MONOGRAPH_IMPORT());
+        profiles.put(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_PERIODIKA_IMPORT());
+        profiles.put("profile.chronicle", i18n.ImportProfile_CHRONICLE_IMPORT());
+        profiles.put("profile.oldprint", i18n.ImportProfile_OLDPRINT_IMPORT());
+        profiles.put("profile.oldprintocr", i18n.ImportProfile_OLDPRINT_OCR_IMPORT());
+        profiles.put("profile.ndk_full_import", i18n.ImportProfile_NDK_FULL_IMPORT());
+        profiles.put("profile.ndk_without_ocr", i18n.ImportProfile_NDK_FULL_WITHOUR_OCR_IMPORT());
+        profiles.put("profile.oldprint_full_import", i18n.ImportProfile_OLDPRINT_FULL_IMPORT());
+        profiles.put("profile.oldprint_without_ocr", i18n.ImportProfile_OLDPRINT_FULL_WITHOUR_OCR_IMPORT());
+        profiles.put(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, i18n.ImportProfile_SOUNDRECORDING_IMPORT());
+
+
+        profiles.put("exportProfile.kramerius", i18n.ExportProfile_Kramerius());
+        profiles.put("exportProfile.ndk", i18n.ExportProfile_Ndk());
+        profiles.put("exportProfile.archive", i18n.ExportProfile_Archive());
+        profiles.put("exportProfile.desa", i18n.ExportProfile_Desa());
+        profiles.put("exportProfile.cejsh", i18n.ExportProfile_Cejsh());
+        profiles.put("exportProfile.crossref", i18n.ExportProfile_Crossref());
+        profiles.put("exportProfile.kwis", i18n.ExportProfile_Kwis());
+//        profiles.put("exportProfile.aleph", i18n.ExportProfile_Aleph());
+        profiles.put("internalProfile.reindex", i18n.InternalProfile_Reindex());
         profileId.setValueMap(profiles);
         profileId.setHidden(true);
 
         DataSourceTextField log = new DataSourceTextField(FIELD_LOG);
 
-        setFields(id, description, userId, user, create, timestamp, state, parent, log, profileId);
+        setFields(id, description, userId, user, create, timestamp, state, parent, log, profileId, priority);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
@@ -166,7 +201,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         }
     }
 
-    public Record newBatch(String folderPath, String profile, String device, Boolean indices) {
+    public Record newBatch(String folderPath, String profile, String device, Boolean indices, String priority) {
         Record r = new Record();
         r.setAttribute(FIELD_PATH, folderPath);
         if (profile != null) {
@@ -177,6 +212,9 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         }
         if (device != null) {
             r.setAttribute(FIELD_DEVICE, device);
+        }
+        if (priority != null) {
+            r.setAttribute(FIELD_PRIORITY, priority);
         }
         return r;
     }
@@ -257,7 +295,9 @@ public final class ImportBatchDataSource extends ProarcDataSource {
      * XXX make it GWT accessible and remove this.
      */
     public enum State {
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED;
+        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,
+        EXPORTING, EXPORT_FAILED, EXPORT_DONE,
+        REINDEXING, REINDEX_FAILED, REINDEX_DONE;
 
         public static State fromString(String value) {
             try {

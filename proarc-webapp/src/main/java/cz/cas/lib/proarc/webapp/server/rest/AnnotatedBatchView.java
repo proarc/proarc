@@ -18,11 +18,10 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlTransient;
-import java.sql.Timestamp;
 
 /**
  * Helper class to annotate {@link BatchView} properties.
@@ -41,7 +40,7 @@ public abstract class AnnotatedBatchView extends BatchView {
         return super.getId();
     }
 
-    @XmlTransient
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_FOLDER)
     @Override
     public abstract String getFolder();
 
@@ -87,5 +86,9 @@ public abstract class AnnotatedBatchView extends BatchView {
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PAGECOUNT)
     @Override
     public abstract Integer getPageCount();
+
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PRIORITY)
+    @Override
+    public abstract String getPriority();
 
 }

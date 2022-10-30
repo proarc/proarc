@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import cz.cas.lib.proarc.webapp.server.ProfileStates;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;

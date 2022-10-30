@@ -20,6 +20,10 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.imports.FedoraImport;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportHandler;
@@ -58,7 +62,7 @@ public class KrameriusImport implements ImportHandler {
 
     @Override
     public void start(ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration configuration) throws Exception {
-        isession = new ImportSession(ImportBatchManager.getInstance(), importConfig);
+        isession = new ImportSession(ImportBatchManager.getInstance(), importConfig, configuration.getTypeOfStorage());
         load(importConfig);
         ingest(importConfig);
     }
@@ -76,8 +80,16 @@ public class KrameriusImport implements ImportHandler {
         ImportBatchManager ibm = ImportBatchManager.getInstance();
         Batch batch = importConfig.getBatch();
         AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
-        FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(), ibm, null);
-        ingest.importBatch(batch, importConfig.getUsername(), null);
+        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
+            FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(config), ibm, null);
+            ingest.importBatch(batch, importConfig.getUsername(), null);
+        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
+            AkubraImport ingest = new AkubraImport(config, akubraConfiguration, ibm, null);
+            ingest.importBatch(batch, importConfig.getUsername(), null);
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
+        }
     }
 
     public void consume(List<File> importFiles, ImportOptions ctx) throws InterruptedException {

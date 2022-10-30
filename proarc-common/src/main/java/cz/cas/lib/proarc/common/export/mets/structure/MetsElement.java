@@ -564,26 +564,13 @@ public class MetsElement implements IMetsElement {
      * @throws MetsExportException
      */
     private MetsElement initParent() throws MetsExportException {
-        String parentId;
-        if (metsContext.getFedoraClient() != null) {
-            parentId = MetsUtils.getParent(originalPid, metsContext.getRemoteStorage());
-            LOG.fine("Parent found from Fedora:" + parentId);
-        } else {
-            parentId = MetsUtils.getParent(originalPid, metsContext.getFsParentMap());
-            LOG.fine("Parent found from Local:" + parentId);
-        }
-
+        String parentId = MetsUtils.getParent(originalPid, metsContext);
         if (parentId == null) {
             LOG.fine("Parent not found - returning null");
             return null;
         }
 
-        DigitalObject parentObject = null;
-        if (metsContext.getFedoraClient() != null) {
-            parentObject = MetsUtils.readRelatedFoXML(parentId, metsContext.getFedoraClient());
-        } else {
-            parentObject = MetsUtils.readRelatedFoXML(metsContext.getPath(), parentId);
-        }
+        DigitalObject parentObject = MetsUtils.readRelatedFoXML(parentId, metsContext);
         MetsElement parentInit = new MetsElement(parentObject, null, metsContext, false);
         parentInit.children.add(this);
         return parentInit;
@@ -684,12 +671,7 @@ public class MetsElement implements IMetsElement {
                 Node rdfResourceNode = hasPageNodes.item(a).getAttributes().getNamedItem("rdf:resource");
                 String fileName = rdfResourceNode.getNodeValue();
 
-                DigitalObject object = null;
-                if (metsContext.getFedoraClient() != null) {
-                    object = MetsUtils.readRelatedFoXML(fileName, metsContext.getFedoraClient());
-                } else {
-                    object = MetsUtils.readRelatedFoXML(metsContext.getPath(), fileName);
-                }
+                DigitalObject object = MetsUtils.readRelatedFoXML(fileName, metsContext);
                 MetsElement child = new MetsElement(object, this, metsContext, true);
                 this.children.add(child);
                 LOG.log(Level.FINE, "Child found for:" + getOriginalPid() + "(" + getElementType() + ") - " + child.getOriginalPid() + "(" + child.getElementType() + ")");

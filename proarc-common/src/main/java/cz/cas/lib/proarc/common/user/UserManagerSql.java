@@ -16,15 +16,18 @@
  */
 package cz.cas.lib.proarc.common.user;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.GroupDao;
 import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.dao.UserDao;
+import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.SqlTransaction;
 import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.sql.DbUtils;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -33,6 +36,10 @@ import java.util.Set;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.apache.commons.io.FileUtils;
+
+import static cz.cas.lib.proarc.common.sql.DbUtils.close;
+import static cz.cas.lib.proarc.common.sql.DbUtils.commit;
+import static cz.cas.lib.proarc.common.sql.DbUtils.rollback;
 
 /**
  * Manages user stuff in RDBMS and the Fedora storage.
@@ -43,17 +50,35 @@ final class UserManagerSql implements UserManager {
     
     private static final Logger LOG = Logger.getLogger(UserManagerSql.class.getName());
     private final DataSource source;
+    private final AppConfiguration appConfig;
     private final File defaultHome;
     private final GroupSqlStorage groupStorage;
     private final PermissionSqlStorage permissionStorage;
     private final RemoteStorage remoteStorage;
     private final DaoFactory daos;
 
-    public UserManagerSql(DataSource source, File defaultHome, RemoteStorage remoteStorage, DaoFactory daos) {
+    public UserManagerSql(DataSource source, AppConfiguration config, DaoFactory daos) throws IOException {
+        this.appConfig = config;
         this.source = source;
-        this.defaultHome = defaultHome;
+        this.defaultHome = config.getDefaultUsersHome();
         groupStorage = new GroupSqlStorage(source);
         permissionStorage = new PermissionSqlStorage(source);
+        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
+            this.remoteStorage = RemoteStorage.getInstance(config);
+        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            this.remoteStorage = null;
+        } else{
+            throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
+        }
+        this.daos = daos;
+    }
+
+    public UserManagerSql(AppConfiguration configuration, DataSource source, File defaultHome, RemoteStorage remoteStorage, EmpireDaoFactory daos) {
+        this.appConfig = configuration;
+        this.source = source;
+        this.defaultHome = defaultHome;
+        this.groupStorage = new GroupSqlStorage(source);
+        this.permissionStorage = new PermissionSqlStorage(source);
         this.remoteStorage = remoteStorage;
         this.daos = daos;
     }
@@ -150,25 +175,32 @@ final class UserManagerSql implements UserManager {
         }
         profile.validateAsNew();
         File userHome = null;
-        FedoraTransaction ftx = new FedoraTransaction(remoteStorage);
         Transaction tx = daos.createTransaction();
         UserDao userDao = daos.createUser();
         GroupDao groupDao = daos.createUserGroup();
-        FedoraUserDao fedoraUsers = new FedoraUserDao();
-        FedoraGroupDao fedoraGroups = new FedoraGroupDao();
         userDao.setTransaction(tx);
         groupDao.setTransaction(tx);
-        fedoraUsers.setTransaction(ftx);
-        fedoraGroups.setTransaction(ftx);
+        FedoraTransaction ftx = null;
+
         try {
-            // fedora
-            fedoraUsers.add(profile, owner, log);
+
             Group userGroup = createUserGroup(profile);
-            fedoraGroups.addNewGroup(userGroup, owner, log);
             final List<Group> membership = new ArrayList<Group>(groups.size() + 1);
             membership.addAll(groups);
             membership.add(userGroup);
-            fedoraUsers.setMembership(profile, membership, log);
+
+            // fedora
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                ftx = new FedoraTransaction(remoteStorage);
+                FedoraUserDao fedoraUsers = new FedoraUserDao();
+                fedoraUsers.setTransaction(ftx);
+                fedoraUsers.add(profile, owner, log);
+                fedoraUsers.setMembership(profile, membership, log);
+
+                FedoraGroupDao fedoraGroups = new FedoraGroupDao();
+                fedoraGroups.setTransaction(ftx);
+                fedoraGroups.addNewGroup(userGroup, owner, log);
+            }
 
             // rdbms
             groupDao.update(userGroup);
@@ -183,19 +215,16 @@ final class UserManagerSql implements UserManager {
             // filesystem
             UserUtil.createUserSubfolders(userHome);
             userHome = null;
-            tx.commit();
-            ftx.commit();
+            commit(tx, ftx);
             return filter(profile);
         } catch (Throwable ex) {
-            ftx.rollback();
-            tx.rollback();
+            rollback(tx, ftx);
             throw new IllegalStateException(filter(profile).toString(), ex);
         } finally {
             if (userHome != null) {
                 FileUtils.deleteQuietly(userHome);
             }
-            ftx.close();
-            tx.close();
+            close(tx, ftx);
         }
     }
 
@@ -227,26 +256,27 @@ final class UserManagerSql implements UserManager {
         Transaction tx = daos.createTransaction();
         GroupDao groupDao = daos.createUserGroup();
         groupDao.setTransaction(tx);
-        FedoraTransaction ftx = new FedoraTransaction(remoteStorage);
-        FedoraGroupDao fedoraGroups = new FedoraGroupDao();
-        fedoraGroups.setTransaction(ftx);
+        FedoraTransaction ftx = null;
         try {
-            fedoraGroups.addGroup(group, owner, log);
+            // fedora
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                new FedoraTransaction(remoteStorage);
+                FedoraGroupDao fedoraGroups = new FedoraGroupDao();
+                fedoraGroups.setTransaction(ftx);
+                fedoraGroups.addGroup(group, owner, log);
+            }
             groupDao.update(group);
             if (!permissions.isEmpty()) {
                 permissionStorage.set(((SqlTransaction) tx).getConnection(), group.getId(),
                         permissions.toArray(new Permission[permissions.size()]));
             }
-            tx.commit();
-            ftx.commit();
+            commit(tx, ftx);
             return group;
         } catch (Throwable ex) {
-            ftx.rollback();
-            tx.rollback();
+            rollback(tx, ftx);
             throw new IllegalStateException(String.valueOf(group), ex);
         } finally {
-            ftx.close();
-            tx.close();
+            close(tx, ftx);
         }
     }
 
@@ -290,24 +320,27 @@ final class UserManagerSql implements UserManager {
     @Override
     public void setUserGroups(UserProfile user, List<Group> groups, String owner, String log) {
         try {
-            FedoraTransaction ftx = new FedoraTransaction(remoteStorage);
-            FedoraUserDao fedoraUsers = new FedoraUserDao();
-            fedoraUsers.setTransaction(ftx);
             Connection c = source.getConnection();
             boolean rollback = true;
+            FedoraTransaction ftx = null;
             try {
                 c.setAutoCommit(false);
                 groupStorage.removeMembership(c, user.getId());
                 if (!groups.isEmpty()) {
                     groupStorage.addMembership(c, user.getId(), groups);
                 }
-                fedoraUsers.setMembership(user, groups, log);
+                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                    ftx = new FedoraTransaction(remoteStorage);
+                    FedoraUserDao fedoraUsers = new FedoraUserDao();
+                    fedoraUsers.setTransaction(ftx);
+                    fedoraUsers.setMembership(user, groups, log);
+                    ftx.commit();
+                }
                 c.commit();
-                ftx.commit();
                 rollback = false;
             } finally {
-                ftx.close();
-                DbUtils.close(c, rollback);
+                close(ftx);
+                close(c, rollback);
             }
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
@@ -322,7 +355,7 @@ final class UserManagerSql implements UserManager {
                 c.setAutoCommit(true);
                 return groupStorage.findUserGroups(c, userId);
             } finally {
-                DbUtils.close(c);
+                close(c);
             }
         } catch (SQLException ex) {
             throw new IllegalStateException(ex);
@@ -337,7 +370,7 @@ final class UserManagerSql implements UserManager {
                 c.setAutoCommit(true);
                 return permissionStorage.find(c, userId);
             } finally {
-                DbUtils.close(c);
+                close(c);
             }
         } catch (SQLException ex) {
             throw new IllegalStateException(ex);
@@ -371,7 +404,7 @@ final class UserManagerSql implements UserManager {
                 c.commit();
                 rollback = false;
             } finally {
-                DbUtils.close(c, rollback);
+                close(c, rollback);
             }
         } catch (SQLException ex) {
             throw new IllegalStateException(ex);
@@ -389,7 +422,7 @@ final class UserManagerSql implements UserManager {
                 c.commit();
                 rollback = false;
             } finally {
-                DbUtils.close(c, rollback);
+                close(c, rollback);
             }
         } catch (SQLException ex) {
             throw new IllegalStateException(ex);

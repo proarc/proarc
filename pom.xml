@@ -8,7 +8,7 @@
     <groupId>cz.cas.lib.proarc</groupId>
     <artifactId>proarc</artifactId>
     <packaging>pom</packaging>
-    <version>3.8.2</version>
+    <version>3.8.3-dev</version>
     <name>ProArc</name>
     <url>${proarc.wiki}</url>
 
@@ -28,6 +28,7 @@
         <module>proarc-common</module>
 
         <module>proarc-aes57</module>
+        <module>proarc-foxml</module>
         <module>proarc-codingHistory</module>
         <module>proarc-auth</module>
         <module>proarc-desa</module>
@@ -65,7 +66,14 @@
     </properties>
 
     <repositories>
-
+        <repository>
+            <id>kramerius</id>
+            <name>Kramerius</name>
+            <url>https://maven.pkg.github.com/ceskaexpedice/kramerius</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>proarc.repository</id>
             <name>ProArc Repository</name>
@@ -115,6 +123,14 @@
             <id>kramerius</id>
             <name>Kramerius Repository</name>
             <url>https://maven.pkg.github.com/ceskaexpedice/kramerius</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>JBOSS</id>
+            <name>JBOSS Repository</name>
+            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>

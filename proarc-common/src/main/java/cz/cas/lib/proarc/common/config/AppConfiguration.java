@@ -18,9 +18,11 @@ package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
+import cz.cas.lib.proarc.common.export.KwisExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
 import cz.cas.lib.proarc.common.fedora.SearchOptions;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -81,6 +83,7 @@ public final class AppConfiguration {
     private static final String PROPERTY_FEDORA_CLIENT_URL = "fedora.client.url";
     private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
+    private static final String PROPERTY_STORAGE = "proarc.storage";
     public static final String EXPORT_KWIS_POST_PROCESSOR = "export.export_post_processor.processor";
 
 
@@ -113,6 +116,14 @@ public final class AppConfiguration {
             users.mkdirs();
         }
         return users;
+    }
+
+    public Storage getTypeOfStorage() {
+        Storage storage = Storage.fromString(config.getString(PROPERTY_STORAGE));
+        if (storage == null) {
+            throw new IllegalStateException("Unsupported value " + config.getString(PROPERTY_STORAGE) + " in element " + PROPERTY_STORAGE);
+        }
+        return storage;
     }
 
     public Configuration getExportPostProcessor() {
@@ -181,6 +192,10 @@ public final class AppConfiguration {
 
     public Kramerius4ExportOptions getKramerius4Export() {
         return Kramerius4ExportOptions.from(config);
+    }
+
+    public KwisExportOptions getKwisExportOptions() {
+        return KwisExportOptions.from(config);
     }
 
     public NdkExportOptions getNdkExportOptions() {
@@ -325,14 +340,14 @@ public final class AppConfiguration {
         }
     }
 
-    private static File initHome(String home) throws IOException {
+    public static File initHome(String home) throws IOException {
         home = (home == null) ? "" : home;
         File homeFile = new File(home);
         checkFile(homeFile, true, true, true, true);
         return homeFile;
     }
 
-    private static File initConfigFolder(String userHome, String configPath) throws IOException {
+    public static File initConfigFolder(String userHome, String configPath) throws IOException {
         File config;
         if (configPath != null) {
             config = new File(configPath);
@@ -352,7 +367,7 @@ public final class AppConfiguration {
      *
      * @return {@code true} iff {@code f} exists
      */
-    private static boolean checkFile(File f, boolean mustExist,
+    public static boolean checkFile(File f, boolean mustExist,
             Boolean expectDirectory, Boolean expectCanRead, Boolean expextCanWrite
             ) throws IOException {
 
@@ -384,5 +399,4 @@ public final class AppConfiguration {
         }
         return false;
     }
-
 }

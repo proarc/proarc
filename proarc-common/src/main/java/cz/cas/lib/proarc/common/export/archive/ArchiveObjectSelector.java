@@ -81,12 +81,15 @@ public class ArchiveObjectSelector {
                 || NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
                 || NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)
                 || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)
+                || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)
                 ) {
             addSelection(entryPath);
         } else if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICAL.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)
-                || NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(modelId)) {
+                || NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(modelId)
+                || NdkEbornPlugin.MODEL_EPERIODICAL.equals(modelId)
+                || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(modelId)) {
             searchChildren(entry, entryPath);
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             DigitalObjectElement parent = entryPath.get(1);
@@ -101,6 +104,7 @@ public class ArchiveObjectSelector {
                 || NdkPlugin.MODEL_PAGE.equals(modelId)
                 || NdkPlugin.MODEL_PICTURE.equals(modelId)
                 || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)
+                || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)
                 ) {
             if (entryPath.size() == 1) {
                 throw new DigitalObjectException(entry.getPid(), "Unexpected hierarchy: " + entryPath);

@@ -222,12 +222,7 @@ public final class NdkMonographTitleForm {
                         .addField(new FieldBuilder("value").setTitle("Edition - MA").setMaxOccurrences(1).setType(Field.TEXT).setHint("Pořadí vydání").createField())
                         .createField()) // edition
                 // issuance, issuanceDefinition, enum
-                .addField(new FieldBuilder("issuance").setTitle("Issuance - O").setMaxOccurrences(1).setType(Field.SELECT)
-                        .setHint("Údaje o vydávání.<p>Odpovídá hodnotě uvedené v návěští MARC21 na pozici 07.")
-                        .addMapValue("monographic", "monographic")
-                        .addMapValue("single unit", "single unit")
-                        .addMapValue("multipart monograph", "multipart monograph")
-                        .createField()) // issuance
+                // issuance
                 // frequency, stringPlusLanguagePlusAuthority
                 .createField(); // originInfo
     }

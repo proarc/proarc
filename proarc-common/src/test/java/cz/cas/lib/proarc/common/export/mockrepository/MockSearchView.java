@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,11 +33,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Document;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Document;
 
 /**
  * Part of mocking of Fedora repository (risearch). Methods which are neccessary for NDK SIP export are implemented.
@@ -48,7 +49,7 @@ public class MockSearchView extends MockUp<SearchView> {
     FedoraClient client;
 
     @Mock
-    List<SearchView.Item> findReferrers(String pid) {
+    List<SearchViewItem> findReferrers(String pid) {
         //child (has) parent
         Map<String, String> relations = new HashMap<>();
         relations.put("uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4", "uuid:26342028-12c8-4446-9217-d3c9f249bd13");
@@ -61,16 +62,16 @@ public class MockSearchView extends MockUp<SearchView> {
         relations.put("uuid:15d30091-a3f1-4acc-86d9-09c2493454b4", "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6"); // volume hasParent periodical
 
         if (relations.containsKey(pid)) {
-            return relations.get(pid) == null ? Collections.EMPTY_LIST :Collections.singletonList(new SearchView.Item(relations.get(pid)));
+            return relations.get(pid) == null ? Collections.EMPTY_LIST :Collections.singletonList(new SearchViewItem(relations.get(pid)));
         } else {
             throw new IllegalArgumentException("Unknown parent for " + pid + " (fake risearch)");
         }
     }
 
     @Mock
-    public List<SearchView.Item> find(String... pids) {
+    public List<SearchViewItem> find(String... pids) {
         return Arrays.stream(pids).map(pid -> {
-            SearchView.Item item = new SearchView.Item(pid);
+            SearchViewItem item = new SearchViewItem(pid);
 
             new MockFedoraClient();
             GetDatastreamDissemination datastream = FedoraClient.getDatastreamDissemination(pid, "RELS-EXT");
@@ -96,7 +97,7 @@ public class MockSearchView extends MockUp<SearchView> {
     }
 
     @Mock
-    public List<SearchView.Item> findSortedChildren(String parentPid) {
+    public List<SearchViewItem> findSortedChildren(String parentPid) {
         return find(parentPid);
     }
 

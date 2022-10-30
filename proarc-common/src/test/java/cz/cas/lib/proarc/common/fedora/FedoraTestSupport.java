@@ -21,14 +21,15 @@ import com.yourmediashelf.fedora.client.FedoraCredentials;
 import com.yourmediashelf.fedora.client.response.FindObjectsResponse;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import javax.xml.transform.stream.StreamSource;
-import static org.junit.Assert.*;
 import org.junit.Assume;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  *
@@ -137,28 +138,28 @@ public class FedoraTestSupport {
         return pids.size();
     }
 
-    public static void assertItem(List<Item> items, String... pids) {
+    public static void assertItem(List<SearchViewItem> items, String... pids) {
         assertItem(items, Arrays.asList(pids));
     }
     
-    public static void assertItem(List<Item> items, List<String> pids) {
+    public static void assertItem(List<SearchViewItem> items, List<String> pids) {
         for (String pid : pids) {
             assertNotNull(pid, find(items, pid));
         }
     }
 
-    public static void assertNoItem(List<Item> items, String... pids) {
+    public static void assertNoItem(List<SearchViewItem> items, String... pids) {
         assertNoItem(items, Arrays.asList(pids));
     }
 
-    public static void assertNoItem(List<Item> items, List<String> pids) {
+    public static void assertNoItem(List<SearchViewItem> items, List<String> pids) {
         for (String pid : pids) {
             assertNull(pid, find(items, pid));
         }
     }
 
-    static Item find(List<Item> items, String pid) {
-        for (Item item : items) {
+    static SearchViewItem find(List<SearchViewItem> items, String pid) {
+        for (SearchViewItem item : items) {
             if (pid.equals(item.getPid())) {
                 return item;
             }

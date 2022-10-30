@@ -11,6 +11,7 @@
     <xsl:variable name="given" select="//mods:mods/mods:name[@type='personal']/mods:namePart[@type='given']"/>
     <xsl:variable name="date" select="//mods:mods/mods:name[@type='personal']/mods:namePart[@type='date']"/>
     <xsl:variable name="identifier" select="//mods:mods/mods:name[@type='personal']/mods:nameIdentifier"/>
+    <xsl:variable name="description" select="//mods:mods/mods:name/mods:description"/>
     <xsl:variable name="namePart" select="//mods:mods/mods:name/mods:namePart"/>
     <xsl:variable name="topicOfSubject" select="//mods:mods/mods:subject/mods:topic"/>
     <xsl:variable name="geographicCode" select="//mods:mods/mods:subject/mods:geographicCode"/>
@@ -30,10 +31,24 @@
             <xsl:when test="boolean(normalize-space($family))">
                     <xsl:choose>
                         <xsl:when test="boolean(normalize-space($date))">
-                            <xsl:value-of select="concat('N:', $family, ' ', $given, ' (',$date, '; ',$identifier ,')')"/>
+                            <xsl:choose>
+                                <xsl:when test="boolean(normalize-space($description))">
+                                    <xsl:value-of select="concat('N:', $family, ' ', $given, ' (',$date, '; ', $identifier,' - ', $description, ')')"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="concat('N:', $family, ' ', $given, ' (',$date, '; ',$identifier ,')')"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="concat('N:', $family, ' ', $given, ' (',$identifier ,')')"/>
+                            <xsl:choose>
+                                <xsl:when test="boolean(normalize-space($description))">
+                                    <xsl:value-of select="concat('N:', $family, ' ', $given, ' (',$identifier ,' - ', $description, ')')"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="concat('N:', $family, ' ', $given, ' (',$identifier ,')')"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </xsl:otherwise>
                     </xsl:choose>
             </xsl:when>

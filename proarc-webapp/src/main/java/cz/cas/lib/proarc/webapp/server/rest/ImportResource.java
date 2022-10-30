@@ -29,6 +29,10 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.Item;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.imports.FedoraImport;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
@@ -37,9 +41,9 @@ import cz.cas.lib.proarc.common.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-import cz.cas.lib.proarc.webapp.server.ProfileStates;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
@@ -101,6 +105,7 @@ public class ImportResource {
     // XXX inject with guice
     private final ImportBatchManager importManager;
     private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
 
     private final UserProfile user;
     private final SessionContext session;
@@ -115,6 +120,11 @@ public class ImportResource {
 
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
         this.importManager = ImportBatchManager.getInstance();
         session = SessionContext.from(httpRequest);
         user = session.getUser();
@@ -208,7 +218,8 @@ public class ImportResource {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority
             ) throws URISyntaxException, IOException {
         
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -227,7 +238,7 @@ public class ImportResource {
             for (File importFile : folder.listFiles()) {
                 if (importFile.exists() && importFile.isDirectory()) {
                     ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
-                            importManager, device, indices, true, appConfig.getImportConfiguration(profile), appConfig);
+                            importManager, device, indices, true, priority, appConfig.getImportConfiguration(profile), appConfig);
                     ImportDispatcher.getDefault().addImport(process);
                     listBatches.add(process.getBatch());
                 }
@@ -235,7 +246,7 @@ public class ImportResource {
             return new SmartGwtResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                    importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
+                    importManager, device, indices, priority, appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
             return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -249,7 +260,8 @@ public class ImportResource {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -269,7 +281,7 @@ public class ImportResource {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, indices, appConfig.getImportConfiguration(profile), appConfig);
+                        importManager, device, indices, priority, appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {
@@ -342,12 +354,12 @@ public class ImportResource {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_DESCRIPTION) String filePattern,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profile,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) String priority,
             @QueryParam("_startRow") int startRow,
             @QueryParam("_size") int size,
             @QueryParam("_sortBy") String sortBy
             ) throws IOException {
 
-        RemoteStorage remote = RemoteStorage.getInstance(appConfig);
         if (size == 0 || size < 0 || size > 1000) {
             size = 100;
         }
@@ -362,6 +374,7 @@ public class ImportResource {
                     .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                     .setFilePattern(filePattern)
                     .setProfile(profile)
+                    .setPriority(priority)
                     .setMaxCount(100000)
                     .setSortBy(sortBy);
         List<BatchView> allBatches = importManager.viewBatch(filterAll);
@@ -379,6 +392,7 @@ public class ImportResource {
                 .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                 .setFilePattern(filePattern)
                 .setProfile(profile)
+                .setPriority(priority)
                 .setOffset(startRow).setMaxCount(size)
                 .setSortBy(sortBy)
                 ;
@@ -409,6 +423,24 @@ public class ImportResource {
         int endRow = 0 + loadingBatches.size() - 1;
         int total = loadingBatches.size();
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, loadingBatches);
+    }
+
+    @POST
+    @Path(ImportResourceApi.BATCH_STOP_PATH)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<BatchView> stopBatch(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
+    ) {
+        session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+
+        Batch batch = importManager.get(batchId);
+        if (batch == null) {
+            throw RestException.plainNotFound(
+                    ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
+        }
+        ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
+        BatchView batchView = importManager.viewBatch(batch.getId());
+        return new SmartGwtResponse<BatchView>(batchView);
     }
 
     @PUT
@@ -460,19 +492,31 @@ public class ImportResource {
                     IOUtils.write(fileContents, new FileOutputStream(batchFile), Charset.defaultCharset());
                 }
             }
-
-            batch = new FedoraImport(appConfig, RemoteStorage.getInstance(appConfig), importManager, user)
-                    .importBatch(batch, user.getUserName(), session.asFedoraLog());
-        } else if (state == Batch.State.LOADING_FAILED) {
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                batch = new FedoraImport(appConfig, RemoteStorage.getInstance(appConfig), importManager, user)
+                        .importBatch(batch, user.getUserName(), session.asFedoraLog());
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                batch = new AkubraImport(appConfig, akubraConfiguration, importManager, user)
+                        .importBatch(batch, user.getUserName(), session.asFedoraLog());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+        } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED) {
             Batch.State realState = batch.getState();
             // try to reset import
-            if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED) {
+            if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED && realState != Batch.State.STOPPED) {
                 throw new UnsupportedOperationException("Cannot reset: " + batch);
             }
             ConfigurationProfile profile = findImportProfile(batchId, profileId);
             ImportProcess resume = ImportProcess.resume(batch, importManager,
                     appConfig.getImportConfiguration(profile));
-            ImportDispatcher.getDefault().addImport(resume);
+            try {
+                ImportDispatcher.getDefault().addImport(resume);
+            } catch (IllegalStateException ex) {
+                batch.setState(Batch.State.LOADING_FAILED);
+                importManager.update(batch);
+                throw ex;
+            }
         } else if (parentPid != null) {
             checkBatchState(batch);
             // XXX check PID is valid and exists

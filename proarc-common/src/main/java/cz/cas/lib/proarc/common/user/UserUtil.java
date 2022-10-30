@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.user;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -54,10 +53,7 @@ public final class UserUtil {
     public static UserManager createUserManagerPostgressImpl(
             AppConfiguration config, DataSource source, DaoFactory daos) throws IOException {
 
-        return new UserManagerSql(source,
-                config.getDefaultUsersHome(),
-                RemoteStorage.getInstance(config),
-                daos);
+        return new UserManagerSql(source, config, daos);
     }
 
     public static UserManager getDefaultManger() {
@@ -106,7 +102,7 @@ public final class UserUtil {
     /**
      * Translates platform specific path to independent form as URI
      *
-     * @param folderpath platform specific path as <pre>UNIX: /tmp/imports/</pre>
+     * @param folder platform specific path as <pre>UNIX: /tmp/imports/</pre>
      *      or <pre>MS Win: c:\imports</pre> or <pre>UNC MS Win: \\laptop\My Documents\</pre>
      *      are valid options
      * @return an abstract path

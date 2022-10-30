@@ -16,8 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,14 +29,14 @@ public class DigitalObjectElement {
 
     public static final DigitalObjectElement NULL = new DigitalObjectElement();
     private static final Logger LOG = Logger.getLogger(DigitalObjectElement.class.getName());
-    private SearchView.Item item;
+    private SearchViewItem item;
     private DigitalObjectHandler handler;
 
     private  DigitalObjectElement() {
-        this.item = new Item();
+        this.item = new SearchViewItem();
     }
 
-    public DigitalObjectElement(Item item, DigitalObjectHandler handler) {
+    public DigitalObjectElement(SearchViewItem item, DigitalObjectHandler handler) {
         if (item == null) {
             throw new NullPointerException();
         }
@@ -56,7 +55,7 @@ public class DigitalObjectElement {
         return item.getModel();
     }
 
-    public Item getItem() {
+    public SearchViewItem getItem() {
         return item;
     }
 
@@ -89,7 +88,7 @@ public class DigitalObjectElement {
 
     public static class Factory {
 
-        public DigitalObjectElement create(Item item, DigitalObjectHandler handler) {
+        public DigitalObjectElement create(SearchViewItem item, DigitalObjectHandler handler) {
             return new DigitalObjectElement(item, handler);
         }
     }

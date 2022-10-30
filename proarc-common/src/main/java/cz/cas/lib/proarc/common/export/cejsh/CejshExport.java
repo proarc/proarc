@@ -24,6 +24,10 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -32,6 +36,7 @@ import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.ndk.DefaultNdkVisitor;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -51,18 +56,20 @@ import java.util.Set;
 public class CejshExport {
 
     private DigitalObjectManager dom;
-    private final RemoteStorage remotes;
     private final CejshConfig cejshConfig;
     private final ExportOptions options;
+    private final AppConfiguration appConfiguration;
+    private final AkubraConfiguration akubraConfiguration;
 
-    public CejshExport(DigitalObjectManager dom, RemoteStorage remotes, AppConfiguration appConfig) {
+    public CejshExport(DigitalObjectManager dom, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
+        this.appConfiguration = appConfiguration;
+        this.akubraConfiguration = akubraConfiguration;
         this.dom = dom;
-        this.remotes = remotes;
-        this.cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
-        this.options = appConfig.getExportOptions();
+        this.cejshConfig = CejshConfig.from(appConfiguration.getAuthenticators());
+        this.options = appConfiguration.getExportOptions();
     }
 
-    public CejshStatusHandler export(File outputFolder, List<String> pids) {
+    public CejshStatusHandler export(File outputFolder, List<String> pids) throws IOException {
         return export(outputFolder, pids, new CejshStatusHandler(cejshConfig.getLogLevel()));
     }
 
@@ -74,7 +81,7 @@ public class CejshExport {
      * @param status an export status
      * @return the export status including the target folder and errors
      */
-    public CejshStatusHandler export(File outputFolder, List<String> pids, CejshStatusHandler status) {
+    public CejshStatusHandler export(File outputFolder, List<String> pids, CejshStatusHandler status) throws IOException {
         try {
             return exportImpl(outputFolder, pids, status);
         } finally {
@@ -85,7 +92,7 @@ public class CejshExport {
         }
     }
 
-    private CejshStatusHandler exportImpl(File output, List<String> pids, CejshStatusHandler status) {
+    private CejshStatusHandler exportImpl(File output, List<String> pids, CejshStatusHandler status) throws IOException {
         // XXX write export to RELS-EXT
         if (!output.exists() || !output.isDirectory()) {
             status.error((String) null, "Invalid output: " + output, null);
@@ -97,7 +104,15 @@ public class CejshExport {
         }
         output = ExportUtils.createFolder(output, "cejsh_" + FoxmlUtils.pidAsUuid(pids.get(0)), options.isOverwritePackage());
         status.setTargetFolder(output);
-        final DigitalObjectCrawler crawler = new DigitalObjectCrawler(dom, remotes.getSearch());
+        SearchView search = null;
+        if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+            search = RemoteStorage.getInstance(appConfiguration).getSearch();
+        }  else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())){
+            search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+        }
+        final DigitalObjectCrawler crawler = new DigitalObjectCrawler(dom, search);
         CejshContext ctx;
         try {
             ctx = new CejshContext(output, status, cejshConfig, options);

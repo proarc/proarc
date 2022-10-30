@@ -44,6 +44,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -82,6 +83,16 @@ public final class MapperUtils {
             genres.add(0, reqGenre);
         }
         return reqGenre;
+    }
+
+    public static void removeGenre(ModsDefinition mods, String value) {
+        Iterator<GenreDefinition> iterator = mods.getGenre().iterator();
+        while (iterator.hasNext()) {
+            GenreDefinition genre = iterator.next();
+            if (value.equals(genre.getValue())) {
+                iterator.remove();
+            }
+        }
     }
 
     public static GenreDefinition replaceGenre(ModsDefinition mods, String oldValue, String newValue) {
@@ -485,5 +496,4 @@ public final class MapperUtils {
         }
         return s == null || s.isEmpty() ? null : s;
     }
-
 }

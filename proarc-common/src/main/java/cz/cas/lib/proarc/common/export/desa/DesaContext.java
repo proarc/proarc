@@ -17,15 +17,18 @@
 
 package cz.cas.lib.proarc.common.export.desa;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.yourmediashelf.fedora.client.FedoraClient;
-
 import cz.cas.lib.proarc.common.export.desa.structure.DesaElement;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Context for Desa mets export
@@ -45,8 +48,11 @@ import cz.cas.lib.proarc.desa.SIP2DESATransporter;
  * 
  */
 public class DesaContext {
+
+    private Storage typeOfStorage;
     private FedoraClient fedoraClient;
     private RemoteStorage remoteStorage;
+    private AkubraStorage akubraStorage;
     private final Map<String, Integer> elementIds = new HashMap<String, Integer>();
     private DesaElement rootElement;
     private Map<String, String> fsParentMap;
@@ -253,6 +259,22 @@ public class DesaContext {
         return id;
     }
 
+    public Storage getTypeOfStorage() {
+        return typeOfStorage;
+    }
+
+    public void setTypeOfStorage(Storage typeOfStorage) {
+        this.typeOfStorage = typeOfStorage;
+    }
+
+    public AkubraStorage getAkubraStorage() {
+        return akubraStorage;
+    }
+
+    public void setAkubraStorage(AkubraStorage akubraStorage) {
+        this.akubraStorage = akubraStorage;
+    }
+
     /**
      * Returns the last ID for given element
      * 
@@ -261,5 +283,30 @@ public class DesaContext {
      */
     public Integer getElementId(String elementId) {
         return elementIds.get(elementId);
+    }
+
+    public static DesaContext buildAkubraContext(FedoraObject object, String packageId, File targetFolder, AkubraStorage akubraStorage) {
+        DesaContext context = buildContext(object, packageId, targetFolder);
+        context.setTypeOfStorage(Storage.AKUBRA);
+        context.setAkubraStorage(akubraStorage);
+        return context;
+    }
+
+    public static DesaContext buildFedoraContext(FedoraObject object, String packageId, File targetFolder, RemoteStorage rstorage) {
+        DesaContext context = buildContext(object, packageId, targetFolder);
+        context.setTypeOfStorage(Storage.FEDORA);
+        context.setRemoteStorage(rstorage);
+        return context;
+    }
+
+    private static DesaContext buildContext(FedoraObject fo, String packageId, File targetFolder) {
+        DesaContext context = new DesaContext();
+        if (fo instanceof RemoteObject) {
+            context.setFedoraClient(((RemoteObject) fo).getClient());
+        }
+        context.setPackageID(packageId);
+        context.setOutputPath(targetFolder == null ? null : targetFolder.getAbsolutePath());
+        context.setDesaResultPath(new File(targetFolder, "transporter").getAbsolutePath());
+        return context;
     }
 }

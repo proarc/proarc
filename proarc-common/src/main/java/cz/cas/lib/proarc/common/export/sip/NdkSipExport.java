@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import java.io.File;
 
 /**
@@ -30,8 +31,12 @@ import java.io.File;
 public class NdkSipExport extends NdkExport {
     private static final float PACKAGE_VERSION = 2.2f;
 
-    public NdkSipExport(RemoteStorage rstorage, AppConfiguration appConfiguration) {
-        super(rstorage, appConfiguration);
+    public NdkSipExport(RemoteStorage remoteStorage, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
+        super(remoteStorage, appConfiguration, akubraConfiguration);
+    }
+
+    public NdkSipExport(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
+        super(appConfiguration, akubraConfiguration);
     }
 
     @Override
@@ -40,10 +45,9 @@ public class NdkSipExport extends NdkExport {
     }
 
     @Override
-    protected MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, File targetFolder) {
-        MetsContext context = super.buildContext(fo, packageId, targetFolder);
+    public MetsContext buildContext(String pid, File target) {
+        MetsContext context = super.buildContext(pid, target);
         context.setPackageVersion(PACKAGE_VERSION);
         return context;
     }
-
 }

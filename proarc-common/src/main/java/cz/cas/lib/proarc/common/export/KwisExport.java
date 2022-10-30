@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * @author Jakub Kremlacek
  */
-public final class KWISExport {
+public final class KwisExport {
 
     private final AppConfiguration config;
 
@@ -42,7 +42,7 @@ public final class KWISExport {
      * @param k4Path     absolute path to kramerius export
      * @param exportPath absolute path to final package
      */
-    public KWISExport(AppConfiguration appConfig, String imagesPath, String k4Path, String exportPath) {
+    public KwisExport(AppConfiguration appConfig, String imagesPath, String k4Path, String exportPath) {
         this.config = appConfig;
         this.imagesPath = imagesPath;
         this.k4Path = k4Path;
@@ -56,7 +56,7 @@ public final class KWISExport {
             process.run();
 
             if (!process.isOk()) {
-                throw new IOException("Processing K4 Export failed. \n " + process.getFullOutput());
+                throw new IOException("Processing KWIS Export failed. \n " + process.getFullOutput());
             }
         }
     }

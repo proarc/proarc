@@ -81,10 +81,10 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, ImportBatchManager batchManager,
-            String device, boolean generateIndices,
+            String device, boolean generateIndices, String priority,
             ImportProfile profile, AppConfiguration config
             ) throws IOException {
-        return prepare(importFolder, description, user, batchManager, device, generateIndices, false, profile, config);
+        return prepare(importFolder, description, user, batchManager, device, generateIndices, false, priority, profile, config);
     }
 
     /**
@@ -94,12 +94,12 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, ImportBatchManager batchManager,
-            String device, boolean generateIndices, boolean generatePageNumber,
+            String device, boolean generateIndices, boolean generatePageNumber, String priority,
             ImportProfile profile, AppConfiguration config
             ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device,
-                generateIndices, generatePageNumber, user, profile);
+                generateIndices, generatePageNumber, user, profile, priority);
         ImportProcess process = new ImportProcess(options, batchManager, config);
         process.prepare(description, user);
         return process;
@@ -142,6 +142,18 @@ public final class ImportProcess implements Runnable {
                 logBatchFailure(ibm, batch, ex);
             }
         }
+    }
+
+    public static void stopLoadingBatch(Batch batch, ImportBatchManager ibm, AppConfiguration config) {
+        ImportDispatcher importDispatcher = ImportDispatcher.getDefault();
+        importDispatcher.stopNow();
+
+        LOG.log(Level.INFO, batch.toString(), "has been stopped");
+        batch.setState(Batch.State.STOPPED);
+        ibm.update(batch);
+
+        importDispatcher.restart();
+        resumeAll(ibm, importDispatcher, config);
     }
 
     private static ConfigurationProfile resolveProfile(Batch batch, Profiles profiles) {
@@ -366,14 +378,15 @@ public final class ImportProcess implements Runnable {
         private final ImportProfile profile;
         private JhoveContext jhoveContext;
         private ImportHandler importer;
+        private String priority;
 
-        public ImportOptions(File importFolder, String device, boolean generateIndices, UserProfile username, ImportProfile profile) {
-            this(importFolder, device, generateIndices, false, username, profile);
+        public ImportOptions(File importFolder, String device, boolean generateIndices, UserProfile username, ImportProfile profile, String priority) {
+            this(importFolder, device, generateIndices, false, username, profile, priority);
         }
 
         public ImportOptions(File importFolder, String device,
                 boolean generateIndices, boolean gerenatePageNumber, UserProfile username,
-                ImportProfile profile
+                ImportProfile profile, String priority
                 ) {
             this.device = device;
             this.generateIndices = generateIndices;
@@ -381,6 +394,7 @@ public final class ImportProcess implements Runnable {
             this.user = username;
             this.importFolder = importFolder;
             this.profile = profile;
+            this.priority = priority;
         }
 
         public ImportHandler getImporter() {
@@ -471,7 +485,7 @@ public final class ImportProcess implements Runnable {
 
             ImportOptions options = new ImportOptions(
                     importFolder, batch.getDevice(),
-                    batch.isGenerateIndices(), batch.isGeneratePageNumber(), username, profile);
+                    batch.isGenerateIndices(), batch.isGeneratePageNumber(), username, profile, batch.getPriority());
             options.setBatch(batch);
             return options;
         }
@@ -482,6 +496,14 @@ public final class ImportProcess implements Runnable {
 
         public String getFoxmlFolderPath() {
             return profile.getFoxmlFolderPath();
+        }
+
+        public String getPriority() {
+            return priority;
+        }
+
+        public void setPriority(String priority) {
+            this.priority = priority;
         }
     }
 

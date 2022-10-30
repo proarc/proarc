@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UrnNbnResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
@@ -61,6 +62,7 @@ public final class RestConfig {
     public static final String URL_IMPORT_BATCHES = path(URL_IMPORT, ImportResourceApi.BATCHES_PATH);
     public static final String URL_IMPORT_BATCH_ITEM = path(URL_IMPORT_BATCH, ImportResourceApi.BATCHITEM_PATH);
     public static final String URL_DIGOBJECT = path(URL_ROOT, DigitalObjectResourceApi.PATH);
+    public static final String URL_INDEXER = path(URL_ROOT, IndexerResourceApi.PATH);
     public static final String URL_DIGOBJECT_ATM = path(URL_DIGOBJECT, DigitalObjectResourceApi.ATM_PATH);
     public static final String URL_DIGOBJECT_CHILDREN = path(URL_DIGOBJECT, DigitalObjectResourceApi.MEMBERS_PATH);
     public static final String URL_DIGOBJECT_CHILDREN_MOVE = path(URL_DIGOBJECT_CHILDREN, DigitalObjectResourceApi.MEMBERS_MOVE_PATH);
@@ -117,6 +119,8 @@ public final class RestConfig {
     public static final String URL_CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE);
     public static final String URL_CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME);
     public static final String URL_CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME);
+    public static final String URl_CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET);
+    public static final String URl_CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET);
     public static final String URL_UPDATE_NDK_ARTICLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_ARTICLE);
     public static final String URL_UPDATE_NDK_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_PAGE);
     public static final String URL_LOCALIZATION = path(URL_ROOT, LocalizationResourceApi.PATH);
@@ -205,7 +209,6 @@ public final class RestConfig {
 
     /**
      * Helper for RESTful PUT method with parameters sent as JSON in the request body.
-     * <p>Requires implementation of {@link com.smartgwt.client.data.DataSource#transformRequest}.
      *
      * @return update operation
      */

@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.user;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.DbUnitSupport;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireUserDaoTest;
@@ -35,11 +37,14 @@ import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Integration tests.
@@ -50,6 +55,7 @@ public class UserManagerSqlTest {
 
     @Rule
     public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    private AppConfiguration configuration;
     private DbUnitSupport db;
     private FedoraTestSupport fedora;
     private RemoteStorage remoteStorage;
@@ -72,6 +78,8 @@ public class UserManagerSqlTest {
         fedora = new FedoraTestSupport();
         fedora.cleanUp();
         remoteStorage = fedora.getRemoteStorage();
+        configuration = AppConfigurationFactory.getInstance().defaultInstance();
+
         // rdbms init
         db = new DbUnitSupport();
         EmpireDaoFactory daos = new EmpireDaoFactory(db.getEmireCfg());
@@ -100,7 +108,7 @@ public class UserManagerSqlTest {
         }
 
         EasyMock.replay(dataSource);
-        manager = new UserManagerSql(dataSource, temp.getRoot(), remoteStorage, daos);
+        manager = new UserManagerSql(configuration, dataSource, temp.getRoot(), remoteStorage, daos);
     }
 
     @After

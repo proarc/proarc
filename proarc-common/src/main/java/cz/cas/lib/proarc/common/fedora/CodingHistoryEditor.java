@@ -18,13 +18,10 @@ package cz.cas.lib.proarc.common.fedora;
 
 
 import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.JHoveOutput;
@@ -37,6 +34,10 @@ import cz.cas.lib.proarc.common.export.mets.MimeType;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.object.technicalMetadata.CodingHistoryMapper;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,6 +46,11 @@ import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 import javax.xml.transform.Source;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
+
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Edits technical metadata in Coding history format.
@@ -167,14 +173,22 @@ public class CodingHistoryEditor {
         }
     }
 
-    public Property generate(FedoraObject fobject, AppConfiguration config, String importName) throws DigitalObjectException {
+    public Property generate(FedoraObject fobject, AppConfiguration config, AkubraConfiguration akubraConfiguration, String importName) throws DigitalObjectException {
         IMetsElement element = null;
         try {
-            element = getElement(fobject.getPid(), config);
+            element = getElement(fobject.getPid(), config, akubraConfiguration);
             DatastreamType ndkArchivalDS = FoxmlUtils.findDatastream(element.getSourceObject(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
             if (ndkArchivalDS != null) {
-                GetDatastreamDissemination dsNdkArchival = FedoraClient.getDatastreamDissemination(element.getOriginalPid(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
-                InputStream is = dsNdkArchival.execute(element.getMetsContext().getFedoraClient()).getEntityInputStream();
+                InputStream inputStream = null;
+                if (Storage.FEDORA.equals(element.getMetsContext().getTypeOfStorage())) {
+                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(element.getOriginalPid(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
+                    inputStream = dsRaw.execute(element.getMetsContext().getFedoraClient()).getEntityInputStream();
+                } else if (Storage.AKUBRA.equals(element.getMetsContext().getTypeOfStorage())) {
+                    AkubraObject object = element.getMetsContext().getAkubraStorage().find(element.getOriginalPid());
+                    inputStream = AkubraUtils.getDatastreamDissemination(object, BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
+                } else {
+                    throw new IllegalStateException("Unsupported type of Storage: " + element.getMetsContext().getTypeOfStorage());
+                }
                 String extension = MimeType.getExtension(ndkArchivalDS.getDatastreamVersion().get(0).getMIMETYPE());
                 if (importName.contains("/")) {
                     importName = importName.split("/")[importName.split("/").length -1];
@@ -186,7 +200,7 @@ public class CodingHistoryEditor {
                 file.createNewFile();
 
                 try {
-                    MetsUtils.getDigestAndCopy(is, new FileOutputStream(file));
+                    MetsUtils.getDigestAndCopy(inputStream, new FileOutputStream(file));
                 } catch (NoSuchAlgorithmException e) {
                     throw new DigitalObjectException(element.getOriginalPid(), "Unable to copy RAW image and get digest");
                 }
@@ -199,12 +213,8 @@ public class CodingHistoryEditor {
                 return codingHistory;
             }
             return null;
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new DigitalObjectException(fobject.getPid(), "Nepodarilo se vytvorit Technicka metadata");
-        } catch (MetsExportException e) {
-            throw new DigitalObjectException(fobject.getPid(), "Nepodařilo se vytvorit Technicka metadata");
-        } catch (FedoraClientException e) {
-            throw new DigitalObjectException(fobject.getPid(), "Nepodařilo se vytvořit Technická metadata");
         } finally {
             if (element != null) {
                 JhoveUtility.destroyConfigFiles(element.getMetsContext().getJhoveContext());
@@ -224,26 +234,26 @@ public class CodingHistoryEditor {
         return temp;
     }
 
-    private IMetsElement getElement(String pid, AppConfiguration config) throws IOException, MetsExportException {
-        RemoteStorage rstorage = RemoteStorage.getInstance(config);
-        RemoteStorage.RemoteObject robject = rstorage.find(pid);
-        MetsContext metsContext = buildContext(robject, null, null, rstorage);
-        DigitalObject dobj = MetsUtils.readFoXML(robject.getPid(), robject.getClient());
+    private IMetsElement getElement(String pid, AppConfiguration config, AkubraConfiguration akubraConfiguration) throws IOException, MetsExportException {
+        MetsContext metsContext = null;
+        FedoraObject object = null;
+
+        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
+            RemoteStorage remoteStorage = RemoteStorage.getInstance(config);
+            object = remoteStorage.find(pid);
+            metsContext = buildFedoraContext(object, null, null, remoteStorage, config.getNdkExportOptions());
+        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+            object = akubraStorage.find(pid);
+            metsContext = buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
+        }
+
+        DigitalObject dobj = MetsUtils.readFoXML(object.getPid(), metsContext);
         if (dobj == null) {
             return null;
         }
         return MetsElement.getElement(dobj, null, metsContext, true);
-    }
-
-    private MetsContext buildContext(RemoteStorage.RemoteObject fo, String packageId, File targetFolder, RemoteStorage rstorage) {
-        MetsContext mc = new MetsContext();
-        mc.setFedoraClient(fo.getClient());
-        mc.setRemoteStorage(rstorage);
-        mc.setPackageID(packageId);
-        mc.setOutputPath(null);
-        mc.setAllowNonCompleteStreams(false);
-        mc.setAllowMissingURNNBN(false);
-        mc.setConfig(null);
-        return mc;
     }
 }

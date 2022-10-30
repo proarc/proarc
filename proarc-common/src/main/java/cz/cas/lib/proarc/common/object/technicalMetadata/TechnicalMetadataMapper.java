@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object.technicalMetadata;
 
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -26,6 +25,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.mix.Mix;
@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import javax.xml.transform.stream.StreamSource;
 import org.aes.audioobject.AudioObject;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
 public class TechnicalMetadataMapper {
 
@@ -41,12 +42,14 @@ public class TechnicalMetadataMapper {
     private Integer batchId;
     private String pid;
     private AppConfiguration config;
+    private final AkubraConfiguration akubraConfiguration;
 
-    public TechnicalMetadataMapper(String model, Integer batchId, String pid, AppConfiguration config) {
+    public TechnicalMetadataMapper(String model, Integer batchId, String pid, AppConfiguration config, AkubraConfiguration akubraConfiguration) {
         this.model = model;
         this.batchId = batchId;
         this.pid = pid;
         this.config = config;
+        this.akubraConfiguration = akubraConfiguration;
     }
 
     public DescriptionMetadata<Object> getMetadataAsJsonObject(FedoraObject fobject, String importName, String type) throws DigitalObjectException {
@@ -88,9 +91,9 @@ public class TechnicalMetadataMapper {
             case NdkAudioPlugin.MODEL_PAGE:
                 switch (type) {
                     case "classic":
-                        return getAesMetadataAsXml(fobject, config, importFile);
+                        return getAesMetadataAsXml(fobject, importFile);
                     case "extension":
-                        return getCodingHistoryAsXml(fobject, config, importFile);
+                        return getCodingHistoryAsXml(fobject, importFile);
                     default:
                         throw new DigitalObjectException("Unsupported type of data");
                 }
@@ -129,7 +132,7 @@ public class TechnicalMetadataMapper {
         dm.setTimestamp(aesEditor.getLastModified());
         dm.setData(aesEditor.readAes());
         if (dm.getData() == null && !(fobject instanceof LocalStorage.LocalObject)) {
-            dm.setData(aesEditor.generate(fobject, config, importName));
+            dm.setData(aesEditor.generate(fobject, config, akubraConfiguration, importName));
         }
 
         DescriptionMetadata json = dm;
@@ -149,7 +152,7 @@ public class TechnicalMetadataMapper {
         dm.setTimestamp(codingHistoryEditor.getLastModified());
         dm.setData(codingHistoryEditor.readCodingHistory());
         if (dm.getData() == null  && !(fobject instanceof LocalStorage.LocalObject)) {
-            dm.setData(codingHistoryEditor.generate(fobject, config, importName));
+            dm.setData(codingHistoryEditor.generate(fobject, config, akubraConfiguration, importName));
         }
 
         DescriptionMetadata json = dm;
@@ -160,12 +163,12 @@ public class TechnicalMetadataMapper {
         return json;
     }
 
-    private String getAesMetadataAsXml(FedoraObject fobject, AppConfiguration config, String importFile) throws DigitalObjectException {
+    private String getAesMetadataAsXml(FedoraObject fobject, String importFile) throws DigitalObjectException {
         AesEditor aesEditor = AesEditor.ndkArchival(fobject);
 
         AudioObject aes = aesEditor.readAes();
         if (aes == null  && !(fobject instanceof LocalStorage.LocalObject)) {
-            aes = aesEditor.generate(fobject, config, importFile);
+            aes = aesEditor.generate(fobject, config, akubraConfiguration, importFile);
         }
 
         if (aes != null) {
@@ -175,12 +178,12 @@ public class TechnicalMetadataMapper {
         return null;
     }
 
-    private String getCodingHistoryAsXml(FedoraObject fobject, AppConfiguration config, String importFile) throws DigitalObjectException {
+    private String getCodingHistoryAsXml(FedoraObject fobject, String importFile) throws DigitalObjectException {
         CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.ndkArchival(fobject);
 
         Property codingHistory = codingHistoryEditor.readCodingHistory();
         if (codingHistory == null  && !(fobject instanceof LocalStorage.LocalObject)) {
-            codingHistory = codingHistoryEditor.generate(fobject, config, importFile);
+            codingHistory = codingHistoryEditor.generate(fobject, config, akubraConfiguration, importFile);
         }
         if (codingHistory != null) {
             return CodingHistoryUtils.toXml(codingHistory, true);

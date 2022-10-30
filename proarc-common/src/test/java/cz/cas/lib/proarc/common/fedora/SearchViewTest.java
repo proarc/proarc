@@ -19,8 +19,6 @@ package cz.cas.lib.proarc.common.fedora;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.SearchView.Item;
-import cz.cas.lib.proarc.common.fedora.SearchView.Result;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -30,17 +28,18 @@ import cz.cas.lib.proarc.common.user.FedoraUserDao;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+
 import static cz.cas.lib.proarc.common.fedora.FedoraTestSupport.assertItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -75,9 +74,9 @@ public class SearchViewTest {
 
     @Test
     public void testReadJsonResult() throws Exception {
-        SearchView instance = new SearchView(storage);
+        RemoteStorageSearchView instance = new RemoteStorageSearchView(storage);
         String json = "{\"results\":[{\"pid\" : \"p1\", \"k0\" : \"1\"}]}";
-        Result result = instance.readResponse(json);
+        RemoteStorageSearchView.Result result = instance.readResponse(json);
         assertNotNull(result);
         assertNotNull(result.getResults());
         assertEquals("p1", result.getResults().get(0).getPid());
@@ -92,9 +91,9 @@ public class SearchViewTest {
         Assume.assumeTrue(System.getenv("TRAVIS") == null);
         Assume.assumeTrue(LocalDate.of(2018, 6, 28).isAfter(LocalDate.now()));
 
-        SearchView instance = new SearchView(storage);
+        RemoteStorageSearchView instance = new RemoteStorageSearchView(storage);
         // model:page
-        Item item = new Item("pid");
+        SearchViewItem item = new SearchViewItem("pid");
         item.setModel("model:page");
         item.setLabel("1");
         instance.resolveObjectLabel(item);
@@ -131,8 +130,8 @@ public class SearchViewTest {
 //        client.debug(true);
         String user = NdkPlugin.MODEL_PERIODICAL;
 //        String user = null;
-        SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findLastCreated(0, user, null, false, "desc");
+        SearchView instance = new RemoteStorageSearchView(storage);
+        List<SearchViewItem> result = instance.findLastCreated(0, user, null, false, "desc");
         System.out.println(result);
     }
 
@@ -169,8 +168,8 @@ public class SearchViewTest {
         storage.ingest(lobject, fedora.getTestUser(), testName.getMethodName());
 
 //        fedora.getClient().debug(true);
-        SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findLastCreated(0, modelId, user.getUserNameAsPid(), false, "desc");
+        SearchView instance = new RemoteStorageSearchView(storage);
+        List<SearchViewItem> result = instance.findLastCreated(0, modelId, user.getUserNameAsPid(), false, "desc");
         System.out.println(result);
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -185,29 +184,29 @@ public class SearchViewTest {
 
     @Test
     public void testBuildQuery() {
-        assertEquals("title~'*test*'", SearchView.buildQuery(new StringBuilder(), "title", "test").toString());
-        assertEquals("title~'*test*'", SearchView.buildQuery(new StringBuilder(), "title", "  test  ").toString());
+        assertEquals("title~'*test*'", RemoteStorageSearchView.buildQuery(new StringBuilder(), "title", "test").toString());
+        assertEquals("title~'*test*'", RemoteStorageSearchView.buildQuery(new StringBuilder(), "title", "  test  ").toString());
         // issue 220
-        assertEquals("title~'*test test*'", SearchView.buildQuery(new StringBuilder(), "title", "  test test  ").toString());
-        assertEquals("title~'*test?s test???*'", SearchView.buildQuery(new StringBuilder(), "title", "test's test???").toString());
-        assertEquals("", SearchView.buildQuery(new StringBuilder(), "title", "").toString());
-        assertEquals("", SearchView.buildQuery(new StringBuilder(), "title", "***").toString());
+        assertEquals("title~'*test test*'", RemoteStorageSearchView.buildQuery(new StringBuilder(), "title", "  test test  ").toString());
+        assertEquals("title~'*test?s test???*'", RemoteStorageSearchView.buildQuery(new StringBuilder(), "title", "test's test???").toString());
+        assertEquals("", RemoteStorageSearchView.buildQuery(new StringBuilder(), "title", "").toString());
+        assertEquals("", RemoteStorageSearchView.buildQuery(new StringBuilder(), "title", "***").toString());
 
-        assertEquals("label~'*test1*' title~'*test2*'", SearchView.buildQuery(
-                SearchView.buildQuery(new StringBuilder(), "label", "test1"),
+        assertEquals("label~'*test1*' title~'*test2*'", RemoteStorageSearchView.buildQuery(
+                RemoteStorageSearchView.buildQuery(new StringBuilder(), "label", "test1"),
                 "title", "test2").toString());
     }
 
     @Test
     public void testNormalizePhrase() {
-        assertEquals("*query*", SearchView.normalizePhrase("*query*"));
-        assertEquals("*query*", SearchView.normalizePhrase("*query"));
-        assertEquals("*query*", SearchView.normalizePhrase("query*"));
-        assertEquals("*query*", SearchView.normalizePhrase(" * query* **"));
-        assertEquals("*", SearchView.normalizePhrase(" ***"));
-        assertEquals("*", SearchView.normalizePhrase(""));
-        assertEquals("*", SearchView.normalizePhrase(null));
-        assertEquals("*Stráž pokroku*", SearchView.normalizePhrase("Stráž pokroku"));
+        assertEquals("*query*", RemoteStorageSearchView.normalizePhrase("*query*"));
+        assertEquals("*query*", RemoteStorageSearchView.normalizePhrase("*query"));
+        assertEquals("*query*", RemoteStorageSearchView.normalizePhrase("query*"));
+        assertEquals("*query*", RemoteStorageSearchView.normalizePhrase(" * query* **"));
+        assertEquals("*", RemoteStorageSearchView.normalizePhrase(" ***"));
+        assertEquals("*", RemoteStorageSearchView.normalizePhrase(""));
+        assertEquals("*", RemoteStorageSearchView.normalizePhrase(null));
+        assertEquals("*Stráž pokroku*", RemoteStorageSearchView.normalizePhrase("Stráž pokroku"));
     }
 
     @Test
@@ -217,8 +216,8 @@ public class SearchViewTest {
         fedora.ingest(
                 getClass().getResource("tree1.xml")
         );
-        SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findQuery("tree", "tree", "u", "u", NdkPlugin.MODEL_PERIODICAL, Collections.<String>emptyList());
+        SearchView instance = new RemoteStorageSearchView(storage);
+        List<SearchViewItem> result = instance.findQuery("tree", "tree", "u", "u", NdkPlugin.MODEL_PERIODICAL, Collections.<String>emptyList());
         assertFalse(result.isEmpty());
     }
 
@@ -229,8 +228,8 @@ public class SearchViewTest {
         fedora.ingest(
                 getClass().getResource("tree1.xml")
         );
-        SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findQuery(null, null, null, null, NdkPlugin.MODEL_PERIODICAL, Collections.<String>emptyList());
+        SearchView instance = new RemoteStorageSearchView(storage);
+        List<SearchViewItem> result = instance.findQuery(null, null, null, null, NdkPlugin.MODEL_PERIODICAL, Collections.<String>emptyList());
         assertFalse(result.isEmpty());
     }
 
@@ -242,9 +241,9 @@ public class SearchViewTest {
                 getClass().getResource("tree1-child1-child1-child1.xml"),
                 getClass().getResource("tree1-child1-child1-child2.xml")
         );
-        SearchView instance = new SearchView(storage);
+        SearchView instance = new RemoteStorageSearchView(storage);
         String[] pids = {"uuid:tree1-child1-child1-child1", "uuid:tree1-child1-child1-child2"};
-        List<Item> result = instance.find(pids);
+        List<SearchViewItem> result = instance.find(pids);
         assertItem(result, pids);
     }
 
@@ -261,8 +260,8 @@ public class SearchViewTest {
                 getClass().getResource("tree1-child2-child1.xml"),
                 getClass().getResource("tree1-child2-child1-child1.xml")
                 );
-        SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findChildrenHierarchy("uuid:tree1");
+        SearchView instance = new RemoteStorageSearchView(storage);
+        List<SearchViewItem> result = instance.findChildrenHierarchy("uuid:tree1");
         assertEquals(7, result.size());
         assertItem(result, "uuid:tree1-child1",
                 "uuid:tree1-child1-child1",
@@ -280,8 +279,8 @@ public class SearchViewTest {
                 getClass().getResource("tree1-child1-child1.xml"),
                 getClass().getResource("tree1-child1-child1-child1.xml")
                 );
-        SearchView instance = new SearchView(storage);
-        List<Item> result = instance.findReferrers("uuid:tree1-child1-child1-child1");
+        SearchView instance = new RemoteStorageSearchView(storage);
+        List<SearchViewItem> result = instance.findReferrers("uuid:tree1-child1-child1-child1");
         assertEquals(1, result.size());
         assertItem(result, "uuid:tree1-child1-child1");
     }
@@ -289,7 +288,7 @@ public class SearchViewTest {
     @Test
     public void testIsDeviceInUse() throws Exception {
         fedora.cleanUp();
-        SearchView instance = new SearchView(storage);
+        SearchView instance = new RemoteStorageSearchView(storage);
         assertFalse(instance.isDeviceInUse("device:testDevice"));
         fedora.ingest(
                 getClass().getResource("device.xml"),

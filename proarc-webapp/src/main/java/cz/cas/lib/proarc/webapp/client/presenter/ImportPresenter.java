@@ -206,7 +206,8 @@ public class ImportPresenter {
         ImportBatchDataSource.State state = batch.getState();
         String stateAttr;
         if (state == ImportBatchDataSource.State.LOADING_FAILED
-                || state == ImportBatchDataSource.State.LOADED) {
+                || state == ImportBatchDataSource.State.LOADED
+                || state == ImportBatchDataSource.State.STOPPED) {
 
             stateAttr = ImportBatchDataSource.State.LOADING_FAILED.name();
         } else if (state == ImportBatchDataSource.State.INGESTING_FAILED) {
@@ -369,7 +370,8 @@ public class ImportPresenter {
                 Record newBatch = dsBatch.newBatch(importRecord.getPath(),
                         importSourceChooser.getImportProfile(),
                         importSourceChooser.getDevice(),
-                        importSourceChooser.getGenerateIndices());
+                        importSourceChooser.getGenerateIndices(),
+                        importSourceChooser.getPriority());
                 dsBatch.addData(newBatch, new DSCallback() {
 
                     @Override
