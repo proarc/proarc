@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>3.8.3-dev</version>
+        <version>3.9</version>
         <!-- fill version in MetsElementVisitor in factory.createCreatingApplicationVersion -->
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -266,13 +266,7 @@
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-foxml</artifactId>
-            <version>3.8.3-dev</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-foxml</artifactId>
-            <version>3.8.3-dev</version>
+            <version>3.9</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

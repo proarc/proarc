@@ -8,7 +8,7 @@
     <groupId>cz.cas.lib.proarc</groupId>
     <artifactId>proarc</artifactId>
     <packaging>pom</packaging>
-    <version>3.8.3-dev</version>
+    <version>3.9</version>
     <name>ProArc</name>
     <url>${proarc.wiki}</url>
 
@@ -66,14 +66,6 @@
     </properties>
 
     <repositories>
-        <repository>
-            <id>kramerius</id>
-            <name>Kramerius</name>
-            <url>https://maven.pkg.github.com/ceskaexpedice/kramerius</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
         <repository>
             <id>proarc.repository</id>
             <name>ProArc Repository</name>
@@ -143,7 +135,7 @@
             <dependency>
                 <groupId>cz.incad.kramerius</groupId>
                 <artifactId>common</artifactId>
-                <version>7.0.2</version>
+                <version>7.0.9</version>
             </dependency>
 
             <dependency>
