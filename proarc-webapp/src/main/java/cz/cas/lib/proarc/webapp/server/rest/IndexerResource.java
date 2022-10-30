@@ -121,7 +121,7 @@ public class IndexerResource {
                     FedoraObject fedoraObject = new LocalStorage().load(digitalObject.getPID(), file);
                     if (rebuildIndex) {
                         files.getAndIncrement();
-                        feeder.feedDescriptionDocument(digitalObject, fedoraObject);
+                        feeder.feedDescriptionDocument(digitalObject, fedoraObject, false);
                         if (files.get() % 100 == 0) {
                             LOG.info("Proccessed " + files.get() + " objects");
                         }

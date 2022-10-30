@@ -33,6 +33,12 @@ public class SearchViewItem {
     private String k3;
     private String k4;
     private String k5;
+
+    private String ndkExportPath;
+    private String krameriusExportPath;
+    private String archiveExportPath;
+    private String crossrefExportPath;
+    private Boolean isLocked;
     private String content;
 
     public SearchViewItem() {
@@ -262,5 +268,45 @@ public class SearchViewItem {
 
     public void setJsonData(String content) {
         this.content = content;
+    }
+
+    public String getNdkExportPath() {
+        return ndkExportPath;
+    }
+
+    public void setNdkExportPath(String ndkExportPath) {
+        this.ndkExportPath = ndkExportPath;
+    }
+
+    public String getKrameriusExportPath() {
+        return krameriusExportPath;
+    }
+
+    public void setKrameriusExportPath(String krameriusExportPath) {
+        this.krameriusExportPath = krameriusExportPath;
+    }
+
+    public String getArchiveExportPath() {
+        return archiveExportPath;
+    }
+
+    public void setArchiveExportPath(String archiveExportPath) {
+        this.archiveExportPath = archiveExportPath;
+    }
+
+    public String getCrossrefExportPath() {
+        return crossrefExportPath;
+    }
+
+    public void setCrossrefExportPath(String crossrefExportPath) {
+        this.crossrefExportPath = crossrefExportPath;
+    }
+
+    public Boolean getIsLocked() {
+        return isLocked;
+    }
+
+    public void setIsLocked(Boolean isLocked) {
+        this.isLocked = isLocked;
     }
 }

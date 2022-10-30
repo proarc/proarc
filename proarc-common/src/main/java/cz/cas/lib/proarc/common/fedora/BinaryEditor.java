@@ -17,13 +17,14 @@
 package cz.cas.lib.proarc.common.fedora;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import javax.ws.rs.core.MediaType;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import javax.ws.rs.core.MediaType;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 
 /**
  * Editor for managed binary content.
@@ -159,6 +160,11 @@ public final class BinaryEditor {
         }
 
         return null;
+    }
+
+    public InputStream readStream() throws DigitalObjectException {
+        InputStream inputStream = editor.readStream();
+        return inputStream == null ? null : inputStream;
     }
 
     public void write(File data, long timestamp, String message) throws DigitalObjectException {

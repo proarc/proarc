@@ -5,9 +5,9 @@ import com.qbizm.kramerius.imp.jaxb.DatastreamVersionType;
 import com.qbizm.kramerius.imp.jaxb.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.incad.kramerius.fedora.om.impl.AkubraDOManager;
 import cz.incad.kramerius.utils.XMLUtils;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,7 +84,6 @@ public class AkubraUtils {
             throw new RuntimeException(e);
         }
     }
-
     public static com.yourmediashelf.fedora.generated.foxml.DigitalObject getDigitalObjectProArc(AkubraDOManager manager, String pid) throws JAXBException {
         try {
             InputStream inputStream = manager.retrieveObject(pid);

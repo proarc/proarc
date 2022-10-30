@@ -122,12 +122,43 @@ public class SolrUtils {
         item.setOrganization(getString(solrDocument, FIELD_ORGANIZATION));
         item.setUser(getString(solrDocument, FIELD_USER));
         item.setStatus(getString(solrDocument, FIELD_STATUS));
-        item.setK1(getString(solrDocument, FIELD_EXPORT_NDK));
-        item.setK2(getString(solrDocument, FIELD_EXPORT_KRAMERIUS));
-        item.setK3(getString(solrDocument, FIELD_EXPORT_ARCHIVE));
-        item.setK4(getString(solrDocument, FIELD_EXPORT_CROSSREF));
-        item.setK5(getBooleanString(solrDocument, FIELD_LOCKED));
+        item.setNdkExportPath(getString(solrDocument, FIELD_EXPORT_NDK));
+        item.setK0(getContainsString(solrDocument, FIELD_EXPORT_NDK, FIELD_EXPORT_KRAMERIUS, FIELD_EXPORT_ARCHIVE, FIELD_EXPORT_CROSSREF));
+        item.setK1(getContainsString(solrDocument, FIELD_EXPORT_NDK));
+        item.setKrameriusExportPath(getString(solrDocument, FIELD_EXPORT_KRAMERIUS));
+        item.setK2(getContainsString(solrDocument, FIELD_EXPORT_KRAMERIUS));
+        item.setArchiveExportPath(getString(solrDocument, FIELD_EXPORT_ARCHIVE));;
+        item.setK3(getContainsString(solrDocument, FIELD_EXPORT_ARCHIVE));
+        item.setCrossrefExportPath(getString(solrDocument, FIELD_EXPORT_CROSSREF));;
+        item.setK4(getContainsString(solrDocument, FIELD_EXPORT_CROSSREF));
+        item.setIsLocked(getBoolean(solrDocument, FIELD_LOCKED));
+        item.setK5(getContainsBoolean(solrDocument, FIELD_LOCKED));
         return item;
+    }
+
+    private static String getContainsString(SolrDocument solrDocument, String... keys) {
+        for (String key : keys) {
+            String value = getString(solrDocument, key);
+            if (value != null && !value.isEmpty()) {
+                return "1";
+            }
+        }
+        return "0";
+    }
+
+    private static String getContainsBoolean(SolrDocument solrDocument, String... keys) {
+        for (String key : keys) {
+            Boolean value = getBoolean(solrDocument, key);
+            if (value != null && Boolean.TRUE.equals(value)) {
+                return "1";
+            }
+        }
+        return "0";
+    }
+
+    private static Boolean getBoolean(SolrDocument solrDocument, String key) {
+        String value = getBooleanString(solrDocument, key);
+        return value == null || value.isEmpty() ? false : Boolean.parseBoolean(value);
     }
 
     private static String getBooleanString(SolrDocument solrDocument, String key) {

@@ -124,8 +124,8 @@ public final class ProarcInitializer {
      */
     public void destroy() {
 //        LOG.info("Destroing " + AppConfiguration.FULL_VERSION);
-        HazelcastServerNode hazelcastServerNode = new HazelcastServerNode();
-        hazelcastServerNode.contextDestroyed(null);
+//        HazelcastServerNode hazelcastServerNode = new HazelcastServerNode();
+//        hazelcastServerNode.contextDestroyed(null);
         ImportDispatcher importDispatcher = ImportDispatcher.getDefault();
         importDispatcher.stop();
         daoFactory = null;

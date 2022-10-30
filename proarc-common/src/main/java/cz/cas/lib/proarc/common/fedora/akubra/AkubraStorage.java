@@ -8,14 +8,17 @@ import com.qbizm.kramerius.imp.jaxb.DigitalObject;
 import com.qbizm.kramerius.imp.jaxb.ObjectPropertiesType;
 import com.qbizm.kramerius.imp.jaxb.PropertyType;
 import com.qbizm.kramerius.imp.jaxb.StateType;
+import com.qbizm.kramerius.imp.jaxb.XmlContentType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.AbstractFedoraObject;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.incad.kramerius.fedora.om.Repository;
 import cz.incad.kramerius.fedora.om.RepositoryException;
@@ -44,9 +47,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -59,7 +64,10 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.fcrepo.server.errors.LowlevelStorageException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_LABEL;
 import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_LASTMODIFIED;
@@ -238,11 +246,13 @@ public class AkubraStorage {
                     if (object == null) {
                         throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
                     } else {
-                        this.manager.commit(object, null);
-                        this.feeder.feedDescriptionDocument(object, this);
+                        InputStream inputStream = this.manager.marshallObject(object);
+                        this.manager.addOrReplaceObject(object.getPID(), inputStream);
+                        //this.manager.commit(object, null);
+                        this.feeder.feedDescriptionDocument(object, this, true);
                     }
                 }
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 throw new DigitalObjectException(getPid(), ex);
             }
         }
@@ -305,11 +315,13 @@ public class AkubraStorage {
                 if (object == null) {
                     throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
                 } else {
-                    this.manager.commit(object, null);
-                    this.feeder.feedDescriptionDocument(object, this);
+                    InputStream inputStream = this.manager.marshallObject(object);
+                    this.manager.addOrReplaceObject(object.getPID(), inputStream);
+                    //this.manager.commit(object, null);
+                    this.feeder.feedDescriptionDocument(object, this, true);
 
                 }
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 throw new DigitalObjectException(getPid(), ex);
             }
         }
@@ -322,10 +334,12 @@ public class AkubraStorage {
                 if (object == null) {
                     throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
                 } else {
-                    this.manager.commit(object, null);
-                    this.feeder.feedDescriptionDocument(object, this);
+                    InputStream inputStream = this.manager.marshallObject(object);
+                    this.manager.addOrReplaceObject(object.getPID(), inputStream);
+                    //this.manager.commit(object, null);
+                    this.feeder.feedDescriptionDocument(object, this, true);
                 }
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 throw new DigitalObjectException(getPid(), ex);
             }
         }
@@ -488,11 +502,14 @@ public class AkubraStorage {
 
         @Override
         public void write(EditorResult data, long timestamp, String message) throws DigitalObjectException {
-            if (!(data instanceof EditorStreamResult)) {
+            if (data instanceof EditorStreamResult) {
+                EditorStreamResult result = (EditorStreamResult) data;
+                write(new DatastreamContent(result.asBytes()), timestamp, message);
+            } else if (data instanceof EditorDomResult) {
+                write(new DatastreamContent((EditorDomResult) data), timestamp, message);
+            } else {
                 throw new IllegalArgumentException("Unsupported data: " + data);
             }
-            EditorStreamResult result = (EditorStreamResult) data;
-            write(new DatastreamContent(result.asBytes()), timestamp, message);
         }
 
         @Override
@@ -522,6 +539,9 @@ public class AkubraStorage {
 
         @Override
         public EditorResult createResult() {
+            if (ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId)) {
+                return new EditorDomResult();
+            }
             return new EditorStreamResult();
         }
 
@@ -546,15 +566,15 @@ public class AkubraStorage {
                 logMessage = null;
                 newProfile = null;
                 DigitalObject digitalObject = this.manager.readObjectFromStorage(this.object.getPid());
-                this.solrFeeder.feedDescriptionDocument(digitalObject, this.object);
+                this.solrFeeder.feedDescriptionDocument(digitalObject, this.object, true);
                 profile = AkubraUtils.createDatastremProfile(digitalObject, dsId);
                 lastModified = AkubraUtils.getLastModified(digitalObject, dsId);
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 throw new DigitalObjectException(object.getPid(), toLogString(), ex);
             }
         }
 
-        private void modifyDatastream() throws IOException, DigitalObjectException {
+        private void modifyDatastream() throws Exception, DigitalObjectException {
             DatastreamProfile profile = newProfile != null ? newProfile : this.profile;
             DigitalObject object = this.manager.readObjectFromStorage(this.object.getPid());
 
@@ -567,7 +587,9 @@ public class AkubraStorage {
 
             object = replaceDatastream(object, datastreamType);
 
-            this.manager.commit(object, profile.getDsID());
+            InputStream inputStream = this.manager.marshallObject(object);
+            this.manager.addOrReplaceObject(object.getPID(), inputStream);
+            //this.manager.commit(object, profile.getDsID());
         }
 
         private DigitalObject replaceDatastream(DigitalObject object, DatastreamType datastreamType) {
@@ -583,17 +605,18 @@ public class AkubraStorage {
             return object;
         }
 
-        private void addDatastream() throws IOException {
+        private void addDatastream() throws Exception {
             DatastreamProfile profile = newProfile != null ? newProfile : this.profile;
 
             DigitalObject object = this.manager.readObjectFromStorage(this.object.getPid());
             DatastreamType datastreamType = createNewDatastream(profile);
             object.getDatastream().add(datastreamType);
-
-            this.manager.commit(object, profile.getDsID());
+            InputStream inputStream = this.manager.marshallObject(object);
+            this.manager.addOrReplaceObject(object.getPID(), inputStream);
+            //this.manager.commit(object, profile.getDsID());
         }
 
-        private DatastreamType modifyDatastream(DatastreamType datastreamType, DatastreamProfile profile) throws IOException, DigitalObjectException {
+        private DatastreamType modifyDatastream(DatastreamType datastreamType, DatastreamProfile profile) throws IOException, DigitalObjectException, ParserConfigurationException, SAXException {
             datastreamType.setCONTROLGROUP(profile.getDsControlGroup());
             datastreamType.setID(profile.getDsID());
 
@@ -606,7 +629,9 @@ public class AkubraStorage {
             datastreamVersionType.setID(profile.getDsVersionID());
             datastreamVersionType.setLABEL(profile.getDsLabel());
             try {
-                datastreamVersionType.setCREATED(toXmlGregorian(new Date(this.lastModified)));
+                if (datastreamVersionType.getCREATED() == null) {
+                    datastreamVersionType.setCREATED(toXmlGregorian(new Date(this.lastModified)));
+                }
             } catch (DatatypeConfigurationException ex) {
                 throw new DigitalObjectException(this.object.getPid(), toLogString(), ex);
             }
@@ -615,7 +640,9 @@ public class AkubraStorage {
 
             if (this.data != null) {
                 FoxmlUtils.ControlGroup controlGroup = FoxmlUtils.ControlGroup.fromExternal(profile.getDsControlGroup());
-                if (controlGroup == FoxmlUtils.ControlGroup.INLINE || controlGroup == FoxmlUtils.ControlGroup.MANAGED) {
+                if (controlGroup == FoxmlUtils.ControlGroup.INLINE) {
+                    datastreamVersionType.setXmlContent(data.asXmlContent());
+                } else if (controlGroup == FoxmlUtils.ControlGroup.MANAGED) {
                     datastreamVersionType.setBinaryContent(IOUtils.toByteArray(this.data.asInputStream()));
                 } else if (controlGroup == FoxmlUtils.ControlGroup.EXTERNAL) {
                     ContentLocationType contentLocation = new ContentLocationType();
@@ -629,7 +656,7 @@ public class AkubraStorage {
             return datastreamType;
         }
 
-        private DatastreamType createNewDatastream(DatastreamProfile profile) throws IOException {
+        private DatastreamType createNewDatastream(DatastreamProfile profile) throws IOException, ParserConfigurationException, SAXException {
             DatastreamType datastreamType = new DatastreamType();
             datastreamType.setCONTROLGROUP(profile.getDsControlGroup());
             datastreamType.setID(profile.getDsID());
@@ -647,7 +674,9 @@ public class AkubraStorage {
 
             if (this.data != null) {
                 FoxmlUtils.ControlGroup controlGroup = FoxmlUtils.ControlGroup.fromExternal(profile.getDsControlGroup());
-                if (controlGroup == FoxmlUtils.ControlGroup.INLINE || controlGroup == FoxmlUtils.ControlGroup.MANAGED) {
+                if (controlGroup == FoxmlUtils.ControlGroup.INLINE) {
+                    datastreamVersionType.setXmlContent(data.asXmlContent());
+                } else if (controlGroup == FoxmlUtils.ControlGroup.MANAGED) {
                     datastreamVersionType.setBinaryContent(IOUtils.toByteArray(this.data.asInputStream()));
                 } else if (controlGroup == FoxmlUtils.ControlGroup.EXTERNAL) {
                     ContentLocationType contentLocation = new ContentLocationType();
@@ -707,8 +736,7 @@ public class AkubraStorage {
                         if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty() &&
                         datastreamType.getDatastreamVersion().get(0) != null) {
                             DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
-                            if (datastreamVersionType.getXmlContent() != null && datastreamVersionType.getXmlContent().getAny() != null &&
-                            !datastreamVersionType.getXmlContent().getAny().isEmpty()) {
+                            if (datastreamVersionType.getXmlContent() != null && datastreamVersionType.getXmlContent().getAny() != null && !datastreamVersionType.getXmlContent().getAny().isEmpty()) {
                                 Element node = datastreamVersionType.getXmlContent().getAny().get(0);
                                 if (node != null) {
                                     LOG.fine("Created note from xmlContent");
@@ -717,6 +745,26 @@ public class AkubraStorage {
                                     Result outputTarget = new StreamResult(outputStream);
                                     TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
                                     this.data = new AkubraXmlStreamEditor.DatastreamContent(outputStream.toByteArray());
+                                    break;
+                                }
+                            } else if (datastreamVersionType.getBinaryContent() != null) {
+                                byte[] binaryContent = datastreamVersionType.getBinaryContent();
+                                if (binaryContent != null) {
+                                    this.data = new AkubraXmlStreamEditor.DatastreamContent(binaryContent);
+                                    break;
+                                }
+                            } else if (datastreamVersionType.getContentLocation() != null) {
+                                ContentLocationType contentLocationType = datastreamVersionType.getContentLocation();
+                                if (contentLocationType != null) {
+                                    String ref = contentLocationType.getREF();
+                                    if (ref != null) {
+
+                                        InputStream inputStream = this.manager.retrieveDatastream(ref);
+                                        if (inputStream != null) {
+                                            this.data = new AkubraXmlStreamEditor.DatastreamContent(IOUtils.toByteArray(inputStream));
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -742,6 +790,7 @@ public class AkubraStorage {
 
             private byte[] bytes;
             private URI reference;
+            private Element xmlElement;
 
             public DatastreamContent(byte[] bytes) {
                 this.bytes = bytes;
@@ -749,6 +798,12 @@ public class AkubraStorage {
 
             public DatastreamContent(URI reference) {
                 this.reference = reference;
+            }
+
+            public DatastreamContent(EditorDomResult data) {
+                Node root = data.getNode();
+                Document doc = root.getOwnerDocument() == null ? (Document) root : root.getOwnerDocument();
+                this.xmlElement = doc.getDocumentElement();
             }
 
             public Source asSource() {
@@ -771,6 +826,14 @@ public class AkubraStorage {
                 }
             }
 
+            public XmlContentType asXmlContent() throws ParserConfigurationException, IOException, SAXException {
+                if (xmlElement != null) {
+                    XmlContentType xmlContentType = new XmlContentType();
+                    xmlContentType.getAny().add(xmlElement);
+                    return xmlContentType;
+                }
+                return null;
+            }
         }
 
         private static final class EditorStreamResult extends StreamResult implements XmlStreamEditor.EditorResult {
@@ -782,6 +845,10 @@ public class AkubraStorage {
             public byte[] asBytes() {
                 return ((ByteArrayOutputStream) getOutputStream()).toByteArray();
             }
+
+        }
+
+        private static final class EditorDomResult extends DOMResult implements EditorResult {
 
         }
     }

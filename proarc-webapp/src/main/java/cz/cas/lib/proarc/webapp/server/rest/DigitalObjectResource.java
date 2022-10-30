@@ -76,7 +76,6 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHierarchyHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.K4Plugin;
@@ -169,7 +168,6 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
-import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_PROCESSING;
 
 /**
  * Resource to manage digital objects.
@@ -1274,7 +1272,7 @@ public class DigitalObjectResource {
         } catch (DigitalObjectValidationException ex) {
             return toError(ex);
         }
-        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
+//        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }

@@ -44,7 +44,7 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         super(solrClient);
     }
 
-    public void feedDescriptionDocument(DigitalObject object, FedoraObject fedoraObject) throws DigitalObjectException {
+    public void feedDescriptionDocument(DigitalObject object, FedoraObject fedoraObject, boolean commit) throws DigitalObjectException {
         RelationEditor relationEditor = new RelationEditor(fedoraObject);
         String pid = fedoraObject.getPid();
         String model = relationEditor.getModel();
@@ -69,6 +69,9 @@ public class SolrFeeder extends ProcessingIndexFeeder {
 
         try {
             feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status, ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members);
+            if (commit) {
+                commit();
+            }
         } catch (SolrServerException | IOException ex) {
             throw new DigitalObjectException(pid, "Nepodarilo se zaindexovat objekt " + pid + " do SOLRu.");
         }

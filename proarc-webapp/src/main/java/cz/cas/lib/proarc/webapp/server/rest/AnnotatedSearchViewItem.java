@@ -116,5 +116,4 @@ public abstract class AnnotatedSearchViewItem extends SearchViewItem {
     @XmlElement(name = DigitalObjectResourceApi.STRINGRECORD_CONTENT)
     @Override
     public abstract String getJsonData();
-
 }

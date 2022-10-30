@@ -136,7 +136,17 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             }
             File entity = loader.read();
             if (entity == null) {
-                throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                //throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                InputStream inputStream = loader.readStream();
+                if (inputStream == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                }
+                Date lastModification = new Date(loader.getLastModified());
+                ResponseBuilder evaluatePreconditions = httpRequest == null ? null : httpRequest.evaluatePreconditions(lastModification);
+                if (evaluatePreconditions != null) {
+                    return evaluatePreconditions.build();
+                }
+                return Response.ok(inputStream, loader.getProfile().getDsMIME()).lastModified(lastModification).build();
             }
 
             Date lastModification = new Date(loader.getLastModified());
