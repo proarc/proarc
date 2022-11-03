@@ -1656,7 +1656,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         xmlData.getAny().add(codingHistoryNode);
                         mdWrap.setMDTYPE("CODING_HISTORY");
                     } else {
-                        if (!skip) {
+                        if (!skip && !(Const.CODINGHISTORY001.equals(name) || Const.CODINGHISTORY002.equals(name))) {
                             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image/audo metadata (MIX/AES) for " + streamName, false, null);
                         }
                     }

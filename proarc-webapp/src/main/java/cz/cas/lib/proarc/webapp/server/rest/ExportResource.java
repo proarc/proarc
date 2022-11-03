@@ -782,6 +782,9 @@ public class ExportResource {
                     break;
                 }
             }
+            if (Const.EXPORT_NDK4SIP.equals(typeOfPackage)) {
+                ArchiveProducer.fixPdfFile(targetFolder);
+            }
 
             if (!errors) {
                 ExportUtils.writeExportResult(targetFolder, export.getResultLog());

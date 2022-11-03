@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
@@ -31,9 +32,13 @@ import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.mets.FileType;
+import cz.cas.lib.proarc.mets.Mets;
+import cz.cas.lib.proarc.mets.MetsType;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXB;
 
 /**
  * It produces archive packages.
@@ -60,6 +65,64 @@ public class ArchiveProducer {
             throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
         }
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), searchView);
+    }
+
+    public static void fixPdfFile(File targetFolder) {
+        File metsFile = getFile(targetFolder, PackageBuilder.METS_FILENAME);
+        File originFolder = getFile(targetFolder, "original");
+
+        Mets mets = JAXB.unmarshal(metsFile, Mets.class);
+        MetsType.FileSec fileSec = mets.getFileSec();
+        for (MetsType.FileSec.FileGrp fileGrp : fileSec.getFileGrp()) {
+            if ("RAW".equals(fileGrp.getID())) {
+                for (FileType fileType : fileGrp.getFile()) {
+                    if (fileType.getFLocat().get(0) != null) {
+                        FileType.FLocat flocat = fileType.getFLocat().get(0);
+                        String href = flocat.getHref();
+                        href = repairHref(href, originFolder);
+                        flocat.setHref(href);
+                        break;
+                    }
+                }
+            }
+        }
+        File metsParent = metsFile.getParentFile();
+        MetsUtils.deleteFolder(metsFile);
+
+        JAXB.marshal(mets, new File(metsParent, PackageBuilder.METS_FILENAME));
+    }
+
+    private static String repairHref(String href, File originFolder) {
+        String id = href.split("_")[2];
+        String fileExtension = href.split("\\.")[2];
+        for (File file : originFolder.listFiles()) {
+            if (file.getName().endsWith(id + "." + fileExtension)) {
+                return getPath(file);
+            }
+        }
+        return href;
+    }
+
+    private static String getPath(File pdfFile) {
+        File originFile = pdfFile.getParentFile();
+        File urnNbnFile = originFile.getParentFile();
+
+        return "./NDK/" + urnNbnFile.getName() + "/" + originFile.getName() + "/" + pdfFile.getName();
+    }
+
+    private static File getFile(File file, String filename) {
+        if (filename.equals(file.getName())) {
+            return file;
+        }
+        if (file.isDirectory()) {
+            for (File children : file.listFiles()) {
+                File metsFile = getFile(children, filename);
+                if (metsFile != null) {
+                    return metsFile;
+                }
+            }
+        }
+        return null;
     }
 
     /**

@@ -617,12 +617,42 @@ public class PackageReader {
             if ("URL".equals(locType) && href != null) {
                 URI dsUri = metsUri.resolve(href);
                 dsFile = new File(dsUri);
+                if (!dsFile.exists() && href.contains(".pdf")) {
+                    dsFile = fixPdfFile(dsFile, href.split("_")[2], href.split("\\.")[2]);
+                }
                 if (dsFile.canRead() && dsFile.isFile()) {
                     return dsFile;
                 }
             }
         }
         throw new IllegalStateException("Invalid file: " + dsFile + ", " + toString(fileType));
+    }
+
+    private File fixPdfFile(File dsFile, String id, String fileExtension) {
+        try {
+            File importFolder = metsFile.getParentFile();
+            if (importFolder.exists() && importFolder.isDirectory()) {
+                for (File children : importFolder.listFiles()) {
+                    if ("NDK".equals(children.getName())) {
+                        children = children.listFiles()[0];
+                        if (children.exists() && importFolder.isDirectory()) {
+                            for (File originalFolder : children.listFiles()) {
+                                if ("original".equals(originalFolder.getName())) {
+                                    for (File pdfFile : originalFolder.listFiles()) {
+                                        if (pdfFile.getName().endsWith(id + "." + fileExtension)) {
+                                            return pdfFile;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return dsFile;
     }
 
     private static String toPid(DivType div) {
