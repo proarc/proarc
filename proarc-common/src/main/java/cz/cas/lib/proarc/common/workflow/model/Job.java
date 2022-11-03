@@ -174,6 +174,10 @@ public class Job {
         return getState() == State.FINISHED || getState() == State.CANCELED;
     }
 
+    public boolean isFinished() {
+        return getState() == State.FINISHED;
+    }
+
     public State getState() {
         return state;
     }
