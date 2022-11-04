@@ -89,8 +89,10 @@ public class Const {
     public final static String GENRE_EARTICLE = "electronic_article";
     public final static String GENRE_ECHAPTER = "electronic_chapter";
     public final static String GENRE_EISSUE = "electronic_issue";
-    public final static String GENRE_ETITLE = "electronic_title";
-    public final static String GENRE_EVOLUME = "electronic_volume";
+    public final static String GENRE_ETITLE_PERIODICAL = "electronic_title";
+    public final static String GENRE_ETITLE_MONOGRAPH = "electronic title";
+    public final static String GENRE_EVOLUME_PERIODICAL = "electronic_volume";
+    public final static String GENRE_EVOLUME_MONOGPRAH = "electronic volume";
 
     public final static String GENRE_CONVOLUTE = "convolute";       //konvolut
     public final static String GENRE_GRAPHICS = "graphics";       //grafika
