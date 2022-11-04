@@ -675,7 +675,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <place>
                         <placeTerm>
                             <xsl:attribute name="type">text</xsl:attribute>
-                            <xsl:call-template name="chopPunctuationFront">
+                            <xsl:call-template name="chopPunctuation">
                                 <xsl:with-param name="chopString">
                                     <xsl:call-template name="chopPunctuation">
                                         <xsl:with-param name="chopString" select="."/>
@@ -954,7 +954,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="marc:subfield[@code='a']">
                     <place>
                         <placeTerm type="text">
-                            <xsl:call-template name="chopPunctuationFront">
+                            <xsl:call-template name="chopPunctuation">
                                 <xsl:with-param name="chopString">
                                     <xsl:call-template name="chopPunctuation">
                                         <xsl:with-param name="chopString" select="."/>
@@ -987,7 +987,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="marc:subfield[@code='a']">
                     <place>
                         <placeTerm type="text">
-                            <xsl:call-template name="chopPunctuationFront">
+                            <xsl:call-template name="chopPunctuation">
                                 <xsl:with-param name="chopString">
                                     <xsl:call-template name="chopPunctuation">
                                         <xsl:with-param name="chopString" select="."/>
@@ -1020,7 +1020,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="marc:subfield[@code='a']">
                     <place>
                         <placeTerm type="text">
-                            <xsl:call-template name="chopPunctuationFront">
+                            <xsl:call-template name="chopPunctuation">
                                 <xsl:with-param name="chopString">
                                     <xsl:call-template name="chopPunctuation">
                                         <xsl:with-param name="chopString" select="."/>
@@ -1053,7 +1053,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="marc:subfield[@code='a']">
                     <place>
                         <placeTerm type="text">
-                            <xsl:call-template name="chopPunctuationFront">
+                            <xsl:call-template name="chopPunctuation">
                                 <xsl:with-param name="chopString">
                                     <xsl:call-template name="chopPunctuation">
                                         <xsl:with-param name="chopString" select="."/>
@@ -1087,7 +1087,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="marc:subfield[@code='a']">
                     <place>
                         <placeTerm type="text">
-                            <xsl:call-template name="chopPunctuationFront">
+                            <xsl:call-template name="chopPunctuation">
                                 <xsl:with-param name="chopString">
                                     <xsl:call-template name="chopPunctuation">
                                         <xsl:with-param name="chopString" select="."/>
