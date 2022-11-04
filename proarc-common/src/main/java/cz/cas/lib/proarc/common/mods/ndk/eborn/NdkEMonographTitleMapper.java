@@ -31,7 +31,7 @@ public class NdkEMonographTitleMapper extends NdkMonographTitleMapper {
     @Override
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="electronic_title"
-        MapperUtils.removeGenre(mods, "electronic title");
-        MapperUtils.addGenre(mods, Const.GENRE_ETITLE);
+        MapperUtils.removeGenre(mods, Const.GENRE_ETITLE_PERIODICAL);
+        MapperUtils.addGenre(mods, Const.GENRE_ETITLE_MONOGRAPH);
     }
 }

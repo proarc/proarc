@@ -31,7 +31,7 @@ public class NdkEPeriodicalVolumeMapper extends NdkPeriodicalVolumeMapper {
     @Override
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="electronic_volume"
-        MapperUtils.removeGenre(mods, "electronic volume");
-        MapperUtils.addGenre(mods, Const.GENRE_EVOLUME);
+        MapperUtils.removeGenre(mods, Const.GENRE_EVOLUME_MONOGPRAH);
+        MapperUtils.addGenre(mods, Const.GENRE_EVOLUME_PERIODICAL);
     }
 }
