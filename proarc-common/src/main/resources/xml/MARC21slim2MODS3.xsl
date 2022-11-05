@@ -2760,7 +2760,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <shelfLocator>
                         <xsl:value-of select="text()" />
                     </shelfLocator>
-                </location>x`
+                </location>
             </xsl:for-each>
         </xsl:for-each>
 
