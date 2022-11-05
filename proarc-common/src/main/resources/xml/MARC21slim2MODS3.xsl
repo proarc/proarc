@@ -2744,6 +2744,27 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </identifier>
         </xsl:for-each>
 
+        <xsl:for-each select="marc:datafield[@tag=980]">
+            <identifier type="barcode">
+                <xsl:value-of select="marc:subfieldfield[@code='b']"/>
+            </identifier>
+        </xsl:for-each>
+        <xsl:for-each select="marc:datafield[@tag=996]">
+            <xsl:for-each select="marc:subfield[@code='b']">
+                <identifier type="barcode">
+                    <xsl:value-of select="text()"/>
+                </identifier>
+            </xsl:for-each>
+            <xsl:for-each select="marc:subfield[@code='c']">
+                <location>
+                    <shelfLocator>
+                        <xsl:value-of select="text()" />
+                    </shelfLocator>
+                </location>x`
+            </xsl:for-each>
+        </xsl:for-each>
+
+
 
         <!-- 1.51 tmee 20100129 removed duplicate code 20131217
         <xsl:for-each select="marc:datafield[@tag='856'][marc:subfield[@code='u']]">
