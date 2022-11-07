@@ -84,16 +84,19 @@ public class CatalogUtils {
         }
         List<String> couples = new ArrayList<>();
         int updateNode = 0;
+        int nodesCount = 0;
 
         if (containsNode(marcXml, "260")) {
             couples = findAndSplitNode(marcXml, "260");
+            nodesCount = countNodes(marcXml, "260"); //svkhk 001 000162401
             updateNode = 260;
         } else if (containsNode(marcXml, "264")) {
             couples = findAndSplitNode(marcXml, "264");
+            nodesCount = countNodes(marcXml, "264");
             updateNode = 264;
         }
 
-        if (couples.size() < 1) {
+        if (couples.size() < 1  || nodesCount != 1 || (couples.size() == 1 && onlyOneOriginInfoValues(mods.getOriginInfo()))) { // knav monografie 001 000938836
             return modsBytes;
         } else {
             if (260 == updateNode) { //knav monografie isbn 80-200-0953-1
@@ -106,6 +109,34 @@ public class CatalogUtils {
                 return modsBytes;
             }
         }
+    }
+
+
+
+    private static boolean onlyOneOriginInfoValues(List<OriginInfoDefinition> originInfos) {
+        int placeCount = 0;
+        int publisherCount = 0;
+        int dateCount = 0;
+
+        for (OriginInfoDefinition originInfo : originInfos) {
+            for (PlaceDefinition place : originInfo.getPlace()) {
+                for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
+                    if ("text".equalsIgnoreCase(placeTerm.getType().value())) {
+                        placeCount++;
+                    }
+                }
+            }
+            for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
+                publisherCount++;
+            }
+            for (DateDefinition date : originInfo.getDateIssued()) {
+                if (date.getPoint() == null) {
+                    dateCount++;
+                }
+            }
+        }
+        return 1 == placeCount && 1 == publisherCount && 1 == dateCount;
+
     }
 
     private static String repairMods_264(ModsDefinition mods, List<String> couples) {
@@ -551,6 +582,31 @@ public class CatalogUtils {
             e.printStackTrace();
         } finally {
             return node != null;
+        }
+    }
+
+    private static int countNodes(Document marcXml, String tagValue) {
+        Double counts = null;
+        try {
+            XPathFactory xPathFactory = ProarcXmlUtils.defaultXPathFactory();
+            XPath xPath = xPathFactory.newXPath();
+            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
+            String expression = "count(m:collection//m:record//m:datafield[@tag=" + tagValue + "])";
+            counts = (Double) xPath.evaluate(expression, marcXml, XPathConstants.NUMBER);
+
+            if (counts == null) {
+                expression = "count(m:record//m:datafield[@tag=" + tagValue + "])";
+                counts = (Double) xPath.evaluate(expression, marcXml, XPathConstants.NUMBER);
+            }
+        } catch (XPathExpressionException e) {
+            LOG.warning("Impossible to parse double with tag " + tagValue + " from downloaded marcXml");
+            e.printStackTrace();
+        } finally {
+            if (counts == null) {
+                return 0;
+            } else {
+                return counts.intValue();
+            }
         }
     }
 

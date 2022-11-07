@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.object.ndk;
 
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
 import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
 import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
@@ -158,7 +157,7 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                     item.setPageIndex(page.getIndex());
                     item.setPageNumber(page.getNumber());
                     item.setPageType(page.getType());
-                    item.setPageTypeLabel(NdkAudioPageMapper.getPageTypeLabel(item.getPageType(), locale));
+                    item.setPageTypeLabel(page.getIndex());
                     return item;
                 } else {
                     throw new DigitalObjectException(fobject.getPid(), "Unexpected model for oldprint page: " + modelId);
@@ -205,8 +204,7 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         @Override
         public String getObjectLabel(SearchViewItem item, Locale locale) {
             if (MODEL_PAGE.equals(item.getModel())) {
-                return PageView.resolveFedoraObjectLabel(
-                        item.getLabel(), NdkAudioPageMapper.getPageTypeLabels(locale));
+                return item.getLabel();
             }
             return item.getLabel();
         }

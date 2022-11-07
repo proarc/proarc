@@ -111,8 +111,8 @@ public class NdkAudioPageMapper extends NdkPageMapper {
     protected String createObjectLabel(ModsDefinition mods) {
         Page page = toJsonObject(mods, null);
         StringBuilder sb = new StringBuilder();
-        if (page.getNumber() != null) {
-            sb.append(page.getNumber());
+        if (page.getIndex() != null) {
+            sb.append(page.getIndex());
         } else {
             sb.append('?');
         }
