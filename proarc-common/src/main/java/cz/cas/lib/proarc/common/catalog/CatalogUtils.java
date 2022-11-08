@@ -73,6 +73,12 @@ public class CatalogUtils {
         return s;
     }
 
+    /**
+     * Uprava <mods> zdvojene <originInfo>
+     * Vzdy nutne otestovat:
+     * KNAV 001: 000036403, 000908303, 001044879, 002695932, 002705702, 002714840
+     * SVKHK 001: 000162401
+     */
     public static byte[] repairModsBytes(byte[] modsBytes, Document marcXml) throws UnsupportedEncodingException {
         String modsAsString = new String(modsBytes, "UTF-8");
         ModsCollectionDefinition modsCollection = ModsUtils.unmarshal(modsAsString, ModsCollectionDefinition.class);
@@ -443,11 +449,11 @@ public class CatalogUtils {
             firstInfo = originInfos.get(0);
             secondInfo = originInfos.get(1);
             if (hasOnlyOnePlaceValue(firstInfo.getPlace(), secondInfo.getPlace()) &&
-                    hasOnlyOneValue(firstInfo.getDateIssued(), secondInfo.getDateIssued()) &&
+                    hasOnlyOneDateValue(firstInfo.getDateIssued(), secondInfo.getDateIssued()) &&
                     hasOnlyOneValue(firstInfo.getPublisher(), secondInfo.getPublisher())) {
                 firstInfo.getPlace().addAll(secondInfo.getPlace());
                 firstInfo.getPublisher().addAll(secondInfo.getPublisher());
-                firstInfo.getDateIssued().addAll(secondInfo.getDateIssued());
+                mergeDate(firstInfo.getDateIssued(), secondInfo.getDateIssued());
                 firstInfo.getDateCreated().addAll(secondInfo.getDateCreated());
                 firstInfo.getDateCaptured().addAll(secondInfo.getDateCaptured());
                 firstInfo.getDateValid().addAll(secondInfo.getDateValid());
@@ -461,6 +467,47 @@ public class CatalogUtils {
                 originInfos.remove(secondInfo);
             }
         }
+    }
+
+    private static void mergeDate(List<DateDefinition> origin, List<DateDefinition> copy) {
+        for (DateDefinition dateCopy : copy) {
+            for (DateDefinition dateOrigin : origin) {
+                if (dateCopy.getPoint() != null) {
+                    if (!(dateCopy.getPoint().equals(dateOrigin.getPoint()) && dateCopy.getValue().equals(dateCopy.getValue()))) {
+                        origin.add(dateCopy);
+                        break;
+                    }
+                } else {
+                    if (!(dateCopy.getValue().equals(dateCopy.getValue()))) {
+                        origin.add(dateCopy);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean hasOnlyOneDateValue(List<DateDefinition> listFirst, List<DateDefinition> listSecond) {
+        if (listFirst == null || listFirst.isEmpty()) {
+            if (listSecond != null || !listSecond.isEmpty()) {
+                return true;
+            }
+            return false;
+        }
+        if (listSecond == null || listSecond.isEmpty()) {
+            if (listFirst != null || !listFirst.isEmpty()) {
+                return true;
+            }
+            return false;
+        }
+        for (DateDefinition first : listFirst) {
+            for (DateDefinition second : listSecond) {
+                if (first.getValue() != null && first.getValue().equals(second.getValue())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean hasOnlyOneValue(List listFirst, List listSecond) {

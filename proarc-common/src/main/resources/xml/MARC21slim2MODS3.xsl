@@ -643,7 +643,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
         <!-- originInfo 250 and 260 -->
 
-        <xsl:if test="marc:datafield[(@tag=260 or @tag=250)]">
+        <xsl:if test="marc:datafield[@tag=250] or marc:datafield[@tag='260'][@ind1=' ']">
             <originInfo>
                 <xsl:call-template name="scriptCode"/>
                 <xsl:for-each
@@ -671,7 +671,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         </placeTerm>
                     </place>
                 </xsl:for-each>
-                <xsl:for-each select="marc:datafield[@tag=260]/marc:subfield[@code='a']">
+                <xsl:for-each select="marc:datafield[@tag=260][@ind1=' ']/marc:subfield[@code='a']">
                     <place>
                         <placeTerm>
                             <xsl:attribute name="type">text</xsl:attribute>
@@ -727,7 +727,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
                 <!-- tmee 1.35 1.36 dateIssued/nonMSS vs dateCreated/MSS -->
                 <xsl:for-each
-                        select="marc:datafield[@tag=260]/marc:subfield[@code='b' or @code='c' or @code='g']">
+                        select="marc:datafield[@tag=260][@ind1=' ']/marc:subfield[@code='b' or @code='c' or @code='g']">
                     <xsl:choose>
                         <xsl:when test="@code='b'">
                             <publisher>
@@ -775,7 +775,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:variable name="dataField260c">
                     <xsl:call-template name="chopPunctuation">
                         <xsl:with-param name="chopString"
-                                        select="marc:datafield[@tag=260]/marc:subfield[@code='c']"/>
+                                        select="marc:datafield[@tag=260][@ind1=' ']/marc:subfield[@code='c']"/>
                     </xsl:call-template>
                 </xsl:variable>
                 <xsl:variable name="controlField008-7-10"
@@ -940,6 +940,99 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </xsl:if>
             </originInfo>
         </xsl:if>
+
+        <xsl:for-each select="marc:datafield[@tag='260'][@ind1!=' ']">
+            <originInfo>
+                <xsl:call-template name="scriptCode"/>
+                <xsl:if test="marc:subfield[@code='a' or code='b' or @code='c' or code='g']">
+                    <xsl:call-template name="z2xx880"/>
+                </xsl:if>
+
+                <xsl:for-each select="marc:subfield[@code='a']">
+                    <place>
+                        <placeTerm>
+                            <xsl:attribute name="type">text</xsl:attribute>
+                            <xsl:call-template name="chopPunctuation">
+                                <xsl:with-param name="chopString">
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </xsl:with-param>
+                            </xsl:call-template>
+                        </placeTerm>
+                    </place>
+                </xsl:for-each>
+
+
+                <xsl:for-each
+                        select="marc:subfield[@code='b' or @code='c' or @code='g']">
+                    <xsl:choose>
+                        <xsl:when test="@code='b'">
+                            <publisher>
+                                <xsl:call-template name="chopPunctuation">
+                                    <xsl:with-param name="chopString" select="."/>
+                                    <xsl:with-param name="punctuation">
+                                        <xsl:text>:,;/ </xsl:text>
+                                    </xsl:with-param>
+                                </xsl:call-template>
+                            </publisher>
+                        </xsl:when>
+                        <xsl:when test="(@code='c')">
+                            <xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
+                                <dateCreated>
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </dateCreated>
+                            </xsl:if>
+
+                            <xsl:if
+                                    test="not($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
+                                <dateIssued>
+                                    <xsl:call-template name="chopPunctuation">
+                                        <xsl:with-param name="chopString" select="."/>
+                                    </xsl:call-template>
+                                </dateIssued>
+                            </xsl:if>
+                        </xsl:when>
+                        <xsl:when test="@code='g'">
+                            <xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
+                                <dateCreated>
+                                    <xsl:value-of select="."/>
+                                </dateCreated>
+                            </xsl:if>
+                            <xsl:if
+                                    test="not($leader6='d' or $leader6='f' or $leader6='p' or $leader6='t')">
+                                <dateCreated>
+                                    <xsl:value-of select="."/>
+                                </dateCreated>
+                            </xsl:if>
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:for-each>
+                <xsl:variable name="dataField260c">
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString" select="marc:subfield[@code='c']"/>
+                    </xsl:call-template>
+                </xsl:variable>
+                <xsl:variable name="dataField2603">
+                    <xsl:call-template name="chopPunctuation">
+                        <xsl:with-param name="chopString" select="marc:subfield[@code='3']"/>
+                    </xsl:call-template>
+                </xsl:variable>
+
+                <xsl:if test="$dataField2603">
+                    <dateIssued>
+                        <xsl:value-of select="$dataField2603"/>
+                    </dateIssued>
+                </xsl:if>
+                <xsl:if test="$dataField260c">
+                    <dateIssued>
+                        <xsl:value-of select="$dataField260c"/>
+                    </dateIssued>
+                </xsl:if>
+            </originInfo>
+        </xsl:for-each>
 
         <!-- originInfo - 264 -->
 

@@ -159,11 +159,12 @@ public final class Z3950Catalog implements BibliographicCatalog {
 
 
                 Document marcXml = Z3950Client.toMarcXml(content, charset);
-                if (LOG.isLoggable(Level.FINE)) {
+//                if (LOG.isLoggable(Level.FINE)) {
                     StringBuilder sb = new StringBuilder();
                     transformers.dump(new DOMSource(marcXml), sb);
-                    LOG.fine(sb.toString());
-                }
+                    String marcMods = sb.toString();
+//                    LOG.fine(sb.toString());
+//                }
                 MetadataItem item = createResponse(index++, catalog, marcXml, locale);
                 result.add(item);
             }
