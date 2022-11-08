@@ -73,6 +73,12 @@ public class CatalogUtils {
         return s;
     }
 
+    /**
+     * Uprava <mods> zdvojene <originInfo>
+     * Vzdy nutne otestovat:
+     * KNAV 001: 000036403, 000908303, 001044879, 002695932, 002705702, 002714840
+     * SVKHK 001: 000162401
+     */
     public static byte[] repairModsBytes(byte[] modsBytes, Document marcXml) throws UnsupportedEncodingException {
         String modsAsString = new String(modsBytes, "UTF-8");
         ModsCollectionDefinition modsCollection = ModsUtils.unmarshal(modsAsString, ModsCollectionDefinition.class);
@@ -84,16 +90,19 @@ public class CatalogUtils {
         }
         List<String> couples = new ArrayList<>();
         int updateNode = 0;
+        int nodesCount = 0;
 
         if (containsNode(marcXml, "260")) {
             couples = findAndSplitNode(marcXml, "260");
+            nodesCount = countNodes(marcXml, "260"); //svkhk 001 000162401
             updateNode = 260;
         } else if (containsNode(marcXml, "264")) {
             couples = findAndSplitNode(marcXml, "264");
+            nodesCount = countNodes(marcXml, "264");
             updateNode = 264;
         }
 
-        if (couples.size() < 1) {
+        if (couples.size() < 1  || nodesCount != 1 || (couples.size() == 1 && onlyOneOriginInfoValues(mods.getOriginInfo()))) { // knav monografie 001 000938836
             return modsBytes;
         } else {
             if (260 == updateNode) { //knav monografie isbn 80-200-0953-1
@@ -106,6 +115,34 @@ public class CatalogUtils {
                 return modsBytes;
             }
         }
+    }
+
+
+
+    private static boolean onlyOneOriginInfoValues(List<OriginInfoDefinition> originInfos) {
+        int placeCount = 0;
+        int publisherCount = 0;
+        int dateCount = 0;
+
+        for (OriginInfoDefinition originInfo : originInfos) {
+            for (PlaceDefinition place : originInfo.getPlace()) {
+                for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
+                    if ("text".equalsIgnoreCase(placeTerm.getType().value())) {
+                        placeCount++;
+                    }
+                }
+            }
+            for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
+                publisherCount++;
+            }
+            for (DateDefinition date : originInfo.getDateIssued()) {
+                if (date.getPoint() == null) {
+                    dateCount++;
+                }
+            }
+        }
+        return 1 == placeCount && 1 == publisherCount && 1 == dateCount;
+
     }
 
     private static String repairMods_264(ModsDefinition mods, List<String> couples) {
@@ -412,11 +449,11 @@ public class CatalogUtils {
             firstInfo = originInfos.get(0);
             secondInfo = originInfos.get(1);
             if (hasOnlyOnePlaceValue(firstInfo.getPlace(), secondInfo.getPlace()) &&
-                    hasOnlyOneValue(firstInfo.getDateIssued(), secondInfo.getDateIssued()) &&
+                    hasOnlyOneDateValue(firstInfo.getDateIssued(), secondInfo.getDateIssued()) &&
                     hasOnlyOneValue(firstInfo.getPublisher(), secondInfo.getPublisher())) {
                 firstInfo.getPlace().addAll(secondInfo.getPlace());
                 firstInfo.getPublisher().addAll(secondInfo.getPublisher());
-                firstInfo.getDateIssued().addAll(secondInfo.getDateIssued());
+                mergeDate(firstInfo.getDateIssued(), secondInfo.getDateIssued());
                 firstInfo.getDateCreated().addAll(secondInfo.getDateCreated());
                 firstInfo.getDateCaptured().addAll(secondInfo.getDateCaptured());
                 firstInfo.getDateValid().addAll(secondInfo.getDateValid());
@@ -430,6 +467,47 @@ public class CatalogUtils {
                 originInfos.remove(secondInfo);
             }
         }
+    }
+
+    private static void mergeDate(List<DateDefinition> origin, List<DateDefinition> copy) {
+        for (DateDefinition dateCopy : copy) {
+            for (DateDefinition dateOrigin : origin) {
+                if (dateCopy.getPoint() != null) {
+                    if (!(dateCopy.getPoint().equals(dateOrigin.getPoint()) && dateCopy.getValue().equals(dateCopy.getValue()))) {
+                        origin.add(dateCopy);
+                        break;
+                    }
+                } else {
+                    if (!(dateCopy.getValue().equals(dateCopy.getValue()))) {
+                        origin.add(dateCopy);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean hasOnlyOneDateValue(List<DateDefinition> listFirst, List<DateDefinition> listSecond) {
+        if (listFirst == null || listFirst.isEmpty()) {
+            if (listSecond != null || !listSecond.isEmpty()) {
+                return true;
+            }
+            return false;
+        }
+        if (listSecond == null || listSecond.isEmpty()) {
+            if (listFirst != null || !listFirst.isEmpty()) {
+                return true;
+            }
+            return false;
+        }
+        for (DateDefinition first : listFirst) {
+            for (DateDefinition second : listSecond) {
+                if (first.getValue() != null && first.getValue().equals(second.getValue())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean hasOnlyOneValue(List listFirst, List listSecond) {
@@ -551,6 +629,31 @@ public class CatalogUtils {
             e.printStackTrace();
         } finally {
             return node != null;
+        }
+    }
+
+    private static int countNodes(Document marcXml, String tagValue) {
+        Double counts = null;
+        try {
+            XPathFactory xPathFactory = ProarcXmlUtils.defaultXPathFactory();
+            XPath xPath = xPathFactory.newXPath();
+            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
+            String expression = "count(m:collection//m:record//m:datafield[@tag=" + tagValue + "])";
+            counts = (Double) xPath.evaluate(expression, marcXml, XPathConstants.NUMBER);
+
+            if (counts == null) {
+                expression = "count(m:record//m:datafield[@tag=" + tagValue + "])";
+                counts = (Double) xPath.evaluate(expression, marcXml, XPathConstants.NUMBER);
+            }
+        } catch (XPathExpressionException e) {
+            LOG.warning("Impossible to parse double with tag " + tagValue + " from downloaded marcXml");
+            e.printStackTrace();
+        } finally {
+            if (counts == null) {
+                return 0;
+            } else {
+                return counts.intValue();
+            }
         }
     }
 
