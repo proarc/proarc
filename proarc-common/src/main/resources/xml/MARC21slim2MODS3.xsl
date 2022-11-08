@@ -5474,6 +5474,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:call-template name="nameDate"/>
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
+                <xsl:call-template name="nameIdentifier"/>
             </name>
             <xsl:if test="marc:subfield[@code='t']">
                 <titleInfo>
