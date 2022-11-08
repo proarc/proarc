@@ -77,6 +77,7 @@ public class CatalogUtils {
      * Uprava <mods> zdvojene <originInfo>
      * Vzdy nutne otestovat:
      * KNAV 001: 000036403, 000908303, 001044879, 002695932, 002705702, 002714840
+     * KNAV carkod: 26002101695
      * SVKHK 001: 000162401
      */
     public static byte[] repairModsBytes(byte[] modsBytes, Document marcXml) throws UnsupportedEncodingException {

@@ -1067,6 +1067,18 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         </xsl:call-template>
                     </dateOther>
                 </xsl:for-each>
+                <xsl:for-each select="../marc:leader">
+                    <issuance>
+                        <xsl:choose>
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
+                            <xsl:when test="$leader7='i'">integrating resource</xsl:when>
+                            <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
+                        </xsl:choose>
+                    </issuance>
+                </xsl:for-each>
             </originInfo>
         </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag=264][@ind2=1]">
@@ -1099,6 +1111,18 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                             <xsl:with-param name="chopString" select="."/>
                         </xsl:call-template>
                     </dateIssued>
+                </xsl:for-each>
+                <xsl:for-each select="../marc:leader">
+                    <issuance>
+                        <xsl:choose>
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
+                            <xsl:when test="$leader7='i'">integrating resource</xsl:when>
+                            <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
+                        </xsl:choose>
+                    </issuance>
                 </xsl:for-each>
             </originInfo>
         </xsl:for-each>
@@ -1133,6 +1157,18 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         </xsl:call-template>
                     </dateOther>
                 </xsl:for-each>
+                <xsl:for-each select="../marc:leader">
+                    <issuance>
+                        <xsl:choose>
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
+                            <xsl:when test="$leader7='i'">integrating resource</xsl:when>
+                            <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
+                        </xsl:choose>
+                    </issuance>
+                </xsl:for-each>
             </originInfo>
         </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag=264][@ind2=3]">
@@ -1165,6 +1201,18 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                             <xsl:with-param name="chopString" select="."/>
                         </xsl:call-template>
                     </dateOther>
+                </xsl:for-each>
+                <xsl:for-each select="../marc:leader">
+                    <issuance>
+                        <xsl:choose>
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
+                            <xsl:when test="$leader7='i'">integrating resource</xsl:when>
+                            <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
+                        </xsl:choose>
+                    </issuance>
                 </xsl:for-each>
             </originInfo>
         </xsl:for-each>
@@ -1199,6 +1247,18 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                             <xsl:with-param name="chopString" select="."/>
                         </xsl:call-template>
                     </copyrightDate>
+                </xsl:for-each>
+                <xsl:for-each select="../marc:leader">
+                    <issuance>
+                        <xsl:choose>
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
+                            <xsl:when test="$leader7='i'">integrating resource</xsl:when>
+                            <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
+                        </xsl:choose>
+                    </issuance>
                 </xsl:for-each>
             </originInfo>
         </xsl:for-each>
