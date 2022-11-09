@@ -782,6 +782,9 @@ public class ExportResource {
                     break;
                 }
             }
+            if (Const.EXPORT_NDK4SIP.equals(typeOfPackage)) {
+                ArchiveProducer.fixPdfFile(targetFolder);
+            }
 
             if (!errors) {
                 ExportUtils.writeExportResult(targetFolder, export.getResultLog());
@@ -879,6 +882,7 @@ public class ExportResource {
 
             try {
                 export.run();
+                BatchUtils.finishedExportSuccessfully(this.batchManager, batch, exportFolder.getAbsolutePath());
             } catch (Exception ex) {
                 result.setErrors(new ArrayList<>());
                 result.getErrors().add(new ExportError(pids.get(0), ex.getMessage(), false, "ERROR in postProcessing ."));

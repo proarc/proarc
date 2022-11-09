@@ -73,7 +73,7 @@ public class OldPrintOmnibusVolumeMapper extends RdaNdkMapper {
         mods.getOriginInfo().clear();
         //mods.getPart().clear();
         mods.getPhysicalDescription().clear();
-        mods.getRelatedItem().clear();
+        //mods.getRelatedItem().clear();
         //mods.getSubject().clear();
         mods.getTableOfContents().clear();
         mods.getTargetAudience().clear();

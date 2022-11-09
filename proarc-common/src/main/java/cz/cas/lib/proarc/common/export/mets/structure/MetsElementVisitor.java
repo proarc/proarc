@@ -1486,6 +1486,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     if (outputFileName != null) {
                         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
                         jHoveOutputMC = JhoveUtility.getMix(metsElement, MixEditor.NDK_ARCHIVAL_ID, outputFileName, null, md5InfosMap.get(Const.MC_GRP_ID).getCreated(), originalFile);
+                        if (jHoveOutputMC == null) {
+                            jHoveOutputMC = JhoveUtility.getMix(new File(outputFileName), metsElement.getMetsContext(), null, md5InfosMap.get(Const.MC_GRP_ID).getCreated(), originalFile);
+                            if (jHoveOutputMC.getMix() == null) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for MC image", false, null);
+                            }
+                        }
                         fixMCMix(jHoveOutputMC, metsElement.getOriginalPid(), md5InfosMap.get(Const.MC_GRP_ID).getCreated(), originalFile, photometricInterpretation);
                     }
                 }
@@ -1656,7 +1662,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         xmlData.getAny().add(codingHistoryNode);
                         mdWrap.setMDTYPE("CODING_HISTORY");
                     } else {
-                        if (!skip) {
+                        if (!skip && !(Const.CODINGHISTORY001.equals(name) || Const.CODINGHISTORY002.equals(name))) {
                             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image/audo metadata (MIX/AES) for " + streamName, false, null);
                         }
                     }

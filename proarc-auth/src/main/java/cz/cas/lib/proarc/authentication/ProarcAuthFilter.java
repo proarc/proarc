@@ -63,6 +63,11 @@ public class ProarcAuthFilter implements Filter {
 
         HttpServletRequest httpReq = (HttpServletRequest) arg0;
         HttpServletResponse httpResp = (HttpServletResponse) arg1;
+
+        httpResp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
+        httpResp.setHeader("Pragma", "no-cache"); // HTTP 1.0
+        httpResp.setDateHeader("Expires", 0); // Proxies.
+
         HttpSession session = httpReq.getSession();
         if (session != null) {
             ProarcPrincipal p = (ProarcPrincipal) session.getAttribute(SESSION_KEY);
