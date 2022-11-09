@@ -93,6 +93,9 @@ public class IndexerResource {
 
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
 
+        if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
+        }
 
         String objectStorePath = this.akubraConfiguration.getObjectStorePath();
         String datastreamStorePath = this.akubraConfiguration.getDatastreamStorePath();
@@ -159,7 +162,12 @@ public class IndexerResource {
     public SmartGwtResponse<SearchViewItem> indexDocument (
             @FormParam(IndexerResourceApi.DIGITALOBJECT_PID) String pid
     ) {
+        if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
+        }
+
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+
         LOG.info("Indexing document with pid started");
         return new SmartGwtResponse<>();
     }

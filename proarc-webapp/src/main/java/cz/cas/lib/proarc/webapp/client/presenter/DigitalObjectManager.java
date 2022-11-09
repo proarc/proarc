@@ -46,6 +46,7 @@ import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMusicsheetToSttMusicsheetAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeSttMusicsheetToNdkMusicsheetAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.indexObjects.IndexAllObjectsAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.LockObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
@@ -126,6 +127,7 @@ public final class DigitalObjectManager {
     private DeleteAction deleteAction;
     private RestoreAction restoreAction;
     private UpdateAllObjectsAction updateAllObjectsAction;
+    private IndexAllObjectsAction indexAllObjectsAction;
     private DigitalObjectEditAction ocrEditAction;
     private DigitalObjectEditAction noteEditAction;
     private DigitalObjectEditAction modsEditAction;
@@ -290,6 +292,7 @@ public final class DigitalObjectManager {
                 DigitalObjectDataSource.createDeleteOptionsForm(), i18n);
         restoreAction = new RestoreAction(DigitalObjectDataSource.createRestorable(), i18n);
         updateAllObjectsAction = new UpdateAllObjectsAction(i18n);
+        indexAllObjectsAction = new IndexAllObjectsAction(i18n);
         ocrEditAction = new DigitalObjectEditAction(
                 i18n.ImportBatchItemEditor_TabOcr_Title(), DatastreamEditorType.OCR, i18n);
         noteEditAction = new DigitalObjectEditAction(
@@ -434,6 +437,7 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(Actions.asMenuItem(updateNdkPageAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(updateAllObjectsAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(indexAllObjectsAction, actionSource, true));
         btnAdministration.setMenu(menuAdministration);
 
 
