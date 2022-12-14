@@ -121,6 +121,16 @@ public final class RestConfig {
     public static final String URL_CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME);
     public static final String URl_CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET);
     public static final String URl_CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET);
+    public static final String URl_CHANGE_STT_CHAPTER_TO_NDK_CHAPTER = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_CHAPTER_TO_NDK_CHAPTER);
+    public static final String URl_CHANGE_NDK_CHAPTER_TO_STT_CHAPTER = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_CHAPTER_TO_STT_CHAPTER);
+    public static final String URl_CHANGE_NDK_PICTURE_TO_STT_GRAPHIC = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_PICTURE_TO_STT_GRAPHIC);
+    public static final String URl_CHANGE_STT_GRAPHIC_TO_NDK_PICTURE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_NDK_PICTURE);
+    public static final String URl_CHANGE_NDK_CARTOGRAPHIC_TO_STT_CARTOGRAPHIC = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_CARTOGRAPHIC_TO_STT_CARTOGRAPHIC);
+    public static final String URl_CHANGE_STT_CARTOGRAPHIC_TO_NDK_CARTOGRAPHIC = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_CARTOGRAPHIC_TO_NDK_CARTOGRAPHIC);
+    public static final String URl_CHANGE_NDK_MONOGRAPH_TO_STT_MONOGRAPH = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TO_STT_MONOGRAPH);
+    public static final String URl_CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH);
+    public static final String URl_CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT);
+    public static final String URl_CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT);
     public static final String URL_UPDATE_NDK_ARTICLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_ARTICLE);
     public static final String URL_UPDATE_NDK_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_PAGE);
     public static final String URL_LOCALIZATION = path(URL_ROOT, LocalizationResourceApi.PATH);

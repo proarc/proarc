@@ -191,6 +191,11 @@ public class ChangeModels {
             case NdkPlugin.MODEL_NDK_PAGE:
                 fixNdkPageMods(mods);
                 break;
+            case NdkPlugin.MODEL_CARTOGRAPHIC:
+            case NdkPlugin.MODEL_CHAPTER:
+            case NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT:
+            case NdkPlugin.MODEL_MONOGRAPHVOLUME:
+            case NdkPlugin.MODEL_PICTURE:
             case NdkPlugin.MODEL_SHEETMUSIC:
                 // no metadata change needed
                 break;
@@ -231,6 +236,11 @@ public class ChangeModels {
             case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE:
                 fixCollectionOfClippingsVolumeMods(mods, parentPid);
                 break;
+            case OldPrintPlugin.MODEL_CARTOGRAPHIC:
+            case OldPrintPlugin.MODEL_CHAPTER:
+            case OldPrintPlugin.MODEL_SUPPLEMENT:
+            case OldPrintPlugin.MODEL_VOLUME:
+            case OldPrintPlugin.MODEL_GRAPHICS:
             case OldPrintPlugin.MODEL_SHEETMUSIC:
                 // no metadata change needed
                 break;

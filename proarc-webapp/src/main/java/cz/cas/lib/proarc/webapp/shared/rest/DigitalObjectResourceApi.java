@@ -125,9 +125,6 @@ public final class DigitalObjectResourceApi {
     public static final String METAMODEL_DISPLAYNAME_PARAM = "displayName";
     public static final String METAMODEL_MODSCUSTOMEDITORID_PARAM = "editorId";
     public static final String METAMODEL_METADATAFORMAT_PARAM = "metadataFormat";
-    /**
-     * @see DatastreamEditorType
-     */
     public static final String METAMODEL_DATASTREAMEDITOR_PARAM = "dataStreamEditor";
 
     // resource /object/mods
@@ -271,8 +268,19 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE = "changeK4PeriodicalIssueToNdkPeriodicalIssue";
     public static final String CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME = "changeK4MonographToNdkMonographVolume";
     public static final String CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME = "changeK4MonographUnitToNdkMonographVolume";
-    public static final String CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET = "changeNdkMusicsheetToSttMusicsheet";
-    public static final String CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET = "changeSttMusicsheetToNdkMusicsheet";
+    public static final String CHANGE_NDK_CHAPTER_TO_STT_CHAPTER = "changeNdkChapterToOldPrintChapter";
+    public static final String CHANGE_STT_CHAPTER_TO_NDK_CHAPTER = "changeOldPrintChapterToNdkChapter";
+    public static final String CHANGE_NDK_PICTURE_TO_STT_GRAPHIC = "changeNdkPictureToOldPrintGraphic";
+    public static final String CHANGE_STT_GRAPHIC_TO_NDK_PICTURE = "changeOldPrintGraphicToNdkPicture";
+    public static final String CHANGE_NDK_CARTOGRAPHIC_TO_STT_CARTOGRAPHIC = "changeNdkCartographicToOldPrintCartographic";
+    public static final String CHANGE_STT_CARTOGRAPHIC_TO_NDK_CARTOGRAPHIC = "changeOldPrintCartographicToNdkCartographic";
+    public static final String CHANGE_NDK_MONOGRAPH_TO_STT_MONOGRAPH = "changeNdkMonographVolumeToOldPrintMonographVolume";
+    public static final String CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH = "changeOldPrintMonographVolumeToNdkMonographVolume";
+    public static final String CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET = "changeNdkMusicSheetToOldPrintMusicSheet";
+    public static final String CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET = "changeOldPrintMusicSheetToNdkMusicSheet";
+    public static final String CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT = "changeNdkMonographSupplementToOldPrintMonographSupplement";
+    public static final String CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT = "changeOldPrintMonographSupplementToNdkMonographSupplement";
+
 
     public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
     public static final String UPDATE_NDK_PAGE = "updateNdkPage";

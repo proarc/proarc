@@ -14,13 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint;
+package cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.Editor;
@@ -35,21 +35,21 @@ import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
- * Change K4 Periodical to Ndk Periodical
+ * Change Ndk Picture to OldPrint Graphic
  *
  * @author Lukas Sykora
  */
-public class ChangeSttMusicsheetToNdkMusicsheetAction extends AbstractAction {
+public class ChangeNdkPictureToOldprintGraphicAction extends AbstractAction {
 
     private final ClientMessages i18n;
 
-    public ChangeSttMusicsheetToNdkMusicsheetAction(ClientMessages i18n) {
-        this(i18n, i18n.ChangeSttMusicsheetToNdkMusicsheetAction_Title(),
+    public ChangeNdkPictureToOldprintGraphicAction(ClientMessages i18n) {
+        this(i18n, i18n.ChangeNdkPictureToOldPrintGraphicAction_Title(),
                 "[SKIN]/headerIcons/transfer.png",
                 i18n.ChangeModelAction_Hint());
     }
 
-    public ChangeSttMusicsheetToNdkMusicsheetAction(ClientMessages i18n, String title, String icon, String tooltip) {
+    public ChangeNdkPictureToOldprintGraphicAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
     }
@@ -86,7 +86,7 @@ public class ChangeSttMusicsheetToNdkMusicsheetAction extends AbstractAction {
             DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (modelId != null && OldPrintPlugin.MODEL_SHEETMUSIC.equals(modelId)) {
+                if (modelId != null && NdkPlugin.MODEL_PICTURE.equals(modelId)) {
                     accept = true;
                     continue;
                 }
@@ -100,14 +100,14 @@ public class ChangeSttMusicsheetToNdkMusicsheetAction extends AbstractAction {
     private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        ChangeModelsDataSource ds = ChangeModelsDataSource.changeSttMusicsheetToNdkMusicsheet();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkPictureToOldPrintGraphic();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (hasValidationError(response)) {
                     handleValidations(response);
                 } else if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.ChangeSttMusicsheetToNdkMusicsheetAction_FinishStep_Msg());
+                    StatusView.getInstance().show(i18n.ChangeNdkPictureToOldPrintGraphicAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);

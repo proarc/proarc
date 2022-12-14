@@ -96,11 +96,51 @@ public class ChangeModelsDataSource extends ProarcDataSource {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME);
     }
 
-    public static ChangeModelsDataSource changeNdkMusicsheetToSttMusicsheet() {
+    public static ChangeModelsDataSource changeNdkChapterToOldPrintChapter() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_NDK_CHAPTER_TO_STT_CHAPTER);
+    }
+
+    public static ChangeModelsDataSource changeOldPrintChapterToNdkChapter() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_CHAPTER_TO_NDK_CHAPTER);
+    }
+
+    public static ChangeModelsDataSource changeNdkPictureToOldPrintGraphic() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_NDK_PICTURE_TO_STT_GRAPHIC);
+    }
+
+    public static ChangeModelsDataSource changeOldPrintGraphicToNdkPicture() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_GRAPHIC_TO_NDK_PICTURE);
+    }
+
+    public static ChangeModelsDataSource changeNdkCartographicToOldPrintCartographic() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_NDK_CARTOGRAPHIC_TO_STT_CARTOGRAPHIC);
+    }
+
+    public static ChangeModelsDataSource changeOldPrintCartographicToNdkCartographic() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_CARTOGRAPHIC_TO_NDK_CARTOGRAPHIC);
+    }
+
+    public static ChangeModelsDataSource changeNdkMonographVolumeToOldPrintMonographVolume() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_NDK_MONOGRAPH_TO_STT_MONOGRAPH);
+    }
+
+    public static ChangeModelsDataSource changeOldPrintMonographVolumeToNdkMonographVolume() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH);
+    }
+
+    public static ChangeModelsDataSource changeNdkMusicSheetToOldPrintMusicSheet() {
         return new ChangeModelsDataSource(RestConfig.URl_CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET);
     }
 
-    public static ChangeModelsDataSource changeSttMusicsheetToNdkMusicsheet() {
+    public static ChangeModelsDataSource changeOldPrintMusicSheetToNdkMusicSheet() {
         return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET);
+    }
+
+    public static ChangeModelsDataSource changeNdkMonographSupplementToOldPrintMonographSupplement() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT);
+    }
+
+    public static ChangeModelsDataSource changeOldPrintMonographSupplementToNdkMonographSupplement() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT);
     }
 }
