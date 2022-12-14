@@ -199,6 +199,10 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         return searchViewHandler;
     }
 
+    public static boolean isNdkAudioModel(String model) {
+        return MODEL_PAGE.equals(model) || MODEL_MUSICDOCUMENT.equals(model) || MODEL_PHONOGRAPH.equals(model) || MODEL_SONG.equals(model) || MODEL_TRACK.equals(model);
+    }
+
     private static class SoundrecordingSearchViewHandler implements SearchViewHandler {
 
         @Override

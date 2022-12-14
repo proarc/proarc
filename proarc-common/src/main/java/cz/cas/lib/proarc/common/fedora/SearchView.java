@@ -52,6 +52,10 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
+    public List<SearchViewItem> findSortedChildrenWithPagesFirst(String parentPid) throws FedoraClientException, IOException, DigitalObjectException {
+        throw new IOException("Method is not implmeneted");
+    }
+
     public List<SearchViewItem> findChildren(String pid) throws FedoraClientException, IOException, DigitalObjectException {
         throw new IOException("Method is not implmeneted");
     }

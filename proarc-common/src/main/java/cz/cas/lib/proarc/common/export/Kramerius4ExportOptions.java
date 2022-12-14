@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -102,6 +103,8 @@ public final class Kramerius4ExportOptions {
             put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "hasUnit");
             put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "hasItem");
             put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "hasVolume");
+            put(NdkAudioPlugin.MODEL_SONG, "hasSoundUnit");
+            put(NdkAudioPlugin.MODEL_TRACK, "containsTrack");
         }
     };
 
@@ -132,6 +135,10 @@ public final class Kramerius4ExportOptions {
             put(OldPrintPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
             put(OldPrintPlugin.MODEL_CONVOLUTTE, "model:convolute");
             put(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, "model:convolute");
+            put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
+            put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
+            put(NdkAudioPlugin.MODEL_SONG, "model:soundunit");
+            put(NdkAudioPlugin.MODEL_TRACK, "model:track");
         }
     };
 

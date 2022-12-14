@@ -7,6 +7,8 @@ import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.fedora.SearchViewQuery;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -160,6 +162,33 @@ public class SolrSearchView extends SearchView {
                 }
             }
         }
+        return sortedItems;
+    }
+
+    @Override
+    public List<SearchViewItem> findSortedChildrenWithPagesFirst(String parentPid) throws FedoraClientException, IOException, DigitalObjectException {
+        AkubraObject parent = storage.find(parentPid);
+        List<String> memberPids = new RelationEditor(parent).getMembers();
+        List<SearchViewItem> items = find(memberPids);
+        ArrayList<SearchViewItem> sortedItems = new ArrayList<SearchViewItem>(memberPids.size());
+        ArrayList<SearchViewItem> pageModelsList = new ArrayList<>();
+        ArrayList<SearchViewItem> otherModelsList = new ArrayList<>();
+        for (String memberPid : memberPids) {
+            for (Iterator<SearchViewItem> it = items.iterator(); it.hasNext();) {
+                SearchViewItem item = it.next();
+                if (memberPid.equals(item.getPid())) {
+                    if (NdkPlugin.MODEL_PAGE.equals(item.getModel()) || NdkPlugin.MODEL_NDK_PAGE.equals(item.getModel()) || OldPrintPlugin.MODEL_PAGE.equals(item.getModel())) {
+                        pageModelsList.add(item);
+                    } else {
+                        otherModelsList.add(item);
+                    }
+                    it.remove();
+                    break;
+                }
+            }
+        }
+        sortedItems.addAll(pageModelsList);
+        sortedItems.addAll(otherModelsList);
         return sortedItems;
     }
 

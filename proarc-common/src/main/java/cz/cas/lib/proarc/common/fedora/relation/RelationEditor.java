@@ -72,6 +72,15 @@ public final class RelationEditor {
     }
 
     /**
+     * @param pid of the object
+     */
+
+    public void setAbout(String pid) throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setAbout(RelationResource.fromPid(pid));
+    }
+
+    /**
      * @return PID of the model
      */
     public String getModel() throws DigitalObjectException {

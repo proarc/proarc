@@ -98,6 +98,7 @@ import static cz.cas.lib.proarc.common.export.ExportUtils.containPageType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin.isNdkAudioModel;
 
 /**
  * Exports digital object and transforms its data streams to Kramerius4 format.
@@ -210,14 +211,16 @@ public final class Kramerius4Export {
             result.getError().add(new ResultError(null, ex));
             result.setEnd();
             ExportUtils.writeExportResult(target, reslog);
-            throw ex;
+            krameriusResult.setException(ex);
+            //throw ex;
         } catch (DigitalObjectException ex) {
             result.setStatus(ResultStatus.FAILED);
             reslog.getExports().add(result);
             result.getError().add(new ResultError(null, ex));
             result.setEnd();
             ExportUtils.writeExportResult(target, reslog);
-            throw new IllegalStateException(ex.getMessage());
+            krameriusResult.setException(ex);
+            //throw new IllegalStateException(ex.getMessage());
         } catch (MetsExportException ex ) {
             result.setStatus(ResultStatus.FAILED);
             result.getError().add(new ResultError(null, ex));
@@ -425,15 +428,125 @@ public final class Kramerius4Export {
             LocalObject local = lstorage.create(foxml, dobj);
             validate(object.getPid(), object.getParentPid());
             RelationEditor editor = new RelationEditor(local);
+            if (NdkAudioPlugin.MODEL_PAGE.equals(editor.getModel())) { // ndk audio page se nexportuje ale jeho streamy se priradi k urovni vyse
+                return;
+            }
             if (hierarchy) {
                 List<String> children = editor.getMembers();
                 toExport.addAll(createPair(object.getPid(), children));
             }
-            exportDatastreams(local, editor, hasParent);
+
+            MissingObject missingObject = new MissingObject();
+            if (containsNdkAudioPage(object.getPid())) {
+                if (NdkAudioPlugin.MODEL_SONG.equals(editor.getModel())) {
+                    String missingModelPid = createMissingModel(output, local);
+                    missingObject.setNewObjectPid(missingModelPid);
+                } else if (NdkAudioPlugin.MODEL_TRACK.equals(editor.getModel())) {
+                    insertAudioStreams(local, getFirstNdkAudioPage(object.getPid()));
+                } else {
+                    throw new DigitalObjectException("Unexpected element ( " + NdkAudioPlugin.MODEL_PAGE + ") under " + editor.getModel() + ".");
+                }
+            }
+            exportDatastreams(local, editor, hasParent, missingObject);
             local.flush();
         } catch (DigitalObjectException | FedoraClientException | JAXBException | IOException ex) {
             throw new IllegalStateException(object.getPid(), ex);
         }
+    }
+
+    private String createMissingModel(File outputFolder, LocalObject songObject) throws DigitalObjectException {
+        String localObjectPid = FoxmlUtils.createPid();
+        File foxml = ExportUtils.pidAsXmlFile(outputFolder, localObjectPid);
+        LocalObject localObj = lstorage.create(localObjectPid, foxml);
+        localObj.setOwner(songObject.getOwner());
+        localObj.setLabel(songObject.getLabel());
+        List<DatastreamType> selectedStreams = selectDatastreams(songObject.getDigitalObject().getDatastream(), ModsStreamEditor.DATASTREAM_ID, DcStreamEditor.DATASTREAM_ID, RelationEditor.DATASTREAM_ID);
+        localObj.getDigitalObject().getDatastream().addAll(selectedStreams);
+
+        insertAudioStreams(localObj, getFirstNdkAudioPage(songObject.getPid()));
+        RelationEditor relationEditor = new RelationEditor(localObj);
+
+        RelationEditor songRelationEditor = new RelationEditor(songObject);
+
+        relationEditor.setAbout(localObjectPid);
+        relationEditor.setMembers(songRelationEditor.getMembers());
+        relationEditor.setModel(NdkAudioPlugin.MODEL_TRACK);
+        relationEditor.write(relationEditor.getLastModified(), "Update");
+
+        MissingObject missingObject = new MissingObject();
+        missingObject.setParentPid(songObject.getPid());
+        exportDatastreams(localObj, relationEditor, true, missingObject);
+        localObj.flush();
+        return localObj.getPid();
+    }
+
+    private void insertAudioStreams(LocalObject desctinationObject, SearchViewItem sourceItem) {
+        String pid = sourceItem.getPid();
+        DigitalObject dobj = null;
+        try {
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                RemoteObject robject = rstorage.find(pid);
+                FedoraClient client = robject.getClient();
+                dobj = FedoraClient.export(pid).context(exportPageContext == null ? "archive" : exportPageContext)
+                        .format("info:fedora/fedora-system:FOXML-1.1")
+                        .execute(client).getEntity(DigitalObject.class);
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                AkubraObject aobject = akubraStorage.find(pid);
+                dobj = AkubraUtils.getDigitalObjectProArc(aobject.getManager(), pid);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+//            String foxml = object.asText();
+//            dobj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
+            List<DatastreamType> datastreamTypes = selectDatastreams(dobj.getDatastream(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID, BinaryEditor.NDK_AUDIO_USER_ID);
+            if (datastreamTypes.size() > 0 ){
+                desctinationObject.getDigitalObject().getDatastream().addAll(datastreamTypes);
+            }
+            return;
+        } catch (FedoraClientException | JAXBException | IOException ex) {
+            throw new IllegalStateException(pid, ex);
+        }
+    }
+
+    private List<DatastreamType> selectDatastreams(List<DatastreamType> datastreams, String... streams) {
+        List<String> acceptedStreams = filterStreams(streams);
+        List<DatastreamType> selectedDatastreams = new ArrayList<>();
+        for (DatastreamType datastream : datastreams) {
+            if (acceptedStreams.contains(datastream.getID())) {
+                selectedDatastreams.add(datastream);
+            }
+        }
+        return selectedDatastreams;
+    }
+
+    private List<String> filterStreams(String[] streams) {
+        List<String> acceptedStreams = new ArrayList<>();
+        for (String stream : streams) {
+            if (!kramerius4ExportOptions.getExcludeDatastreams().contains(stream)) {
+                acceptedStreams.add(stream);
+            }
+        }
+        return acceptedStreams;
+    }
+
+    private boolean containsNdkAudioPage(String pid) {
+        SearchViewItem item = getFirstNdkAudioPage(pid);
+        return item != null;
+    }
+
+    private SearchViewItem getFirstNdkAudioPage(String pid) {
+        try {
+            List<SearchViewItem> childDescriptors = search.findChildren(pid);
+            for (SearchViewItem childDescriptor : childDescriptors) {
+                if (NdkAudioPlugin.MODEL_PAGE.equals(childDescriptor.getModel())) {
+                    return childDescriptor;
+                }
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return null;
     }
 
     private void validate(String pid, String parentPid) throws MetsExportException, DigitalObjectException {
@@ -442,22 +555,23 @@ public final class Kramerius4Export {
             throw new MetsExportException(pid, "K4 export - nevytvoren element pro " + pid, false, null);
         } else {
             String model = ExportUtils.getModel(element.getModel());
-            if (NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model) || NdkAudioPlugin.MODEL_PAGE.equals(model)) {
+//            if (NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model) || NdkAudioPlugin.MODEL_PAGE.equals(model)) {
+            if (NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
                 ModsDefinition mods = getMods(element.getOriginalPid());
                 int pageIndex = getPageIndex(mods);
                 Integer expectedPageIndex = informations.getExpectedPageIndex(parentPid);
 
                 if (!containPageNumber(mods)) {
-                    throw new MetsExportException(pid, "Strana nemá vyplněné číslo stránky.", false, null);
+                    throw new MetsExportException(pid, "Strana (" + element.getOriginalPid() + ") nemá vyplněné číslo stránky.", false, null);
                 }
                 if (NdkPlugin.MODEL_NDK_PAGE.equals(model) && !containPageType(mods)) {
-                    throw new MetsExportException(pid, "Strana nemá vyplněný typ stránky.", false, null);
+                    throw new MetsExportException(pid, "Strana (" + element.getOriginalPid() + ") nemá vyplněný typ stránky.", false, null);
                 }
                 if (expectedPageIndex != pageIndex) {
                     if (pageIndex == -1) {
-                        throw new MetsExportException(pid, "Strana nemá vyplněný index strany. Očekávaná hodnota " + expectedPageIndex + ".", false, null);
+                        throw new MetsExportException(pid, "Strana (" + element.getOriginalPid() + ") nemá vyplněný index strany. Očekávaná hodnota " + expectedPageIndex + ".", false, null);
                     } else {
-                        throw new MetsExportException(pid, "Strana má neočekávaný index strany. Očekávaná hodnota " + expectedPageIndex + ", ale byl nalezen index "+ pageIndex + ".", false, null);
+                        throw new MetsExportException(pid, "Strana (" + element.getOriginalPid() + ") má neočekávaný index strany. Očekávaná hodnota " + expectedPageIndex + ", ale byl nalezen index "+ pageIndex + ".", false, null);
                     }
                 } else {
                     informations.add(pid, model, pageIndex, parentPid);
@@ -565,7 +679,7 @@ public final class Kramerius4Export {
         }
     }
 
-    private void exportDatastreams(LocalObject local, RelationEditor editor,  boolean hasParent) {
+    private void exportDatastreams(LocalObject local, RelationEditor editor,  boolean hasParent, MissingObject missingObject) {
         DigitalObject dobj = local.getDigitalObject();
         // XXX replace DS only for other than image/* MIMEs?
         DatastreamType fullDs = FoxmlUtils.findDatastream(dobj, BinaryEditor.FULL_ID);
@@ -584,7 +698,7 @@ public final class Kramerius4Export {
             processDublinCore(datastream, hasParent);
             processMods(datastream);
             processOcr(datastream);
-            processRelsExt(dobj.getPID(), datastream, editor, null, hasParent);
+            processRelsExt(dobj.getPID(), datastream, editor, null, hasParent, missingObject);
         }
     }
 
@@ -601,7 +715,7 @@ public final class Kramerius4Export {
             renameDatastream(datastream);
             processDublinCore(datastream, hasParent);
             processMods(datastream);
-            processRelsExt(dobj.getPID(), datastream, editor, includeChildPids, hasParent);
+            processRelsExt(dobj.getPID(), datastream, editor, includeChildPids, hasParent, null);
         }
     }
 
@@ -726,19 +840,14 @@ public final class Kramerius4Export {
 
     private void processRelsExt(String pid, DatastreamType datastream,
             RelationEditor editor, Collection<String> includePids,
-            boolean hasParent) {
+            boolean hasParent, MissingObject missingObject) {
 
         if (!RelationEditor.DATASTREAM_ID.equals(datastream.getID())) {
             return ;
         }
         try {
-            List<SearchViewItem> childDescriptors = search.findSortedChildren(pid);
-            transformRelation2Kramerius(pid, editor, childDescriptors, includePids, hasParent);
+            transformRelation2Kramerius(pid, editor, includePids, hasParent, missingObject);
         } catch (DigitalObjectException ex) {
-            throw new IllegalStateException(ex);
-        } catch (FedoraClientException ex) {
-            throw new IllegalStateException(ex);
-        } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
@@ -750,12 +859,37 @@ public final class Kramerius4Export {
                 KRAMERIUS_RELATION_NS);
     }
 
-    private void transformRelation2Kramerius(
-            String pid, RelationEditor editor, List<SearchViewItem> childDescriptors,
-            Collection<String> includePids, boolean hasParent
+    private void transformRelation2Kramerius(String pid, RelationEditor editor, Collection<String> includePids, boolean hasParent, MissingObject missingObject
             ) throws DigitalObjectException {
+        List<SearchViewItem> childDescriptors = null;
+        List<String> children = null;
 
-        List<String> children = editor.getMembers();
+        try {
+            if (missingObject != null && missingObject.getParentPid() != null) {
+                childDescriptors = search.findSortedChildrenWithPagesFirst(missingObject.getParentPid());
+                children = transformToMembers(childDescriptors);
+            } else {
+                if (isNdkAudioModel(editor.getModel())) {
+                    childDescriptors = search.findSortedChildrenWithPagesFirst(pid);
+                    children = transformToMembers(childDescriptors);
+                    if (missingObject != null && missingObject.getNewObjectPid() != null) {
+                        children.add(missingObject.getNewObjectPid());
+                        SearchViewItem missingItem = new SearchViewItem();
+                        missingItem.setModel(NdkAudioPlugin.MODEL_TRACK);
+                        missingItem.setPid(missingObject.getNewObjectPid());
+                        childDescriptors.add(missingItem);
+                    }
+                } else {
+                    childDescriptors = search.findSortedChildren(pid);
+                    children = editor.getMembers();
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FedoraClientException e) {
+            throw new RuntimeException(e);
+        }
+
         try {
             DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
             dfactory.setNamespaceAware(true);
@@ -801,17 +935,21 @@ public final class Kramerius4Export {
                 if (includePids != null && !includePids.contains(childPid)) {
                     continue;
                 }
-                String krelation = kramerius4ExportOptions.getRelationMap().get(desc.getModel());
-                if (krelation == null) {
-                    throw new IllegalStateException(String.format(
-                            "Cannot map to Kramerius relation! Child: %s, model: %s, parent: %s ",
-                            childPid, desc.getModel(), pid));
+                if (NdkAudioPlugin.MODEL_PAGE.equals(desc.getModel())) {
+                    continue; // ndk audio page se nexportuje, jeho stremy se pouziji o uroven vyse, takze nesmi byt ani v relations
+                } else {
+                    String krelation = kramerius4ExportOptions.getRelationMap().get(desc.getModel());
+                    if (krelation == null) {
+                        throw new IllegalStateException(String.format(
+                                "Cannot map to Kramerius relation! Child: %s, model: %s, parent: %s ",
+                                childPid, desc.getModel(), pid));
+                    }
+                    Element elm = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":" + krelation);
+                    elm.setAttributeNS(Relations.RDF_NS,
+                            "rdf:resource",
+                            RelationResource.fromPid(childPid).getResource());
+                    relations.add(elm);
                 }
-                Element elm = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":" + krelation);
-                elm.setAttributeNS(Relations.RDF_NS,
-                        "rdf:resource",
-                        RelationResource.fromPid(childPid).getResource());
-                relations.add(elm);
             }
             if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
                 List<String> childrens = getChildren(pid);
@@ -833,6 +971,14 @@ public final class Kramerius4Export {
         } catch (FedoraClientException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private List<String> transformToMembers(List<SearchViewItem> childDescriptors) {
+        List<String> members = new ArrayList<>();
+        for (SearchViewItem childDescriptor : childDescriptors) {
+            members.add(childDescriptor.getPid());
+        }
+        return members;
     }
 
     private void setDonator(List<Element> relations, Document doc, RelationEditor editor) throws DigitalObjectException {
@@ -1140,6 +1286,28 @@ public final class Kramerius4Export {
                 }
                 return count + 1;
             }
+        }
+    }
+
+    public class MissingObject {
+
+        private String parentPid;
+        private String newObjectPid;
+
+        public String getParentPid() {
+            return parentPid;
+        }
+
+        public void setParentPid(String parentPid) {
+            this.parentPid = parentPid;
+        }
+
+        public String getNewObjectPid() {
+            return newObjectPid;
+        }
+
+        public void setNewObjectPid(String newObjectPid) {
+            this.newObjectPid = newObjectPid;
         }
     }
 }

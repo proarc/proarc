@@ -298,10 +298,11 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             lockedDate.setWidth("*");
             lockedDate.setCanEdit(Boolean.FALSE);
 
-            ComboBoxItem donator = new ComboBoxItem(DigitalObjectAdministrationDataSource.FIELD_DONATOR,
-            i18n.DigitalObjectEditor_AdministrationAction_Donator_Title());
+            SelectItem donator = new SelectItem(DigitalObjectAdministrationDataSource.FIELD_DONATOR,
+                i18n.DigitalObjectEditor_AdministrationAction_Donator_Title());
             LinkedHashMap<String, String> valueMap = new LinkedHashMap<>();
             valueMap.put("norway", "Norské fondy");
+            valueMap.put("dkrvo19-23", "DKRVO 2019 - 2023");
             donator.setValueMap(valueMap);
             donator.setAllowEmptyValue(true);
             donator.setEmptyDisplayValue(ClientUtils.format("<i>&lt;%s&gt;</i>",

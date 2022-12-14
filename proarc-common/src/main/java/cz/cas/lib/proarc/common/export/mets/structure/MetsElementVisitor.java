@@ -1973,13 +1973,13 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         ModsDefinition mods = getMods(metsElement);
         int pageIndex = getPageIndex(mods);
         if (!containPageNumber(mods)) {
-            throw new MetsExportException(metsElement.getOriginalPid(), "Strana nemá vyplněné číslo stránky.", false, null);
+            throw new MetsExportException(metsElement.getOriginalPid(), "Strana (" + metsElement.getOriginalPid() + ") nemá vyplněné číslo stránky.", false, null);
         }
         if (pageIndexExpected != pageIndex) {
             if (pageIndex == -1) {
-                throw new MetsExportException(metsElement.getOriginalPid(), "Strana nemá vyplněný index strany. Očekávaná hodnota " + pageIndexExpected + ".", false, null);
+                throw new MetsExportException(metsElement.getOriginalPid(), "Strana (" + metsElement.getOriginalPid() + ") nemá vyplněný index strany. Očekávaná hodnota " + pageIndexExpected + ".", false, null);
             } else {
-                throw new MetsExportException(metsElement.getOriginalPid(), "Strana má neočekávaný index strany. Očekávaná hodnota " + pageIndexExpected + ", ale byl nalezen index " + pageIndex + ".", false, null);
+                throw new MetsExportException(metsElement.getOriginalPid(), "Strana (" + metsElement.getOriginalPid() + ") má neočekávaný index strany. Očekávaná hodnota " + pageIndexExpected + ", ale byl nalezen index " + pageIndex + ".", false, null);
             }
         }
     }
