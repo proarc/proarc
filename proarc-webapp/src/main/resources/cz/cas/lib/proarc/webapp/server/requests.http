@@ -133,3 +133,20 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 {&id=476&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
+
+###
+
+POST http://localhost:8081/proarc/rest/v1/object/mods/editorPagesCopyMetadata
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&sourcePids=[uuid%3A3bd2ed5e-36f0-44d4-8f21-b7230e71ab61,uuid%3A83f5ac44-3a40-4953-8013-2e1c63e71ad8,uuid%3A59904a07-3f23-4518-ba70-24f16cdf27e4]&destinationPids=[uuid%3A3bd3ed5e-36f0-44d4-8f21-b7230e71ab61,uuid%3A83f53c44-3a40-4953-8013-2e1c63e71ad8,uuid%3A59904a03-3f23-4518-ba70-24f16cdf27e4]&copyPageIndex=true&copyPageNumber=false&copyPageType=true&batchId=12}
+
+###
+
+POST http://localhost:8081/proarc/rest/v1/object/mods/editorPagesCopyMetadata
+Content-Type: application/json
+
+{"sourcePids":["uuid:83702174-8d13-496c-b6e7-b435c0ae0a12"],"destinationPids":["uuid:edfbe2b3-5e92-4177-af3d-cdf57fbc9407","uuid:6e6fe60a-3f6d-49c1-8179-e140b2b7e4d0","uuid:249a3e2a-6d41-4fa4-aa53-bcfe545355ce"],"copyPageIndex":true,"copyPageNumber":true,"copyPageType":false,"batchId":"594"}
+###
+

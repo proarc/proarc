@@ -35,6 +35,11 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_SERIES_DATE_TO_PARAM = "seriesDateTo";
     public static final String DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM = "seriesDaysIncluded";
     public static final String DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM = "seriesPartNumberFrom";
+    public static final String DIGITALOBJECT_SOURCE_PIDS = "sourcePids";
+    public static final String DIGITALOBJECT_DESTINATION_PIDS = "destinationPids";
+    public static final String DIGITALOBJECT_COPY_PAGE_NUMBER = "copyPageNumber";
+    public static final String DIGITALOBJECT_COPY_PAGE_INDEX = "copyPageIndex";
+    public static final String DIGITALOBJECT_COPY_PAGE_TYPE = "copyPageType";
 
     public static final String NEWOBJECT_XML_PARAM = "xml";
 
@@ -134,6 +139,7 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_CUSTOM_PATH = "custom";
     public static final String MODS_CUSTOM_EDITORID = "editorId";
     public static final String MODS_CUSTOM_EDITOR_PAGES = "editorPages";
+    public static final String MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA = "editorPagesCopyMetadata";
     public static final String MODS_CUSTOM_CUSTOMJSONDATA = "jsonData";
     public static final String MODS_CUSTOM_CUSTOMXMLDATA = "xmlData";
     public static final String MODS_CUSTOM_IGNOREVALIDATION = "ignoreValidation";

@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.actions.LockObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.UpdateObjects;
 import cz.cas.lib.proarc.common.actions.UpdatePages;
+import cz.cas.lib.proarc.common.actions.UpdatePagesMetadata;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -1374,6 +1375,67 @@ public class DigitalObjectResource {
             updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePossition);
             return new SmartGwtResponse<>();
         }
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
+            CopyPagesMetadataRequest request
+    ) throws IOException, DigitalObjectException {
+        return copyDescriptionMetadataToPages(request.sourcePidsArray, request.destinationPidsArray, request.copyPageNumber, request.copyPageType, request.copyPageIndex, request.batchId);
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SOURCE_PIDS) List<String> sourcePids,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_DESTINATION_PIDS) List<String> destinationPids,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_NUMBER) Boolean copyPageNumber,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_TYPE) Boolean copyPageType,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_INDEX) Boolean copyPageIndex,
+            @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
+    ) throws IOException, DigitalObjectException {
+
+        if (batchId != null) {
+            Batch batch = importManager.get(batchId);
+            List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
+
+            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType);
+            updatePagesMetadata.updatePagesLocal(objects);
+            return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, null);
+        } else {
+            if (isLocked(destinationPids)) {
+                DigitalObjectValidationException validationException = new DigitalObjectValidationException(destinationPids.get(0), null, null, "Locked", null);
+                validationException.addValidation("Locked", ERR_IS_LOCKED, false);
+                return toError(validationException, STATUS_LOCKED);
+            }
+            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType);
+            updatePagesMetadata.updatePages();
+            return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, null);
+        }
+    }
+
+
+    /**
+     * {@link #copyDescriptionMetadataToPages(CopyPagesMetadataRequest)} request body.
+     */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class CopyPagesMetadataRequest {
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_SOURCE_PIDS)
+        List<String> sourcePidsArray;
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_DESTINATION_PIDS)
+        List<String> destinationPidsArray;
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
+        Integer batchId;
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_TYPE)
+        Boolean copyPageType;
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_INDEX)
+        Boolean copyPageIndex;
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_NUMBER)
+        Boolean copyPageNumber;
     }
 
     @POST

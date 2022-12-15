@@ -482,7 +482,7 @@ public class UpdatePages {
         }
     }
 
-    private List<ImportBatchManager.BatchItemObject> getRelevantObjects(List<ImportBatchManager.BatchItemObject> objects, List<String> pids) {
+    public static List<ImportBatchManager.BatchItemObject> getRelevantObjects(List<ImportBatchManager.BatchItemObject> objects, List<String> pids) {
         if (pids == null || pids.isEmpty() || objects == null || objects.isEmpty()) {
             return null;
         }
