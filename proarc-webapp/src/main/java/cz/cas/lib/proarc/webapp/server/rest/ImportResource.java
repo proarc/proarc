@@ -63,6 +63,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -578,6 +579,14 @@ public class ImportResource {
         }
         List<Item> records = new PageView().list(batchId, imports, session.getLocale(httpHeaders));
         return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, totalRows, records);
+    }
+
+    @DELETE
+    @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
+    @Consumes({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<PageView.Item> deleteBatchItem(
+            ProArcRequest.DeleteObjectRequest deleteObjectRequest) {
+        return deleteBatchItem(deleteObjectRequest.batchId, deleteObjectRequest.getPidsAsSet());
     }
 
     @DELETE

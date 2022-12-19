@@ -150,3 +150,14 @@ Content-Type: application/json
 {"sourcePids":["uuid:83702174-8d13-496c-b6e7-b435c0ae0a12"],"destinationPids":["uuid:edfbe2b3-5e92-4177-af3d-cdf57fbc9407","uuid:6e6fe60a-3f6d-49c1-8179-e140b2b7e4d0","uuid:249a3e2a-6d41-4fa4-aa53-bcfe545355ce"],"copyPageIndex":true,"copyPageNumber":true,"copyPageType":false,"batchId":"594"}
 ###
 
+DELETE http://localhost:8081/proarc/rest/v1/object
+Content-Type: application/json
+
+{"pid":["uuid:83702174-8d13-496c-b6e7-b435c0ae0a12"],"hierarchy":true, "purge":true, "restore":false}
+
+###
+
+DELETE http://localhost:8081/proarc/rest/v1/import/batch/item
+Content-Type: application/json
+
+{"pid":["uuid:83702174-8d13-496c-b6e7-b435c0ae0a12"],"batchId":"135"}

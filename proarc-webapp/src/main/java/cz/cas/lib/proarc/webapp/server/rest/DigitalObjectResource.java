@@ -333,6 +333,15 @@ public class DigitalObjectResource {
         }
     }
 
+    @DELETE
+    @Produces({MediaType.APPLICATION_JSON})
+    @Consumes({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DigitalObject> deleteObject(
+            ProArcRequest.DeleteObjectRequest deleteObjectRequest
+    ) throws PurgeException, IOException {
+        return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
+    }
+
     /**
      * @see PurgeFedoraObject
      */
@@ -666,18 +675,6 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<SearchViewItem>(items);
     }
 
-    /**
-     * {@link #setMembers(SetMemberRequest)} request body.
-     */
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class SetMemberRequest {
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PARENT)
-        String parentPid;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
-        Integer batchId;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PID)
-        List<String> toSetPids;
-    }
 
     /**
      * Sets new member sequence of given parent digital object.
@@ -689,7 +686,7 @@ public class DigitalObjectResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> setMembers(
-            SetMemberRequest request
+            ProArcRequest.SetMemberRequest request
     ) throws IOException, FedoraClientException, DigitalObjectException {
 
         return setMembers(request.parentPid, request.batchId, request.toSetPids);
@@ -1006,27 +1003,12 @@ public class DigitalObjectResource {
         }
     }
 
-    /**
-     * The helper for {@link #moveMembers(MoveMembersRequest) } request body.
-     */
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class MoveMembersRequest {
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID)
-        String srcParentPid;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID)
-        String dstParentPid;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
-        Integer batchId;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PID)
-        List<String> pids;
-    }
-
     @PUT
     @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_MOVE_PATH)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> moveMembers(
-            MoveMembersRequest request
+            ProArcRequest.MoveMembersRequest request
     ) throws IOException, DigitalObjectException, FedoraClientException {
 
         return moveMembers(request.srcParentPid, request.dstParentPid, request.batchId, request.pids);
@@ -1382,7 +1364,7 @@ public class DigitalObjectResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
-            CopyPagesMetadataRequest request
+            ProArcRequest.CopyPagesMetadataRequest request
     ) throws IOException, DigitalObjectException {
         return copyDescriptionMetadataToPages(request.sourcePidsArray, request.destinationPidsArray, request.copyPageNumber, request.copyPageType, request.copyPageIndex, request.batchId);
     }
@@ -1416,26 +1398,6 @@ public class DigitalObjectResource {
             updatePagesMetadata.updatePages();
             return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, null);
         }
-    }
-
-
-    /**
-     * {@link #copyDescriptionMetadataToPages(CopyPagesMetadataRequest)} request body.
-     */
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class CopyPagesMetadataRequest {
-        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_SOURCE_PIDS)
-        List<String> sourcePidsArray;
-        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_DESTINATION_PIDS)
-        List<String> destinationPidsArray;
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
-        Integer batchId;
-        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_TYPE)
-        Boolean copyPageType;
-        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_INDEX)
-        Boolean copyPageIndex;
-        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_NUMBER)
-        Boolean copyPageNumber;
     }
 
     @POST
