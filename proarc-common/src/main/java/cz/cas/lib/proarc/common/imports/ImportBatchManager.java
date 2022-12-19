@@ -354,6 +354,17 @@ public class ImportBatchManager {
         }
     }
 
+    public List<Batch> findExportingBatches() {
+        BatchDao batchDao = daos.createBatch();
+        Transaction tx = daos.createTransaction();
+        batchDao.setTransaction(tx);
+        try {
+            return batchDao.findExportingBatches();
+        } finally {
+            tx.close();
+        }
+    }
+
     public String relativizeBatchFile(File file) {
         return file == null ? null : getBatchRoot().relativize(file.toURI()).toASCIIString();
     }

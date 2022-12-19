@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.authentication.Authenticators;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
@@ -101,6 +102,7 @@ public final class ProarcInitializer {
         initProarcModel(config);
         DataSource proarcSource = initProarcDb();
         initUsers(config, proarcSource, daoFactory);
+        finishedExportingBatch(config, daoFactory);
         initImport(config, daoFactory);
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 config, akubraConfiguration, ImportBatchManager.getInstance(),
@@ -213,6 +215,12 @@ public final class ProarcInitializer {
         ImportDispatcher.setDefault(importDispatcher);
         importDispatcher.init();
         ImportProcess.resumeAll(ibm, importDispatcher, config);
+    }
+
+    private void finishedExportingBatch(AppConfiguration config, DaoFactory daoFactory) {
+        ImportBatchManager.setInstance(config, daoFactory);
+        ImportBatchManager ibm = ImportBatchManager.getInstance();
+        BatchUtils.finishedExportingBatch(ibm, config);
     }
 
     private void initWorkflow(AppConfiguration config, DaoFactory daoFactory, UserManager users) {

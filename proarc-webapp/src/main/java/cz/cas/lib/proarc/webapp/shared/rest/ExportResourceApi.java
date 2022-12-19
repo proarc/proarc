@@ -40,6 +40,11 @@ public final class ExportResourceApi {
     public static final String KRAMERIUS4_HIERARCHY_PARAM = "hierarchy";
     public static final String KRAMERIUS4_POLICY_PARAM = "policy";
 
+    public static final String KRAMERIUS_INSTANCE = "krameriusInstance";
+    public static final String KRAMERIUS_INSTANCE_PARAM = "krameriusInstanceParam";
+    public static final String KRAMERIUS_INSTANCE_ID = "krameriusInstanceId";
+    public static final String KRAMERIUS_INSTANCE_NAME = "krameriusInstanceName";
+
     public static final String KWIS_PATH = "kwis";
     public static final String KWIS_PID_PARAM = "pid";
     public static final String KWIS_HIERARCHY_PARAM = "hierarchy";

@@ -17,7 +17,9 @@
 package cz.cas.lib.proarc.webapp.client.ds;
 
 import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
+import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.types.PromptStyle;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 
@@ -32,7 +34,13 @@ public final class ExportDataSource extends ProarcDataSource {
         setDataURL(dataUrl);
 
         DataSourceTextField target = new DataSourceTextField(ExportResourceApi.RESULT_TARGET);
-        setFields(target);
+
+        DataSourceField fieldId = new DataSourceField(ExportResourceApi.KRAMERIUS_INSTANCE_ID, FieldType.TEXT);
+        fieldId.setPrimaryKey(true);
+
+        DataSourceField fieldTitle = new DataSourceField(ExportResourceApi.KRAMERIUS_INSTANCE_NAME, FieldType.TEXT);
+
+        setFields(target, fieldId, fieldTitle);
 
         DSRequest dsRequest = RestConfig.createRestRequest(getDataFormat());
         dsRequest.setPromptStyle(PromptStyle.DIALOG);

@@ -128,6 +128,14 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         return Collections.unmodifiableList(result);
     }
 
+    @Override
+    public List<Batch> findExportingBatches() {
+        BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
+        result.getCommand().where(table.state.is(State.EXPORTING));
+        result.fetch(getConnection());
+        return Collections.unmodifiableList(result);
+    }
+
     private Batch getBeanProperties(DBRecordData record) {
         return getBeanProperties(record, null);
     }
