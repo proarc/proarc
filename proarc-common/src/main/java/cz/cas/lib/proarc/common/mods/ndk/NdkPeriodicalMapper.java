@@ -147,16 +147,12 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
                 }
             }
             if (reqForm == null) {
-                reqForm = new FormDefinition();
-                reqForm.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
-                reqForm.setValue("print");
+                reqForm = newFormDefinition();
                 forms.add(0, reqForm);
             }
         }
         if (reqPhysicalDescription == null) {
-            reqForm = new FormDefinition();
-            reqForm.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
-            reqForm.setValue("print");
+            reqForm = newFormDefinition();
             reqPhysicalDescription = new PhysicalDescriptionDefinition();
             reqPhysicalDescription.getForm().add(reqForm);
             physicalDescriptions.add(reqPhysicalDescription);
@@ -182,6 +178,13 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
         fillLanguage(mods);
         fillAbstract(mods);
         fillRecordInfo(mods);
+    }
+
+    protected FormDefinition newFormDefinition() {
+        FormDefinition reqForm = new FormDefinition();
+        reqForm.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
+        reqForm.setValue("print");
+        return reqForm;
     }
 
     protected void addGenre(ModsDefinition mods) {

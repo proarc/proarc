@@ -17,9 +17,11 @@
 package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkArticleMapper;
 import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
+import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -34,7 +36,27 @@ public class NdkEArticleMapper extends NdkArticleMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
-        mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getDigitalOrigin).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
+        PhysicalDescriptionDefinition reqPhysicalDescription = null;
+
+        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+            reqPhysicalDescription = pd;
+        }
+        if (reqPhysicalDescription == null) {
+            reqPhysicalDescription = new PhysicalDescriptionDefinition();
+            reqPhysicalDescription.getDigitalOrigin().add(DigitalOriginDefinition.BORN_DIGITAL);
+            reqPhysicalDescription.getForm().add(newFormDefinition());
+            mods.getPhysicalDescription().add(reqPhysicalDescription);
+        } else {
+            mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getDigitalOrigin).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
+            mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getForm).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(newFormDefinition()));
+        }
+    }
+
+    private FormDefinition newFormDefinition() {
+        FormDefinition reqForm = new FormDefinition();
+        reqForm.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
+        reqForm.setValue("electronic");
+        return reqForm;
     }
 
     @Override
