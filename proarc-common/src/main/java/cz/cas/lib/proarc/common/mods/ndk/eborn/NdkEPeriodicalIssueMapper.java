@@ -35,7 +35,18 @@ public class NdkEPeriodicalIssueMapper extends NdkPeriodicalIssueMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
-        mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getDigitalOrigin).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
+        PhysicalDescriptionDefinition reqPhysicalDescription = null;
+
+        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+            reqPhysicalDescription = pd;
+        }
+        if (reqPhysicalDescription == null) {
+            reqPhysicalDescription = new PhysicalDescriptionDefinition();
+            reqPhysicalDescription.getDigitalOrigin().add(DigitalOriginDefinition.BORN_DIGITAL);
+            mods.getPhysicalDescription().add(reqPhysicalDescription);
+        } else {
+            mods.getPhysicalDescription().stream().map(PhysicalDescriptionDefinition::getDigitalOrigin).filter(origin -> origin.isEmpty()).forEach(origin -> origin.add(DigitalOriginDefinition.BORN_DIGITAL));
+        }
     }
 
     @Override

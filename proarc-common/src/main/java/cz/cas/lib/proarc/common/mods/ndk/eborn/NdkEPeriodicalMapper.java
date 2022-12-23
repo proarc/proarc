@@ -17,9 +17,11 @@
 package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPeriodicalMapper;
 import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
+import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -42,6 +44,14 @@ public class NdkEPeriodicalMapper extends NdkPeriodicalMapper {
         //  mods/genre="electronic_title"
         MapperUtils.removeGenre(mods, Const.GENRE_ETITLE_MONOGRAPH);
         MapperUtils.addGenre(mods, Const.GENRE_ETITLE_PERIODICAL);
+    }
+
+    @Override
+    protected FormDefinition newFormDefinition() {
+        FormDefinition formDefinition = new FormDefinition();
+        formDefinition.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
+        formDefinition.setValue("electronic");
+        return formDefinition;
     }
 
     @Override
