@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
+import cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportFoxml;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
@@ -71,6 +72,7 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -93,9 +95,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import static cz.cas.lib.proarc.common.export.ExportOptions.KRAMERIUS_INSTANCE_LOCAL;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
+import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_FAILED;
+import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_WARNING;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin.isNdkAudioModel;
@@ -175,7 +181,7 @@ public final class Kramerius4Export {
         }
     }
 
-    public Result export(File output, boolean hierarchy, String log, String... pids) {
+    public Result export(File output, boolean hierarchy, String log, String krameriusInstanceId, String... pids) {
         if (!output.exists() || !output.isDirectory()) {
             throw new IllegalStateException(String.valueOf(output));
         }
@@ -205,6 +211,31 @@ public final class Kramerius4Export {
             result.setEnd();
             ExportUtils.writeExportResult(target, reslog);
             krameriusResult.setPageCount(exportedPids.size());
+
+            if (!(krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId))) {
+                ExportOptions.KrameriusInstance instance = ExportOptions.findKrameriusInstance(exportOptions.getKrameriusInstances(), krameriusInstanceId);
+                AutomaticImportFoxml importFoxml = new AutomaticImportFoxml(instance, krameriusResult.getFile());
+                String state = importFoxml.importToKramerius();
+                if (KRAMERIUS_PROCESS_FINISHED.equals(state)) {
+                    if (instance.deleteAfterImport()) {
+                        MetsUtils.deleteFolder(krameriusResult.getFile());
+                    }
+                }
+                switch (state) {
+                    case KRAMERIUS_PROCESS_FINISHED:
+                        krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
+                        krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FINISHED);
+                        break;
+                    case KRAMERIUS_PROCESS_FAILED:
+                        krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
+                        krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
+                        break;
+                    case KRAMERIUS_PROCESS_WARNING:
+                        krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel s chybou.");
+                        krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                        break;
+                }
+            }
         } catch (RuntimeException ex) {
             result.setStatus(ResultStatus.FAILED);
             reslog.getExports().add(result);
@@ -232,6 +263,12 @@ public final class Kramerius4Export {
             result.getError().add(new ResultError(null, ex));
             result.setEnd();
             krameriusResult.setException(ex);
+            ExportUtils.writeExportResult(target, reslog);
+        } catch (Throwable ex) {
+            result.setStatus(ResultStatus.FAILED);
+            result.getError().add(new ResultError(null, ex));
+            result.setEnd();
+            krameriusResult.setException(new DigitalObjectException(null, ex.getMessage()));
             ExportUtils.writeExportResult(target, reslog);
         }
         return krameriusResult;
@@ -1178,11 +1215,27 @@ public final class Kramerius4Export {
         }
     }
 
+    public File getExportFolder(String krameriusInstanceId, URI exportUri) {
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return new File(exportUri);
+        } else {
+            ExportOptions.KrameriusInstance instance = ExportOptions.findKrameriusInstance(exportOptions.getKrameriusInstances(), krameriusInstanceId);
+            File exportFile = new File(instance.getExportFolder());
+            if (!exportFile.exists() || !exportFile.isDirectory() || !exportFile.canRead() || !exportFile.canWrite()) {
+                throw new IllegalArgumentException("Error s nakonfigurovanou cestou: " + instance.getExportFolder() + " (zkontrolujte, ze cesta existuje a mate do ni prava na cteni a zapis.");
+            } else {
+                return exportFile;
+            }
+        }
+    }
+
     public static class Result {
         private File file;
         private Integer pageCount;
         private MetsExportException validationError;
         private Exception ex;
+        private String message;
+        private String krameriusImportState;
 
         public File getFile() {
             return file;
@@ -1214,6 +1267,22 @@ public final class Kramerius4Export {
 
         public void setException(Exception ex) {
             this.ex = ex;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public String getKrameriusImportState() {
+            return krameriusImportState;
+        }
+
+        public void setKrameriusImportState(String krameriusImportState) {
+            this.krameriusImportState = krameriusImportState;
         }
     }
 

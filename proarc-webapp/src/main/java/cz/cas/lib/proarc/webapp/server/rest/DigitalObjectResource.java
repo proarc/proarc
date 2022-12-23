@@ -3275,7 +3275,7 @@ public class DigitalObjectResource {
                     reindexObjects.reindex(parentElement);
                 }
             }
-            BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), Batch.State.REINDEX_DONE);
+            BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), null, Batch.State.REINDEX_DONE);
             return new SmartGwtResponse<>();
         } catch (Exception ex) {
             BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), ImportBatchManager.toString(ex), Batch.State.REINDEX_FAILED);

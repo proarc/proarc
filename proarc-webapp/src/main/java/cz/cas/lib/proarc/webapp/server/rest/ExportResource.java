@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.export.DataStreamExport;
 import cz.cas.lib.proarc.common.export.DesaExport;
 import cz.cas.lib.proarc.common.export.DesaExport.Result;
 import cz.cas.lib.proarc.common.export.ExportException;
+import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportUtils;
@@ -78,6 +79,7 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -106,6 +108,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.server.CloseableService;
 
+import static cz.cas.lib.proarc.common.export.ExportOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_FAILED;
+import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_WARNING;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 
@@ -189,7 +195,8 @@ public class ExportResource {
     public SmartGwtResponse<ExportResult> kramerius4(
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
-            @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
+            @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
+            @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId
             ) throws Exception {
 
         if (pids.isEmpty()) {
@@ -198,10 +205,8 @@ public class ExportResource {
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS);
         try {
             Kramerius4Export export = new Kramerius4Export(appConfig, akubraConfiguration, policy);
-            URI exportUri = user.getExportFolder();
-            File exportFolder = new File(exportUri);
-            Kramerius4Export.Result k4Result = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
-
+            File exportFolder = export.getExportFolder(krameriusInstanceId, user.getExportFolder());
+            Kramerius4Export.Result k4Result = export.export(exportFolder, hierarchy, session.asFedoraLog(), krameriusInstanceId, pids.toArray(new String[pids.size()]));
             ExportResult result = null;
             if (k4Result.getException() != null) {
                 String exportPath = MetsUtils.renameFolder(exportFolder, k4Result.getFile(), null);
@@ -213,21 +218,51 @@ public class ExportResource {
                 result = new ExportResult(k4Result.getValidationError().getExceptions());
             } else {
                 URI targetPath = user.getUserHomeUri().relativize(k4Result.getFile().toURI());
-                BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath());
-                result = new ExportResult(targetPath);
-
+                if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+                    BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath());
+                    result = new ExportResult(targetPath);
+                } else {
+                    if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FAILED.equals(k4Result.getKrameriusImportState())) {
+                        BatchUtils.finishedExportWithError(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
+                    } else if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_WARNING.equals(k4Result.getKrameriusImportState())) {
+                        BatchUtils.finishedExportWithWarning(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
+                    } else if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FINISHED.equals(k4Result.getKrameriusImportState())) {
+                        BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
+                    }
+                }
                 for (String pid : pids) {
                     setWorkflowExport("task.exportK4", "param.exportK4", k4Result.getPageCount(), getRoot(pid, exportFolder));
                 }
             }
             return new SmartGwtResponse<>(result);
         } catch (Exception ex) {
+            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
             if (ex instanceof DigitalObjectException || ex instanceof MetsExportException || ex instanceof WorkflowException) {
                 throw new IOException(ex);
             }
-            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
             throw ex;
         }
+    }
+
+    @GET
+    @Path(ExportResourceApi.KRAMERIUS4_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<KrameriusDescriptor> krameriusInstances(
+            @QueryParam(ExportResourceApi.KRAMERIUS_INSTANCE_ID) String id) {
+
+        List<ExportOptions.KrameriusInstance> krameriusInstances;
+        if (id == null) {
+            krameriusInstances = appConfig.getExportOptions().getKrameriusInstances();
+        } else {
+            List<ExportOptions.KrameriusInstance> listOfInstances = appConfig.getExportOptions().getKrameriusInstances();
+            ExportOptions.KrameriusInstance krameriusInstance = ExportOptions.findKrameriusInstance(listOfInstances, id);
+            krameriusInstances = krameriusInstance != null ? Arrays.asList(krameriusInstance) : Collections.<ExportOptions.KrameriusInstance>emptyList();
+        }
+        ArrayList<KrameriusDescriptor> result = new ArrayList<>(krameriusInstances.size());
+        for (ExportOptions.KrameriusInstance kc : krameriusInstances) {
+            result.add(KrameriusDescriptor.create(kc));
+        }
+        return new SmartGwtResponse<KrameriusDescriptor>(result);
     }
 
     /**
@@ -912,7 +947,7 @@ public class ExportResource {
             path = user.getExportFolder().getPath();
         }
         File exportFolder = new File(path);
-        Kramerius4Export.Result target = export.export(exportFolder, hierarchy, session.asFedoraLog(), pids.toArray(new String[pids.size()]));
+        Kramerius4Export.Result target = export.export(exportFolder, hierarchy, session.asFedoraLog(), null, pids.toArray(new String[pids.size()]));
         if (target.getException() != null) {
             MetsUtils.renameFolder(exportFolder, target.getFile(), null);
             throw target.getException();
@@ -959,6 +994,24 @@ public class ExportResource {
         }
 
         return fileNames;
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class KrameriusDescriptor {
+
+        public static KrameriusDescriptor create(ExportOptions.KrameriusInstance krameriusInstance) {
+            return new KrameriusDescriptor(krameriusInstance.getId(), krameriusInstance.getTitle());
+        }
+
+        @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_ID)
+        private String id;
+        @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_NAME)
+        private String name;
+
+        public KrameriusDescriptor(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
     }
 
 

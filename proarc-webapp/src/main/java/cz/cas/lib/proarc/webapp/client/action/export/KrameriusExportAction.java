@@ -25,6 +25,8 @@ import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.RadioGroupItem;
+import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.grid.ListGridRecord;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -41,6 +43,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import static cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi.KRAMERIUS4_POLICY_PARAM;
+import static cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi.KRAMERIUS_INSTANCE;
+import static cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi.KRAMERIUS_INSTANCE_ID;
+import static cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi.KRAMERIUS_INSTANCE_NAME;
+import static cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi.KRAMERIUS_INSTANCE_PARAM;
 
 /**
  * Exports selected digital objects in Kramerius 4 format.
@@ -55,6 +61,7 @@ public final class KrameriusExportAction extends ExportAction {
     public static final String K4_POLICY_PRVIATE = "policy:private";
 
     private RadioGroupItem rgi;
+    private SelectItem si;
 
     public KrameriusExportAction(ClientMessages i18n) {
         super(i18n, i18n.KrameriusExportAction_Title(), null, i18n.KrameriusExportAction_Hint());
@@ -149,6 +156,17 @@ public final class KrameriusExportAction extends ExportAction {
         rgi.setValueMap(radioButtonMap);
         rgi.setDefaultValue(K4_POLICY_PUBLIC);
         rgi.setVertical(false);
+
+        si = new SelectItem(KRAMERIUS_INSTANCE_PARAM, "Kramerius instances");
+        si.setOptionDataSource(ExportDataSource.getKramerius4());
+        si.setRequired(true);
+        si.setValueField(KRAMERIUS_INSTANCE_ID);
+        si.setDisplayField(KRAMERIUS_INSTANCE_NAME);
+        si.setAutoFetchData(true);
+        si.setDefaultToFirstOption(true);
+        si.setWidth(350);
+
+        formItems.add(si);
         formItems.add(rgi);
 
         return formItems;
@@ -157,6 +175,9 @@ public final class KrameriusExportAction extends ExportAction {
     @Override
     protected void setRequestOptions(Record record) {
         record.setAttribute(KRAMERIUS4_POLICY_PARAM, rgi.getValueAsString());
+        ListGridRecord listKrameriusInstances = si.getSelectedRecord();
+        String krameriusInstance = listKrameriusInstances.getAttribute(KRAMERIUS_INSTANCE_ID);
+        record.setAttribute(KRAMERIUS_INSTANCE, krameriusInstance);
     }
 
     private RecordList errorsFromExportResult(Record[] exportResults) {

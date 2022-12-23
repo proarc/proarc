@@ -168,7 +168,7 @@ public class Kramerius4ExportTest {
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
         Kramerius4Export instance = new Kramerius4Export(storage, config, akubraConfiguration);
-        Kramerius4Export.Result k4Result = instance.export(output, hierarchy, "export status", pids);
+        Kramerius4Export.Result k4Result = instance.export(output, hierarchy, "export status", null, pids);
         assertNotNull(k4Result);
         File foxml = ExportUtils.pidAsXmlFile(k4Result.getFile(), pids[0]);
         String foxmlAsURI = foxml.toURI().toASCIIString();
@@ -192,7 +192,7 @@ public class Kramerius4ExportTest {
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         RemoteStorage storage = fedora.getRemoteStorage();
         Kramerius4Export instance = new Kramerius4Export(storage, config, akubraConfiguration);
-        Kramerius4Export.Result k4Result = instance.export(output, hierarchy, "export status", pids);
+        Kramerius4Export.Result k4Result = instance.export(output, hierarchy, "export status", null, pids);
         assertNotNull(k4Result);
 
         // check datastreams with xpath

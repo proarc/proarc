@@ -50,4 +50,6 @@ public interface BatchDao extends Dao {
 
     List<Batch> findLoadingBatches();
 
+    List<Batch> findExportingBatches();
+
 }

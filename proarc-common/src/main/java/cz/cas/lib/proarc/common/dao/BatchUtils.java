@@ -1,5 +1,6 @@
 package cz.cas.lib.proarc.common.dao;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
@@ -13,33 +14,17 @@ public class BatchUtils {
         return batchManager.add(getPid(pids), user, exportProfile, state);
     }
 
-    public static Batch finishedSuccessfully(ImportBatchManager batchManager, Batch batch, String path, Batch.State state) {
+    public static Batch finishedSuccessfully(ImportBatchManager batchManager, Batch batch, String path, String message, Batch.State state) {
         batch.setState(state);
         batch.setFolder(path);
-        batch.setLog(null);
+        batch.setLog(message != null && !message.isEmpty() ? message : null);
         return batchManager.update(batch);
     }
 
-    public static Batch finishedWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions, Batch.State state) {
+    private static Batch finishedWithWarning(ImportBatchManager batchManager, Batch batch, String path, String warnings, Batch.State state) {
         batch.setState(state);
         batch.setFolder(path);
-        if (!exceptions.isEmpty() && exceptions.get(0) != null) {
-            MetsExportException.MetsExportExceptionElement exceptionElement = exceptions.get(0);
-            if (exceptionElement.isWarning()) {
-                batch.setLog(exceptionElement.getMessage());
-            } else {
-                StringWriter writer = new StringWriter();
-                if (exceptionElement.getMessage() != null) {
-                    writer.append(exceptionElement.getMessage());
-                } else if (exceptionElement.getEx() != null) {
-                    if (!writer.toString().isEmpty()) {
-                        writer.append("\n");
-                    }
-                    writer.append(ImportBatchManager.toString(exceptionElement.getEx()));
-                }
-                batch.setLog(writer.toString().isEmpty() ? null : writer.toString());
-            }
-        }
+        batch.setLog(warnings);
         return batchManager.update(batch);
     }
 
@@ -74,14 +59,45 @@ public class BatchUtils {
         return finishedWithError(batchManager, batch, path, resultError.getDetails(), Batch.State.EXPORT_FAILED);
     }
 
-    public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions) {
-        return finishedWithWarning(batchManager, batch, path, exceptions, Batch.State.EXPORT_FAILED);
+    public static Batch finishedExportWithError(ImportBatchManager batchManager, Batch batch, String path, String message) {
+        return finishedWithError(batchManager, batch, path, message, Batch.State.EXPORT_FAILED);
     }
 
+    public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions) {
+        return finishedExportWithWarning(batchManager, batch, path, exceptions, Batch.State.EXPORT_FAILED);
+    }
 
+    public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions, Batch.State state) {
+        if (!exceptions.isEmpty() && exceptions.get(0) != null) {
+            MetsExportException.MetsExportExceptionElement exceptionElement = exceptions.get(0);
+            if (exceptionElement.isWarning()) {
+                return finishedWithWarning(batchManager, batch, path, exceptionElement.getMessage(), state);
+            } else {
+                StringWriter writer = new StringWriter();
+                if (exceptionElement.getMessage() != null) {
+                    writer.append(exceptionElement.getMessage());
+                } else if (exceptionElement.getEx() != null) {
+                    if (!writer.toString().isEmpty()) {
+                        writer.append("\n");
+                    }
+                    writer.append(ImportBatchManager.toString(exceptionElement.getEx()));
+                }
+                return finishedWithWarning(batchManager, batch, path, writer.toString().isEmpty() ? null : writer.toString(), state);
+            }
+        }
+        return finishedWithWarning(batchManager, batch, path, null, state);
+    }
+
+    public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, String message) {
+        return finishedWithWarning(batchManager, batch, path, message, Batch.State.EXPORT_FAILED);
+    }
 
     public static Batch finishedExportSuccessfully(ImportBatchManager batchManager, Batch batch, String path) {
-        return finishedSuccessfully(batchManager, batch, path, Batch.State.EXPORT_DONE);
+        return finishedSuccessfully(batchManager, batch, path, null, Batch.State.EXPORT_DONE);
+    }
+
+    public static Batch finishedExportSuccessfully(ImportBatchManager batchManager, Batch batch, String path, String message) {
+        return finishedSuccessfully(batchManager, batch, path, message, Batch.State.EXPORT_DONE);
     }
 
     public static String getPid(List<String> pids) {
@@ -89,5 +105,12 @@ public class BatchUtils {
             return pids.get(0);
         }
         return "missing pid";
+    }
+
+    public static void finishedExportingBatch(ImportBatchManager ibm, AppConfiguration config) {
+        List<Batch> batches2finished = ibm.findExportingBatches();
+        for (Batch batch : batches2finished) {
+            finishedExportWithError(ibm, batch, batch.getFolder(), new Exception("Application has been stopped."));
+        }
     }
 }
