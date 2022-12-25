@@ -5,7 +5,7 @@ Creates the Crossref document from a MODS collection of articles.
 Author Miroslav Pavelka
 -->
 <xsl:stylesheet version="1.0"
-                xmlns="http://www.crossref.org/schema/4.3.6"
+                xmlns="http://www.crossref.org/schema/5.3.1"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:mods="http://www.loc.gov/mods/v3"
@@ -80,8 +80,8 @@ Author Miroslav Pavelka
         </xsl:if>
 
         <xsl:element name="doi_batch">
-            <xsl:attribute name="xsi:schemaLocation">http://www.crossref.org/schema/4.3.6 http://www.crossref.org/schemas/crossref4.3.6.xsd</xsl:attribute>
-            <xsl:attribute name="version">4.3.6</xsl:attribute>
+            <xsl:attribute name="xsi:schemaLocation">http://www.crossref.org/schema/5.3.1 http://www.crossref.org/schemas/crossref5.3.1.xsd</xsl:attribute>
+            <xsl:attribute name="version">5.3.1</xsl:attribute>
 
             <xsl:element name="head">
                 <xsl:element name="doi_batch_id">
@@ -267,6 +267,28 @@ Author Miroslav Pavelka
                                                     </xsl:if>
                                                 </xsl:otherwise>
                                             </xsl:choose>
+                                            <xsl:if test="./mods:affiliation">
+                                                <xsl:element name="affiliations">
+                                                    <xsl:element name="institution">
+                                                        <xsl:element name="institution_id">
+                                                            <xsl:attribute name="type">
+                                                                <xsl:text>ror</xsl:text>
+                                                            </xsl:attribute>
+                                                            <xsl:variable name="ror" select="./mods:affiliation"/>
+                                                            <xsl:value-of select="concat('https://ror.org/', $ror)"/>
+                                                        </xsl:element>
+                                                    </xsl:element>
+                                                </xsl:element>
+                                            </xsl:if>
+                                            <xsl:if test="./mods:nameIdentifier[@type='orcid']">
+                                                <xsl:element name="ORCID">
+                                                    <xsl:attribute name="authenticated">
+                                                        <xsl:text>true</xsl:text>
+                                                    </xsl:attribute>
+                                                    <xsl:variable name="orcid" select="./mods:nameIdentifier[@type='orcid']"/>
+                                                    <xsl:value-of select="concat('https://orcid.org/', $orcid)"/>
+                                                </xsl:element>
+                                            </xsl:if>
                                         </xsl:element>
                                     </xsl:if>
                                     <xsl:if test="./@type='corporate' and ./mods:namePart!=''">

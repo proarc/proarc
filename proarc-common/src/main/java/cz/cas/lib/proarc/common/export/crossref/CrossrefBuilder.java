@@ -76,7 +76,7 @@ import org.xml.sax.SAXException;
 class CrossrefBuilder {
 
     private static Schema SCHEMA_CROSSREF;
-    private static final String XSD_FILENAME = "crossref4.3.6.xsd";
+    private static final String XSD_FILENAME = "crossref5.3.1.xsd";
 
     private final File outputFolder;
     private final XPathExpression issnPath;
