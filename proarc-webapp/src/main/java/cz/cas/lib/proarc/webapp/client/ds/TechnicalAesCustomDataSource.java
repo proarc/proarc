@@ -40,9 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class TechnicalCustomDataSource extends ProarcDataSource implements ModsConstants {
+public class TechnicalAesCustomDataSource extends ProarcDataSource implements ModsConstants {
 
-    private static final Logger LOG = Logger.getLogger(TechnicalCustomDataSource.class.getName());
+    private static final Logger LOG = Logger.getLogger(TechnicalAesCustomDataSource.class.getName());
 
     public static final String ID = "TechnicalCustomDataSource";
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
@@ -51,9 +51,9 @@ public class TechnicalCustomDataSource extends ProarcDataSource implements ModsC
     public static final String FIELD_TIMESTAMP = DigitalObjectResourceApi.TIMESTAMP_PARAM;
     public static final String FIELD_DATA = DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA;
 
-    public TechnicalCustomDataSource() {
+    public TechnicalAesCustomDataSource() {
         setID(ID);
-        setDataURL(RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA);
+        setDataURL(RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA_AES);
 
         DataSourceField fieldPid = new DataSourceField(FIELD_PID, FieldType.TEXT);
         fieldPid.setPrimaryKey(true);
@@ -83,9 +83,9 @@ public class TechnicalCustomDataSource extends ProarcDataSource implements ModsC
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
 
-    public static TechnicalCustomDataSource getInstance() {
-        TechnicalCustomDataSource ds = (TechnicalCustomDataSource) DataSource.get(ID);
-        ds = ds != null ? ds : new TechnicalCustomDataSource();
+    public static TechnicalAesCustomDataSource getInstance() {
+        TechnicalAesCustomDataSource ds = (TechnicalAesCustomDataSource) DataSource.get(ID);
+        ds = ds != null ? ds : new TechnicalAesCustomDataSource();
         return ds;
     }
 
@@ -176,12 +176,12 @@ public class TechnicalCustomDataSource extends ProarcDataSource implements ModsC
         }
 
         public Record getDescription() {
-            Record customModsRecord = wrapper.getAttributeAsRecord(TechnicalCustomDataSource.FIELD_DATA);
+            Record customModsRecord = wrapper.getAttributeAsRecord(TechnicalAesCustomDataSource.FIELD_DATA);
             return customModsRecord;
         }
 
         public void setDescription(Record r) {
-            wrapper.setAttribute(TechnicalCustomDataSource.FIELD_DATA, r);
+            wrapper.setAttribute(TechnicalAesCustomDataSource.FIELD_DATA, r);
         }
     }
 

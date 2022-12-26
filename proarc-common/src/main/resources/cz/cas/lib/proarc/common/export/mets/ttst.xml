@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?><mets:mets xmlns:mets="http://www.loc.gov/METS/" xmlns:nk="info:ndk/xmlns/nk-v1" xmlns:premis="info:lc/xmlns/premis-v2" xmlns:xlink="http://www.w3.org/1999/xlink" LABEL="Boženy Němcové Sebrané spisy. Svazek druhý. Babička, 1870" TYPE="Monograph">
+    <mets:metsHdr CREATEDATE="2021-03-06T16:20:09.224Z" LASTMODDATE="2022-12-26T22:58:53.828Z">
+        <mets:agent ROLE="CREATOR" TYPE="ORGANIZATION">
+            <mets:name>Incad-creator</mets:name>
+        </mets:agent>
+        <mets:agent ROLE="ARCHIVIST" TYPE="ORGANIZATION">
+            <mets:name>Incad-archivist</mets:name>
+        </mets:agent>
+    </mets:metsHdr>
+    <mets:amdSec ID="PAGE_0001">
+        <mets:techMD ID="MIX_002">
+            <mets:mdWrap MDTYPE="NISOIMG" MIMETYPE="text/xml">
+                <mets:xmlData>
+                    <mix:mix xmlns:mix="http://www.loc.gov/mix/v20">
+                        <mix:BasicDigitalObjectInformation>
+                            <mix:ObjectIdentifier>
+                                <mix:objectIdentifierType>ProArc_URI</mix:objectIdentifierType>
+                                <mix:objectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/NDK_ARCHIVAL</mix:objectIdentifierValue>
+                            </mix:ObjectIdentifier>
+                            <mix:FormatDesignation>
+                                <mix:formatName>image/jp2</mix:formatName>
+                                <mix:formatVersion>1.0</mix:formatVersion>
+                            </mix:FormatDesignation>
+                            <mix:byteOrder>big endian</mix:byteOrder>
+                            <mix:Compression>
+                                <mix:compressionScheme>JPEG 2000</mix:compressionScheme>
+                            </mix:Compression>
+                        </mix:BasicDigitalObjectInformation>
+                        <mix:BasicImageInformation>
+                            <mix:BasicImageCharacteristics>
+                                <mix:imageWidth>2225</mix:imageWidth>
+                                <mix:imageHeight>3295</mix:imageHeight>
+                                <mix:PhotometricInterpretation>
+                                    <mix:colorSpace>BlackIsZero</mix:colorSpace>
+                                </mix:PhotometricInterpretation>
+                            </mix:BasicImageCharacteristics>
+                        </mix:BasicImageInformation>
+                        <mix:ImageCaptureMetadata>
+                            <mix:GeneralCaptureInformation>
+                                <mix:dateTimeCreated>2021-03-06T16:20:09.224Z</mix:dateTimeCreated>
+                            </mix:GeneralCaptureInformation>
+                            <mix:orientation>unknown</mix:orientation>
+                        </mix:ImageCaptureMetadata>
+                        <mix:ImageAssessmentMetadata>
+                            <mix:SpatialMetrics>
+                                <mix:samplingFrequencyUnit>cm</mix:samplingFrequencyUnit>
+                                <mix:xSamplingFrequency>
+                                    <mix:numerator>4140000</mix:numerator>
+                                    <mix:denominator>25400</mix:denominator>
+                                </mix:xSamplingFrequency>
+                                <mix:ySamplingFrequency>
+                                    <mix:numerator>4140000</mix:numerator>
+                                    <mix:denominator>25400</mix:denominator>
+                                </mix:ySamplingFrequency>
+                            </mix:SpatialMetrics>
+                            <mix:ImageColorEncoding>
+                                <mix:BitsPerSample>
+                                    <mix:bitsPerSampleValue>8</mix:bitsPerSampleValue>
+                                    <mix:bitsPerSampleUnit>integer</mix:bitsPerSampleUnit>
+                                </mix:BitsPerSample>
+                                <mix:samplesPerPixel>1</mix:samplesPerPixel>
+                            </mix:ImageColorEncoding>
+                        </mix:ImageAssessmentMetadata>
+                        <mix:ChangeHistory>
+                            <mix:ImageProcessing>
+                                <mix:dateTimeProcessed>2021-03-06T16:20:09.224Z</mix:dateTimeProcessed>
+                                <mix:sourceData>ABA007002782031999000200060.tif</mix:sourceData>
+                            </mix:ImageProcessing>
+                        </mix:ChangeHistory>
+                    </mix:mix>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:techMD>
+        <mets:techMD ID="MIX_001">
+            <mets:mdWrap MDTYPE="NISOIMG" MIMETYPE="text/xml">
+                <mets:xmlData>
+                    <mix:mix xmlns:mix="http://www.loc.gov/mix/v20">
+                        <mix:BasicDigitalObjectInformation>
+                            <mix:ObjectIdentifier>
+                                <mix:objectIdentifierType>ProArc_URI</mix:objectIdentifierType>
+                                <mix:objectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/RAW</mix:objectIdentifierValue>
+                            </mix:ObjectIdentifier>
+                            <mix:FormatDesignation>
+                                <mix:formatName>image/tiff</mix:formatName>
+                                <mix:formatVersion>6.0</mix:formatVersion>
+                            </mix:FormatDesignation>
+                            <mix:byteOrder>little endian</mix:byteOrder>
+                            <mix:Compression>
+                                <mix:compressionScheme>Uncompressed</mix:compressionScheme>
+                            </mix:Compression>
+                        </mix:BasicDigitalObjectInformation>
+                        <mix:BasicImageInformation>
+                            <mix:BasicImageCharacteristics>
+                                <mix:imageWidth>2225</mix:imageWidth>
+                                <mix:imageHeight>3295</mix:imageHeight>
+                                <mix:PhotometricInterpretation>
+                                    <mix:colorSpace>BlackIsZero</mix:colorSpace>
+                                </mix:PhotometricInterpretation>
+                            </mix:BasicImageCharacteristics>
+                        </mix:BasicImageInformation>
+                        <mix:ImageCaptureMetadata>
+                            <mix:GeneralCaptureInformation>
+                                <mix:dateTimeCreated>2021-03-06T16:20:09.224Z</mix:dateTimeCreated>
+                                <mix:imageProducer>KNAV</mix:imageProducer>
+                                <mix:captureDevice>transmission scanner</mix:captureDevice>
+                            </mix:GeneralCaptureInformation>
+                            <mix:ScannerCapture>
+                                <mix:scannerManufacturer>Zeutschel</mix:scannerManufacturer>
+                                <mix:ScannerModel>
+                                    <mix:scannerModelName>OS</mix:scannerModelName>
+                                    <mix:scannerModelNumber>7000-90TT</mix:scannerModelNumber>
+                                    <mix:scannerModelSerialNo>50250</mix:scannerModelSerialNo>
+                                </mix:ScannerModel>
+                                <mix:MaximumOpticalResolution>
+                                    <mix:xOpticalResolution>400</mix:xOpticalResolution>
+                                    <mix:yOpticalResolution>400</mix:yOpticalResolution>
+                                    <mix:opticalResolutionUnit>in.</mix:opticalResolutionUnit>
+                                </mix:MaximumOpticalResolution>
+                                <mix:scannerSensor>OneChipColourArea</mix:scannerSensor>
+                                <mix:ScanningSystemSoftware>
+                                    <mix:scanningSoftwareName>Omniscan OS-7000</mix:scanningSoftwareName>
+                                    <mix:scanningSoftwareVersionNo>10.0</mix:scanningSoftwareVersionNo>
+                                </mix:ScanningSystemSoftware>
+                            </mix:ScannerCapture>
+                            <mix:orientation>unknown</mix:orientation>
+                        </mix:ImageCaptureMetadata>
+                        <mix:ImageAssessmentMetadata>
+                            <mix:SpatialMetrics>
+                                <mix:samplingFrequencyUnit>in.</mix:samplingFrequencyUnit>
+                                <mix:xSamplingFrequency>
+                                    <mix:numerator>414</mix:numerator>
+                                    <mix:denominator>1</mix:denominator>
+                                </mix:xSamplingFrequency>
+                                <mix:ySamplingFrequency>
+                                    <mix:numerator>414</mix:numerator>
+                                    <mix:denominator>1</mix:denominator>
+                                </mix:ySamplingFrequency>
+                            </mix:SpatialMetrics>
+                            <mix:ImageColorEncoding>
+                                <mix:BitsPerSample>
+                                    <mix:bitsPerSampleValue>8</mix:bitsPerSampleValue>
+                                    <mix:bitsPerSampleUnit>integer</mix:bitsPerSampleUnit>
+                                </mix:BitsPerSample>
+                                <mix:samplesPerPixel>1</mix:samplesPerPixel>
+                            </mix:ImageColorEncoding>
+                        </mix:ImageAssessmentMetadata>
+                    </mix:mix>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:techMD>
+        <mets:techMD ID="OBJ_002">
+            <mets:mdWrap MDTYPE="PREMIS" MIMETYPE="text/xml">
+                <mets:xmlData>
+                    <premis:object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="premis:file">
+                        <premis:objectIdentifier>
+                            <premis:objectIdentifierType>ProArc_URI</premis:objectIdentifierType>
+                            <premis:objectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/NDK_ARCHIVAL</premis:objectIdentifierValue>
+                        </premis:objectIdentifier>
+                        <premis:preservationLevel>
+                            <premis:preservationLevelValue>preservation</premis:preservationLevelValue>
+                        </premis:preservationLevel>
+                        <premis:objectCharacteristics>
+                            <premis:compositionLevel>0</premis:compositionLevel>
+                            <premis:fixity>
+                                <premis:messageDigestAlgorithm>MD5</premis:messageDigestAlgorithm>
+                                <premis:messageDigest>f3abe10e24e5e30ba6648f67ff53a6c6</premis:messageDigest>
+                                <premis:messageDigestOriginator>ProArc</premis:messageDigestOriginator>
+                            </premis:fixity>
+                            <premis:size>6062612</premis:size>
+                            <premis:format>
+                                <premis:formatDesignation>
+                                    <premis:formatName>image/jp2</premis:formatName>
+                                    <premis:formatVersion>1.0</premis:formatVersion>
+                                </premis:formatDesignation>
+                                <premis:formatRegistry>
+                                    <premis:formatRegistryName>PRONOM</premis:formatRegistryName>
+                                    <premis:formatRegistryKey>x-fmt/392</premis:formatRegistryKey>
+                                </premis:formatRegistry>
+                            </premis:format>
+                            <premis:creatingApplication>
+                                <premis:creatingApplicationName>ProArc</premis:creatingApplicationName>
+                                <premis:creatingApplicationVersion>3.9.1-dev</premis:creatingApplicationVersion>
+                                <premis:dateCreatedByApplication>2022-12-26T23:59:03.199+01:00</premis:dateCreatedByApplication>
+                            </premis:creatingApplication>
+                        </premis:objectCharacteristics>
+                        <premis:originalName>ABA007002782031999000200060.jp2</premis:originalName>
+                        <premis:relationship>
+                            <premis:relationshipType>derivation</premis:relationshipType>
+                            <premis:relationshipSubType>created from</premis:relationshipSubType>
+                            <premis:relatedObjectIdentification>
+                                <premis:relatedObjectIdentifierType>ProArc_URI</premis:relatedObjectIdentifierType>
+                                <premis:relatedObjectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/RAW</premis:relatedObjectIdentifierValue>
+                            </premis:relatedObjectIdentification>
+                            <premis:relatedEventIdentification>
+                                <premis:relatedEventIdentifierType>ProArc_EventID</premis:relatedEventIdentifierType>
+                                <premis:relatedEventIdentifierValue>MC_creation_001</premis:relatedEventIdentifierValue>
+                                <premis:relatedEventSequence>1</premis:relatedEventSequence>
+                            </premis:relatedEventIdentification>
+                        </premis:relationship>
+                    </premis:object>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:techMD>
+        <mets:techMD ID="OBJ_003">
+            <mets:mdWrap MDTYPE="PREMIS" MIMETYPE="text/xml">
+                <mets:xmlData>
+                    <premis:object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="premis:file">
+                        <premis:objectIdentifier>
+                            <premis:objectIdentifierType>ProArc_URI</premis:objectIdentifierType>
+                            <premis:objectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/ALTO</premis:objectIdentifierValue>
+                        </premis:objectIdentifier>
+                        <premis:preservationLevel>
+                            <premis:preservationLevelValue>preservation</premis:preservationLevelValue>
+                        </premis:preservationLevel>
+                        <premis:objectCharacteristics>
+                            <premis:compositionLevel>0</premis:compositionLevel>
+                            <premis:fixity>
+                                <premis:messageDigestAlgorithm>MD5</premis:messageDigestAlgorithm>
+                                <premis:messageDigest>02d67f651ca109ab074cb3e6ec93d49f</premis:messageDigest>
+                                <premis:messageDigestOriginator>ProArc</premis:messageDigestOriginator>
+                            </premis:fixity>
+                            <premis:size>30690</premis:size>
+                            <premis:format>
+                                <premis:formatDesignation>
+                                    <premis:formatName>text/xml</premis:formatName>
+                                    <premis:formatVersion>2.0</premis:formatVersion>
+                                </premis:formatDesignation>
+                                <premis:formatRegistry>
+                                    <premis:formatRegistryName>PRONOM</premis:formatRegistryName>
+                                    <premis:formatRegistryKey>fmt/101</premis:formatRegistryKey>
+                                </premis:formatRegistry>
+                            </premis:format>
+                            <premis:creatingApplication>
+                                <premis:creatingApplicationName>ProArc</premis:creatingApplicationName>
+                                <premis:creatingApplicationVersion>3.9.1-dev</premis:creatingApplicationVersion>
+                                <premis:dateCreatedByApplication>2022-12-26T23:59:03.247+01:00</premis:dateCreatedByApplication>
+                            </premis:creatingApplication>
+                        </premis:objectCharacteristics>
+                        <premis:originalName>ABA007002782031999000200060.xml</premis:originalName>
+                        <premis:relationship>
+                            <premis:relationshipType>derivation</premis:relationshipType>
+                            <premis:relationshipSubType>created from</premis:relationshipSubType>
+                            <premis:relatedObjectIdentification>
+                                <premis:relatedObjectIdentifierType>ProArc_URI</premis:relatedObjectIdentifierType>
+                                <premis:relatedObjectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/NDK_ARCHIVAL</premis:relatedObjectIdentifierValue>
+                            </premis:relatedObjectIdentification>
+                            <premis:relatedEventIdentification>
+                                <premis:relatedEventIdentifierType>ProArc_EventID</premis:relatedEventIdentifierType>
+                                <premis:relatedEventIdentifierValue>XML_creation_001</premis:relatedEventIdentifierValue>
+                                <premis:relatedEventSequence>1</premis:relatedEventSequence>
+                            </premis:relatedEventIdentification>
+                        </premis:relationship>
+                    </premis:object>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:techMD>
+        <mets:techMD ID="OBJ_001">
+            <mets:mdWrap MDTYPE="PREMIS" MIMETYPE="text/xml">
+                <mets:xmlData>
+                    <premis:object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="premis:file">
+                        <premis:objectIdentifier>
+                            <premis:objectIdentifierType>ProArc_URI</premis:objectIdentifierType>
+                            <premis:objectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/RAW</premis:objectIdentifierValue>
+                        </premis:objectIdentifier>
+                        <premis:preservationLevel>
+                            <premis:preservationLevelValue>deleted</premis:preservationLevelValue>
+                        </premis:preservationLevel>
+                        <premis:objectCharacteristics>
+                            <premis:compositionLevel>0</premis:compositionLevel>
+                            <premis:fixity>
+                                <premis:messageDigestAlgorithm>MD5</premis:messageDigestAlgorithm>
+                                <premis:messageDigest>47d8dfff60dc0417183d17310874d786</premis:messageDigest>
+                                <premis:messageDigestOriginator>ProArc</premis:messageDigestOriginator>
+                            </premis:fixity>
+                            <premis:size>7340556</premis:size>
+                            <premis:format>
+                                <premis:formatDesignation>
+                                    <premis:formatName>image/tiff</premis:formatName>
+                                    <premis:formatVersion>1.0</premis:formatVersion>
+                                </premis:formatDesignation>
+                                <premis:formatRegistry>
+                                    <premis:formatRegistryName>PRONOM</premis:formatRegistryName>
+                                    <premis:formatRegistryKey>fmt/353</premis:formatRegistryKey>
+                                </premis:formatRegistry>
+                            </premis:format>
+                            <premis:creatingApplication>
+                                <premis:creatingApplicationName>ProArc</premis:creatingApplicationName>
+                                <premis:creatingApplicationVersion>3.9.1-dev</premis:creatingApplicationVersion>
+                                <premis:dateCreatedByApplication>2022-12-26T23:59:03.293+01:00</premis:dateCreatedByApplication>
+                            </premis:creatingApplication>
+                        </premis:objectCharacteristics>
+                        <premis:originalName>ABA007002782031999000200060.tif</premis:originalName>
+                        <premis:linkingEventIdentifier>
+                            <premis:linkingEventIdentifierType>ProArc_EventID</premis:linkingEventIdentifierType>
+                            <premis:linkingEventIdentifierValue>digitization_001</premis:linkingEventIdentifierValue>
+                        </premis:linkingEventIdentifier>
+                    </premis:object>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:techMD>
+        <mets:digiprovMD ID="EVT_001">
+            <mets:mdWrap MDTYPE="PREMIS" MIMETYPE="text/xml">
+                <mets:xmlData>
+                    <premis:event>
+                        <premis:eventIdentifier>
+                            <premis:eventIdentifierType>ProArc_EventID</premis:eventIdentifierType>
+                            <premis:eventIdentifierValue>digitization_001</premis:eventIdentifierValue>
+                        </premis:eventIdentifier>
+                        <premis:eventType>capture</premis:eventType>
+                        <premis:eventDateTime>2021-03-06T16:20:09.224Z</premis:eventDateTime>
+                        <premis:eventDetail>capture/digitization</premis:eventDetail>
+                        <premis:eventOutcomeInformation>
+                            <premis:eventOutcome>successful</premis:eventOutcome>
+                        </premis:eventOutcomeInformation>
+                        <premis:linkingAgentIdentifier>
+                            <premis:linkingAgentIdentifierType>ProArc_AgentID</premis:linkingAgentIdentifierType>
+                            <premis:linkingAgentIdentifierValue>ProArc</premis:linkingAgentIdentifierValue>
+                            <premis:linkingAgentRole>software</premis:linkingAgentRole>
+                        </premis:linkingAgentIdentifier>
+                        <premis:linkingObjectIdentifier>
+                            <premis:linkingObjectIdentifierType>ProArc_URI</premis:linkingObjectIdentifierType>
+                            <premis:linkingObjectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/RAW</premis:linkingObjectIdentifierValue>
+                        </premis:linkingObjectIdentifier>
+                    </premis:event>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:digiprovMD>
+        <mets:digiprovMD ID="EVT_002">
+            <mets:mdWrap MDTYPE="PREMIS" MIMETYPE="text/xml">
+                <mets:xmlData>
+                    <premis:event>
+                        <premis:eventIdentifier>
+                            <premis:eventIdentifierType>ProArc_EventID</premis:eventIdentifierType>
+                            <premis:eventIdentifierValue>MC_creation_001</premis:eventIdentifierValue>
+                        </premis:eventIdentifier>
+                        <premis:eventType>migration</premis:eventType>
+                        <premis:eventDateTime>2021-03-06T16:20:09.224Z</premis:eventDateTime>
+                        <premis:eventDetail>migration/MC_creation</premis:eventDetail>
+                        <premis:eventOutcomeInformation>
+                            <premis:eventOutcome>successful</premis:eventOutcome>
+                        </premis:eventOutcomeInformation>
+                        <premis:linkingAgentIdentifier>
+                            <premis:linkingAgentIdentifierType>ProArc_AgentID</premis:linkingAgentIdentifierType>
+                            <premis:linkingAgentIdentifierValue>ProArc</premis:linkingAgentIdentifierValue>
+                            <premis:linkingAgentRole>software</premis:linkingAgentRole>
+                        </premis:linkingAgentIdentifier>
+                        <premis:linkingObjectIdentifier>
+                            <premis:linkingObjectIdentifierType>ProArc_URI</premis:linkingObjectIdentifierType>
+                            <premis:linkingObjectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/NDK_ARCHIVAL</premis:linkingObjectIdentifierValue>
+                        </premis:linkingObjectIdentifier>
+                    </premis:event>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:digiprovMD>
+        <mets:digiprovMD ID="EVT_003">
+            <mets:mdWrap MDTYPE="PREMIS" MIMETYPE="text/xml">
+                <mets:xmlData>
+                    <premis:event>
+                        <premis:eventIdentifier>
+                            <premis:eventIdentifierType>ProArc_EventID</premis:eventIdentifierType>
+                            <premis:eventIdentifierValue>XML_creation_001</premis:eventIdentifierValue>
+                        </premis:eventIdentifier>
+                        <premis:eventType>capture</premis:eventType>
+                        <premis:eventDateTime>2021-03-06T16:20:09.224Z</premis:eventDateTime>
+                        <premis:eventDetail>capture/XML_creation</premis:eventDetail>
+                        <premis:eventOutcomeInformation>
+                            <premis:eventOutcome>successful</premis:eventOutcome>
+                        </premis:eventOutcomeInformation>
+                        <premis:linkingAgentIdentifier>
+                            <premis:linkingAgentIdentifierType>ProArc_AgentID</premis:linkingAgentIdentifierType>
+                            <premis:linkingAgentIdentifierValue>ProArc</premis:linkingAgentIdentifierValue>
+                            <premis:linkingAgentRole>software</premis:linkingAgentRole>
+                        </premis:linkingAgentIdentifier>
+                        <premis:linkingObjectIdentifier>
+                            <premis:linkingObjectIdentifierType>ProArc_URI</premis:linkingObjectIdentifierType>
+                            <premis:linkingObjectIdentifierValue>info:fedora/uuid:7d271d32-4a84-4c2f-a70e-1d100e8c34a1/ALTO</premis:linkingObjectIdentifierValue>
+                        </premis:linkingObjectIdentifier>
+                    </premis:event>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:digiprovMD>
+        <mets:digiprovMD ID="AGENT_001">
+            <mets:mdWrap MDTYPE="PREMIS" MIMETYPE="text/xml">
+                <mets:xmlData>
+                    <premis:agent>
+                        <premis:agentIdentifier>
+                            <premis:agentIdentifierType>ProArc_AgentID</premis:agentIdentifierType>
+                            <premis:agentIdentifierValue>ProArc</premis:agentIdentifierValue>
+                        </premis:agentIdentifier>
+                        <premis:agentName>ProArc</premis:agentName>
+                        <premis:agentType>software</premis:agentType>
+                    </premis:agent>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:digiprovMD>
+    </mets:amdSec>
+    <mets:fileSec>
+        <mets:fileGrp ID="TXTGRP" USE="Text">
+            <mets:file CHECKSUM="78ffd12a0138c9f3b609359572361f19" CHECKSUMTYPE="MD5" CREATED="2022-12-26T23:59:02.661+01:00" ID="txt_aba007-0000ft_0001" MIMETYPE="text/plain" SEQ="0" SIZE="1583">
+                <mets:FLocat LOCTYPE="URL" xlink:href="txt/txt_aba007-0000ft_0001.txt"/>
+            </mets:file>
+        </mets:fileGrp>
+        <mets:fileGrp ID="UC_IMGGRP" USE="Images">
+            <mets:file CHECKSUM="5f07ff8d7b6e95cae2c2d209238aea25" CHECKSUMTYPE="MD5" CREATED="2022-12-26T23:59:02.663+01:00" ID="uc_aba007-0000ft_0001" MIMETYPE="image/jp2" SEQ="0" SIZE="2747992">
+                <mets:FLocat LOCTYPE="URL" xlink:href="usercopy/uc_aba007-0000ft_0001.jp2"/>
+            </mets:file>
+        </mets:fileGrp>
+        <mets:fileGrp ID="ALTOGRP" USE="Layout">
+            <mets:file ADMID="OBJ_003 EVT_003" CHECKSUM="02d67f651ca109ab074cb3e6ec93d49f" CHECKSUMTYPE="MD5" CREATED="2022-12-26T23:59:02.702+01:00" ID="alto_aba007-0000ft_0001" MIMETYPE="text/xml" SEQ="0" SIZE="30690">
+                <mets:FLocat LOCTYPE="URL" xlink:href="alto/alto_aba007-0000ft_0001.xml"/>
+            </mets:file>
+        </mets:fileGrp>
+        <mets:fileGrp ID="MC_IMGGRP" USE="Images">
+            <mets:file ADMID="MIX_002 OBJ_002 EVT_002" CHECKSUM="f3abe10e24e5e30ba6648f67ff53a6c6" CHECKSUMTYPE="MD5" CREATED="2022-12-26T23:59:02.704+01:00" ID="mc_aba007-0000ft_0001" MIMETYPE="image/jp2" SEQ="0" SIZE="6062612">
+                <mets:FLocat LOCTYPE="URL" xlink:href="mastercopy/mc_aba007-0000ft_0001.jp2"/>
+            </mets:file>
+        </mets:fileGrp>
+    </mets:fileSec>
+    <mets:structMap TYPE="PHYSICAL">
+        <mets:div TYPE="MONOGRAPH_PAGE">
+            <mets:fptr FILEID="txt_aba007-0000ft_0001"/>
+            <mets:fptr FILEID="uc_aba007-0000ft_0001"/>
+            <mets:fptr FILEID="alto_aba007-0000ft_0001"/>
+            <mets:fptr FILEID="mc_aba007-0000ft_0001"/>
+        </mets:div>
+    </mets:structMap>
+</mets:mets>

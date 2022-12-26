@@ -34,9 +34,9 @@ import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.TechnicalCustomDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.TechnicalCustomDataSource.DescriptionMetadata;
-import cz.cas.lib.proarc.webapp.client.ds.TechnicalCustomDataSource.DescriptionSaveHandler;
+import cz.cas.lib.proarc.webapp.client.ds.TechnicalAesCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.TechnicalAesCustomDataSource.DescriptionMetadata;
+import cz.cas.lib.proarc.webapp.client.ds.TechnicalAesCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.event.EditorLoadEvent;
 import cz.cas.lib.proarc.webapp.client.widget.AbstractDatastreamEditor;
 import cz.cas.lib.proarc.webapp.client.widget.technicalMetadata.TechnicalMetadataForms;
@@ -117,18 +117,18 @@ public class TechnicalCustomEditor extends AbstractDatastreamEditor implements R
                             MetaModelDataSource.MetaModelRecord model, final BooleanCallback loadCallback) {
 
         metadata = null;
-        Criteria pidCriteria = new Criteria(TechnicalCustomDataSource.FIELD_PID, pid);
+        Criteria pidCriteria = new Criteria(TechnicalAesCustomDataSource.FIELD_PID, pid);
         Criteria criteria = new Criteria(MetaModelDataSource.FIELD_EDITOR, model.getEditorId());
         criteria.addCriteria(pidCriteria);
         if (batchId != null) {
-            criteria.addCriteria(TechnicalCustomDataSource.FIELD_BATCHID, batchId);
+            criteria.addCriteria(TechnicalAesCustomDataSource.FIELD_BATCHID, batchId);
         }
         ClientUtils.fine(LOG, "loadCustom pid: %s, batchId: %s, editor: %s", pid, batchId, model.getEditorId());
         DSRequest request = new DSRequest();
         if (showFetchPrompt != null) {
             request.setShowPrompt(showFetchPrompt);
         }
-        TechnicalCustomDataSource.getInstance().fetchData(criteria, new DSCallback() {
+        TechnicalAesCustomDataSource.getInstance().fetchData(criteria, new DSCallback() {
 
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
@@ -278,7 +278,7 @@ public class TechnicalCustomEditor extends AbstractDatastreamEditor implements R
             }
 
         };
-        TechnicalCustomDataSource.getInstance().saveDescription(metadata, dsh, true);
+        TechnicalAesCustomDataSource.getInstance().saveDescription(metadata, dsh, true);
     }
 
     public void setFormPrefix(String s) {

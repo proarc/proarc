@@ -22,7 +22,6 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
@@ -42,6 +41,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.fedora.PremisEditor;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
@@ -78,29 +78,7 @@ import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import cz.cas.lib.proarc.premis.AgentComplexType;
-import cz.cas.lib.proarc.premis.AgentIdentifierComplexType;
-import cz.cas.lib.proarc.premis.CreatingApplicationComplexType;
-import cz.cas.lib.proarc.premis.EventComplexType;
-import cz.cas.lib.proarc.premis.EventIdentifierComplexType;
-import cz.cas.lib.proarc.premis.EventOutcomeInformationComplexType;
-import cz.cas.lib.proarc.premis.ExtensionComplexType;
-import cz.cas.lib.proarc.premis.FixityComplexType;
-import cz.cas.lib.proarc.premis.FormatComplexType;
-import cz.cas.lib.proarc.premis.FormatDesignationComplexType;
-import cz.cas.lib.proarc.premis.FormatRegistryComplexType;
-import cz.cas.lib.proarc.premis.LinkingAgentIdentifierComplexType;
-import cz.cas.lib.proarc.premis.LinkingEventIdentifierComplexType;
-import cz.cas.lib.proarc.premis.LinkingObjectIdentifierComplexType;
-import cz.cas.lib.proarc.premis.ObjectCharacteristicsComplexType;
-import cz.cas.lib.proarc.premis.ObjectFactory;
-import cz.cas.lib.proarc.premis.ObjectIdentifierComplexType;
-import cz.cas.lib.proarc.premis.OriginalNameComplexType;
 import cz.cas.lib.proarc.premis.PremisComplexType;
-import cz.cas.lib.proarc.premis.PreservationLevelComplexType;
-import cz.cas.lib.proarc.premis.RelatedEventIdentificationComplexType;
-import cz.cas.lib.proarc.premis.RelatedObjectIdentificationComplexType;
-import cz.cas.lib.proarc.premis.RelationshipComplexType;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -125,25 +103,18 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -152,6 +123,7 @@ import org.xml.sax.SAXException;
 
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
+import static cz.cas.lib.proarc.common.fedora.PremisEditor.addPremisToAmdSec;
 
 /**
  * Visitor class for creating mets document out of Mets objects
@@ -878,7 +850,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @return
      * @throws MetsExportException
      */
-    private Mets getScannerMets(IMetsElement metsElement) throws MetsExportException {
+    public static Mets getScannerMets(IMetsElement metsElement) throws MetsExportException {
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             Device device = getDevice(metsElement);
             if ((device.getAudioDescription() == null) || device.getAudioDescription().getAmdSec() == null) {
@@ -896,7 +868,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @return
      * @throws MetsExportException
      */
-    private Device getDevice(IMetsElement metsElement) throws MetsExportException {
+    public static Device getDevice(IMetsElement metsElement) throws MetsExportException {
         Node deviceNode = MetsUtils.xPathEvaluateNode(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasDevice']");
         if (deviceNode == null) {
             return null;
@@ -922,369 +894,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info - expected 1 device, got:" + deviceList.size(), false, null);
         }
         return deviceList.get(0);
-    }
-
-    private Node getAgent(AmdSecType amd, IMetsElement metsElement) throws Exception {
-        ObjectFactory factory = new ObjectFactory();
-        AgentComplexType agent = fillAgent(amd, factory);
-        JAXBElement<AgentComplexType> jaxbPremix = factory.createAgent(agent);
-        AgentIdentifierComplexType agentIdentifier = new AgentIdentifierComplexType();
-        agent.getAgentIdentifier().add(agentIdentifier);
-        agentIdentifier.setAgentIdentifierType("ProArc_AgentID");
-        agentIdentifier.setAgentIdentifierValue("ProArc");
-        JAXBContext jc = JAXBContext.newInstance(AgentComplexType.class);
-        return createNode(jaxbPremix, jc, "*[local-name()='agent']");
-    }
-
-    private AgentComplexType fillAgent(AmdSecType amd, ObjectFactory factory) {
-        String agentType;
-        String agentName;
-        AgentComplexType agentComplexType = new AgentComplexType();
-        try {
-            AgentComplexType agent = ((PremisComplexType) ((JAXBElement) amd.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue()).getAgent().get(0);
-            agentName = agent.getAgentName().get(0);
-            agentType = agent.getAgentType();
-            ExtensionComplexType extension = factory.createExtensionComplexType();
-            agentComplexType.getAgentExtension().add(extension);
-            extension.getAny().add(addNkNode(agent));
-        } catch (Exception ex) {
-            LOG.log(Level.INFO, "Can not get value from Premis, set defualt values");
-            agentName = "ProArc";
-            agentType = "software";
-        }
-        agentComplexType.getAgentName().add(agentName);
-        agentComplexType.setAgentType(agentType);
-        return agentComplexType;
-    }
-
-    private Node addNkNode(AgentComplexType agent) throws Exception {
-        NkComplexType nk = new NkComplexType();
-        String manufacturer = "";
-        String serialNumber = "";
-        String settings = "";
-
-        Element extension = (Element) agent.getAgentExtension().get(0).getAny().get(0);
-        if (extension != null) {
-            try {
-                if ("manufacturer".equals(extension.getFirstChild().getLocalName())) {
-                    manufacturer = extension.getFirstChild().getFirstChild().getNodeValue();
-                } else if ("serialNumber".equals(extension.getFirstChild().getLocalName())) {
-                    serialNumber = extension.getFirstChild().getFirstChild().getNodeValue();
-                } else if ("settings".equals(extension.getFirstChild().getLocalName()))
-                    settings = extension.getFirstChild().getFirstChild().getNodeValue();
-            } catch (Exception ex) {
-                LOG.log(Level.FINE, "Error in premis:agentExtension");
-            }
-            try {
-                if ("serialNumber".equals(extension.getFirstChild().getNextSibling().getLocalName())) {
-                    serialNumber = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
-                } else if ("settings".equals(extension.getFirstChild().getNextSibling().getLocalName()))
-                    settings = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
-            } catch (Exception ex) {
-                LOG.log(Level.FINE, "Error in premis:agentExtension");
-            }
-            try {
-                if ("settings".equals(extension.getFirstChild().getNextSibling().getNextSibling().getLocalName()))
-                    settings = extension.getFirstChild().getNextSibling().getNextSibling().getFirstChild().getNodeValue();
-            } catch (Exception ex) {
-                LOG.log(Level.FINE, "Error in premis:agentExtension");
-            }
-        }
-        nk.setManufacturer(manufacturer);
-        nk.setSerialNumber(serialNumber);
-        nk.setSettings(settings);
-        AudioObjectFactory factory = new AudioObjectFactory();
-        JAXBElement<NkComplexType> jaxb = factory.createNk(nk);
-        JAXBContext jc = JAXBContext.newInstance(NkComplexType.class);
-
-        return createNode(jaxb, jc, "*[local-name()='nk']");
-    }
-
-    private Node createNode(JAXBElement jaxb, JAXBContext jc, String expression) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document document = db.newDocument();
-        Marshaller marshaller = jc.createMarshaller();
-        marshaller.marshal(jaxb, document);
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        Node node = (Node) xpath.compile(expression).evaluate(document, XPathConstants.NODE);
-        return node;
-    }
-
-    protected Node getAgent(IMetsElement metsElement) throws MetsExportException {
-        try {
-            return getAgent(null, metsElement);
-        } catch (Exception e) {
-            throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
-        }
-    }
-
-    private Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws Exception {
-        PremisComplexType premis = new PremisComplexType();
-        ObjectFactory factory = new ObjectFactory();
-        JAXBElement<PremisComplexType> jaxbPremix = factory.createPremis(premis);
-        EventComplexType event = factory.createEventComplexType();
-        premis.getEvent().add(event);
-        event.setEventDateTime(md5Info.getCreated().toXMLFormat());
-        event.setEventDetail(eventDetail);
-        EventIdentifierComplexType eventIdentifier = new EventIdentifierComplexType();
-        event.setEventIdentifier(eventIdentifier);
-        event.setEventType(StringUtils.substringBefore(eventDetail, "/"));
-        eventIdentifier.setEventIdentifierType("ProArc_EventID");
-        eventIdentifier.setEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
-        EventOutcomeInformationComplexType eventInformation = new EventOutcomeInformationComplexType();
-        event.getEventOutcomeInformation().add(eventInformation);
-        eventInformation.getContent().add(factory.createEventOutcome("successful"));
-        LinkingAgentIdentifierComplexType linkingAgentIdentifier = fillLinkingAgentIdentifier(amd);
-        LinkingObjectIdentifierComplexType linkingObject = new LinkingObjectIdentifierComplexType();
-        linkingObject.setLinkingObjectIdentifierType("ProArc_URI");
-        linkingObject.setLinkingObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(datastream));
-        event.getLinkingObjectIdentifier().add(linkingObject);
-        event.getLinkingAgentIdentifier().add(linkingAgentIdentifier);
-        JAXBContext jc = JAXBContext.newInstance(PremisComplexType.class);
-        return createNode(jaxbPremix, jc, "*[local-name()='premis']/*[local-name()='event']");
-    }
-
-    private LinkingAgentIdentifierComplexType fillLinkingAgentIdentifier(AmdSecType amd) {
-        String identifierType;
-        String identifierValue;
-        String role;
-        try {
-            EventComplexType event = ((PremisComplexType) ((JAXBElement) amd.getDigiprovMD().get(0).getMdWrap().getXmlData().getAny().get(0)).getValue()).getEvent().get(0);
-            identifierType = event.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierType();
-            identifierValue = event.getLinkingAgentIdentifier().get(0).getLinkingAgentIdentifierValue();
-            role = event.getLinkingAgentIdentifier().get(0).getLinkingAgentRole().get(0);
-        } catch (Exception ex) {
-            identifierType = "ProArc_AgentID";
-            identifierValue = "ProArc";
-            role = "software";
-        }
-        LinkingAgentIdentifierComplexType linkingAgent = new LinkingAgentIdentifierComplexType();
-        linkingAgent.setLinkingAgentIdentifierType(identifierType);
-        linkingAgent.setLinkingAgentIdentifierValue(identifierValue);
-        linkingAgent.getLinkingAgentRole().add(role);
-        return linkingAgent;
-    }
-
-    protected Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
-        try {
-            return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail);
-        } catch (Exception e) {
-            throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
-        }
-    }
-
-    /**
-     * Generates the premis for amdSec
-     *
-     * @param metsElement
-     * @param datastream
-     * @param md5Info
-     * @return
-     * @throws MetsExportException
-     */
-    private Node getPremisFile(IMetsElement metsElement, String datastream, FileMD5Info md5Info) throws MetsExportException {
-        PremisComplexType premis = new PremisComplexType();
-        ObjectFactory factory = new ObjectFactory();
-        JAXBElement<PremisComplexType> jaxbPremix = factory.createPremis(premis);
-        cz.cas.lib.proarc.premis.File file = factory.createFile();
-        premis.getObject().add(file);
-        ObjectIdentifierComplexType objectIdentifier = new ObjectIdentifierComplexType();
-        objectIdentifier.setObjectIdentifierType("ProArc_URI");
-        objectIdentifier.setObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(datastream));
-        file.getObjectIdentifier().add(objectIdentifier);
-        PreservationLevelComplexType preservation = new PreservationLevelComplexType();
-        if ("RAW".equals(datastream)) {
-            preservation.setPreservationLevelValue("deleted");
-        } else {
-            preservation.setPreservationLevelValue("preservation");
-        }
-        file.getPreservationLevel().add(preservation);
-        ObjectCharacteristicsComplexType characteristics = new ObjectCharacteristicsComplexType();
-        characteristics.setCompositionLevel(BigInteger.ZERO);
-        file.getObjectCharacteristics().add(characteristics);
-        FixityComplexType fixity = new FixityComplexType();
-        fixity.setMessageDigest(md5Info.getMd5());
-        fixity.setMessageDigestAlgorithm("MD5");
-        fixity.setMessageDigestOriginator("ProArc");
-        characteristics.getFixity().add(fixity);
-        characteristics.setSize(md5Info.getSize());
-        FormatComplexType format = new FormatComplexType();
-        characteristics.getFormat().add(format);
-        FormatDesignationComplexType formatDesignation = new FormatDesignationComplexType();
-        formatDesignation.setFormatName(md5Info.getMimeType());
-        if (!md5Info.getMimeType().equals(md5Info.getFormatVersion())) {
-            formatDesignation.setFormatVersion(md5Info.getFormatVersion());
-        } else {
-            formatDesignation.setFormatVersion("1.0");
-        }
-        JAXBElement<FormatDesignationComplexType> jaxbDesignation = factory.createFormatDesignation(formatDesignation);
-        format.getContent().add(jaxbDesignation);
-        FormatRegistryComplexType formatRegistry = new FormatRegistryComplexType();
-        formatRegistry.setFormatRegistryName("PRONOM");
-        formatRegistry.setFormatRegistryKey(Const.mimeToFmtMap.get(md5Info.getMimeType()));
-        JAXBElement<FormatRegistryComplexType> jaxbRegistry = factory.createFormatRegistry(formatRegistry);
-        format.getContent().add(jaxbRegistry);
-
-        CreatingApplicationComplexType creatingApplication = new CreatingApplicationComplexType();
-        characteristics.getCreatingApplication().add(creatingApplication);
-        creatingApplication.getContent().add(factory.createCreatingApplicationName("ProArc"));
-        creatingApplication.getContent().add(factory.createCreatingApplicationVersion
-                (metsElement.getMetsContext().getOptions().getVersion()));
-
-        //creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
-        creatingApplication.getContent().add(factory.createDateCreatedByApplication(MetsUtils.getCurrentDate().toXMLFormat()));
-
-        RelationshipComplexType relationShip = new RelationshipComplexType();
-
-        if (!(Const.RAW_GRP_ID).equals(datastream)) {
-            relationShip.setRelationshipType("derivation");
-            relationShip.setRelationshipSubType("created from");
-            RelatedObjectIdentificationComplexType relatedObject = new RelatedObjectIdentificationComplexType();
-            relationShip.getRelatedObjectIdentification().add(relatedObject);
-            relatedObject.setRelatedObjectIdentifierType("ProArc_URI");
-            if (Const.MC_GRP_ID.equals(datastream)) {
-                relatedObject.setRelatedObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(Const.RAW_GRP_ID));
-            } else {
-                relatedObject.setRelatedObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(Const.MC_GRP_ID));
-            }
-
-            RelatedEventIdentificationComplexType eventObject = new RelatedEventIdentificationComplexType();
-            relationShip.getRelatedEventIdentification().add(eventObject);
-            eventObject.setRelatedEventIdentifierType("ProArc_EventID");
-            eventObject.setRelatedEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
-            eventObject.setRelatedEventSequence(BigInteger.ONE);
-            file.getRelationship().add(relationShip);
-        } else {
-            relationShip.setRelationshipType("creation");
-            relationShip.setRelationshipSubType("created from");
-            LinkingEventIdentifierComplexType eventIdentifier = new LinkingEventIdentifierComplexType();
-            file.getLinkingEventIdentifier().add(eventIdentifier);
-            eventIdentifier.setLinkingEventIdentifierType("ProArc_EventID");
-            eventIdentifier.setLinkingEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
-        }
-
-        String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
-        String extension = Const.mimeToExtensionMap.get(md5Info.getMimeType());
-        int position = originalFile.indexOf(".");
-        originalFile = originalFile.substring(0, position) + extension;
-        OriginalNameComplexType originalName = factory.createOriginalNameComplexType();
-        originalName.setValue(originalFile);
-        file.setOriginalName(originalName);
-
-        JAXBContext jc;
-        try {
-            jc = JAXBContext.newInstance(PremisComplexType.class);
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document document = db.newDocument();
-
-            // Marshal the Object to a Document
-            Marshaller marshaller = jc.createMarshaller();
-            marshaller.marshal(jaxbPremix, document);
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            Node premisNode = (Node) xpath.compile("*[local-name()='premis']/*[local-name()='object']").evaluate(document, XPathConstants.NODE);
-            return premisNode;
-        } catch (Exception e) {
-            throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
-        }
-    }
-
-    protected void addPremisNodeToMets(Node premisNode, AmdSecType amdSec, String Id, boolean isDigiprov, HashMap<String, FileGrp> amdSecFileGrpMap) {
-        MdSecType mdSec = new MdSecType();
-        mdSec.setID(Id);
-        MdWrap mdWrap = new MdWrap();
-        mdWrap.setMIMETYPE("text/xml");
-        mdWrap.setMDTYPE("PREMIS");
-        XmlData xmlData = new XmlData();
-        xmlData.getAny().add(premisNode);
-        mdWrap.setXmlData(xmlData);
-        mdSec.setMdWrap(mdWrap);
-        if (isDigiprov) {
-            amdSec.getDigiprovMD().add(mdSec);
-        } else {
-            amdSec.getTechMD().add(mdSec);
-        }
-        if ("OBJ_002".equals(Id) || ("EVT_002".equals(Id))) {
-            if ((amdSecFileGrpMap != null) && (amdSecFileGrpMap.get(Const.MC_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.MC_GRP_ID).getFile().get(0) != null)) {
-                amdSecFileGrpMap.get(Const.MC_GRP_ID).getFile().get(0).getADMID().add(mdSec);
-            }
-        }
-        if ("OBJ_003".equals(Id) || ("EVT_003".equals(Id))) {
-            if ((amdSecFileGrpMap != null) && (amdSecFileGrpMap.get(Const.ALTO_GRP_ID) != null) && (amdSecFileGrpMap.get(Const.ALTO_GRP_ID).getFile().get(0) != null)) {
-                amdSecFileGrpMap.get(Const.ALTO_GRP_ID).getFile().get(0).getADMID().add(mdSec);
-            }
-        }
-    }
-
-    private void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement, HashMap<String, FileGrp> amdSecFileGrpMap, Mets mets) throws MetsExportException {
-        HashMap<String, String> toGenerate = new HashMap<String, String>();
-        toGenerate.put("OBJ_001", Const.RAW_GRP_ID);
-        toGenerate.put("OBJ_002", Const.MC_GRP_ID);
-        toGenerate.put("OBJ_003", Const.ALTO_GRP_ID);
-        // toGenerate.put("OBJ_004", Const.UC_GRP_ID);
-        // toGenerate.put("OBJ_005", Const.TXT_GRP_ID);
-        toGenerate.put("OBJ_006", Const.AUDIO_RAW_GRP_ID);
-        toGenerate.put("OBJ_007", Const.AUDIO_MC_GRP_ID);
-        int seqEvent = 1;
-        int seqAgent = 1;
-
-        for (String obj : toGenerate.keySet()) {
-            String stream = toGenerate.get(obj);
-            if (md5InfosMap.get(stream) == null) {
-                continue;
-            }
-            addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream)), amdSec, obj, false, amdSecFileGrpMap);
-        }
-
-        if (mets != null) {
-            if (md5InfosMap.get(Const.AUDIO_RAW_GRP_ID) != null) {
-                for (AmdSecType amd : mets.getAmdSec()) {
-                    try {
-                        addPremisNodeToMets(getPremisEvent(amd, metsElement, Const.AUDIO_RAW_GRP_ID, md5InfosMap.get(Const.AUDIO_RAW_GRP_ID), "capture/digitization"), amdSec, "EVT_" + String.format("%03d", seqEvent), true, null);
-                        seqEvent++;
-                    } catch (Exception e) {
-                        throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
-                    }
-                }
-            }
-            if (md5InfosMap.get(Const.AUDIO_MC_GRP_ID) != null) {
-                addPremisNodeToMets(getPremisEvent(metsElement, Const.AUDIO_MC_GRP_ID, md5InfosMap.get(Const.AUDIO_MC_GRP_ID), "migration/MC_creation"), amdSec, "EVT_002", true, amdSecFileGrpMap);
-            }
-            if (md5InfosMap.get(Const.AUDIO_UC_GRP_ID) != null) {
-                addPremisNodeToMets(getPremisEvent(metsElement, Const.AUDIO_UC_GRP_ID, md5InfosMap.get(Const.AUDIO_UC_GRP_ID), "derivation/UC_creation"), amdSec, "EVT_004", true, amdSecFileGrpMap);
-            }
-        }
-
-        if (md5InfosMap.get(Const.RAW_GRP_ID) != null) {
-            addPremisNodeToMets(getPremisEvent(metsElement, Const.RAW_GRP_ID, md5InfosMap.get(Const.RAW_GRP_ID), "capture/digitization"), amdSec, "EVT_001", true, null);
-        }
-
-        if (md5InfosMap.get(Const.MC_GRP_ID) != null) {
-            addPremisNodeToMets(getPremisEvent(metsElement, Const.MC_GRP_ID, md5InfosMap.get(Const.MC_GRP_ID), "migration/MC_creation"), amdSec, "EVT_002", true, amdSecFileGrpMap);
-        }
-        if (md5InfosMap.get(Const.ALTO_GRP_ID) != null) {
-            addPremisNodeToMets(getPremisEvent(metsElement, Const.ALTO_GRP_ID, md5InfosMap.get(Const.ALTO_GRP_ID), "capture/XML_creation"), amdSec, "EVT_003", true, amdSecFileGrpMap);
-        }
-        /*if(md5InfosMap.get(Const.UC_GRP_ID) != null){
-            addPremisNodeToMets(getPremisEvent(metsElement, Const.UC_GRP_ID, md5InfosMap.get(Const.UC_GRP_ID), "derivation/UC_creation"), amdSec, "EVT_004", true, amdSecFileGrpMap);
-        }
-        if (md5InfosMap.get(Const.TXT_GRP_ID) != null){
-            addPremisNodeToMets(getPremisEvent(metsElement, Const.TXT_GRP_ID, md5InfosMap.get(Const.TXT_GRP_ID), "capture/TXT_creation"), amdSec, "EVT_005", true, amdSecFileGrpMap);
-        }*/
-
-        if (mets != null && mets.getAmdSec().size() != 0) {
-            for (AmdSecType amd : mets.getAmdSec()) {
-                try {
-                    addPremisNodeToMets(getAgent(amd, metsElement), amdSec, "AGENT_" + String.format("%03d", seqAgent), true, null);
-                    seqAgent++;
-                } catch (Exception e) {
-                    throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
-                }
-            }
-        } else {
-            addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true, null);
-        }
     }
 
     /**
@@ -1699,7 +1308,23 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
             }
 
-            addPremisToAmdSec(amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice);
+
+            Mets premisMets = null;
+            try {
+                DigitalObjectManager dom = DigitalObjectManager.getDefault();
+                FedoraObject fObject = dom.find(metsElement.getOriginalPid(), null);
+                PremisEditor premisEditor = PremisEditor.ndkArchival(fObject);
+                premisMets = premisEditor.readMets();
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, e.getMessage() + " " + e.getStackTrace().toString());
+            }
+
+            if (premisMets != null) {
+                addEditedPremisToAmdSec(amdSec, premisMets);
+            } else {
+                addPremisToAmdSec(amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice);
+            }
+
             mapType.setDiv(divType);
 
             saveAmdSec(metsElement, amdSecMets, fileNames, mimeTypes);
@@ -1716,6 +1341,15 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             pageDiv.getFptr().
 
                     add(fptr);
+        }
+    }
+
+    private void addEditedPremisToAmdSec(AmdSecType amdSec, Mets premisMets) {
+        for (AmdSecType premisAmdSec : premisMets.getAmdSec()) {
+            amdSec.getDigiprovMD().addAll(premisAmdSec.getDigiprovMD());
+            amdSec.getRightsMD().addAll(premisAmdSec.getRightsMD());
+            amdSec.getSourceMD().addAll(premisAmdSec.getSourceMD());
+            amdSec.getTechMD().addAll(premisAmdSec.getTechMD());
         }
     }
 
@@ -1794,7 +1428,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     private void saveAmdSec(IMetsElement metsElement, Mets amdSecMets, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes) throws MetsExportException {
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
             Marshaller marshaller = jaxbContext.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");

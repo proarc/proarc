@@ -51,6 +51,7 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.fedora.PremisEditor;
 import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject;
 import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
@@ -346,6 +347,7 @@ public class DigitalObjectResource {
      * @see PurgeFedoraObject
      */
     @DELETE
+    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DigitalObject> deleteObject(
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
@@ -1371,6 +1373,7 @@ public class DigitalObjectResource {
 
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA)
+    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SOURCE_PIDS) List<String> sourcePids,
@@ -1902,9 +1905,9 @@ public class DigitalObjectResource {
     }
 
     @GET
-    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_PATH)
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_AES_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public StringRecord getTechnicalMetadataTxt(
+    public StringRecord getTechnicalMetadataAesTxt(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
@@ -1919,7 +1922,7 @@ public class DigitalObjectResource {
             AesEditor aesEditor = AesEditor.ndkArchival(fobject);
             try {
                 TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig, akubraConfiguration);
-                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), "classic"), aesEditor.getLastModified(), fobject.getPid());
+                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), TechnicalMetadataMapper.AES), aesEditor.getLastModified(), fobject.getPid());
                 technicalMetadata.setBatchId(batchId);
                 return technicalMetadata;
             } catch (DigitalObjectNotFoundException ex) {
@@ -1940,9 +1943,9 @@ public class DigitalObjectResource {
     }
 
     @PUT
-    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_PATH)
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_AES_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateTechnicalMetadata(
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateTechnicalMetadataAes(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -1968,18 +1971,18 @@ public class DigitalObjectResource {
 
         TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig, akubraConfiguration);
         if (xmlData == null) {
-            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog(), "classic");
+            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.AES);
         } else {
-            mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog());
+            mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.AES);
         }
-        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), "classic");
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), TechnicalMetadataMapper.AES);
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
 
     @GET
-    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_PATH)
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_AES_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> getTechnicalMetadata(
+    public SmartGwtResponse<DescriptionMetadata<Object>> getTechnicalMetadataAes(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
@@ -1995,7 +1998,73 @@ public class DigitalObjectResource {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
         TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(editor.getModel(), batchId, pid, appConfig, akubraConfiguration);
-        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), "classic");
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), TechnicalMetadataMapper.AES);
+        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_PREMIS_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getTechnicalMetadataPremisTxt(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
+    ) throws IOException, DigitalObjectException {
+
+        FedoraObject fobject = findFedoraObject(pid, batchId);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            return null;
+        }
+        if (NdkPlugin.MODEL_PAGE.equals(relationEditor.getModel()) || NdkPlugin.MODEL_NDK_PAGE.equals(relationEditor.getModel()) || OldPrintPlugin.MODEL_PAGE.equals(relationEditor.getModel())) {
+            PremisEditor premisEditor = PremisEditor.ndkArchival(fobject);
+            try {
+                TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig, akubraConfiguration);
+                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), TechnicalMetadataMapper.PREMIS), premisEditor.getLastModified(), fobject.getPid());
+                technicalMetadata.setBatchId(batchId);
+                return technicalMetadata;
+            } catch (DigitalObjectNotFoundException ex) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_PREMIS_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateTechnicalMetadataPremis(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
+    ) throws IOException, DigitalObjectException {
+
+        if (timestamp == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
+        }
+        if (isLocked(pid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+        }
+        if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
+        }
+        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        RelationEditor relationEditor = new RelationEditor(fobject);
+        if (relationEditor == null) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+        String data = xmlData == null ? jsonData : xmlData;
+
+        TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig, akubraConfiguration);
+        if (xmlData == null) {
+            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.PREMIS);
+        } else {
+            mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.PREMIS);
+        }
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), TechnicalMetadataMapper.PREMIS);
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
 
@@ -2018,7 +2087,7 @@ public class DigitalObjectResource {
             CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.ndkArchival(fobject);
             try {
                 TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig, akubraConfiguration);
-                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), "extension"), codingHistoryEditor.getLastModified(), fobject.getPid());
+                StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), TechnicalMetadataMapper.CODING_HISTORY), codingHistoryEditor.getLastModified(), fobject.getPid());
                 technicalMetadata.setBatchId(batchId);
                 return technicalMetadata;
             } catch (DigitalObjectNotFoundException ex) {
@@ -2058,11 +2127,11 @@ public class DigitalObjectResource {
 
         TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig, akubraConfiguration);
         if (xmlData == null) {
-            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog(), "extension");
+            mapper.updateMetadataAsJson(fobject, data, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.CODING_HISTORY);
         } else {
-            mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog());
+            mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.CODING_HISTORY);
         }
-        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), "extension");
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), TechnicalMetadataMapper.CODING_HISTORY);
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
 
@@ -2085,7 +2154,7 @@ public class DigitalObjectResource {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
         TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(editor.getModel(), batchId, pid, appConfig, akubraConfiguration);
-        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), "extension");
+        DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), TechnicalMetadataMapper.CODING_HISTORY);
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
 

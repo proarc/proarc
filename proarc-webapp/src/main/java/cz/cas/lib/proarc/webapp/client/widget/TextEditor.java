@@ -65,7 +65,7 @@ public final class TextEditor implements DatastreamEditor, Refreshable, Selectab
     }
 
     public static TextEditor technical(ClientMessages i18n) {
-        return new TextEditor(i18n, TextDataSource.getTechnicalMetadata());
+        return new TextEditor(i18n, TextDataSource.getTechnicalMetadataAes());
     }
 
     public static TextEditor technicalCodingHistory(ClientMessages i18n) {

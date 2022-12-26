@@ -19,15 +19,20 @@ package cz.cas.lib.proarc.common.object.technicalMetadata;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.MixEditor;
+import cz.cas.lib.proarc.common.fedora.PremisEditor;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
 import java.io.IOException;
@@ -43,6 +48,11 @@ public class TechnicalMetadataMapper {
     private String pid;
     private AppConfiguration config;
     private final AkubraConfiguration akubraConfiguration;
+
+    public static final String AES = "aes";
+    public static final String CODING_HISTORY = "codingHistory";
+    public static final String PREMIS = "premis";
+    public static final String MIX = "mix";
 
     public TechnicalMetadataMapper(String model, Integer batchId, String pid, AppConfiguration config, AkubraConfiguration akubraConfiguration) {
         this.model = model;
@@ -62,19 +72,24 @@ public class TechnicalMetadataMapper {
         switch (model) {
             case NdkAudioPlugin.MODEL_PAGE:
                 switch (type) {
-                    case "classic":
+                    case AES:
                         return getAesMetadata(fobject, importName);
-                    case "extension":
+                    case CODING_HISTORY:
                         return getCodingHistoryMetadata(fobject, importName);
                     default:
                         throw new DigitalObjectException("Unsupported type of data");
                 }
-            /*case NdkPlugin.MODEL_PAGE:
-                return getMixMetadata(fobject);
+            case NdkPlugin.MODEL_PAGE:
             case NdkPlugin.MODEL_NDK_PAGE:
-                return getMixMetadata(fobject);
             case OldPrintPlugin.MODEL_PAGE:
-                return getMixMetadata(fobject);*/
+                switch (type) {
+                    case PREMIS:
+                        return getPremisMetadata(fobject, importName);
+//                    case MIX:
+//                        return getMixMetadata(fobject);
+                    default:
+                        throw new DigitalObjectException("Unsupported type of data");
+                }
             default:
                 throw new DigitalObjectException("Unsupported model");
         }
@@ -90,19 +105,24 @@ public class TechnicalMetadataMapper {
         switch (model) {
             case NdkAudioPlugin.MODEL_PAGE:
                 switch (type) {
-                    case "classic":
+                    case AES:
                         return getAesMetadataAsXml(fobject, importFile);
-                    case "extension":
+                    case CODING_HISTORY:
                         return getCodingHistoryAsXml(fobject, importFile);
                     default:
                         throw new DigitalObjectException("Unsupported type of data");
                 }
-            /*case NdkPlugin.MODEL_PAGE:
-                return getMixMetadata(fobject);
+            case NdkPlugin.MODEL_PAGE:
             case NdkPlugin.MODEL_NDK_PAGE:
-                return getMixMetadata(fobject);
             case OldPrintPlugin.MODEL_PAGE:
-                return getMixMetadata(fobject);*/
+                switch (type) {
+                    case PREMIS:
+                        return getPremisAsXml(fobject, importFile);
+//                    case MIX:
+//                        return getMixAsXml(fobject, importFile);
+                    default:
+                        throw new DigitalObjectException("Unsupported type of data");
+                }
             default:
                 throw new DigitalObjectException("Unsupported model");
         }
@@ -163,6 +183,25 @@ public class TechnicalMetadataMapper {
         return json;
     }
 
+    public DescriptionMetadata<Object> getPremisMetadata(FedoraObject fobject, String importName) throws DigitalObjectException {
+        PremisEditor premisEditor = PremisEditor.ndkArchival(fobject);
+        PremisMapper mapper = new PremisMapper();
+
+        DescriptionMetadata<Mets> dm = new DescriptionMetadata<>();
+        dm.setPid(fobject.getPid());
+        dm.setTimestamp(premisEditor.getLastModified());
+        dm.setData(premisEditor.readMets());
+        if (dm.getData() == null && !(fobject instanceof LocalStorage.LocalObject)) {
+            dm.setData(premisEditor.generate(fobject, config, akubraConfiguration, importName));
+        }
+
+        DescriptionMetadata json = dm;
+
+        json.setData(mapper.toJsonObject(dm.getData()));
+        json.setEditor(model);
+        return json;
+    }
+
     private String getAesMetadataAsXml(FedoraObject fobject, String importFile) throws DigitalObjectException {
         AesEditor aesEditor = AesEditor.ndkArchival(fobject);
 
@@ -191,6 +230,19 @@ public class TechnicalMetadataMapper {
         return null;
     }
 
+    private String getPremisAsXml(FedoraObject fobject, String importFile) throws DigitalObjectException {
+        PremisEditor premisEditor = PremisEditor.ndkArchival(fobject);
+
+        Mets mets = premisEditor.readMets();
+        if (mets == null  && !(fobject instanceof LocalStorage.LocalObject)) {
+            mets = premisEditor.generate(fobject, config, akubraConfiguration, importFile);
+        }
+        if (mets != null) {
+            return MetsUtils.toXml(mets, true);
+        }
+        return null;
+    }
+
     public void updateMetadataAsJson(FedoraObject fobject, String data, Long timestamp, String message, String type) throws DigitalObjectException, IOException {
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
@@ -201,10 +253,10 @@ public class TechnicalMetadataMapper {
         switch (model) {
             case NdkAudioPlugin.MODEL_PAGE:
                 switch (type) {
-                    case "classic":
+                    case AES:
                         updateAesMetadataAsJson(fobject, data, timestamp, message);
                         break;
-                    case "extension":
+                    case CODING_HISTORY:
                         updateCodingHistoryMetadataAsJson(fobject, data, timestamp, message);
                         break;
                     default:
@@ -258,27 +310,34 @@ public class TechnicalMetadataMapper {
         fobject.flush();
     }
 
-    public void updateMetadataAsXml(FedoraObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
+    public void updateMetadataAsXml(FedoraObject fobject, String data, Long timestamp, String message, String type) throws DigitalObjectException {
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
         }
         switch (model) {
             case NdkAudioPlugin.MODEL_PAGE:
-                if (data.contains("property")) {
-                    updateCodingHistoryMetadataAsXml(fobject, data, timestamp, message);
-                } else {
-                    updateAesMetadataAsXml(fobject, data, timestamp, message);
+                switch (type) {
+                    case AES:
+                        updateAesMetadataAsXml(fobject, data, timestamp, message);
+                        return;
+                    case CODING_HISTORY:
+                        updateCodingHistoryMetadataAsXml(fobject, data, timestamp, message);
+                        return;
+                    default:
+                        throw new DigitalObjectException("Unsupported type of data");
                 }
-                break;
-            /*case NdkPlugin.MODEL_PAGE:
-                updateMixMetadataAsXml(fobject, data, timestamp, message);
-                break;
+            case NdkPlugin.MODEL_PAGE:
             case NdkPlugin.MODEL_NDK_PAGE:
-                updateMixMetadataAsXml(fobject, data, timestamp, message);
-                break;
             case OldPrintPlugin.MODEL_PAGE:
-                updateMixMetadataAsXml(fobject, data, timestamp, message);
-                break;*/
+                switch (type) {
+                    case PREMIS:
+                        updatePremisAsXml(fobject, data, timestamp, message);
+                        return;
+//                    case MIX:
+//                       updateMixAsXml(fobject, data, timestamp, message);
+                    default:
+                        throw new DigitalObjectException("Unsupported type of data");
+                }
             default:
                 throw new DigitalObjectException("Unsupported model");
         }
@@ -317,6 +376,17 @@ public class TechnicalMetadataMapper {
         mapper.update(codingHistory);
 
         codingHistoryEditor.write(codingHistory, timestamp, message);
+        fobject.flush();
+    }
+
+    private void updatePremisAsXml(FedoraObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
+        PremisEditor premisEditor = PremisEditor.ndkArchival(fobject);
+        Mets mets = MetsUtils.unmarshalMets(new StreamSource(new StringReader(data)));
+
+        PremisMapper mapper = new PremisMapper();
+        mapper.update(mets);
+
+        premisEditor.write(mets, timestamp, message);
         fobject.flush();
     }
 

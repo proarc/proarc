@@ -14,22 +14,22 @@ import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.TechnicalCustomDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.TechnicalPremisCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.TextDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.CodeMirror;
 import cz.cas.lib.proarc.webapp.client.widget.DatastreamEditor;
 import java.util.logging.Logger;
 
-public class TechnicalXmlEditor implements DatastreamEditor, RefreshAction.Refreshable {
+public class TechnicalXmlPremisEditor implements DatastreamEditor, RefreshAction.Refreshable {
 
-    private static final Logger LOG = Logger.getLogger(TechnicalXmlEditor.class.getName());
+    private static final Logger LOG = Logger.getLogger(TechnicalXmlPremisEditor.class.getName());
     private final CodeMirror sourceForm;
     private DigitalObject digitalObject;
     private String xml;
     private Long timestamp;
     private final ClientMessages i18n;
 
-    public TechnicalXmlEditor(ClientMessages i18n) {
+    public TechnicalXmlPremisEditor(ClientMessages i18n) {
         sourceForm = new CodeMirror();
         this.i18n = i18n;
     }
@@ -78,7 +78,7 @@ public class TechnicalXmlEditor implements DatastreamEditor, RefreshAction.Refre
                 if (digitalObject.getBatchId() != null) {
                     pidCriteria.addCriteria(ModsCustomDataSource.FIELD_BATCHID, digitalObject.getBatchId());
                 }
-                TextDataSource.getTechnicalMetadata().fetchData(pidCriteria, new DSCallback() {
+                TextDataSource.getTechnicalMetadataPremis().fetchData(pidCriteria, new DSCallback() {
                     @Override
                     public void execute(DSResponse response, Object rawData, DSRequest request) {
                         handleFetchResponse(response, TextDataSource.FIELD_CONTENT, cleanHistory);
@@ -127,10 +127,10 @@ public class TechnicalXmlEditor implements DatastreamEditor, RefreshAction.Refre
     }
 
     private void saveImpl(BooleanCallback callback, String newXml) {
-        TechnicalCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, new TechnicalCustomDataSource.DescriptionSaveHandler() {
+        TechnicalPremisCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, new TechnicalPremisCustomDataSource.DescriptionSaveHandler() {
 
             @Override
-            protected void onSave(TechnicalCustomDataSource.DescriptionMetadata dm) {
+            protected void onSave(TechnicalPremisCustomDataSource.DescriptionMetadata dm) {
                 super.onSave(dm);
                 refresh(false);
                 callback.execute(Boolean.TRUE);
@@ -150,7 +150,7 @@ public class TechnicalXmlEditor implements DatastreamEditor, RefreshAction.Refre
                 SC.ask(i18n.SaveAction_Title(), msg, value -> {
                     // save again
                     if (value != null && value) {
-                        TechnicalCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, this, true);
+                        TechnicalPremisCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, this, true);
                     }
                 });
             }

@@ -239,7 +239,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 ModsConstants.NS,
                 MODEL_NDK_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
                 new RelationCriteria[] {
                         new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
@@ -260,7 +260,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_PAGE,
                 this,
-                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
                 new RelationCriteria[]{
                         new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),

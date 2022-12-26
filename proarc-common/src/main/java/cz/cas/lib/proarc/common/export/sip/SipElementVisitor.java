@@ -64,6 +64,9 @@ import static cz.cas.lib.proarc.common.export.mets.Const.MONOGRAPH_UNIT;
 import static cz.cas.lib.proarc.common.export.mets.Const.OC_GRP_ID_CREATION;
 import static cz.cas.lib.proarc.common.export.mets.Const.OC_GRP_ID_VALIDATION;
 import static cz.cas.lib.proarc.common.export.mets.Const.PERIODICAL_TITLE;
+import static cz.cas.lib.proarc.common.fedora.PremisEditor.addPremisNodeToMets;
+import static cz.cas.lib.proarc.common.fedora.PremisEditor.getAgent;
+import static cz.cas.lib.proarc.common.fedora.PremisEditor.getPremisEvent;
 
 class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisitor {
 

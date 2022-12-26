@@ -196,10 +196,12 @@ public final class DigitalObjectResourceApi {
     public static final String OCR_PATH = "ocr";
 
     /** Resource /object/technicalMetadata */
-    public static final String TECHNICALMETADATA_PATH = "technicalMetadata";
+    public static final String TECHNICALMETADATA_AES_PATH = "technicalMetadataAes";
     public static final String TECHNICALMETADATA_CODING_HISTORY_PATH = "technicalMetadataCodingHistory";
-    public static final String TECHNICALMETADATA_XML_PATH = "technicalMetadataXml";
+    public static final String TECHNICALMETADATA_PREMIS_PATH = "technicalPremis";
+    public static final String TECHNICALMETADATA_XML_AES_PATH = "technicalMetadataAesXml";
     public static final String TECHNICALMETADATA_XML_CODING_HISTORY_PATH = "technicalMetadataXmlCodingHistory";
+    public static final String TECHNICALMETADATA_XML_PREMIS_PATH = "technicalMetadataXmlPremis";
 
     /** Resource /object/preview */
     public static final String PREVIEW_PATH = "preview";

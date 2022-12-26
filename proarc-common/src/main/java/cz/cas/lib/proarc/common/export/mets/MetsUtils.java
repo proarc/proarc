@@ -23,6 +23,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
@@ -41,19 +42,25 @@ import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.info.Info;
 import cz.cas.lib.proarc.mets.info.Info.Checksum;
 import cz.cas.lib.proarc.mets.info.Info.Itemlist;
 import cz.cas.lib.proarc.mets.info.Info.Titleid;
 import cz.cas.lib.proarc.mets.info.Info.Validation;
+import cz.cas.lib.proarc.premis.PremisComplexType;
+import cz.cas.lib.proarc.premis.PremisUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.math.BigInteger;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -74,7 +81,9 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import javax.xml.XMLConstants;
+import javax.xml.bind.DataBindingException;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
@@ -84,6 +93,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -111,6 +122,10 @@ public class MetsUtils {
 
     private static final Logger LOG = Logger.getLogger(MetsUtils.class.getName());
     private static final Properties mimeToExtension = new Properties();
+
+    private static JAXBContext defaultJaxbContext;
+    private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
+    private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
 
     /**
      * Retuns an XMLGregorianCalendar representation of current date
@@ -1331,5 +1346,101 @@ public class MetsUtils {
             LOG.log(Level.SEVERE, "Cannot move " + targetFolder.getName() + "error_" + targetFolder.getName());
             return targetFolder.getAbsolutePath();
         }
+    }
+
+    public static void marshal(Result target, Mets mets, boolean indent) {
+        try {
+//            JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
+//            Marshaller marshaller = jaxbContext.createMarshaller();
+//            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+//            marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+//            marshaller.marshal(infoJaxb, infoFile);
+
+            Marshaller m = defaultMarshaller(indent);
+            m.marshal(mets, target);
+        } catch (JAXBException ex) {
+            throw new DataBindingException(ex);
+        }
+    }
+
+    public static <T> T unmarshal(InputStream source, Class<T> type, boolean close) {
+        try {
+            return unmarshal(new StreamSource(source), type);
+        } finally {
+            if (close) {
+                try {
+                    source.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(PremisUtils.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+    public static <T> T unmarshal(String source, Class<T> type) {
+        return unmarshal(new StreamSource(new StringReader(source)), type);
+    }
+
+    public static <T> T unmarshal(URL source, Class<T> type) {
+        return unmarshal(new StreamSource(source.toExternalForm()), type);
+    }
+
+    public static <T> T unmarshal(Source source, Class<T> type) {
+        try {
+            JAXBElement<T> item = defaultUnmarshaller().unmarshal(source, type);
+            return item.getValue();
+        } catch (JAXBException ex) {
+            throw new DataBindingException(ex);
+        }
+    }
+
+    public static Mets unmarshalMets(Source source) {
+        try {
+            Object unmarshaled = defaultUnmarshaller().unmarshal(source);
+            if (unmarshaled instanceof JAXBElement) {
+                unmarshaled = ((JAXBElement) unmarshaled).getValue();
+            }
+            Mets mets;
+            if (unmarshaled instanceof Mets) {
+                mets = (Mets) unmarshaled;
+            } else {
+                throw new IllegalStateException(String.valueOf(unmarshaled));
+            }
+            return mets;
+        } catch (JAXBException ex) {
+            throw new DataBindingException(ex);
+        }
+    }
+
+    public static String toXml(Mets mets, boolean indent) {
+        StringWriter dump = new StringWriter();
+        marshal(new StreamResult(dump), mets, indent);
+        return dump.toString();
+    }
+
+    public static Unmarshaller defaultUnmarshaller() throws JAXBException {
+        Unmarshaller m = defaultUnmarshaller.get();
+        if (m == null) {
+            m = defaultJaxbContext().createUnmarshaller();
+            defaultUnmarshaller.set(m);
+        }
+        return m;
+    }
+
+    public static Marshaller defaultMarshaller(boolean indent) throws JAXBException {
+        Marshaller m = defaultMarshaller.get();
+        if (m == null) {
+            // later we could use a pool to minimize Marshaller instances
+            m = defaultJaxbContext().createMarshaller();
+            defaultMarshaller.set(m);
+        }
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, indent);
+        return m;
+    }
+
+    public static JAXBContext defaultJaxbContext() throws JAXBException {
+        if (defaultJaxbContext == null) {
+            defaultJaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
+        }
+        return defaultJaxbContext;
     }
 }

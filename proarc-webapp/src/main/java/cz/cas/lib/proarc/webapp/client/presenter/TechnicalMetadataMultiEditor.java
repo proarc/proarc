@@ -27,6 +27,8 @@ import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.menu.IconMenuButton;
 import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -66,8 +68,9 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
     }
 
     private final VLayout uiContainer;
-    private final TechnicalXmlEditor technicalXmlEditor;
+    private final TechnicalXmlAesEditor technicalXmlAesEditor;
     private final TechnicalXmlCodingHistoryEditor technicalXmlCodingHistoryEditor;
+    private final TechnicalXmlPremisEditor technicalXmlPremisEditor;
     private final TechnicalCustomCodingHistoryEditor technicalCustomCodingHistoryEditor;
     private final TechnicalCustomEditor technicalCustomEditor;
     private DatastreamEditor activeEditor;
@@ -95,19 +98,21 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
     public void save(BooleanCallback callback) {
         callback = wrapSaveCallback(callback);
         if (activeEditor == technicalCustomEditor) {
-            saveCustomData(callback);
+            saveCustomAesData(callback);
         } else if (activeEditor == technicalCustomCodingHistoryEditor) {
             saveCustomCodingHistoryData(callback);
-        } else if (activeEditor == technicalXmlEditor) {
-            saveXmlData(callback);
+        } else if (activeEditor == technicalXmlAesEditor) {
+            saveXmlAesData(callback);
         } else if (activeEditor == technicalXmlCodingHistoryEditor) {
             saveXmlCodingHistoryData(callback);
+        } else if (activeEditor == technicalXmlPremisEditor) {
+            saveXmlPremisData(callback);
         } else {
             callback.execute(Boolean.TRUE);
         }
     }
 
-    private void saveCustomData(BooleanCallback callback) {
+    private void saveCustomAesData(BooleanCallback callback) {
         technicalCustomEditor.save(callback);
     }
 
@@ -115,12 +120,16 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         technicalCustomCodingHistoryEditor.save(callback);
     }
 
-    private void saveXmlData(BooleanCallback callback) {
-        technicalXmlEditor.save(callback, true, SaveAction.SaveValidation.ASK);
+    private void saveXmlAesData(BooleanCallback callback) {
+        technicalXmlAesEditor.save(callback, true, SaveAction.SaveValidation.ASK);
     }
 
     private void saveXmlCodingHistoryData(BooleanCallback callback) {
         technicalXmlCodingHistoryEditor.save(callback, true, SaveAction.SaveValidation.ASK);
+    }
+
+    private void saveXmlPremisData(BooleanCallback callback) {
+        technicalXmlPremisEditor.save(callback, true, SaveAction.SaveValidation.ASK);
     }
 
     private BooleanCallback wrapSaveCallback(final BooleanCallback callback) {
@@ -136,8 +145,9 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
     public TechnicalMetadataMultiEditor(ClientMessages i18n) {
         this.i18n = i18n;
         uiContainer = new VLayout();
-        technicalXmlEditor = new TechnicalXmlEditor(i18n);
+        technicalXmlAesEditor = new TechnicalXmlAesEditor(i18n);
         technicalXmlCodingHistoryEditor = new TechnicalXmlCodingHistoryEditor(i18n);
+        technicalXmlPremisEditor = new TechnicalXmlPremisEditor(i18n);
         technicalCustomEditor = new TechnicalCustomEditor(i18n);
         technicalCustomCodingHistoryEditor = new TechnicalCustomCodingHistoryEditor(i18n);
         actionSource = new Actions.ActionSource(this);
@@ -163,7 +173,13 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         if (items == null || items.length == 0) {
             // show nothing or throw exception!
         } else if (items.length == 1) {
-            loadTabData(technicalCustomEditor, items[0]);
+            DigitalObject dobj = items[0];
+            String model = dobj.getModelId();
+            if (NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
+                loadTabData(technicalXmlPremisEditor, items[0]);
+            } else {
+                loadTabData(technicalCustomEditor, items[0]);
+            }
         } else {
             String firstModelId = null;
             boolean unsupportedBatch = false;
@@ -342,7 +358,7 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         customEditorButton = menuTechnical.getItem(0);
 
         menuTechnical.addItem(Actions.asMenuItem(
-                new SwitchAction(technicalXmlEditor,
+                new SwitchAction(technicalXmlAesEditor,
                         i18n.TechnicalMetadataEditorAes_ActionField_XML(),
                         Page.getAppDir() + "images/oxygen/16/application_xml.png",
                         i18n.ModsMultiEditor_TabSimpleSimple_Hint()), actionSource, false));
@@ -364,6 +380,12 @@ public final class TechnicalMetadataMultiEditor extends AbstractDatastreamEditor
         menuTechnical.addItem(Actions.asMenuItem(
                 new SwitchAction(technicalXmlCodingHistoryEditor,
                         i18n.TechnicalMetadataEditorCodingHistory_ActionField_XML(),
+                        Page.getAppDir() + "images/oxygen/16/application_xml.png",
+                        i18n.ModsMultiEditor_TabSimpleSimple_Hint()), actionSource, false));
+
+        menuTechnical.addItem(Actions.asMenuItem(
+                new SwitchAction(technicalXmlPremisEditor,
+                        i18n.TechnicalMetadataEditorPremis_ActionField_XML(),
                         Page.getAppDir() + "images/oxygen/16/application_xml.png",
                         i18n.ModsMultiEditor_TabSimpleSimple_Hint()), actionSource, false));
 

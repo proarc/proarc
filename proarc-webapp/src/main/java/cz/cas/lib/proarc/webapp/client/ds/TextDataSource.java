@@ -32,8 +32,9 @@ public final class TextDataSource extends DataSource {
     public static final String ID_MODS = "ModsTextDataSource";
     public static final String ID_PRIVATE_NOTE = "PrivateNoteTextDataSource";
     public static final String ID_OCR = "OcrDataSource";
-    public static final String ID_TECHNICAL_METADATA = "TechnicalMetadataSource";
+    public static final String ID_TECHNICAL_METADATA_AES = "TechnicalMetadataSourceAes";
     public static final String ID_TECHNICAL_METADATA_CODING_HISTORY = "TechnicalMetadataCodingHistorySource";
+    public static final String ID_TECHNICAL_METADATA_PREMIS = "TechnicalMetadataPremisSource";
 
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     // Do not include batchId as DS field as DynamicForm always sets null for missing fetched values.
@@ -78,12 +79,16 @@ public final class TextDataSource extends DataSource {
         return getDS(ID_PRIVATE_NOTE, RestConfig.URL_DIGOBJECT_PRIVATE_NOTE);
     }
 
-    public static TextDataSource getTechnicalMetadata() {
-        return getDS(ID_TECHNICAL_METADATA, RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA_XML);
+    public static TextDataSource getTechnicalMetadataAes() {
+        return getDS(ID_TECHNICAL_METADATA_AES, RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA_XML_AES);
     }
 
     public static TextDataSource getTechnicalMetadataCodingHistory() {
         return getDS(ID_TECHNICAL_METADATA_CODING_HISTORY, RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA_XML_CODING_HISTORY);
+    }
+
+    public static TextDataSource getTechnicalMetadataPremis() {
+        return getDS(ID_TECHNICAL_METADATA_PREMIS, RestConfig.URL_DIGOBJECT_TECHNICAL_METADATA_XML_PREMIS);
     }
 
     public static TextDataSource getMods() {
