@@ -38,6 +38,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.BlockerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.MainBlockerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.ParamDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.StepDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.TaskDefinition;
@@ -265,8 +266,10 @@ public class TaskManager {
             }
         } else if (newState == State.WAITING) {
             throw new WorkflowException("The task cannot be waiting again!").addTaskCannotWaitAgain();
-        } else {
-
+        } else if (newState == State.FINISHED) {
+            if (isBlocked(getStepDefinition(job, t.getTypeRef()), sortedTasks)) {
+                throw new WorkflowException("Task is blocked by other tasks!").addTaskBlocked();
+            }
         }
         // set new state
         t.setState(newState);
@@ -294,6 +297,23 @@ public class TaskManager {
                 if (isBlocker(blocker.getTask().getName(), sortedTasks)) {
                     return true;
                 }
+            }
+            for (MainBlockerDefinition mainBlocker : step.getMainBlockers()) {
+                if (isMainBlocker(step.getTask().getName(), sortedTasks)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isMainBlocker(String currentTask, List<? extends Task> tasks) {
+        for (Task task : tasks) {
+            if (currentTask.equals(task.getTypeRef())) {
+                return false;
+            }
+            if (!task.isClosed()) {
+                return true;
             }
         }
         return false;

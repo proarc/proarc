@@ -638,6 +638,13 @@ public class WorkflowManager {
                 return true;
             }
         }
+
+        // rozsireni o novy blocker - ktery blokuje dokud vse pred nim neni ukonceno
+        // neodkazuje se na urcite tasky, ale plati obecne pro vsechny pred nim
+        if (!newTaskStep.getMainBlockers().isEmpty()) {
+            return true;
+        }
+
         return false;
     }
 

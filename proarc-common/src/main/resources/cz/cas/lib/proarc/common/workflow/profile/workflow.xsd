@@ -67,6 +67,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="setParam" type="tns:setParamDefinition"/>
                 <xs:element name="blocker" type="tns:blockerDefinition"/>
+                <xs:element name="mainBlocker" type="tns:mainBlockerDefinition"/>
             </xs:choice>
         </xs:sequence>
         <xs:attribute name="taskRef" type="xs:IDREF" use="required"/>
@@ -82,6 +83,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     -->
     <xs:complexType name="blockerDefinition">
         <xs:attribute name="taskRef" type="xs:IDREF" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="mainBlockerDefinition">
+        <xs:attribute name="blockAllBefore" type="xs:boolean" use="required"/>
     </xs:complexType>
 
     <!-- task profile -->
