@@ -47,6 +47,9 @@ public class StepDefinition {
     @XmlElement(name = WorkflowProfileConsts.STEP_BLOCKER_EL)
     private List<BlockerDefinition> blockers;
 
+    @XmlElement(name = WorkflowProfileConsts.STEP_MAIN_BLOCKER_EL)
+    private List<MainBlockerDefinition> mainBlockers;
+
     public TaskDefinition getTask() {
         return task;
     }
@@ -85,6 +88,13 @@ public class StepDefinition {
             blockers = new ArrayList<BlockerDefinition>();
         }
         return blockers;
+    }
+
+    public List<MainBlockerDefinition> getMainBlockers() {
+        if (mainBlockers == null) {
+            mainBlockers = new ArrayList<MainBlockerDefinition>();
+        }
+        return mainBlockers;
     }
 
 }
