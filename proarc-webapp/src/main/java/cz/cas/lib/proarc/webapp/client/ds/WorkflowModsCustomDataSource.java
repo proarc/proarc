@@ -34,7 +34,7 @@ public class WorkflowModsCustomDataSource extends ProarcDataSource implements Mo
 
     public static final String ID = "WorkflowModsCustomDataSource";
 
-    public static final String FIELD_WF_JOB_ID = DigitalObjectResourceApi.WORKFLOW_JOB_ID;
+    public static final String FIELD_WF_JOB_ID = WorkflowModelConsts.PARAMETER_JOBID;
 
     public static WorkflowModsCustomDataSource INSTANCE;
 
@@ -52,7 +52,14 @@ public class WorkflowModsCustomDataSource extends ProarcDataSource implements Mo
         DataSourceField fieldPid = new DataSourceField(FIELD_WF_JOB_ID, FieldType.TEXT);
         fieldPid.setPrimaryKey(true);
         fieldPid.setRequired(true);
-        setFields(fieldPid);
+
+        DataSourceField fieldTimestamp = new DataSourceField(ModsCustomDataSource.FIELD_TIMESTAMP, FieldType.TEXT);
+
+        DataSourceField fieldEditor = new DataSourceField(MetaModelDataSource.FIELD_EDITOR, FieldType.TEXT);
+
+        DataSourceField fieldData = new DataSourceField(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA, FieldType.ANY);
+
+        setFields(fieldPid, fieldTimestamp, fieldEditor,  fieldData);
         setOperationBindings(RestConfig.createUpdateOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
     }
@@ -71,9 +78,16 @@ public class WorkflowModsCustomDataSource extends ProarcDataSource implements Mo
     }
 
     public void saveXmlDescription(DigitalObjectDataSource.DigitalObject dobj, String xml, long timestamp, ModsCustomDataSource.DescriptionSaveHandler callback) {
+        saveXmlDescription(dobj, xml, timestamp, callback, false);
+    }
+
+    public void saveXmlDescription(DigitalObjectDataSource.DigitalObject dobj, String xml, long timestamp, ModsCustomDataSource.DescriptionSaveHandler callback, Boolean ignoreValidation) {
         Record update = new Record();
         dobj.toCriteria();
         update.setAttribute(ModsCustomDataSource.FIELD_PID, dobj.getPid());
+        if (ignoreValidation != null && ignoreValidation) {
+            update.setAttribute(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION, true);
+        }
         if (xml == null || xml.isEmpty()) {
             return ;
         }

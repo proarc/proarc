@@ -537,7 +537,7 @@ public class WorkflowResource {
             @DefaultValue("false")
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
     ) throws DigitalObjectException {
-        return updateDescriptionMetadataFix(jobId, modelId, timestamp, editorId, jsonData, xmlData, ignoreValidation, session, httpHeaders);
+        return updateDescriptionMetadataFix(jobId, modelId, timestamp, editorId, jsonData, xmlData != null && !"null".equals(xmlData) ? xmlData : null, ignoreValidation, session, httpHeaders);
     }
 
 

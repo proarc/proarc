@@ -36,6 +36,7 @@ import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHa
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.TextDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.CodeMirror;
 import cz.cas.lib.proarc.webapp.client.widget.DatastreamEditor;
 import java.util.logging.Logger;
@@ -171,35 +172,67 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
     }
 
     private void saveImpl(final BooleanCallback callback, String newXml) {
-        ModsCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, new DescriptionSaveHandler() {
+        if (digitalObject != null && digitalObject.getWorkflowJobId() != null) {
+            WorkflowModsCustomDataSource instance = WorkflowModsCustomDataSource.getInstance();
+            instance.saveXmlDescription(digitalObject, newXml, timestamp, new DescriptionSaveHandler() {
 
-            @Override
-            protected void onSave(DescriptionMetadata dm) {
-                super.onSave(dm);
-                refresh(false);
-                callback.execute(Boolean.TRUE);
-            }
+                @Override
+                protected void onSave(DescriptionMetadata dm) {
+                    super.onSave(dm);
+                    refresh(false);
+                    callback.execute(Boolean.TRUE);
+                }
 
-            @Override
-            protected void onError() {
-                super.onError();
-                callback.execute(Boolean.FALSE);
-            }
+                @Override
+                protected void onError() {
+                    super.onError();
+                    callback.execute(Boolean.FALSE);
+                }
 
-            @Override
-            protected void onValidationError() {
-                // Do not ignore XML validation!
-                String msg = i18n.SaveAction_IgnoreRemoteInvalid_Msg(getValidationMessage());
+                @Override
+                protected void onValidationError() {
+                    // Do not ignore XML validation!
+                    String msg = i18n.SaveAction_IgnoreRemoteInvalid_Msg(getValidationMessage());
 
-                SC.ask(i18n.SaveAction_Title(), msg, value -> {
-                    // save again
-                    if (value != null && value) {
-                        ModsCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, this, true);
-                    }
-                });
-            }
+                    SC.ask(i18n.SaveAction_Title(), msg, value -> {
+                        // save again
+                        if (value != null && value) {
+                            WorkflowModsCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, this, true);
+                        }
+                    });
+                }
+            });
 
-        });
+        } else {
+            ModsCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, new DescriptionSaveHandler() {
+
+                @Override
+                protected void onSave(DescriptionMetadata dm) {
+                    super.onSave(dm);
+                    refresh(false);
+                    callback.execute(Boolean.TRUE);
+                }
+
+                @Override
+                protected void onError() {
+                    super.onError();
+                    callback.execute(Boolean.FALSE);
+                }
+
+                @Override
+                protected void onValidationError() {
+                    // Do not ignore XML validation!
+                    String msg = i18n.SaveAction_IgnoreRemoteInvalid_Msg(getValidationMessage());
+
+                    SC.ask(i18n.SaveAction_Title(), msg, value -> {
+                        // save again
+                        if (value != null && value) {
+                            ModsCustomDataSource.getInstance().saveXmlDescription(digitalObject, newXml, timestamp, this, true);
+                        }
+                    });
+                }
+            });
+        }
     }
 
 }
