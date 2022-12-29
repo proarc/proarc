@@ -46,6 +46,12 @@ public abstract class DisplayableType<T extends DisplayableType> implements IDis
     @XmlTransient
     private Map<String, String> hints;
 
+    @XmlElement(name = WorkflowProfileConsts.HINT_EL)
+    public List<I18NString> hints_new;
+
+    @XmlElement(name = WorkflowProfileConsts.TITLE_EL)
+    public List<I18NString> titles_new;
+
     @Override
     public String getName() {
         return name;
@@ -73,9 +79,16 @@ public abstract class DisplayableType<T extends DisplayableType> implements IDis
 
     public Map<String, String> getTitles() {
         if (titles == null) {
+            titles = I18NString.toMap(getTitlesNew());
+        }
+        if (titles == null) {
             titles = new LinkedHashMap<String, String>();
         }
         return titles;
+    }
+
+    public List<I18NString> getTitlesNew() {
+        return titles_new;
     }
 
     @Override
@@ -85,9 +98,16 @@ public abstract class DisplayableType<T extends DisplayableType> implements IDis
 
     public Map<String, String> getHints() {
         if (hints == null) {
+            hints = I18NString.toMap(getHintsNew());
+        }
+        if (hints == null) {
             hints = new LinkedHashMap<String, String>();
         }
         return hints;
+    }
+
+    public List<I18NString> getHintsNew() {
+        return hints_new;
     }
 
     private static String getI18n(Map<String, String> vals, String lang, String defaultValue) {

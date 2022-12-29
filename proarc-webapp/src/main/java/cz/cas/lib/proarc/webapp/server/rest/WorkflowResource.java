@@ -136,7 +136,14 @@ public class WorkflowResource {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION) String mEdition,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_FINANCED) String financed,
-            @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy,
+            @QueryParam(WorkflowModelConsts.JOB_TASK_NAME) String taskName,
+            @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_DATE) Timestamp taskDate,
+            @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USER) String taskUser,
+            @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME) String taskUserName,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID) String pid,
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_RAW_PATH) String rawPath
+
     ) {
         int pageSize = 100;
         JobFilter filter = new JobFilter();
@@ -164,6 +171,11 @@ public class WorkflowResource {
         filter.setProfileName(profileName);
         filter.setState(state);
         filter.setUserId(userId);
+        filter.setTaskName(taskName);
+        filter.setTaskDate(taskDate);
+        filter.setTaskUser(taskUser);
+        filter.setRawPath(rawPath);
+        filter.setPid(pid);
         try {
             List<JobView> jobs = workflowManager.findJob(filter);
             int resultSize = jobs.size();

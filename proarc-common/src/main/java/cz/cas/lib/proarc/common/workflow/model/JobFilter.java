@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import cz.cas.lib.proarc.common.workflow.model.Job.State;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -73,12 +74,30 @@ public class JobFilter {
     private String profileName;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_STATE)
     private State state;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID)
+    private String pid;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
+    private String materialEdition;
+    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_RAW_PATH)
+    private String rawPath;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_NAME)
+    private String taskName;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_HINT)
+    private String taskHint;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_LABEL)
+    private String taskLabel;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_DATE)
+    private Timestamp taskDate;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USER)
+    private String taskUser;
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME)
+    private String taskUsername;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_SORTBY)
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_OFFSET)
     private int offset = 0;
-    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
-    private String materialEdition;
+
+
     private int maxCount = 100;
     private Locale locale;
 
@@ -270,5 +289,53 @@ public class JobFilter {
 
     public void setFinanced(String financed) {
         this.financed = financed;
+    }
+
+    public String getRawPath() {
+        return rawPath;
+    }
+
+    public void setRawPath(String rawPath) {
+        this.rawPath = rawPath;
+    }
+
+    public Timestamp getTaskDate() {
+        return taskDate;
+    }
+
+    public void setTaskDate(Timestamp taskDate) {
+        this.taskDate = taskDate;
+    }
+
+    public String getTaskUser() {
+        return taskUser;
+    }
+
+    public void setTaskUser(String taskUser) {
+        this.taskUser = taskUser;
+    }
+
+    public String getTaskUsername() {
+        return taskUsername;
+    }
+
+    public void setTaskUsername(String taskUsername) {
+        this.taskUsername = taskUsername;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
+
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 }
