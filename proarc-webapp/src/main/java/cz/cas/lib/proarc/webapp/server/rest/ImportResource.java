@@ -550,6 +550,12 @@ public class ImportResource {
                 throw RestException.plainText(Status.FORBIDDEN,
                         ServerMessages.get(locale).ImportResource_BatchLoadingFailed_Msg());
             }
+            if (!(batch.getState() == Batch.State.LOADED)) {
+                Locale locale = session.getLocale(httpHeaders);
+                String message = ServerMessages.get(locale).ImportResource_BatchNotLoaded_Msg();
+                Exception ex = new Exception(message);
+                return SmartGwtResponse.asError(message);
+            }
             imports = listLoadedItems
                     ? importManager.findLoadedObjects(batch)
                     : importManager.findBatchObjects(batchId, pid);

@@ -82,4 +82,8 @@ public final class ServerMessages {
         return getMessage(l, "ImportResource_BatchLoadingFailed_Msg");
     }
 
+    public String ImportResource_BatchNotLoaded_Msg() {
+        return getMessage(l, "ImportResource_BatchNotLoaded_Msg");
+    }
+
 }

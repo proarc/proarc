@@ -1368,7 +1368,7 @@ public class DigitalObjectResource {
     public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
             ProArcRequest.CopyPagesMetadataRequest request
     ) throws IOException, DigitalObjectException {
-        return copyDescriptionMetadataToPages(request.sourcePidsArray, request.destinationPidsArray, request.copyPageNumber, request.copyPageType, request.copyPageIndex, request.batchId);
+        return copyDescriptionMetadataToPages(request.sourcePidsArray, request.destinationPidsArray, request.copyPageNumber, request.copyPageType, request.copyPageIndex, request.copyPagePossition, request.batchId);
     }
 
     @POST
@@ -1381,6 +1381,7 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_NUMBER) Boolean copyPageNumber,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_TYPE) Boolean copyPageType,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_INDEX) Boolean copyPageIndex,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_POSSITION) Boolean copyPagePossition,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) throws IOException, DigitalObjectException {
 
@@ -1388,7 +1389,7 @@ public class DigitalObjectResource {
             Batch batch = importManager.get(batchId);
             List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
 
-            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType);
+            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePossition);
             updatePagesMetadata.updatePagesLocal(objects);
             return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, null);
         } else {
@@ -1397,7 +1398,7 @@ public class DigitalObjectResource {
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
                 return toError(validationException, STATUS_LOCKED);
             }
-            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType);
+            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePossition);
             updatePagesMetadata.updatePages();
             return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, null);
         }

@@ -146,8 +146,11 @@ public final class ImportProcess implements Runnable {
 
     public static void stopLoadingBatch(Batch batch, ImportBatchManager ibm, AppConfiguration config) {
         ImportDispatcher importDispatcher = ImportDispatcher.getDefault();
-        importDispatcher.stopNow();
-
+        try {
+            importDispatcher.stopNow();
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, ex.getMessage());
+        }
         LOG.log(Level.INFO, batch.toString(), "has been stopped");
         batch.setState(Batch.State.STOPPED);
         ibm.update(batch);

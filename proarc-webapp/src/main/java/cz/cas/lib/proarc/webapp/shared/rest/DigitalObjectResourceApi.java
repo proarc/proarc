@@ -40,6 +40,7 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_COPY_PAGE_NUMBER = "copyPageNumber";
     public static final String DIGITALOBJECT_COPY_PAGE_INDEX = "copyPageIndex";
     public static final String DIGITALOBJECT_COPY_PAGE_TYPE = "copyPageType";
+    public static final String DIGITALOBJECT_COPY_PAGE_POSSITION = "copyPagePossition";
 
     public static final String NEWOBJECT_XML_PARAM = "xml";
 
