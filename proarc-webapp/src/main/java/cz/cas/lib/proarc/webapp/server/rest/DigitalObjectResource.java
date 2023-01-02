@@ -1329,7 +1329,7 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_INDEX_START_NUMBER) String startIndex,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_TYPE_PAGE) String pageType,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_DOUBLE_COLUMNS) String doubleColumns,
-            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_PAGE_POSSITION) String pagePossition,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_PAGE_POSITION) String pagePosition,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) throws IOException, DigitalObjectException {
         LOG.fine(String.format("pid: %s", pidsArray));
@@ -1344,7 +1344,7 @@ public class DigitalObjectResource {
             UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
             updatePages.createIndex(startIndex);
             updatePages.createListOfPids(pids);
-            updatePages.updatePagesLocal(objects, sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePossition);
+            updatePages.updatePagesLocal(objects, sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePosition);
             return new SmartGwtResponse<>();
         } else {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
@@ -1356,7 +1356,7 @@ public class DigitalObjectResource {
             UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
             updatePages.createListOfPids(pids);
             updatePages.createIndex(startIndex);
-            updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePossition);
+            updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePosition);
             return new SmartGwtResponse<>();
         }
     }
@@ -1368,7 +1368,7 @@ public class DigitalObjectResource {
     public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
             ProArcRequest.CopyPagesMetadataRequest request
     ) throws IOException, DigitalObjectException {
-        return copyDescriptionMetadataToPages(request.sourcePidsArray, request.destinationPidsArray, request.copyPageNumber, request.copyPageType, request.copyPageIndex, request.copyPagePossition, request.batchId);
+        return copyDescriptionMetadataToPages(request.sourcePidsArray, request.destinationPidsArray, request.copyPageNumber, request.copyPageType, request.copyPageIndex, request.copyPagePosition, request.batchId);
     }
 
     @POST
@@ -1381,7 +1381,7 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_NUMBER) Boolean copyPageNumber,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_TYPE) Boolean copyPageType,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_INDEX) Boolean copyPageIndex,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_POSSITION) Boolean copyPagePossition,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_POSITION) Boolean copyPagePosition,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) throws IOException, DigitalObjectException {
 
@@ -1389,7 +1389,7 @@ public class DigitalObjectResource {
             Batch batch = importManager.get(batchId);
             List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
 
-            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePossition);
+            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePosition);
             updatePagesMetadata.updatePagesLocal(objects);
             return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, null);
         } else {
@@ -1398,7 +1398,7 @@ public class DigitalObjectResource {
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
                 return toError(validationException, STATUS_LOCKED);
             }
-            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePossition);
+            UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePosition);
             updatePagesMetadata.updatePages();
             return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, null);
         }

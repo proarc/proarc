@@ -40,7 +40,7 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_COPY_PAGE_NUMBER = "copyPageNumber";
     public static final String DIGITALOBJECT_COPY_PAGE_INDEX = "copyPageIndex";
     public static final String DIGITALOBJECT_COPY_PAGE_TYPE = "copyPageType";
-    public static final String DIGITALOBJECT_COPY_PAGE_POSSITION = "copyPagePossition";
+    public static final String DIGITALOBJECT_COPY_PAGE_POSITION = "copyPagePosition";
 
     public static final String NEWOBJECT_XML_PARAM = "xml";
 
@@ -163,7 +163,7 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_PAGE_RULES_INDEX_START_NUMBER = "startIndex";
     public static final String MODS_PAGE_RULES_TYPE_PAGE = "pageType";
     public static final String MODS_PAGE_RULES_DOUBLE_COLUMNS = "doubleColumns";
-    public static final String MODS_PAGE_RULES_PAGE_POSSITION = "pagePosition";
+    public static final String MODS_PAGE_RULES_PAGE_POSITION = "pagePosition";
 
     public static final String MODS_CUSTOM_FUNCTION_ADD_BRACKETS = "addBrackets";
     public static final String MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS = "removeBrackets";

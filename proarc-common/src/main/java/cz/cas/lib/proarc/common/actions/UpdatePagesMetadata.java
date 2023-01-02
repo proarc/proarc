@@ -55,15 +55,15 @@ public class UpdatePagesMetadata {
     private Boolean copyPageIndex;
     private Boolean copyPageNumber;
     private Boolean copyPageType;
-    private Boolean copyPagePossition;
+    private Boolean copyPagePosition;
 
-    public UpdatePagesMetadata(List<String> sourcePids, List<String> destinationPids, Boolean copyPageIndex, Boolean copyPageNumber, Boolean copyPageType, Boolean copyPagePossition) {
+    public UpdatePagesMetadata(List<String> sourcePids, List<String> destinationPids, Boolean copyPageIndex, Boolean copyPageNumber, Boolean copyPageType, Boolean copyPagePosition) {
         this.sourcePids = sourcePids;
         this.destinationPids = destinationPids;
         this.copyPageIndex = copyPageIndex;
         this.copyPageNumber = copyPageNumber;
         this.copyPageType = copyPageType;
-        this.copyPagePossition = copyPagePossition;
+        this.copyPagePosition = copyPagePosition;
     }
 
     public void updatePagesLocal(List<ImportBatchManager.BatchItemObject> objects) throws DigitalObjectException {
@@ -157,8 +157,8 @@ public class UpdatePagesMetadata {
                 if (copyPageType) {
                     setPageType(mods, sourceModsInfo, model, true);
                 }
-                if (copyPagePossition) {
-                    setPagePossition(mods, sourceModsInfo, model);
+                if (copyPagePosition) {
+                    setPagePosition(mods, sourceModsInfo, model);
                 }
             }
         } else {
@@ -166,8 +166,8 @@ public class UpdatePagesMetadata {
         }
     }
 
-    private void setPagePossition(ModsDefinition mods, SourceModsInfo sourceModsInfo, String model) {
-        if (sourceModsInfo.getPagePossition() != null && !sourceModsInfo.getPagePossition().isEmpty()) {
+    private void setPagePosition(ModsDefinition mods, SourceModsInfo sourceModsInfo, String model) {
+        if (sourceModsInfo.getPagePosition() != null && !sourceModsInfo.getPagePosition().isEmpty()) {
             NoteDefinition noteDefinition = null;
             for (NoteDefinition note : mods.getNote()) {
                 if (ModsConstants.VALUE_PAGE_NOTE_LEFT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_RIGHT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_SINGLE_PAGE.equals(note.getValue())) {
@@ -179,7 +179,7 @@ public class UpdatePagesMetadata {
                 noteDefinition = new NoteDefinition();
                 mods.getNote().add(noteDefinition);
             }
-            noteDefinition.setValue(sourceModsInfo.getPagePossition());
+            noteDefinition.setValue(sourceModsInfo.getPagePosition());
         }
     }
 
@@ -312,8 +312,8 @@ public class UpdatePagesMetadata {
                 String pageIndex = getPageIndex(mods, model);
                 String pageNumber = getPageNumber(mods, model);
                 String pageType = getPageType(mods);
-                String pagePossition = getPagePossition(mods);
-                SourceModsInfo sourceModsInfo = new SourceModsInfo(pageIndex, pageNumber, pageType, pagePossition);
+                String pagePosition = getPagePosition(mods);
+                SourceModsInfo sourceModsInfo = new SourceModsInfo(pageIndex, pageNumber, pageType, pagePosition);
                 return sourceModsInfo;
             } else {
                 throw new DigitalObjectException("Missing element mods for: " + pid);
@@ -323,7 +323,7 @@ public class UpdatePagesMetadata {
         }
     }
 
-    private String getPagePossition(ModsDefinition mods) {
+    private String getPagePosition(ModsDefinition mods) {
         for (NoteDefinition note : mods.getNote()) {
             if (ModsConstants.VALUE_PAGE_NOTE_LEFT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_RIGHT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_SINGLE_PAGE.equals(note.getValue())) {
                 return note.getValue();
@@ -371,13 +371,13 @@ public class UpdatePagesMetadata {
         public String pageIndex;
         public String pageNumber;
         public String pageType;
-        public String pagePossition;
+        public String pagePosition;
 
-        public SourceModsInfo(String pageIndex, String pageNumber, String pageType, String pagePossition) {
+        public SourceModsInfo(String pageIndex, String pageNumber, String pageType, String pagePosition) {
             this.pageIndex = pageIndex;
             this.pageNumber = pageNumber;
             this.pageType = pageType;
-            this.pagePossition = pagePossition;
+            this.pagePosition = pagePosition;
         }
 
         public String getPageIndex() {
@@ -392,8 +392,8 @@ public class UpdatePagesMetadata {
             return pageType;
         }
 
-        public String getPagePossition() {
-            return pagePossition;
+        public String getPagePosition() {
+            return pagePosition;
         }
     }
 }

@@ -100,7 +100,7 @@ public class ProArcRequest {
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_NUMBER)
         Boolean copyPageNumber;
 
-        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_POSSITION)
-        Boolean copyPagePossition;
+        @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_POSITION)
+        Boolean copyPagePosition;
     }
 }
