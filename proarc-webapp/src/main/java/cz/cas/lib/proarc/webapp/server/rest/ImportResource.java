@@ -538,6 +538,7 @@ public class ImportResource {
             @QueryParam("_startRow") int startRow
             ) throws DigitalObjectException {
 
+        Locale locale = session.getLocale(httpHeaders);
         startRow = Math.max(0, startRow);
         List<BatchItemObject> imports = null;
         final boolean listLoadedItems = pid == null || pid.isEmpty();
@@ -546,19 +547,30 @@ public class ImportResource {
         if (batchId != null) {
             batch = importManager.get(batchId);
             if (batch.getState() == Batch.State.LOADING_FAILED) {
-                Locale locale = session.getLocale(httpHeaders);
                 throw RestException.plainText(Status.FORBIDDEN,
                         ServerMessages.get(locale).ImportResource_BatchLoadingFailed_Msg());
             }
             if (!(batch.getState() == Batch.State.LOADED)) {
-                Locale locale = session.getLocale(httpHeaders);
                 String message = ServerMessages.get(locale).ImportResource_BatchNotLoaded_Msg();
-                Exception ex = new Exception(message);
                 return SmartGwtResponse.asError(message);
             }
-            imports = listLoadedItems
-                    ? importManager.findLoadedObjects(batch)
-                    : importManager.findBatchObjects(batchId, pid);
+            try {
+                imports = listLoadedItems
+                        ? importManager.findLoadedObjects(batch)
+                        : importManager.findBatchObjects(batchId, pid);
+            } catch (IllegalStateException ex) {
+                LOG.warning(ex.getMessage());
+                ex.printStackTrace();
+
+                String messageOld = "Cannot resolve folder path:";
+                if (ex.getMessage() != null && ex.getMessage().contains(messageOld)) {
+                    String message = ServerMessages.get(locale).ImportResource_PathNotExisted_Msg();
+                    String newMessage = ex.getMessage().replace(messageOld, message);
+                    return SmartGwtResponse.asError(newMessage.substring(0, newMessage.indexOf(" for Batch")));
+                } else {
+                    return SmartGwtResponse.asError(ex.getMessage());
+                }
+            }
         }
         if (imports == null) {
             throw RestException.plainText(Status.NOT_FOUND, String.format("Not found! batchId: %s, pid: %s", batchId, pid));

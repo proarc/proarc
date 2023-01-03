@@ -86,4 +86,8 @@ public final class ServerMessages {
         return getMessage(l, "ImportResource_BatchNotLoaded_Msg");
     }
 
+    public String ImportResource_PathNotExisted_Msg() {
+        return getMessage(l, "ImportResource_PathNotExisted_Msg");
+    }
+
 }
