@@ -240,6 +240,46 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         }
 
         @Override
+        public void validateMetadataAsJson(DescriptionMetadata<Object> jsonData) throws DigitalObjectException {
+            String json = (String) jsonData.getData();
+            String editorId = jsonData.getEditor();
+            String modelId = handler.getModel().getPid();
+            ModsDefinition mods = null;
+            if (json == null) {
+                throw new DigitalObjectException(handler.getFedoraObject().getPid(), "No data - nothing to validate.");
+            } else {
+                mods = editor.read();
+            }
+            Mapping mapping = new Mapping();
+            Class<?> type = mapping.getType(editorId);
+            ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
+            Object customData;
+            try {
+                customData = jsMapper.readValue(json, type);
+            } catch (Exception ex) {
+                throw new DigitalObjectException(fobject.getPid(), null, ModsStreamEditor.DATASTREAM_ID, null, ex);
+            }
+            mapping.update(mods, customData, editorId);
+            if (LOG.isLoggable(Level.FINE)) {
+                String toXml = ModsUtils.toXml(mods, true);
+                LOG.fine(toXml);
+            }
+            validate(mods);
+        }
+
+        @Override
+        public void validateMetadataAsXml(DescriptionMetadata<String> xmlData) throws DigitalObjectException {
+            ModsDefinition mods;
+            String modelId = handler.getModel().getPid();
+            if (xmlData.getData() == null) {
+                throw new DigitalObjectException(handler.getFedoraObject().getPid(), "No data - nothing to validate.");
+            } else {
+                mods = ModsStreamEditor.create33(fobject.getPid(), modelId, xmlData.getData());
+            }
+            validate(mods);
+        }
+
+        @Override
         public DescriptionMetadata<ModsDefinition> getMetadata() throws DigitalObjectException {
             ModsDefinition mods = editor.read();
             DescriptionMetadata<ModsDefinition> dm = new DescriptionMetadata<>();
@@ -322,6 +362,9 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
             String label = ModsUtils.getLabel(mods, modelId);
             fobject.setLabel(label);
         }
-    }
 
+        private void validate(ModsDefinition mods) throws DigitalObjectException {
+             // not supported yet
+        }
+    }
 }

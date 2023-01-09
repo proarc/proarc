@@ -547,10 +547,10 @@ public class ImportResource {
         if (batchId != null) {
             batch = importManager.get(batchId);
             if (batch.getState() == Batch.State.LOADING_FAILED) {
-                throw RestException.plainText(Status.FORBIDDEN,
+                throw RestException.plainText(Status.BAD_REQUEST,
                         ServerMessages.get(locale).ImportResource_BatchLoadingFailed_Msg());
             }
-            if (!(batch.getState() == Batch.State.LOADED)) {
+            if (!(batch.getState() == Batch.State.LOADED || batch.getState() == Batch.State.LOADING)) {
                 String message = ServerMessages.get(locale).ImportResource_BatchNotLoaded_Msg();
                 return SmartGwtResponse.asError(message);
             }

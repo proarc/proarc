@@ -517,6 +517,51 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         write(modelId, mods, xmlData, message, typeRecord);
     }
 
+    @Override
+    public void validateMetadataAsJson(DescriptionMetadata<Object> jsonData) throws DigitalObjectException {
+        Object json = jsonData.getData();
+        String modelId = handler.getModel().getPid();
+        ModsDefinition mods = null;
+        if (json == null) {
+            throw new DigitalObjectException(handler.getFedoraObject().getPid(), "No data - nothing to validate.");
+        } else {
+            if (json instanceof NdkMapper.RdaModsWrapper) {
+                NdkMapper.RdaModsWrapper wrapper = (NdkMapper.RdaModsWrapper) json;
+                mods = wrapper.getMods();
+            } else {
+                throw new DigitalObjectException(handler.getFedoraObject().getPid(), "Unsupported type of data.");
+            }
+        }
+        validate(modelId, mods, jsonData);
+    }
+
+    @Override
+    public void validateMetadataAsXml(DescriptionMetadata<String> xmlData) throws DigitalObjectException {
+        String data = xmlData.getData();
+        String modelId = handler.getModel().getPid();
+        ModsDefinition mods;
+        if (data == null) {
+            throw new DigitalObjectValidationException(xmlData.getPid(), xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, "No data - nothing to validate.", null);
+        } else {
+            ValidationErrorHandler errHandler = new ValidationErrorHandler();
+            try {
+                xmlData.setData(data);
+
+                Validator validator = ModsUtils.getSchema().newValidator();
+                validator.setErrorHandler(errHandler);
+                validator.validate(new StreamSource(new StringReader(xmlData.getData())));
+                checkValidation(errHandler, xmlData);
+                mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xmlData.getData())));
+            } catch (DataBindingException | SAXException | IOException ex) {
+                checkValidation(errHandler, xmlData);
+                throw new DigitalObjectValidationException(xmlData.getPid(),
+                            xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
+                        .addValidation("mods", ex.getMessage(), true);
+            }
+        }
+        validate(modelId, mods, xmlData);
+    }
+
     private void checkValidation(ValidationErrorHandler errHandler, DescriptionMetadata<String> xmlData)
             throws DigitalObjectValidationException {
         if (!errHandler.getValidationErrors().isEmpty()) {
@@ -623,21 +668,18 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void checkBeforeWrite(ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations, String modelId, Context context) throws DigitalObjectException {
+    private void checkBeforeWrite(boolean skipUrnNbnValidation, ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations, String modelId, Context context) throws DigitalObjectException {
         if (ignoreValidations) {
-            checkIdentifiers(mods, oldMods, null);
+            checkIdentifiers(skipUrnNbnValidation, mods, oldMods, null);
             return ;
         }
         DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
                 DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
-        checkIdentifiers(mods, oldMods, ex);
+        checkIdentifiers(skipUrnNbnValidation, mods, oldMods, ex);
         RelationEditor relations = handler.relations();
         List<String> members = relations.getMembers();
         if (HAS_MEMBER_VALIDATION_MODELS.contains(relations.getModel()) && !members.isEmpty()) {
             ex.addValidation("mods", ERR_NDK_CHANGE_MODS_WITH_MEMBERS, true);
-        }
-        if (!ex.getValidations().isEmpty()) {
-            throw ex;
         }
 
         RdaRules rdaRules = new RdaRules(modelId, mods, ex);
@@ -645,9 +687,13 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
         ModsRules modsRules = new ModsRules(modelId, mods, ex, context);
         modsRules.check();
+
+        if (!ex.getValidations().isEmpty()) {
+            throw ex;
+        }
     }
 
-    private void checkIdentifiers(ModsDefinition mods, ModsDefinition oldMods, DigitalObjectValidationException ex) throws DigitalObjectException {
+    private void checkIdentifiers(boolean skipUrnNbnValidation, ModsDefinition mods, ModsDefinition oldMods, DigitalObjectValidationException ex) throws DigitalObjectException {
         if (fobject != null && fobject.getPid() != null) {
             ModsStreamEditor.addPid(mods, fobject.getPid());
         }
@@ -655,22 +701,24 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 : Collections.<IdentifierDefinition>emptyList();
         // check URN:NBN
         for (IdentifierDefinition oldId : oldIds) {
-            if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty() && (oldId.getInvalid() == null || "no".equals(oldId.getInvalid()))) {
-                boolean missingId = true;
-                for (IdentifierDefinition id : mods.getIdentifier()) {
-                    if (oldId.getType().equals(id.getType()) && oldId.getValue().equals(id.getValue())) {
-                        missingId = false;
-                        break;
+            if (!skipUrnNbnValidation) {
+                if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty() && (oldId.getInvalid() == null || "no".equals(oldId.getInvalid()))) {
+                    boolean missingId = true;
+                    for (IdentifierDefinition id : mods.getIdentifier()) {
+                        if (oldId.getType().equals(id.getType()) && oldId.getValue().equals(id.getValue())) {
+                            missingId = false;
+                            break;
+                        }
                     }
-                }
-                if (missingId) {
-                    if (ex != null) {
-                        ex.addValidation("mods.identifier", ERR_NDK_REMOVE_URNNBN, true, oldId.getValue());
-                    } else {
-                        mods.getIdentifier().add(oldId);
+                    if (missingId) {
+                        if (ex != null) {
+                            ex.addValidation("mods.identifier", ERR_NDK_REMOVE_URNNBN, true, oldId.getValue());
+                        } else {
+                            mods.getIdentifier().add(oldId);
+                        }
+                    } else if (ex != null) {
+                        ex.addValidation("mods.identifier", ERR_NDK_CHANGE_MODS_WITH_URNNBN, true, oldId.getValue());
                     }
-                } else if (ex != null) {
-                    ex.addValidation("mods.identifier", ERR_NDK_CHANGE_MODS_WITH_URNNBN, true, oldId.getValue());
                 }
             }
         }
@@ -713,6 +761,12 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
+    protected void validate(String modelId, ModsDefinition mods, DescriptionMetadata<?> options) throws DigitalObjectException {
+        ModsDefinition oldMods = editor.read();
+        Context context = new Context(handler);
+        checkBeforeWrite(true, mods, oldMods, false, modelId, context);
+    }
+
     protected void write(String modelId, ModsDefinition mods,
             DescriptionMetadata<?> options, String message, String typeRecord) throws DigitalObjectException {
         ModsDefinition oldMods = null;
@@ -727,9 +781,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         Context context = new Context(handler);
 
         if (OPERATION_VALIDATE.equals(typeRecord)) {
-            checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId, context);
+            checkBeforeWrite(false, mods, oldMods, options.isIgnoreValidation(), modelId, context);
         } else if (!(OPERATION_NEW.equals(typeRecord) || OPERATION_URNNBN.equals(typeRecord))) {
-            checkBeforeWrite(mods, oldMods, options.isIgnoreValidation(), modelId, context);
+            checkBeforeWrite(false, mods, oldMods, options.isIgnoreValidation(), modelId, context);
         }
         NdkMapper mapper = mapperFactory.get(modelId);
         mapper.setModelId(modelId);

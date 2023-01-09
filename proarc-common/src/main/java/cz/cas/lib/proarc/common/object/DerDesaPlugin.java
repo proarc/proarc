@@ -231,6 +231,39 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             write(dc, xml.getTimestamp(), message);
         }
 
+        @Override
+        public void validateMetadataAsJson(DescriptionMetadata<Object> json) throws DigitalObjectException {
+            String data = (String) json.getData();
+            OaiDcType dc;
+            if (data == null) {
+                throw new DigitalObjectException(handler.getFedoraObject().getPid(), "No data - nothing to validate.");
+            } else {
+                ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
+                try {
+                    dc = jsMapper.readValue(data, OaiDcType.class);
+                } catch (Exception ex) {
+                    throw new DigitalObjectException(object.getPid(), null, editor.getProfile().getDsID(), null, ex);
+                }
+            }
+            validate(dc);
+        }
+
+        @Override
+        public void validateMetadataAsXml(DescriptionMetadata<String> xml) throws DigitalObjectException {
+            OaiDcType dc = null;
+            if (xml.getData() == null) {
+                throw new DigitalObjectException(handler.getFedoraObject().getPid(), "No data - nothing to validate.");
+            }
+            if (xml.getData() != null) {
+                dc = DcUtils.unmarshal(xml.getData(), OaiDcType.class);
+            }
+            if (dc == null) {
+                dc = createDefautDc();
+            }
+            validate(dc);
+        }
+
+
         private OaiDcType createDefautDc() throws DigitalObjectException {
             OaiDcType dc = new OaiDcType();
             DigitalObjectHandler parent = handler.getParameterParent();
@@ -288,6 +321,10 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
             DublinCoreRecord dcr = dcEditor.read();
             dcr.setDc(dc);
             dcEditor.write(handler, dcr, message);
+        }
+
+        private void validate(OaiDcType dc) throws DigitalObjectException {
+            // not supported yet
         }
 
         @Override

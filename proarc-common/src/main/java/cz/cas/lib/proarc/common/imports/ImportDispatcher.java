@@ -115,7 +115,7 @@ public final class ImportDispatcher {
             throw new IllegalStateException("needs init");
         }
         if (pool.isShutdown()) {
-            throw new IllegalStateException("needs restart");
+            restart();
         }
     }
 

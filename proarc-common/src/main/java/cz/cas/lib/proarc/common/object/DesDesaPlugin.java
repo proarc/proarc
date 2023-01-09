@@ -241,6 +241,38 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
         }
 
         @Override
+        public void validateMetadataAsJson(DescriptionMetadata<Object> jsonData) throws DigitalObjectException {
+            String json = (String) jsonData.getData();
+            Object metadata;
+            if (json == null) {
+                throw new DigitalObjectException(handler.getFedoraObject().getPid(), "No data - nothing to validate.");
+            } else {
+                ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
+                try {
+                    DesObjectWrapper wrapper = jsMapper.readValue(json, DesObjectWrapper.class);
+                    metadata = wrapper.getSpis() != null
+                            ? mapFromJson(wrapper.getSpis())
+                            : mapFromJson(wrapper.getDokument());
+                } catch (Exception ex) {
+                    throw new DigitalObjectException(fobject.getPid(), null, editor.getProfile().getDsID(), null, ex);
+                }
+            }
+            validate(metadata);
+        }
+
+        @Override
+        public void validateMetadataAsXml(DescriptionMetadata<String> xmlData) throws DigitalObjectException {
+            String xml = xmlData.getData();
+            Object metadata;
+            if (xml == null) {
+                throw new DigitalObjectException(handler.getFedoraObject().getPid(), "No data - nothing to validate.");
+            } else {
+                metadata = NsesssUtils.unmarshal(xml, getType());
+            }
+            validate(metadata);
+        }
+
+        @Override
         public DescriptionMetadata<Object> getMetadata() throws DigitalObjectException {
             Source src = editor.read();
             if (src == null) {
@@ -354,6 +386,10 @@ public class DesDesaPlugin implements DigitalObjectPlugin {
                 throw new UnsupportedOperationException();
             }
 
+        }
+
+        private void validate(Object metadata) throws DigitalObjectException {
+            // not supported yet
         }
 
         private void writeSpis(Spis record, String message) throws DigitalObjectException {

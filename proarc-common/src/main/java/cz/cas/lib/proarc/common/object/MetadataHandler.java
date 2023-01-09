@@ -62,6 +62,10 @@ public interface MetadataHandler<T> {
      */
     void setMetadataAsXml(DescriptionMetadata<String> xmlData, String message, String typeRecord) throws DigitalObjectException;
 
+    void validateMetadataAsJson(DescriptionMetadata<Object> jsonData) throws DigitalObjectException;
+
+    void validateMetadataAsXml(DescriptionMetadata<String> xmlData) throws DigitalObjectException;
+
     DescriptionMetadata<T> getMetadata() throws DigitalObjectException;
 
     DescriptionMetadata<String> getMetadataAsXml() throws DigitalObjectException;

@@ -161,3 +161,11 @@ DELETE http://localhost:8081/proarc/rest/v1/import/batch/item
 Content-Type: application/json
 
 {"pid":["uuid:83702174-8d13-496c-b6e7-b435c0ae0a12"],"batchId":"135"}
+
+###
+
+POST http://localhost:8081/proarc/rest/v1/object/mods/validate
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid%3A696ad6af-b3ab-431d-a4c4-149571ee71eb
+

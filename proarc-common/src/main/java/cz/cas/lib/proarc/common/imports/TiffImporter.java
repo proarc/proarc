@@ -115,6 +115,10 @@ public class TiffImporter implements ImageImporter {
             dobjHandler.commit();
             ibm.addChildRelation(ctx.getBatch(), null, localObj.getPid());
             batchLocalObject.setState(ObjectState.LOADED);
+        } catch(IllegalStateException ex) {
+            LOG.log(Level.SEVERE, f.toString(), ex);
+            batchLocalObject.setState(ObjectState.STOPPED);
+            batchLocalObject.setLog(ImportBatchManager.toString(ex));
         } catch (Throwable ex) {
             LOG.log(Level.SEVERE, f.toString(), ex);
             batchLocalObject.setState(ObjectState.LOADING_FAILED);

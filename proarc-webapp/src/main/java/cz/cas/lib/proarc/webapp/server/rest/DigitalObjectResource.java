@@ -330,7 +330,7 @@ public class DigitalObjectResource {
         } catch (WorkflowException ex) {
             return SmartGwtResponse.asError(ex.getMessage());
         } catch (DigitalObjectValidationException ex) {
-            return toError(ex);
+            return toValidationError(ex);
         }
     }
 
@@ -1211,7 +1211,7 @@ public class DigitalObjectResource {
         if (isLocked(pid)) {
             DigitalObjectValidationException validationException = new DigitalObjectValidationException(pid, null, null, "Locked", null);
             validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-            return toError(validationException, STATUS_LOCKED);
+            return toValidationError(validationException, STATUS_LOCKED);
         }
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
@@ -1255,11 +1255,68 @@ public class DigitalObjectResource {
                 mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), NdkMetadataHandler.OPERATION_UPDATE);
             }
         } catch (DigitalObjectValidationException ex) {
-            return toError(ex);
+            return toValidationError(ex);
         }
 //        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_VALIDATE_OBJECT_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DescriptionMetadata<Object>> validateObject(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
+    ) throws DigitalObjectException {
+
+
+        if (pid == null || pid.isEmpty()) {
+            throw new DigitalObjectException(null, "Missing PID to validate");
+//            if (jobId == null) {
+//                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+//            } else {
+//                // MODS Custom editor doesnt use WorkFlowResource, if there is a validation error
+//                return WorkflowResource.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, session, httpHeaders);
+//            }
+        }
+
+        DigitalObjectHandler doHandler = findHandler(pid, batchId);
+        DescriptionMetadata<Object> descriptionMetadata = doHandler.metadata().getMetadataAsJsonObject(null);
+        descriptionMetadata.setBatchId(batchId);
+
+        MetadataHandler<?> mHandler = doHandler.metadata();
+
+
+        try {
+            List<SearchViewItem> parents = new ArrayList<>();
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+                parents = searchParent(batchId, pidToList(pid), remote.getSearch(session.getLocale(httpHeaders)));
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                parents = searchParent(batchId, pidToList(pid), akubraStorage.getSearch(session.getLocale(httpHeaders)));
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+            if (parents.size() > 0) {
+                FedoraObject parentObject = find(parents.get(0).getPid(), null);
+                DigitalObjectHandler parentHandler = DigitalObjectManager.getDefault().createHandler(parentObject);
+                doHandler.setParameterParent(parentHandler);
+            }
+        } catch (Exception ex) {
+            LOG.info("Impossible to find parent handler.");
+        }
+
+        try {
+            mHandler.validateMetadataAsJson(descriptionMetadata);
+        } catch (DigitalObjectValidationException ex) {
+            return toValidationError(ex);
+        } catch (DigitalObjectException ex) {
+            return SmartGwtResponse.asError(ex);
+        }
+//        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
+        return new SmartGwtResponse<DescriptionMetadata<Object>>();
     }
 
     private FedoraObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
@@ -1288,7 +1345,7 @@ public class DigitalObjectResource {
         if (isLocked(pid)) {
             DigitalObjectValidationException validationException = new DigitalObjectValidationException(pid, null, null, "Locked", null);
             validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-            return toError(validationException, STATUS_LOCKED);
+            return toValidationError(validationException, STATUS_LOCKED);
         }
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
@@ -1306,7 +1363,7 @@ public class DigitalObjectResource {
             MetadataInjector metadataInjector = new AuthorityMetadataInjector(mHandler);
             metadataInjector.addMetadata(dMetadata);
         } catch (DigitalObjectValidationException ex) {
-            return toError(ex);
+            return toValidationError(ex);
         }
 
         doHandler.commit();
@@ -1351,7 +1408,7 @@ public class DigitalObjectResource {
             if (isLocked(pids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-                return toError(validationException, STATUS_LOCKED);
+                return toValidationError(validationException, STATUS_LOCKED);
             }
             UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
             updatePages.createListOfPids(pids);
@@ -1396,7 +1453,7 @@ public class DigitalObjectResource {
             if (isLocked(destinationPids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(destinationPids.get(0), null, null, "Locked", null);
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-                return toError(validationException, STATUS_LOCKED);
+                return toValidationError(validationException, STATUS_LOCKED);
             }
             UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePosition);
             updatePagesMetadata.updatePages();
@@ -1428,7 +1485,7 @@ public class DigitalObjectResource {
             if (isLocked(pids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-                return toError(validationException, STATUS_LOCKED);
+                return toValidationError(validationException, STATUS_LOCKED);
             }
 
             UpdatePages updatePages = new UpdatePages();
@@ -1461,7 +1518,7 @@ public class DigitalObjectResource {
             if (isLocked(pids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-                return toError(validationException, STATUS_LOCKED);
+                return toValidationError(validationException, STATUS_LOCKED);
             }
 
             UpdatePages updatePages = new UpdatePages();
@@ -1470,11 +1527,11 @@ public class DigitalObjectResource {
         }
     }
 
-    private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex) {
-        return toError(ex, null);
+    private <T> SmartGwtResponse<T> toValidationError(DigitalObjectValidationException ex) {
+        return toValidationError(ex, null);
     }
 
-    private <T> SmartGwtResponse<T> toError(DigitalObjectValidationException ex, String type) {
+    private <T> SmartGwtResponse<T> toValidationError(DigitalObjectValidationException ex, String type) {
         if (ex.getValidations().isEmpty()) {
             return SmartGwtResponse.asError(ex);
         }
@@ -2407,7 +2464,7 @@ public class DigitalObjectResource {
             items = copyObject.copy();
             copyObject.copyMods();
         } catch (DigitalObjectValidationException ex) {
-            return toError(ex);
+            return toValidationError(ex);
         }
         if (items != null && items.size() > 0) {
             SearchViewItem item = items.get(0);
