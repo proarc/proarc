@@ -610,10 +610,14 @@ public class DigitalObjectManager {
             for (String fieldValue : catalogFieldValue) {
                 if (bCatalog != null) {
                     try {
+                        Thread.sleep(1000);
                         result = bCatalog.find(catalogId, catalogField, fieldValue, locale);
-                    } catch (TransformerException | IOException ex) {
+                    } catch (TransformerException | IOException | IllegalStateException ex) {
                         result = null;
                         LOG.log(Level.SEVERE, "No child downloaded from server " + catalogId);
+                        ex.printStackTrace();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
                 }
                 String metadata = "";
