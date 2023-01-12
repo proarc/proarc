@@ -43,6 +43,9 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.isAudioPage;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.isPage;
+
 /**
  * Implements search queries with ITQL.
  *
@@ -924,10 +927,17 @@ public final class RemoteStorageSearchView extends SearchView {
         for (SearchViewItem item : items) {
             replaceUriWithPid(item);
             resolveObjectLabel(item);
+            if (isPage(item.getModel())) {
+                item.setPageIndex("-1");
+                item.setPageNumber("-1");
+                item.setPageType("-1");
+            } else if (isAudioPage(item.getModel())) {
+                item.setPageIndex("-1");
+            }
         }
         return items;
     }
-    
+
     private static String replaceUriWithPid(String uri) {
         return uri == null ? uri : RelationResource.toPid(uri);
     }

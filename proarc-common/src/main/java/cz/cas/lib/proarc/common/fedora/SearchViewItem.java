@@ -40,6 +40,9 @@ public class SearchViewItem {
     private String crossrefExportPath;
     private Boolean isLocked;
     private String content;
+    private String pageNumber;
+    private String pageIndex;
+    private String pageType;
 
     public SearchViewItem() {
     }
@@ -308,5 +311,29 @@ public class SearchViewItem {
 
     public void setIsLocked(Boolean isLocked) {
         this.isLocked = isLocked;
+    }
+
+    public String getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(String pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+
+    public String getPageIndex() {
+        return pageIndex;
+    }
+
+    public void setPageIndex(String pageIndex) {
+        this.pageIndex = pageIndex;
+    }
+
+    public String getPageType() {
+        return pageType;
+    }
+
+    public void setPageType(String pageType) {
+        this.pageType = pageType;
     }
 }

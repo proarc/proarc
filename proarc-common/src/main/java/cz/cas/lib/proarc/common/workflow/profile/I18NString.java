@@ -61,7 +61,9 @@ public class I18NString {
         return toMap(list, new LinkedHashMap<String, String>());
     }
 
-    public static Map<String, String> toMap(List<I18NString> list, Map<String, String> m) {
+    public static Map<String, String> toMap(List<I18NString> list, Map<String, String> m) {if (list == null || list.isEmpty()) {
+            return m;
+        }
         for (I18NString s : list) {
             m.put(s.getLang(), s.getValue());
         }

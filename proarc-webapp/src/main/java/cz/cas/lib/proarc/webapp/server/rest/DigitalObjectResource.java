@@ -202,6 +202,7 @@ public class DigitalObjectResource {
     private final SessionContext session;
 
     private final String ERR_IS_LOCKED = "Err_is_locked";
+    private final String ERR_IN_GETTING_CHILDREN = "Err_in_getting_children";
     public static final String STATUS_LOCKED = "locked";
     public static final String STATUS_DONT_BE_IGNORED = "dontIgnored";
 
@@ -3381,10 +3382,12 @@ public class DigitalObjectResource {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> reindex(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PARENT_PID) String parentPid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
-    ) throws DigitalObjectException {
+    ) throws DigitalObjectException, IOException, FedoraClientException {
         Batch internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING);
+        Locale locale = session.getLocale(httpHeaders);
         try {
             ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, akubraConfiguration, user, pid, modelId);
             if (batchId != null) {
@@ -3392,14 +3395,25 @@ public class DigitalObjectResource {
                 List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
                 reindexObjects.reindexLocal(objects);
             } else {
-                IMetsElement parentElement = reindexObjects.getParentElement();
-                if (parentElement != null) {
+                if (parentPid == null || parentPid.isEmpty()) {
+                    IMetsElement parentElement = reindexObjects.getParentElement();
+                    if (parentElement != null) {
 
-                    if (isLocked(reindexObjects.getPids(parentElement))) {
+                        if (isLocked(reindexObjects.getPids(parentElement))) {
+                            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnValidationMessage(ERR_IS_LOCKED), Batch.State.REINDEX_FAILED);
+                            return returnValidationError(ERR_IS_LOCKED);
+                        }
+                        reindexObjects.reindex(parentElement);
+                    } else {
+                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnValidationMessage(ERR_IN_GETTING_CHILDREN), Batch.State.REINDEX_FAILED);
+                        return returnValidationError(ERR_IN_GETTING_CHILDREN);
+                    }
+                } else {
+                    if (isLocked(parentPid)) {
                         BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnValidationMessage(ERR_IS_LOCKED), Batch.State.REINDEX_FAILED);
                         return returnValidationError(ERR_IS_LOCKED);
                     }
-                    reindexObjects.reindex(parentElement);
+                    reindexObjects.reindex(parentPid, locale);
                 }
             }
             BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), null, Batch.State.REINDEX_DONE);

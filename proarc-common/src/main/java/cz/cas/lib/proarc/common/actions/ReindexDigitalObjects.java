@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.actions;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -31,10 +32,13 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.SearchView;
+import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -56,6 +60,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
@@ -216,6 +221,55 @@ public class ReindexDigitalObjects {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }*/
+        }
+    }
+
+    public void reindex(String parentId, Locale locale) throws DigitalObjectException, IOException, FedoraClientException {
+
+        FedoraObject object = null;
+        SearchView search = null;
+        try {
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                object = rstorage.find(parentId);
+                search = rstorage.getSearch(locale);
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())){
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(parentId);
+                search = akubraStorage.getSearch(locale);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+        } catch (IOException e) {
+            throw new DigitalObjectException(parentId, e);
+        }
+
+        RelationEditor relationEditor = new RelationEditor(object);
+        List<String> members = relationEditor.getMembers();
+
+
+
+        int pageIndex = 1;
+        int audioPageIndex = 1;
+
+        for (String memberPid : members) {
+            String memberModel = getModel(memberPid, search);
+            if (NdkPlugin.MODEL_PAGE.equals(memberModel) || NdkPlugin.MODEL_NDK_PAGE.equals(memberModel) || OldPrintPlugin.MODEL_PAGE.equals(memberModel)) {
+                reindexMods(pageIndex++, memberPid, fixModel(memberModel));
+                reindexDc(memberPid, fixModel(memberModel));
+            } else if (NdkAudioPlugin.MODEL_TRACK.equals(memberModel)) {
+                reindexMods(audioPageIndex++, memberPid, fixModel(memberModel));
+                reindexDc(memberPid, fixModel(memberModel));
+            }
+        }
+    }
+
+    private String getModel(String pid, SearchView search) throws IOException, FedoraClientException {
+        List<SearchViewItem> items = search.find(pid);
+        if (items.size() > 0) {
+            return items.get(0).getModel();
+        } else {
+            return null;
         }
     }
 

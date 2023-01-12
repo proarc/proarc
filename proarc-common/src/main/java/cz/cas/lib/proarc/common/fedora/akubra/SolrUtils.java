@@ -1,6 +1,9 @@
 package cz.cas.lib.proarc.common.fedora.akubra;
 
 import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,7 +34,9 @@ public class SolrUtils {
     public static final String FIELD_DEVICE = "device";
     public static final String FIELD_MEMBERS = "members";
     public static final String FIELD_SOURCE = "source";
-
+    public static final String FIELD_PAGE_INDEX = "pageIndex";
+    public static final String FIELD_PAGE_NUMBER = "pageNumber";
+    public static final String FIELD_PAGE_TYPE = "pageType";
 
     public static StringBuilder appendAndValue(StringBuilder queryBuilder, String value) {
         return appendValue(queryBuilder, value, QueryOperator.AND.name());
@@ -132,8 +137,23 @@ public class SolrUtils {
         item.setCrossrefExportPath(getString(solrDocument, FIELD_EXPORT_CROSSREF));;
         item.setK4(getContainsString(solrDocument, FIELD_EXPORT_CROSSREF));
         item.setIsLocked(getBoolean(solrDocument, FIELD_LOCKED));
+        if (isPage(item.getModel())) {
+            item.setPageIndex(getString(solrDocument, FIELD_PAGE_INDEX));
+            item.setPageNumber(getString(solrDocument, FIELD_PAGE_NUMBER));
+            item.setPageType(getString(solrDocument, FIELD_PAGE_TYPE));
+        } else if (isAudioPage(item.getModel())) {
+            item.setPageIndex(getString(solrDocument, FIELD_PAGE_INDEX));
+        }
         item.setK5(getContainsBoolean(solrDocument, FIELD_LOCKED));
         return item;
+    }
+
+    public static boolean isAudioPage(String model) {
+        return NdkAudioPlugin.MODEL_PAGE.equals(model);
+    }
+
+    public static boolean isPage(String model) {
+        return NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model);
     }
 
     private static String getContainsString(SolrDocument solrDocument, String... keys) {

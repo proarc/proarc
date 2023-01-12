@@ -26,6 +26,7 @@ public final class DigitalObjectResourceApi {
     public static final String PATH = "object";
 
     public static final String DIGITALOBJECT_PID = "pid";
+    public static final String DIGITALOBJECT_PARENT_PID = "parent";
     public static final String DIGITALOBJECT_PIDS = "pids";
     public static final String DIGITALOBJECT_PIDNEW = "pidNew";
     public static final String DIGITALOBJECT_MODEL = "model";
@@ -115,6 +116,9 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_ROOT_PARAM = "root";
 
     public static final String MEMBERS_ITEM_LOCKED = "isLocked";
+    public static final String MEMBERS_ITEM_PAGE_NUMBER = "pageNumber";
+    public static final String MEMBERS_ITEM_PAGE_TYPE = "pageType";
+    public static final String MEMBERS_ITEM_PAGE_INDEX = "pageIndex";
 
     public static final String ITEM_VALIDATION = "validation";
 
