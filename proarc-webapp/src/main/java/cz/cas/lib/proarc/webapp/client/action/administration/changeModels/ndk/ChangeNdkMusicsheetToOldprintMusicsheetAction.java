@@ -44,7 +44,7 @@ public class ChangeNdkMusicsheetToOldprintMusicsheetAction extends AbstractActio
     private final ClientMessages i18n;
 
     public ChangeNdkMusicsheetToOldprintMusicsheetAction(ClientMessages i18n) {
-        this(i18n, i18n.ChangeNdkChapterToOldPrintChapterAction_Title(),
+        this(i18n, i18n.ChangeNdkMusicSheetToOldPrintMusicSheetAction_Title(),
                 "[SKIN]/headerIcons/transfer.png",
                 i18n.ChangeModelAction_Hint());
     }

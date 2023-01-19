@@ -375,8 +375,10 @@ public class MetsElement implements IMetsElement {
                             try {
                                 DetailDefinition detail = getDetail(part.getDetail());
                                 if (detail.getNumber() != null && detail.getNumber().size() > 0) {
-                                    this.modsStart = new BigInteger(detail.getNumber().get(0).getValue().replaceAll("\\D", ""));
-                                    break;
+                                    if (detail.getNumber().get(0).getValue().replaceAll("\\D", "").length() > 0) {
+                                        this.modsStart = new BigInteger(detail.getNumber().get(0).getValue().replaceAll("\\D", ""));
+                                        break;
+                                    }
                                 }
                             } catch (NumberFormatException ex) {
                                 throw new MetsExportException(digitalObject.getPID(), "Unable to parse start-end info from mods", false, ex);
@@ -389,7 +391,9 @@ public class MetsElement implements IMetsElement {
                         try {
                             DetailDefinition detail = getDetail(modsDefinition.getPart().get(0).getDetail());
                             if (detail.getNumber() != null && detail.getNumber().size() > 0) {
-                                this.modsStart = new BigInteger(detail.getNumber().get(0).getValue().replaceAll("\\D", ""));
+                                if (detail.getNumber().get(0).getValue().replaceAll("\\D", "").length() > 0) {
+                                    this.modsStart = new BigInteger(detail.getNumber().get(0).getValue().replaceAll("\\D", ""));
+                                }
                             }
                         } catch (NumberFormatException ex) {
                             throw new MetsExportException(digitalObject.getPID(), "Unable to parse detail number from mods", false, ex);

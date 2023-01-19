@@ -10,8 +10,25 @@ import java.util.List;
 
 public class BatchUtils {
 
-    public static Batch addNewBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String exportProfile, Batch.State state) {
-        return batchManager.add(getPid(pids), user, exportProfile, state);
+    public static Batch addNewBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state) {
+        Batch batch = findBatchWithParams(batchManager, getPid(pids), processProfile);
+        if (batch == null) {
+            return batchManager.add(getPid(pids), user, processProfile, state);
+        } else {
+            batch.setState(state);
+            batch.setLog(null);
+            //batch.setTimestamp(new Timestamp(System.currentTimeMillis()));
+            return batchManager.update(batch);
+        }
+    }
+
+    private static Batch findBatchWithParams(ImportBatchManager batchManager, String pid, String processProfile) {
+        List<Batch> batches = batchManager.findBatch(pid, processProfile, Batch.State.EXPORT_FAILED);
+        if (!batches.isEmpty()) {
+            return batches.get(0);
+        } else {
+            return null;
+        }
     }
 
     public static Batch finishedSuccessfully(ImportBatchManager batchManager, Batch batch, String path, String message, Batch.State state) {

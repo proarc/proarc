@@ -136,6 +136,16 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         return Collections.unmodifiableList(result);
     }
 
+    @Override
+    public List<Batch> findBatch(String pid, String processProfile, State state) {
+        BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
+        result.getCommand().where(table.state.is(state));
+        result.getCommand().where(table.profileId.is(processProfile));
+        result.getCommand().where(table.title.is(pid));
+        result.getCommand().orderBy(table.create, true);
+        result.fetch(getConnection());
+        return Collections.unmodifiableList(result);
+    }
     private Batch getBeanProperties(DBRecordData record) {
         return getBeanProperties(record, null);
     }

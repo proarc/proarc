@@ -365,6 +365,17 @@ public class ImportBatchManager {
         }
     }
 
+    public List<Batch> findBatch(String pid, String processProfile, State state) {
+        BatchDao batchDao = daos.createBatch();
+        Transaction tx = daos.createTransaction();
+        batchDao.setTransaction(tx);
+        try {
+            return batchDao.findBatch(pid, processProfile, state);
+        } finally {
+            tx.close();
+        }
+    }
+
     public String relativizeBatchFile(File file) {
         return file == null ? null : getBatchRoot().relativize(file.toURI()).toASCIIString();
     }

@@ -301,7 +301,8 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             SelectItem donator = new SelectItem(DigitalObjectAdministrationDataSource.FIELD_DONATOR,
                 i18n.DigitalObjectEditor_AdministrationAction_Donator_Title());
             LinkedHashMap<String, String> valueMap = new LinkedHashMap<>();
-            valueMap.put("ilnorway", "Norské fondy");
+            valueMap.put("ilnorway", "Norské fondy (nové logo)");
+            valueMap.put("norway", "Norské fondy (staré logo)");
             valueMap.put("dkrvo19-23", "DKRVO 2019 - 2023");
             donator.setValueMap(valueMap);
             donator.setAllowEmptyValue(true);

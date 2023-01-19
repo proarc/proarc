@@ -336,8 +336,8 @@ public class DigitalObjectResource {
     }
 
     @DELETE
-    @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DigitalObject> deleteObject(
             ProArcRequest.DeleteObjectRequest deleteObjectRequest
     ) throws PurgeException, IOException {
