@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -37,6 +38,10 @@ public abstract class AnnotatedDescriptionMetadata extends DescriptionMetadata<O
     @XmlElement(name = DigitalObjectResourceApi.BATCHID_PARAM)
     @Override
     public abstract Integer getBatchId();
+
+    @XmlElement(name = KrameriusResourceApi.KRAMERIUS_INSTANCE)
+    @Override
+    public abstract String getKrameriusInstanceId();
 
     @XmlElement(name = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA)
     @Override

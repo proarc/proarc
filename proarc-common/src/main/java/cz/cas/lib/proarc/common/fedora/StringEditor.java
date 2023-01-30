@@ -165,18 +165,43 @@ public final class StringEditor {
 
     public static class StringRecord {
 
+        public static final int STATUS_FAILURE = -1;
+        public static final int STATUS_LOGIN_INCORRECT = -5;
+        public static final int STATUS_LOGIN_REQUIRED = -7;
+        public static final int STATUS_LOGIN_SUCCESS = -8;
+        public static final int STATUS_MAX_LOGIN_ATTEMPTS_EXCEEDED = -6;
+        public static final int STATUS_SERVER_TIMEOUT = -100;
+        public static final int STATUS_SUCCESS = 0;
+        public static final int STATUS_TRANSPORT_ERROR = -90;
+        public static final int STATUS_VALIDATION_ERROR = -4;
+        public static final int STATUS_OBJECT_LOCKED = -41;
+
         private String pid;
         private Integer batchId;
+        private String krameriusInstanceId;
+        private String model;
         private long timestamp;
         private String content;
+        private Object data;
+        private int status;
 
         public StringRecord() {
+            this.status = STATUS_SUCCESS;
         }
 
         public StringRecord(String content, long timestamp, String pid) {
+            this.status = STATUS_SUCCESS;
             this.content = content;
             this.timestamp = timestamp;
             this.pid = pid;
+        }
+
+        public String getKrameriusInstanceId() {
+            return krameriusInstanceId;
+        }
+
+        public void setKrameriusInstanceId(String krameriusInstanceId) {
+            this.krameriusInstanceId = krameriusInstanceId;
         }
 
         public Integer getBatchId() {
@@ -209,6 +234,30 @@ public final class StringEditor {
 
         public void setTimestamp(long timestamp) {
             this.timestamp = timestamp;
+        }
+
+        public String getModel() {
+            return model;
+        }
+
+        public void setModel(String model) {
+            this.model = model;
+        }
+
+        public Object getData() {
+            return data;
+        }
+
+        public void setData(Object data) {
+            this.data = data;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+
+        public void setStatus(int status) {
+            this.status = status;
         }
     }
 

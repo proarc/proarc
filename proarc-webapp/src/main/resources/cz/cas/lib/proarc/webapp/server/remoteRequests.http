@@ -1,0 +1,68 @@
+###
+POST http://proarc.inovatika.dev/api/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username=proarc&j_password=proarcAdmin
+
+###
+
+POST http://proarc.inovatika.dev/api/rest/v1/object/mods/validate
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:c52d71bf-eb27-4ff0-85f0-392c11b841ce
+
+### GET KRAMERIUS TOKEN
+POST https://k7.inovatika.dev/auth/realms/kramerius/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+Keep-Alive: timeout=60, max=100
+Connection: Keep-Alive, Upgrade
+
+username=krameriusAdmin&password=krameriusAdmin&client_id=krameriusClient&client_secret=sCaLaWHXz4SEWhzmIRYBtfxPhTdY7qcC&grant_type=password
+
+### GET FOXML FROM KRAMERIUS
+GET {{url}}/search/api/client/v7.0/items/{{uuid}}/foxml
+Keep-Alive: timeout=600, max=1000
+Connection: Keep-Alive
+Authorization: Bearer {{token}}
+
+
+### GET USER INFO
+GET {{url}}/search/api/client/v7.0/user
+Keep-Alive: timeout=600, max=1000
+Connection: Keep-Alive, Upgrade
+Authorization: Bearer {{token}}
+
+### GET PROCESS STATE
+GET {{url}}/search/api/admin/v7.0/processes/by_process_id/69
+Keep-Alive: timeout=600, max=1000
+Connection: Keep-Alive, Upgrade
+Authorization: Bearer {{token}}
+
+### GET PROCESS STATE
+GET {{url}}/search/api/admin/v7.0/processes/by_process_uuid/14a827e0-488a-4c02-81ee-b15508a9f70e
+Keep-Alive: timeout=600, max=1000
+Connection: Keep-Alive, Upgrade
+Authorization: Bearer {{token}}
+
+### GET ALL PROCESS
+GET {{url}}/search/api/admin/v7.0/processes/batches?offset=0&limit=5
+Accept: application/json, text/plain
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Connection: keep-alive
+
+### POST NEW PROCESS
+POST {{url}}/search/api/admin/v7.0/processes
+Accept: application/json, text/plain
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Connection: keep-alive
+
+{"defid":"import","params": {"inputDataDir":"/k7_edit_27e8598c-59d8-11ed-a227-001b63bd97ba","startIndexer": true, "uddateExisting": true}}
+
+### GET IMAGE
+GET {{url}}/search/iiif/{{uuid}}/full/max/0/default.jpg
+Keep-Alive: timeout=600, max=1000
+Connection: Keep-Alive, Upgrade
+Authorization: Bearer {{token}}

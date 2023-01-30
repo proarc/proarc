@@ -142,6 +142,30 @@ public final class Kramerius4ExportOptions {
         }
     };
 
+    // K4 to NDK model mapping
+    private Map<String, String> reverseModelMap = new HashMap<String, String>() {
+        {
+            put("model:page", NdkPlugin.MODEL_NDK_PAGE);
+            put("model:article", NdkPlugin.MODEL_ARTICLE);
+            put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
+            put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
+            put("model:monograph", NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            put("model:monographunit", NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            put("model:periodical", NdkPlugin.MODEL_PERIODICAL);
+            put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
+            put("model:periodicalvolume", NdkPlugin.MODEL_PERIODICALVOLUME);
+            put("model:picture", NdkPlugin.MODEL_PICTURE);
+            put("model:sheetmusic", NdkPlugin.MODEL_SHEETMUSIC);
+            put("model:chapter", OldPrintPlugin.MODEL_CHAPTER);
+            put("model:graphic", OldPrintPlugin.MODEL_GRAPHICS);
+            put("model:convolute", OldPrintPlugin.MODEL_CONVOLUTTE);
+            put("model:soundrecording", NdkAudioPlugin.MODEL_MUSICDOCUMENT);
+            put("model:soundrecording", NdkAudioPlugin.MODEL_PHONOGRAPH);
+            put("model:soundunit", NdkAudioPlugin.MODEL_SONG);
+            put("model:track", NdkAudioPlugin.MODEL_TRACK);
+        }
+    };
+
     public Set<String> getExcludeDatastreams() {
         return excludeDatastreams;
     }
@@ -176,6 +200,10 @@ public final class Kramerius4ExportOptions {
 
     public Map<String, String> getModelMap() {
         return modelMap;
+    }
+
+    public Map<String, String> getReverseModelMap() {
+        return reverseModelMap;
     }
 
 }

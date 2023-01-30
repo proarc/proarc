@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -47,6 +48,8 @@ import static cz.cas.lib.proarc.webapp.server.rest.DigitalObjectResource.STATUS_
 @XmlRootElement(name="response")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class SmartGwtResponse<T> {
+
+    private static final Logger LOG = Logger.getLogger(SmartGwtResponse.class.getName());
 
     public static final int STATUS_FAILURE = -1;
     public static final int STATUS_LOGIN_INCORRECT = -5;
@@ -110,6 +113,18 @@ public class SmartGwtResponse<T> {
         SmartGwtResponse<T> result = new SmartGwtResponse<T>();
         result.setErrorData(msg);
         return result;
+    }
+
+    /**
+     * Builds response as an unrecoverable error with status {@link #STATUS_FAILURE}.
+     * @param <T> data type
+     * @param msg error message send as data
+     * @param session session context
+     * @return the response
+     */
+    public static <T> SmartGwtResponse<T> asError(String msg, SessionContext session) {
+        LOG.severe(session.getIp() + "{" + session.getUser().getUserName() + "} : " + msg);
+        return asError(msg);
     }
 
     /**

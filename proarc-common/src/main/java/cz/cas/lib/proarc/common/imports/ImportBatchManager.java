@@ -365,6 +365,18 @@ public class ImportBatchManager {
         }
     }
 
+    public List<Batch> findUploadingBatches() {
+        BatchDao batchDao = daos.createBatch();
+        Transaction tx = daos.createTransaction();
+        batchDao.setTransaction(tx);
+        try {
+            return batchDao.findUploadingBatches();
+        } finally {
+            tx.close();
+        }
+
+    }
+
     public List<Batch> findBatch(String pid, String processProfile, State state) {
         BatchDao batchDao = daos.createBatch();
         Transaction tx = daos.createTransaction();

@@ -26,6 +26,7 @@ public class DescriptionMetadata<T> {
 
     private String pid;
     private Integer batchId;
+    private String krameriusInstanceId;
     private long timestamp;
     private String editor;
     private T data;
@@ -47,6 +48,14 @@ public class DescriptionMetadata<T> {
 
     public void setBatchId(Integer batchId) {
         this.batchId = batchId;
+    }
+
+    public String getKrameriusInstanceId() {
+        return krameriusInstanceId;
+    }
+
+    public void setKrameriusInstanceId(String krameriusInstanceId) {
+        this.krameriusInstanceId = krameriusInstanceId;
     }
 
     public T getData() {

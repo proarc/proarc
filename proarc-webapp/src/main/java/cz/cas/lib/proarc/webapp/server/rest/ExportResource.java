@@ -26,7 +26,6 @@ import cz.cas.lib.proarc.common.export.DataStreamExport;
 import cz.cas.lib.proarc.common.export.DesaExport;
 import cz.cas.lib.proarc.common.export.DesaExport.Result;
 import cz.cas.lib.proarc.common.export.ExportException;
-import cz.cas.lib.proarc.common.export.ExportOptions;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportUtils;
@@ -58,6 +57,7 @@ import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -108,12 +108,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.server.CloseableService;
 
-import static cz.cas.lib.proarc.common.export.ExportOptions.KRAMERIUS_INSTANCE_LOCAL;
-import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_FAILED;
-import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_FINISHED;
-import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_WARNING;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
 
 /**
  * REST resource to export data from the system.
@@ -250,16 +250,16 @@ public class ExportResource {
     public SmartGwtResponse<KrameriusDescriptor> krameriusInstances(
             @QueryParam(ExportResourceApi.KRAMERIUS_INSTANCE_ID) String id) {
 
-        List<ExportOptions.KrameriusInstance> krameriusInstances;
+        List<KrameriusOptions.KrameriusInstance> krameriusInstances;
         if (id == null) {
-            krameriusInstances = appConfig.getExportOptions().getKrameriusInstances();
+            krameriusInstances = appConfig.getKrameriusOptions().getKrameriusInstances();
         } else {
-            List<ExportOptions.KrameriusInstance> listOfInstances = appConfig.getExportOptions().getKrameriusInstances();
-            ExportOptions.KrameriusInstance krameriusInstance = ExportOptions.findKrameriusInstance(listOfInstances, id);
-            krameriusInstances = krameriusInstance != null ? Arrays.asList(krameriusInstance) : Collections.<ExportOptions.KrameriusInstance>emptyList();
+            List<KrameriusOptions.KrameriusInstance> listOfInstances = appConfig.getKrameriusOptions().getKrameriusInstances();
+            KrameriusOptions.KrameriusInstance krameriusInstance = KrameriusOptions.findKrameriusInstance(listOfInstances, id);
+            krameriusInstances = krameriusInstance != null ? Arrays.asList(krameriusInstance) : Collections.<KrameriusOptions.KrameriusInstance>emptyList();
         }
         ArrayList<KrameriusDescriptor> result = new ArrayList<>(krameriusInstances.size());
-        for (ExportOptions.KrameriusInstance kc : krameriusInstances) {
+        for (KrameriusOptions.KrameriusInstance kc : krameriusInstances) {
             result.add(KrameriusDescriptor.create(kc));
         }
         return new SmartGwtResponse<KrameriusDescriptor>(result);
@@ -999,7 +999,7 @@ public class ExportResource {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class KrameriusDescriptor {
 
-        public static KrameriusDescriptor create(ExportOptions.KrameriusInstance krameriusInstance) {
+        public static KrameriusDescriptor create(KrameriusOptions.KrameriusInstance krameriusInstance) {
             return new KrameriusDescriptor(krameriusInstance.getId(), krameriusInstance.getTitle());
         }
 

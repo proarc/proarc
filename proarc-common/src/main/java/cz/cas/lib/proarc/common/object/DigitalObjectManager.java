@@ -37,6 +37,7 @@ import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
@@ -56,6 +57,7 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.RelatedItemDefinition;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -138,7 +140,7 @@ public class DigitalObjectManager {
 //                throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID, String.valueOf(batchId));
             }
         }
-        return find2(pid, batch);
+        return find2(pid, batch, null);
     }
 
     /**
@@ -151,7 +153,7 @@ public class DigitalObjectManager {
         return new WorkflowStorage().load(workflowJobId, modelId, locale);
     }
 
-    public FedoraObject find2(String pid, Batch batch) throws DigitalObjectNotFoundException {
+    public FedoraObject find2(String pid, Batch batch, String krameriusInstanceId) throws DigitalObjectNotFoundException {
         FedoraObject fobject;
         if (batch != null) {
             // XXX move to LocalObject.flush or stream.write
@@ -168,6 +170,20 @@ public class DigitalObjectManager {
                 }
                 fobject = new LocalStorage().load(pid, item.getFile());
             }
+        } else if (krameriusInstanceId != null && !krameriusInstanceId.isEmpty()) {
+            if (pid == null) {
+                throw new NullPointerException("pid");
+            }
+            try {
+                File pidFoxml = KUtils.getFile(appConfig, krameriusInstanceId, pid);
+                if (!pidFoxml.exists()) {
+                    throw new DigitalObjectNotFoundException(pid, new Exception("Pid does not exists."));
+                }
+                fobject = new LocalStorage().load(pid, pidFoxml);
+            } catch (IOException ex) {
+              throw new DigitalObjectNotFoundException(pid, ex);
+            }
+
         } else {
             if (pid == null) {
                 throw new NullPointerException("pid");

@@ -103,6 +103,7 @@ public final class ProarcInitializer {
         DataSource proarcSource = initProarcDb();
         initUsers(config, proarcSource, daoFactory);
         finishedExportingBatch(config, daoFactory);
+        finishUploadingBatch(config, daoFactory);
         initImport(config, daoFactory);
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 config, akubraConfiguration, ImportBatchManager.getInstance(),
@@ -221,6 +222,12 @@ public final class ProarcInitializer {
         ImportBatchManager.setInstance(config, daoFactory);
         ImportBatchManager ibm = ImportBatchManager.getInstance();
         BatchUtils.finishedExportingBatch(ibm, config);
+    }
+
+    private void finishUploadingBatch(AppConfiguration config, DaoFactory daoFactory) {
+        ImportBatchManager.setInstance(config, daoFactory);
+        ImportBatchManager ibm = ImportBatchManager.getInstance();
+        BatchUtils.finishedUploadingBatch(ibm, config);
     }
 
     private void initWorkflow(AppConfiguration config, DaoFactory daoFactory, UserManager users) {

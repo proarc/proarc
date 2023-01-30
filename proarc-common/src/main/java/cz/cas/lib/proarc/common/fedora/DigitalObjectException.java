@@ -37,7 +37,7 @@ public class DigitalObjectException extends Exception {
     }
     
     public DigitalObjectException(String pid, Throwable cause) {
-        this(pid, pid, cause);
+        this(pid, cause.getMessage(), cause);
     }
 
     public DigitalObjectException(String pid, String message, Throwable cause) {

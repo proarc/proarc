@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.fedora.SearchOptions;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
@@ -85,6 +86,7 @@ public final class AppConfiguration {
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
     private static final String PROPERTY_STORAGE = "proarc.storage";
     public static final String EXPORT_KWIS_POST_PROCESSOR = "export.export_post_processor.processor";
+    public static final String EDIT_K7_FOXML = "editK7Foxml.url";
 
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
@@ -129,6 +131,10 @@ public final class AppConfiguration {
     public Configuration getExportPostProcessor() {
         String processor = config.getString(EXPORT_KWIS_POST_PROCESSOR, "-");
         return config.subset(ImportProfile.PROCESSOR + "." + processor);
+    }
+
+    public String getEditK7Foxml() {
+        return config.getString(EDIT_K7_FOXML);
     }
 
     public String getFedoraUsername() {
@@ -212,6 +218,10 @@ public final class AppConfiguration {
 
     public ExportOptions getExportOptions() {
         return ExportOptions.getOptions(config);
+    }
+
+    public KrameriusOptions getKrameriusOptions() {
+        return KrameriusOptions.getOptions(config);
     }
 
     public WorkflowOptions getWorkflowOptions() {

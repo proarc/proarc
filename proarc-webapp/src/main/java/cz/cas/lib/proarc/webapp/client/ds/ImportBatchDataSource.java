@@ -109,6 +109,9 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         states.put(State.REINDEXING.name(), i18n.ImportBatchDataSource_State_REINDEXING());
         states.put(State.REINDEX_FAILED.name(), i18n.ImportBatchDataSource_State_REINDEX_FAILED());
         states.put(State.REINDEX_DONE.name(), i18n.ImportBatchDataSource_State_REINDEX_DONE());
+        states.put(State.UPLOADING.name(), i18n.ImportBatchDataSource_State_UPLOADING());
+        states.put(State.UPLOAD_FAILED.name(), i18n.ImportBatchDataSource_State_UPLOAD_FAILED());
+        states.put(State.UPLOAD_DONE.name(), i18n.ImportBatchDataSource_State_UPLOAD_DONE());
         state.setValueMap(states);
 
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
@@ -132,6 +135,8 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put("profile.oldprint_without_ocr", i18n.ImportProfile_OLDPRINT_FULL_WITHOUR_OCR_IMPORT());
         profiles.put(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, i18n.ImportProfile_SOUNDRECORDING_IMPORT());
 
+        profiles.put(Batch.UPLOAD_PROARC, i18n.UploadProfile_PROARC());
+        profiles.put(Batch.UPLOAD_KRAMERIUS, i18n.UploadProfile_KRAMERIUS());
 
         profiles.put("exportProfile.kramerius", i18n.ExportProfile_Kramerius());
         profiles.put("exportProfile.ndk", i18n.ExportProfile_Ndk());
@@ -141,6 +146,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put("exportProfile.crossref", i18n.ExportProfile_Crossref());
         profiles.put("exportProfile.kwis", i18n.ExportProfile_Kwis());
 //        profiles.put("exportProfile.aleph", i18n.ExportProfile_Aleph());
+
         profiles.put("internalProfile.reindex", i18n.InternalProfile_Reindex());
         profileId.setValueMap(profiles);
         profileId.setHidden(true);
@@ -291,13 +297,14 @@ public final class ImportBatchDataSource extends ProarcDataSource {
     }
 
     /**
-     * Copy of {@link cz.cas.lib.proarc.common.imports.ImportBatchManager.ImportBatch.State State}.
+     * Copy of {@link cz.cas.lib.proarc.common.dao.Batch.State State}.
      * XXX make it GWT accessible and remove this.
      */
     public enum State {
         EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,
         EXPORTING, EXPORT_FAILED, EXPORT_DONE,
-        REINDEXING, REINDEX_FAILED, REINDEX_DONE;
+        REINDEXING, REINDEX_FAILED, REINDEX_DONE,
+        UPLOADING, UPLOAD_FAILED, UPLOAD_DONE;
 
         public static State fromString(String value) {
             try {
