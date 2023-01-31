@@ -27,10 +27,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.kramerius.K7Authenticator;
@@ -43,7 +40,6 @@ import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -51,10 +47,8 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -96,10 +90,7 @@ public class KrameriusResource {
     private static final Logger LOG = Logger.getLogger(KrameriusResource.class.getName());
 
     private final AppConfiguration appConfig;
-    private final AkubraConfiguration akubraConfiguration;
-    private final MetaModelRepository metamodels = MetaModelRepository.getInstance();
     private final ImportBatchManager batchManager;
-    private final Request httpRequest;
     private final HttpHeaders httpHeaders;
     private final UserProfile user;
     private final SessionContext session;
@@ -112,14 +103,8 @@ public class KrameriusResource {
             @Context HttpServletRequest httpRequest
     ) throws AppConfigurationException {
 
-        this.httpRequest = request;
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
-        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
-        } else {
-            this.akubraConfiguration = null;
-        }
         this.batchManager = ImportBatchManager.getInstance(appConfig);
         session = SessionContext.from(httpRequest);
         user = session.getUser();
@@ -129,63 +114,8 @@ public class KrameriusResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<String> connectionTest() {
-        LOG.fine(String.format("Succesfull attempt to connected to ProArc"));
-        return new SmartGwtResponse<String>("Connected to ProArc");
-    }
-
-    @POST
-    @Path(KrameriusResourceApi.EDIT)
-    @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<KUtils.RedirectedResult> editPid(
-            @FormParam(KrameriusResourceApi.KRAMERIUS_OBJECT_PID) String krameriusPid,
-            @FormParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId
-    ) {
-
-        LOG.fine(String.format("pid: %s, krameriusInstanceId: %s", krameriusPid, krameriusInstanceId));
-
-        if (krameriusPid == null || krameriusPid.isEmpty()) {
-            return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_OBJECT_PID + "\".", session);
-        }
-        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
-        }
-
-        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
-        if (instance == null) {
-            return SmartGwtResponse.asError( "Not known value \"" + krameriusInstanceId + "\" for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
-        } else {
-            K7Authenticator authenticator = new K7Authenticator(instance);
-            KUtils.RedirectedResult result = new KUtils.RedirectedResult(krameriusPid);
-            try {
-                String token = authenticator.authenticate();
-                if (token != null || !token.isEmpty()) {
-                    K7Downloader downloader = new K7Downloader(appConfig, instance);
-                    String foxml = downloader.downloadFromK7(krameriusPid, token);
-                    downloader.saveFoxml(foxml, krameriusPid);
-
-                    String editK7Foxml = appConfig.getEditK7Foxml();
-                    if (editK7Foxml == null || editK7Foxml.isEmpty()) {
-                        throw new IOException("URL for edit K7 foxml was not find.");
-                    } else {
-                        editK7Foxml += "instance=" + krameriusInstanceId + "&pid=" + krameriusPid;
-                        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                            Desktop.getDesktop().browse(new URI(editK7Foxml));
-                            result.setMessage("Redirected to ProArc edit view");
-                            result.setUrl(editK7Foxml);
-                            result.setStatus("Successful");
-                        } else {
-                            result.setMessage("Redirected to ProArc edit view");
-                            result.setUrl(editK7Foxml);
-                            result.setStatus("Successful");
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                return SmartGwtResponse.asError(ex.getMessage());
-            }
-
-            return new SmartGwtResponse<KUtils.RedirectedResult>(result);
-        }
+        LOG.fine("Succesfull attempt to connected to ProArc");
+        return new SmartGwtResponse<>("Connected to ProArc");
     }
 
     @GET
@@ -193,8 +123,10 @@ public class KrameriusResource {
     @Produces({MediaType.APPLICATION_JSON})
     public StringEditor.StringRecord viewMods(
             @QueryParam(KrameriusResourceApi.KRAMERIUS_OBJECT_PID) String pid,
-            @QueryParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId
-    ) throws DigitalObjectException {
+            @QueryParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
+            @DefaultValue("true")
+            @QueryParam(KrameriusResourceApi.KRAMERIUD_RERUN) boolean rerun
+    ) {
 
         LOG.fine(String.format("pid: %s, krameriusInstanceId: %s", pid, krameriusInstanceId));
 
@@ -213,6 +145,44 @@ public class KrameriusResource {
             result.setKrameriusInstanceId(krameriusInstanceId);
             result.setModel(transformKrameriusModel(appConfig, handler.getModel().getPid()));
             return result;
+        } catch (DigitalObjectNotFoundException ex) {
+            if (rerun) {
+                KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+                if (instance == null) {
+                    StringEditor.StringRecord result = new StringEditor.StringRecord();
+                    result.setStatus(StringEditor.StringRecord.STATUS_FAILURE);
+                    result.setData("Not known value \"" + krameriusInstanceId + "\" for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".");
+                    return result;
+                } else {
+                    try {
+                        LOG.fine(String.format("Downloading pid: %s, krameriusInstanceId: %s", pid, instance.getId()));
+
+                        K7Authenticator authenticator = new K7Authenticator(instance);
+                        String token = authenticator.authenticate();
+                        if (token != null || !token.isEmpty()) {
+                            K7Downloader downloader = new K7Downloader(appConfig, instance);
+                            String foxml = downloader.downloadFromK7(pid, token);
+                            downloader.saveFoxml(foxml, pid);
+                        }
+
+                        return viewMods(pid, krameriusInstanceId, false);
+                    } catch (Exception e) {
+                        LOG.severe("Error in downloading object " + pid);
+                        e.printStackTrace();
+                        StringEditor.StringRecord result = new StringEditor.StringRecord();
+                        result.setStatus(StringEditor.StringRecord.STATUS_FAILURE);
+                        result.setData(e.getMessage());
+                        return result;
+                    }
+                }
+            } else {
+                LOG.severe("Error in getting object " + pid);
+                ex.printStackTrace();
+                StringEditor.StringRecord result = new StringEditor.StringRecord();
+                result.setStatus(StringEditor.StringRecord.STATUS_FAILURE);
+                result.setData(ex.getMessage());
+                return result;
+            }
         } catch (Exception ex) {
             LOG.severe("Error in getting object " + pid);
             ex.printStackTrace();
@@ -324,12 +294,12 @@ public class KrameriusResource {
         }
         final boolean isJsonData = xmlData == null;
         String data = isJsonData ? jsonData : xmlData;
-        DigitalObjectHandler doHandler = null;
-        MetadataHandler<?> mHandler = null;
+        DigitalObjectHandler doHandler;
+        MetadataHandler<?> mHandler;
         try {
             doHandler = findHandler(pid, krameriusInstanceId);
             mHandler = doHandler.metadata();
-            DescriptionMetadata<String> dMetadata = new DescriptionMetadata<String>();
+            DescriptionMetadata<String> dMetadata = new DescriptionMetadata<>();
             dMetadata.setPid(pid);
             dMetadata.setKrameriusInstanceId(krameriusInstanceId);
             dMetadata.setEditor(editorId);
@@ -348,7 +318,7 @@ public class KrameriusResource {
         }
 //        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
-        return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+        return new SmartGwtResponse<>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
     @POST
@@ -401,9 +371,8 @@ public class KrameriusResource {
                 importResult.setReason(ex.getMessage());
             }
             importResult.setStatus("Failed");
-        } finally {
-            return new SmartGwtResponse<>(importResult);
         }
+        return new SmartGwtResponse<>(importResult);
     }
 
     @POST
@@ -414,7 +383,7 @@ public class KrameriusResource {
             @FormParam(KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE) String krameriusImportInstanceId
     ) {
 
-        LOG.fine(String.format("pid: %s, krameriusInstanceId: %s", "krameriusImportInstanceId: %s", pid, krameriusInstanceId, krameriusImportInstanceId));
+        LOG.fine(String.format("pid: %s, krameriusInstanceId: %s krameriusImportInstanceId: %s", pid, krameriusInstanceId, krameriusImportInstanceId));
 
         if (pid == null || pid.isEmpty()) {
             return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_OBJECT_PID + "\".", session);
@@ -432,7 +401,7 @@ public class KrameriusResource {
 
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusImportInstanceId);
         if (instance == null) {
-            return SmartGwtResponse.asError("Not known value \"" + krameriusInstanceId + "\" for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
+            return SmartGwtResponse.asError("Not known value \"" + krameriusImportInstanceId + "\" for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
         }
 
         KDataHandler dataHandler = new KDataHandler(appConfig);
@@ -471,13 +440,12 @@ public class KrameriusResource {
                     BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), new IOException("Import pro3el s chybou."));
                     break;
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             LOG.severe(ex.getMessage());
             importResult.setStatus("Failed");
             importResult.setReason(ex.getMessage());
             BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), ex);
-        } finally {
-            return new SmartGwtResponse<>(importResult);
         }
+        return new SmartGwtResponse<>(importResult);
     }
 }

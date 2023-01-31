@@ -22,7 +22,6 @@ public class KrameriusResourceApi {
     public static final String PATH = "kramerius";
 
     // method path
-    public static final String EDIT = "edit";
     public static final String VIEW_MODS = "viewMods";
     public static final String VIEW_IMAGE = "viewImage";
     public static final String UPDATE_MODS = "updateMods";
@@ -33,4 +32,5 @@ public class KrameriusResourceApi {
     public static final String KRAMERIUS_OBJECT_PID = "pid";
     public static final String KRAMERIUS_INSTANCE = "instance";
     public static final String KRAMERIUS_IMPORT_INSTANCE = "importInstance";
+    public static final String KRAMERIUD_RERUN = "rerun";
 }

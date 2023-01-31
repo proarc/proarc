@@ -1,5 +1,5 @@
 ### LOGIN
-POST {{proarcUrl}}/proarclogin
+POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -7,36 +7,29 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 <> 2023-01-26T100714.200.html
 
-### DOWNLOAD FOXML AND NEW TAB
-POST {{proarcUrl}}/rest/v1/kramerius/edit
-Accept: application/json
-Content-Type: application/x-www-form-urlencoded; charset=UTF-8
-
-instance=kramerius7&pid={{uuid}}
-
 ### SHOW MODS
-GET {{proarcUrl}}/rest/v1/kramerius/viewMods?instance={{instance}}&pid={{uuid}}
+GET {{proarcLocalHostUrl}}/rest/v1/kramerius/viewMods?instance={{instance}}&pid={{uuid}}
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ### SHOW IMAGE
-GET {{proarcUrl}}/rest/v1/kramerius/viewImage?instance={{instance}}&pid={{uuid}}
+GET {{proarcLocalHostUrl}}/rest/v1/kramerius/viewImage?instance={{instance}}&pid={{uuid}}
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ### IMPORT 2 PROARC
-POST {{proarcUrl}}/rest/v1/kramerius/importToProArc
+POST {{proarcLocalHostUrl}}/rest/v1/kramerius/importToProArc
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 instance={{instance}}&pid={{uuid}}
 
 ### IMPORT 2 KRAMERIUS
-POST {{proarcUrl}}/rest/v1/kramerius/importToKramerius
+POST {{proarcLocalHostUrl}}/rest/v1/kramerius/importToKramerius
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 instance={{instance}}&importInstance={{instanceDestination}}&pid={{uuid}}
 
 ### GET KRAMERIUS INSTANCE
-GET {{proarcUrl}}/rest/v1/export/kramerius4
+GET {{proarcLocalHostUrl}}/rest/v1/export/kramerius4

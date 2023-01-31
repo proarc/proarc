@@ -57,7 +57,7 @@ public class K7Importer {
 
         String json = "{\"defid\":\"import\",\"params\": {\"inputDataDir\":\"/" + exportFolder.getName() + "\",\"startIndexer\": true, \"updateExisting\": " + updateExisting + "}}";
 
-        httpPost.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
+        httpPost.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
 
         HttpResponse response = httpClient.execute(httpPost);
 
@@ -67,12 +67,12 @@ public class K7Importer {
                 String result = EntityUtils.toString(response.getEntity());
                 if (result != null && !result.isEmpty()) {
                     JSONObject object = new JSONObject(result);
-                    String processId = object.getString("id");
-                    if (processId == null || processId.isEmpty()) {
+                    String processUuid = object.getString("uuid");
+                    if (processUuid == null || processUuid.isEmpty()) {
                         LOG.warning("Created Kramerius import success, but ProArc does not get id of this process, so state is unknown.");
                         throw new IOException("Created Kramerius import success, but ProArc does not get id of this process, so state is unknown.");
                     }
-                    String state = getState(processId, token);
+                    String state = getState(processUuid, token);
                     LOG.info("Created Kramerius import success and state of this process is " + state);
                     return state;
                 } else {
@@ -89,9 +89,9 @@ public class K7Importer {
         }
     }
 
-    private String getState(String processId, String token) throws IOException, InterruptedException, JSONException {
+    private String getState(String processUuid, String token) throws IOException, InterruptedException, JSONException {
 
-        String processQueryUrl = instance.getUrl() + instance.getUrlStateQuery() + processId;
+        String processQueryUrl = instance.getUrl() + instance.getUrlStateQuery() + processUuid;
         LOG.info("Trying to get Kramerius process status" + processQueryUrl);
 
         String state = KRAMERIUS_PROCESS_PLANNED;
@@ -114,7 +114,7 @@ public class K7Importer {
                 if (objectProcess != null) {
                     state = objectProcess.getString("state");
                 } else {
-                    throw new IOException("ProArc can not get state of process " + processId);
+                    throw new IOException("ProArc can not get state of process " + processUuid);
                 }
             }
             if (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING)) {
