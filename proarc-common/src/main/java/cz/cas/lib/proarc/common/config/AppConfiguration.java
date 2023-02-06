@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.fedora.SearchOptions;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
@@ -212,6 +213,10 @@ public final class AppConfiguration {
 
     public ExportOptions getExportOptions() {
         return ExportOptions.getOptions(config);
+    }
+
+    public KrameriusOptions getKrameriusOptions() {
+        return KrameriusOptions.getOptions(config);
     }
 
     public WorkflowOptions getWorkflowOptions() {

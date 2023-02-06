@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -50,4 +51,19 @@ public abstract class AnnotatedStringRecord extends StringRecord {
     @Override
     public abstract long getTimestamp();
 
+    @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
+    @Override
+    public abstract String getModel();
+
+    @XmlElement(name = KrameriusResourceApi.KRAMERIUS_INSTANCE)
+    @Override
+    public abstract String getKrameriusInstanceId();
+
+    @XmlElement(name = "data")
+    @Override
+    public abstract Object getData();
+
+    @XmlElement(name = "status")
+    @Override
+    public abstract int getStatus();
 }

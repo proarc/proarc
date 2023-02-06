@@ -331,7 +331,7 @@ public class DigitalObjectResource {
         } catch (WorkflowException ex) {
             return SmartGwtResponse.asError(ex.getMessage());
         } catch (DigitalObjectValidationException ex) {
-            return toValidationError(ex);
+            return toValidationError(ex, session.getLocale(httpHeaders));
         }
     }
 
@@ -1212,7 +1212,7 @@ public class DigitalObjectResource {
         if (isLocked(pid)) {
             DigitalObjectValidationException validationException = new DigitalObjectValidationException(pid, null, null, "Locked", null);
             validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-            return toValidationError(validationException, STATUS_LOCKED);
+            return toValidationError(validationException, STATUS_LOCKED, session.getLocale(httpHeaders));
         }
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
@@ -1256,7 +1256,7 @@ public class DigitalObjectResource {
                 mHandler.setMetadataAsXml(dMetadata, session.asFedoraLog(), NdkMetadataHandler.OPERATION_UPDATE);
             }
         } catch (DigitalObjectValidationException ex) {
-            return toValidationError(ex);
+            return toValidationError(ex, session.getLocale(httpHeaders));
         }
 //        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
@@ -1312,7 +1312,7 @@ public class DigitalObjectResource {
         try {
             mHandler.validateMetadataAsJson(descriptionMetadata);
         } catch (DigitalObjectValidationException ex) {
-            return toValidationError(ex);
+            return toValidationError(ex, session.getLocale(httpHeaders));
         } catch (DigitalObjectException ex) {
             return SmartGwtResponse.asError(ex);
         }
@@ -1346,7 +1346,7 @@ public class DigitalObjectResource {
         if (isLocked(pid)) {
             DigitalObjectValidationException validationException = new DigitalObjectValidationException(pid, null, null, "Locked", null);
             validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-            return toValidationError(validationException, STATUS_LOCKED);
+            return toValidationError(validationException, STATUS_LOCKED, session.getLocale(httpHeaders));
         }
         if (timestamp == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
@@ -1364,7 +1364,7 @@ public class DigitalObjectResource {
             MetadataInjector metadataInjector = new AuthorityMetadataInjector(mHandler);
             metadataInjector.addMetadata(dMetadata);
         } catch (DigitalObjectValidationException ex) {
-            return toValidationError(ex);
+            return toValidationError(ex, session.getLocale(httpHeaders));
         }
 
         doHandler.commit();
@@ -1409,7 +1409,7 @@ public class DigitalObjectResource {
             if (isLocked(pids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-                return toValidationError(validationException, STATUS_LOCKED);
+                return toValidationError(validationException, STATUS_LOCKED, session.getLocale(httpHeaders));
             }
             UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
             updatePages.createListOfPids(pids);
@@ -1454,7 +1454,7 @@ public class DigitalObjectResource {
             if (isLocked(destinationPids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(destinationPids.get(0), null, null, "Locked", null);
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-                return toValidationError(validationException, STATUS_LOCKED);
+                return toValidationError(validationException, STATUS_LOCKED, session.getLocale(httpHeaders));
             }
             UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePosition);
             updatePagesMetadata.updatePages();
@@ -1486,7 +1486,7 @@ public class DigitalObjectResource {
             if (isLocked(pids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-                return toValidationError(validationException, STATUS_LOCKED);
+                return toValidationError(validationException, STATUS_LOCKED, session.getLocale(httpHeaders));
             }
 
             UpdatePages updatePages = new UpdatePages();
@@ -1519,7 +1519,7 @@ public class DigitalObjectResource {
             if (isLocked(pids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
                 validationException.addValidation("Locked", ERR_IS_LOCKED, false);
-                return toValidationError(validationException, STATUS_LOCKED);
+                return toValidationError(validationException, STATUS_LOCKED, session.getLocale(httpHeaders));
             }
 
             UpdatePages updatePages = new UpdatePages();
@@ -1528,16 +1528,15 @@ public class DigitalObjectResource {
         }
     }
 
-    private <T> SmartGwtResponse<T> toValidationError(DigitalObjectValidationException ex) {
-        return toValidationError(ex, null);
+    public static <T> SmartGwtResponse<T> toValidationError(DigitalObjectValidationException ex, Locale locale) {
+        return toValidationError(ex, null, locale);
     }
 
-    private <T> SmartGwtResponse<T> toValidationError(DigitalObjectValidationException ex, String type) {
+    private static <T> SmartGwtResponse<T> toValidationError(DigitalObjectValidationException ex, String type, Locale locale) {
         if (ex.getValidations().isEmpty()) {
             return SmartGwtResponse.asError(ex);
         }
         ErrorBuilder<T> error = SmartGwtResponse.asError();
-        Locale locale = session.getLocale(httpHeaders);
         ServerMessages msgs = ServerMessages.get(locale);
         boolean canBeIgnored = true;
         for (ValidationResult validation : ex.getValidations()) {
@@ -1911,6 +1910,7 @@ public class DigitalObjectResource {
         StringRecord result = new StringRecord(
                 metadataAsXml.getData(), metadataAsXml.getTimestamp(), metadataAsXml.getPid());
         result.setBatchId(batchId);
+        result.setModel(handler.getModel().getPid());
         return result;
     }
 
@@ -1983,6 +1983,7 @@ public class DigitalObjectResource {
                 TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig, akubraConfiguration);
                 StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), TechnicalMetadataMapper.AES), aesEditor.getLastModified(), fobject.getPid());
                 technicalMetadata.setBatchId(batchId);
+                technicalMetadata.setModel(relationEditor.getModel());
                 return technicalMetadata;
             } catch (DigitalObjectNotFoundException ex) {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
@@ -1992,6 +1993,7 @@ public class DigitalObjectResource {
             try {
                 StringRecord technicalMedata = new StringRecord(mixEditor.readAsString(), mixEditor.getLastModified(), fobject.getPid());
                 technicalMedata.setBatchId(batchId);
+                technicalMedata.setModel(relationEditor.getModel());
                 return technicalMedata;
             } catch (DigitalObjectNotFoundException ex) {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
@@ -2081,6 +2083,7 @@ public class DigitalObjectResource {
                 TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig, akubraConfiguration);
                 StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), TechnicalMetadataMapper.PREMIS), premisEditor.getLastModified(), fobject.getPid());
                 technicalMetadata.setBatchId(batchId);
+                technicalMetadata.setModel(relationEditor.getModel());
                 return technicalMetadata;
             } catch (DigitalObjectNotFoundException ex) {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
@@ -2148,6 +2151,7 @@ public class DigitalObjectResource {
                 TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(relationEditor.getModel(), batchId, pid, appConfig, akubraConfiguration);
                 StringRecord technicalMetadata = new StringRecord(mapper.getMetadataAsXml(fobject, appConfig, relationEditor.getImportFile(), TechnicalMetadataMapper.CODING_HISTORY), codingHistoryEditor.getLastModified(), fobject.getPid());
                 technicalMetadata.setBatchId(batchId);
+                technicalMetadata.setModel(relationEditor.getModel());
                 return technicalMetadata;
             } catch (DigitalObjectNotFoundException ex) {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
@@ -2465,7 +2469,7 @@ public class DigitalObjectResource {
             items = copyObject.copy();
             copyObject.copyMods();
         } catch (DigitalObjectValidationException ex) {
-            return toValidationError(ex);
+            return toValidationError(ex, session.getLocale(httpHeaders));
         }
         if (items != null && items.size() > 0) {
             SearchViewItem item = items.get(0);
@@ -3386,7 +3390,7 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException, IOException, FedoraClientException {
-        Batch internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING);
+        Batch internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED);
         Locale locale = session.getLocale(httpHeaders);
         try {
             ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, akubraConfiguration, user, pid, modelId);
@@ -3587,7 +3591,7 @@ public class DigitalObjectResource {
             throws DigitalObjectNotFoundException {
 
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fobject = dom.find2(pid, batch);
+        FedoraObject fobject = dom.find2(pid, batch, null);
         if (!readonly && fobject instanceof LocalObject) {
             ImportResource.checkBatchState(batch);
         }

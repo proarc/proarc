@@ -137,6 +137,14 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     }
 
     @Override
+    public List<Batch> findUploadingBatches() {
+        BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
+        result.getCommand().where(table.state.is(State.UPLOADING));
+        result.fetch(getConnection());
+        return Collections.unmodifiableList(result);
+    }
+
+    @Override
     public List<Batch> findBatch(String pid, String processProfile, State state) {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(state));

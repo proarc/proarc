@@ -41,13 +41,17 @@ public class Batch {
     public static final String EXPORT_KWIS = "exportProfile.kwis";
     public static final String EXPORT_ALEPH = "exportProfile.aleph";
 
+    public static final String UPLOAD_PROARC = "uploadProfile.proarc";
+    public static final String UPLOAD_KRAMERIUS = "uploadProfile.kramerius";
+
     public static final String INTERNAL_REINDEX = "internalProfile.reindex";
 
     public enum State {
 
         EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,
         EXPORTING, EXPORT_FAILED, EXPORT_DONE,
-        REINDEXING, REINDEX_FAILED, REINDEX_DONE
+        REINDEXING, REINDEX_FAILED, REINDEX_DONE,
+        UPLOADING, UPLOAD_FAILED, UPLOAD_DONE
     }
     
     private Integer id;

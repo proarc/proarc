@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Lukas Sykora
+ * Copyright (C) 2023 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.export.automaticImportProcess;
+package cz.cas.lib.proarc.common.kramerius;
 
-import cz.cas.lib.proarc.common.export.ExportOptions;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -26,42 +26,44 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
-import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.getState;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 
 
-/**
- * @author Lukáš Sýkora
- * na zaklade aplikace Merlin z MZK
- */
-public class AutomaticImportFoxml {
+public class K5Importer {
 
-    private final ExportOptions.KrameriusInstance instance;
-    private final File exportFolder;
+    private static final Logger LOG = Logger.getLogger(K5Importer.class.getName());
 
-    public AutomaticImportFoxml(ExportOptions.KrameriusInstance instance, File exportFolder) {
+    private final AppConfiguration appConfig;
+    private final KrameriusOptions.KrameriusInstance instance;
+
+    public K5Importer(AppConfiguration appConfig, KrameriusOptions.KrameriusInstance instance) {
+        this.appConfig = appConfig;
         this.instance = instance;
-        this.exportFolder = exportFolder;
     }
 
-    public String importToKramerius() throws JSONException, IOException, InterruptedException {
+    public String importToKramerius(File exportFolder, boolean updateExisting) throws JSONException, IOException, InterruptedException {
         String credentials = instance.getUsername() + ":" + instance.getPassword();
 
         String proarcExport = instance.getExportFolder() + exportFolder.getName();
         String krameriusFoxmlImport = proarcExport.replace(instance.getExportFolder(), instance.getKrameriusImportFoxmlFolder());
 
-        String query = instance.getUrl() + instance.getParametrizedImportQuery();
+        String query = instance.getUrl() + instance.getUrlParametrizedImportQuery();
         String json =
                 "{" +
                         "\"mapping\":" +
                         "{" +
                         "\"importDirectory\":\"" + krameriusFoxmlImport + "\"," +
                         "\"startIndexer\":\"true\"," +
-                        "\"updateExisting\":\"false\"" +
+                        "\"updateExisting\":\"" + updateExisting + "\"" +
                         "}" +
                         "}";
 
@@ -87,16 +89,16 @@ public class AutomaticImportFoxml {
             if (status < HTTP_BAD_REQUEST) {
                 in = new BufferedInputStream(conn.getInputStream());
                 String result = IOUtils.toString(in, StandardCharsets.UTF_8);
-                System.out.println("Kramerius response:");
-                System.out.println(result);
+                LOG.info("Kramerius response is " + result);
                 in.close();
                 conn.disconnect();
 
                 // zjištění uuid procesu
                 JSONObject object = new JSONObject(result);
                 String processUuid = object.get("uuid").toString();
-                query = instance.getUrl() + instance.getStateQuery() + processUuid;
+                query = instance.getUrl() + instance.getUrlStateQuery() + processUuid;
                 state = getState(query, credentials);
+                LOG.info("Requesting Kramerius import success, server response is : " + state);
                 return state;
             } else {
                 if (conn.getErrorStream() == null) {
@@ -107,13 +109,52 @@ public class AutomaticImportFoxml {
                 String result = IOUtils.toString(in, "UTF-8");
                 in.close();
                 conn.disconnect();
+                LOG.warning("Requesting Kramerius import failed, server response was : " + result);
                 throw new IllegalArgumentException("Requesting Kramerius import failed, server response was : " + result);
             }
         } finally {
             if (in != null) {
-               in.close();
+                in.close();
             }
             conn.disconnect();
         }
+    }
+
+    public static String getState(String query, String credentials) throws IOException, InterruptedException, JSONException {
+        String state = KRAMERIUS_PROCESS_PLANNED;
+
+        while (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING)) {
+            URL url = new URL(query);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(5000);
+            url = new URL(query);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(5000);
+            String encoded = Base64.getEncoder().encodeToString((credentials).getBytes(StandardCharsets.UTF_8));
+            conn.setRequestProperty("Authorization", "Basic " + encoded);
+            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setRequestMethod("GET");
+            int status = conn.getResponseCode();
+            InputStream in = new BufferedInputStream(conn.getInputStream());
+
+            if (status < HTTP_BAD_REQUEST) {
+                String result = IOUtils.toString(in, StandardCharsets.UTF_8);
+                JSONObject object = (new JSONArray(result)).getJSONObject(0);
+                state = object.get("state").toString();
+                LOG.info("Kramerius response to query " + query + " is " + state);
+                in.close();
+                conn.disconnect();
+            } else {
+                in.close();
+                conn.disconnect();
+                break;
+            }
+            if (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING)) {
+                TimeUnit.SECONDS.sleep(20);
+            }
+        }
+        return state;
     }
 }

@@ -6,12 +6,13 @@ import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.List;
 
 public class BatchUtils {
 
-    public static Batch addNewBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state) {
-        Batch batch = findBatchWithParams(batchManager, getPid(pids), processProfile);
+    public static Batch addNewBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state, Batch.State overWriteState) {
+        Batch batch = findBatchWithParams(batchManager, getPid(pids), processProfile, overWriteState);
         if (batch == null) {
             return batchManager.add(getPid(pids), user, processProfile, state);
         } else {
@@ -22,8 +23,8 @@ public class BatchUtils {
         }
     }
 
-    private static Batch findBatchWithParams(ImportBatchManager batchManager, String pid, String processProfile) {
-        List<Batch> batches = batchManager.findBatch(pid, processProfile, Batch.State.EXPORT_FAILED);
+    private static Batch findBatchWithParams(ImportBatchManager batchManager, String pid, String processProfile, Batch.State overWriteState) {
+        List<Batch> batches = batchManager.findBatch(pid, processProfile, overWriteState);
         if (!batches.isEmpty()) {
             return batches.get(0);
         } else {
@@ -53,7 +54,7 @@ public class BatchUtils {
     }
 
     public static Batch addNewExportBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String exportProfile) {
-        return addNewBatch(batchManager, pids, user, exportProfile, Batch.State.EXPORTING);
+        return addNewBatch(batchManager, pids, user, exportProfile, Batch.State.EXPORTING, Batch.State.EXPORT_FAILED);
     }
 
     public static Batch finishedExportWithError(ImportBatchManager batchManager, Batch batch, String path, Exception exception) {
@@ -117,6 +118,18 @@ public class BatchUtils {
         return finishedSuccessfully(batchManager, batch, path, message, Batch.State.EXPORT_DONE);
     }
 
+    public static Batch addNewUploadBatch(ImportBatchManager batchManager, String pid, UserProfile user, String exportProfile) {
+        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.UPLOADING, Batch.State.UPLOAD_FAILED);
+    }
+
+    public static Batch finishedUploadWithError(ImportBatchManager batchManager, Batch batch, String path, Exception exception) {
+        return finishedWithError(batchManager, batch, path, ImportBatchManager.toString(exception), Batch.State.UPLOAD_FAILED);
+    }
+
+    public static Batch finishedUploadSuccessfully(ImportBatchManager batchManager, Batch batch, String path) {
+        return finishedSuccessfully(batchManager, batch, path, null, Batch.State.UPLOAD_DONE);
+    }
+
     public static String getPid(List<String> pids) {
         if (!pids.isEmpty()) {
             return pids.get(0);
@@ -128,6 +141,13 @@ public class BatchUtils {
         List<Batch> batches2finished = ibm.findExportingBatches();
         for (Batch batch : batches2finished) {
             finishedExportWithError(ibm, batch, batch.getFolder(), new Exception("Application has been stopped."));
+        }
+    }
+
+    public static void finishedUploadingBatch(ImportBatchManager ibm, AppConfiguration config) {
+        List<Batch> batches2finished = ibm.findUploadingBatches();
+        for (Batch batch : batches2finished) {
+            finishedUploadWithError(ibm, batch, batch.getFolder(), new Exception("Application has been stopped."));
         }
     }
 }

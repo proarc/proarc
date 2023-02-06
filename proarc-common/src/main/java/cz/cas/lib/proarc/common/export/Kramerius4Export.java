@@ -27,7 +27,6 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ExportResult;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportResultLog.ResultStatus;
-import cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportFoxml;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
@@ -53,6 +52,8 @@ import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.fedora.relation.Relations;
+import cz.cas.lib.proarc.common.kramerius.KImporter;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
@@ -95,15 +96,16 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import static cz.cas.lib.proarc.common.export.ExportOptions.KRAMERIUS_INSTANCE_LOCAL;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageNumber;
 import static cz.cas.lib.proarc.common.export.ExportUtils.containPageType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
-import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_FAILED;
-import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_FINISHED;
-import static cz.cas.lib.proarc.common.export.automaticImportProcess.AutomaticImportUtils.KRAMERIUS_PROCESS_WARNING;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin.isNdkAudioModel;
 
 /**
@@ -213,9 +215,9 @@ public final class Kramerius4Export {
             krameriusResult.setPageCount(exportedPids.size());
 
             if (!(krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId))) {
-                ExportOptions.KrameriusInstance instance = ExportOptions.findKrameriusInstance(exportOptions.getKrameriusInstances(), krameriusInstanceId);
-                AutomaticImportFoxml importFoxml = new AutomaticImportFoxml(instance, krameriusResult.getFile());
-                String state = importFoxml.importToKramerius();
+                KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+                KImporter kImporter = new KImporter(appConfig, instance);
+                String state = kImporter.importToKramerius(krameriusResult.getFile(), false);
                 if (KRAMERIUS_PROCESS_FINISHED.equals(state)) {
                     if (instance.deleteAfterImport()) {
                         MetsUtils.deleteFolder(krameriusResult.getFile());
@@ -1219,7 +1221,7 @@ public final class Kramerius4Export {
         if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
             return new File(exportUri);
         } else {
-            ExportOptions.KrameriusInstance instance = ExportOptions.findKrameriusInstance(exportOptions.getKrameriusInstances(), krameriusInstanceId);
+            KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
             File exportFile = new File(instance.getExportFolder());
             if (!exportFile.exists() || !exportFile.isDirectory() || !exportFile.canRead() || !exportFile.canWrite()) {
                 throw new IllegalArgumentException("Error s nakonfigurovanou cestou: " + instance.getExportFolder() + " (zkontrolujte, ze cesta existuje a mate do ni prava na cteni a zapis.");
