@@ -29,6 +29,7 @@ public class DescriptionMetadata<T> {
     private String krameriusInstanceId;
     private long timestamp;
     private String editor;
+    private String model;
     private T data;
     private boolean ignoreValidation = false;
     private DigitalObjectHandler parentHandler;
@@ -108,5 +109,13 @@ public class DescriptionMetadata<T> {
 
     public void setParentHandler(DigitalObjectHandler parentHandler) {
         this.parentHandler = parentHandler;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 }

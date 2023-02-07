@@ -13,8 +13,8 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ### SHOW IMAGE
-GET {{proarcLocalHostUrl}}/rest/v1/kramerius/viewImage?instance={{instance}}&pid={{uuid}}
-Accept: application/json
+GET {{proarcRemoteUrl}}/rest/v1/kramerius/viewImage?instance={{instance}}&pid={{uuid}}
+Accept: image/jpeg
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ### IMPORT 2 PROARC

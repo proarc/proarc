@@ -36,6 +36,8 @@ import cz.cas.lib.proarc.common.kramerius.KDataHandler;
 import cz.cas.lib.proarc.common.kramerius.KImporter;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper;
+import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -121,7 +123,7 @@ public class KrameriusResource {
     @GET
     @Path(KrameriusResourceApi.VIEW_MODS)
     @Produces({MediaType.APPLICATION_JSON})
-    public StringEditor.StringRecord viewMods(
+    public Object viewMods(
             @QueryParam(KrameriusResourceApi.KRAMERIUS_OBJECT_PID) String pid,
             @QueryParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("true")
@@ -140,11 +142,27 @@ public class KrameriusResource {
         try {
             DigitalObjectHandler handler = findHandler(pid, krameriusInstanceId);
             MetadataHandler<?> metadataHandler = handler.metadata();
-            DescriptionMetadata<String> metadataAsXml = metadataHandler.getMetadataAsXml();
-            StringEditor.StringRecord result = new StringEditor.StringRecord(metadataAsXml.getData(), metadataAsXml.getTimestamp(), metadataAsXml.getPid());
-            result.setKrameriusInstanceId(krameriusInstanceId);
-            result.setModel(transformKrameriusModel(appConfig, handler.getModel().getPid()));
-            return result;
+            String model = handler.getModel().getPid();
+            if (NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
+                DescriptionMetadata<Object> metadata = handler.metadata().getMetadataAsJsonObject(null);
+                if (((NdkPageMapper.Page)metadata.getData()).getIdentifiers().isEmpty()) {
+                    ((NdkPageMapper.Page)metadata.getData()).getIdentifiers().add(new IdentifierMapper.IdentifierItem("uuid", pid.substring(5)));
+                }
+                String title = ((NdkPageMapper.Page) metadata.getData()).getType();
+                if (title != null && !title.isEmpty()) {
+                    title = title.substring(0, 1).toLowerCase() + title.substring(1);
+                    ((NdkPageMapper.Page) metadata.getData()).setType(title);
+                }
+                metadata.setKrameriusInstanceId(krameriusInstanceId);
+                metadata.setModel(transformKrameriusModel(appConfig, handler.getModel().getPid()));
+                return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+            } else {
+                DescriptionMetadata<String> metadataAsXml = metadataHandler.getMetadataAsXml();
+                StringEditor.StringRecord result = new StringEditor.StringRecord(metadataAsXml.getData(), metadataAsXml.getTimestamp(), metadataAsXml.getPid());
+                result.setKrameriusInstanceId(krameriusInstanceId);
+                result.setModel(transformKrameriusModel(appConfig, handler.getModel().getPid()));
+                return result;
+            }
         } catch (DigitalObjectNotFoundException ex) {
             if (rerun) {
                 KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);

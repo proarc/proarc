@@ -82,8 +82,27 @@ public class WaveImporter implements ImageImporter {
     }
 
     public BatchItemObject consume(FileSet fileSet, ImportProcess.ImportOptions ctx) {
-        FileEntry waveEntry = findWave(fileSet);
-        FileEntry flacEntry = findFlac(fileSet);
+        String originalFilename = fileSet.getName();
+
+        // creates FOXML and metadata
+        LocalObject localObj = createObject(originalFilename, ctx);
+        BatchItemObject batchLocalObject = ibm.addLocalObject(ctx.getBatch(), localObj);
+
+        try {
+        FileEntry waveEntry = findWave(fileSet, ctx.getConfig().getNdkSourceAudioFileSuffix());
+        FileEntry flacEntry = findFlac(fileSet, ctx.getConfig().getNdkSourceAudioFileSuffix());
+
+        if (ctx.getConfig().getRequiredDatastreamId().contains(BinaryEditor.RAW_AUDIO_ID)) {
+            if (waveEntry == null && flacEntry == null) {
+                throw new FileNotFoundException("Missing source audio: " +
+                        new File(fileSet.getName() + ctx.getConfig().getNdkSourceAudioFileSuffix()).getName());
+            }
+        } else {
+            if (waveEntry == null && flacEntry == null) {
+                waveEntry = findWave(fileSet, null);
+                flacEntry = findFlac(fileSet, null);
+            }
+        }
         // check wave file
         if (waveEntry == null && flacEntry == null) {
             return null;
@@ -101,13 +120,6 @@ public class WaveImporter implements ImageImporter {
         } else {
             return null;
         }
-
-        String originalFilename = fileSet.getName();
-
-        // creates FOXML and metadata
-        LocalObject localObj = createObject(originalFilename, ctx);
-        BatchItemObject batchLocalObject = ibm.addLocalObject(ctx.getBatch(), localObj);
-        try {
             if (!(InputUtils.isWave(f) || InputUtils.isFlac(f))) {
                 throw new IllegalStateException("Not a WAVE/FLAC content: " + f);
             }
@@ -125,7 +137,7 @@ public class WaveImporter implements ImageImporter {
             ibm.addChildRelation(ctx.getBatch(), null, localObj.getPid());
             batchLocalObject.setState(ObjectState.LOADED);
         } catch (Throwable ex) {
-            LOG.log(Level.SEVERE, f.toString(), ex);
+            LOG.log(Level.SEVERE, fileSet.getName(), ex);
             batchLocalObject.setState(ObjectState.LOADING_FAILED);
             batchLocalObject.setLog(ImportBatchManager.toString(ex));
         }
@@ -232,28 +244,40 @@ public class WaveImporter implements ImageImporter {
     }
 
     private boolean isWave(FileSet fileSet) {
-        return findWave(fileSet) != null;
+        return findWave(fileSet, null) != null;
     }
 
-    private FileEntry findWave(FileSet fileSet) {
+    private FileEntry findWave(FileSet fileSet, List<Object> suffix) {
         for (FileEntry entry : fileSet.getFiles()) {
             String mimetype = entry.getMimetype();
             if (AudioMimeType.WAVE.getMimeType().equals(mimetype)) {
-                return entry;
+                if (suffix == null || suffix.isEmpty()) {
+                    return entry;
+                } else {
+                    if (checkIfFileHasExtension(entry.getFile().getName(), suffix.toArray())) {
+                        return entry;
+                    }
+                }
             }
         }
         return null;
     }
 
     private boolean isFlac(FileSet fileSet) {
-        return findFlac(fileSet) != null;
+        return findFlac(fileSet, null) != null;
     }
 
-    private FileEntry findFlac(FileSet fileSet) {
+    private FileEntry findFlac(FileSet fileSet, List<Object> suffix) {
         for (FileEntry entry : fileSet.getFiles()) {
             String mimetype = entry.getMimetype();
             if (AudioMimeType.FLAC.getMimeType().equals(mimetype)) {
-                return entry;
+                if (suffix == null || suffix.isEmpty()) {
+                    return entry;
+                } else {
+                    if (checkIfFileHasExtension(entry.getFile().getName(), suffix.toArray())) {
+                        return entry;
+                    }
+                }
             }
         }
         return null;
@@ -292,6 +316,9 @@ public class WaveImporter implements ImageImporter {
                     wave.getParentFile(), fileSet.getName() + config.getNdkArchivalAudioFileSuffix()).toString());
         }
         for (Entry entry : entries) {
+            if (checkIfFileHasExtension(entry.getEntry().getFile().getName(), config.getNdkSourceAudioFileSuffix().toArray())) {
+                continue; // skip because this is source audio not archival audio
+            }
             if (WAVE.equals(entry.getType())) {
                 if (config.getSkippedDatastreamId().contains(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID)) {
                     LOG.info("Skip import " + BinaryEditor.NDK_AUDIO_ARCHIVAL_ID + " for uuid " + fo.getPid());

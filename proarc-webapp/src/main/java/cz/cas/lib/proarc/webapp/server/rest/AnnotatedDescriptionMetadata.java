@@ -59,4 +59,8 @@ public abstract class AnnotatedDescriptionMetadata extends DescriptionMetadata<O
     @Override
     public abstract long getTimestamp();
 
+    @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
+    @Override
+    public abstract String getModel();
+
 }

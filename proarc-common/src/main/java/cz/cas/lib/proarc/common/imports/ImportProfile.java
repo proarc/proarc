@@ -73,6 +73,7 @@ public final class ImportProfile {
     public static final String CONVERTOR_JP2_PROCESSOR = "import.jp2_convertor.processor";
     public static final String OCR_GEN_PROCESSOR = "import.ocr_generator.processor";
     public static final String CONVERTOR_TIFF_JPG_PROCESSOR = "import.tiff_to_jpg_convertor.processor";
+    public static final String NDK_SOURCE_AUDIO_SUFFIX = "import.ndk_audio_source.file.suffix";
     public static final String NDK_ARCHIVAL_AUDIO_SUFFIX = "import.ndk_audio_archival.file.suffix";
     public static final String NDK_USER_AUDIO_SUFFIX = "import.ndk_audio_user.file.suffix";
     public static final String CREATE_MODELS_HIERARCHY = "import.create.models_hierarchy";
@@ -199,6 +200,11 @@ public final class ImportProfile {
     public String getNdkArchivalFileSuffix() {
         String suffix = config.getString(NDK_ARCHIVAL_SUFFIX, ".ac.jp2");
         return suffix.toLowerCase();
+    }
+
+    public List<Object> getNdkSourceAudioFileSuffix() {
+        List<Object> suffix = config.getList(NDK_SOURCE_AUDIO_SUFFIX);
+        return suffix;
     }
 
     public List<Object> getNdkArchivalAudioFileSuffix() {
