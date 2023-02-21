@@ -145,7 +145,7 @@ public final class Kramerius4ExportOptions {
     // K4 to NDK model mapping
     private Map<String, String> reverseModelMap = new HashMap<String, String>() {
         {
-            put("model:page", NdkPlugin.MODEL_NDK_PAGE);
+            put("model:page", NdkPlugin.MODEL_PAGE);
             put("model:article", NdkPlugin.MODEL_ARTICLE);
             put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
             put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);

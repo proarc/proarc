@@ -76,7 +76,7 @@ public class K7Authenticator {
                     JSONObject jsonObject = new JSONObject(result);
                     String token = jsonObject.optString("access_token");
                     if (token != null || !token.isEmpty()) {
-                        LOG.info("Connected to Kramerius and get token " + token);
+                        LOG.fine("Connected to Kramerius and get token " + token);
                         return token;
                     } else {
                         LOG.severe("Connected to Kramerius but access_token is null");
@@ -87,7 +87,7 @@ public class K7Authenticator {
                         JSONObject jsonObject = jsonArray.getJSONObject(0);
                         String token = jsonObject.optString("access_token");
                         if (token != null || !token.isEmpty()) {
-                            LOG.info("Connected to Kramerius and get token " + token);
+                            LOG.fine("Connected to Kramerius and get token " + token);
                             return token;
                         } else {
                             LOG.severe("Connected to Kramerius but access_token is null");

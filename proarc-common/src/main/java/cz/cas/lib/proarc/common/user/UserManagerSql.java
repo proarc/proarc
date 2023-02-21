@@ -260,7 +260,7 @@ final class UserManagerSql implements UserManager {
         try {
             // fedora
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                new FedoraTransaction(remoteStorage);
+                ftx = new FedoraTransaction(remoteStorage);
                 FedoraGroupDao fedoraGroups = new FedoraGroupDao();
                 fedoraGroups.setTransaction(ftx);
                 fedoraGroups.addGroup(group, owner, log);

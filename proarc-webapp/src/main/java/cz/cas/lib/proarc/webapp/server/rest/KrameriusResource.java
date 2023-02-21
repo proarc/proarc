@@ -47,10 +47,12 @@ import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -131,12 +133,16 @@ public class KrameriusResource {
     ) {
 
         LOG.fine(String.format("pid: %s, krameriusInstanceId: %s", pid, krameriusInstanceId));
+        Locale locale = session.getLocale(httpHeaders);
 
         if (pid == null || pid.isEmpty()) {
-            throw RestException.plainText(Response.Status.BAD_REQUEST, "Missing value for field: " + KrameriusResourceApi.KRAMERIUS_OBJECT_PID + "\".");
+            throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
-        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            throw RestException.plainText(Response.Status.BAD_REQUEST, "Missing value for field: " + KrameriusResourceApi.KRAMERIUS_INSTANCE);
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
         try {
@@ -153,6 +159,8 @@ public class KrameriusResource {
                     title = title.substring(0, 1).toLowerCase() + title.substring(1);
                     ((NdkPageMapper.Page) metadata.getData()).setType(title);
                 }
+                DescriptionMetadata<String> metadataAsXml = metadataHandler.getMetadataAsXml();
+                metadata.setContent(metadataAsXml.getData());
                 metadata.setKrameriusInstanceId(krameriusInstanceId);
                 metadata.setModel(transformKrameriusModel(appConfig, handler.getModel().getPid()));
                 return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
@@ -169,7 +177,7 @@ public class KrameriusResource {
                 if (instance == null) {
                     StringEditor.StringRecord result = new StringEditor.StringRecord();
                     result.setStatus(StringEditor.StringRecord.STATUS_FAILURE);
-                    result.setData("Not known value \"" + krameriusInstanceId + "\" for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".");
+                    result.setData(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unknown_Value", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
                     return result;
                 } else {
                     try {
@@ -218,16 +226,20 @@ public class KrameriusResource {
             @QueryParam(KrameriusResourceApi.KRAMERIUS_OBJECT_PID) String pid,
             @QueryParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId
     ) {
+        Locale locale = session.getLocale(httpHeaders);
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_OBJECT_PID + "\".", session);
+            throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
-        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
         if (instance == null) {
-            return SmartGwtResponse.asError("Not known value \"" + krameriusInstanceId + "\" for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unknown_Value", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
         KUtils.RedirectedResult result = new KUtils.RedirectedResult(pid);
@@ -237,7 +249,7 @@ public class KrameriusResource {
             RelationEditor relationEditor = new RelationEditor(fedoraObject);
             if (relationEditor.getModel() == null || relationEditor.getModel().isEmpty()) {
                 result.setStatus("Failed");
-                result.setMessage("Impossible to get model of pid " + pid);
+                result.setMessage(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImpossibleToFindModel", pid));
                 return new SmartGwtResponse<>(result);
             }
             if (NdkPlugin.MODEL_PAGE.equals(relationEditor.getModel()) || NdkPlugin.MODEL_NDK_PAGE.equals(relationEditor.getModel()) || OldPrintPlugin.MODEL_PAGE.equals(relationEditor.getModel())) {
@@ -263,12 +275,12 @@ public class KrameriusResource {
                     return proarcResponse;
                 } else {
                     result.setStatus("Failed");
-                    result.setMessage("Impossible to download JPG");
+                    result.setMessage(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImpossibleToDownloadJpg", pid));
                     return new SmartGwtResponse<>(result);
                 }
             } else {
                 result.setStatus("Failed");
-                result.setMessage("This object does not contain any image.");
+                result.setMessage(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_NoJpg4Object", pid));
                 result.setUrl(null);
                 return new SmartGwtResponse<>(result);
             }
@@ -300,12 +312,17 @@ public class KrameriusResource {
         LOG.fine(String.format("pid: %s, krameriusInstanceId: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
                 pid, krameriusInstanceId, editorId, timestamp, ignoreValidation, jsonData, xmlData));
 
+        Locale locale = session.getLocale(httpHeaders);
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_OBJECT_PID + "\".", session);
+            throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
-        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+
 
         if (timestamp == null) {
             return SmartGwtResponse.asError(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
@@ -348,12 +365,17 @@ public class KrameriusResource {
 
         LOG.fine(String.format("pid: %s, krameriusInstanceId: %s", pid, krameriusInstanceId));
 
+        Locale locale = session.getLocale(httpHeaders);
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_OBJECT_PID + "\".", session);
+            throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
-        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError( "Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE+ "\".", session);
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+
 
         KUtils.ImportResult importResult = new KUtils.ImportResult(pid, "ProArc");
 
@@ -364,7 +386,7 @@ public class KrameriusResource {
             DescriptionMetadata<String> metadata = dataHandler.getDescriptionMetadata(pid, krameriusInstanceId);
             if (metadata == null) {
                 BatchUtils.finishedUploadWithError(this.batchManager, batch, "ProArc", new IOException("No metadata content for this object with pid: " + pid));
-                return SmartGwtResponse.asError("No metadata content for this object with pid: " + pid);
+                return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_NoMetadata4Object", pid));
             }
             boolean status = dataHandler.setDescriptionMetadataToProArc(pid, metadata, krameriusInstanceId);
             if (status) {
@@ -380,13 +402,18 @@ public class KrameriusResource {
             BatchUtils.finishedUploadWithError(this.batchManager, batch, "ProArc", ex);
             if (ex instanceof DigitalObjectNotFoundException) {
                 LOG.severe("Import (" + pid + ") to ProArc failed, because Object with this pid not found in storage.");
-                importResult.setReason("Object with " + pid + " not found in storage.");
+                importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ObjectNotFound", pid));
             } else if (ex instanceof DigitalObjectConcurrentModificationException) {
                 LOG.severe("Concurrent modification for object with " + pid + ".");
-                importResult.setReason("Concurrent modification for object with " + pid + ".");
+                importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ConcurrentModification", pid));
             } else {
-                LOG.severe("Import (" + pid + ") to ProArc failed, because " + ex.getMessage());
-                importResult.setReason(ex.getMessage());
+                if (ex.getMessage().contains("RELS-EXT, lastModified: -1")) {
+                    importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ObjectNotFound", pid));
+                    importResult.setReason(ServerMessages.get(locale).KrameriusResource_Upload_Proarc_Msg());
+                } else {
+                    LOG.severe("Import (" + pid + ") to ProArc failed, because " + ex.getMessage());
+                    importResult.setReason(ex.getMessage());
+                }
             }
             importResult.setStatus("Failed");
         }
@@ -403,14 +430,21 @@ public class KrameriusResource {
 
         LOG.fine(String.format("pid: %s, krameriusInstanceId: %s krameriusImportInstanceId: %s", pid, krameriusInstanceId, krameriusImportInstanceId));
 
+        Locale locale = session.getLocale(httpHeaders);
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_OBJECT_PID + "\".", session);
+            throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
-        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError( "Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
-        if (krameriusImportInstanceId == null || krameriusImportInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusImportInstanceId)) {
-            return SmartGwtResponse.asError("Missing value for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+        if (krameriusImportInstanceId == null || krameriusImportInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE));
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusImportInstanceId)) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE));
         }
 
         Batch batch = BatchUtils.addNewUploadBatch(this.batchManager, pid, user, Batch.UPLOAD_KRAMERIUS);
@@ -419,21 +453,21 @@ public class KrameriusResource {
 
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusImportInstanceId);
         if (instance == null) {
-            return SmartGwtResponse.asError("Not known value \"" + krameriusImportInstanceId + "\" for field: \"" + KrameriusResourceApi.KRAMERIUS_INSTANCE + "\".", session);
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unknown_Value", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
         KDataHandler dataHandler = new KDataHandler(appConfig);
         try {
             File sourceFile = dataHandler.getSourceFile(pid, krameriusInstanceId);
             if (sourceFile == null || !sourceFile.exists()) {
-                throw new IOException("Source file for " + pid + " does not exists. Expected path is (" + getExpectedSourcePath(appConfig, krameriusInstanceId, pid) + ")");
+                throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_SourceFileDooesntExists", pid, getExpectedSourcePath(appConfig, krameriusInstanceId, pid)));
             }
             File destinationFile = dataHandler.getDestinationFile(pid, instance);
             if (destinationFile == null || !destinationFile.exists()) {
-                throw new IOException("Destination file for " + pid + " does not exists. Expected path is (" + getExpectedDestinationPath(instance, pid) + ")");
+                throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_DestinationFileDooesntExists", pid, getExpectedDestinationPath(instance, pid)));
             }
             if (!FileUtils.copy(sourceFile, destinationFile)) {
-                throw new IOException("ProArc can not copy content of " + sourceFile.getAbsolutePath() + " to " + destinationFile.getAbsolutePath() + ".");
+                throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_CantCopyContent", sourceFile.getAbsolutePath(), destinationFile.getAbsolutePath()));
             }
             KImporter kImporter = new KImporter(appConfig, instance);
             String state = kImporter.importToKramerius(destinationFile.getParentFile(), true);
@@ -449,12 +483,12 @@ public class KrameriusResource {
                     break;
                 case KRAMERIUS_PROCESS_FAILED:
                     importResult.setStatus("Failed");
-                    importResult.setReason("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
+                    importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImportKrameriuFailed_status", instance.getId(), instance.getUrl()));
                     BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), new IOException("Import selhal."));
                     break;
                 case KRAMERIUS_PROCESS_WARNING:
                     importResult.setStatus("Failed");
-                    importResult.setReason("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel s chybou.");
+                    importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImportKrameriuWarning_status", instance.getId(), instance.getUrl()));
                     BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), new IOException("Import pro3el s chybou."));
                     break;
             }

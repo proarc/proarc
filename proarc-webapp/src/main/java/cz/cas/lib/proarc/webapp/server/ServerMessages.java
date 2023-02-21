@@ -90,4 +90,8 @@ public final class ServerMessages {
         return getMessage(l, "ImportResource_PathNotExisted_Msg");
     }
 
+    public String KrameriusResource_Upload_Proarc_Msg() {
+        return getMessage(l, "KrameriusResource_Upload_Proarc_Msg");
+    }
+
 }

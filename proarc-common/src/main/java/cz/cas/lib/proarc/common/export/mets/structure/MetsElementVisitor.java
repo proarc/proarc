@@ -1272,7 +1272,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         mdWrap.setMDTYPE("CODING_HISTORY");
                     } else {
                         if (!skip && !(Const.CODINGHISTORY001.equals(name) || Const.CODINGHISTORY002.equals(name))) {
-                            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image/audo metadata (MIX/AES) for " + streamName, false, null);
+                            LOG.severe("Unable to generate image/audio metadata (MIX/AES) for " + streamName);
+                            skip = true;
+//                            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate image/audio metadata (MIX/AES) for " + streamName, false, null);
                         }
                     }
 

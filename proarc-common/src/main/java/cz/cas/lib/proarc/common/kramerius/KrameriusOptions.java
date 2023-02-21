@@ -119,12 +119,11 @@ public class KrameriusOptions {
             warning(conf, KrameriusInstance.PROPERTY_EXPORT_FOLDER);
             ok = false;
         }
-        if (5 == version) {
-            if (conf.getKrameriusImportFoxmlFolder() == null) {
-                warning(conf, KrameriusInstance.PROPERTY_KRAMERIUS_IMPORT_FOXML_FOLDER);
-                ok = false;
-            }
-        } else if (7 == version) {
+        if (conf.getKrameriusImportFoxmlFolder() == null) {
+            warning(conf, KrameriusInstance.PROPERTY_KRAMERIUS_IMPORT_FOXML_FOLDER);
+            ok = false;
+        }
+        if (7 == version) {
             if (conf.getUrlLogin() == null) {
                 warning(conf, KrameriusInstance.PROPERTY_URL_LOGIN);
                 ok = false;

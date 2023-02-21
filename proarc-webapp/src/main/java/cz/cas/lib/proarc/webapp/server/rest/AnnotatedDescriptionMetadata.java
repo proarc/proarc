@@ -63,4 +63,7 @@ public abstract class AnnotatedDescriptionMetadata extends DescriptionMetadata<O
     @Override
     public abstract String getModel();
 
+    @XmlElement(name = DigitalObjectResourceApi.STRINGRECORD_CONTENT)
+    @Override
+    public abstract String getContent();
 }

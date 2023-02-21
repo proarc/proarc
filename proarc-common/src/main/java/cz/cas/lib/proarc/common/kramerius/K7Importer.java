@@ -54,8 +54,9 @@ public class K7Importer {
             httpPost.setHeader(new BasicHeader("Authorization", "Bearer " + token));
         }
         httpPost.setHeader(new BasicHeader("Content-Type", "application/json"));
-
-        String json = "{\"defid\":\"import\",\"params\": {\"inputDataDir\":\"/" + exportFolder.getName() + "\",\"startIndexer\": true, \"updateExisting\": " + updateExisting + "}}";
+        String exportFolderPath = instance.getKrameriusImportFoxmlFolder() + exportFolder.getName();
+        String json = "{\"defid\":\"import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"startIndexer\": true, \"updateExisting\": " + updateExisting + "}}";
+        LOG.info("Params to import:" + json);
 
         httpPost.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
 

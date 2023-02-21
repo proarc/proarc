@@ -31,6 +31,7 @@ public class DescriptionMetadata<T> {
     private String editor;
     private String model;
     private T data;
+    private String content;
     private boolean ignoreValidation = false;
     private DigitalObjectHandler parentHandler;
 
@@ -117,5 +118,13 @@ public class DescriptionMetadata<T> {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 }

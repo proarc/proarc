@@ -1,5 +1,5 @@
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcRemoteUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -8,7 +8,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 <> 2023-01-26T100714.200.html
 
 ### SHOW MODS
-GET {{proarcLocalHostUrl}}/rest/v1/kramerius/viewMods?instance={{instance}}&pid={{uuid}}
+GET {{proarcRemoteUrl}}/rest/v1/kramerius/viewMods?instance={{instance}}&pid={{uuid}}
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -25,7 +25,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 instance={{instance}}&pid={{uuid}}
 
 ### IMPORT 2 KRAMERIUS
-POST {{proarcLocalHostUrl}}/rest/v1/kramerius/importToKramerius
+POST {{proarcRemoteUrl}}/rest/v1/kramerius/importToKramerius
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
