@@ -16,7 +16,13 @@
  */
 package cz.cas.lib.proarc.common.dao;
 
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.sql.Timestamp;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
 /**
  * The batch describes group of {@link BatchItem items} related to some task
@@ -70,6 +76,7 @@ public class Batch {
     private String log;
     private String profileId;
     private String priority;
+    private String params;
 
     public Integer getId() {
         return id;
@@ -191,6 +198,40 @@ public class Batch {
         this.profileId = profileId;
     }
 
+    public String getParams() {
+        return this.params;
+    }
+    public BatchParams getParamsAsObject() {
+        if (this.params == null) {
+            return null;
+        }
+        try {
+            JAXBContext context = JAXBContext.newInstance(BatchParams.class);
+            Unmarshaller unmarshaller = context.createUnmarshaller();
+            StringReader reader = new StringReader(this.params);
+            BatchParams batchParams = (BatchParams) unmarshaller.unmarshal(reader);
+            return batchParams;
+        } catch (JAXBException e) {
+            return null;
+        }
+    }
+
+    public void setParams(String params) {
+        this.params = params;
+    }
+
+    public void setParamsFromObject(BatchParams params) {
+        try {
+            JAXBContext context = JAXBContext.newInstance(BatchParams.class);
+            Marshaller marshaller = context.createMarshaller();
+            StringWriter paramsWriter = new StringWriter();
+            marshaller.marshal(params, paramsWriter);
+            this.params = paramsWriter.toString();
+        } catch (JAXBException ex) {
+            this.params = null;
+        }
+    }
+
     public String getPriority() {
         return priority;
     }
@@ -207,7 +248,7 @@ public class Batch {
                 + ", userId=" + userId + ", estimateItemNumber=" + estimateItemNumber
                 + ", device=" + device + ", generateIndices=" + generateIndices
                 + ", profileId=" + profileId + ", log=" + log
-                + ", priority=" + priority + '}';
+                + ", priority=" + priority + ", params = " + params + "}";
     }
 
 }

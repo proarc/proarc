@@ -1,3 +1,12 @@
+### LOGIN
+POST http://localhost:8081/proarc/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+###
+
 PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
@@ -204,6 +213,21 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 instance=kramerius7&importInstance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-001b63bd97ba
+
+
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+###
+POST {{proarcLocalHostUrl}}/rest/v1/export/reexport
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+id=763
 
 
 

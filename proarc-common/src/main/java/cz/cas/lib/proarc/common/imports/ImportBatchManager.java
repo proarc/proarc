@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dao.BatchItemDao;
+import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
@@ -286,7 +287,7 @@ public class ImportBatchManager {
         updateFolderStatus(updated);
         return updated;
     }
-    public Batch add(String pid, UserProfile user, String profile, State state) {
+    public Batch add(String pid, UserProfile user, String profile, State state, BatchParams params) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(null);
@@ -297,6 +298,7 @@ public class ImportBatchManager {
         batch.setTitle(pid);
         batch.setUserId(user.getId());
         batch.setProfileId(profile);
+        batch.setParamsFromObject(params);
         Batch updated = update(batch);
         return updated;
     }

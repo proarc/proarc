@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
+import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
@@ -49,12 +50,13 @@ import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
  *
  * @author Lukas Sykora
  */
-public class ProarcDatabase extends DBDatabase {
+@Deprecated
+public class ProarcDatabaseV12 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV12.class.getName());
     /** the schema version */
-    public static final int VERSION = 13;
+    public static final int VERSION = 12;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -76,6 +78,49 @@ public class ProarcDatabase extends DBDatabase {
     public final DBRelation relationWorkflowJob_ParentId_Fk;
     public final DBRelation relationWorkflowMaterialInTask_MaterialId_Fk;
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
+
+    public static int upgradeToVersion13(
+            int currentSchemaVersion, ProarcDatabase schema,
+            Connection conn, EmpireConfiguration conf) throws SQLException {
+
+        if (currentSchemaVersion < VERSION) {
+            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
+            currentSchemaVersion = ProarcDatabaseV11.upgradeToVersion12(currentSchemaVersion, conn, conf);
+        }
+        if (currentSchemaVersion > VERSION) {
+            // ignore higher versions
+            return currentSchemaVersion;
+        } else if (currentSchemaVersion != VERSION) {
+            throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
+        }
+        //ProarcDatabaseV13 schema = new ProarcDatabaseV13();
+        try {
+            schema.open(conf.getDriver(), conn);
+            upgradeDdl(schema, conn);
+            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
+            int schemaVersion = schema.initVersion(conn, VERSION);
+
+            conn.commit();
+            return schemaVersion;
+        } finally {
+//            schema.close(conn);
+        }
+    }
+
+    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+        try {
+            conn.setAutoCommit(true);
+            DBDatabaseDriver driver = schema.getDriver();
+            DBSQLScript script = new DBSQLScript();
+
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.params, script);
+
+            LOG.fine(script.toString());
+            script.run(driver, conn);
+        } finally {
+            conn.setAutoCommit(false);
+        }
+    }
 
     public static class ProarcVersionTable extends DBTable {
 
@@ -111,7 +156,6 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn log;
         public final DBTableColumn profileId;
         public final DBTableColumn priority;
-        public final DBTableColumn params;
 
         public BatchTable(DBDatabase db) {
             super("PROARC_BATCH", db);
@@ -131,7 +175,6 @@ public class ProarcDatabase extends DBDatabase {
             log = addColumn("LOG", DataType.CLOB, 0, false);
             profileId = addColumn("PROFILE_ID", DataType.TEXT, 2000, false);
             priority = addColumn("PRIORITY", DataType.TEXT, 50, false);
-            params = addColumn("PARAMS", DataType.TEXT, 10000, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
         }
@@ -518,7 +561,7 @@ public class ProarcDatabase extends DBDatabase {
         }
     }
 
-    public ProarcDatabase() {
+    public ProarcDatabaseV12() {
         addRelation(tableBatch.userId.referenceOn(tableUser.id));
         addRelation(tableBatchItem.batchId.referenceOn(tableBatch.id));
         // users
@@ -549,8 +592,8 @@ public class ProarcDatabase extends DBDatabase {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
                 LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
-                schemaVersion = ProarcDatabaseV12.upgradeToVersion13(
-                        schemaVersion, this, conn, conf);
+                schemaVersion = ProarcDatabaseV11.upgradeToVersion12(
+                        schemaVersion, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);
                 }
@@ -562,7 +605,7 @@ public class ProarcDatabase extends DBDatabase {
         }
     }
 
-    static int schemaExists(ProarcDatabase db, Connection c) {
+    static int schemaExists(ProarcDatabaseV12 db, Connection c) {
         try {
             DBCommand cmd = db.createCommand();
             cmd.select(db.tableProarcVersion.schemaVersion);
@@ -573,7 +616,7 @@ public class ProarcDatabase extends DBDatabase {
         }
     }
 
-    private static void createSchema(ProarcDatabase db, Connection conn) throws SQLException {
+    private static void createSchema(ProarcDatabaseV12 db, Connection conn) throws SQLException {
         if (db.getDriver() instanceof DBDatabaseDriverPostgreSQL) {
             conn.setAutoCommit(true);
         }
@@ -587,7 +630,7 @@ public class ProarcDatabase extends DBDatabase {
     }
 
     int initVersion(Connection conn, Integer oldVersion) {
-        ProarcDatabase db = this;
+        ProarcDatabaseV12 db = this;
         DBRecord dbRecord = new DBRecord();
         if (oldVersion != null) {
             dbRecord.init(db.tableProarcVersion, new Integer[] {0}, false);

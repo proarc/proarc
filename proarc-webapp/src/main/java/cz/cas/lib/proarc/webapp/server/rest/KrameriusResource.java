@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
@@ -52,6 +53,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -379,7 +381,8 @@ public class KrameriusResource {
 
         KUtils.ImportResult importResult = new KUtils.ImportResult(pid, "ProArc");
 
-        Batch batch = BatchUtils.addNewUploadBatch(this.batchManager, pid, user, Batch.UPLOAD_PROARC);
+        BatchParams params = new BatchParams(Collections.singletonList(pid), krameriusInstanceId);
+        Batch batch = BatchUtils.addNewUploadBatch(this.batchManager, pid, user, Batch.UPLOAD_PROARC, params);
 
         try {
             KDataHandler dataHandler = new KDataHandler(appConfig);
@@ -447,7 +450,8 @@ public class KrameriusResource {
             return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE));
         }
 
-        Batch batch = BatchUtils.addNewUploadBatch(this.batchManager, pid, user, Batch.UPLOAD_KRAMERIUS);
+        BatchParams params = new BatchParams(Collections.singletonList(pid), krameriusInstanceId, krameriusImportInstanceId);
+        Batch batch = BatchUtils.addNewUploadBatch(this.batchManager, pid, user, Batch.UPLOAD_KRAMERIUS, params);
 
         KUtils.ImportResult importResult = new KUtils.ImportResult(pid, krameriusImportInstanceId);
 
