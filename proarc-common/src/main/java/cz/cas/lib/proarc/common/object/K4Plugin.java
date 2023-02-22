@@ -225,6 +225,12 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 String toXml = ModsUtils.toXml(mods, true);
                 LOG.fine(toXml);
             }
+
+            String standard = jsonData.getStandard();
+            if ("aacr".equals(standard) || "rda".equals(standard)) {
+                mods = ModsUtils.overrideDescriptionStandard(mods, standard);
+            }
+
             write(modelId, mods, jsonData.getTimestamp(), message);
         }
 
@@ -236,6 +242,11 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 mods = ModsStreamEditor.create33(fobject.getPid(), modelId, xmlData.getData());
             } else {
                 mods = createDefault(modelId);
+            }
+
+            String standard = xmlData.getStandard();
+            if ("aacr".equals(standard) || "rda".equals(standard)) {
+                mods = ModsUtils.overrideDescriptionStandard(mods, standard);
             }
             write(modelId, mods, xmlData.getTimestamp(), message);
         }

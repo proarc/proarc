@@ -148,6 +148,7 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_CUSTOM_CUSTOMJSONDATA = "jsonData";
     public static final String MODS_CUSTOM_CUSTOMXMLDATA = "xmlData";
     public static final String MODS_CUSTOM_IGNOREVALIDATION = "ignoreValidation";
+    public static final String MODS_CUSTOM_STANDARD = "standard";
     public static final String MODS_CUSTOM_CATALOGID = "catalogId";
     public static final String MODS_CUSTOM_CREATE_OBJECT = "createObject";
     public static final String MODS_CUSTOM_VALIDATE_OBJECT = "validate";

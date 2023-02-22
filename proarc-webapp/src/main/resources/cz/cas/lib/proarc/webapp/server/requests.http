@@ -229,5 +229,17 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 id=763
 
+### UPDATE XML
+PUT {{proarcLocalHostUrl}}/rest/v1/object/mods/custom
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid%3Aa0c1d3ed-59e9-4b12-8b59-c2ff2690e511&editorId=model:ndkmonographvolume&xmlData=<?xml version="1.0" encoding="UTF-8" standalone="yes"?><mods:mods version="3.6" xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink"><mods:genre>volume</mods:genre><mods:identifier type="uuid">a0c1d3ed-59e9-4b12-8b59-c2ff2690e511</mods:identifier><mods:recordInfo><mods:recordCreationDate encoding="iso8601">20230222T112645</mods:recordCreationDate><mods:recordChangeDate encoding="iso8601">20230222T112645</mods:recordChangeDate><mods:descriptionStandard>rda</mods:descriptionStandard></mods:recordInfo><mods:typeOfResource>text</mods:typeOfResource></mods:mods>&timestamp=1677062754083&standard=rda
+
+
+### GET XML
+GET {{proarcLocalHostUrl}}/rest/v1/object/mods/plain?pid=uuid%3Aa0c1d3ed-59e9-4b12-8b59-c2ff2690e511
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 

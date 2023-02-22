@@ -308,7 +308,8 @@ public class KrameriusResource {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
             @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String model,
             @DefaultValue("false")
-            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
     ) throws DigitalObjectException {
 
         LOG.fine(String.format("pid: %s, krameriusInstanceId: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
@@ -342,6 +343,7 @@ public class KrameriusResource {
             dMetadata.setEditor(editorId);
             dMetadata.setData(data);
             dMetadata.setTimestamp(timestamp);
+            dMetadata.setStandard(standard);
             dMetadata.setIgnoreValidation(ignoreValidation);
             if (isJsonData) {
                 mHandler.setMetadataAsJson(dMetadata, session.asFedoraLog(), NdkMetadataHandler.OPERATION_UPDATE);

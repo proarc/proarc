@@ -22,6 +22,9 @@ import cz.cas.lib.proarc.common.xml.Transformers.Format;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -241,4 +244,12 @@ public final class ModsUtils {
         return MODS_SCHEMA;
     }
 
+    public static ModsDefinition overrideDescriptionStandard(ModsDefinition mods, String standard) {
+        for (RecordInfoDefinition recordInfo : mods.getRecordInfo()) {
+            for (StringPlusLanguagePlusAuthority descriptionStandard : recordInfo.getDescriptionStandard()) {
+                descriptionStandard.setValue(standard);
+            }
+        }
+        return mods;
+    }
 }
