@@ -23,7 +23,6 @@ import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
-import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.io.IOException;
 import java.io.InputStream;
@@ -120,7 +119,7 @@ public final class ModsUtils {
     }
 
     /**
-     * @see cz.cas.lib.proarc.mods.package-info.java contains name space prefix mapping.
+     * @see ..proarc-mods.src.main.java.cz.cas.lib.proarc.mods.package-info.java contains name space prefix mapping.
      */
     public static void marshal(Result target, ModsDefinition mods, boolean indent) {
         try {
