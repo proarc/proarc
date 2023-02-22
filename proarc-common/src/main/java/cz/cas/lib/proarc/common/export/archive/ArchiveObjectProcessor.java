@@ -47,6 +47,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ReadonlyDisseminationHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -54,6 +55,7 @@ import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
@@ -194,6 +197,14 @@ public class ArchiveObjectProcessor {
             } else if (DcStreamEditor.DATASTREAM_ID.equals(dsId)) {
                 Element dcElm = dt.getDatastreamVersion().get(0).getXmlContent().getAny().get(0);
                 FoxmlUtils.fixFoxmlDc(dcElm);
+                NodeList typeNodes = dcElm.getElementsByTagNameNS(DcConstants.NS_PURL, DcConstants.TYPE);
+                for (int i = 0; i < typeNodes.getLength(); i++) {
+                    Element typeElm = (Element) typeNodes.item(i);
+                    String type = typeElm.getTextContent();
+                    if (parentElm != null && NdkPlugin.MODEL_MONOGRAPHTITLE.equals(parentElm.getModelId()) && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type) || K4Plugin.MODEL_MONOGRAPH.equals(type))) {
+                        typeElm.setTextContent(K4Plugin.MODEL_MONOGRAPHUNIT);
+                    }
+                }
                 builder.addStreamAsMdSec(siblingIdx, dt, cache.getPid(), elm.getModelId(), MdType.DC);
             } else if (RelationEditor.DATASTREAM_ID.equals(dsId)) {
                 processDevice(relsEditor.getDevice(), cache.getPid());
