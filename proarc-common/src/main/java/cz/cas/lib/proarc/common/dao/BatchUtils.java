@@ -11,10 +11,10 @@ import java.util.List;
 
 public class BatchUtils {
 
-    public static Batch addNewBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state, Batch.State overWriteState) {
+    public static Batch addNewBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state, Batch.State overWriteState, BatchParams params) {
         Batch batch = findBatchWithParams(batchManager, getPid(pids), processProfile, overWriteState);
         if (batch == null) {
-            return batchManager.add(getPid(pids), user, processProfile, state);
+            return batchManager.add(getPid(pids), user, processProfile, state, params);
         } else {
             batch.setState(state);
             batch.setLog(null);
@@ -53,8 +53,8 @@ public class BatchUtils {
         return batchManager.update(batch);
     }
 
-    public static Batch addNewExportBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String exportProfile) {
-        return addNewBatch(batchManager, pids, user, exportProfile, Batch.State.EXPORTING, Batch.State.EXPORT_FAILED);
+    public static Batch addNewExportBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String exportProfile, BatchParams params) {
+        return addNewBatch(batchManager, pids, user, exportProfile, Batch.State.EXPORTING, Batch.State.EXPORT_FAILED, params);
     }
 
     public static Batch finishedExportWithError(ImportBatchManager batchManager, Batch batch, String path, Exception exception) {
@@ -118,8 +118,8 @@ public class BatchUtils {
         return finishedSuccessfully(batchManager, batch, path, message, Batch.State.EXPORT_DONE);
     }
 
-    public static Batch addNewUploadBatch(ImportBatchManager batchManager, String pid, UserProfile user, String exportProfile) {
-        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.UPLOADING, Batch.State.UPLOAD_FAILED);
+    public static Batch addNewUploadBatch(ImportBatchManager batchManager, String pid, UserProfile user, String exportProfile, BatchParams params) {
+        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.UPLOADING, Batch.State.UPLOAD_FAILED, params);
     }
 
     public static Batch finishedUploadWithError(ImportBatchManager batchManager, Batch batch, String path, Exception exception) {

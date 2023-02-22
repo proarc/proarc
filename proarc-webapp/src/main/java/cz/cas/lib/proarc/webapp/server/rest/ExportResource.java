@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.export.DataStreamExport;
 import cz.cas.lib.proarc.common.export.DesaExport;
@@ -70,6 +71,7 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import java.io.Closeable;
 import java.io.File;
@@ -166,6 +168,56 @@ public class ExportResource {
     }
 
     @POST
+    @Path(ExportResourceApi.REEXPORT_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ExportResult> reexport(
+            @FormParam(ExportResourceApi.BATCH_ID) Integer batchId
+    ) throws Exception {
+
+        Locale locale = session.getLocale(httpHeaders);
+
+        if (batchId == null || batchId < 1) {
+            throw RestException.plainText(Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("Resource_Missing_Value", ExportResourceApi.BATCH_ID));
+        }
+        Batch batch = this.batchManager.get(batchId);
+        if (batch == null) {
+            ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("Resource_Unsupported_Value", batchId)));
+            return new SmartGwtResponse<>(result);
+        } else {
+            if (!Batch.State.EXPORT_FAILED.equals(batch.getState())) {
+                ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_WrongState", batch.getState())));
+                return new SmartGwtResponse<>(result);
+            } else {
+                String profileId = batch.getProfileId();
+                BatchParams params = batch.getParamsAsObject();
+                if (params == null) {
+                    ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_MissingParams")));
+                    return new SmartGwtResponse<>(result);
+                }
+                switch(profileId) {
+                    case Batch.EXPORT_KRAMERIUS:
+                        return kramerius4(params.getPids(), params.getPolicy(), params.isHierarchy(), params.getKrameriusInstanceId());
+                    case Batch.EXPORT_NDK:
+                        return newNdkExport(params.getPids(), params.getTypeOfPackage(), params.isIgnoreMissingUrnNbn());
+                    case Batch.EXPORT_DESA:
+                        return newDesaExport(params.getPids(), params.isHierarchy(), params.isForDownload(), params.isDryRun());
+                    case Batch.EXPORT_CEJSH:
+                        return newCejshExport(params.getPids());
+                    case Batch.EXPORT_CROSSREF:
+                        return newCrossrefExport(params.getPids());
+                    case Batch.EXPORT_ARCHIVE:
+                        return newArchive(params.getPids(), params.getTypeOfPackage(), params.isIgnoreMissingUrnNbn());
+                    case Batch.EXPORT_KWIS:
+                        return newKwisExport(params.getPids(), params.getPolicy(), params.isHierarchy());
+                    default:
+                        ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_WrongProfileId", profileId)));
+                        return new SmartGwtResponse<>(result);
+                }
+            }
+        }
+    }
+
+    @POST
     @Path(ExportResourceApi.DATASTREAM_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> datastream(
@@ -202,7 +254,8 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS);
+        BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId);
+        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS, params);
         try {
             Kramerius4Export export = new Kramerius4Export(appConfig, akubraConfiguration, policy);
             File exportFolder = export.getExportFolder(krameriusInstanceId, user.getExportFolder());
@@ -290,7 +343,8 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_DESA);
+        BatchParams params = new BatchParams(pids, hierarchy, forDownload, dryRun);
+        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_DESA, params);
         try {
             DesaExport export = new DesaExport(appConfig, akubraConfiguration, MetaModelRepository.getInstance());
             URI exportUri = user.getExportFolder();
@@ -387,7 +441,8 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_NDK);
+        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn);
+        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_NDK, params);
         try {
             URI exportUri = user.getExportFolder();
             File exportFolder = new File(exportUri);
@@ -601,7 +656,9 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CEJSH_PID_PARAM);
         }
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_CEJSH);
+
+        BatchParams params = new BatchParams(pids);
+        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_CEJSH, params);
         try {
             URI exportUri = user.getExportFolder();
             File exportFolder = new File(exportUri);
@@ -649,7 +706,8 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CROSSREF_PID_PARAM);
         }
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_CROSSREF);
+        BatchParams params = new BatchParams(pids);
+        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_CROSSREF, params);
         try {
             URI exportUri = user.getExportFolder();
             File exportFolder = new File(exportUri);
@@ -700,7 +758,8 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.ARCHIVE_PID_PARAM);
         }
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_ARCHIVE);
+        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn);
+        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_ARCHIVE, params);
         try {
             URI exportUri = user.getExportFolder();
             File exportFolder = new File(exportUri);
@@ -885,7 +944,8 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KWIS);
+        BatchParams params = new BatchParams(pids, policy, hierarchy, null);
+        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KWIS, params);
         try {
             ExportResult result = new ExportResult();
 
@@ -1064,6 +1124,11 @@ public class ExportResource {
             }
         }
 
+        public ExportResult(ExportError error) {
+            this.errors = new ArrayList<>();
+            this.errors.add(error);
+        }
+
         public Integer getExportId() {
             return exportId;
         }
@@ -1162,6 +1227,11 @@ public class ExportResource {
                 pw.close();
                 this.log = sw.toString();
             }
+        }
+
+        public ExportError(String pid, String message) {
+            this.pid = pid;
+            this.message = message;
         }
 
         public void setIgnoreMissingUrnNbn(boolean ignoreMissingUrnNbn) {
