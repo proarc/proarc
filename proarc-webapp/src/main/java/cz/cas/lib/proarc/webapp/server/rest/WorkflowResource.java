@@ -535,13 +535,14 @@ public class WorkflowResource {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
             @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId,
             @DefaultValue("false")
-            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
     ) throws DigitalObjectException {
-        return updateDescriptionMetadataFix(jobId, modelId, timestamp, editorId, jsonData, xmlData != null && !"null".equals(xmlData) ? xmlData : null, ignoreValidation, session, httpHeaders);
+        return updateDescriptionMetadataFix(jobId, modelId, timestamp, editorId, jsonData, xmlData != null && !"null".equals(xmlData) ? xmlData : null, ignoreValidation, standard, session, httpHeaders);
     }
 
 
-    public static SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadataFix(BigDecimal jobId, String model, Long timestamp, String editorId, String jsonData, String xmlData, boolean ignoreValidation, SessionContext session, HttpHeaders httpHeaders) throws DigitalObjectException {
+    public static SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadataFix(BigDecimal jobId, String model, Long timestamp, String editorId, String jsonData, String xmlData, boolean ignoreValidation, String standard, SessionContext session, HttpHeaders httpHeaders) throws DigitalObjectException {
         if (jobId == null) {
             throw RestException.plainNotFound(WorkflowModelConsts.PARAMETER_JOBID, jobId.toString());
         }
@@ -555,6 +556,7 @@ public class WorkflowResource {
         dMetadata.setEditor(editorId);
         dMetadata.setData(data);
         dMetadata.setTimestamp(timestamp);
+        dMetadata.setStandard(standard);
         dMetadata.setIgnoreValidation(ignoreValidation);
         try {
             if (isJsonData) {

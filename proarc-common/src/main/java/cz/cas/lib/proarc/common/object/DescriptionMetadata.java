@@ -34,6 +34,7 @@ public class DescriptionMetadata<T> {
     private String content;
     private boolean ignoreValidation = false;
     private DigitalObjectHandler parentHandler;
+    private String standard;
 
     /**
      * an alternative id of a digital object from the workflow
@@ -126,5 +127,13 @@ public class DescriptionMetadata<T> {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getStandard() {
+        return standard;
+    }
+
+    public void setStandard(String standard) {
+        this.standard = standard;
     }
 }

@@ -487,6 +487,12 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 throw new DigitalObjectException(fobject.getPid(), null, ModsStreamEditor.DATASTREAM_ID, null, ex);
             }
         }
+
+        String standard = jsonData.getStandard();
+        if ("aacr".equals(standard) || "rda".equals(standard)) {
+            mods = ModsUtils.overrideDescriptionStandard(mods, standard);
+        }
+
         write(modelId, mods, jsonData, message, typeRecord);
     }
 
@@ -514,6 +520,11 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         } else {
             mods = createDefault(modelId);
         }
+        String standard = xmlData.getStandard();
+        if ("aacr".equals(standard) || "rda".equals(standard)) {
+            mods = ModsUtils.overrideDescriptionStandard(mods, standard);
+        }
+
         write(modelId, mods, xmlData, message, typeRecord);
     }
 

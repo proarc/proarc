@@ -1195,17 +1195,18 @@ public class DigitalObjectResource {
             @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
             @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String model,
             @DefaultValue("false")
-            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
     ) throws DigitalObjectException {
 
-        LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s",
-                pid, editorId, timestamp, ignoreValidation, jsonData, xmlData));
+        LOG.fine(String.format("pid: %s, editor: %s, timestamp: %s, ignoreValidation: %s, json: %s, xml: %s, standard: %s",
+                pid, editorId, timestamp, ignoreValidation, jsonData, xmlData, standard));
         if (pid == null || pid.isEmpty()) {
             if (jobId == null) {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
             } else {
                 // MODS Custom editor doesnt use WorkFlowResource, if there is a validation error
-                return WorkflowResource.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, session, httpHeaders);
+                return WorkflowResource.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, standard, session, httpHeaders);
             }
         }
 
@@ -1227,6 +1228,7 @@ public class DigitalObjectResource {
         dMetadata.setEditor(editorId);
         dMetadata.setData(data);
         dMetadata.setTimestamp(timestamp);
+        dMetadata.setStandard(standard);
         dMetadata.setIgnoreValidation(ignoreValidation);
 
         try {
