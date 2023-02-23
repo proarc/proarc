@@ -67,28 +67,11 @@
 
     <repositories>
         <repository>
-            <id>kramerius</id>
-            <name>Kramerius</name>
-            <url>https://maven.pkg.github.com/ceskaexpedice/kramerius</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
             <id>proarc.repository</id>
             <name>ProArc Repository</name>
             <url>https://github.com/proarc/proarc.mvnrepo/raw/master</url>
             <snapshots>
                 <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <!-- org.jzkit:jzkit_z3950_plugin -->
-        <repository>
-            <id>k-int</id>
-            <name>k-int Repository</name>
-            <url>https://repo.osgeo.org/repository/release/</url>
-            <snapshots>
-                <enabled>false</enabled>
             </snapshots>
         </repository>
         <repository>
@@ -99,21 +82,19 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-
-        <repository>
-            <id>smartclient.com</id>
-            <name>Smartclient Repository</name>
-            <url>http://www.smartclient.com/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
         <!--org.moxieapps.gwt:org.moxieapps.gwt.uploader-->
         <repository>
             <id>geosdi</id>
             <name>geoSDI Repository</name>
             <url>http://repo.geosdi.org</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>kramerius</id>
+            <name>Kramerius Repository</name>
+            <url>https://maven.pkg.github.com/ceskaexpedice/kramerius</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
