@@ -17,6 +17,7 @@ Building ProArc
 To build the release package use the following command:
 
   mvn -B com.isomorphic:isc-maven-plugin:1.1.1:install -Dproduct=SMARTGWT -Dlicense=LGPL -DbuildNumber=6.0p -DbuildDate=2017-12-08
+  -- note: if "mvn -B com.isomorphic:isc-maven-plugin:1.1.1:install..." failed, you have to download and unzip this file "https://github.com/proarc/proarc.mvnrepo/blob/master/com/isomorphic.zip" to repository ".m2/repository/com/*"
   mvn clean install -U -P proarc.production
 
 The release package can be found at proarc-webapp/target/proarc-*-release.zip
