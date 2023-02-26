@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.KwisExport;
 import cz.cas.lib.proarc.common.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
+import cz.cas.lib.proarc.common.export.bagit.BagitExport;
 import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
 import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
@@ -110,6 +111,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.server.CloseableService;
 
+import static cz.cas.lib.proarc.common.export.bagit.BagitExport.findExportFolder;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
@@ -198,7 +200,7 @@ public class ExportResource {
                     case Batch.EXPORT_KRAMERIUS:
                         return kramerius4(params.getPids(), params.getPolicy(), params.isHierarchy(), params.getKrameriusInstanceId());
                     case Batch.EXPORT_NDK:
-                        return newNdkExport(params.getPids(), params.getTypeOfPackage(), params.isIgnoreMissingUrnNbn());
+                        return newNdkExport(params.getPids(), params.getTypeOfPackage(), params.isIgnoreMissingUrnNbn(), params.isBagit());
                     case Batch.EXPORT_DESA:
                         return newDesaExport(params.getPids(), params.isHierarchy(), params.isForDownload(), params.isDryRun());
                     case Batch.EXPORT_CEJSH:
@@ -206,7 +208,7 @@ public class ExportResource {
                     case Batch.EXPORT_CROSSREF:
                         return newCrossrefExport(params.getPids());
                     case Batch.EXPORT_ARCHIVE:
-                        return newArchive(params.getPids(), params.getTypeOfPackage(), params.isIgnoreMissingUrnNbn());
+                        return newArchive(params.getPids(), params.getTypeOfPackage(), params.isIgnoreMissingUrnNbn(), params.isBagit());
                     case Batch.EXPORT_KWIS:
                         return newKwisExport(params.getPids(), params.getPolicy(), params.isHierarchy());
                     default:
@@ -433,15 +435,13 @@ public class ExportResource {
     public SmartGwtResponse<ExportResult> newNdkExport(
             @FormParam(ExportResourceApi.NDK_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage,
-            @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn
-//            @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
-//            @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
-//            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
+            @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
             ) throws Exception {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
-        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn);
+        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_NDK, params);
         try {
             URI exportUri = user.getExportFolder();
@@ -495,6 +495,12 @@ public class ExportResource {
                 }
             }
             if ("done".equals(result.get(0).getTarget())) {
+                if (isBagit) {
+                    BagitExport bagitExport = new BagitExport(appConfig, findExportFolder(exportFolder, batch.getFolder()));
+                    bagitExport.bagit();
+                    bagitExport.zip();
+                    bagitExport.deleteExportFolder();
+                }
                 for (NdkExport.Result r : ndkResults) {
                     try {
                         setWorkflowExport("task.exportNdkPsp", "param.exportNdkPsp.numberOfPackages", r.getPageIndexCount(), getRoot(r.getPid(), exportFolder));
@@ -752,13 +758,14 @@ public class ExportResource {
     public SmartGwtResponse<ExportResult> newArchive(
             @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage,
-            @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn
+            @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
             ) throws Exception {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.ARCHIVE_PID_PARAM);
         }
-        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn);
+        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_ARCHIVE, params);
         try {
             URI exportUri = user.getExportFolder();
@@ -882,6 +889,12 @@ public class ExportResource {
 
             if (!errors) {
                 ExportUtils.writeExportResult(targetFolder, export.getResultLog());
+                if (isBagit) {
+                    BagitExport bagitExport = new BagitExport(appConfig, targetFolder);
+                    bagitExport.bagit();
+                    bagitExport.zip();
+                    bagitExport.deleteExportFolder();
+                }
                 for (NdkExport.Result r : ndkResults) {
                     try {
                         setWorkflowExport("task.exportArchive", "param.exportArchive", r.getPageIndexCount(), getRoot(r.getPid(), exportFolder));

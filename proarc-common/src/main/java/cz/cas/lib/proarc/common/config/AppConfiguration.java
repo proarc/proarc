@@ -86,6 +86,8 @@ public final class AppConfiguration {
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
     private static final String PROPERTY_STORAGE = "proarc.storage";
     public static final String EXPORT_KWIS_POST_PROCESSOR = "export.export_post_processor.processor";
+    public static final String EXPORT_BAGIT_POST_PROCESSOR = "export.bagit_post_processor.processor";
+    public static final String EXPORT_ZIP_POST_PROCESSOR = "export.zip_post_processor.processor";
 
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
@@ -129,6 +131,16 @@ public final class AppConfiguration {
 
     public Configuration getExportPostProcessor() {
         String processor = config.getString(EXPORT_KWIS_POST_PROCESSOR, "-");
+        return config.subset(ImportProfile.PROCESSOR + "." + processor);
+    }
+
+    public Configuration getBagitExportPosProcessor() {
+        String processor = config.getString(EXPORT_BAGIT_POST_PROCESSOR, "-");
+        return config.subset(ImportProfile.PROCESSOR + "." + processor);
+    }
+
+    public Configuration getZipExportPostProcessor() {
+        String processor = config.getString(EXPORT_ZIP_POST_PROCESSOR, "-");
         return config.subset(ImportProfile.PROCESSOR + "." + processor);
     }
 
