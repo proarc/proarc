@@ -216,7 +216,7 @@ instance=kramerius7&importInstance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-0
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcRemoteUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -241,5 +241,20 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 GET {{proarcLocalHostUrl}}/rest/v1/object/mods/plain?pid=uuid%3Aa0c1d3ed-59e9-4b12-8b59-c2ff2690e511
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+
+### NDK Export s Bagit
+POST {{proarcRemoteUrl}}/rest/v1/export/ndk
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid={{remoteUuid}}&isBagit=true
+
+### Archive Export s Bagit
+POST {{proarcRemoteUrl}}/rest/v1/export/archive
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid={{remoteUuid}}&isBagit=true
 
 

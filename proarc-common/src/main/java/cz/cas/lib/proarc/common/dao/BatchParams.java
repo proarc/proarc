@@ -34,6 +34,9 @@ public class BatchParams {
     @XmlElement (name = "ignoreMissingUrnNbn")
     private boolean ignoreMissingUrnNbn;
 
+    @XmlElement (name = "bagit")
+    private boolean bagit;
+
     public BatchParams() {}
 
     public BatchParams(List<String> pids) {
@@ -53,10 +56,11 @@ public class BatchParams {
         this.krameriusImportInstanceId = krameriusImportInstanceId;
     }
 
-    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn) {
+    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit) {
         this.pids = pids;
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
+        this.bagit = bagit;
     }
 
     public BatchParams(List<String> pids, String krameriusInstanceId) {
@@ -105,5 +109,9 @@ public class BatchParams {
 
     public boolean isIgnoreMissingUrnNbn() {
         return ignoreMissingUrnNbn;
+    }
+
+    public boolean isBagit() {
+        return bagit;
     }
 }
