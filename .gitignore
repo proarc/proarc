@@ -22,3 +22,4 @@ hs_err_pid2148.log
 hs_err_pid18412.log
 replay_pid2148.log
 replay_pid18412.log
+/proarc-webapp/src/main/resources/cz/cas/lib/proarc/webapp/server/http-client.private.env.json
