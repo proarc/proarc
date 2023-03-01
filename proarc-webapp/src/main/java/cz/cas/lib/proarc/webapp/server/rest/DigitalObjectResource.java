@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
@@ -3392,7 +3393,8 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException, IOException, FedoraClientException {
-        Batch internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, null);
+        BatchParams params = new BatchParams(Collections.singletonList(pid));
+        Batch internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
         Locale locale = session.getLocale(httpHeaders);
         try {
             ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, akubraConfiguration, user, pid, modelId);
