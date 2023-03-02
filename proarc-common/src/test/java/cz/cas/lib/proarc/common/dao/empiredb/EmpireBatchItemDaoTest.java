@@ -189,15 +189,15 @@ public class EmpireBatchItemDaoTest {
         tx.commit();
 
         // find objects of the batch
-        List<BatchItem> items = dao.find(2, null, null, null, Type.OBJECT.name());
+        List<BatchItem> items = dao.find(2, null, null, null, null, Type.OBJECT.name());
         assertEquals(4, items.size());
 
         // find excluded objects of the batch
-        items = dao.find(2, null, null, ObjectState.EXCLUDED.name(), Type.OBJECT.name());
+        items = dao.find(2, null, null, null, ObjectState.EXCLUDED.name(), Type.OBJECT.name());
         assertEquals(1, items.size());
 
         // find files of the object
-        items = dao.find(2, "pid:item:2", null, null, Type.FILE.name());
+        items = dao.find(2, "pid:item:2", null, null, null, Type.FILE.name());
         assertEquals(2, items.size());
     }
 
@@ -212,7 +212,7 @@ public class EmpireBatchItemDaoTest {
 
         dao.removeItems(2);
         tx.commit();
-        List<BatchItem> items = dao.find(2, null, null, null, null);
+        List<BatchItem> items = dao.find(2, null, null, null, null, null);
         assertTrue(items.isEmpty());
     }
 }

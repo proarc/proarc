@@ -29,7 +29,7 @@ public interface BatchItemDao extends Dao {
 
     BatchItem find(int id);
 
-    List<BatchItem> find(int batchId, String pid, String dsId, String state, String type);
+    List<BatchItem> find(int batchId, String pid, String dsId, String file, String state, String type);
 
     void removeItems(int batchId);
 

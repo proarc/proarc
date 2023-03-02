@@ -116,9 +116,12 @@ public final class ImportProcess implements Runnable {
         File importFolder = ibm.resolveBatchFile(batch.getFolder());
         ImportOptions options = ImportOptions.fromBatch(
                 batch, importFolder, user, profile);
+        options.setOriginalBatchState(batch.getState());
         // if necessary reset old computed batch items
         ImportProcess process = new ImportProcess(options, ibm, ibm.getAppConfig());
-        process.removeCaches(options.getImportFolder(), options);
+        if (!Batch.State.STOPPED.equals(batch.getState())) {
+            process.removeCaches(options.getImportFolder(), options);
+        }
         process.removeBatchItems(batch);
         return process;
     }
@@ -251,7 +254,7 @@ public final class ImportProcess implements Runnable {
             } catch (Throwable ex) {
                 return logBatchFailure(batch, ex);
             }
-            File targetFolder = createTargetFolder(importFolder, importConfig.getConfig());
+            File targetFolder = createTargetFolder(importFolder, importConfig.getConfig(), importConfig.getOriginalBatchState());
             importConfig.setTargetFolder(targetFolder);
             importConfig.getImporter().start(importConfig, batchManager, config);
             if (batch.getState() == Batch.State.LOADING) {
@@ -283,12 +286,15 @@ public final class ImportProcess implements Runnable {
         return importConfig.getBatch();
     }
 
-    public static File createTargetFolder(File importFolder, ImportProfile config) throws IOException {
+    public static File createTargetFolder(File importFolder, ImportProfile config, Batch.State originalBatchState) throws IOException {
         File folder = getTargetFolder(importFolder, config);
-        if (!folder.mkdir() && !folder.mkdirs()) {
-            throw new IOException("Import folder already exists: " + folder);
+        if (originalBatchState == null || !Batch.State.STOPPED.equals(originalBatchState)) {
+            if (!folder.mkdir() && !folder.mkdirs()) {
+                throw new IOException("Import folder already exists: " + folder);
+            }
         }
         return folder;
+
     }
 
     public static File getTargetFolder(File importFolder, ImportProfile config) {
@@ -378,6 +384,7 @@ public final class ImportProcess implements Runnable {
         private int consumedFileCounter;
         private final UserProfile user;
         private Batch batch;
+        private Batch.State originalBatchState;
         private final ImportProfile profile;
         private JhoveContext jhoveContext;
         private ImportHandler importer;
@@ -507,6 +514,14 @@ public final class ImportProcess implements Runnable {
 
         public void setPriority(String priority) {
             this.priority = priority;
+        }
+
+        public Batch.State getOriginalBatchState() {
+            return originalBatchState;
+        }
+
+        public void setOriginalBatchState(Batch.State originalBatchState) {
+            this.originalBatchState = originalBatchState;
         }
     }
 
