@@ -133,7 +133,7 @@ public class ImportBatchManager {
         pid = (pid == null || pid.isEmpty()) ? null : pid;
         String stateParam = state == null ? null : state.name();
         try {
-            List<BatchItem> result = itemDao.find(batchId, pid, null, stateParam, BatchItem.Type.OBJECT.name());
+            List<BatchItem> result = itemDao.find(batchId, pid, null, null, stateParam, BatchItem.Type.OBJECT.name());
             tx.commit();
             return toBatchObjects(result);
         } catch (Throwable t) {
@@ -212,7 +212,7 @@ public class ImportBatchManager {
             int threshold = 3;
             for (BatchView bv : result) {
                 if (Batch.State.INGESTING_FAILED.name().equals(bv.getState())) {
-                    List<BatchItem> failures = itemDao.find(bv.getId(), null, null,
+                    List<BatchItem> failures = itemDao.find(bv.getId(), null, null, null,
                             BatchItem.ObjectState.INGESTING_FAILED.name(), BatchItem.Type.OBJECT.name());
                     sb.setLength(0);
                     if (bv.getLog() != null) {
@@ -445,6 +445,18 @@ public class ImportBatchManager {
 
     }
 
+    public List<BatchItem> findBatchItemObject(ImportOptions ctx, String originalFilename) {
+        File tempBatchFolder = ctx.getTargetFolder();
+        File foxml = new File(tempBatchFolder, originalFilename + ".foxml");
+        BatchItemDao bitemDao = daos.createBatchItem();
+        Transaction tx = daos.createTransaction();
+        bitemDao.setTransaction(tx);
+
+        List<BatchItem> batchItems = bitemDao.find(ctx.getBatch().getId(), null, null, relativizeBatchFile(foxml),
+                BatchItem.ObjectState.LOADED.name(), BatchItem.Type.OBJECT.name());
+        return batchItems;
+    }
+
     public LocalObject getRootObject(Batch batch) {
         File folder = resolveBatchFile(batch.getFolder());
         LocalStorage storage = new LocalStorage();
@@ -541,10 +553,10 @@ public class ImportBatchManager {
         try {
             List<BatchItem> items;
             if (pids.isEmpty()) {
-                items = bitemDao.find(batch.getId(), null, null, null, BatchItem.Type.OBJECT.name());
+                items = bitemDao.find(batch.getId(), null, null, null, null, BatchItem.Type.OBJECT.name());
                 items = filterBatchItems(items, pids);
             } else {
-                items = bitemDao.find(batch.getId(), pids.iterator().next(), null, null, BatchItem.Type.OBJECT.name());
+                items = bitemDao.find(batch.getId(), pids.iterator().next(), null, null, null, BatchItem.Type.OBJECT.name());
             }
             if (items.isEmpty()) {
                 return false;
@@ -632,6 +644,7 @@ public class ImportBatchManager {
         if (batch == null) {
             throw new NullPointerException("batch");
         }
+        Batch.State originalBatchState = batch.getState();
         batch.setState(State.LOADING);
         batch.setLog(null);
         BatchDao dao = daos.createBatch();
@@ -641,7 +654,9 @@ public class ImportBatchManager {
         itemDao.setTransaction(tx);
         try {
             dao.update(batch);
-            itemDao.removeItems(batch.getId());
+            if (!State.STOPPED.equals(originalBatchState)) {
+                itemDao.removeItems(batch.getId());
+            }
             tx.commit();
         } catch (Throwable t) {
             tx.rollback();

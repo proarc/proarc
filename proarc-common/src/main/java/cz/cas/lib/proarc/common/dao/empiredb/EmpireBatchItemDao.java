@@ -77,7 +77,7 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
     }
 
     @Override
-    public List<BatchItem> find(int batchId, String pid, String dsId, String state, String type) {
+    public List<BatchItem> find(int batchId, String pid, String dsId, String file, String state, String type) {
         BeanResult<BatchItem> result = new BeanResult<BatchItem>(BatchItem.class, table);
         DBCommand cmd = result.getCommand();
         cmd.where(table.batchId.is(batchId));
@@ -87,6 +87,9 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
 
         if (dsId != null) {
             cmd.where(table.dsId.is(dsId));
+        }
+        if (file != null) {
+            cmd.where(table.file.is(file));
         }
         if (state != null) {
             cmd.where(table.state.is(state));

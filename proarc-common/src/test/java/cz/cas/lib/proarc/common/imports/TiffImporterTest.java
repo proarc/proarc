@@ -167,7 +167,7 @@ public class TiffImporterTest {
     @Test
     public void testConsume() throws Exception {
         temp.setDeleteOnExit(true);
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration());
+        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration(), null);
         assertTrue(targetFolder.exists());
 
         String mimetype = ImportProcess.findMimeType(tiff1);
@@ -241,7 +241,7 @@ public class TiffImporterTest {
         assertTrue(alto1.delete());
         assertTrue(config.getImportConfiguration().getRequiredDatastreamId().contains(AltoDatastream.ALTO_ID));
 
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration());
+        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration(), null);
         assertTrue(targetFolder.exists());
 
         String mimetype = ImportProcess.findMimeType(tiff1);

@@ -200,7 +200,7 @@ public class WaveImporterTest {
     @Test
     public void testConsume() throws IOException, SAXException, XpathException {
         temp.setDeleteOnExit(true);
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration());
+        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration(), null);
         assertTrue(targetFolder.exists());
 
         String mimetype = ImportProcess.findMimeType(ac1);
@@ -274,7 +274,7 @@ public class WaveImporterTest {
         assertTrue(uc1.delete());
         assertTrue(config.getImportConfiguration().getRequiredDatastreamId().contains(BinaryEditor.NDK_ARCHIVAL_ID));
 
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration());
+        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration(), null);
         assertTrue(targetFolder.exists());
 
         ImportOptions ctx = new ImportOptions(ac1.getParentFile(),

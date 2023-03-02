@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -382,19 +383,26 @@ public class FileSetImport implements ImportHandler {
             if (Thread.interrupted()) {
                 throw new InterruptedException();
             }
-            BatchItemObject item = consumeFileSet(fileSet, ctx);
-            String pid = item == null ? null : item.getPid();
-            FileState state = item == null ? FileState.SKIPPED : FileState.OK;
-            batchManager.addFileItem(batch.getId(), pid, state, fileSet.getFiles());
-            if (item != null) {
-                if (ObjectState.LOADING_FAILED == item.getState()) {
-                    batch.setState(Batch.State.LOADING_FAILED);
-                    batch.setLog(item.getFile() + "\n" + item.getLog());
-                    return ;
+            List<BatchItem> existingBatchItems = batchManager.findBatchItemObject(ctx, fileSet.getName());
+            if (!exists(existingBatchItems)) {
+                BatchItemObject item = consumeFileSet(fileSet, ctx);
+                String pid = item == null ? null : item.getPid();
+                FileState state = item == null ? FileState.SKIPPED : FileState.OK;
+                batchManager.addFileItem(batch.getId(), pid, state, fileSet.getFiles());
+                if (item != null) {
+                    if (ObjectState.LOADING_FAILED == item.getState()) {
+                        batch.setState(Batch.State.LOADING_FAILED);
+                        batch.setLog(item.getFile() + "\n" + item.getLog());
+                        return;
+                    }
                 }
             }
         }
         LOG.log(Level.FINE, "Total time: {0} ms", System.currentTimeMillis() - start);
+    }
+
+    private boolean exists(List<BatchItem> batchItemObject) {
+        return batchItemObject != null && batchItemObject.size() > 0;
     }
 
     private BatchItemObject consumeFileSet(FileSet fileSet, ImportOptions ctx) {

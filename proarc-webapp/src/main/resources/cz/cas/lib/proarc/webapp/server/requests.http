@@ -141,7 +141,7 @@ POST http://localhost:8081/proarc/rest/v1/import/batchStopped
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-{&id=476&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
+{&id=773&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
 
 ###
 
@@ -216,7 +216,7 @@ instance=kramerius7&importInstance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-0
 
 
 ### LOGIN
-POST {{proarcNmUrl}}/proarclogin
+POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
