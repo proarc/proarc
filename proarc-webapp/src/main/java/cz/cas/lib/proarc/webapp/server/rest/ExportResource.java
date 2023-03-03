@@ -496,10 +496,19 @@ public class ExportResource {
             }
             if ("done".equals(result.get(0).getTarget())) {
                 if (isBagit) {
-                    BagitExport bagitExport = new BagitExport(appConfig, findExportFolder(exportFolder, batch.getFolder()));
-                    bagitExport.bagit();
-                    bagitExport.zip();
-                    bagitExport.deleteExportFolder();
+                    File targetFolder = findExportFolder(exportFolder, batch.getFolder());
+                    for (File targetFile : targetFolder.listFiles()) {
+                        if (targetFile.isDirectory()) {
+                            BagitExport bagitExport = new BagitExport(appConfig, targetFile);
+                            bagitExport.prepare();
+                            bagitExport.bagit();
+                            bagitExport.zip();
+                            bagitExport.moveToBagitFolder();
+                            bagitExport.createMd5File();
+                            bagitExport.deleteExportFolder();
+                        }
+                    }
+                    targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
                 }
                 for (NdkExport.Result r : ndkResults) {
                     try {
@@ -890,10 +899,18 @@ public class ExportResource {
             if (!errors) {
                 ExportUtils.writeExportResult(targetFolder, export.getResultLog());
                 if (isBagit) {
-                    BagitExport bagitExport = new BagitExport(appConfig, targetFolder);
-                    bagitExport.bagit();
-                    bagitExport.zip();
-                    bagitExport.deleteExportFolder();
+                    for (File targetFile : targetFolder.listFiles()) {
+                        if (targetFile.isDirectory()) {
+                            BagitExport bagitExport = new BagitExport(appConfig, targetFile);
+                            bagitExport.prepare();
+                            bagitExport.bagit();
+                            bagitExport.zip();
+                            bagitExport.moveToBagitFolder();
+                            bagitExport.createMd5File();
+                            bagitExport.deleteExportFolder();
+                        }
+                    }
+                    targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
                 }
                 for (NdkExport.Result r : ndkResults) {
                     try {
