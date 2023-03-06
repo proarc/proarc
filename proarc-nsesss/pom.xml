@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>4.0-dev</version>
+        <version>4.0.0</version>
     </parent>
 
     <artifactId>proarc-nsesss</artifactId>
