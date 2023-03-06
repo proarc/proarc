@@ -44,7 +44,9 @@ public class GeneratorAltoOcr implements ImportHandler {
             throw new IOException("Source file doesnt exists: " + sourceFile.getAbsolutePath());
         } else if (sourceFile.isDirectory()) {
             for (File childFile : sourceFile.listFiles()) {
-                LOG.info("Doing file: " + childFile.getAbsolutePath());
+                if (childFile.isDirectory()) {
+                    LOG.info("Doing file: " + childFile.getAbsolutePath());
+                }
                 processFolder(childFile, importConfig);
             }
             return;
