@@ -84,6 +84,9 @@ public final class IndexAllObjectsAction extends AbstractAction {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
         IndexAllObjectsDataSource ds = IndexAllObjectsDataSource.getInstance();
+        if (record == null) {
+            record = new Record();
+        }
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {

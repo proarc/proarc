@@ -215,27 +215,49 @@ public final class ExportUtils {
         }
         return -1;
     }
+    public static String getPageIndexAsString(ModsDefinition mods) {
+        int pageIndex = getPageIndex(mods);
+        return pageIndex == -1 ? null : String.valueOf(pageIndex);
+    }
 
     public static boolean containPageNumber(ModsDefinition mods) {
+        String pageNumber = getPageNumber(mods);
+        if (pageNumber == null) {
+            return false;
+        } else {
+            return !pageNumber.isEmpty();
+        }
+    }
+
+    public static String getPageNumber(ModsDefinition mods) {
         if (mods.getPart().size() > 0) {
             for (DetailDefinition detail : mods.getPart().get(0).getDetail()) {
                 if ("pageNumber".equals(detail.getType()) && detail.getNumber().size() > 0) {
-                    return !detail.getNumber().get(0).getValue().isEmpty();
+                    return detail.getNumber().get(0).getValue();
                 }
                 if ("page number".equals(detail.getType()) && detail.getNumber().size() > 0) {
-                    return !detail.getNumber().get(0).getValue().isEmpty();
+                    return detail.getNumber().get(0).getValue();
                 }
             }
         }
-        return false;
+        return null;
     }
 
     public static boolean containPageType(ModsDefinition mods) {
+        String pageType = getPageType(mods);
+        if (pageType == null) {
+            return false;
+        } else {
+            return !pageType.isEmpty();
+        }
+    }
+
+    public static String getPageType(ModsDefinition mods) {
         if (mods.getPart().size() > 0) {
             if (mods.getPart().get(0).getType() != null) {
-                return !mods.getPart().get(0).getType().isEmpty();
+                return mods.getPart().get(0).getType();
             }
         }
-        return false;
+        return null;
     }
 }

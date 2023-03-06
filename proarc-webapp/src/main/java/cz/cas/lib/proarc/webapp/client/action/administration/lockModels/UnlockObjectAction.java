@@ -63,6 +63,9 @@ public class UnlockObjectAction extends AbstractAction {
             return false;
         }
         Object[] selection = Actions.getSelection(event);
+        if (selection != null && selection.length == 0) {
+            return false;
+        }
         if (selection != null && selection instanceof Record[]) {
             Record[] records = (Record[]) selection;
             return acceptRecords(records);

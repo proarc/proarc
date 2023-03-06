@@ -38,6 +38,9 @@ public class SolrUtils {
     public static final String FIELD_PAGE_NUMBER = "pageNumber";
     public static final String FIELD_PAGE_TYPE = "pageType";
 
+    public static final String PROPERTY_STATE_ACTIVE = "Active";
+    public static final String PROPERTY_STATE_DEACTIVE = "Deactive";
+
     public static StringBuilder appendAndValue(StringBuilder queryBuilder, String value) {
         return appendValue(queryBuilder, value, QueryOperator.AND.name());
     }

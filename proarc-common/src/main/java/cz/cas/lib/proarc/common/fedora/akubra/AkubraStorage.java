@@ -36,8 +36,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -69,9 +69,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
+import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_CREATEDATE;
 import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_LABEL;
 import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_LASTMODIFIED;
 import static cz.cas.lib.proarc.common.fedora.FoxmlUtils.PROPERTY_STATE;
+import static cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject.getActualDateAsString;
 import static cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils.getDatastream;
 import static cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils.toXmlGregorian;
 
@@ -164,6 +166,8 @@ public class AkubraStorage {
             if (exist(pid)) {
                 throw new DigitalObjectExistException(pid, null, "Object with PID " + pid + " already exists!", null);
             }
+
+
             InputStream inputStream = new FileInputStream(foxml);
             this.manager.addOrReplaceObject(pid, inputStream);
 
@@ -196,15 +200,56 @@ public class AkubraStorage {
             }
 
             com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject = object.getDigitalObject();
+            updateProperties(digitalObject.getObjectProperties());
             String xml = FoxmlUtils.toXml(digitalObject, false);
             InputStream inputStream = new ByteArrayInputStream(xml.getBytes());
-
             this.manager.addOrReplaceObject(object.getPid(), inputStream);
+            indexDocument(object.getPid());
 
             LOG.log(Level.FINE, "Object with PID {0} added to repository.", object.getPid());
-        } catch (LowlevelStorageException e) {
+        } catch (LowlevelStorageException | IOException e) {
             throw new DigitalObjectException(object.getPid(), "Error during adding new object", e);
         }
+    }
+
+    private void updateProperties(com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType objectProperties) {
+        boolean updateLastModified = false;
+        boolean updateState = false;
+        boolean updateCreated = false;
+        for (com.yourmediashelf.fedora.generated.foxml.PropertyType property : objectProperties.getProperty()) {
+            if (PROPERTY_LASTMODIFIED.equals(property.getNAME())) {
+                property.setVALUE(getActualDateAsString());
+                updateLastModified = true;
+            } else if (PROPERTY_STATE.equals(property.getNAME())) {
+                property.setVALUE(SolrUtils.PROPERTY_STATE_ACTIVE);
+                updateState = true;
+            } else if (PROPERTY_CREATEDATE.equals(property.getNAME())) {
+                property.setVALUE(getActualDateAsString());
+                updateCreated = true;
+            }
+        }
+        if (!updateLastModified) {
+            addProperty(objectProperties.getProperty(), PROPERTY_LASTMODIFIED, getActualDateAsString());
+        }
+        if (!updateCreated) {
+            addProperty(objectProperties.getProperty(), PROPERTY_CREATEDATE, getActualDateAsString());
+        }
+        if (!updateState) {
+            addProperty(objectProperties.getProperty(), PROPERTY_STATE, SolrUtils.PROPERTY_STATE_ACTIVE);
+        }
+    }
+
+    private void addProperty(List<com.yourmediashelf.fedora.generated.foxml.PropertyType> properties, String key, String value) {
+        com.yourmediashelf.fedora.generated.foxml.PropertyType property = new com.yourmediashelf.fedora.generated.foxml.PropertyType();
+        property.setNAME(key);
+        property.setVALUE(value);
+        properties.add(property);
+    }
+
+    public void indexDocument(String pid) throws IOException, DigitalObjectException {
+        AkubraObject aObject = find(pid);
+        DigitalObject dObject = this.manager.readObjectFromStorage(pid);
+        this.feeder.feedDescriptionDocument(dObject, aObject, true);
     }
 
     public static final class AkubraObject extends AbstractFedoraObject {
@@ -272,13 +317,13 @@ public class AkubraStorage {
             return null;
         }
 
-        private DigitalObject updateState(DigitalObject object, StateType state) {
+        private DigitalObject updateState(DigitalObject object, String state) {
             if (object != null) {
                 ObjectPropertiesType propertiesType = object.getObjectProperties();
                 if (propertiesType != null) {
                     for (PropertyType property : propertiesType.getProperty()) {
                         if (PROPERTY_STATE.equals(property.getNAME())) {
-                            property.setVALUE(state.value());
+                            property.setVALUE(state);
                         }
                     }
                 }
@@ -302,15 +347,17 @@ public class AkubraStorage {
             return null;
         }
 
-        private String getActualDateAsString() {
-            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            return formatter.format(new Date());
+        public static String getActualDateAsString() {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            return LocalDateTime.now().format(formatter);
+//            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+//            return formatter.format(LocalDateTime.now());
         }
 
         public void delete(String logMessage) throws DigitalObjectException {
             try {
                 DigitalObject object = this.manager.readObjectFromStorage(getPid());
-                object = updateState(object, StateType.D);
+                object = updateState(object, SolrUtils.PROPERTY_STATE_DEACTIVE);
                 object = updateModifiedDate(object);
                 if (object == null) {
                     throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
@@ -329,7 +376,7 @@ public class AkubraStorage {
         public void restore(String logMessage) throws DigitalObjectException {
             try {
                 DigitalObject object = this.manager.readObjectFromStorage(getPid());
-                object = updateState(object, StateType.A);
+                object = updateState(object, SolrUtils.PROPERTY_STATE_ACTIVE);
                 object = updateModifiedDate(object);
                 if (object == null) {
                     throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
@@ -566,7 +613,9 @@ public class AkubraStorage {
                 logMessage = null;
                 newProfile = null;
                 DigitalObject digitalObject = this.manager.readObjectFromStorage(this.object.getPid());
-                this.solrFeeder.feedDescriptionDocument(digitalObject, this.object, true);
+                if (!(ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId))) {
+                    this.solrFeeder.feedDescriptionDocument(digitalObject, this.object, true);
+                }
                 profile = AkubraUtils.createDatastremProfile(digitalObject, dsId);
                 lastModified = AkubraUtils.getLastModified(digitalObject, dsId);
             } catch (Exception ex) {

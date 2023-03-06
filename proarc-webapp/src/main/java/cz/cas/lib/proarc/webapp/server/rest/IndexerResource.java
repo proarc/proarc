@@ -21,7 +21,6 @@ import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -125,11 +124,12 @@ public class IndexerResource {
                     if (rebuildIndex) {
                         files.getAndIncrement();
                         feeder.feedDescriptionDocument(digitalObject, fedoraObject, false);
-                        if (files.get() % 100 == 0) {
+                        if (files.get() % 50 == 0) {
                             LOG.info("Proccessed " + files.get() + " objects");
+                            feeder.commit();
                         }
                     }
-                } catch (FileNotFoundException | DigitalObjectException e) {
+                } catch (DigitalObjectException | IOException | SolrServerException e) {
                     LOG.log(Level.SEVERE, "Error in proccesing file: ", e);
                 }
             });

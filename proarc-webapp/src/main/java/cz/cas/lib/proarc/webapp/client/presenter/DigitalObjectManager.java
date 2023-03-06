@@ -437,7 +437,7 @@ public final class DigitalObjectManager {
                     return false;
                 } else {
                     Object[] selection = Actions.getSelection(event);
-                    return selection != null && selection.length > 0;
+                    return selection != null && selection.length >= 0;
                 }
             }
 

@@ -3,9 +3,16 @@ package cz.cas.lib.proarc.common.fedora.akubra;
 import com.qbizm.kramerius.imp.jaxb.DigitalObject;
 import com.qbizm.kramerius.imp.jaxb.ObjectPropertiesType;
 import com.qbizm.kramerius.imp.jaxb.PropertyType;
+import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.incad.kramerius.resourceindex.ProcessingIndexFeeder;
 import java.io.IOException;
 import java.util.List;
@@ -32,6 +39,9 @@ import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MODEL;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MODIFIED;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_ORGANIZATION;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_OWNER;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PAGE_INDEX;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PAGE_NUMBER;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PAGE_TYPE;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PID;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_SOURCE;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_STATE;
@@ -63,12 +73,19 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         String archiveExport = relationEditor.getArchiveExportResult();
         String crossrefExport = relationEditor.getCrossrefExportResult();
 
+        ModsDefinition mods = getModsDefinition(fedoraObject);
+        String pageIndex = ExportUtils.getPageIndexAsString(mods);
+        String pageType = ExportUtils.getPageType(mods);
+        String pageNumber = ExportUtils.getPageNumber(mods);
+
         Boolean isLocked = relationEditor.isLocked();
 
         List<String> members = relationEditor.getMembers();
 
         try {
-            feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status, ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members);
+            feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
+                    ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members,
+                    pageIndex, pageType, pageNumber);
             if (commit) {
                 commit();
             }
@@ -77,7 +94,15 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         }
     }
 
-    private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user, String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members) throws SolrServerException, IOException {
+    private ModsDefinition getModsDefinition(FedoraObject object) throws DigitalObjectException {
+        XmlStreamEditor xml = object.getEditor(FoxmlUtils.inlineProfile(
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, object);
+        return modsStreamEditor.read();
+    }
+
+    private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user, String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex, String pageType, String pageNumber) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -97,6 +122,9 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_LOCKED, isLocked);
         sdoc.addField(FIELD_DEVICE, device);
         sdoc.addField(FIELD_MEMBERS, members);
+        sdoc.addField(FIELD_PAGE_INDEX, pageIndex);
+        sdoc.addField(FIELD_PAGE_NUMBER, pageNumber);
+        sdoc.addField(FIELD_PAGE_TYPE, pageType);
 
         return feedDescriptionDocument(sdoc);
     }

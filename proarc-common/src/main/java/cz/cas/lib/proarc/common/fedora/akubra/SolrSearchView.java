@@ -128,8 +128,8 @@ public class SolrSearchView extends SearchView {
     public List<SearchViewItem> findReferrers(String pid) throws IOException, FedoraClientException {
         try {
             StringBuilder queryBuilder = new StringBuilder();
-            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"Active\"");
-            queryBuilder = appendAndValue(queryBuilder, FIELD_MEMBERS + "\"" + pid + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_MEMBERS + ":\"" + pid + "\"");
             SolrQuery solrQuery = new SolrQuery(queryBuilder.toString());
 
             List<SearchViewItem> items = new ArrayList<>();
@@ -341,9 +341,9 @@ public class SolrSearchView extends SearchView {
     private StringBuilder createQuery(Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) {
         StringBuilder queryBuilder = new StringBuilder();
         if (onlyActive != null && onlyActive) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"Active\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");
         } else if (onlyActive != null && !onlyActive){
-            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"Deactive\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_DEACTIVE + "\"");
         }
         if (models != null && !models.isEmpty()) {
             queryBuilder = appendAndValue(queryBuilder, getModelQuery(models));
