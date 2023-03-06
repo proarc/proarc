@@ -123,6 +123,8 @@ public final class ImportProfile {
                 return new SoundRecordingImport();
             case ConfigurationProfile.IMPORT_WITH_CREATION_PARENT:
                 return new FileSetImportWithParentCreated();
+            case ConfigurationProfile.GENERATE_ALTO_OCR:
+                return new GeneratorAltoOcr();
             default:
                 return new FileSetImport();
         }

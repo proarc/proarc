@@ -259,11 +259,11 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcCroUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+&j_username={{proarcUsername}}&j_password={{proarcPwdCro}}
 
 ### Archive Export s Bagit
 POST {{proarcLocalHostUrl}}/rest/v1/export/archive
@@ -278,3 +278,11 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &pid={{localUuid}}&isBagit=true
+
+
+### GENERATE ALTO OCR RECURSIVELY
+POST {{proarcCroUrl}}/rest/v1/import/generate
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&folderPath=denicky2

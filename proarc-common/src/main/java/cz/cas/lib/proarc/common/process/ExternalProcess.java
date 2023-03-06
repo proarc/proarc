@@ -121,7 +121,7 @@ public class ExternalProcess implements Runnable {
         for (String arg : cmdLine) {
             debug.append(arg).append(" ");
         }
-        LOG.info("run: " + debug);
+        LOG.fine("run: " + debug);
         asyncProcess = new AsyncProcess(cmdLine, env);
         asyncProcess.start();
         long timeout = getTimeout();

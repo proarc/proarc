@@ -10,8 +10,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import javax.xml.bind.DatatypeConverter;
-import org.apache.commons.configuration.Configuration;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.util.Zip4jConstants;
 
 public class BagitExport {
 
@@ -38,21 +42,49 @@ public class BagitExport {
     }
 
     public void zip() throws IOException {
-        ZipProcess process = new ZipProcess(appConfiguration.getZipExportPostProcessor(), exportFolder, getDestinationFolder(appConfiguration.getZipExportPostProcessor()));
-        if (process != null) {
-            process.run();
+//        ZipProcess process = new ZipProcess(appConfiguration.getZipExportPostProcessor(), exportFolder, getDestinationFolder(appConfiguration.getZipExportPostProcessor()));
+//        if (process != null) {
+//            process.run();
+//
+//            if (!process.isOk()) {
+//                throw new IOException("Zipping Bagit failed. \n" + process.getFullOutput());
+//            }
+//        }
+        File zipFileName = createZipFile();
+        try {
+            ZipFile zipFile = new ZipFile(zipFileName);
+            ZipParameters zipParameters = new ZipParameters();
+            zipParameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);
+            zipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+            zipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
+            zipParameters.setIncludeRootFolder(true);
+            zipParameters.setDefaultFolderPath(exportFolder.getAbsolutePath());
+            zipFile.addFiles(listZipFiles(exportFolder), zipParameters);
+        } catch (ZipException e) {
+            throw new RuntimeException(e);
+        }
 
-            if (!process.isOk()) {
-                throw new IOException("Zipping Bagit failed. \n" + process.getFullOutput());
+    }
+
+    private ArrayList listZipFiles(File exportFolder) {
+        ArrayList<File> files = new ArrayList<File>();
+        ArrayList<File> subfiles = new ArrayList<File>();
+        for (File file : exportFolder.listFiles()) {
+            if (file.isFile()) {
+                files.add(file);
+            } else if (file.isDirectory()) {
+                subfiles.addAll(listZipFiles(file));
             }
         }
+        files.addAll(subfiles);
+        return files;
     }
 
     public void deleteExportFolder() {
         MetsUtils.deleteFolder(exportFolder);
     }
 
-    private File getDestinationFolder(Configuration zipExportPostProcessor) {
+    private File createZipFile() {
         return new File(exportFolder.getAbsolutePath() + ".zip");
     }
 

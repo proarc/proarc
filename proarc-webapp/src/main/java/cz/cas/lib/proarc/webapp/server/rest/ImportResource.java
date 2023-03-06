@@ -255,6 +255,29 @@ public class ImportResource {
     }
 
     @POST
+    @Path(ImportResourceApi.BATCH_GENERATE_PATH)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<BatchView> newBatch(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
+    ) throws URISyntaxException, IOException {
+        LOG.log(Level.INFO, "generating for path: {0}", new Object[] {path});
+        String folderPath = validateParentPath(path);
+        URI userRoot = user.getImportFolder();
+        URI folderUri = (folderPath != null)
+                // URI multi param constructor escapes input unlike single param constructor or URI.create!
+                ? userRoot.resolve(new URI(null, null, folderPath, null))
+                : userRoot;
+        File importFolder = new File(folderUri);
+        ConfigurationProfile profile = findImportProfile(null, ConfigurationProfile.GENERATE_ALTO_OCR);
+        ImportProcess process = ImportProcess.prepare(importFolder, folderPath, user,
+                importManager, null, false, null, appConfig.getImportConfiguration(profile), appConfig);
+        ImportDispatcher.getDefault().addImport(process);
+        Batch batch = process.getBatch();
+        return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
+    }
+
+
+        @POST
     @Path(ImportResourceApi.BATCHES_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public SmartGwtResponse<BatchView> newBatches(
