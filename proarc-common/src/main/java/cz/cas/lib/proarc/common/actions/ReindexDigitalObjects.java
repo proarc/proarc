@@ -208,13 +208,15 @@ public class ReindexDigitalObjects {
         for (IMetsElement childElement : parentElement.getChildren()) {
             if (Const.PAGE.equals(childElement.getElementType())) {
                 String pid = childElement.getOriginalPid();
-                reindexMods(pageIndex++, pid, fixModel(childElement.getModel()));
-                reindexDc(pid, fixModel(childElement.getModel()));
+                reindexStreams(pageIndex++, pid, fixModel(childElement.getModel()));
+//                reindexMods(pageIndex++, pid, fixModel(childElement.getModel()));
+//                reindexDc(pid, fixModel(childElement.getModel()));
             }
             if (Const.SOUND_PAGE.equals(childElement.getElementType())) {
                 String pid = childElement.getOriginalPid();
-                reindexMods(audioPageIndex++, pid, fixModel(childElement.getModel()));
-                reindexDc(pid, fixModel(childElement.getModel()));
+                reindexStreams(audioPageIndex++, pid, fixModel(childElement.getModel()));
+//                reindexMods(audioPageIndex++, pid, fixModel(childElement.getModel()));
+//                reindexDc(pid, fixModel(childElement.getModel()));
             }
            /* try {
                 Thread.sleep(1000);
@@ -255,11 +257,13 @@ public class ReindexDigitalObjects {
         for (String memberPid : members) {
             String memberModel = getModel(memberPid, search);
             if (NdkPlugin.MODEL_PAGE.equals(memberModel) || NdkPlugin.MODEL_NDK_PAGE.equals(memberModel) || OldPrintPlugin.MODEL_PAGE.equals(memberModel)) {
-                reindexMods(pageIndex++, memberPid, fixModel(memberModel));
-                reindexDc(memberPid, fixModel(memberModel));
+                reindexStreams(pageIndex++, memberPid, fixModel(memberModel));
+//                reindexMods(pageIndex++, memberPid, fixModel(memberModel));
+//                reindexDc(memberPid, fixModel(memberModel));
             } else if (NdkAudioPlugin.MODEL_TRACK.equals(memberModel)) {
-                reindexMods(audioPageIndex++, memberPid, fixModel(memberModel));
-                reindexDc(memberPid, fixModel(memberModel));
+                reindexStreams(audioPageIndex++, memberPid, fixModel(memberModel));
+//                reindexMods(audioPageIndex++, memberPid, fixModel(memberModel));
+//                reindexDc(memberPid, fixModel(memberModel));
             }
         }
     }
@@ -280,6 +284,33 @@ public class ReindexDigitalObjects {
         return model;
     }
 
+    private void reindexStreams(int index, String pid, String model) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        FedoraObject fo = dom.find(pid, null);
+        XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
+        ModsDefinition mods = modsStreamEditor.read();
+        setIndexToMods(mods, index, model);
+        modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), null);
+
+        DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
+        NdkMapper mapper = NdkMapper.get(model);
+        mapper.setModelId(model);
+
+        NdkMapper.Context context = new NdkMapper.Context(handler);
+        OaiDcType dc = mapper.toDc(mods, context);
+        DcStreamEditor dcEditor = handler.objectMetadata();
+        DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+        dcr.setDc(dc);
+        dcEditor.write(handler, dcr, null);
+
+        fo.setLabel(mapper.toLabel(mods));
+        fo.flush();
+    }
+
+    @Deprecated
     private void reindexMods(int index, String pid, String model) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fo = dom.find(pid, null);
@@ -294,6 +325,7 @@ public class ReindexDigitalObjects {
         fo.flush();
     }
 
+    @Deprecated
     private void reindexDc(String pid, String model) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fo = dom.find(pid, null);

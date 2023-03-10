@@ -46,6 +46,7 @@ import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.transfromSort;
 
 public class SolrSearchView extends SearchView {
 
+    private static final Integer ROWS_DEFAULT_VALUE = 10000;
     private final int maxLimit;
     private Locale locale = Locale.ENGLISH;
     private final AkubraStorage storage;
@@ -370,6 +371,8 @@ public class SolrSearchView extends SearchView {
         }
         if (limit != null && limit >= 1) {
             solrQuery.setRows(limit);
+        } else {
+            solrQuery.setRows(ROWS_DEFAULT_VALUE);
         }
         if (sortOperation != null && validField(sortField)) {
             SolrQuery.SortClause sortClause = new SolrQuery.SortClause(sortField, sortOperation.name().toLowerCase());

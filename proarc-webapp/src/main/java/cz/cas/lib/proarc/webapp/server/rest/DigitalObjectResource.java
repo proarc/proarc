@@ -3691,6 +3691,9 @@ public class DigitalObjectResource {
     }
 
     private boolean isLocked(String pid) {
+        if (pid == null) {
+            return false;
+        }
         List<String> pids = new ArrayList<>();
         pids.add(pid);
         return isLocked(pids);
