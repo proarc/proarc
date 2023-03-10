@@ -161,6 +161,9 @@ public class AkubraUtils {
     public static List<DatastreamProfile> createDatastremProfiles(DigitalObject digitalObject) {
         List<DatastreamProfile> profileList = new ArrayList<>();
 
+        if (digitalObject == null) {
+            return profileList;
+        }
         for (DatastreamType datastream : digitalObject.getDatastream()) {
             DatastreamProfile profile = new DatastreamProfile();
             profile.setPid(digitalObject.getPID());

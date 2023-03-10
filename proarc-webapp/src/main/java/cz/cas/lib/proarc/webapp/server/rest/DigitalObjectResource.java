@@ -1853,7 +1853,7 @@ public class DigitalObjectResource {
             DigitalObjectHandler doHandler = findHandler(pid, batchId);
             DisseminationHandler dissemination = doHandler.dissemination(BinaryEditor.RAW_ID);
             DisseminationInput input = new DisseminationInput(file, filename, mime);
-            dissemination.setDissemination(input, session.asFedoraLog());
+            dissemination.setDissemination(input, appConfig.getTypeOfStorage(), session.asFedoraLog());
             doHandler.commit();
         } finally {
             file.delete();

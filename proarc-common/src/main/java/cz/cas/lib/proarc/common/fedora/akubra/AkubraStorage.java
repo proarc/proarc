@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.incad.kramerius.fedora.om.Repository;
@@ -301,24 +302,25 @@ public class AkubraStorage {
         public void flush() throws DigitalObjectException {
             super.flush();
             try {
+                DigitalObject object = this.manager.readObjectFromStorage(getPid());
                 if (label != null) {
-                    DigitalObject object = this.manager.readObjectFromStorage(getPid());
                     object = updateLabel(object, label);
-                    object = updateModifiedDate(object);
-                    if (object == null) {
-                        throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
+                }
+                object = updateModifiedDate(object);
+                if (object == null) {
+                    throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
+                } else {
+                    InputStream inputStream = this.manager.marshallObject(object);
+                    this.manager.addOrReplaceObject(object.getPID(), inputStream);
+                    //this.manager.commit(object, null);
+                    if (DeviceRepository.METAMODEL_ID.equals(this.modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(this.modelId)) {
+                        this.feeder.feedDescriptionDevice(object, this, true);
                     } else {
-                        InputStream inputStream = this.manager.marshallObject(object);
-                        this.manager.addOrReplaceObject(object.getPID(), inputStream);
-                        //this.manager.commit(object, null);
-                        if (DeviceRepository.METAMODEL_ID.equals(this.modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(this.modelId)) {
-                            this.feeder.feedDescriptionDevice(object, this, true);
-                        } else {
-                            this.feeder.feedDescriptionDocument(object, this, true);
-                        }
+                        this.feeder.feedDescriptionDocument(object, this, true);
                     }
                 }
-            } catch (Exception ex) {
+            } catch (
+                    Exception ex) {
                 throw new DigitalObjectException(getPid(), ex);
             }
         }
@@ -460,7 +462,7 @@ public class AkubraStorage {
             }
         }
 
-        private List<DatastreamProfile> getDatastreamProfiles() throws DigitalObjectException {
+        public List<DatastreamProfile> getDatastreamProfiles() throws DigitalObjectException {
             try {
                 DigitalObject object = this.manager.readObjectFromStorage(getPid());
                 return AkubraUtils.createDatastremProfiles(object);
@@ -613,7 +615,7 @@ public class AkubraStorage {
 
         @Override
         public EditorResult createResult() {
-            if (ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId)) {
+            if (ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId) || RelationEditor.DATASTREAM_ID.equals(dsId)) {
                 return new EditorDomResult();
             }
             return new EditorStreamResult();
@@ -834,7 +836,7 @@ public class AkubraStorage {
                 for (DatastreamType datastreamType : object.getDatastream()) {
                     if (dsId.equals(datastreamType.getID())) {
                         if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty() &&
-                        datastreamType.getDatastreamVersion().get(0) != null) {
+                                datastreamType.getDatastreamVersion().get(0) != null) {
                             DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
                             if (datastreamVersionType.getXmlContent() != null && datastreamVersionType.getXmlContent().getAny() != null && !datastreamVersionType.getXmlContent().getAny().isEmpty()) {
                                 Element node = datastreamVersionType.getXmlContent().getAny().get(0);

@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.imports.InputUtils;
 import cz.cas.lib.proarc.common.object.DefaultDisseminationHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -57,7 +58,7 @@ public class BornDigitalDisseminationHandler implements DisseminationHandler {
     }
 
     @Override
-    public void setDissemination(DisseminationInput input, String message) throws DigitalObjectException {
+    public void setDissemination(DisseminationInput input, Storage storagetype, String message) throws DigitalObjectException {
 //        MediaType mime = input.getMime();
 //        if (!"application".equalsIgnoreCase(mime.getType()) || !"pdf".equalsIgnoreCase(mime.getSubtype())) {
 //            throw new DigitalObjectException(handler.getFedoraObject().getPid(), null, dsId,
@@ -71,8 +72,8 @@ public class BornDigitalDisseminationHandler implements DisseminationHandler {
         MediaType mime = new MediaType("application", "pdf");
         if (BinaryEditor.RAW_ID.equals(dsId)) {
             // XXX use importer
-            ddh.setRawDissemination(inputFile, input.getFilename(), mime, message);
-            ddh.setIconAsDissemination(BinaryEditor.PREVIEW_ID, mime, BinaryEditor.PREVIEW_LABEL, message);
+            ddh.setRawDissemination(inputFile, input.getFilename(), mime, storagetype, message);
+            ddh.setIconAsDissemination(BinaryEditor.PREVIEW_ID, mime, BinaryEditor.PREVIEW_LABEL, storagetype, message);
             createThumbnail(inputFile, message);
         } else {
             throw new DigitalObjectException(objHandler.getFedoraObject().getPid(), null, dsId,

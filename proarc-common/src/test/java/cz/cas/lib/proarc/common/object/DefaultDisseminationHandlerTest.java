@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.imports.TiffImporterTest;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
@@ -105,7 +106,7 @@ public class DefaultDisseminationHandlerTest {
         DefaultDisseminationHandler handler = new DefaultDisseminationHandler(dsId, pageObject);
         String t = test.getMethodName();
 //        fedora.getClient().debug(true);
-        handler.setIconAsDissemination(dsId, mime, BinaryEditor.PREVIEW_LABEL, t);
+        handler.setIconAsDissemination(dsId, mime, BinaryEditor.PREVIEW_LABEL, Storage.FEDORA, t);
         pageObject.commit();
 
         Response response = handler.getDissemination(null);
@@ -127,7 +128,7 @@ public class DefaultDisseminationHandlerTest {
         final DigitalObjectHandler pageObject = new DigitalObjectHandler(robject, null);
         DefaultDisseminationHandler handler = new DefaultDisseminationHandler(dsId, pageObject);
 
-        handler.setIconAsDissemination(mime, BinaryEditor.PREVIEW_LABEL, testName);
+        handler.setIconAsDissemination(mime, BinaryEditor.PREVIEW_LABEL, Storage.FEDORA, testName);
         pageObject.commit();
 
         Response response = handler.getDissemination(null);
