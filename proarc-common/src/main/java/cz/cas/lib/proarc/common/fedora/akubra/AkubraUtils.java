@@ -278,4 +278,14 @@ public class AkubraUtils {
                 ? p
                 : UriComponent.encode(p, UriComponent.Type.QUERY_PARAM_SPACE_ENCODED);
     }
+
+    public static XMLGregorianCalendar createDate() {
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(new Date());
+        try {
+            return DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+        } catch (DatatypeConfigurationException e) {
+            return null;
+        }
+    }
 }

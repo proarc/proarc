@@ -30,9 +30,6 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -44,6 +41,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 /**
  * Workflow storage
@@ -61,7 +61,7 @@ public class WorkflowStorage {
 
     public static final class WorkflowObject implements FedoraObject {
 
-        private final String modelId;
+        private String modelId;
         private final BigDecimal workflowJobId;
         private final Locale locale;
         private String label;
@@ -101,6 +101,11 @@ public class WorkflowStorage {
         @Override
         public void setLabel(String label) {
             this.label = label;
+        }
+
+        @Override
+        public void setModel(String modelId) {
+            this.modelId = modelId;
         }
 
         @Override

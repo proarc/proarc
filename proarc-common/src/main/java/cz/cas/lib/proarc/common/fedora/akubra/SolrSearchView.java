@@ -25,13 +25,17 @@ import org.apache.solr.common.SolrDocument;
 
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_CREATED;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_DEVICE;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_FULLTEXT;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_LABEL;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MEMBERS;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MODEL;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_MODIFIED;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_ORGANIZATION;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_OWNER;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PID;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_STATE;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_STATUS;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_USER;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.appendAndValue;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.createItem;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.getModelQuery;
@@ -258,12 +262,16 @@ public class SolrSearchView extends SearchView {
         if (q.getModel() != null && !q.getModel().isEmpty()) {
             models = Collections.singletonList(q.getModel());
         }
-        return searchImplementation(0, maxLimit, null, null, onlyActive, models, null, q.getOwner(), q.getOrganization(), q.getCreator(), q.getLabel(), q.getStatus(), false);
+        List<String> pids = null;
+        if (q.getIdentifier() != null && !q.getIdentifier().isEmpty()) {
+            pids = Collections.singletonList(q.getIdentifier());
+        }
+        return searchImplementation(0, maxLimit, null, null, onlyActive, models, pids, q.getOwner(), q.getOrganization(), q.getCreator(), q.getLabel(), q.getStatus(), false);
     }
 
     @Override
     public List<SearchViewItem> findPhrase(String phrase, String status, String organization, String processor, String model, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
-        return super.findPhrase(phrase, status, organization, processor, model, allowAllForProcessor, filterWithoutExtension, sortField, sort, offset, limit);
+        return searchPhraseImplementation(phrase, status, organization, processor, model, allowAllForProcessor, filterWithoutExtension, sortField, sort, offset, limit);
     }
 
     @Override
@@ -308,6 +316,38 @@ public class SolrSearchView extends SearchView {
         }
     }
 
+    private List<SearchViewItem> searchPhraseImplementation(String phrase, String status, String organization, String username, String model, Boolean allowAllForUser, Boolean filterWithoutExtension, String sortField, String sort, int offset, int limit) throws IOException {
+        try {
+            StringBuilder queryBuilder = createPhaseQueryWithParams(phrase, status, organization, username, model, allowAllForUser);
+            SolrQuery solrQuery = createQueryWithParams(queryBuilder, offset, limit, transfromSort(sort), sortField);
+
+            List<SearchViewItem> items = new ArrayList<>();
+            QueryResponse response = this.solrClient.query(solrQuery);
+
+            for (SolrDocument solrDocument : response.getResults()) {
+                items.add(createItem(solrDocument));
+            }
+
+            return items;
+        } catch (SolrServerException ex) {
+            ex.printStackTrace();
+            throw new IOException(ex);
+        }
+    }
+
+    private StringBuilder createPhaseQueryWithParams(String phrase, String status, String organization, String username, String model, Boolean allowAllForUser) {
+        List<String> models = null;
+        if (model != null && !model.isEmpty()) {
+            models = Collections.singletonList(model);
+        }
+
+        StringBuilder queryBuilder = createQuery(true, models, null, null, organization, username, null, status, allowAllForUser);
+        if (phrase != null && !phrase.isEmpty()) {
+            queryBuilder = appendAndValue(queryBuilder, FIELD_FULLTEXT + ":\"" + status + "\"");
+        }
+        return queryBuilder;
+    }
+
     private int searchCountImplementation(Integer offset, Integer limit, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String username, String label, String status, Boolean allowAllForUser) throws IOException {
         try {
             StringBuilder queryBuilder = createQuery(onlyActive, models, pids, owner, organization, username, label, status, allowAllForUser);
@@ -331,11 +371,20 @@ public class SolrSearchView extends SearchView {
         if (limit != null && limit >= 1) {
             solrQuery.setRows(limit);
         }
-//        if (sortOperation != null && sortField != null) {
-//            SolrQuery.SortClause sortClause = new SolrQuery.SortClause(sortField, sortOperation.name());
-//            solrQuery.setSort(sortClause);
-//        }
+        if (sortOperation != null && validField(sortField)) {
+            SolrQuery.SortClause sortClause = new SolrQuery.SortClause(sortField, sortOperation.name().toLowerCase());
+            solrQuery.setSort(sortClause);
+        }
         return solrQuery;
+    }
+
+    private boolean validField(String sortField) {
+        if (sortField == null || sortField.isEmpty()) {
+            return false;
+        } else {
+            List<String> validFields = new ArrayList<>(Arrays.asList(FIELD_PID, FIELD_MODEL, FIELD_OWNER, FIELD_LABEL, FIELD_STATE, FIELD_CREATED, FIELD_MODIFIED, FIELD_ORGANIZATION, FIELD_USER, FIELD_STATUS));
+            return validFields.contains(sortField);
+        }
     }
 
     private StringBuilder createQuery(Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) {
@@ -345,10 +394,10 @@ public class SolrSearchView extends SearchView {
         } else if (onlyActive != null && !onlyActive){
             queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_DEACTIVE + "\"");
         }
-        if (models != null && !models.isEmpty()) {
+        if (models != null && !models.isEmpty() && hasValues(models)) {
             queryBuilder = appendAndValue(queryBuilder, getModelQuery(models));
         }
-        if (pids != null && !pids.isEmpty()) {
+        if (pids != null && !pids.isEmpty() && hasValues(pids)) {
             queryBuilder = appendAndValue(queryBuilder, getPidsQuery(pids));
         }
         if (owner != null && !owner.isEmpty()) {
@@ -357,7 +406,7 @@ public class SolrSearchView extends SearchView {
         if (organization != null && !organization.isEmpty()) {
             queryBuilder = appendAndValue(queryBuilder, FIELD_ORGANIZATION + ":\"" + organization + "\"");
         }
-        if (user != null && !user.isEmpty()) {
+        if (user != null && !user.isEmpty() && (hasValues(Collections.singletonList(user)) || allowAllForUser)) {
             queryBuilder = appendAndValue(queryBuilder, getUserQuery(Collections.singletonList(user), allowAllForUser));
         }
         if (label != null && !label.isEmpty()) {
@@ -367,5 +416,14 @@ public class SolrSearchView extends SearchView {
             queryBuilder = appendAndValue(queryBuilder, FIELD_STATUS + ":\"" + status + "\"");
         }
         return queryBuilder;
+    }
+
+    private boolean hasValues(List<String> values) {
+        for (String value : values) {
+            if (value != null && !value.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

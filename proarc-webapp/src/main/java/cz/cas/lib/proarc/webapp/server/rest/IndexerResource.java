@@ -6,7 +6,6 @@ import com.qbizm.kramerius.imp.jaxb.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.SearchViewItem;
@@ -110,7 +109,8 @@ public class IndexerResource {
         return new SmartGwtResponse<>();
     }
 
-    private void processRoot(SolrFeeder feeder, String storePath, boolean rebuildIndex) throws SolrServerException, IOException {
+    private void processRoot(SolrFeeder feeder, String storePath, boolean rebuildIndex) throws IOException, SolrServerException {
+        StringBuilder errors = new StringBuilder();
         try {
             LOG.info("Indexing documents started.");
             java.nio.file.Path storeRoot = Paths.get(storePath);
@@ -121,21 +121,44 @@ public class IndexerResource {
                     FileInputStream inputStream = new FileInputStream(file);
                     DigitalObject digitalObject = createDigitalObject(inputStream);
                     FedoraObject fedoraObject = new LocalStorage().load(digitalObject.getPID(), file);
-                    if (rebuildIndex) {
-                        files.getAndIncrement();
-                        feeder.feedDescriptionDocument(digitalObject, fedoraObject, false);
-                        if (files.get() % 50 == 0) {
-                            LOG.info("Proccessed " + files.get() + " objects");
-                            feeder.commit();
+                    // indexovat jen objekty s proarcu - modely z pluginu a zarizeni
+                    if (fedoraObject.getPid().startsWith("uuid")) {
+                        if (rebuildIndex) {
+                            try {
+                                feeder.feedDescriptionDocument(digitalObject, fedoraObject, false);
+                                files.getAndIncrement();
+                                if (files.get() % 50 == 0) {
+                                    LOG.info("Proccessed " + files.get() + " objects");
+                                    feeder.commit();
+                                }
+                            } catch (Exception exception) {
+                                errors.append(fedoraObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) fedoraObject).getFoxml().getPath()).append("\n");
+                            }
+                        }
+                    } else if (fedoraObject.getPid().startsWith("device")) {
+                        if (rebuildIndex) {
+                            try {
+                                feeder.feedDescriptionDevice(digitalObject, fedoraObject, false);
+                                files.getAndIncrement();
+                                if (files.get() % 50 == 0) {
+                                    LOG.info("Proccessed " + files.get() + " objects");
+                                    feeder.commit();
+                                }
+                            } catch (Exception exception) {
+                                errors.append(fedoraObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) fedoraObject).getFoxml().getPath()).append("\n");
+                            }
                         }
                     }
-                } catch (DigitalObjectException | IOException | SolrServerException e) {
+                } catch (IOException e) {
                     LOG.log(Level.SEVERE, "Error in proccesing file: ", e);
                 }
             });
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Error in processing file: ", ex);
         } finally {
+            if (!errors.toString().isEmpty()) {
+                LOG.severe("Nepodarilo se zaindexovat: \n" + errors.toString());
+            }
             if (feeder != null) {
                 feeder.commit();
                 LOG.info("Feeder commited.");

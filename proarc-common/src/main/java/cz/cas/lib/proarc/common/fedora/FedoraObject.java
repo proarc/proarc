@@ -41,6 +41,10 @@ public interface FedoraObject {
     
     void setLabel(String label);
 
+    void setModel(String modelId);
+
+    String getModel();
+
     void flush() throws DigitalObjectException;
 
     String asText() throws DigitalObjectException;

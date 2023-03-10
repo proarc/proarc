@@ -215,9 +215,19 @@ public final class ExportUtils {
         }
         return -1;
     }
+
+
     public static String getPageIndexAsString(ModsDefinition mods) {
-        int pageIndex = getPageIndex(mods);
-        return pageIndex == -1 ? null : String.valueOf(pageIndex);
+        if (mods.getPart().size() > 0) {
+            for (PartDefinition part : mods.getPart()) {
+                for (DetailDefinition detail : part.getDetail()) {
+                    if ("pageIndex".equals(detail.getType()) && detail.getNumber().size() > 0) {
+                        return detail.getNumber().get(0).getValue();
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public static boolean containPageNumber(ModsDefinition mods) {

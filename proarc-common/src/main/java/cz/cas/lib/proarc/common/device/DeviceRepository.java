@@ -280,9 +280,9 @@ public final class DeviceRepository {
                 audiodesc = new Mets();
             }
             device.setDescription(desc);
+            device.setTimestamp(src == null ? null : editor.getLastModified());
             device.setAudioDescription(audiodesc);
-            device.setTimestamp(editor.getLastModified());
-            device.setAudioTimestamp(audioeditor.getLastModified());
+            device.setAudioTimestamp(audiosrc == null ? null : audioeditor.getLastModified());
             return device;
         } catch (DigitalObjectNotFoundException ex) {
             return null;
@@ -302,7 +302,7 @@ public final class DeviceRepository {
     public Device update(Device update, String log) throws DeviceException {
         String id = update.getId();
         String label = update.getLabel();
-        String model = transformModel(update.getModel());
+        String model = getModel(update.getModel());
         checkDeviceId(id);
         try {
             FedoraObject object = null;
@@ -328,28 +328,32 @@ public final class DeviceRepository {
                 descriptionEditor.write(result, update.getTimestamp(), log);
             }
 
-            XmlStreamEditor audiodescriptionEditor = getPremisDescriptionEditor(object);
-            Source oldAudioDescSrc = audiodescriptionEditor.read();
-            if (oldAudioDescSrc == null) {
-                update.setAudioTimestamp(audiodescriptionEditor.getLastModified());
-            }
-            if (oldAudioDescSrc != null && update.getAudioDescription() == null) {
-                update.setAudioDescription(new Mets());
-            }
-            if (update.getAudioDescription() != null) {
-                try {
-                    EditorResult result = audiodescriptionEditor.createResult();
-                    JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
-                    Marshaller marshaller = jaxbContext.createMarshaller();
-                    marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-                    marshaller.marshal(update.getAudioDescription(), result);
-                    audiodescriptionEditor.write(result, update.getAudioTimestamp(), log);
-                } catch (JAXBException e) {
-                    LOG.log(Level.SEVERE, "Unable to unmarshall audiodescription");
+            XmlStreamEditor audiodescriptionEditor = null;
+            if (METAMODEL_AUDIODEVICE_ID.equals(model)) {
+                audiodescriptionEditor = getPremisDescriptionEditor(object);
+                Source oldAudioDescSrc = audiodescriptionEditor.read();
+                if (oldAudioDescSrc == null) {
+                    update.setAudioTimestamp(audiodescriptionEditor.getLastModified());
+                }
+                if (oldAudioDescSrc != null && update.getAudioDescription() == null) {
+                    update.setAudioDescription(new Mets());
+                }
+                if (update.getAudioDescription() != null) {
+                    try {
+                        EditorResult result = audiodescriptionEditor.createResult();
+                        JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
+                        Marshaller marshaller = jaxbContext.createMarshaller();
+                        marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+                        marshaller.marshal(update.getAudioDescription(), result);
+                        audiodescriptionEditor.write(result, update.getAudioTimestamp(), log);
+                    } catch (JAXBException e) {
+                        LOG.log(Level.SEVERE, "Unable to unmarshall audiodescription");
+                    }
                 }
             }
 
             object.setLabel(label);
+            object.setModel(model);
             object.flush();
 
             Device device = new Device();
@@ -357,9 +361,11 @@ public final class DeviceRepository {
             device.setModel(model);
             device.setLabel(label);
             device.setDescription(update.getDescription());
-            device.setAudioDescription(update.getAudioDescription());
             device.setTimestamp(descriptionEditor.getLastModified());
-            device.setAudioTimestamp(audiodescriptionEditor.getLastModified());
+            if (METAMODEL_AUDIODEVICE_ID.equals(model)) {
+                device.setAudioDescription(update.getAudioDescription());
+                device.setAudioTimestamp(update.getAudioDescription() == null ? null : audiodescriptionEditor.getLastModified());
+            }
             return device;
         } catch (DigitalObjectConcurrentModificationException ex) {
             // XXX handle concurrency
@@ -380,6 +386,7 @@ public final class DeviceRepository {
         relationEditor.setModel(model);
         relationEditor.write(relationEditor.getLastModified(), log);
         lobject.flush();
+        lobject.setModel(model);
 
         if (Storage.FEDORA.equals(typeOfStorage)) {
             remoteStorage.ingest(lobject, owner);
@@ -432,22 +439,29 @@ public final class DeviceRepository {
                 Device device = new Device();
                 device.setId(pid);
                 device.setLabel(label);
-                device.setModel(transformModel(model));
+                device.setModel(getModelLabel(model));
                 devices.add(device);
             }
         }
         return devices;
     }
 
-    private String transformModel(String model) {
+    public static String getModelLabel(String model) {
         if (model != null && !model.isEmpty()) {
-            if (METAMODEL_ID.equals(model)) {
+            if (METAMODEL_ID.equals(model) || METAMODEL_ID_LABEL.equals(model)) {
                 return METAMODEL_ID_LABEL;
-            } else if (METAMODEL_AUDIODEVICE_ID.equals(model)) {
+            } else if (METAMODEL_AUDIODEVICE_ID.equals(model) || METAMODEL_AUDIODEVICE_ID_LABEL.equals(model)) {
                 return METAMODEL_AUDIODEVICE_ID_LABEL;
-            } else if (METAMODEL_ID_LABEL.equals(model)) {
+            }
+        }
+        return null;
+    }
+
+    private String getModel(String modelOld) {
+        if(modelOld != null && !modelOld.isEmpty()) {
+            if (METAMODEL_ID.equals(modelOld) || METAMODEL_ID_LABEL.equals(modelOld)) {
                 return METAMODEL_ID;
-            } else if (METAMODEL_AUDIODEVICE_ID_LABEL.equals(model)) {
+            } else if (METAMODEL_AUDIODEVICE_ID.equals(modelOld) || METAMODEL_AUDIODEVICE_ID_LABEL.equals(modelOld)) {
                 return METAMODEL_AUDIODEVICE_ID;
             }
         }

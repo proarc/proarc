@@ -256,6 +256,7 @@ public final class RemoteStorage {
 
         private final FedoraClient client;
         private String label;
+        private String modelId;
 
         public RemoteObject(String pid, FedoraClient client) {
             super(pid);
@@ -280,6 +281,16 @@ public final class RemoteStorage {
                 label = label.substring(0, 255);
             }
             this.label = label;
+        }
+
+        @Override
+        public void setModel(String modelId) {
+            this.modelId = modelId;
+        }
+
+        @Override
+        public String getModel() {
+            return this.modelId;
         }
 
         @Override

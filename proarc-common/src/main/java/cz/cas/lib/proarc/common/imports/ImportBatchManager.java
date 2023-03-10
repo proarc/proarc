@@ -452,9 +452,13 @@ public class ImportBatchManager {
         Transaction tx = daos.createTransaction();
         bitemDao.setTransaction(tx);
 
-        List<BatchItem> batchItems = bitemDao.find(ctx.getBatch().getId(), null, null, relativizeBatchFile(foxml),
-                BatchItem.ObjectState.LOADED.name(), BatchItem.Type.OBJECT.name());
-        return batchItems;
+        try {
+            List<BatchItem> batchItems = bitemDao.find(ctx.getBatch().getId(), null, null, relativizeBatchFile(foxml),
+                    BatchItem.ObjectState.LOADED.name(), BatchItem.Type.OBJECT.name());
+            return batchItems;
+        } finally {
+            tx.close();
+        }
     }
 
     public LocalObject getRootObject(Batch batch) {

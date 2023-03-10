@@ -102,6 +102,7 @@ public final class LocalStorage {
         private DigitalObject dobj;
         /** {@code null} for in memory object. */
         private File foxml;
+        private String modelId;
 
         LocalObject(String pid, File foxml, DigitalObject dobj) {
             super(pid);
@@ -131,6 +132,16 @@ public final class LocalStorage {
                 label = label.substring(0, 255);
             }
             FoxmlUtils.setProperty(dobj, FoxmlUtils.PROPERTY_LABEL, label);
+        }
+
+        @Override
+        public void setModel(String modelId) {
+            this.modelId = modelId;
+        }
+
+        @Override
+        public String getModel() {
+            return this.modelId;
         }
 
         public void setOwner(String owner) {
