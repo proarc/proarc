@@ -1,6 +1,7 @@
 package cz.cas.lib.proarc.common.fedora.akubra;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchViewItem;
@@ -51,9 +52,11 @@ public class SolrSearchView extends SearchView {
     private Locale locale = Locale.ENGLISH;
     private final AkubraStorage storage;
     private final SolrClient solrClient;
+    private boolean allowDevices;
 
     public SolrSearchView(AkubraStorage storage, SolrClient solrClient) {
         this(storage, Integer.MAX_VALUE, solrClient);
+        allowDevices = false;
     }
 
     public SolrSearchView(AkubraStorage storage, int maxValue, SolrClient solrClient) {
@@ -67,6 +70,11 @@ public class SolrSearchView extends SearchView {
             throw new NullPointerException("Locale is null in " + this.getClass().getName() + ".");
         }
         this.locale = locale;
+    }
+
+    public SolrSearchView setAllowDevices(boolean allowDevices) {
+        this.allowDevices = allowDevices;
+        return this;
     }
 
     @Override
@@ -391,7 +399,7 @@ public class SolrSearchView extends SearchView {
     }
 
     private StringBuilder createQuery(Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) {
-        StringBuilder queryBuilder = new StringBuilder();
+        StringBuilder queryBuilder = defaultQuery();
         if (onlyActive != null && onlyActive) {
             queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");
         } else if (onlyActive != null && !onlyActive){
@@ -417,6 +425,15 @@ public class SolrSearchView extends SearchView {
         }
         if (status != null && !status.isEmpty()) {
             queryBuilder = appendAndValue(queryBuilder, FIELD_STATUS + ":\"" + status + "\"");
+        }
+        return queryBuilder;
+    }
+
+    private StringBuilder defaultQuery() {
+        StringBuilder queryBuilder = new StringBuilder();
+        if (!allowDevices) {
+            queryBuilder = appendAndValue(queryBuilder, "-" + FIELD_MODEL + ":\"" + DeviceRepository.METAMODEL_ID + "\"");
+            queryBuilder = appendAndValue(queryBuilder, "-" + FIELD_MODEL + ":\"" + DeviceRepository.METAMODEL_AUDIODEVICE_ID + "\"");
         }
         return queryBuilder;
     }

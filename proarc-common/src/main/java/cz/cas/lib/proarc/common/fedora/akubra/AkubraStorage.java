@@ -33,11 +33,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -53,6 +54,8 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
@@ -173,9 +176,10 @@ public class AkubraStorage {
 
             InputStream inputStream = new FileInputStream(foxml);
             this.manager.addOrReplaceObject(pid, inputStream);
+            indexDocument(pid, null);
 
             LOG.log(Level.FINE, "Object with PID {0} added to repository.", pid);
-        } catch (FileNotFoundException | LowlevelStorageException e) {
+        } catch (LowlevelStorageException | IOException e) {
             throw new DigitalObjectException(pid, "Error during adding new object", e);
         }
     }
@@ -203,19 +207,70 @@ public class AkubraStorage {
             }
 
             com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject = object.getDigitalObject();
+            processStreams(digitalObject);
             updateProperties(digitalObject.getObjectProperties());
             String xml = FoxmlUtils.toXml(digitalObject, false);
-            InputStream inputStream = new ByteArrayInputStream(xml.getBytes());
+            InputStream inputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
             this.manager.addOrReplaceObject(object.getPid(), inputStream);
             indexDocument(object);
 
             LOG.log(Level.FINE, "Object with PID {0} added to repository.", object.getPid());
-        } catch (LowlevelStorageException | IOException e) {
+        } catch (TransformerException | URISyntaxException | LowlevelStorageException | IOException e) {
             throw new DigitalObjectException(object.getPid(), "Error during adding new object", e);
         }
     }
 
-    private void updateProperties(com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType objectProperties) {
+    private void processStreams(com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject) throws IOException, LowlevelStorageException, URISyntaxException, TransformerException {
+        for (com.yourmediashelf.fedora.generated.foxml.DatastreamType datastream : digitalObject.getDatastream()) {
+            if (FoxmlUtils.ControlGroup.MANAGED.toExternal().equals(datastream.getCONTROLGROUP())) {
+                for (com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+                    if (datastreamVersion.getContentLocation() != null && "URL".equals(datastreamVersion.getContentLocation().getTYPE())) {
+                        File inputFile = new File(new URI(datastreamVersion.getContentLocation().getREF()).getPath());
+                        if (inputFile.exists()) {
+                            InputStream inputStream = null;
+                            try {
+                                inputStream = new FileInputStream(inputFile);
+                                String ref = digitalObject.getPID() + "+" + datastream.getID() + "+" + datastreamVersion.getID();
+                                this.manager.addOrReplaceDatastream(ref, inputStream);
+                                com.yourmediashelf.fedora.generated.foxml.ContentLocationType contentLocationType = new com.yourmediashelf.fedora.generated.foxml.ContentLocationType();
+                                contentLocationType.setTYPE("INTERNAL_ID");
+                                contentLocationType.setREF(ref);
+                                datastreamVersion.setContentLocation(contentLocationType);
+                            } finally {
+                                inputStream.close();
+                            }
+                        }
+                    }
+                }
+                for (com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+                    if (datastreamVersion.getXmlContent() != null && datastreamVersion.getXmlContent().getAny() != null && !datastreamVersion.getXmlContent().getAny().isEmpty()) {
+                        Element element = datastreamVersion.getXmlContent().getAny().get(0);
+                        StringWriter output = new StringWriter();
+
+                        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                        transformer.transform(new DOMSource(element), new StreamResult(output));
+
+                        String elementValue = output.toString();
+//                        DOMImplementationLS lsImpl = (DOMImplementationLS)element.getOwnerDocument().getImplementation().getFeature("LS", "3.0");
+//                        LSSerializer serializer = lsImpl.createLSSerializer();
+//                        lsImpl.createLSOutput();
+//                        //serializer.getDomConfig().setParameter("xml-declaration", true); //by default its true, so set it to false to get String without xml-declaration
+//                        String elementValue = serializer.writeToString(element);
+                        InputStream inputStream = new ByteArrayInputStream(elementValue.getBytes(StandardCharsets.UTF_8));
+                        String ref = digitalObject.getPID() + "+" + datastream.getID() + "+" + datastreamVersion.getID();
+                        this.manager.addOrReplaceDatastream(ref, inputStream);
+                        com.yourmediashelf.fedora.generated.foxml.ContentLocationType contentLocationType = new com.yourmediashelf.fedora.generated.foxml.ContentLocationType();
+                        contentLocationType.setTYPE("INTERNAL_ID");
+                        contentLocationType.setREF(ref);
+                        datastreamVersion.setContentLocation(contentLocationType);
+                        datastreamVersion.setXmlContent(null);
+                    }
+                }
+            }
+        }
+    }
+
+    public void updateProperties(com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType objectProperties) {
         boolean updateLastModified = false;
         boolean updateState = false;
         boolean updateCreated = false;
@@ -249,14 +304,18 @@ public class AkubraStorage {
         properties.add(property);
     }
 
-    public void indexDocument(FedoraObject object) throws IOException, DigitalObjectException {
-        AkubraObject aObject = find(object.getPid());
-        DigitalObject dObject = this.manager.readObjectFromStorage(object.getPid());
-        if (DeviceRepository.METAMODEL_ID.equals(object.getModel()) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(object.getModel())) {
+    public void indexDocument(String pid, String modelId) throws IOException, DigitalObjectException {
+        AkubraObject aObject = find(pid);
+        DigitalObject dObject = this.manager.readObjectFromStorage(pid);
+        if (DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId)) {
             this.feeder.feedDescriptionDevice(dObject, aObject, true);
         } else {
             this.feeder.feedDescriptionDocument(dObject, aObject, true);
         }
+    }
+
+    public void indexDocument(FedoraObject object) throws IOException, DigitalObjectException {
+        indexDocument(object.getPid(), object.getModel());
     }
 
     public static final class AkubraObject extends AbstractFedoraObject {
@@ -389,6 +448,7 @@ public class AkubraStorage {
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
                     this.feeder.feedDescriptionDocument(object, this, true);
+                    this.feeder.commit();
 
                 }
             } catch (Exception ex) {
@@ -408,6 +468,7 @@ public class AkubraStorage {
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
                     this.feeder.feedDescriptionDocument(object, this, true);
+                    this.feeder.commit();
                 }
             } catch (Exception ex) {
                 throw new DigitalObjectException(getPid(), ex);
@@ -418,6 +479,7 @@ public class AkubraStorage {
             try {
                 this.manager.deleteObject(getPid(), true);
                 this.feeder.deleteByPid(getPid());
+                this.feeder.commit();
             } catch (IOException | SolrServerException ex) {
                 throw new DigitalObjectException(getPid(), ex);
             }

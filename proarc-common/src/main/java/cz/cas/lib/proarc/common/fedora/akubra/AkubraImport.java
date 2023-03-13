@@ -337,7 +337,7 @@ public final class AkubraImport {
      *      was skipped
      * @throws DigitalObjectException failure
      */
-    private BatchItemObject importItemImpl(BatchItemObject item, String importer) throws DigitalObjectException {
+    private BatchItemObject importItemImpl(BatchItemObject item, String importer) throws DigitalObjectException, IOException {
         ObjectState state = item.getState();
         if (state != ObjectState.LOADED) {
             return null;
@@ -366,7 +366,9 @@ public final class AkubraImport {
                 }
             }
         } else {
-            akubraStorage.ingest(foxml, item.getPid(), importer,
+//            DigitalObject object = lobj.getDigitalObject();
+//            akubraStorage.updateProperties(object.getObjectProperties());
+            akubraStorage.ingest(lobj, importer,
                     "Ingested with ProArc by " + importer
                     + " from local file " + foxml);
         }
