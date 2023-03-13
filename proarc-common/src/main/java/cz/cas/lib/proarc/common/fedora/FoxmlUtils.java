@@ -511,6 +511,10 @@ public final class FoxmlUtils {
         return false;
     }
 
+    public static boolean missingDatastream(IOException ex) {
+        return ex.getMessage().contains("Cannot find stream");
+    }
+
     /**
      * Fixes DublinCore exported by Fedora Commons.
      * <p>The {@code schemaLocation} is removed.

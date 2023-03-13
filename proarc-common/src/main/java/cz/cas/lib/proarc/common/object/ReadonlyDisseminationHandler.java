@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
@@ -42,7 +43,7 @@ public class ReadonlyDisseminationHandler implements DisseminationHandler {
     }
 
     @Override
-    public void setDissemination(DisseminationInput input, String message) throws DigitalObjectException {
+    public void setDissemination(DisseminationInput input, Storage storageType, String message) throws DigitalObjectException {
         throw new UnsupportedOperationException("Not supported.");
     }
 

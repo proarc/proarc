@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
@@ -39,7 +40,7 @@ public interface DisseminationHandler {
      * @param message update message
      * @throws DigitalObjectException failure
      */
-    void setDissemination(DisseminationInput input, String message) throws DigitalObjectException;
+    void setDissemination(DisseminationInput input, Storage typeOfStorage, String message) throws DigitalObjectException;
 
     /**
      * Removes contents.

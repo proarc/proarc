@@ -130,12 +130,12 @@ public final class DeviceManager {
             descriptionForm = createDescriptionForm();
             valuesManager = new ValuesManager();
             valuesManager.addMember(form);
-            valuesManager.addMember(premisForm);
             valuesManager.addMember(descriptionForm);
+            valuesManager.addMember(premisForm);
             valuesManager.setDataSource(DeviceDataSource.getInstance());
             VLayout forms = new VLayout();
             forms.setOverflow(Overflow.AUTO);
-            forms.setMembers(form, premisForm, descriptionForm);
+            forms.setMembers(form, descriptionForm, premisForm);
 
             HLayout hLayout = new HLayout();
             deviceList.setWidth100();

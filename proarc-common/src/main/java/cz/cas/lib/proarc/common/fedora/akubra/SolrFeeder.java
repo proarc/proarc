@@ -121,7 +121,7 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_EXPORT_CROSSREF, crossrefExport);
         sdoc.addField(FIELD_LOCKED, isLocked);
         sdoc.addField(FIELD_DEVICE, device);
-        sdoc.addField(FIELD_MEMBERS, members);
+        sdoc.addField(FIELD_MEMBERS, members.toArray());
         sdoc.addField(FIELD_PAGE_INDEX, pageIndex);
         sdoc.addField(FIELD_PAGE_NUMBER, pageNumber);
         sdoc.addField(FIELD_PAGE_TYPE, pageType);
@@ -141,5 +141,38 @@ public class SolrFeeder extends ProcessingIndexFeeder {
             }
         }
         return null;
+    }
+
+    public void feedDescriptionDevice(DigitalObject object, FedoraObject fedoraObject, boolean commit) throws DigitalObjectException {
+        RelationEditor relationEditor = new RelationEditor(fedoraObject);
+        String pid = fedoraObject.getPid();
+        String model = relationEditor.getModel();
+        String owner = getProperties(object, PROPERTY_OWNER);
+        String label = getProperties(object, PROPERTY_LABEL);
+        String state = getProperties(object, PROPERTY_STATE);
+        String created = getProperties(object, PROPERTY_CREATEDATE);
+        String modified = getProperties(object, PROPERTY_LASTMODIFIED);
+
+        try {
+            feedDescriptionDevice(pid, model, owner, label, state, created, modified);
+            if (commit) {
+                commit();
+            }
+        } catch (SolrServerException | IOException ex) {
+            throw new DigitalObjectException(pid, "Nepodarilo se zaindexovat objekt " + pid + " do SOLRu.");
+        }
+    }
+
+    private UpdateResponse feedDescriptionDevice(String pid, String model, String owner, String label, String state, String created, String modified) throws SolrServerException, IOException {
+        SolrInputDocument sdoc = new SolrInputDocument();
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+        sdoc.addField(FIELD_MODEL, model);
+        sdoc.addField(FIELD_OWNER, owner);
+        sdoc.addField(FIELD_LABEL, label);
+        sdoc.addField(FIELD_STATE, state);
+        sdoc.addField(FIELD_CREATED, created);
+        sdoc.addField(FIELD_MODIFIED, modified);
+        return feedDescriptionDocument(sdoc);
     }
 }

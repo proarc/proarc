@@ -471,9 +471,9 @@
     <field name="status" type="string"/>
     <field name="user" type="text_cz"/>
     <field name="mods" type="string"/>
-    <field name="page_number" type="string"/>
-    <field name="page_type" type="string"/>
-    <field name="page_index" type="string"/>
+    <field name="pageNumber" type="string"/>
+    <field name="pageType" type="string"/>
+    <field name="pageIndex" type="string"/>
     <field name="urn_nbn_number" type="string"/>
     <dynamicField name="*_txt_en_split_tight" type="text_en_splitting_tight" indexed="true" stored="true"/>
     <dynamicField name="*_descendent_path" type="descendent_path" indexed="true" stored="true"/>

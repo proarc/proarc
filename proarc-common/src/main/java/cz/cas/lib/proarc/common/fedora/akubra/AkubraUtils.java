@@ -161,6 +161,9 @@ public class AkubraUtils {
     public static List<DatastreamProfile> createDatastremProfiles(DigitalObject digitalObject) {
         List<DatastreamProfile> profileList = new ArrayList<>();
 
+        if (digitalObject == null) {
+            return profileList;
+        }
         for (DatastreamType datastream : digitalObject.getDatastream()) {
             DatastreamProfile profile = new DatastreamProfile();
             profile.setPid(digitalObject.getPID());
@@ -277,5 +280,15 @@ public class AkubraUtils {
         return p == null || p.isEmpty()
                 ? p
                 : UriComponent.encode(p, UriComponent.Type.QUERY_PARAM_SPACE_ENCODED);
+    }
+
+    public static XMLGregorianCalendar createDate() {
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(new Date());
+        try {
+            return DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+        } catch (DatatypeConfigurationException e) {
+            return null;
+        }
     }
 }

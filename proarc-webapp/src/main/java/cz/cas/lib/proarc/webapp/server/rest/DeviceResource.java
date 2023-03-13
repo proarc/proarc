@@ -56,6 +56,8 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import static cz.cas.lib.proarc.common.device.DeviceRepository.getModelLabel;
+
 /**
  * Resource to manage devices producing digital objects.
  *
@@ -198,6 +200,7 @@ public class DeviceResource {
         update.setAudioTimestamp(audiotimestamp);
         try {
             Device updated = devRepo.update(update, session.asFedoraLog());
+            updated.setModel(getModelLabel(updated.getModel()));
             return new SmartGwtResponse<Device>(updated);
         } catch (DeviceException ex) {
             throw new WebApplicationException(ex);

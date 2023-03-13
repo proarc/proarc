@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.json.JsonUtils;
@@ -157,8 +158,8 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
         }
 
         @Override
-        public void setDissemination(DisseminationInput input, String message) throws DigitalObjectException {
-            defaultHandler.setDissemination(input, message);
+        public void setDissemination(DisseminationInput input, Storage storageType, String message) throws DigitalObjectException {
+            defaultHandler.setDissemination(input, storageType, message);
             MetadataHandler<OaiDcType> metadata = handler.metadata();
             DescriptionMetadata<OaiDcType> dm = metadata.getMetadata();
             OaiDcType data = dm.getData();

@@ -28,6 +28,8 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet;
@@ -262,9 +264,9 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
 
     // XXX add impl of other data streams (PREVIEW, THUMB)
     @Override
-    public void setDissemination(DisseminationInput input, String message) throws DigitalObjectException {
+    public void setDissemination(DisseminationInput input, Storage storageType, String message) throws DigitalObjectException {
         if (RAW_ID.equals(dsId)) {
-            setRawDissemination(input.getFile(), input.getFilename(), input.getMime(), message);
+            setRawDissemination(input.getFile(), input.getFilename(), input.getMime(), storageType, message);
         } else {
             throw new UnsupportedOperationException(dsId);
         }
@@ -276,7 +278,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         fobject.purgeDatastream(dsId, message);
     }
 
-    public void setRawDissemination(File contents, String filename, MediaType mime, String message) throws DigitalObjectException {
+    public void setRawDissemination(File contents, String filename, MediaType mime, Storage storageType, String message) throws DigitalObjectException {
         setDsDissemination(RAW_ID, contents, filename, mime, message);
 
         RelationEditor relationEditor = handler.relations();
@@ -289,8 +291,8 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         setDsDissemination(BinaryEditor.PREVIEW_ID, contents, filename, mime, message);
     }
 
-    public void setIconAsDissemination(MediaType origMime, String dsLabel, String message) throws DigitalObjectException {
-        setIconAsDissemination(dsId, origMime, dsLabel, message);
+    public void setIconAsDissemination(MediaType origMime, String dsLabel, Storage storageType, String message) throws DigitalObjectException {
+        setIconAsDissemination(dsId, origMime, dsLabel, storageType, message);
     }
 
     /**
@@ -303,7 +305,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
      * @param message
      * @throws DigitalObjectException failure
      */
-    public void setIconAsDissemination(String dsId, MediaType origMime, String dsLabel, String message) throws DigitalObjectException {
+    public void setIconAsDissemination(String dsId, MediaType origMime, String dsLabel, Storage storageType, String message) throws DigitalObjectException {
         DatastreamProfile newProfile = FoxmlUtils.externalProfile(dsId, BinaryEditor.IMAGE_JPEG, dsLabel);
         BinaryEditor editor = new BinaryEditor(fobject, newProfile);
         DatastreamProfile profile = editor.getProfile();
@@ -324,16 +326,25 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             }
         }
         //  check icon:mime/DS exists
-        RemoteObject icon = RemoteStorage.getInstance().find(mime2iconPid(origMime));
         List<DatastreamProfile> iconStreams;
         try {
-            iconStreams = icon.getDatastreams();
+
+            if (Storage.FEDORA.equals(storageType)) {
+                RemoteObject object = RemoteStorage.getInstance().find(mime2iconPid(origMime));
+                iconStreams = object.getDatastreams();
+            } else if (Storage.AKUBRA.equals(storageType)) {
+                AkubraObject object = AkubraStorage.getInstance().find(mime2iconPid(origMime));
+                iconStreams = object.getDatastreamProfiles();
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + storageType);
+            }
         } catch (DigitalObjectNotFoundException ex) {
             // no icon
             LOG.log(Level.WARNING, "Missing object ''{0}''! No datastream ''{1}'' created for ''{2}''.",
-                    new Object[]{icon.getPid(), dsId, fobject.getPid()});
+                    new Object[]{mime2iconPid(origMime), dsId, fobject.getPid()});
             return ;
         }
+
         DatastreamProfile iconStream = findProfile(dsId, iconStreams);
         if (iconStream == null) {
             //  check default icon:mime/THUMBNAIL exists

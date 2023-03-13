@@ -11,13 +11,16 @@ import com.qbizm.kramerius.imp.jaxb.StateType;
 import com.qbizm.kramerius.imp.jaxb.XmlContentType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.AbstractFedoraObject;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.incad.kramerius.fedora.om.Repository;
@@ -30,11 +33,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -50,6 +54,8 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
@@ -170,9 +176,10 @@ public class AkubraStorage {
 
             InputStream inputStream = new FileInputStream(foxml);
             this.manager.addOrReplaceObject(pid, inputStream);
+            indexDocument(pid, null);
 
             LOG.log(Level.FINE, "Object with PID {0} added to repository.", pid);
-        } catch (FileNotFoundException | LowlevelStorageException e) {
+        } catch (LowlevelStorageException | IOException e) {
             throw new DigitalObjectException(pid, "Error during adding new object", e);
         }
     }
@@ -200,19 +207,70 @@ public class AkubraStorage {
             }
 
             com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject = object.getDigitalObject();
+            processStreams(digitalObject);
             updateProperties(digitalObject.getObjectProperties());
             String xml = FoxmlUtils.toXml(digitalObject, false);
-            InputStream inputStream = new ByteArrayInputStream(xml.getBytes());
+            InputStream inputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
             this.manager.addOrReplaceObject(object.getPid(), inputStream);
-            indexDocument(object.getPid());
+            indexDocument(object);
 
             LOG.log(Level.FINE, "Object with PID {0} added to repository.", object.getPid());
-        } catch (LowlevelStorageException | IOException e) {
+        } catch (TransformerException | URISyntaxException | LowlevelStorageException | IOException e) {
             throw new DigitalObjectException(object.getPid(), "Error during adding new object", e);
         }
     }
 
-    private void updateProperties(com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType objectProperties) {
+    private void processStreams(com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject) throws IOException, LowlevelStorageException, URISyntaxException, TransformerException {
+        for (com.yourmediashelf.fedora.generated.foxml.DatastreamType datastream : digitalObject.getDatastream()) {
+            if (FoxmlUtils.ControlGroup.MANAGED.toExternal().equals(datastream.getCONTROLGROUP())) {
+                for (com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+                    if (datastreamVersion.getContentLocation() != null && "URL".equals(datastreamVersion.getContentLocation().getTYPE())) {
+                        File inputFile = new File(new URI(datastreamVersion.getContentLocation().getREF()).getPath());
+                        if (inputFile.exists()) {
+                            InputStream inputStream = null;
+                            try {
+                                inputStream = new FileInputStream(inputFile);
+                                String ref = digitalObject.getPID() + "+" + datastream.getID() + "+" + datastreamVersion.getID();
+                                this.manager.addOrReplaceDatastream(ref, inputStream);
+                                com.yourmediashelf.fedora.generated.foxml.ContentLocationType contentLocationType = new com.yourmediashelf.fedora.generated.foxml.ContentLocationType();
+                                contentLocationType.setTYPE("INTERNAL_ID");
+                                contentLocationType.setREF(ref);
+                                datastreamVersion.setContentLocation(contentLocationType);
+                            } finally {
+                                inputStream.close();
+                            }
+                        }
+                    }
+                }
+                for (com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+                    if (datastreamVersion.getXmlContent() != null && datastreamVersion.getXmlContent().getAny() != null && !datastreamVersion.getXmlContent().getAny().isEmpty()) {
+                        Element element = datastreamVersion.getXmlContent().getAny().get(0);
+                        StringWriter output = new StringWriter();
+
+                        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                        transformer.transform(new DOMSource(element), new StreamResult(output));
+
+                        String elementValue = output.toString();
+//                        DOMImplementationLS lsImpl = (DOMImplementationLS)element.getOwnerDocument().getImplementation().getFeature("LS", "3.0");
+//                        LSSerializer serializer = lsImpl.createLSSerializer();
+//                        lsImpl.createLSOutput();
+//                        //serializer.getDomConfig().setParameter("xml-declaration", true); //by default its true, so set it to false to get String without xml-declaration
+//                        String elementValue = serializer.writeToString(element);
+                        InputStream inputStream = new ByteArrayInputStream(elementValue.getBytes(StandardCharsets.UTF_8));
+                        String ref = digitalObject.getPID() + "+" + datastream.getID() + "+" + datastreamVersion.getID();
+                        this.manager.addOrReplaceDatastream(ref, inputStream);
+                        com.yourmediashelf.fedora.generated.foxml.ContentLocationType contentLocationType = new com.yourmediashelf.fedora.generated.foxml.ContentLocationType();
+                        contentLocationType.setTYPE("INTERNAL_ID");
+                        contentLocationType.setREF(ref);
+                        datastreamVersion.setContentLocation(contentLocationType);
+                        datastreamVersion.setXmlContent(null);
+                    }
+                }
+            }
+        }
+    }
+
+    public void updateProperties(com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType objectProperties) {
         boolean updateLastModified = false;
         boolean updateState = false;
         boolean updateCreated = false;
@@ -246,15 +304,24 @@ public class AkubraStorage {
         properties.add(property);
     }
 
-    public void indexDocument(String pid) throws IOException, DigitalObjectException {
+    public void indexDocument(String pid, String modelId) throws IOException, DigitalObjectException {
         AkubraObject aObject = find(pid);
         DigitalObject dObject = this.manager.readObjectFromStorage(pid);
-        this.feeder.feedDescriptionDocument(dObject, aObject, true);
+        if (DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId)) {
+            this.feeder.feedDescriptionDevice(dObject, aObject, true);
+        } else {
+            this.feeder.feedDescriptionDocument(dObject, aObject, true);
+        }
+    }
+
+    public void indexDocument(FedoraObject object) throws IOException, DigitalObjectException {
+        indexDocument(object.getPid(), object.getModel());
     }
 
     public static final class AkubraObject extends AbstractFedoraObject {
 
         private String label;
+        private String modelId;
         private AkubraDOManager manager;
         private SolrFeeder feeder;
 
@@ -281,23 +348,38 @@ public class AkubraStorage {
         }
 
         @Override
+        public void setModel(String modelId) {
+            this.modelId = modelId;
+        }
+
+        @Override
+        public String getModel() {
+            return this.modelId;
+        }
+
+        @Override
         public void flush() throws DigitalObjectException {
             super.flush();
             try {
+                DigitalObject object = this.manager.readObjectFromStorage(getPid());
                 if (label != null) {
-                    DigitalObject object = this.manager.readObjectFromStorage(getPid());
                     object = updateLabel(object, label);
-                    object = updateModifiedDate(object);
-                    if (object == null) {
-                        throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
+                }
+                object = updateModifiedDate(object);
+                if (object == null) {
+                    throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
+                } else {
+                    InputStream inputStream = this.manager.marshallObject(object);
+                    this.manager.addOrReplaceObject(object.getPID(), inputStream);
+                    //this.manager.commit(object, null);
+                    if (DeviceRepository.METAMODEL_ID.equals(this.modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(this.modelId)) {
+                        this.feeder.feedDescriptionDevice(object, this, true);
                     } else {
-                        InputStream inputStream = this.manager.marshallObject(object);
-                        this.manager.addOrReplaceObject(object.getPID(), inputStream);
-                        //this.manager.commit(object, null);
                         this.feeder.feedDescriptionDocument(object, this, true);
                     }
                 }
-            } catch (Exception ex) {
+            } catch (
+                    Exception ex) {
                 throw new DigitalObjectException(getPid(), ex);
             }
         }
@@ -366,6 +448,7 @@ public class AkubraStorage {
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
                     this.feeder.feedDescriptionDocument(object, this, true);
+                    this.feeder.commit();
 
                 }
             } catch (Exception ex) {
@@ -385,6 +468,7 @@ public class AkubraStorage {
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
                     this.feeder.feedDescriptionDocument(object, this, true);
+                    this.feeder.commit();
                 }
             } catch (Exception ex) {
                 throw new DigitalObjectException(getPid(), ex);
@@ -395,6 +479,7 @@ public class AkubraStorage {
             try {
                 this.manager.deleteObject(getPid(), true);
                 this.feeder.deleteByPid(getPid());
+                this.feeder.commit();
             } catch (IOException | SolrServerException ex) {
                 throw new DigitalObjectException(getPid(), ex);
             }
@@ -439,7 +524,7 @@ public class AkubraStorage {
             }
         }
 
-        private List<DatastreamProfile> getDatastreamProfiles() throws DigitalObjectException {
+        public List<DatastreamProfile> getDatastreamProfiles() throws DigitalObjectException {
             try {
                 DigitalObject object = this.manager.readObjectFromStorage(getPid());
                 return AkubraUtils.createDatastremProfiles(object);
@@ -480,6 +565,9 @@ public class AkubraStorage {
             this.manager = object.getManager();
             this.solrFeeder = object.getFeeder();
             defaultProfile.setPid(object.getPid());
+            if (defaultProfile.getDsCreateDate() == null) {
+                defaultProfile.setDsCreateDate(AkubraUtils.createDate());
+            }
             this.defaultProfile = defaultProfile;
             this.dsId = defaultProfile.getDsID();
         }
@@ -489,6 +577,9 @@ public class AkubraStorage {
             this.manager = object.getManager();
             this.solrFeeder = object.getFeeder();
             this.dsId = dsId;
+            if (defaultProfile.getDsCreateDate() == null) {
+                defaultProfile.setDsCreateDate(AkubraUtils.createDate());
+            }
             this.defaultProfile = defaultProfile;
         }
 
@@ -586,7 +677,7 @@ public class AkubraStorage {
 
         @Override
         public EditorResult createResult() {
-            if (ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId)) {
+            if (ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId) || RelationEditor.DATASTREAM_ID.equals(dsId)) {
                 return new EditorDomResult();
             }
             return new EditorStreamResult();
@@ -613,7 +704,7 @@ public class AkubraStorage {
                 logMessage = null;
                 newProfile = null;
                 DigitalObject digitalObject = this.manager.readObjectFromStorage(this.object.getPid());
-                if (!(ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId))) {
+                if (!(ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId) || DeviceRepository.DESCRIPTION_DS_ID.equals(dsId) || DeviceRepository.AUDIODESCRIPTION_DS_ID.equals(dsId))) {
                     this.solrFeeder.feedDescriptionDocument(digitalObject, this.object, true);
                 }
                 profile = AkubraUtils.createDatastremProfile(digitalObject, dsId);
@@ -665,7 +756,7 @@ public class AkubraStorage {
             //this.manager.commit(object, profile.getDsID());
         }
 
-        private DatastreamType modifyDatastream(DatastreamType datastreamType, DatastreamProfile profile) throws IOException, DigitalObjectException, ParserConfigurationException, SAXException {
+        private DatastreamType modifyDatastream(DatastreamType datastreamType, DatastreamProfile profile) throws IOException, DigitalObjectException, ParserConfigurationException, SAXException, LowlevelStorageException {
             datastreamType.setCONTROLGROUP(profile.getDsControlGroup());
             datastreamType.setID(profile.getDsID());
 
@@ -678,9 +769,7 @@ public class AkubraStorage {
             datastreamVersionType.setID(profile.getDsVersionID());
             datastreamVersionType.setLABEL(profile.getDsLabel());
             try {
-                if (datastreamVersionType.getCREATED() == null) {
-                    datastreamVersionType.setCREATED(toXmlGregorian(new Date(this.lastModified)));
-                }
+                datastreamVersionType.setCREATED(toXmlGregorian(new Date()));
             } catch (DatatypeConfigurationException ex) {
                 throw new DigitalObjectException(this.object.getPid(), toLogString(), ex);
             }
@@ -692,7 +781,14 @@ public class AkubraStorage {
                 if (controlGroup == FoxmlUtils.ControlGroup.INLINE) {
                     datastreamVersionType.setXmlContent(data.asXmlContent());
                 } else if (controlGroup == FoxmlUtils.ControlGroup.MANAGED) {
-                    datastreamVersionType.setBinaryContent(IOUtils.toByteArray(this.data.asInputStream()));
+//                    datastreamVersionType.setBinaryContent(IOUtils.toByteArray(this.data.asInputStream()));
+                    String ref = object.getPid() + "+" + datastreamType.getID() + "+" + datastreamVersionType.getID();
+                    this.manager.addOrReplaceDatastream(ref, new ByteArrayInputStream(IOUtils.toByteArray(this.data.asInputStream())));
+                    datastreamVersionType.setBinaryContent(null);
+                    ContentLocationType contentLocationType = new ContentLocationType();
+                    contentLocationType.setTYPE("INTERNAL_ID");
+                    contentLocationType.setREF(ref);
+                    datastreamVersionType.setContentLocation(contentLocationType);
                 } else if (controlGroup == FoxmlUtils.ControlGroup.EXTERNAL) {
                     ContentLocationType contentLocation = new ContentLocationType();
                     datastreamVersionType.setContentLocation(contentLocation);
@@ -705,7 +801,7 @@ public class AkubraStorage {
             return datastreamType;
         }
 
-        private DatastreamType createNewDatastream(DatastreamProfile profile) throws IOException, ParserConfigurationException, SAXException {
+        private DatastreamType createNewDatastream(DatastreamProfile profile) throws IOException, ParserConfigurationException, SAXException, LowlevelStorageException {
             DatastreamType datastreamType = new DatastreamType();
             datastreamType.setCONTROLGROUP(profile.getDsControlGroup());
             datastreamType.setID(profile.getDsID());
@@ -726,7 +822,14 @@ public class AkubraStorage {
                 if (controlGroup == FoxmlUtils.ControlGroup.INLINE) {
                     datastreamVersionType.setXmlContent(data.asXmlContent());
                 } else if (controlGroup == FoxmlUtils.ControlGroup.MANAGED) {
-                    datastreamVersionType.setBinaryContent(IOUtils.toByteArray(this.data.asInputStream()));
+//                    datastreamVersionType.setBinaryContent(IOUtils.toByteArray(this.data.asInputStream()));
+                    String ref = object.getPid() + "+" + datastreamType.getID() + "+" + datastreamVersionType.getID();
+                    this.manager.addOrReplaceDatastream(ref, new ByteArrayInputStream(IOUtils.toByteArray(this.data.asInputStream())));
+                    datastreamVersionType.setBinaryContent(null);
+                    ContentLocationType contentLocationType = new ContentLocationType();
+                    contentLocationType.setTYPE("INTERNAL_ID");
+                    contentLocationType.setREF(ref);
+                    datastreamVersionType.setContentLocation(contentLocationType);
                 } else if (controlGroup == FoxmlUtils.ControlGroup.EXTERNAL) {
                     ContentLocationType contentLocation = new ContentLocationType();
                     datastreamVersionType.setContentLocation(contentLocation);
@@ -755,13 +858,25 @@ public class AkubraStorage {
                     this.profile = AkubraUtils.createDatastremProfile(digitalObject, dsId);
                     this.missingDataStream = false;
                 } else {
-                    throw new IOException("cannot find pid '" + this.object.getPid() + "'");
+                    lastModified = -1;
+                    if (defaultProfile != null) {
+                        profile = defaultProfile;
+                    } else {
+                        throw new DigitalObjectException("Missing defialt profile for " + this.object.getPid() + "!");
+                    }
                 }
             } catch (IOException ex) {
-//                profile = defaultProfile;
-//                profile = normalizeProfile(profile);
-//                missingDataStream = false;
-                throw new DigitalObjectException(object.getPid(), toLogString(), ex);
+                if (FoxmlUtils.missingDatastream(ex)) {
+                    lastModified = -1;
+                    this.missingDataStream = true;
+                    if (defaultProfile != null) {
+                        profile = defaultProfile;
+                    } else {
+                        throw new DigitalObjectException("Missing defialt profile for " + this.object.getPid() + "!");
+                    }
+                } else {
+                    throw new DigitalObjectException(object.getPid(), toLogString(), ex);
+                }
             }
         }
 
@@ -783,7 +898,7 @@ public class AkubraStorage {
                 for (DatastreamType datastreamType : object.getDatastream()) {
                     if (dsId.equals(datastreamType.getID())) {
                         if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty() &&
-                        datastreamType.getDatastreamVersion().get(0) != null) {
+                                datastreamType.getDatastreamVersion().get(0) != null) {
                             DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
                             if (datastreamVersionType.getXmlContent() != null && datastreamVersionType.getXmlContent().getAny() != null && !datastreamVersionType.getXmlContent().getAny().isEmpty()) {
                                 Element node = datastreamVersionType.getXmlContent().getAny().get(0);
@@ -811,6 +926,7 @@ public class AkubraStorage {
                                         InputStream inputStream = this.manager.retrieveDatastream(ref);
                                         if (inputStream != null) {
                                             this.data = new AkubraXmlStreamEditor.DatastreamContent(IOUtils.toByteArray(inputStream));
+                                            inputStream.close();
                                             break;
                                         }
                                     }

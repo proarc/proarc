@@ -37,6 +37,7 @@ public class SolrUtils {
     public static final String FIELD_PAGE_INDEX = "pageIndex";
     public static final String FIELD_PAGE_NUMBER = "pageNumber";
     public static final String FIELD_PAGE_TYPE = "pageType";
+    public static final String FIELD_FULLTEXT = "fulltext";
 
     public static final String PROPERTY_STATE_ACTIVE = "Active";
     public static final String PROPERTY_STATE_DEACTIVE = "Deactive";
@@ -106,6 +107,9 @@ public class SolrUtils {
         queryBuilder.append(key).append(":(");
         boolean isFirst = true;
         for (String value : list) {
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
             if (isFirst) {
                 isFirst = false;
                 queryBuilder.append("\"" + value + "\"");
