@@ -119,6 +119,7 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_ITEM_PAGE_NUMBER = "pageNumber";
     public static final String MEMBERS_ITEM_PAGE_TYPE = "pageType";
     public static final String MEMBERS_ITEM_PAGE_INDEX = "pageIndex";
+    public static final String MEMBERS_ITEM_PAGE_POSITION = "pagePosition";
 
     public static final String ITEM_VALIDATION = "validation";
 

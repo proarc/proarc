@@ -37,6 +37,7 @@ public class SolrUtils {
     public static final String FIELD_PAGE_INDEX = "pageIndex";
     public static final String FIELD_PAGE_NUMBER = "pageNumber";
     public static final String FIELD_PAGE_TYPE = "pageType";
+    public static final String FIELD_PAGE_POSITION = "pagePosition";
     public static final String FIELD_FULLTEXT = "fulltext";
 
     public static final String PROPERTY_STATE_ACTIVE = "Active";
@@ -148,6 +149,7 @@ public class SolrUtils {
             item.setPageIndex(getString(solrDocument, FIELD_PAGE_INDEX));
             item.setPageNumber(getString(solrDocument, FIELD_PAGE_NUMBER));
             item.setPageType(getString(solrDocument, FIELD_PAGE_TYPE));
+            item.setPagePosition(getString(solrDocument, FIELD_PAGE_POSITION));
         } else if (isAudioPage(item.getModel())) {
             item.setPageIndex(getString(solrDocument, FIELD_PAGE_INDEX));
         }

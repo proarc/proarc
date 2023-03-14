@@ -16,11 +16,14 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
@@ -31,7 +34,7 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
@@ -402,6 +405,15 @@ public class NdkNewPageMapper extends NdkMapper {
     public String getType(ModsDefinition mods) {
         for (PartDefinition part : mods.getPart()) {
             return part.getType();
+        }
+        return null;
+    }
+
+    public String getPosition(ModsDefinition mods) {
+        for (NoteDefinition note : mods.getNote()) {
+            if (ModsConstants.VALUE_PAGE_NOTE_LEFT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_RIGHT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_SINGLE_PAGE.equals(note.getValue())) {
+                return note.getValue();
+            }
         }
         return null;
     }

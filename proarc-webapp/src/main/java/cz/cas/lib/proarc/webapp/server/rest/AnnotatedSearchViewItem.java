@@ -128,4 +128,8 @@ public abstract class AnnotatedSearchViewItem extends SearchViewItem {
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PAGE_TYPE)
     @Override
     public abstract String getPageType();
+
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PAGE_POSITION)
+    @Override
+    public abstract String getPagePosition();
 }

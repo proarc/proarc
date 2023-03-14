@@ -27,5 +27,7 @@ public class ApplicationResourceApi {
     public static final String REVISION = "revision";
     public static final String TIMESTAMP = "timestamp";
     public static final String VERSION = "version";
+    public static final String STORAGE = "storage";
+    public static final String DATABASE = "database";
     public static final String RDFLOW_VERSION = "rdflowVersion";
 }
