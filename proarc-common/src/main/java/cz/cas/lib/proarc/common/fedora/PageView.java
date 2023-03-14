@@ -52,7 +52,7 @@ public final class PageView {
                 // issue 245: it is unsafe to touch FOXML file if the object
                 // has not been loaded yet or it is broken
                 result.add(new Item(batchId, imp.getItem().getFile(), imp.getPid(),
-                        null, null, null, null, -1, null, null));
+                        null, null, null, null, null, -1, null, null));
                 continue;
             }
             result.add(createItem(imp, locale));
@@ -72,7 +72,7 @@ public final class PageView {
         String model = relsExt.getModel();
         String filename = relsExt.getImportFile();
         Item item = new Item(batchId, filename, imp.getPid(),
-                model, null, null, null,
+                model, null, null, null, null,
                 metadata.getTimestamp(), local.getOwner(), local.getLabel());
 
         if (metadataHandler instanceof PageViewHandler) {
@@ -90,6 +90,7 @@ public final class PageView {
         item.pageNumber = pvItem.getPageNumber();
         item.pageType = pvItem.getPageType();
         item.pageTypeLabel = pvItem.getPageTypeLabel();
+        item.pagePosition = pvItem.getPagePosition();
         return item;
     }
     /**
@@ -132,6 +133,7 @@ public final class PageView {
         private String pageIndex;
         private String pageNumber;
         private String pageType;
+        private String pagePosition;
         private String pageTypeLabel;
 
         public String getPageIndex() {
@@ -165,6 +167,14 @@ public final class PageView {
         public void setPageTypeLabel(String pageTypeLabel) {
             this.pageTypeLabel = pageTypeLabel;
         }
+
+        public String getPagePosition() {
+            return pagePosition;
+        }
+
+        public void setPagePosition(String pagePosition) {
+            this.pagePosition = pagePosition;
+        }
     }
 
     public static class Item {
@@ -177,12 +187,13 @@ public final class PageView {
         private String pageNumber;
         private String pageType;
         private String pageTypeLabel;
+        private String pagePosition;
         private long timestamp;
         private String user;
         private String label;
 
         public Item(Integer batchId, String filename, String pid, String model,
-                String pageIndex, String pageNumber, String pageType,
+                String pageIndex, String pageNumber, String pageType, String pagePosition,
                 long timestamp, String user, String label) {
             this.batchId = batchId;
             this.filename = filename;
@@ -191,6 +202,7 @@ public final class PageView {
             this.pageIndex = pageIndex;
             this.pageNumber = pageNumber;
             this.pageType = pageType;
+            this.pagePosition = pagePosition;
             this.timestamp = timestamp;
             this.user = user;
             this.label = label;
@@ -243,6 +255,9 @@ public final class PageView {
             return label;
         }
 
+        public String getPagePosition() {
+            return pagePosition;
+        }
     }
 
 }

@@ -41,6 +41,7 @@ import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_ORGANIZATIO
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_OWNER;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PAGE_INDEX;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PAGE_NUMBER;
+import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PAGE_POSITION;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PAGE_TYPE;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_PID;
 import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.FIELD_SOURCE;
@@ -77,6 +78,7 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         String pageIndex = ExportUtils.getPageIndexAsString(mods);
         String pageType = ExportUtils.getPageType(mods);
         String pageNumber = ExportUtils.getPageNumber(mods);
+        String pagePosition = ExportUtils.getPagePosition(mods);
 
         Boolean isLocked = relationEditor.isLocked();
 
@@ -85,7 +87,7 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         try {
             feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
                     ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members,
-                    pageIndex, pageType, pageNumber);
+                    pageIndex, pageType, pageNumber, pagePosition);
             if (commit) {
                 commit();
             }
@@ -102,7 +104,7 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         return modsStreamEditor.read();
     }
 
-    private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user, String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex, String pageType, String pageNumber) throws SolrServerException, IOException {
+    private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user, String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex, String pageType, String pageNumber, String pagePosition) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -125,6 +127,7 @@ public class SolrFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_PAGE_INDEX, pageIndex);
         sdoc.addField(FIELD_PAGE_NUMBER, pageNumber);
         sdoc.addField(FIELD_PAGE_TYPE, pageType);
+        sdoc.addField(FIELD_PAGE_POSITION, pagePosition);
 
         return feedDescriptionDocument(sdoc);
     }
