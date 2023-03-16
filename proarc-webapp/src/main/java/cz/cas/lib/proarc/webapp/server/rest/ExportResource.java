@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.KwisExport;
+import cz.cas.lib.proarc.common.export.AcceptedExports;
 import cz.cas.lib.proarc.common.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.bagit.BagitExport;
@@ -73,6 +74,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import java.io.Closeable;
 import java.io.File;
@@ -88,8 +90,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -168,6 +172,27 @@ public class ExportResource {
         this.batchManager = ImportBatchManager.getInstance();
         user = session.getUser();
     }
+
+    @GET
+    @Path(ExportResourceApi.VALID_EXPORTS_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<List<String>> validExports(
+            @QueryParam(ExportResourceApi.VALUD_EXPORTS_MODEL_PARAM) String modelId
+    ) {
+
+        Set<String> models = MetaModelRepository.getInstance().find()
+                .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
+
+        if (modelId == null || !models.contains(modelId)) {
+            throw RestException.plainBadRequest(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
+        }
+
+        AcceptedExports ae = new AcceptedExports(modelId);
+        List<String> validExportItems = ae.getList();
+
+        return new SmartGwtResponse<List<String>>(validExportItems);
+    }
+
 
     @POST
     @Path(ExportResourceApi.REEXPORT_PATH)
