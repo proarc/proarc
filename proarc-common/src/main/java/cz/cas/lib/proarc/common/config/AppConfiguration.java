@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.object.ndk.ModsRules;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
@@ -221,6 +222,10 @@ public final class AppConfiguration {
 
     public String getRules() {
         return RdaRules.getOptions(config).getRules();
+    }
+
+    public ModsRules getModsOptions() {
+        return ModsRules.getOptions(config);
     }
 
     public ExportOptions getExportOptions() {
