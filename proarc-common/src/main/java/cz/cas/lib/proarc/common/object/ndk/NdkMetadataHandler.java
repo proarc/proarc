@@ -699,7 +699,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         RdaRules rdaRules = new RdaRules(modelId, mods, ex);
         rdaRules.check();
 
-        ModsRules modsRules = new ModsRules(modelId, mods, ex, context);
+        ModsRules modsRules = new ModsRules(modelId, mods, ex, context, appConfiguration);
         modsRules.check();
 
         if (!ex.getValidations().isEmpty()) {
