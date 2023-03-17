@@ -122,6 +122,7 @@ import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
 
 /**
  * REST resource to export data from the system.
@@ -281,6 +282,10 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
+        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+        if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.getImportToProdFunction()) {
+                throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
+        }
         BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS, params);
         try {
@@ -330,13 +335,28 @@ public class ExportResource {
     public SmartGwtResponse<KrameriusDescriptor> krameriusInstances(
             @QueryParam(ExportResourceApi.KRAMERIUS_INSTANCE_ID) String id) {
 
-        List<KrameriusOptions.KrameriusInstance> krameriusInstances;
+        List<KrameriusOptions.KrameriusInstance> tmpKrameriusInstances;
         if (id == null) {
-            krameriusInstances = appConfig.getKrameriusOptions().getKrameriusInstances();
+            tmpKrameriusInstances = appConfig.getKrameriusOptions().getKrameriusInstances();
         } else {
             List<KrameriusOptions.KrameriusInstance> listOfInstances = appConfig.getKrameriusOptions().getKrameriusInstances();
             KrameriusOptions.KrameriusInstance krameriusInstance = KrameriusOptions.findKrameriusInstance(listOfInstances, id);
-            krameriusInstances = krameriusInstance != null ? Arrays.asList(krameriusInstance) : Collections.<KrameriusOptions.KrameriusInstance>emptyList();
+            tmpKrameriusInstances = krameriusInstance != null ? Arrays.asList(krameriusInstance) : Collections.<KrameriusOptions.KrameriusInstance>emptyList();
+        }
+        List<KrameriusOptions.KrameriusInstance> krameriusInstances;
+        if (user.getImportToProdFunction()) {
+            krameriusInstances = new ArrayList<>(tmpKrameriusInstances);
+        } else {
+            krameriusInstances = new ArrayList<>();
+            for (KrameriusOptions.KrameriusInstance instance : tmpKrameriusInstances) {
+                if (KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId())) {
+                    krameriusInstances.add(instance);
+                } else {
+                    if (instance.isTestType()) {
+                        krameriusInstances.add(instance);
+                    }
+                }
+            }
         }
         ArrayList<KrameriusDescriptor> result = new ArrayList<>(krameriusInstances.size());
         for (KrameriusOptions.KrameriusInstance kc : krameriusInstances) {

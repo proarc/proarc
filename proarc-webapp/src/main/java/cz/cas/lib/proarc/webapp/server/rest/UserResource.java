@@ -134,7 +134,8 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction,
             @FormParam(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION) Boolean updateModelFunction,
             @FormParam(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION) Boolean lockObjectFuction,
-            @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction
+            @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
+            @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction
             ) {
 
         checkAccess(session.getUser(), UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, Permissions.USERS_CREATE);
@@ -161,6 +162,7 @@ public final class UserResource {
         newProfile.setUpdateModelFunction(updateModelFunction);
         newProfile.setLockObjectFunction(lockObjectFuction);
         newProfile.setUnlockObjectFunction(unlockObjectFuction);
+        newProfile.setImportToProdFunction(importToProdFunction);
         newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
                 session.getUser().getUserName(), session.asFedoraLog());
         return new SmartGwtResponse<UserProfile>(newProfile);
@@ -179,7 +181,8 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction,
             @FormParam(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION) Boolean updateModelFunction,
             @FormParam(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION) Boolean lockObjectFuction,
-            @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction
+            @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
+            @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction
             ) {
 
         UserProfile sessionUser = session.getUser();
@@ -210,6 +213,7 @@ public final class UserResource {
             update.setUpdateModelFunction(updateModelFunction);
             update.setLockObjectFunction(lockObjectFuction);
             update.setUnlockObjectFunction(unlockObjectFuction);
+            update.setImportToProdFunction(importToProdFunction);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.USER_SURNAME, "Required!").build();

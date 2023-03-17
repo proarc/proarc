@@ -14,6 +14,7 @@ public class UserRole {
     public static final String PERMISSION_RUN_UPDATE_MODEL_FUNCTION = "runUpdateObjectsFunction";
     public static final String PERMISSION_RUN_LOCK_OBJECT_FUNCTION = "runLockObjectFunction";
     public static final String PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION = "runUnlockObjectFunction";
+    public static final String PERMISSION_IMPORT_TO_PROD_FUNCTION = "importToProdFunction";
 
     public static LinkedHashMap<String, String> getMap() {
         LinkedHashMap<String, String> valueMap = new LinkedHashMap();
