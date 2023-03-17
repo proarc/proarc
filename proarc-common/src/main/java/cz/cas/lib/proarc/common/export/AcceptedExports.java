@@ -39,6 +39,8 @@ import java.util.Set;
  */
 public class AcceptedExports {
 
+    private final String BAGIT_SUFFIX = "_bagit";
+
     private List<String> ALL_MODELS = Arrays.asList(
             // pages//
             NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE, NdkAudioPlugin.MODEL_PAGE,
@@ -143,9 +145,11 @@ public class AcceptedExports {
         List<String> acceptedItems = new ArrayList<>();
         if (EXPORT_ARCHIVE_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_ARCHIVE);
+            acceptedItems.add(EXPORT_ARCHIVE + BAGIT_SUFFIX);
         }
         if (EXPORT_ARCHIVE_STT_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_ARCHIVE_STT);
+            acceptedItems.add(EXPORT_ARCHIVE_STT + BAGIT_SUFFIX);
         }
         if (EXPORT_KRAMERIUS_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_KRAMERIUS);
@@ -155,12 +159,15 @@ public class AcceptedExports {
         }
         if (EXPORT_NDK_PSP_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_PSP);
+            acceptedItems.add(EXPORT_NDK_PSP + BAGIT_SUFFIX);
         }
         if (EXPORT_NDK_OLDPRINT_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_OLDPRINT);
+            acceptedItems.add(EXPORT_NDK_OLDPRINT + BAGIT_SUFFIX);
         }
         if (EXPORT_NDK_SIP_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_SIP);
+            acceptedItems.add(EXPORT_NDK_SIP + BAGIT_SUFFIX);
         }
         if (EXPORT_NDK_CHRONICLE_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_CHRONICLE);
