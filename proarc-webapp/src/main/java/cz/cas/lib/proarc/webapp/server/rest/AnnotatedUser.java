@@ -116,6 +116,10 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract Boolean getUnlockObjectFunction();
 
+    @XmlElement(name = UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION)
+    @Override
+    public abstract Boolean getImportToProdFunction();
+
     @XmlTransient
     @Override
     public abstract URI getImportFolder();

@@ -461,6 +461,9 @@ public class KrameriusResource {
         if (instance == null) {
             return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unknown_Value", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
+        if (!instance.isTestType() && !user.getImportToProdFunction()) {
+            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_No_Permission", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
 
         KDataHandler dataHandler = new KDataHandler(appConfig);
         try {
