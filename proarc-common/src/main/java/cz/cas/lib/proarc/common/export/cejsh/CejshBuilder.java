@@ -67,10 +67,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.Zip4jConstants;
 import org.apache.commons.io.Charsets;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -78,6 +74,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.util.Zip4jConstants;
 
 /**
  * Builds the cejsh package of articles.
@@ -114,6 +114,7 @@ class CejshBuilder {
     private final XPathExpression partNumberPath;
     private final XPathExpression dateIssuedPath;
     private final XPathExpression reviewedArticlePath;
+    private final XPathExpression englishArticlePath;
     private final GregorianCalendar gcalendar;
     private Title title;
     private Volume volume;
@@ -147,6 +148,7 @@ class CejshBuilder {
         partNumberPath = xpath.compile("m:mods/m:titleInfo/m:partNumber");
         dateIssuedPath = xpath.compile("m:mods/m:originInfo/m:dateIssued");
         reviewedArticlePath = xpath.compile("m:mods/m:genre[text()='article' and @type='peer-reviewed']");
+        englishArticlePath = xpath.compile("m:mods/m:abstract[@lang='eng']");
     }
 
     public XPathExpression getDateIssuedPath() {
@@ -165,6 +167,10 @@ class CejshBuilder {
         return reviewedArticlePath;
     }
 
+    public XPathExpression getEnglishArticlePath() {
+        return englishArticlePath;
+    }
+
     public Article addArticle(DigitalObjectElement article, CejshContext p) {
         Document articleDom = getModsDom(article, p);
         return addArticle(articleDom, article, p);
@@ -180,6 +186,11 @@ class CejshBuilder {
             if (!(isReviewed instanceof Boolean) || !((Boolean) isReviewed)) {
                 LOG.log(logLevel, "Skipped not reviewed article: {0}", article.getPid());
                 return new Article().setReviewed(false);
+            }
+            Object hasEnglishAbstract = getEnglishArticlePath().evaluate(articleDom, XPathConstants.BOOLEAN);
+            if (!(hasEnglishAbstract instanceof Boolean) || !((Boolean) hasEnglishAbstract)) {
+                LOG.log(logLevel, "Skipped article has not english abstract", article.getPid());
+                return new Article().setEnglishAbstract(false);
             }
         } catch (XPathExpressionException ex) {
             p.getStatus().error(article, "Unexpected error!", null, ex);
@@ -197,7 +208,7 @@ class CejshBuilder {
             // XXX check mods vs modsCollection?
             Element modsElement = articleDom.getDocumentElement();
             return new Article(article, modsElement, articleIssn)
-                    .setReviewed(true);
+                    .setReviewed(true).setEnglishAbstract(true);
         } catch (Exception ex) {
             p.getStatus().error(article, "Unexpected error!", null, ex);
         }
@@ -652,6 +663,7 @@ class CejshBuilder {
         private DigitalObjectElement article;
         private String issn;
         private boolean reviewed;
+        private boolean hasEnglishAbstract;
 
         public Article() {
         }
@@ -688,6 +700,15 @@ class CejshBuilder {
 
         public Article setReviewed(boolean reviewed) {
             this.reviewed = reviewed;
+            return this;
+        }
+
+        public boolean hasEnglishAbstract() {
+            return hasEnglishAbstract;
+        }
+
+        public Article setEnglishAbstract(boolean hasEnglishAbstract) {
+            this.hasEnglishAbstract = hasEnglishAbstract;
             return this;
         }
 
