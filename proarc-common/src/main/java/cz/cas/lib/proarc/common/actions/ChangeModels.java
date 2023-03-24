@@ -197,6 +197,8 @@ public class ChangeModels {
             case NdkPlugin.MODEL_MONOGRAPHVOLUME:
             case NdkPlugin.MODEL_PICTURE:
             case NdkPlugin.MODEL_SHEETMUSIC:
+            case OldPrintPlugin.MODEL_GRAPHICS:
+            case OldPrintPlugin.MODEL_SHEETMUSIC:
                 // no metadata change needed
                 break;
             default:

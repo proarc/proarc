@@ -297,6 +297,8 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET = "changeOldPrintMusicSheetToNdkMusicSheet";
     public static final String CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT = "changeNdkMonographSupplementToOldPrintMonographSupplement";
     public static final String CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT = "changeOldPrintMonographSupplementToNdkMonographSupplement";
+    public static final String CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC = "changeOldPrintMonographVolumeToOldPrintGraphic";
+    public static final String CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET = "changeOldPrintMonographVolumeToOldPrintMusicSheet";
 
 
     public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
