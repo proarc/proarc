@@ -336,15 +336,6 @@ public class DigitalObjectResource {
         }
     }
 
-    @DELETE
-    @Consumes({MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> deleteObject(
-            ProArcRequest.DeleteObjectRequest deleteObjectRequest
-    ) throws PurgeException, IOException {
-        return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
-    }
-
     /**
      * @see PurgeFedoraObject
      */
@@ -426,6 +417,15 @@ public class DigitalObjectResource {
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
         }
+    }
+
+    @DELETE
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DigitalObject> deleteObject(
+            ProArcRequest.DeleteObjectRequest deleteObjectRequest
+    ) throws PurgeException, IOException {
+        return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
     }
 
     public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
