@@ -259,11 +259,11 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 
 ### LOGIN
-POST {{proarcCroUrl}}/proarclogin
+POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwdCro}}
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### Archive Export s Bagit
 POST {{proarcLocalHostUrl}}/rest/v1/export/archive
@@ -289,13 +289,13 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 
 ### LOGIN
-POST {{proarcRemoteUrl}}/proarclogin
+POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### GET VALID EXPORTS
-GET {{proarcRemoteUrl}}/rest/v1/export/validExports?model=model:oldprintvolume
+GET {{proarcLocalHostUrl}}/rest/v1/export/validExports?model=model:oldprintvolume
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
