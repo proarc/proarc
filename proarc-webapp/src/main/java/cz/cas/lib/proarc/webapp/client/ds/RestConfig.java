@@ -133,6 +133,8 @@ public final class RestConfig {
     public static final String URl_CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH);
     public static final String URl_CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT);
     public static final String URl_CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT);
+    public static final String URL_CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET);
+    public static final String URL_CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC);
     public static final String URL_UPDATE_NDK_ARTICLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_ARTICLE);
     public static final String URL_UPDATE_NDK_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_PAGE);
     public static final String URL_LOCALIZATION = path(URL_ROOT, LocalizationResourceApi.PATH);

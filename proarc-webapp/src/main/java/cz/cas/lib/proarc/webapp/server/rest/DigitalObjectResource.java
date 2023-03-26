@@ -3383,6 +3383,72 @@ public class DigitalObjectResource {
         return new SmartGwtResponse<>();
     }
 
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintGraphic(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
+        if (pids == null || pids.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_GRAPHICS);
+            changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_VOLUME);
+                throw result.getEx();
+            }
+        }
+        return new SmartGwtResponse<>();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintMusicSheet(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
+        if (pids == null || pids.isEmpty()) {
+            return new SmartGwtResponse<>();
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SHEETMUSIC);
+            changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_VOLUME);
+                throw result.getEx();
+            }
+        }
+        return new SmartGwtResponse<>();
+    }
+
 
     @PUT
     @Path(DigitalObjectResourceApi.REINDEX_PATH)
