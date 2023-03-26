@@ -120,20 +120,17 @@ public class AcceptedExports {
     private final String EXPORT_DATASTREAM_NDKUSER = "datastream_ndkUser";
     private final Set<String> EXPORT_DATASTREAM_NDKUSER_MODELS = new HashSet<>(ALL_MODELS);
 
-    private final String EXPORT_CEJSH = "cesjh";
+    private final String EXPORT_CEJSH = "cejsh";
     private final Set<String> EXPORT_CEJSH_MODELS = new HashSet<>(Arrays.asList(
             NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
-            NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_CARTOGRAPHIC,
-            NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
-            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL,
             NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE));
 
-    private final String EXPORT_CROSSREFF = "crossreff";
+    private final String EXPORT_CROSSREFF = "crossref";
     private final Set<String> EXPORT_CROSSREFF_MODELS = new HashSet<>(Arrays.asList(
             NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL,
-            NdkEbornPlugin.MODEL_EARTICLE));
+            NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE));
 
     private String modelId;
 
