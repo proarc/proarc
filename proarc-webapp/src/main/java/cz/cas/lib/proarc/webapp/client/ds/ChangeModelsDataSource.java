@@ -143,4 +143,12 @@ public class ChangeModelsDataSource extends ProarcDataSource {
     public static ChangeModelsDataSource changeOldPrintMonographSupplementToNdkMonographSupplement() {
         return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT);
     }
+
+    public static ChangeModelsDataSource changeOldPrintMonographVolumeToOldPrintMusicSheet() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET);
+    }
+
+    public static ChangeModelsDataSource changeOldPrintMonographVolumeToOldPrintGraphic() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC);
+    }
 }

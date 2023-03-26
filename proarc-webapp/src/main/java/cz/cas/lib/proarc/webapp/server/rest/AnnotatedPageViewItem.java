@@ -77,4 +77,8 @@ public abstract class AnnotatedPageViewItem extends Item {
     @Override
     public abstract String getLabel();
 
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PAGE_POSITION)
+    @Override
+    public abstract String getPagePosition();
+
 }

@@ -23,10 +23,12 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import java.io.File;
 import java.io.PrintWriter;
@@ -270,4 +272,15 @@ public final class ExportUtils {
         }
         return null;
     }
+
+    public static String getPagePosition(ModsDefinition mods) {
+        for (NoteDefinition note : mods.getNote()) {
+            if (ModsConstants.VALUE_PAGE_NOTE_LEFT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_RIGHT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_SINGLE_PAGE.equals(note.getValue())) {
+                return note.getValue();
+            }
+        }
+        return null;
+    }
+
+
 }

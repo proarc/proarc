@@ -329,6 +329,8 @@ public class NdkPageMapper extends NdkMapper {
         private String index;
         @XmlElement(name = ModsConstants.FIELD_PAGE_TYPE)
         private String type;
+        @XmlElement(name = ModsConstants.FIELD_PAGE_POSITION)
+        private String posisiton;
         @XmlElement(name = ModsConstants.FIELD_NOTE)
         private String physicalDescription;
         @XmlElement(name = ModsConstants.FIELD_PAGE_TITLE)

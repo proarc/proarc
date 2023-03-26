@@ -56,4 +56,16 @@ public abstract class AnnotatedApplicationInfo extends ApplicationInfo {
     public String getRdflowVersion() {
         return super.getRdflowVersion();
     }
+
+    @XmlElement(name = ApplicationResourceApi.STORAGE)
+    @Override
+    public String getStorage() {
+        return super.getStorage();
+    }
+
+    @XmlElement(name = ApplicationResourceApi.DATABASE)
+    @Override
+    public String getDatabase() {
+        return super.getDatabase();
+    }
 }

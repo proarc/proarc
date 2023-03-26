@@ -43,6 +43,7 @@ public class SearchViewItem {
     private String pageNumber;
     private String pageIndex;
     private String pageType;
+    private String pagePosition;
 
     public SearchViewItem() {
     }
@@ -335,5 +336,13 @@ public class SearchViewItem {
 
     public void setPageType(String pageType) {
         this.pageType = pageType;
+    }
+
+    public String getPagePosition() {
+        return pagePosition;
+    }
+
+    public void setPagePosition(String pagePosition) {
+        this.pagePosition = pagePosition;
     }
 }

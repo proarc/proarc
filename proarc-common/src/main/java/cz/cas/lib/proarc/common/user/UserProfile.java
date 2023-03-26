@@ -50,6 +50,7 @@ public class UserProfile {
     private Boolean updateModelFunction;
     private Boolean lockObjectFunction;
     private Boolean unlockObjectFunction;
+    private Boolean importToProdFunction;
     private Date created;
     private Date lastLogin;
     private String status;
@@ -290,6 +291,14 @@ public class UserProfile {
 
     public void setUnlockObjectFunction(Boolean unlockObjectFunction) {
         this.unlockObjectFunction = unlockObjectFunction;
+    }
+
+    public Boolean getImportToProdFunction() {
+        return Boolean.TRUE.equals(importToProdFunction);
+    }
+
+    public void setImportToProdFunction(Boolean importToProdFunction) {
+        this.importToProdFunction = importToProdFunction;
     }
 
     @Override

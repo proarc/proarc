@@ -49,6 +49,7 @@ public final class UserResourceApi {
     public static final String USER_RUN_UPDATE_MODEL_FUNCTION = "updateModelFunction";
     public static final String USER_RUN_LOCK_OBJECT_FUNCTION = "lockObjectFunction";
     public static final String USER_RUN_UNLOCK_OBJECT_FUNCTION = "unlockObjectFunction";
+    public static final String USER_IMPORT_TO_PROD_FUNCTION = "importToProdFunction";
     public static final String USER_START_ROW_PARAM = "_startRow";
 
 }

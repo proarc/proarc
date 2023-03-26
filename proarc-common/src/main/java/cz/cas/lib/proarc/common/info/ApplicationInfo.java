@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.info;
 
+import com.sun.xml.ws.util.StringUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 
@@ -25,12 +26,16 @@ public class ApplicationInfo {
     String timestamp;
     String revision;
     String rdflowVersion;
+    String storage;
+    String database;
 
     public void initValues(AppConfiguration config) {
         this.version = config.getNdkExportOptions().getVersion();
         this.timestamp = config.getNdkExportOptions().getTimestamp();
         this.revision = config.getNdkExportOptions().getRevision();
         this.rdflowVersion = WorkflowProfiles.getInstance().getProfiles().getVersion();
+        this.storage = StringUtils.capitalize(config.getTypeOfStorage().name().toLowerCase());
+        this.database = "PostgreSQL";
     }
 
     public String getVersion() {
@@ -47,6 +52,14 @@ public class ApplicationInfo {
 
     public String getRdflowVersion() {
         return rdflowVersion;
+    }
+
+    public String getStorage() {
+        return storage;
+    }
+
+    public String getDatabase() {
+        return database;
     }
 
     @Override

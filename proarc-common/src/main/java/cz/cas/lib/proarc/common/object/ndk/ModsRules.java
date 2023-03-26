@@ -16,10 +16,16 @@
  */
 package cz.cas.lib.proarc.common.object.ndk;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.mods.GenreDefinition;
+import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
+import java.util.Arrays;
+import java.util.List;
+import org.apache.commons.configuration.Configuration;
 
 /**
  * Checks Mods rules.
@@ -32,23 +38,45 @@ public class ModsRules {
     private ModsDefinition mods;
     private DigitalObjectValidationException exception;
     private NdkMapper.Context context;
-    private static final String PROP_MODS_RULES = "metadata.mods.rules";
+    private AppConfiguration config;
+
+    private static final String PROP_MODS_PHYSICAL_LOCATION_SIGLA = "metadata.mods.location.physicalLocation.sigla";
+    private List<String> acceptableSiglaId;
 
     private static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE ="Err_Ndk_Supplement_Genre_Type";
+    private static final String ERR_NDK_PHYSICAL_LOCATION_SIGLA ="Err_Ndk_Physical_Location_Sigla";
 
-    ModsRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex, NdkMapper.Context context) {
+    private ModsRules() {}
+
+    public ModsRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex, NdkMapper.Context context, AppConfiguration appConfiguration) {
         this.modelId = modelId;
         this.mods = mods;
         this.exception = ex;
         this.context = context;
+        this.config = appConfiguration;
     }
 
     public void check() throws DigitalObjectValidationException{
         if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             checkGenreType(mods);
         }
+        checkPhysicalLocation(mods);
+
         if (!exception.getValidations().isEmpty()){
             throw exception;
+        }
+    }
+
+    private void checkPhysicalLocation(ModsDefinition mods) {
+        for (LocationDefinition location : mods.getLocation()) {
+            for (PhysicalLocationDefinition physicalLocation : location.getPhysicalLocation()) {
+                if ("siglaADR".equals(physicalLocation.getAuthority())) {
+                    List<String> accepted = config.getModsOptions().getAcceptableSiglaId();
+                    if (!accepted.contains(physicalLocation.getValue())) {
+                        exception.addValidation("MODS rules", ERR_NDK_PHYSICAL_LOCATION_SIGLA, false, physicalLocation.getValue());
+                    }
+                }
+            }
         }
     }
 
@@ -75,5 +103,21 @@ public class ModsRules {
             return "volume_supplement";
         }
         return null;
+    }
+
+    public static ModsRules getOptions(Configuration config) {
+        ModsRules options = new ModsRules();
+
+        String[] modsRules = config.getStringArray(PROP_MODS_PHYSICAL_LOCATION_SIGLA);
+        options.setAcceptableSiglaId(Arrays.asList(modsRules));
+        return options;
+    }
+
+    public List<String> getAcceptableSiglaId() {
+        return acceptableSiglaId;
+    }
+
+    public void setAcceptableSiglaId(List<String> acceptableSiglaId) {
+        this.acceptableSiglaId = acceptableSiglaId;
     }
 }

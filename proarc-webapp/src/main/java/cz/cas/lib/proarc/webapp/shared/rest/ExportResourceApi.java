@@ -29,6 +29,9 @@ public final class ExportResourceApi {
     public static final String REEXPORT_PATH = "reexport";
     public static final String BATCH_ID = "id";
 
+    public static final String VALID_EXPORTS_PATH = "validExports";
+    public static final String VALUD_EXPORTS_MODEL_PARAM = "model";
+
     public static final String ARCHIVE_PATH = "archive";
     public static final String ARCHIVE_PID_PARAM = "pid";
 

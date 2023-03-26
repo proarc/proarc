@@ -222,6 +222,7 @@ public class Editor implements EntryPoint {
                         permissionRunUpdateFunction = data[0].getAttribute(UserDataSource.FIELD_UPDATE_MODEL_FUNCTION);
                         permissionRunLockFunction = data[0].getAttribute(UserDataSource.FIELD_LOCK_OBJECT_FUNCTION);
                         permissionRunUnlockFunction = data[0].getAttribute(UserDataSource.FIELD_UNLOCK_OBJECT_FUNCTION);
+                        permissionRunChangeFunction = data[0].getAttribute(UserDataSource.FIELD_IMPORT_TO_PROD_FUNCTION);
                     }
                     permissions.clear();
                     permissions.add(role);

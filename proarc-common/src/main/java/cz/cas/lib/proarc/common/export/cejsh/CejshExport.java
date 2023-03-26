@@ -260,7 +260,7 @@ public class CejshExport {
                 if (article == null) {
                     // broken package, discard articles and ignore others
                     p.setArticles(null);
-                } else if (article.isReviewed()) {
+                } else if (article.isReviewed() && article.hasEnglishAbstract()) {
                     articles.add(article);
                 }
             }

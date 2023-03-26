@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.export.KwisExport;
+import cz.cas.lib.proarc.common.export.AcceptedExports;
 import cz.cas.lib.proarc.common.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.export.bagit.BagitExport;
@@ -73,6 +74,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import java.io.Closeable;
 import java.io.File;
@@ -88,8 +90,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -118,6 +122,7 @@ import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
 
 /**
  * REST resource to export data from the system.
@@ -168,6 +173,27 @@ public class ExportResource {
         this.batchManager = ImportBatchManager.getInstance();
         user = session.getUser();
     }
+
+    @GET
+    @Path(ExportResourceApi.VALID_EXPORTS_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<List<String>> validExports(
+            @QueryParam(ExportResourceApi.VALUD_EXPORTS_MODEL_PARAM) String modelId
+    ) {
+
+        Set<String> models = MetaModelRepository.getInstance().find()
+                .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
+
+        if (modelId == null || !models.contains(modelId)) {
+            throw RestException.plainBadRequest(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
+        }
+
+        AcceptedExports ae = new AcceptedExports(modelId);
+        List<String> validExportItems = ae.getList();
+
+        return new SmartGwtResponse<List<String>>(validExportItems);
+    }
+
 
     @POST
     @Path(ExportResourceApi.REEXPORT_PATH)
@@ -256,6 +282,10 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
+        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+        if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.getImportToProdFunction()) {
+                throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
+        }
         BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS, params);
         try {
@@ -305,13 +335,28 @@ public class ExportResource {
     public SmartGwtResponse<KrameriusDescriptor> krameriusInstances(
             @QueryParam(ExportResourceApi.KRAMERIUS_INSTANCE_ID) String id) {
 
-        List<KrameriusOptions.KrameriusInstance> krameriusInstances;
+        List<KrameriusOptions.KrameriusInstance> tmpKrameriusInstances;
         if (id == null) {
-            krameriusInstances = appConfig.getKrameriusOptions().getKrameriusInstances();
+            tmpKrameriusInstances = appConfig.getKrameriusOptions().getKrameriusInstances();
         } else {
             List<KrameriusOptions.KrameriusInstance> listOfInstances = appConfig.getKrameriusOptions().getKrameriusInstances();
             KrameriusOptions.KrameriusInstance krameriusInstance = KrameriusOptions.findKrameriusInstance(listOfInstances, id);
-            krameriusInstances = krameriusInstance != null ? Arrays.asList(krameriusInstance) : Collections.<KrameriusOptions.KrameriusInstance>emptyList();
+            tmpKrameriusInstances = krameriusInstance != null ? Arrays.asList(krameriusInstance) : Collections.<KrameriusOptions.KrameriusInstance>emptyList();
+        }
+        List<KrameriusOptions.KrameriusInstance> krameriusInstances;
+        if (user.getImportToProdFunction()) {
+            krameriusInstances = new ArrayList<>(tmpKrameriusInstances);
+        } else {
+            krameriusInstances = new ArrayList<>();
+            for (KrameriusOptions.KrameriusInstance instance : tmpKrameriusInstances) {
+                if (KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId())) {
+                    krameriusInstances.add(instance);
+                } else {
+                    if (instance.isTestType()) {
+                        krameriusInstances.add(instance);
+                    }
+                }
+            }
         }
         ArrayList<KrameriusDescriptor> result = new ArrayList<>(krameriusInstances.size());
         for (KrameriusOptions.KrameriusInstance kc : krameriusInstances) {
@@ -907,6 +952,7 @@ public class ExportResource {
                             bagitExport.zip();
                             bagitExport.moveToBagitFolder();
                             bagitExport.createMd5File();
+                            bagitExport.moveToSpecifiedDirectories();
                             bagitExport.deleteExportFolder();
                         }
                     }

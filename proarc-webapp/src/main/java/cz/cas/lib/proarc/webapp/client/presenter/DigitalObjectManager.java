@@ -54,6 +54,8 @@ import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldpri
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintGraphicToNdkPictureAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintCartographicToNdkCartographicAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToNdkMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToOldPrintGraphicAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToOldPrintMusicSheetAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMusicsheetToNdkMusicsheetAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographSupplementToNdkMonographSupplementAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.indexObjects.IndexAllObjectsAction;
@@ -176,6 +178,8 @@ public final class DigitalObjectManager {
     private ChangeOldprintGraphicToNdkPictureAction changeOldprintGraphicToNdkPictureAction;
     private ChangeOldprintCartographicToNdkCartographicAction changeOldprintMapToNdkMapAction;
     private ChangeOldprintMonographVolumeToNdkMonographVolumeAction changeOldprintMonographToNdkMonographAction;
+    private ChangeOldprintMonographVolumeToOldPrintMusicSheetAction changeOldprintMonographVolumeToOldPrintMusicSheetAction;
+    private ChangeOldprintMonographVolumeToOldPrintGraphicAction changeOldprintMonographVolumeToOldPrintGraphicAction;
     private ChangeOldprintMusicsheetToNdkMusicsheetAction changeOldprintMusicsheetToNdkMusicsheetAction;
     private ChangeOldprintMonographSupplementToNdkMonographSupplementAction changeOldprintSupplementToNdkSupplementAction;
     private UpdateNdkArticleAction updateNdkArticleAction;
@@ -378,6 +382,8 @@ public final class DigitalObjectManager {
         changeOldprintMonographToNdkMonographAction = new ChangeOldprintMonographVolumeToNdkMonographVolumeAction(i18n);
         changeOldprintMusicsheetToNdkMusicsheetAction = new ChangeOldprintMusicsheetToNdkMusicsheetAction(i18n);
         changeOldprintSupplementToNdkSupplementAction = new ChangeOldprintMonographSupplementToNdkMonographSupplementAction(i18n);
+        changeOldprintMonographVolumeToOldPrintGraphicAction = new ChangeOldprintMonographVolumeToOldPrintGraphicAction(i18n);
+        changeOldprintMonographVolumeToOldPrintMusicSheetAction = new ChangeOldprintMonographVolumeToOldPrintMusicSheetAction(i18n);
         updateNdkArticleAction = new UpdateNdkArticleAction(i18n);
         updateNdkPageAction = new UpdateNdkPageAction(i18n);
         expandTreeAction = new TreeExpandAction(
@@ -501,6 +507,8 @@ public final class DigitalObjectManager {
         changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintGraphicToNdkPictureAction, actionSource, false));
         changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintMapToNdkMapAction, actionSource, false));
         changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintMonographToNdkMonographAction, actionSource, false));
+//        changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintMonographVolumeToOldPrintGraphicAction, actionSource, false));
+//        changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintMonographVolumeToOldPrintMusicSheetAction, actionSource, false));
         changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintMusicsheetToNdkMusicsheetAction, actionSource, false));
         changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintSupplementToNdkSupplementAction, actionSource, false));
         changeNdkModels.setSubmenu(changeSttModelsMenu);

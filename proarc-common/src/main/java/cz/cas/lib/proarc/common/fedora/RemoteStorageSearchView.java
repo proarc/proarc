@@ -931,6 +931,7 @@ public final class RemoteStorageSearchView extends SearchView {
                 item.setPageIndex("-1");
                 item.setPageNumber("-1");
                 item.setPageType("-1");
+                item.setPagePosition("-1");
             } else if (isAudioPage(item.getModel())) {
                 item.setPageIndex("-1");
             }
