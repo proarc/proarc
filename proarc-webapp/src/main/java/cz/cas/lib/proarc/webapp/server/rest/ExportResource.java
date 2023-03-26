@@ -952,6 +952,7 @@ public class ExportResource {
                             bagitExport.zip();
                             bagitExport.moveToBagitFolder();
                             bagitExport.createMd5File();
+                            bagitExport.moveToSpecifiedDirectories();
                             bagitExport.deleteExportFolder();
                         }
                     }

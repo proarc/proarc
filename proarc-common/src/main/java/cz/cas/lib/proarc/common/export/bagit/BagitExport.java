@@ -42,14 +42,13 @@ public class BagitExport {
     }
 
     public void zip() throws IOException {
-//        ZipProcess process = new ZipProcess(appConfiguration.getZipExportPostProcessor(), exportFolder, getDestinationFolder(appConfiguration.getZipExportPostProcessor()));
-//        if (process != null) {
-//            process.run();
-//
-//            if (!process.isOk()) {
-//                throw new IOException("Zipping Bagit failed. \n" + process.getFullOutput());
-//            }
-//        }
+//        File newFile = new File(exportFolder, exportFolder.getName());
+//        newFile.createNewFile();
+        File tmpFile = new File(exportFolder.getParentFile(), exportFolder.getName() + "_tmp");
+        tmpFile.mkdir();
+        exportFolder.renameTo(new File(tmpFile, exportFolder.getName()));
+        File file2Zip = new File(tmpFile.getParentFile(), tmpFile.getName().substring(0, tmpFile.getName().length() - 4));
+        tmpFile.renameTo(file2Zip);
         File zipFileName = createZipFile();
         try {
             ZipFile zipFile = new ZipFile(zipFileName);
@@ -58,8 +57,8 @@ public class BagitExport {
             zipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
             zipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
             zipParameters.setIncludeRootFolder(true);
-            zipParameters.setDefaultFolderPath(exportFolder.getAbsolutePath());
-            zipFile.addFiles(listZipFiles(exportFolder), zipParameters);
+            zipParameters.setDefaultFolderPath(file2Zip.getAbsolutePath());
+            zipFile.addFiles(listZipFiles(file2Zip), zipParameters);
         } catch (ZipException e) {
             throw new RuntimeException(e);
         }
@@ -145,5 +144,22 @@ public class BagitExport {
         File newName = new File(this.exportFolder.getParentFile(), "archive_" + this.exportFolder.getName());
         this.exportFolder.renameTo(newName);
         this.exportFolder = newName;
+    }
+
+    public void moveToSpecifiedDirectories() {
+        String bagitExportPath = appConfiguration.getBagitExportPath();
+        if (bagitExportPath == null || bagitExportPath.isEmpty()) {
+            // nikam se nic nepresouva, zustava v puvodnim adresari
+            return;
+        } else {
+            File bagitExportRoot = new File(bagitExportPath);
+            if (!bagitExportRoot.exists()) {
+                bagitExportRoot.mkdir();
+            }
+            for (File bagitFile : bagitFolder.listFiles()) {
+                bagitFile.renameTo(new File(bagitExportRoot, bagitFile.getName()));
+            }
+            MetsUtils.deleteFolder(bagitFolder);
+        }
     }
 }
