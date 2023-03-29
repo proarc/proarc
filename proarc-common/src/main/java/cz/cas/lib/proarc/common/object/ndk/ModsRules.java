@@ -67,7 +67,7 @@ public class ModsRules {
         }
     }
 
-    private void checkPhysicalLocation(ModsDefinition mods) {
+    public void checkPhysicalLocation(ModsDefinition mods) {
         for (LocationDefinition location : mods.getLocation()) {
             for (PhysicalLocationDefinition physicalLocation : location.getPhysicalLocation()) {
                 if ("siglaADR".equals(physicalLocation.getAuthority())) {

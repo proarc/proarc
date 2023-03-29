@@ -683,6 +683,14 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     private void checkBeforeWrite(boolean skipUrnNbnValidation, ModsDefinition mods, ModsDefinition oldMods, boolean ignoreValidations, boolean ignoreConnectedModels, String modelId, Context context) throws DigitalObjectException {
         if (ignoreValidations) {
             checkIdentifiers(skipUrnNbnValidation, mods, oldMods, null);
+
+            DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
+                    DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
+            ModsRules modsRules = new ModsRules(modelId, mods, ex, context, appConfiguration);
+            modsRules.checkPhysicalLocation(mods);
+            if (!ex.getValidations().isEmpty()) {
+                throw ex;
+            }
             return ;
         }
         DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,

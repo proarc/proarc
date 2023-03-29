@@ -423,14 +423,37 @@ public class DigitalObjectResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DigitalObject> deleteObject(
-            ProArcRequest.DeleteObjectRequest deleteObjectRequest
-    ) throws PurgeException, IOException {
-        return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
+            ProArcRequest.DeleteObjectRequest deleteObjectRequest,
+            @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
+            @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
+            @DefaultValue("true") boolean hierarchy,
+            @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
+            @DefaultValue("false") boolean purge,
+            @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
+            @DefaultValue("false") boolean restore) throws PurgeException, IOException {
+        if (deleteObjectRequest == null) {
+            return deleteObject(pids, hierarchy, purge, restore);
+        } else {
+            return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
+        }
     }
 
     public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
         return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, null, 0, null, null);
     }
+
+//    @DELETE
+//    @Consumes({MediaType.APPLICATION_JSON})
+//    @Produces({MediaType.APPLICATION_JSON})
+//    public SmartGwtResponse<DigitalObject> deleteObject(
+//            ProArcRequest.DeleteObjectRequest deleteObjectRequest
+//    ) throws PurgeException, IOException {
+//        return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
+//    }
+//
+//    public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
+//        return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, null, 0, null, null);
+//    }
 
     @GET
     @Path(DigitalObjectResourceApi.SEARCH_PATH)

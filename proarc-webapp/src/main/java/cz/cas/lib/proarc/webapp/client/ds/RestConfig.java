@@ -248,6 +248,7 @@ public final class RestConfig {
         op.setDataProtocol(DSProtocol.GETPARAMS);
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("DELETE");
+        dsRequest.setContentType(RestConfig.TYPE_APPLICATION_JSON);
         op.setRequestProperties(dsRequest);
         return op;
     }
