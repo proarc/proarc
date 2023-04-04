@@ -3203,6 +3203,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             </identifier>
         </xsl:for-each>
     </xsl:template>
+    <xsl:template name="relatedIdentifierISBN">
+        <xsl:for-each select="marc:subfield[@code='z']">
+            <identifier type="isbn">
+                <xsl:value-of select="."/>
+            </identifier>
+        </xsl:for-each>
+    </xsl:template>
     <xsl:template name="relatedIdentifierLocal">
         <xsl:for-each select="marc:subfield[@code='w']">
             <identifier type="local">
@@ -3244,6 +3251,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <xsl:call-template name="relatedSubject"/>
         <xsl:call-template name="relatedIdentifier"/>
         <xsl:call-template name="relatedIdentifierISSN"/>
+        <xsl:call-template name="relatedIdentifierISBN"/>
         <xsl:call-template name="relatedIdentifierLocal"/>
         <xsl:call-template name="relatedPart"/>
     </xsl:template>

@@ -572,6 +572,10 @@ public class ExportResource {
             }
             BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
             throw ex;
+        } catch (Throwable t) {
+            IOException ex = new IOException(t.getMessage(), t);
+            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
+            throw ex;
         }
     }
 
@@ -990,6 +994,10 @@ public class ExportResource {
             if (ex instanceof DigitalObjectException || ex instanceof MetsExportException || ex instanceof WorkflowException) {
                 throw new IOException(ex);
             }
+            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
+            throw ex;
+        } catch (Throwable t) {
+            IOException ex = new IOException(t.getMessage(), t);
             BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
             throw ex;
         }
