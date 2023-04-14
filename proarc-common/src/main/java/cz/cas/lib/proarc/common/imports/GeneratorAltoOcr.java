@@ -51,7 +51,7 @@ public class GeneratorAltoOcr implements ImportHandler {
             }
             return;
         } else {
-            if (sourceFile.getName().endsWith(".tif")) {
+            if (sourceFile.getName().endsWith(".tif") || sourceFile.getName().endsWith(".jpg") || sourceFile.getName().endsWith(".jpeg")) {
                 LOG.fine("Generating file for " + sourceFile.getAbsolutePath() + " starting.");
                 generateTechnicalFiles(sourceFile, importConfig);
                 return;
@@ -63,7 +63,7 @@ public class GeneratorAltoOcr implements ImportHandler {
     }
 
     private static void generateTechnicalFiles(File imageFile, ImportProcess.ImportOptions importConfig) throws Exception {
-        if (imageFile.getName().endsWith(".tif")) {
+        if (imageFile.getName().endsWith(".tif") || imageFile.getName().endsWith(".jpg") || imageFile.getName().endsWith(".jpeg")) {
             ImportProfile config = importConfig.getConfig();
             File[] outputFiles = getOcrFiles(imageFile, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
 

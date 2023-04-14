@@ -294,6 +294,10 @@ public class UserProfile {
     }
 
     public Boolean getImportToProdFunction() {
+        return importToProdFunction;
+    }
+
+    public Boolean hasPermissionToImportToProdFunction() {
         return Boolean.TRUE.equals(importToProdFunction);
     }
 

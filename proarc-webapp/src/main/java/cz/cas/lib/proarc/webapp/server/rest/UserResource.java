@@ -23,10 +23,12 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +42,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -54,11 +57,14 @@ public final class UserResource {
     private static final Logger LOG = Logger.getLogger(UserResource.class.getName());
     private final UserManager userManager;
     private final SessionContext session;
+    private final HttpHeaders httpHeaders;
 
     public UserResource(
             @Context HttpServletRequest httpRequest,
+            @Context HttpHeaders httpHeaders,
             @Context SecurityContext securityCtx
             ) {
+        this.httpHeaders = httpHeaders;
         this.session = SessionContext.from(httpRequest);
         this.userManager = UserUtil.getDefaultManger();
     }
@@ -137,17 +143,17 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction
             ) {
-
+        Locale locale = session.getLocale(httpHeaders);
         checkAccess(session.getUser(), UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, Permissions.USERS_CREATE);
         if (userName == null) {
             return SmartGwtResponse.<UserProfile>asError()
-                    .error(UserResourceApi.USER_NAME, "missing")
+                    .error(UserResourceApi.PATH,  ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Required"))
                     .build();
         }
         UserProfile found = userManager.find(userName);
         if (found != null) {
             return SmartGwtResponse.<UserProfile>asError()
-                    .error(UserResourceApi.USER_NAME, "already exists")
+                    .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Existing"))
                     .build();
         }
         UserProfile newProfile = new UserProfile();
@@ -163,8 +169,20 @@ public final class UserResource {
         newProfile.setLockObjectFunction(lockObjectFuction);
         newProfile.setUnlockObjectFunction(unlockObjectFuction);
         newProfile.setImportToProdFunction(importToProdFunction);
-        newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
-                session.getUser().getUserName(), session.asFedoraLog());
+        try {
+            newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
+                    session.getUser().getUserName(), session.asFedoraLog());
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            String message = ex.getMessage();
+            if (ex.getMessage().startsWith("Invalid user name")) {
+                message = ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Invalid");
+            } else if (ex.getMessage().startsWith("Invalid password")) {
+                message = ServerMessages.get(locale).getFormattedMessage("UserResouce_Password_Invalid");
+            }
+            return SmartGwtResponse.<UserProfile>asError()
+                    .error(UserResourceApi.PATH, message)
+                    .build();
+        }
         return new SmartGwtResponse<UserProfile>(newProfile);
     }
 
@@ -185,6 +203,7 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction
             ) {
 
+        Locale locale = session.getLocale(httpHeaders);
         UserProfile sessionUser = session.getUser();
         // check for admin or the same user
         UserProfile update = userId == null ? null : userManager.find(userId);
@@ -199,7 +218,7 @@ public final class UserResource {
         }
         if (update == null) {
             return SmartGwtResponse.<UserProfile>asError()
-                    .error(UserResourceApi.USER_ID, "not found").build();
+                    .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_UserId_NotFound")).build();
         }
         if (passwd != null && update.getRemoteType() == null) {
             update.setUserPassword(passwd);
@@ -216,7 +235,7 @@ public final class UserResource {
             update.setImportToProdFunction(importToProdFunction);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
-                        .error(UserResourceApi.USER_SURNAME, "Required!").build();
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Surname_Required")).build();
             }
             update.setSurname(surname);
         }
