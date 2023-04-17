@@ -37,7 +37,6 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.mods.UrlDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import java.util.Iterator;
 import java.util.List;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
@@ -89,21 +88,22 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
             reqOriginInfo = oi;
             List<IssuanceDefinition> issuances = oi.getIssuance();
             IssuanceDefinition reqIssuance = null;
-            for (Iterator<IssuanceDefinition> it = issuances.iterator(); it.hasNext();) {
-                IssuanceDefinition issuance = it.next();
-                if (IssuanceDefinition.SERIAL == issuance) {
-                    // replace SERIAL with CONTINUING to comply with NDK spec
-                    it.remove();
-                    continue;
-                }
-                if (IssuanceDefinition.CONTINUING == issuance) {
-                    reqIssuance = issuance;
-                    break;
-                }
-            }
-            if (reqIssuance == null) {
-                issuances.add(0, IssuanceDefinition.CONTINUING);
-            }
+            // zmena na serial - viz issue 1564
+//            for (Iterator<IssuanceDefinition> it = issuances.iterator(); it.hasNext();) {
+//                IssuanceDefinition issuance = it.next();
+//                if (IssuanceDefinition.CONTINUING == issuance) {
+//                    // replace SERIAL with CONTINUING to comply with NDK spec
+//                    it.remove();
+//                    continue;
+//                }
+//                if (IssuanceDefinition.SERIAL == issuance) {
+//                    reqIssuance = issuance;
+//                    break;
+//                }
+//            }
+//            if (reqIssuance == null) {
+//                issuances.add(0, IssuanceDefinition.SERIAL);
+//            }
             List<PlaceDefinition> places = oi.getPlace();
             for (PlaceDefinition place : places) {
                 List<PlaceTermDefinition> placeTerms = place.getPlaceTerm();
@@ -118,11 +118,11 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
                 dateOther.setType(oi.getEventType());
             }
         }
-        if (reqOriginInfo == null) {
-            reqOriginInfo = new OriginInfoDefinition();
-            reqOriginInfo.getIssuance().add(IssuanceDefinition.CONTINUING);
-            originInfos.add(reqOriginInfo);
-        }
+//        if (reqOriginInfo == null) {
+//            reqOriginInfo = new OriginInfoDefinition();
+//            reqOriginInfo.getIssuance().add(IssuanceDefinition.SERIAL);
+//            originInfos.add(reqOriginInfo);
+//        }
         // mods/physicalDescription/form="print"
         // mods/physicalDescription/form@authority="marcform"
         List<PhysicalDescriptionDefinition> physicalDescriptions = mods.getPhysicalDescription();
