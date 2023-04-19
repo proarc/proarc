@@ -1,17 +1,17 @@
 package cz.cas.lib.proarc.common.export.bagit;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import javax.xml.bind.DatatypeConverter;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
@@ -123,10 +123,12 @@ public class BagitExport {
         }
         StringBuilder checksumBuilder = new StringBuilder();
         for (File file : bagitFolder.listFiles()) {
-            byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
-            byte[] hash = MessageDigest.getInstance("MD5").digest(bytes);
-            String hashValue = DatatypeConverter.printHexBinary(hash);
-            checksumBuilder.append("MD5").append(" ").append(hashValue.toLowerCase());
+//            byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
+//            byte[] hash = MessageDigest.getInstance("MD5").digest(bytes);
+//            String hashValue = DatatypeConverter.printHexBinary(hash);
+            ByteSource byteSource = Files.asByteSource(file);
+            HashCode hc = byteSource.hash(Hashing.md5());
+            checksumBuilder.append("MD5").append(" ").append(hc.toString().toLowerCase());
             }
         File checksumFile = new File(bagitFolder, exportFolder.getName() + ".sums");
         BufferedWriter writer = null;
