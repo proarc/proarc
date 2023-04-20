@@ -299,3 +299,18 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 GET {{proarcLocalHostUrl}}/rest/v1/export/validExports?model=model:oldprintvolume
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+
+### REINDEX
+PUT {{proarcLocalHostUrl}}/rest/v1/object/reindexObjects
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&batchId=845&model=model:ndkpage
+
+### EDITOR PAGES
+PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&batchId=830&isc_metaDataPrefix=_&isc_dataFormat=json&pids=[uuid%3A5c52de64-2d85-4a13-a65b-1d0ff6d6650c,uuid%3Af7cf6e41-68e3-4919-be5f-a5548b5a3669]&timestamp=1597146647990&editorId=model%3Andkpage&_operationType=update&_textMatchStyle=exact&_dataSource=ModsCustomDataSource&pageType=obituary}

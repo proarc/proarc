@@ -3482,8 +3482,14 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException, IOException, FedoraClientException {
-        BatchParams params = new BatchParams(Collections.singletonList(pid));
-        Batch internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+        Batch internalBatch;
+        if (batchId != null && batchId > 0) {
+            BatchParams params = new BatchParams(Collections.singletonList(batchId.toString()));
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+        } else {
+            BatchParams params = new BatchParams(Collections.singletonList(pid));
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+        }
         Locale locale = session.getLocale(httpHeaders);
         try {
             ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, akubraConfiguration, user, pid, modelId);
