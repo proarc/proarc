@@ -26,9 +26,9 @@ import static org.junit.Assert.assertNull;
 /**
  * Created by lsykora on 6/22/2017.
  */
-public class NdkExportOptionsTest {
+public class NdkExportParamsTest {
 
-    public NdkExportOptionsTest() {
+    public NdkExportParamsTest() {
     }
 
     @Test

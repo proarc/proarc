@@ -10,6 +10,9 @@ public class BatchParams {
     @XmlElement (name = "pids")
     private List<String> pids;
 
+    @XmlElement (name = "dsIds")
+    private List<String> dsIds;
+
     @XmlElement(name = "policy")
     private String policy;
 
@@ -75,6 +78,12 @@ public class BatchParams {
         this.dryRun = dryRun;
     }
 
+    public BatchParams(List<String> pids, boolean hierarchy, List<String> dsIds) {
+        this.pids = pids;
+        this.hierarchy = hierarchy;
+        this.dsIds = dsIds;
+    }
+
     public List<String> getPids() {
         return pids;
     }
@@ -113,5 +122,9 @@ public class BatchParams {
 
     public boolean isBagit() {
         return bagit;
+    }
+
+    public List<String> getDsIds() {
+        return dsIds;
     }
 }

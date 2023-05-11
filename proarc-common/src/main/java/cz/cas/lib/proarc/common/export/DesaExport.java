@@ -134,7 +134,7 @@ public final class DesaExport {
             UserProfile user
             ) throws ExportException {
 
-        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid), this.appConfiguration.getExportOptions().isOverwritePackage());
+        File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid), this.appConfiguration.getExportParams().isOverwritePackage());
         Result result = new Result();
         try {
             if (keepResult) {

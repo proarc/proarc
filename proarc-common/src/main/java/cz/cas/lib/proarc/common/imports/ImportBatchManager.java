@@ -311,6 +311,7 @@ public class ImportBatchManager {
         Transaction tx = daos.createTransaction();
         batchDao.setTransaction(tx);
         try {
+            LOG.info("Batch " + update.getId() + " state " + update.getState().name() + " - " + update.getLog());
             batchDao.update(update);
             tx.commit();
             return update;
@@ -351,6 +352,17 @@ public class ImportBatchManager {
         batchDao.setTransaction(tx);
         try {
             return batchDao.findLoadingBatches();
+        } finally {
+            tx.close();
+        }
+    }
+
+    public List<Batch> findWaitingExportBatches() {
+        BatchDao batchDao = daos.createBatch();
+        Transaction tx = daos.createTransaction();
+        batchDao.setTransaction(tx);
+        try {
+            return batchDao.findWaitingExportBatches();
         } finally {
             tx.close();
         }

@@ -38,6 +38,7 @@ public class Batch {
     public static final String PRIORITY_HIGH = "high";
     public static final String PRIORITY_HIGHEST = "highest";
 
+    public static final String EXPORT_DATASTREAM = "exportProfile.datastream";
     public static final String EXPORT_KRAMERIUS = "exportProfile.kramerius";
     public static final String EXPORT_NDK = "exportProfile.ndk";
     public static final String EXPORT_ARCHIVE = "exportProfile.archive";
@@ -55,7 +56,7 @@ public class Batch {
     public enum State {
 
         EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,
-        EXPORTING, EXPORT_FAILED, EXPORT_DONE,
+        EXPORTING, EXPORT_WAITING, EXPORT_FAILED, EXPORT_FAILED_WITH_WARNING, EXPORT_DONE,
         REINDEXING, REINDEX_FAILED, REINDEX_DONE,
         UPLOADING, UPLOAD_FAILED, UPLOAD_DONE
     }
@@ -201,6 +202,7 @@ public class Batch {
     public String getParams() {
         return this.params;
     }
+
     public BatchParams getParamsAsObject() {
         if (this.params == null) {
             return null;

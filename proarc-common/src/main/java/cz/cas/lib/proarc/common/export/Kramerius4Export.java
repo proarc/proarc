@@ -140,7 +140,7 @@ public final class Kramerius4Export {
     private final Kramerius4ExportOptions kramerius4ExportOptions;
     private AppConfiguration appConfig;
     private AkubraConfiguration akubraConfiguration;
-    private ExportOptions exportOptions;
+    private ExportParams exportParams;
 
     private final String policy;
 
@@ -150,7 +150,7 @@ public final class Kramerius4Export {
         this.appConfig = appConfiguration;
         this.rstorage = rstorage;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
-        this.exportOptions = appConfiguration.getExportOptions();
+        this.exportParams = appConfiguration.getExportParams();
         this.search = rstorage.getSearch();
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
         if (Arrays.asList(ALLOWED_POLICY).contains(appConfiguration.getKramerius4Export().getPolicy())) {
@@ -164,7 +164,7 @@ public final class Kramerius4Export {
         this.appConfig = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
-        this.exportOptions = appConfiguration.getExportOptions();
+        this.exportParams = appConfiguration.getExportParams();
 
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
             this.rstorage = RemoteStorage.getInstance(this.appConfig);
@@ -197,7 +197,7 @@ public final class Kramerius4Export {
         result.setInputPid(pids[0]);
         reslog.getExports().add(result);
 
-        File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]), exportOptions.isOverwritePackage());
+        File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]), exportParams.isOverwritePackage());
         krameriusResult.setFile(target);
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
         toExport.addAll(createPair(null, selectedPids));

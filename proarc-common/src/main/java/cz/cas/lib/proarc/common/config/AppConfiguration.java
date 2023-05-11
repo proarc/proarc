@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.cas.lib.proarc.common.export.ExportOptions;
+import cz.cas.lib.proarc.common.export.ExportParams;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.export.KwisExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
@@ -227,8 +227,8 @@ public final class AppConfiguration {
         return ModsRules.getOptions(config);
     }
 
-    public ExportOptions getExportOptions() {
-        return ExportOptions.getOptions(config);
+    public ExportParams getExportParams() {
+        return ExportParams.getParams(config);
     }
 
     public KrameriusOptions getKrameriusOptions() {
