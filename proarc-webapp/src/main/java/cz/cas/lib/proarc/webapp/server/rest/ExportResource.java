@@ -194,7 +194,7 @@ public class ExportResource {
     ) throws IOException {
         if (batchState.isEmpty()) {
             batchState.add(Batch.State.EXPORTING);
-            batchState.add(Batch.State.EXPORT_WAITING);
+            batchState.add(Batch.State.EXPORT_PLANNED);
         }
 
         BatchViewFilter filterAll = new BatchViewFilter()

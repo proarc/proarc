@@ -57,7 +57,7 @@ public class BatchUtils {
     }
 
     public static Batch addNewExportBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String exportProfile, BatchParams params) {
-        return addNewBatch(batchManager, pids, user, exportProfile, Batch.State.EXPORT_WAITING, Batch.State.EXPORT_FAILED, params);
+        return addNewBatch(batchManager, pids, user, exportProfile, Batch.State.EXPORT_PLANNED, Batch.State.EXPORT_FAILED, params);
     }
 
     public static Batch startWaitingExportBatch(ImportBatchManager batchManager, Batch batch) {
@@ -98,7 +98,7 @@ public class BatchUtils {
     }
 
     public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions) {
-        return finishedExportWithWarning(batchManager, batch, path, exceptions, Batch.State.EXPORT_FAILED_WITH_WARNING);
+        return finishedExportWithWarning(batchManager, batch, path, exceptions, Batch.State.EXPORT_FINISHED_WITH_WARNING);
     }
 
     public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions, Batch.State state) {
@@ -123,7 +123,7 @@ public class BatchUtils {
     }
 
     public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, String message) {
-        return finishedWithWarning(batchManager, batch, path, message, Batch.State.EXPORT_FAILED_WITH_WARNING);
+        return finishedWithWarning(batchManager, batch, path, message, Batch.State.EXPORT_FINISHED_WITH_WARNING);
     }
 
     public static Batch finishedExportSuccessfully(ImportBatchManager batchManager, Batch batch, String path) {
