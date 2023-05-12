@@ -104,7 +104,8 @@ public class CatalogUtils {
         }
 
         if (couples.size() < 1  || nodesCount != 1 || (couples.size() == 1 && onlyOneOriginInfoValues(mods.getOriginInfo()))) { // knav monografie 001 000938836
-            return modsBytes;
+            modsAsString = repairIssuance(mods);
+            return modsAsString.getBytes(StandardCharsets.UTF_8);
         } else {
             if (260 == updateNode) { //knav monografie isbn 80-200-0953-1
                 modsAsString = repairMods(mods, couples);
@@ -117,7 +118,6 @@ public class CatalogUtils {
             }
         }
     }
-
 
 
     private static boolean onlyOneOriginInfoValues(List<OriginInfoDefinition> originInfos) {
@@ -243,6 +243,7 @@ public class CatalogUtils {
         mergeFirstTwoOriginInfo(mods);
         copyPlaceDatePublisher(mods);
         deleteDoubleDateIssued(mods);
+        repairIssuance(mods);
         return ModsUtils.toXml(mods, true);
     }
 
@@ -261,6 +262,28 @@ public class CatalogUtils {
             }
         }
     }
+
+    private static String repairIssuance(ModsDefinition mods) {
+        IssuanceDefinition issuanceDefinition = null;
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            for (IssuanceDefinition issuance : originInfo.getIssuance()) {
+                if (issuance != null && !issuance.value().isEmpty()) {
+                    issuanceDefinition = issuance;
+                    break;
+                }
+            }
+        }
+
+        if (issuanceDefinition != null) {
+            for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+                if (originInfo.getIssuance().isEmpty()) {
+                    originInfo.getIssuance().add(issuanceDefinition);
+                }
+            }
+        }
+        return ModsUtils.toXml(mods, true);
+    }
+
 
     private static String repairMods(ModsDefinition mods, List<String> couples) {
         List<OriginInfoDefinition> fixedOriginInfo = new ArrayList<>();
@@ -335,6 +358,7 @@ public class CatalogUtils {
         mergeFirstTwoOriginInfo(mods);
         copyPlaceDatePublisher(mods);
         deleteDoubleDateIssued(mods);
+        repairIssuance(mods);
         return ModsUtils.toXml(mods, true);
     }
 
