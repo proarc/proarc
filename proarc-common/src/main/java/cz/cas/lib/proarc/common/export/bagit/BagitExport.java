@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import org.apache.commons.io.FileUtils;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
@@ -148,6 +149,25 @@ public class BagitExport {
         this.exportFolder = newName;
     }
 
+    public void prepareFoxml() {
+        File newName = new File(this.exportFolder.getParentFile(), "archive_" + this.exportFolder.getName());
+        try {
+            FileUtils.copyDirectory(exportFolder, newName);
+            this.exportFolder.renameTo(newName);
+            this.exportFolder = newName;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteTargetFolderContent(File targetFolder) {
+        for (File file : targetFolder.listFiles()) {
+            if (!file.getName().endsWith(".log")) {
+                MetsUtils.deleteFolder(file);
+            }
+        }
+    }
+
     public void moveToSpecifiedDirectories() {
         String bagitExportPath = appConfiguration.getBagitExportPath();
         if (bagitExportPath == null || bagitExportPath.isEmpty()) {
@@ -155,6 +175,23 @@ public class BagitExport {
             return;
         } else {
             File bagitExportRoot = new File(bagitExportPath);
+            if (!bagitExportRoot.exists()) {
+                bagitExportRoot.mkdir();
+            }
+            for (File bagitFile : bagitFolder.listFiles()) {
+                bagitFile.renameTo(new File(bagitExportRoot, bagitFile.getName()));
+            }
+            MetsUtils.deleteFolder(bagitFolder);
+        }
+    }
+
+    public void moveToSpecifiedFoxmlDirectories() {
+        String bagitFoxmlExportPath = appConfiguration.getBagitFoxmlExportPath();
+        if (bagitFoxmlExportPath == null || bagitFoxmlExportPath.isEmpty()) {
+            // nikam se nic nepresouva, zustava v puvodnim adresari
+            return;
+        } else {
+            File bagitExportRoot = new File(bagitFoxmlExportPath);
             if (!bagitExportRoot.exists()) {
                 bagitExportRoot.mkdir();
             }

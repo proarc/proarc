@@ -141,6 +141,7 @@ public final class Kramerius4Export {
     private AppConfiguration appConfig;
     private AkubraConfiguration akubraConfiguration;
     private ExportParams exportParams;
+    private boolean isArchive;
 
     private final String policy;
 
@@ -160,11 +161,12 @@ public final class Kramerius4Export {
         }
     }
 
-    public Kramerius4Export(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, String policy) throws IOException {
+    public Kramerius4Export(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, String policy, boolean isArchive) throws IOException {
         this.appConfig = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
         this.exportParams = appConfiguration.getExportParams();
+        this.isArchive = isArchive;
 
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
             this.rstorage = RemoteStorage.getInstance(this.appConfig);
@@ -364,7 +366,7 @@ public final class Kramerius4Export {
                 DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext(); ) {
                     DatastreamType datastream = it.next();
-                    if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
+                    if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                         // use RAW if FULL is not available
                         if (rawDs != datastream) {
                             it.remove();
@@ -404,7 +406,7 @@ public final class Kramerius4Export {
                 }
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
                     DatastreamType datastream = it.next();
-                    if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
+                    if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                         it.remove();
                         continue;
                     }
@@ -562,8 +564,12 @@ public final class Kramerius4Export {
     private List<String> filterStreams(String[] streams) {
         List<String> acceptedStreams = new ArrayList<>();
         for (String stream : streams) {
-            if (!kramerius4ExportOptions.getExcludeDatastreams().contains(stream)) {
+            if (isArchive) {
                 acceptedStreams.add(stream);
+            } else {
+                if (!kramerius4ExportOptions.getExcludeDatastreams().contains(stream)) {
+                    acceptedStreams.add(stream);
+                }
             }
         }
         return acceptedStreams;
@@ -725,7 +731,7 @@ public final class Kramerius4Export {
         DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
-            if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
+            if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 // use RAW if FULL is not available
                 if (rawDs != datastream ) {
                     it.remove();
@@ -746,7 +752,7 @@ public final class Kramerius4Export {
         RelationEditor editor = new RelationEditor(local);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
-            if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
+            if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 it.remove();
                 continue;
             }

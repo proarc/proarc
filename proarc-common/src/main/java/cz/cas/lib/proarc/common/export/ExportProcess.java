@@ -550,7 +550,7 @@ public final class ExportProcess implements Runnable {
 
     private Batch krameriusExport(Batch batch, BatchParams params) throws Exception {
         try {
-            Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy());
+            Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.isArchive());
             File exportFolder = export.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder());
             Kramerius4Export.Result k4Result = export.export(exportFolder, params.isHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPids().toArray(new String[params.getPids().size()]));
             if (k4Result.getException() != null) {
@@ -564,7 +564,22 @@ public final class ExportProcess implements Runnable {
             } else {
 //                URI targetPath = user.getUserHomeUri().relativize(k4Result.getFile().toURI());
                 if (params.getKrameriusInstanceId() == null || params.getKrameriusInstanceId().isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(params.getKrameriusInstanceId())) {
-                    return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath());
+                    if (params.isBagit()) {
+                        File targetFolder = k4Result.getFile();
+                        if (targetFolder.isDirectory()) {
+                            BagitExport bagitExport = new BagitExport(config, targetFolder);
+                            bagitExport.prepareFoxml();
+                            bagitExport.bagit();
+                            bagitExport.zip();
+                            bagitExport.moveToBagitFolder();
+                            bagitExport.createMd5File();
+                            bagitExport.moveToSpecifiedFoxmlDirectories();
+                            bagitExport.deleteExportFolder();
+                            bagitExport.deleteTargetFolderContent(targetFolder);
+                        }
+                        targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
+                    }
+                    batch = BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath());
 //                    return BatchUtils.finishedExportSuccessfully(batchManager, batch, k4Result.getFile().getAbsolutePath());
                 } else {
                     if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FAILED.equals(k4Result.getKrameriusImportState())) {
@@ -581,16 +596,16 @@ public final class ExportProcess implements Runnable {
             }
             return batch;
         } catch (Exception ex) {
-            finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
-            if (ex instanceof DigitalObjectException || ex instanceof MetsExportException || ex instanceof WorkflowException) {
-                throw new IOException(ex);
-            }
-            throw ex;
+            return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
+//            if (ex instanceof DigitalObjectException || ex instanceof MetsExportException || ex instanceof WorkflowException) {
+//                throw new IOException(ex);
+//            }
+//            throw ex;
         }
     }
 
     private URI runK4Export(String path, BatchParams params, String exportPageContext) throws Exception {
-        Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy());
+        Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.isArchive());
         if (path == null || path.isEmpty()) {
             path = user.getExportFolder().getPath();
         }

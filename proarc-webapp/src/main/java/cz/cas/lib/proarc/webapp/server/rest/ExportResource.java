@@ -276,7 +276,8 @@ public class ExportResource {
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
-            @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId
+            @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
             ) throws Exception {
 
         if (pids.isEmpty()) {
@@ -286,7 +287,7 @@ public class ExportResource {
         if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.getImportToProdFunction()) {
                 throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
         }
-        BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId);
+        BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId, isBagit);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS, params);
 
         ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
@@ -479,7 +480,7 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
-        BatchParams params = new BatchParams(pids, policy, hierarchy, null);
+        BatchParams params = new BatchParams(pids, policy, hierarchy, null, false);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KWIS, params);
 
         ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));

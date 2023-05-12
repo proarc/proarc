@@ -89,6 +89,7 @@ public final class AppConfiguration {
     public static final String EXPORT_KWIS_POST_PROCESSOR = "export.export_post_processor.processor";
     public static final String EXPORT_BAGIT_POST_PROCESSOR = "export.bagit_post_processor.processor";
     public static final String EXPORT_BAGIT_PATH = "export.bagit.path";
+    public static final String EXPORT_BAGIT_FOXML_PATH = "export.bagitFoxml.path";
 
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
@@ -142,6 +143,10 @@ public final class AppConfiguration {
 
     public String getBagitExportPath() {
         return config.getString(EXPORT_BAGIT_PATH);
+    }
+
+    public String getBagitFoxmlExportPath() {
+        return config.getString(EXPORT_BAGIT_FOXML_PATH);
     }
 
     public String getFedoraUsername() {

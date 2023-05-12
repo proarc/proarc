@@ -46,11 +46,12 @@ public class BatchParams {
         this.pids = pids;
     }
 
-    public BatchParams(List<String> pids, String policy, boolean hierarchy, String krameriusInstanceId) {
+    public BatchParams(List<String> pids, String policy, boolean hierarchy, String krameriusInstanceId, boolean bagit) {
         this.pids = pids;
         this.policy = policy;
         this.hierarchy = hierarchy;
         this.krameriusInstanceId = krameriusInstanceId;
+        this.bagit = bagit;
     }
 
     public BatchParams(List<String> pids, String krameriusInstanceId, String krameriusImportInstanceId) {
@@ -121,6 +122,11 @@ public class BatchParams {
     }
 
     public boolean isBagit() {
+        return bagit;
+    }
+
+    // pokud slouzi Kramerius Export jako archivace (STT konvoluty a STT Grafiky) je potreba, aby se exportovaly vsechny datastreamy
+    public boolean isArchive() {
         return bagit;
     }
 
