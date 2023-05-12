@@ -685,6 +685,9 @@ public class MetsUtils {
     }
 
     public static DigitalObject readFoXML(String pid, MetsContext metsContext) throws MetsExportException {
+        if (pid == null) {
+            return null;
+        }
         if (Storage.FEDORA.equals(metsContext.getTypeOfStorage())) {
             return readFoXML(pid, metsContext.getFedoraClient());
         } else if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
@@ -699,6 +702,9 @@ public class MetsUtils {
     }
 
     public static DigitalObject readFoXML(MetsContext metsContext, FedoraObject object) throws MetsExportException {
+        if (object.getPid() == null) {
+            return null;
+        }
         if (Storage.FEDORA.equals(metsContext.getTypeOfStorage())) {
             return readFoXML(object.getPid(), metsContext.getFedoraClient());
         } else if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {

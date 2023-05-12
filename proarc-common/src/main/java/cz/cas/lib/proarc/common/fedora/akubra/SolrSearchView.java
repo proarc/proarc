@@ -48,6 +48,7 @@ import static cz.cas.lib.proarc.common.fedora.akubra.SolrUtils.transfromSort;
 public class SolrSearchView extends SearchView {
 
     private static final Integer ROWS_DEFAULT_VALUE = 10000;
+    private static final int DEFAULT_PIDS_SIZE = 25;
     private final int maxLimit;
     private Locale locale = Locale.ENGLISH;
     private final AkubraStorage storage;
@@ -306,7 +307,29 @@ public class SolrSearchView extends SearchView {
         return searchImplementation(offset, limit, sortField, sortOperation, onlyActive, models, pids, null, null, null, null, null, true);
     }
 
+
     private List<SearchViewItem> searchImplementation(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) throws IOException {
+        if (pids == null || pids.isEmpty()) {
+            return searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, pids, owner, organization, user, label, status, allowAllForUser);
+        } else {
+            List<SearchViewItem> items = new ArrayList<>();
+            List<String> tmpPids = new ArrayList<>();
+            for (int index = 0; index < pids.size(); index++) {
+                tmpPids.add(pids.get(index));
+                if (index % DEFAULT_PIDS_SIZE == 0) {
+                    items.addAll(searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, tmpPids, owner, organization, user, label, status, allowAllForUser));
+                    tmpPids.clear();
+                }
+            }
+            if (!tmpPids.isEmpty()) {
+                items.addAll(searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, tmpPids, owner, organization, user, label, status, allowAllForUser));
+                tmpPids.clear();
+            }
+            return items;
+        }
+    }
+
+    private List<SearchViewItem> searchImpl(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) throws IOException {
         try {
             StringBuilder queryBuilder = createQuery(onlyActive, models, pids, owner, organization, user, label, status, allowAllForUser);
             SolrQuery solrQuery = createQueryWithParams(queryBuilder, offset, limit, sortOperation, sortField);

@@ -314,3 +314,20 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 {&batchId=830&isc_metaDataPrefix=_&isc_dataFormat=json&pids=[uuid%3A5c52de64-2d85-4a13-a65b-1d0ff6d6650c,uuid%3Af7cf6e41-68e3-4919-be5f-a5548b5a3669]&timestamp=1597146647990&editorId=model%3Andkpage&_operationType=update&_textMatchStyle=exact&_dataSource=ModsCustomDataSource&pageType=obituary}
+
+
+### LOGIN
+POST {{proarcRemoteUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+
+### IMPORT
+POST {{proarcRemoteUrl}}/rest/v1/import/batch
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&folderPath=Mzk/Monografie/Kratka/&profile=profile.default&device=device:a93dd5e2-1db7-44d0-be85-804759da8afe&priority=medium
+
