@@ -432,7 +432,7 @@ public class CatalogUtils {
             if (dateValue != null && !originInfo.getDateIssued().contains(dateValue)) {
                 originInfo.getDateIssued().add(dateValue);
             }
-            if (publisherValue != null && !originInfo.getPublisher().contains(publisherValue)) {
+            if (publisherValue != null && originInfo.getPublisher().isEmpty()) { // KNAV monografie, sysno, 000038982
                 originInfo.getPublisher().add(publisherValue);
             }
             if (issuanceDefinition != null && originInfo.getIssuance().isEmpty()) {
