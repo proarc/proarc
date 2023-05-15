@@ -351,7 +351,7 @@ public final class Kramerius4Export {
                 } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     AkubraObject object = akubraStorage.find(pid);
-                    dobj = AkubraUtils.getDigitalObjectProArc(object.getManager(), pid);
+                    dobj = AkubraUtils.getDigitalObjectToExport(object.getManager(), pid);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
                 }
@@ -400,7 +400,7 @@ public final class Kramerius4Export {
                 } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     AkubraObject object = akubraStorage.find(pid);
-                    dobj = AkubraUtils.getDigitalObjectProArc(object.getManager(), pid);
+                    dobj = AkubraUtils.getDigitalObjectToExport(object.getManager(), pid);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
                 }
@@ -461,7 +461,7 @@ public final class Kramerius4Export {
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject aobject = akubraStorage.find(object.getPid());
-                dobj = AkubraUtils.getDigitalObjectProArc(aobject.getManager(), object.getPid());
+                dobj = AkubraUtils.getDigitalObjectToExport(aobject.getManager(), object.getPid());
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
@@ -534,7 +534,7 @@ public final class Kramerius4Export {
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject aobject = akubraStorage.find(pid);
-                dobj = AkubraUtils.getDigitalObjectProArc(aobject.getManager(), pid);
+                dobj = AkubraUtils.getDigitalObjectToExport(aobject.getManager(), pid);
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
@@ -657,7 +657,7 @@ public final class Kramerius4Export {
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject object = akubraStorage.find(pid);
-                dobj = AkubraUtils.getDigitalObjectProArc(object.getManager(), pid);
+                dobj = AkubraUtils.getDigitalObjectToExport(object.getManager(), pid);
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
@@ -744,8 +744,26 @@ public final class Kramerius4Export {
             processMods(datastream);
             processOcr(datastream);
             processRelsExt(dobj.getPID(), datastream, editor, null, hasParent, missingObject);
+//            processStreams(dobj, datastream);
         }
     }
+
+//    private void processStreams(DigitalObject dobj, DatastreamType datastream) {
+//        if (DcStreamEditor.DATASTREAM_ID.equals(datastream.getID()) ||
+//                ModsStreamEditor.DATASTREAM_ID.equals(datastream.getID()) ||
+//                StringEditor.OCR_ID.equals(datastream.getID()) ||
+//                RelationEditor.DATASTREAM_ID.equals(datastream.getID())) {
+//            return ;
+//        }
+//        for (DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+//            if (datastreamVersion.getContentLocation() != null) {
+//                InputStream is = AkubraUtils.getStreamContent(datastreamVersion, null);
+//
+//            }
+//        }
+//
+//
+//    }
 
     private void exportParentDatastreams(LocalObject local, Collection<String> includeChildPids, boolean hasParent) {
         DigitalObject dobj = local.getDigitalObject();
