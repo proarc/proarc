@@ -164,7 +164,7 @@ public class ExportResource {
             tmpKrameriusInstances = krameriusInstance != null ? Arrays.asList(krameriusInstance) : Collections.<KrameriusOptions.KrameriusInstance>emptyList();
         }
         List<KrameriusOptions.KrameriusInstance> krameriusInstances;
-        if (user.getImportToProdFunction()) {
+        if (user.hasPermissionToImportToProdFunction()) {
             krameriusInstances = new ArrayList<>(tmpKrameriusInstances);
         } else {
             krameriusInstances = new ArrayList<>();
@@ -284,7 +284,7 @@ public class ExportResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
-        if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.getImportToProdFunction()) {
+        if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
                 throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
         }
         BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId, isBagit);

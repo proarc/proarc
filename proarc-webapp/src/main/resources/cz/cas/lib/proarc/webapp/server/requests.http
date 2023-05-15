@@ -300,6 +300,13 @@ GET {{proarcLocalHostUrl}}/rest/v1/export/validExports?model=model:oldprintvolum
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
+### ADD NEW USER WOTH ERROR
+POST {{proarcLocalHostUrl}}/rest/v1/user
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&name=miqchal
+
 
 ### REINDEX
 PUT {{proarcLocalHostUrl}}/rest/v1/object/reindexObjects

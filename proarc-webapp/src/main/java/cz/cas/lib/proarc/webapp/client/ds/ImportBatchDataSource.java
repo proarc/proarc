@@ -106,7 +106,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         states.put(State.EXPORTING.name(), i18n.ImportBatchDataSource_State_EXPORTING());
         states.put(State.EXPORT_PLANNED.name(), i18n.ImportBatchDataSource_State_EXPORT_PLANNED());
         states.put(State.EXPORT_FAILED.name(), i18n.ImportBatchDataSource_State_EXPORT_FAILED());
-        states.put(State.EXPORT_FINISHED_WITH_WARNING.name(), i18n.ImportBatchDataSource_State_EXPORT_FINISHED_WITH_WARNING());
+        states.put(State.EXPORT_VALID_WARNING.name(), i18n.ImportBatchDataSource_State_EXPORT_FINISHED_WITH_WARNING());
         states.put(State.EXPORT_DONE.name(), i18n.ImportBatchDataSource_State_EXPORT_DONE());
         states.put(State.REINDEXING.name(), i18n.ImportBatchDataSource_State_REINDEXING());
         states.put(State.REINDEX_FAILED.name(), i18n.ImportBatchDataSource_State_REINDEX_FAILED());
@@ -306,7 +306,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
      */
     public enum State {
         EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,
-        EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_FINISHED_WITH_WARNING, EXPORT_DONE,
+        EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
         REINDEXING, REINDEX_FAILED, REINDEX_DONE,
         UPLOADING, UPLOAD_FAILED, UPLOAD_DONE;
 
