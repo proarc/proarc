@@ -10,6 +10,9 @@ public class BatchParams {
     @XmlElement (name = "pids")
     private List<String> pids;
 
+    @XmlElement (name = "dsIds")
+    private List<String> dsIds;
+
     @XmlElement(name = "policy")
     private String policy;
 
@@ -43,11 +46,12 @@ public class BatchParams {
         this.pids = pids;
     }
 
-    public BatchParams(List<String> pids, String policy, boolean hierarchy, String krameriusInstanceId) {
+    public BatchParams(List<String> pids, String policy, boolean hierarchy, String krameriusInstanceId, boolean bagit) {
         this.pids = pids;
         this.policy = policy;
         this.hierarchy = hierarchy;
         this.krameriusInstanceId = krameriusInstanceId;
+        this.bagit = bagit;
     }
 
     public BatchParams(List<String> pids, String krameriusInstanceId, String krameriusImportInstanceId) {
@@ -73,6 +77,12 @@ public class BatchParams {
         this.hierarchy = hierarchy;
         this.forDownload = forDownload;
         this.dryRun = dryRun;
+    }
+
+    public BatchParams(List<String> pids, boolean hierarchy, List<String> dsIds) {
+        this.pids = pids;
+        this.hierarchy = hierarchy;
+        this.dsIds = dsIds;
     }
 
     public List<String> getPids() {
@@ -113,5 +123,14 @@ public class BatchParams {
 
     public boolean isBagit() {
         return bagit;
+    }
+
+    // pokud slouzi Kramerius Export jako archivace (STT konvoluty a STT Grafiky) je potreba, aby se exportovaly vsechny datastreamy
+    public boolean isArchive() {
+        return bagit;
+    }
+
+    public List<String> getDsIds() {
+        return dsIds;
     }
 }

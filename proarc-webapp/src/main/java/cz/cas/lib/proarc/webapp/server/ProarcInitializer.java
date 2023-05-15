@@ -24,6 +24,8 @@ import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
+import cz.cas.lib.proarc.common.export.ExportDispatcher;
+import cz.cas.lib.proarc.common.export.ExportProcess;
 import cz.cas.lib.proarc.common.fedora.FedoraStorageInitializer;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.Storage;
@@ -105,6 +107,7 @@ public final class ProarcInitializer {
         finishedExportingBatch(config, daoFactory);
         finishUploadingBatch(config, daoFactory);
         initImport(config, daoFactory);
+        initExport(config, akubraConfiguration, daoFactory);
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 config, akubraConfiguration, ImportBatchManager.getInstance(),
                 MetaModelRepository.getInstance(), UserUtil.getDefaultManger()));
@@ -131,6 +134,8 @@ public final class ProarcInitializer {
 //        hazelcastServerNode.contextDestroyed(null);
         ImportDispatcher importDispatcher = ImportDispatcher.getDefault();
         importDispatcher.stop();
+        ExportDispatcher exportDispatcher = ExportDispatcher.getDefault();
+        exportDispatcher.stop();
         daoFactory = null;
     }
 
@@ -216,6 +221,15 @@ public final class ProarcInitializer {
         ImportDispatcher.setDefault(importDispatcher);
         importDispatcher.init();
         ImportProcess.resumeAll(ibm, importDispatcher, config);
+    }
+
+    private void initExport(AppConfiguration config, AkubraConfiguration akubraConfiguration, DaoFactory daoFactory) {
+        ImportBatchManager.setInstance(config, daoFactory);
+        ImportBatchManager ibm = ImportBatchManager.getInstance();
+        ExportDispatcher exportDispatcher = new ExportDispatcher();
+        ExportDispatcher.setDefault(exportDispatcher);
+        exportDispatcher.init();
+        ExportProcess.resumeAll(ibm, exportDispatcher, config, akubraConfiguration);
     }
 
     private void finishedExportingBatch(AppConfiguration config, DaoFactory daoFactory) {

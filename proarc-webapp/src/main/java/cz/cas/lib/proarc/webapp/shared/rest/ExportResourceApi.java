@@ -41,6 +41,8 @@ public final class ExportResourceApi {
     public static final String CROSSREF_PATH = "crossref";
     public static final String CROSSREF_PID_PARAM = "pid";
 
+    public static final String BATCHES_IN_PROCESS_PATH = "processingBatches";
+
     public static final String KRAMERIUS4_PATH = "kramerius4";
     public static final String KRAMERIUS4_PID_PARAM = "pid";
     public static final String KRAMERIUS4_HIERARCHY_PARAM = "hierarchy";

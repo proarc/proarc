@@ -131,7 +131,7 @@ public class CejshExportAction extends ExportAction {
                         if (data != null && data.length > 0) {
                             target = data[0].getAttribute(ExportResourceApi.RESULT_TARGET);
                         }
-                        SC.say(i18n.ExportResultWidget_Window_Title(), i18n.CejshExportAction_ExportDone_Msg(target));
+                        SC.say(i18n.ExportAction_Title(), i18n.ExportAction_ProcessPlanned_Msg());
                     } else {
                         DesaExportAction.ExportResultWidget.showErrors(erl.toArray());
                     }

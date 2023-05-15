@@ -28,9 +28,9 @@ import org.junit.Test;
  *
  * @author Jan Pokorsky
  */
-public class Kramerius4ExportOptionsTest {
+public class Kramerius4ExportParamsTest {
 
-    public Kramerius4ExportOptionsTest() {
+    public Kramerius4ExportParamsTest() {
     }
 
     @Test

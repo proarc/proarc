@@ -18,7 +18,7 @@ package cz.cas.lib.proarc.common.export.crossref;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportException;
-import cz.cas.lib.proarc.common.export.ExportOptions;
+import cz.cas.lib.proarc.common.export.ExportParams;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -99,7 +99,7 @@ public class CrossrefExport {
             return ;
         }
 
-        CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0), appConfiguration.getExportOptions());
+        CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0), appConfiguration.getExportParams());
         if (crossRefBuilder == null) {
             return ;
         }
@@ -119,7 +119,7 @@ public class CrossrefExport {
         if (pids == null || pids.isEmpty()) {
             throw new ExportException(null, "Nothing to export. Missing input PID!", null, null);
         }
-        return ExportUtils.createFolder(output, folderName, this.appConfiguration.getExportOptions().isOverwritePackage());
+        return ExportUtils.createFolder(output, folderName, this.appConfiguration.getExportParams().isOverwritePackage());
     }
 
     private void exportPackage(
@@ -157,7 +157,7 @@ public class CrossrefExport {
         }
     }
 
-    private static CrossrefBuilder initBuilder(File output, CejshStatusHandler status, String pid, ExportOptions options) {
+    private static CrossrefBuilder initBuilder(File output, CejshStatusHandler status, String pid, ExportParams options) {
         try {
             return new CrossrefBuilder(output, options);
         } catch (Exception ex) {

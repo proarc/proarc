@@ -331,3 +331,9 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &folderPath=Mzk/Monografie/Kratka/&profile=profile.default&device=device:a93dd5e2-1db7-44d0-be85-804759da8afe&priority=medium
 
+### EXPORT KRAMERIUS
+POST {{proarcLocalHostUrl}}/rest/v1/export/kramerius4
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:4a3b4ef7-0bc0-44e6-b0e2-9624d8ebb80e&isBagit=true&krameriusInstance=local

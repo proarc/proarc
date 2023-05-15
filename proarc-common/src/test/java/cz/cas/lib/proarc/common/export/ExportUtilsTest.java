@@ -70,11 +70,11 @@ public class ExportUtilsTest {
         File parent = temp.getRoot();
         String name = FoxmlUtils.pidAsUuid("uuid:0bcf9933-84e5-460f-9e94-d798b724d394");
         File expResult = new File(parent, name);
-        File result = ExportUtils.createFolder(parent, name, appConfig.getExportOptions().isOverwritePackage());
+        File result = ExportUtils.createFolder(parent, name, appConfig.getExportParams().isOverwritePackage());
         assertEquals(expResult, result);
 
         expResult = new File(parent, name + "_1");
-        result = ExportUtils.createFolder(parent, name, appConfig.getExportOptions().isOverwritePackage());
+        result = ExportUtils.createFolder(parent, name, appConfig.getExportParams().isOverwritePackage());
         assertEquals(expResult, result);
     }
 
@@ -82,7 +82,7 @@ public class ExportUtilsTest {
     public void testCreateFolderFailure() {
         File parent = temp.getRoot();
         String name = "uuid:0bcf9933-84e5-460f-9e94-d798b724d394";
-        ExportUtils.createFolder(parent, name, appConfig.getExportOptions().isOverwritePackage());
+        ExportUtils.createFolder(parent, name, appConfig.getExportParams().isOverwritePackage());
     }
 
     @Test

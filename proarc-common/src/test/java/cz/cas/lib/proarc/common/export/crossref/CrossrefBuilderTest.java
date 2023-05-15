@@ -52,7 +52,7 @@ public class CrossrefBuilderTest {
     @Test
     public void testCreateCrossrefXml() throws Exception {
         File targetFolder = temp.getRoot();
-        CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportOptions());
+        CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportParams());
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
         builder.addVolume("1", null, null);
         builder.addIssue("10", "2010", "uuid");
@@ -72,7 +72,7 @@ public class CrossrefBuilderTest {
     @Test
     public void testCreateCrossrefXml_SkippedVolume() throws Exception {
         File targetFolder = temp.getRoot();
-        CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportOptions());
+        CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportParams());
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
         builder.addIssue("10", "2010", "uuid");
         Document article = builder.getDocumentBuilder().parse(
@@ -91,7 +91,7 @@ public class CrossrefBuilderTest {
     @Test
     public void testCreateCrossrefXml_SkippedIssue() throws Exception {
         File targetFolder = temp.getRoot();
-        CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportOptions());
+        CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportParams());
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
         builder.addVolume("1", "20.12.2012", "uuid");
         Document article = builder.getDocumentBuilder().parse(
