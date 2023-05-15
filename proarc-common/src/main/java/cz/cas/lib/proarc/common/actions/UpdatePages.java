@@ -260,8 +260,8 @@ public class UpdatePages {
                     setPagePosition(mods);
                 }
                 setPageIndex(mods);
-                setPageNumber(mods, number, model);
                 setPageType(mods, true);
+                setPageNumber(mods, number, model);
             }
         } else {
             throw new DigitalObjectException("Unsupported model: " + model);
@@ -322,9 +322,18 @@ public class UpdatePages {
     }
 
     private void setPageType(ModsDefinition mods, boolean setGenre) {
+        boolean updated = false;
         if (this.pageType != null && !this.pageType.isEmpty()) {
             for (PartDefinition part : mods.getPart()) {
-                part.setType(this.pageType);
+                if (isPageNumberElement(part)) {
+                    part.setType(this.pageType);
+                    updated = true;
+                }
+            }
+            if (!updated) {
+                PartDefinition partDefinition = new PartDefinition();
+                partDefinition.setType(this.pageType);
+                mods.getPart().add(0, partDefinition);
             }
             if (setGenre) {
                 for (GenreDefinition genre : mods.getGenre()) {
@@ -332,6 +341,19 @@ public class UpdatePages {
                 }
             }
         }
+    }
+
+    public static boolean isPageNumberElement(PartDefinition part) {
+        if (part.getDetail().isEmpty()) {
+            return true;
+        }
+        for (DetailDefinition definition : part.getDetail()) {
+            if ("pageIndex".equals(definition.getType())) {
+                part.setType(null);
+                return false;
+            }
+        }
+        return true;
     }
 
     private void setPageNumber(ModsDefinition mods, String number, String model) {
@@ -347,11 +369,13 @@ public class UpdatePages {
                         detail.getNumber().add(detailNumber);
                         detail.setType(ModsConstants.FIELD_PAGE_NUMBER);
                         part.getDetail().add(detail);
+                        updated = true;
                     } else {
                         for (DetailDefinition detail : part.getDetail()) {
                             if (ModsConstants.FIELD_PAGE_NUMBER.equals(detail.getType()) || ModsConstants.FIELD_PAGE_NUMBER_SPLIT.equals(detail.getType())) {
                                 if (!detail.getNumber().isEmpty()) {
                                     detail.getNumber().get(0).setValue(number);
+                                    updated = true;
                                 }
                             }
                         }
@@ -393,6 +417,7 @@ public class UpdatePages {
     }
 
     private void setPageIndex(ModsDefinition mods) {
+        boolean updated = false;
         if (this.index > 0) {
             for (PartDefinition part : mods.getPart()) {
                 for (DetailDefinition detail : part.getDetail()) {
@@ -402,10 +427,21 @@ public class UpdatePages {
                             if (NdkPlugin.MODEL_NDK_PAGE.equals(this.model)) {
                                 part.setType(null);
                             }
+                            updated = true;
                             this.index++;
                         }
                     }
                 }
+            }
+            if (!updated) {
+                PartDefinition part = new PartDefinition();
+                mods.getPart().add(part);
+                DetailDefinition detail = new DetailDefinition();
+                part.getDetail().add(detail);
+                detail.setType("pageIndex");
+                StringPlusLanguage number = new StringPlusLanguage();
+                detail.getNumber().add(number);
+                number.setValue(String.valueOf(this.index++));
             }
         }
     }

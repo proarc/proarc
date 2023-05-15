@@ -1,17 +1,18 @@
 package cz.cas.lib.proarc.common.export.bagit;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import javax.xml.bind.DatatypeConverter;
+import org.apache.commons.io.FileUtils;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
@@ -123,10 +124,12 @@ public class BagitExport {
         }
         StringBuilder checksumBuilder = new StringBuilder();
         for (File file : bagitFolder.listFiles()) {
-            byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
-            byte[] hash = MessageDigest.getInstance("MD5").digest(bytes);
-            String hashValue = DatatypeConverter.printHexBinary(hash);
-            checksumBuilder.append("MD5").append(" ").append(hashValue.toLowerCase());
+//            byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
+//            byte[] hash = MessageDigest.getInstance("MD5").digest(bytes);
+//            String hashValue = DatatypeConverter.printHexBinary(hash);
+            ByteSource byteSource = Files.asByteSource(file);
+            HashCode hc = byteSource.hash(Hashing.md5());
+            checksumBuilder.append("MD5").append(" ").append(hc.toString().toLowerCase());
             }
         File checksumFile = new File(bagitFolder, exportFolder.getName() + ".sums");
         BufferedWriter writer = null;
@@ -146,6 +149,25 @@ public class BagitExport {
         this.exportFolder = newName;
     }
 
+    public void prepareFoxml() {
+        File newName = new File(this.exportFolder.getParentFile(), "archive_" + this.exportFolder.getName());
+        try {
+            FileUtils.copyDirectory(exportFolder, newName);
+            this.exportFolder.renameTo(newName);
+            this.exportFolder = newName;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteTargetFolderContent(File targetFolder) {
+        for (File file : targetFolder.listFiles()) {
+            if (!file.getName().endsWith(".log")) {
+                MetsUtils.deleteFolder(file);
+            }
+        }
+    }
+
     public void moveToSpecifiedDirectories() {
         String bagitExportPath = appConfiguration.getBagitExportPath();
         if (bagitExportPath == null || bagitExportPath.isEmpty()) {
@@ -153,6 +175,23 @@ public class BagitExport {
             return;
         } else {
             File bagitExportRoot = new File(bagitExportPath);
+            if (!bagitExportRoot.exists()) {
+                bagitExportRoot.mkdir();
+            }
+            for (File bagitFile : bagitFolder.listFiles()) {
+                bagitFile.renameTo(new File(bagitExportRoot, bagitFile.getName()));
+            }
+            MetsUtils.deleteFolder(bagitFolder);
+        }
+    }
+
+    public void moveToSpecifiedFoxmlDirectories() {
+        String bagitFoxmlExportPath = appConfiguration.getBagitFoxmlExportPath();
+        if (bagitFoxmlExportPath == null || bagitFoxmlExportPath.isEmpty()) {
+            // nikam se nic nepresouva, zustava v puvodnim adresari
+            return;
+        } else {
+            File bagitExportRoot = new File(bagitFoxmlExportPath);
             if (!bagitExportRoot.exists()) {
                 bagitExportRoot.mkdir();
             }

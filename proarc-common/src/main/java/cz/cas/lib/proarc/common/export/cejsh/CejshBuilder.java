@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.cejsh;
 
-import cz.cas.lib.proarc.common.export.ExportOptions;
+import cz.cas.lib.proarc.common.export.ExportParams;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -104,7 +104,7 @@ class CejshBuilder {
     private static Schema SCHEMA_BWMETA;
     private static Pattern SAFE_FILENAME_RE;
     private static final Logger LOG = Logger.getLogger(CejshBuilder.class.getName());
-    private final ExportOptions options;
+    private final ExportParams options;
 
     private final Transformer bwmetaXsl;
     private final TransformErrorListener tranformationErrorHandler;
@@ -121,7 +121,7 @@ class CejshBuilder {
     private Issue issue;
     private Level logLevel;
 
-    public CejshBuilder(CejshConfig config, ExportOptions options)
+    public CejshBuilder(CejshConfig config, ExportParams options)
             throws Exception {
         this.gcalendar = new GregorianCalendar(UTC);
         this.logLevel = config.getLogLevel();

@@ -16,83 +16,44 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
-import cz.cas.lib.proarc.common.export.DataStreamExport;
-import cz.cas.lib.proarc.common.export.DesaExport;
-import cz.cas.lib.proarc.common.export.DesaExport.Result;
-import cz.cas.lib.proarc.common.export.ExportException;
-import cz.cas.lib.proarc.common.export.ExportResultLog;
-import cz.cas.lib.proarc.common.export.ExportResultLog.ResultError;
-import cz.cas.lib.proarc.common.export.ExportUtils;
-import cz.cas.lib.proarc.common.export.Kramerius4Export;
-import cz.cas.lib.proarc.common.export.KwisExport;
+import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.export.AcceptedExports;
-import cz.cas.lib.proarc.common.export.archive.ArchiveOldPrintProducer;
-import cz.cas.lib.proarc.common.export.archive.ArchiveProducer;
-import cz.cas.lib.proarc.common.export.bagit.BagitExport;
-import cz.cas.lib.proarc.common.export.cejsh.CejshConfig;
-import cz.cas.lib.proarc.common.export.cejsh.CejshExport;
-import cz.cas.lib.proarc.common.export.cejsh.CejshStatusHandler;
-import cz.cas.lib.proarc.common.export.crossref.CrossrefExport;
-import cz.cas.lib.proarc.common.export.mets.Const;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.export.DesaExport;
+import cz.cas.lib.proarc.common.export.ExportDispatcher;
+import cz.cas.lib.proarc.common.export.ExportException;
+import cz.cas.lib.proarc.common.export.ExportProcess;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.NdkExport;
-import cz.cas.lib.proarc.common.export.mets.NdkSttExport;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.export.sip.NdkSipExport;
-import cz.cas.lib.proarc.common.export.workflow.WorkflowExport;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
-import cz.cas.lib.proarc.common.workflow.WorkflowException;
-import cz.cas.lib.proarc.common.workflow.WorkflowManager;
-import cz.cas.lib.proarc.common.workflow.model.Job;
-import cz.cas.lib.proarc.common.workflow.model.Task;
-import cz.cas.lib.proarc.common.workflow.model.TaskView;
-import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
-import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -115,12 +76,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.server.CloseableService;
 
-import static cz.cas.lib.proarc.common.export.bagit.BagitExport.findExportFolder;
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
 
@@ -194,141 +149,6 @@ public class ExportResource {
         return new SmartGwtResponse<List<String>>(validExportItems);
     }
 
-
-    @POST
-    @Path(ExportResourceApi.REEXPORT_PATH)
-    @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> reexport(
-            @FormParam(ExportResourceApi.BATCH_ID) Integer batchId
-    ) throws Exception {
-
-        Locale locale = session.getLocale(httpHeaders);
-
-        if (batchId == null || batchId < 1) {
-            throw RestException.plainText(Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("Resource_Missing_Value", ExportResourceApi.BATCH_ID));
-        }
-        Batch batch = this.batchManager.get(batchId);
-        if (batch == null) {
-            ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("Resource_Unsupported_Value", batchId)));
-            return new SmartGwtResponse<>(result);
-        } else {
-            if (!Batch.State.EXPORT_FAILED.equals(batch.getState())) {
-                ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_WrongState", batch.getState())));
-                return new SmartGwtResponse<>(result);
-            } else {
-                String profileId = batch.getProfileId();
-                BatchParams params = batch.getParamsAsObject();
-                if (params == null) {
-                    ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_MissingParams")));
-                    return new SmartGwtResponse<>(result);
-                }
-                switch(profileId) {
-                    case Batch.EXPORT_KRAMERIUS:
-                        return kramerius4(params.getPids(), params.getPolicy(), params.isHierarchy(), params.getKrameriusInstanceId());
-                    case Batch.EXPORT_NDK:
-                        return newNdkExport(params.getPids(), params.getTypeOfPackage(), params.isIgnoreMissingUrnNbn(), params.isBagit());
-                    case Batch.EXPORT_DESA:
-                        return newDesaExport(params.getPids(), params.isHierarchy(), params.isForDownload(), params.isDryRun());
-                    case Batch.EXPORT_CEJSH:
-                        return newCejshExport(params.getPids());
-                    case Batch.EXPORT_CROSSREF:
-                        return newCrossrefExport(params.getPids());
-                    case Batch.EXPORT_ARCHIVE:
-                        return newArchive(params.getPids(), params.getTypeOfPackage(), params.isIgnoreMissingUrnNbn(), params.isBagit());
-                    case Batch.EXPORT_KWIS:
-                        return newKwisExport(params.getPids(), params.getPolicy(), params.isHierarchy());
-                    default:
-                        ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_WrongProfileId", profileId)));
-                        return new SmartGwtResponse<>(result);
-                }
-            }
-        }
-    }
-
-    @POST
-    @Path(ExportResourceApi.DATASTREAM_PATH)
-    @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> datastream(
-            @FormParam(ExportResourceApi.DATASTREAM_PID_PARAM) List<String> pids,
-            @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
-            @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
-            ) throws IOException, ExportException {
-
-        if (pids.isEmpty()) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
-        }
-        if (dsIds.isEmpty()) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
-        }
-
-        DataStreamExport export = new DataStreamExport(appConfig, akubraConfiguration);
-        URI exportUri = user.getExportFolder();
-        File exportFolder = new File(exportUri);
-        File target = export.export(exportFolder, hierarchy, pids, dsIds);
-        URI targetPath = user.getUserHomeUri().relativize(target.toURI());
-        return new SmartGwtResponse<>(new ExportResult(targetPath));
-    }
-
-    @POST
-    @Path(ExportResourceApi.KRAMERIUS4_PATH)
-    @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> kramerius4(
-            @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
-            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
-            @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
-            @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId
-            ) throws Exception {
-
-        if (pids.isEmpty()) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
-        }
-        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
-        if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
-                throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
-        }
-        BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId);
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS, params);
-        try {
-            Kramerius4Export export = new Kramerius4Export(appConfig, akubraConfiguration, policy);
-            File exportFolder = export.getExportFolder(krameriusInstanceId, user.getExportFolder());
-            Kramerius4Export.Result k4Result = export.export(exportFolder, hierarchy, session.asFedoraLog(), krameriusInstanceId, pids.toArray(new String[pids.size()]));
-            ExportResult result = null;
-            if (k4Result.getException() != null) {
-                String exportPath = MetsUtils.renameFolder(exportFolder, k4Result.getFile(), null);
-                BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, k4Result.getException());
-                throw k4Result.getException();
-            } else if (k4Result.getValidationError() != null) {
-                String exportPath = MetsUtils.renameFolder(exportFolder, k4Result.getFile(), null);
-                BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, k4Result.getValidationError().getExceptions());
-                result = new ExportResult(k4Result.getValidationError().getExceptions());
-            } else {
-                URI targetPath = user.getUserHomeUri().relativize(k4Result.getFile().toURI());
-                if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-                    BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath());
-                    result = new ExportResult(targetPath);
-                } else {
-                    if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FAILED.equals(k4Result.getKrameriusImportState())) {
-                        BatchUtils.finishedExportWithError(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
-                    } else if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_WARNING.equals(k4Result.getKrameriusImportState())) {
-                        BatchUtils.finishedExportWithWarning(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
-                    } else if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FINISHED.equals(k4Result.getKrameriusImportState())) {
-                        BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
-                    }
-                }
-                for (String pid : pids) {
-                    setWorkflowExport("task.exportK4", "param.exportK4", k4Result.getPageCount(), getRoot(pid, exportFolder));
-                }
-            }
-            return new SmartGwtResponse<>(result);
-        } catch (Exception ex) {
-            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
-            if (ex instanceof DigitalObjectException || ex instanceof MetsExportException || ex instanceof WorkflowException) {
-                throw new IOException(ex);
-            }
-            throw ex;
-        }
-    }
-
     @GET
     @Path(ExportResourceApi.KRAMERIUS4_PATH)
     @Produces(MediaType.APPLICATION_JSON)
@@ -365,6 +185,117 @@ public class ExportResource {
         return new SmartGwtResponse<KrameriusDescriptor>(result);
     }
 
+    @GET
+    @Path(ExportResourceApi.BATCHES_IN_PROCESS_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<BatchView> listProcessingBatches(
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState
+
+    ) throws IOException {
+        if (batchState.isEmpty()) {
+            batchState.add(Batch.State.EXPORTING);
+            batchState.add(Batch.State.EXPORT_PLANNED);
+        }
+
+        BatchViewFilter filterAll = new BatchViewFilter()
+                .setState(batchState)
+                .setMaxCount(1000)
+                .setSortBy("id");
+
+        List<BatchView> plannedBatches = batchManager.viewProcessingBatches(filterAll, user, UserRole.ROLE_USER);
+
+        int endRow = 0 + plannedBatches.size() - 1;
+        int total = plannedBatches.size();
+        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, plannedBatches);
+    }
+
+    @POST
+    @Path(ExportResourceApi.REEXPORT_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ExportResult> reexport(
+            @FormParam(ExportResourceApi.BATCH_ID) Integer batchId
+    ) throws Exception {
+
+        Locale locale = session.getLocale(httpHeaders);
+
+        if (batchId == null || batchId < 1) {
+            throw RestException.plainText(Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("Resource_Missing_Value", ExportResourceApi.BATCH_ID));
+        }
+        Batch batch = this.batchManager.get(batchId);
+        if (batch == null) {
+            ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("Resource_Unsupported_Value", batchId)));
+            return new SmartGwtResponse<>(result);
+        } else {
+            if (!Batch.State.EXPORT_FAILED.equals(batch.getState())) {
+                ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_WrongState", batch.getState())));
+                return new SmartGwtResponse<>(result);
+            } else {
+                String profileId = batch.getProfileId();
+                BatchParams params = batch.getParamsAsObject();
+                if (params == null) {
+                    ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_MissingParams")));
+                    return new SmartGwtResponse<>(result);
+                }
+                ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+                ExportDispatcher.getDefault().addExport(process);
+                ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+                return new SmartGwtResponse<ExportResult>(result);
+            }
+        }
+    }
+
+    @POST
+    @Path(ExportResourceApi.DATASTREAM_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ExportResult> datastream(
+            @FormParam(ExportResourceApi.DATASTREAM_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
+            @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
+            ) throws IOException, ExportException {
+
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
+        }
+        if (dsIds.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
+        }
+
+        BatchParams params = new BatchParams(pids, hierarchy, dsIds);
+        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_DATASTREAM, params);
+
+        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        ExportDispatcher.getDefault().addExport(process);
+        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<ExportResult>(result);
+    }
+
+    @POST
+    @Path(ExportResourceApi.KRAMERIUS4_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ExportResult> kramerius4(
+            @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
+            @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
+            ) throws Exception {
+
+        if (pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
+        }
+        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+        if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
+                throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
+        }
+        BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId, isBagit);
+        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS, params);
+
+        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        ExportDispatcher.getDefault().addExport(process);
+        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<ExportResult>(result);
+    }
+
     /**
      * Starts a new export to DESA repository.
      *
@@ -392,45 +323,11 @@ public class ExportResource {
         }
         BatchParams params = new BatchParams(pids, hierarchy, forDownload, dryRun);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_DESA, params);
-        try {
-            DesaExport export = new DesaExport(appConfig, akubraConfiguration, MetaModelRepository.getInstance());
-            URI exportUri = user.getExportFolder();
-            File exportFolder = new File(exportUri);
-            List<ExportResult> result = new ArrayList<>(pids.size());
-            if (forDownload) {
-                Result r = export.exportDownload(exportFolder, pids.get(0));
-                if (r.getValidationError() != null) {
-                    BatchUtils.finishedExportWithWarning(this.batchManager, batch, r.getDownloadToken(), r.getValidationError().getExceptions());
-                    result.add(new ExportResult(r.getValidationError().getExceptions()));
-                } else {
-                    BatchUtils.finishedExportSuccessfully(this.batchManager, batch, r.getDownloadToken());
-                    result.add(new ExportResult(r.getDownloadToken()));
-                }
-            } else {
-                if (dryRun) {
-                    for (String pid : pids) {
-                        List<MetsExportExceptionElement> errors = export.validate(exportFolder, pid, hierarchy);
-                        result.add(new ExportResult(errors));
-                    }
-                } else {
-                    for (String pid : pids) {
-                        Result r = export.export(exportFolder, pid, null, false, hierarchy, false, session.asFedoraLog(), user);
-                        if (r.getValidationError() != null) {
-                            BatchUtils.finishedExportWithWarning(this.batchManager, batch, r.getDownloadToken(), r.getValidationError().getExceptions());
-                            result.add(new ExportResult(r.getValidationError().getExceptions()));
-                        } else {
-                            // XXX not used for now
-                            BatchUtils.finishedExportSuccessfully(this.batchManager, batch, r.getDownloadToken());
-                            result.add(new ExportResult((Integer) null, "done"));
-                        }
-                    }
-                }
-            }
-            return new SmartGwtResponse<>(result);
-        } catch (Exception ex) {
-            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
-            throw ex;
-        }
+
+        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        ExportDispatcher.getDefault().addExport(process);
+        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<ExportResult>(result);
     }
 
     /**
@@ -488,217 +385,11 @@ public class ExportResource {
         }
         BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_NDK, params);
-        try {
-            URI exportUri = user.getExportFolder();
-            File exportFolder = new File(exportUri);
-            List<ExportResult> result = new ArrayList<>(pids.size());
-            NdkExport export;
 
-            typeOfPackage = getTypeOfPackage(pids, typeOfPackage);
-
-            switch (typeOfPackage) {
-                case Const.EXPORT_NDK_BASIC:
-                    export = new NdkExport(appConfig, akubraConfiguration);
-                    break;
-                case Const.EXPORT_NDK4SIP:
-                    export = new NdkSipExport(appConfig, akubraConfiguration);
-                    break;
-                case Const.EXPORT_NDK4STT:
-                    export = new NdkSttExport(appConfig, akubraConfiguration);
-                    break;
-                case Const.EXPORT_NDK4CHRONICLE:
-                    export = new NdkExport(appConfig, akubraConfiguration);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported type of package");
-            }
-
-            List<NdkExport.Result> ndkResults = export.export(exportFolder, pids, true, true, null, ignoreMissingUrnNbn, session.asFedoraLog());
-            for (NdkExport.Result r : ndkResults) {
-                if (r.getError() != null) {
-                    String exportPath = MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
-                    BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, r.getError());
-                    throw r.getError();
-                } else if (r.getValidationError() != null) {
-                    if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
-                        MetsUtils.deleteFolder(r.getTargetFolder());
-                        BatchUtils.finishedExportWithWarning(this.batchManager, batch, "Folder deleted.", r.getValidationError().getExceptions());
-                    } else {
-                        String exportPath = MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
-                        BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, r.getValidationError().getExceptions());
-                    }
-                    if (Const.EXPORT_NDK4STT.equals(typeOfPackage)) {
-                        ExportResult exportResult = new ExportResult(r.getValidationError().getExceptions());
-                        exportResult.setIgnoreMissingUrnNbn(true);
-                        result.add(exportResult);
-                    } else {
-                        result.add(new ExportResult(r.getValidationError().getExceptions()));
-                    }
-                } else {
-                    // XXX not used for now
-                    result.add(new ExportResult((Integer) null, "done"));
-                }
-            }
-            if ("done".equals(result.get(0).getTarget())) {
-                if (isBagit) {
-                    File targetFolder = findExportFolder(exportFolder, batch.getFolder());
-                    for (File targetFile : targetFolder.listFiles()) {
-                        if (targetFile.isDirectory()) {
-                            BagitExport bagitExport = new BagitExport(appConfig, targetFile);
-                            bagitExport.prepare();
-                            bagitExport.bagit();
-                            bagitExport.zip();
-                            bagitExport.moveToBagitFolder();
-                            bagitExport.createMd5File();
-                            bagitExport.deleteExportFolder();
-                        }
-                    }
-                    targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
-                }
-                for (NdkExport.Result r : ndkResults) {
-                    try {
-                        setWorkflowExport("task.exportNdkPsp", "param.exportNdkPsp.numberOfPackages", r.getPageIndexCount(), getRoot(r.getPid(), exportFolder));
-                    } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
-                        result.clear();
-                        result.add(new ExportResult(null, "Vyexportovano ale nepodarilo se propojit s RDflow."));
-                    }
-                }
-                BatchUtils.finishedExportSuccessfully(this.batchManager, batch, ndkResults.get(0).getTargetFolder().getAbsolutePath());
-            }
-            return new SmartGwtResponse<>(result);
-        } catch (Exception ex) {
-            if (ex instanceof DigitalObjectException || ex instanceof MetsExportException || ex instanceof WorkflowException) {
-                throw new IOException(ex);
-            }
-            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
-            throw ex;
-        }
-    }
-
-    private String getTypeOfPackage(List<String> pids, String typeOfPackage) throws MetsExportException {
-        if (pids == null || pids.isEmpty()) {
-            return typeOfPackage;
-        }
-        if (!Const.EXPORT_NDK_BASIC.equals(typeOfPackage)) {
-            return typeOfPackage;
-        }
-        MetsContext metsContext = null;
-        FedoraObject object = null;
-
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage remoteStorage = RemoteStorage.getInstance();
-            object = remoteStorage.find(pids.get(0));
-            metsContext = buildFedoraContext(object, null, null, remoteStorage, appConfig.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            AkubraStorage akubraStorage = AkubraStorage.getInstance();
-            object = akubraStorage.find(pids.get(0));
-            metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
-        }
-        IMetsElement element = getMetsElement(object, metsContext, true);
-        if (element != null) {
-            String modelId = element.getModel().substring(12);
-            if (NdkMapper.isOldprintModel(modelId)) {
-                return Const.EXPORT_NDK4STT;
-            } else if (NdkMapper.isChronicleModel(modelId)) {
-                return Const.EXPORT_NDK4CHRONICLE;
-            } else if (NdkMapper.isNdkEModel(modelId)) {
-                return Const.EXPORT_NDK4SIP;
-            } else if (NdkMapper.isNdkModel(modelId)) {
-                return Const.EXPORT_NDK_BASIC;
-            }
-        }
-        return typeOfPackage;
-    }
-
-    private IMetsElement getRoot(String pid, File exportFolder) throws MetsExportException {
-        MetsContext metsContext = null;
-        FedoraObject object = null;
-
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage remoteStorage = RemoteStorage.getInstance();
-            object = remoteStorage.find(pid);
-            metsContext = buildFedoraContext(object, null, exportFolder, remoteStorage, appConfig.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            AkubraStorage akubraStorage = AkubraStorage.getInstance();
-            object = akubraStorage.find(pid);
-            metsContext = buildAkubraContext(object, null, exportFolder, akubraStorage, appConfig.getNdkExportOptions());
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
-        }
-        return getMetsElement(object, metsContext, true);
-    }
-
-    private MetsElement getMetsElement(FedoraObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
-        dc.resetContext();
-        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), dc);
-        if (dobj == null) {
-            throw new MetsExportException("Missing uuid");
-        }
-        return MetsElement.getElement(dobj, null, dc, hierarchy);
-    }
-
-    private void setWorkflowExport(String taskName, String parameterName, Integer pageCount, IMetsElement root) throws DigitalObjectException, WorkflowException {
-       if (root != null) {
-            DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            DigitalObjectManager.CreateHandler handler = dom.create(root.getModel(), root.getOriginalPid(), null, user, null, session.asFedoraLog());
-            Locale locale = session.getLocale(httpHeaders);
-            Job job = handler.getWfJob(root.getOriginalPid(), locale);
-            if (job == null) {
-                return;
-            }
-            List<TaskView> tasks = handler.getTask(job.getId(), locale);
-            Task editedTask = null;
-            for (TaskView task : tasks) {
-                if (taskName.equals(task.getTypeRef())) {
-                    editedTask = task;
-                    break;
-                }
-            }
-            if (editedTask != null) {
-                editedTask.setOwnerId(new BigDecimal(session.getUser().getId()));
-                editedTask.setState(Task.State.FINISHED);
-                WorkflowProfiles workflowProfiles = WorkflowProfiles.getInstance();
-                WorkflowDefinition workflow = workflowProfiles.getProfiles();
-                WorkflowManager workflowManager = WorkflowManager.getInstance();
-
-                try {
-                /*    TaskFilter taskFilter = new TaskFilter();
-                    taskFilter.setId(editedTask.getId());
-                    taskFilter.setLocale(locale);
-                    Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
-                            .findFirst().get().getState();
-                 */   if (parameterName != null) {
-                        Map<String, Object> parameters = new HashMap<>();
-                        parameters.put(parameterName, pageCount);
-                        workflowManager.tasks().updateTask(editedTask, parameters, workflow);
-                    } else {
-                        workflowManager.tasks().updateTask(editedTask, (Map<String, Object>) null, workflow);
-                    }
-                   // List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
-
-                    //if (result != null && !result.isEmpty() && result.get(0).getState() != previousState) {
-                        WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, locale);
-                        workflowActionHandler.runAction(editedTask);
-                    //}
-                } catch (IOException e) {
-                    throw new DigitalObjectException(e.getMessage());
-                }
-            }
-        }
-    }
-
-    /**
-     * @return true if at least one exception contains "URNNBN misssing" otherwise @return false
-     */
-    private boolean isMissingURNNBN(NdkExport.Result r) {
-        for (MetsExportExceptionElement exception : r.getValidationError().getExceptions()) {
-            if ("URNNBN identifier is missing".equals(exception.getMessage())) {
-                return true;
-            }
-        }
-        return false;
+        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        ExportDispatcher.getDefault().addExport(process);
+        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<ExportResult>(result);
     }
 
     /**
@@ -719,36 +410,11 @@ public class ExportResource {
 
         BatchParams params = new BatchParams(pids);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_CEJSH, params);
-        try {
-            URI exportUri = user.getExportFolder();
-            File exportFolder = new File(exportUri);
-            CejshConfig cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
-            CejshExport export = new CejshExport(
-                    DigitalObjectManager.getDefault(), appConfig, akubraConfiguration);
-            CejshStatusHandler status = export.export(exportFolder, pids);
-            File targetFolder = status.getTargetFolder();
-            ExportResult result = new ExportResult();
-            if (targetFolder != null) {
-                result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
-            }
-            if (!status.isOk()) {
-                result.setErrors(new ArrayList<>());
-                for (ExportResultLog.ExportResult logResult : status.getReslog().getExports()) {
-                    for (ResultError error : logResult.getError()) {
-                        result.getErrors().add(new ExportError(
-                                error.getPid(), error.getMessage(), false, error.getDetails()));
-                    }
-                }
-                String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, null);
-                BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, status.getReslog().getExports());
-            } else {
-                BatchUtils.finishedExportSuccessfully(this.batchManager, batch, status.getTargetFolder().getAbsolutePath());
-            }
-            return new SmartGwtResponse<>(result);
-        } catch (Exception ex) {
-            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
-            throw ex;
-        }
+
+        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        ExportDispatcher.getDefault().addExport(process);
+        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<ExportResult>(result);
     }
 
     /**
@@ -768,37 +434,11 @@ public class ExportResource {
         }
         BatchParams params = new BatchParams(pids);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_CROSSREF, params);
-        try {
-            URI exportUri = user.getExportFolder();
-            File exportFolder = new File(exportUri);
-//        CejshConfig cejshConfig = CejshConfig.from(appConfig.getAuthenticators());
-            CrossrefExport export = new CrossrefExport(
-                    DigitalObjectManager.getDefault(), appConfig, akubraConfiguration);
-            CejshStatusHandler status = new CejshStatusHandler();
-            export.export(exportFolder, pids, status);
-            File targetFolder = status.getTargetFolder();
-            ExportResult result = new ExportResult();
-            if (targetFolder != null) {
-                result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
-            }
-            if (!status.isOk()) {
-                result.setErrors(new ArrayList<>());
-                for (ExportResultLog.ExportResult logResult : status.getReslog().getExports()) {
-                    for (ResultError error : logResult.getError()) {
-                        result.getErrors().add(new ExportError(
-                                error.getPid(), error.getMessage(), false, error.getDetails()));
-                    }
-                }
-                String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, null);
-                BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, status.getReslog().getExports());
-            } else {
-                BatchUtils.finishedExportSuccessfully(this.batchManager, batch, status.getTargetFolder().getAbsolutePath());
-            }
-            return new SmartGwtResponse<>(result);
-        } catch (Exception ex) {
-            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
-            throw ex;
-        }
+
+        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        ExportDispatcher.getDefault().addExport(process);
+        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<ExportResult>(result);
     }
 
     /**
@@ -821,191 +461,11 @@ public class ExportResource {
         }
         BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_ARCHIVE, params);
-        try {
-            URI exportUri = user.getExportFolder();
-            File exportFolder = new File(exportUri);
-            ExportResult result = new ExportResult();
-            List<ExportResult> resultList = new ArrayList<>();
-            ArchiveProducer export = null;
-            switch (typeOfPackage) {
-                case Const.EXPORT_NDK_BASIC:
-                    export = new ArchiveProducer(appConfig, akubraConfiguration);
-                    ;
-                    break;
-                case Const.EXPORT_NDK4STT:
-                    export = new ArchiveOldPrintProducer(appConfig, akubraConfiguration);
-                    ;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported type of package");
-            }
 
-            File targetFolder = ExportUtils.createFolder(exportFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)), appConfig.getExportOptions().isOverwritePackage());
-            try {
-                //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
-                targetFolder = export.archive(pids, targetFolder, ignoreMissingUrnNbn);
-                if (targetFolder != null) {
-                    result.setTarget(user.getUserHomeUri().relativize(targetFolder.toURI()).toASCIIString());
-                }
-            } catch (Exception ex) {
-                Logger.getLogger(ExportResource.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            ExportResultLog reslog = export.getResultLog();
-            result.setErrors(new ArrayList<>());
-            for (ExportResultLog.ExportResult logResult : reslog.getExports()) {
-                for (ResultError error : logResult.getError()) {
-                    if (isMissingURNNBN(error) && appConfig.getExportOptions().isDeletePackage()) {
-                        MetsUtils.deleteFolder(targetFolder);
-                        error.setDetails(null);
-                        BatchUtils.finishedExportWithError(this.batchManager, batch, "Folder deleted.", error);
-                    } else {
-                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, null);
-                        BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, error);
-                    }
-                    if (Const.EXPORT_NDK4STT.equals(typeOfPackage)) {
-                        ExportError exportResult = new ExportError(error.getPid(), error.getMessage(), false, error.getDetails());
-                        exportResult.setIgnoreMissingUrnNbn(true);
-                        result.getErrors().add(exportResult);
-                    } else {
-                        result.getErrors().add(new ExportError(error.getPid(), error.getMessage(), false, error.getDetails()));
-                    }
-                }
-            }
-            resultList.add(result);
-            if (!result.getErrors().isEmpty()) {
-                return new SmartGwtResponse<>(resultList);
-            }
-            NdkExport exportNdk;
-            typeOfPackage = getTypeOfPackage(pids, typeOfPackage);
-            switch (typeOfPackage) {
-                case Const.EXPORT_NDK_BASIC:
-                    exportNdk = new NdkExport(appConfig, akubraConfiguration);
-                    break;
-                case Const.EXPORT_NDK4SIP:
-                    exportNdk = new NdkSipExport(appConfig, akubraConfiguration);
-                    break;
-                case Const.EXPORT_NDK4STT:
-                    exportNdk = new NdkSttExport(appConfig, akubraConfiguration);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported type of package");
-            }
-            File target = null;
-            for (File file : targetFolder.listFiles()) {
-                deleteRawFolder(typeOfPackage, file);
-                if (file.isDirectory()) {
-                    target = ExportUtils.createFolder(file, "NDK", false);
-                    continue;
-                }
-            }
-            if (target == null) {
-                target = targetFolder;
-            }
-            List<NdkExport.Result> ndkResults = exportNdk.exportNdkArchive(targetFolder, pids, true, true, true, ignoreMissingUrnNbn, session.asFedoraLog());
-            for (NdkExport.Result r : ndkResults) {
-                if (r.getError() != null) {
-                    String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                    BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, r.getError());
-                    throw r.getError();
-                }
-                if (r.getValidationError() != null) {
-                    if (isMissingURNNBN(r) && appConfig.getExportOptions().isDeletePackage()) {
-                        //MetsUtils.deleteFolder(r.getTargetFolder());
-                        BatchUtils.finishedExportWithWarning(this.batchManager, batch, targetFolder.getAbsolutePath(), r.getValidationError().getExceptions());
-                    } else {
-                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                        BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, r.getValidationError().getExceptions());
-                    }
-                    if (Const.EXPORT_NDK4STT.equals(typeOfPackage)) {
-                        ExportResult exportResult = new ExportResult(r.getValidationError().getExceptions());
-                        exportResult.setIgnoreMissingUrnNbn(true);
-                        resultList.add(exportResult);
-                    } else {
-                        resultList.add(new ExportResult(r.getValidationError().getExceptions()));
-                    }
-                } else {
-                    // XXX not used for now
-                    resultList.add(new ExportResult((Integer) null, "done"));
-                }
-            }
-            boolean errors = false;
-            for (ExportResource.ExportResult log : resultList) {
-                if (log.getErrors() == null || log.getErrors().isEmpty()) {
-                    errors = false;
-                } else {
-                    errors = true;
-                    break;
-                }
-            }
-            if (Const.EXPORT_NDK4SIP.equals(typeOfPackage)) {
-                ArchiveProducer.fixPdfFile(targetFolder);
-            }
-
-            if (!errors) {
-                ExportUtils.writeExportResult(targetFolder, export.getResultLog());
-                if (isBagit) {
-                    for (File targetFile : targetFolder.listFiles()) {
-                        if (targetFile.isDirectory()) {
-                            BagitExport bagitExport = new BagitExport(appConfig, targetFile);
-                            bagitExport.prepare();
-                            bagitExport.bagit();
-                            bagitExport.zip();
-                            bagitExport.moveToBagitFolder();
-                            bagitExport.createMd5File();
-                            bagitExport.moveToSpecifiedDirectories();
-                            bagitExport.deleteExportFolder();
-                        }
-                    }
-                    targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
-                }
-                for (NdkExport.Result r : ndkResults) {
-                    try {
-                        setWorkflowExport("task.exportArchive", "param.exportArchive", r.getPageIndexCount(), getRoot(r.getPid(), exportFolder));
-                    } catch (MetsExportException | DigitalObjectException e) {
-                        resultList.clear();
-                        resultList.clear();
-                        resultList.add(new ExportResult(null, "Vyexportovano ale nepodarilo se propojit s RDflow."));
-                    } catch (WorkflowException e) {
-                        if ("Task is blocked by other tasks!".equals(e.getMessage())) {
-                            String targetLog = resultList.get(0).getTarget() + ", ale zapsan\u00ed \u00fakolu je blokov\u00e1no!";
-                            resultList.get(0).setTarget(targetLog);
-                        } else {
-                            resultList.clear();
-                            resultList.add(new ExportResult(null, "Vyexportovano ale nepodarilo se propojit s RDflow."));
-                        }
-                    }
-                }
-
-                WorkflowExport exportWorkflow = new WorkflowExport(appConfig, akubraConfiguration, user, session.getLocale(httpHeaders));
-                try {
-                    exportWorkflow.export(targetFolder, ndkResults, session.asFedoraLog());
-                } catch (Exception ex) {
-                    resultList.clear();
-                    resultList.add(new ExportResult(null, "Nepodarilo se vytvorit soubor workflow_onformation.xml"));
-                }
-                BatchUtils.finishedExportSuccessfully(this.batchManager, batch, targetFolder.getAbsolutePath());
-            }
-            return new SmartGwtResponse<>(resultList);
-        } catch (Exception ex) {
-            if (ex instanceof DigitalObjectException || ex instanceof MetsExportException || ex instanceof WorkflowException) {
-                throw new IOException(ex);
-            }
-            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
-            throw ex;
-        }
-    }
-
-    private void deleteRawFolder(String typeOfPackage, File archiveFolder) {
-        for (File file : archiveFolder.listFiles()) {
-            if (Const.EXPORT_NDK4SIP.equals(typeOfPackage) && file.isDirectory() && "RAW".equals(file.getName())) {
-                MetsUtils.deleteFolder(file);
-                break;
-            }
-        }
-    }
-
-    private boolean isMissingURNNBN(ResultError error) {
-        return "URNNBN identifier is missing".equals(error.getMessage());
+        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        ExportDispatcher.getDefault().addExport(process);
+        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<ExportResult>(result);
     }
 
     @POST
@@ -1020,97 +480,13 @@ public class ExportResource {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
-        BatchParams params = new BatchParams(pids, policy, hierarchy, null);
+        BatchParams params = new BatchParams(pids, policy, hierarchy, null, false);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KWIS, params);
-        try {
-            ExportResult result = new ExportResult();
 
-            String outputPath = appConfig.getKwisExportOptions().getKwisPath();
-            if (outputPath == null) {
-                outputPath = user.getExportFolder().getPath();
-            }
-            if (!outputPath.endsWith(File.separator)) {
-                outputPath = outputPath + File.separator;
-            }
-
-            URI imagesPath = runDatastreamExport(outputPath, pids, Collections.singletonList("NDK_USER"), hierarchy);
-            URI k4Path = runK4Export(outputPath, pids, hierarchy, policy, "public");
-
-            String imp = imagesPath.getPath();
-            String k4p = k4Path.getPath();
-            String exportPackPath = outputPath + pids.get(0).substring(5) + "_KWIS";
-            File exportFolder = new File(exportPackPath);
-            exportFolder.mkdir();
-
-            //imp = outputPath + imp.substring(imp.indexOf('/') + 1);
-            //k4p = outputPath + k4p.substring(k4p.indexOf('/') + 1);
-
-            KwisExport export = new KwisExport(
-                    appConfig,
-                    imp,
-                    k4p,
-                    exportPackPath);
-
-            try {
-                export.run();
-                BatchUtils.finishedExportSuccessfully(this.batchManager, batch, exportFolder.getAbsolutePath());
-            } catch (Exception ex) {
-                result.setErrors(new ArrayList<>());
-                result.getErrors().add(new ExportError(pids.get(0), ex.getMessage(), false, "ERROR in postProcessing ."));
-                String exportPath = MetsUtils.renameFolder(new File(outputPath), exportFolder, null);
-                BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, ex);
-            } finally {
-                FileUtils.deleteDirectory(new File(imp));
-                FileUtils.deleteDirectory(new File(k4p));
-            }
-            return new SmartGwtResponse<>(result);
-        } catch (Exception ex) {
-            if (ex instanceof DigitalObjectException || ex instanceof MetsExportException || ex instanceof WorkflowException) {
-                throw new IOException(ex);
-            }
-            BatchUtils.finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
-            throw ex;
-        }
-    }
-
-    private URI runK4Export(String path, List<String> pids, boolean hierarchy, String policy, String exportPageContext) throws Exception {
-        if (pids.isEmpty()) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
-        }
-
-        Kramerius4Export export = new Kramerius4Export(appConfig, akubraConfiguration, policy);
-        if (path == null || path.isEmpty()) {
-            path = user.getExportFolder().getPath();
-        }
-        File exportFolder = new File(path);
-        Kramerius4Export.Result target = export.export(exportFolder, hierarchy, session.asFedoraLog(), null, pids.toArray(new String[pids.size()]));
-        if (target.getException() != null) {
-            MetsUtils.renameFolder(exportFolder, target.getFile(), null);
-            throw target.getException();
-        }
-        return user.getUserHomeUri().relativize(target.getFile().toURI());
-    }
-
-    private URI runDatastreamExport(
-            String path,
-            List<String> pids,
-            List<String> dsIds,
-            boolean hierarchy
-    ) throws IOException, ExportException {
-        if (pids.isEmpty()) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_PID_PARAM);
-        }
-        if (dsIds.isEmpty()) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
-        }
-        DataStreamExport export = new DataStreamExport(appConfig, akubraConfiguration);
-
-        if (path == null || path.isEmpty()) {
-            path = user.getExportFolder().getPath();
-        }
-        File exportFolder = new File(path);
-        File target = export.export(exportFolder, hierarchy, pids, dsIds);
-        return user.getUserHomeUri().relativize(target.toURI());
+        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        ExportDispatcher.getDefault().addExport(process);
+        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<ExportResult>(result);
     }
 
     @GET

@@ -44,6 +44,7 @@ import java.io.File;
 import java.util.List;
 
 import static cz.cas.lib.proarc.common.actions.UpdatePages.getRelevantObjects;
+import static cz.cas.lib.proarc.common.actions.UpdatePages.isPageNumberElement;
 
 /**
  * @author Lukas Sykora
@@ -151,11 +152,11 @@ public class UpdatePagesMetadata {
                 if (copyPageIndex) {
                     setPageIndex(mods, sourceModsInfo, model);
                 }
-                if (copyPageNumber) {
-                    setPageNumber(mods, sourceModsInfo, model);
-                }
                 if (copyPageType) {
                     setPageType(mods, sourceModsInfo, model, true);
+                }
+                if (copyPageNumber) {
+                    setPageNumber(mods, sourceModsInfo, model);
                 }
                 if (copyPagePosition) {
                     setPagePosition(mods, sourceModsInfo, model);
@@ -240,9 +241,18 @@ public class UpdatePagesMetadata {
     }
 
     private void setPageType(ModsDefinition mods, SourceModsInfo sourceModsInfo, String model, boolean setGenre) {
+        boolean updated = false;
         if (sourceModsInfo.getPageType() != null && !sourceModsInfo.getPageType().isEmpty()) {
             for (PartDefinition part : mods.getPart()) {
-                part.setType(sourceModsInfo.getPageType());
+                if (isPageNumberElement(part)) {
+                    part.setType(sourceModsInfo.getPageType());
+                    updated = true;
+                }
+            }
+            if (!updated) {
+                PartDefinition partDefinition = new PartDefinition();
+                partDefinition.setType(sourceModsInfo.getPageType());
+                mods.getPart().add(0, partDefinition);
             }
             if (setGenre) {
                 for (GenreDefinition genre : mods.getGenre()) {
@@ -253,18 +263,30 @@ public class UpdatePagesMetadata {
     }
 
     private void setPageIndex(ModsDefinition mods, SourceModsInfo sourceModsInfo, String model) {
+        boolean update = false;
         if (sourceModsInfo.getPageIndex() != null && !sourceModsInfo.getPageIndex().isEmpty()) {
             for (PartDefinition part : mods.getPart()) {
                 for (DetailDefinition detail : part.getDetail()) {
                     if ("pageIndex".equals(detail.getType())) {
                         if (!detail.getNumber().isEmpty()) {
                             detail.getNumber().get(0).setValue(sourceModsInfo.getPageIndex());
+                            update = true;
                             if (NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
                                 part.setType(null);
                             }
                         }
                     }
                 }
+            }
+            if (!update) {
+                PartDefinition part = new PartDefinition();
+                mods.getPart().add(part);
+                DetailDefinition detail = new DetailDefinition();
+                part.getDetail().add(detail);
+                detail.setType("pageIndex");
+                StringPlusLanguage number = new StringPlusLanguage();
+                detail.getNumber().add(number);
+                number.setValue(sourceModsInfo.getPageIndex());
             }
         }
     }

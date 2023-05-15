@@ -102,6 +102,8 @@ public class IndexerResource {
         SolrClient solrClient = new ConcurrentUpdateSolrClient.Builder(processingSolrHost).withQueueSize(100).build();
         SolrFeeder feeder = new SolrFeeder(solrClient);
 
+        feeder.deleteProcessingIndex();
+        feeder.commit();
         //processRoot(feeder, datastreamStorePath, false);
         processRoot(feeder, objectStorePath, true);
 

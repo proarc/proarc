@@ -20,6 +20,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
@@ -29,6 +30,7 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
@@ -55,6 +57,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import static cz.cas.lib.proarc.common.device.DeviceRepository.getMixDescriptionEditor;
 import static cz.cas.lib.proarc.common.fedora.BinaryEditor.NDK_ARCHIVAL_ID;
 import static cz.cas.lib.proarc.common.fedora.BinaryEditor.NDK_USER_ID;
 import static cz.cas.lib.proarc.common.fedora.BinaryEditor.RAW_ID;
@@ -132,34 +135,8 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                         .lastModified(lastModification).build();
 //            }
         } else if (fobject instanceof AkubraObject) {
-            BinaryEditor loader = BinaryEditor.dissemination((AkubraObject) fobject, dsId);
-            if (loader == null) {
-                throw new DigitalObjectNotFoundException(pid, null, dsId, null, null);
-            }
-            File entity = loader.read();
-            if (entity == null) {
-                //throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
-                InputStream inputStream = loader.readStream();
-                if (inputStream == null) {
-                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
-                }
-                Date lastModification = new Date(loader.getLastModified());
-                ResponseBuilder evaluatePreconditions = httpRequest == null ? null : httpRequest.evaluatePreconditions(lastModification);
-                if (evaluatePreconditions != null) {
-                    return evaluatePreconditions.build();
-                }
-                return Response.ok(inputStream, loader.getProfile().getDsMIME()).lastModified(lastModification).build();
-            }
-
-            Date lastModification = new Date(loader.getLastModified());
-            ResponseBuilder evaluatePreconditions = httpRequest == null
-                    ? null : httpRequest.evaluatePreconditions(lastModification);
-            if (evaluatePreconditions != null) {
-                return evaluatePreconditions.build();
-            }
-            return Response.ok(entity, loader.getProfile().getDsMIME())
-                    .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
-                    .lastModified(lastModification).build();
+            AkubraObject akubraObject = (AkubraObject) fobject;
+            return getResponse(akubraObject, dsId);
         } else if (fobject instanceof RemoteObject) {
             RemoteObject remote = (RemoteObject) fobject;
             return getResponse(remote, dsId);
@@ -200,6 +177,44 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                     .header("Content-Disposition", filename)
                     .build();
 //        }
+        } else if (object instanceof AkubraObject) {
+            if (DeviceRepository.DESCRIPTION_DS_ID.equals(dsId)) {
+                XmlStreamEditor editor = getMixDescriptionEditor(object);
+                InputStream inputStream = editor.readStream();
+                if (inputStream == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                }
+                Date lastModification = new Date(editor.getLastModified());
+                return Response.ok(inputStream, "text/xml").lastModified(lastModification).build();
+            } else {
+                BinaryEditor loader = BinaryEditor.dissemination((AkubraObject) object, dsId);
+                if (loader == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, null, null);
+                }
+                File entity = loader.read();
+                if (entity == null) {
+                    //throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                    InputStream inputStream = loader.readStream();
+                    if (inputStream == null) {
+                        throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                    }
+                    Date lastModification = new Date(loader.getLastModified());
+//                ResponseBuilder evaluatePreconditions = httpRequest == null ? null : httpRequest.evaluatePreconditions(lastModification);
+//                if (evaluatePreconditions != null) {
+//                    return evaluatePreconditions.build();
+//                }
+                    return Response.ok(inputStream, loader.getProfile().getDsMIME()).lastModified(lastModification).build();
+                }
+                Date lastModification = new Date(loader.getLastModified());
+//            ResponseBuilder evaluatePreconditions = httpRequest == null
+//                    ? null : httpRequest.evaluatePreconditions(lastModification);
+//            if (evaluatePreconditions != null) {
+//                return evaluatePreconditions.build();
+//            }
+                return Response.ok(entity, loader.getProfile().getDsMIME())
+                        .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
+                        .lastModified(lastModification).build();
+            }
         } else {
             throw new DigitalObjectException(pid, "Missing implementation for DefaultDisseminationHandler:getResponse.");
         }

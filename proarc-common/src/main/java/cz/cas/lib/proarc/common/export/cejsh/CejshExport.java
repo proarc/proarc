@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.export.cejsh;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.export.ExportOptions;
+import cz.cas.lib.proarc.common.export.ExportParams;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.cejsh.CejshBuilder.Article;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -57,7 +57,7 @@ public class CejshExport {
 
     private DigitalObjectManager dom;
     private final CejshConfig cejshConfig;
-    private final ExportOptions options;
+    private final ExportParams options;
     private final AppConfiguration appConfiguration;
     private final AkubraConfiguration akubraConfiguration;
 
@@ -66,7 +66,7 @@ public class CejshExport {
         this.akubraConfiguration = akubraConfiguration;
         this.dom = dom;
         this.cejshConfig = CejshConfig.from(appConfiguration.getAuthenticators());
-        this.options = appConfiguration.getExportOptions();
+        this.options = appConfiguration.getExportParams();
     }
 
     public CejshStatusHandler export(File outputFolder, List<String> pids) throws IOException {

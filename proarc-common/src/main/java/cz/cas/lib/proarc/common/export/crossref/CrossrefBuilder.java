@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.export.crossref;
 
 import cz.cas.lib.proarc.common.export.ExportException;
-import cz.cas.lib.proarc.common.export.ExportOptions;
+import cz.cas.lib.proarc.common.export.ExportParams;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
@@ -94,9 +94,9 @@ class CrossrefBuilder {
     private final SimpleDateFormat exportDateFormat;
     private Validator crossrefValidator;
     private int pkgIndex;
-    private ExportOptions options;
+    private ExportParams options;
 
-    public CrossrefBuilder(File outputFolder, ExportOptions options)
+    public CrossrefBuilder(File outputFolder, ExportParams options)
             throws Exception {
         this.options = options;
         this.outputFolder = outputFolder;

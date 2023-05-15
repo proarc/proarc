@@ -65,7 +65,7 @@ public class ChronicleExportAction extends ExportAction {
                     Record[] data = response.getData();
                     RecordList erl = errorsFromExportResult(data);
                     if (erl.isEmpty()) {
-                        SC.say(i18n.NdkExportAction_ExportDone_Msg());
+                        SC.say(i18n.ExportAction_ProcessPlanned_Msg());
                     } else {
                         DesaExportAction.ExportResultWidget.showErrors(erl.toArray());
                     }

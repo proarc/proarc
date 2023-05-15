@@ -16,6 +16,7 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.fedora.AbstractFedoraObject;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
@@ -307,10 +308,18 @@ public class AkubraStorage {
     public void indexDocument(String pid, String modelId) throws IOException, DigitalObjectException {
         AkubraObject aObject = find(pid);
         DigitalObject dObject = this.manager.readObjectFromStorage(pid);
-        if (DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId)) {
-            this.feeder.feedDescriptionDevice(dObject, aObject, true);
+        if (modelId == null || modelId.isEmpty()) {
+            if (pid.startsWith("device:")) {
+                this.feeder.feedDescriptionDevice(dObject, aObject, true);
+            } else {
+                this.feeder.feedDescriptionDocument(dObject, aObject, true);
+            }
         } else {
-            this.feeder.feedDescriptionDocument(dObject, aObject, true);
+            if (DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId)) {
+                this.feeder.feedDescriptionDevice(dObject, aObject, true);
+            } else {
+                this.feeder.feedDescriptionDocument(dObject, aObject, true);
+            }
         }
     }
 
@@ -501,7 +510,11 @@ public class AkubraStorage {
                 String text = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
                 return text;
             } catch (IOException ex) {
-                throw new DigitalObjectException(getPid(), ex);
+                if (ex.getMessage().contains("Object not found in low-level storage")) {
+                    throw new DigitalObjectNotFoundException(getPid(), ex);
+                } else {
+                    throw new DigitalObjectException(getPid(), ex);
+                }
             }
         }
 
