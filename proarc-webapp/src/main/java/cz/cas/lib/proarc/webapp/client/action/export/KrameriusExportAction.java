@@ -133,7 +133,8 @@ public final class KrameriusExportAction extends ExportAction {
                     Record[] data = response.getData();
                     RecordList erl = errorsFromExportResult(data);
                     if (erl.isEmpty()) {
-                        SC.say(i18n.KrameriusExportAction_AddDone_Msg(data[0].getAttribute(ExportResourceApi.RESULT_TARGET)));
+//                        SC.say(i18n.KrameriusExportAction_AddDone_Msg(data[0].getAttribute(ExportResourceApi.RESULT_TARGET)));
+                        SC.say(i18n.ExportAction_ProcessPlanned_Msg());
                     } else {
                         DesaExportAction.ExportResultWidget.showErrors(erl.toArray());
                     }

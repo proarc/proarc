@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.cas.lib.proarc.common.export.ExportOptions;
+import cz.cas.lib.proarc.common.export.ExportParams;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.export.KwisExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
@@ -89,6 +89,7 @@ public final class AppConfiguration {
     public static final String EXPORT_KWIS_POST_PROCESSOR = "export.export_post_processor.processor";
     public static final String EXPORT_BAGIT_POST_PROCESSOR = "export.bagit_post_processor.processor";
     public static final String EXPORT_BAGIT_PATH = "export.bagit.path";
+    public static final String EXPORT_BAGIT_FOXML_PATH = "export.bagitFoxml.path";
 
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
@@ -142,6 +143,10 @@ public final class AppConfiguration {
 
     public String getBagitExportPath() {
         return config.getString(EXPORT_BAGIT_PATH);
+    }
+
+    public String getBagitFoxmlExportPath() {
+        return config.getString(EXPORT_BAGIT_FOXML_PATH);
     }
 
     public String getFedoraUsername() {
@@ -227,8 +232,8 @@ public final class AppConfiguration {
         return ModsRules.getOptions(config);
     }
 
-    public ExportOptions getExportOptions() {
-        return ExportOptions.getOptions(config);
+    public ExportParams getExportParams() {
+        return ExportParams.getParams(config);
     }
 
     public KrameriusOptions getKrameriusOptions() {

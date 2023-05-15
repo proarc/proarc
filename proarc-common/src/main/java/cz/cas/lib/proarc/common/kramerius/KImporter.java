@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.kramerius;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.export.ExportOptions;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;

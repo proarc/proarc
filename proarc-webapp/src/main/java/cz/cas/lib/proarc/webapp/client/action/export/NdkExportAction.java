@@ -146,7 +146,7 @@ public class NdkExportAction extends ExportAction {
                     if (erl.isEmpty()) {
                         String dryRun = export.getAttribute(ExportResourceApi.DESA_DRYRUN_PARAM);
                         SC.say(dryRun == null
-                                ? i18n.NdkExportAction_ExportDone_Msg()
+                                ? i18n.ExportAction_ProcessPlanned_Msg()
                                 : i18n.DesaExportAction_ValidationDone_Msg());
                     } else {
                         ExportResultWidget.showErrors(erl.toArray());

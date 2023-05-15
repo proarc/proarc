@@ -8,8 +8,11 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class BatchUtils {
+
+    private static final Logger LOG = Logger.getLogger(BatchUtils.class.getName());
 
     public static Batch addNewBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state, Batch.State overWriteState, BatchParams params) {
         Batch batch = findBatchWithParams(batchManager, getPid(pids), processProfile, overWriteState);
@@ -54,11 +57,24 @@ public class BatchUtils {
     }
 
     public static Batch addNewExportBatch(ImportBatchManager batchManager, List<String> pids, UserProfile user, String exportProfile, BatchParams params) {
-        return addNewBatch(batchManager, pids, user, exportProfile, Batch.State.EXPORTING, Batch.State.EXPORT_FAILED, params);
+        return addNewBatch(batchManager, pids, user, exportProfile, Batch.State.EXPORT_PLANNED, Batch.State.EXPORT_FAILED, params);
     }
 
-    public static Batch finishedExportWithError(ImportBatchManager batchManager, Batch batch, String path, Exception exception) {
-        return finishedWithError(batchManager, batch, path, ImportBatchManager.toString(exception), Batch.State.EXPORT_FAILED);
+    public static Batch startWaitingExportBatch(ImportBatchManager batchManager, Batch batch) {
+        batch.setState(Batch.State.EXPORTING);
+        return batchManager.update(batch);
+    }
+
+    public static Batch finishedExportWithError(ImportBatchManager batchManager, Batch batch, String path, Throwable throwable) {
+        return finishedWithError(batchManager, batch, path, ImportBatchManager.toString(throwable), Batch.State.EXPORT_FAILED);
+    }
+
+    public static Batch finishedExportWithError(ImportBatchManager batchManager, Batch batch, List<MetsExportException.MetsExportExceptionElement> exceptions) {
+        StringBuilder builder = new StringBuilder();
+        for (MetsExportException.MetsExportExceptionElement exception : exceptions) {
+            builder.append(exception.getMessage() + " - " + ImportBatchManager.toString(exception.getEx())).append("\n");
+        }
+        return BatchUtils.finishedExportWithError(batchManager, batch, batch.getFolder(), builder.toString());
     }
 
     public static Batch finishedExportWithError(ImportBatchManager batchManager, Batch batch, String path, List<ExportResultLog.ExportResult> exportResults) {
@@ -82,7 +98,7 @@ public class BatchUtils {
     }
 
     public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions) {
-        return finishedExportWithWarning(batchManager, batch, path, exceptions, Batch.State.EXPORT_FAILED);
+        return finishedExportWithWarning(batchManager, batch, path, exceptions, Batch.State.EXPORT_FINISHED_WITH_WARNING);
     }
 
     public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions, Batch.State state) {
@@ -107,7 +123,7 @@ public class BatchUtils {
     }
 
     public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, String message) {
-        return finishedWithWarning(batchManager, batch, path, message, Batch.State.EXPORT_FAILED);
+        return finishedWithWarning(batchManager, batch, path, message, Batch.State.EXPORT_FINISHED_WITH_WARNING);
     }
 
     public static Batch finishedExportSuccessfully(ImportBatchManager batchManager, Batch batch, String path) {

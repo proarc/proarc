@@ -91,7 +91,7 @@ public class CejshBuilderTest {
 
     @Test
     public void testWriteProperties() throws Exception {
-        CejshBuilder cb = new CejshBuilder(new CejshConfig(), appConfig.getExportOptions());
+        CejshBuilder cb = new CejshBuilder(new CejshConfig(), appConfig.getExportParams());
         File folder = temp.getRoot();
         int articleCount = 3;
         cb.writeProperties(folder, articleCount);
@@ -114,7 +114,7 @@ public class CejshBuilderTest {
         CejshConfig conf = new CejshConfig();
         conf.setCejshXslUrl("/???");
         try {
-            CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportOptions());
+            CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportParams());
             fail();
         } catch (TransformerConfigurationException ex) {
 //            System.out.println(ex.getMessage());
@@ -124,7 +124,7 @@ public class CejshBuilderTest {
     @Test
     public void testCreateCejshXml_TitleVolumeIssue() throws Exception {
         CejshConfig conf = new CejshConfig();
-        CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportOptions());
+        CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportParams());
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
         // issn must match some cejsh_journals.xml/cejsh/journal[@issn=$issn]
         final String pkgIssn = "0231-5955";
@@ -164,7 +164,7 @@ public class CejshBuilderTest {
     @Test
     public void testCreateCejshXml_TitleVolume() throws Exception {
         CejshConfig conf = new CejshConfig();
-        CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportOptions());
+        CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportParams());
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
         // issn must match some cejsh_journals.xml/cejsh/journal[@issn=$issn]
         final String pkgIssn = "0231-5955";
@@ -202,7 +202,7 @@ public class CejshBuilderTest {
     @Test
     public void testCreateCejshElement_UnknownIssn() throws Exception {
         CejshConfig conf = new CejshConfig();
-        CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportOptions());
+        CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportParams());
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
         final String pkgIssn = "XXX-XXX";
         Issue issue = new Issue();
@@ -230,7 +230,7 @@ public class CejshBuilderTest {
     @Test
     public void testCreatePackageName_TitleVolumeIssue() throws Exception {
         CejshConfig cejshConfig = new CejshConfig();
-        CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportOptions());
+        CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportParams());
         cb.setTitle(new Title());
         cb.getTitle().setIssn("1111-1111");
         cb.setVolume(new Volume());
@@ -252,7 +252,7 @@ public class CejshBuilderTest {
     @Test
     public void testCreatePackageName_TitleVolume() throws Exception {
         CejshConfig cejshConfig = new CejshConfig();
-        CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportOptions());
+        CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportParams());
         cb.setTitle(new Title());
         cb.getTitle().setIssn("1111-1111");
         cb.setVolume(new Volume());
@@ -269,8 +269,8 @@ public class CejshBuilderTest {
     @Test
     public void testWritePackage() throws Exception {
         CejshConfig cejshConfig = new CejshConfig();
-        CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportOptions());
-        CejshContext ctx = new CejshContext(temp.getRoot(), new CejshStatusHandler(), cejshConfig, appConfig.getExportOptions());
+        CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportParams());
+        CejshContext ctx = new CejshContext(temp.getRoot(), new CejshStatusHandler(), cejshConfig, appConfig.getExportParams());
         cb.setTitle(new Title());
         cb.getTitle().setIssn("1111-1111");
         cb.setVolume(new Volume());
@@ -297,8 +297,8 @@ public class CejshBuilderTest {
     @Test
     public void testAddArticleNotReviewed() throws Exception {
         CejshConfig cejshConfig = new CejshConfig();
-        CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportOptions());
-        CejshContext ctx = new CejshContext(temp.getRoot(), new CejshStatusHandler(), cejshConfig, appConfig.getExportOptions());
+        CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportParams());
+        CejshContext ctx = new CejshContext(temp.getRoot(), new CejshStatusHandler(), cejshConfig, appConfig.getExportParams());
         cb.setTitle(new Title());
         cb.getTitle().setIssn("1111-1111");
         cb.setVolume(new Volume());

@@ -52,7 +52,10 @@ public interface BatchDao extends Dao {
 
     List<Batch> findExportingBatches();
 
+    List<Batch> findWaitingExportBatches();
+
     List<Batch> findUploadingBatches();
 
     List<Batch> findBatch(String pid, String processProfile, State state);
+
 }
