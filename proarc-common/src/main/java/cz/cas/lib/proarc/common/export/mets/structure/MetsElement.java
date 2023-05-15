@@ -396,7 +396,7 @@ public class MetsElement implements IMetsElement {
                                 }
                             }
                         } catch (NumberFormatException ex) {
-                            throw new MetsExportException(digitalObject.getPID(), "Unable to parse detail number from mods", false, ex);
+                            throw new MetsExportException(digitalObject.getPID(), "Unable to parse detail number from mods (" + digitalObject.getPID() +").", false, ex);
                         }
                     }
                 }

@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
+import com.qbizm.kramerius.imp.jaxb.DigitalObject;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
@@ -780,7 +781,55 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 } catch (Exception ex) {
                     throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), false, ex);
                 }
-            } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                List<DatastreamType> datastreams = metsElement.getSourceObject().getDatastream();
+                AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
+                AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
+                try {
+                    DigitalObject object = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
+                    for (String dataStream : Const.streamMapping.get(streamName)) {
+                        if (fileNames.get(streamName) != null) {
+                            break;
+                        }
+                        for (com.qbizm.kramerius.imp.jaxb.DatastreamType datastreamType : object.getDatastream()) {
+                            if (MetsUtils.equalDataStreams(datastreamType.getID(), dataStream)) {
+                                Iterator<com.qbizm.kramerius.imp.jaxb.DatastreamVersionType> dvIter = datastreamType.getDatastreamVersion().iterator();
+                                while (dvIter.hasNext()) {
+                                    com.qbizm.kramerius.imp.jaxb.DatastreamVersionType dv = dvIter.next();
+                                    mimeTypes.put(streamName, dv.getMIMETYPE());
+                                    InputStream is = AkubraUtils.getStreamContent(dv, akubraObject.getManager());
+//                                if (dv.getContentLocation() != null) {
+//                                    fileNames.put(streamName, dv.getContentLocation().getREF());
+                                    fileNames.put(streamName, is);
+                                    FileMD5Info fileMd5Info;
+                                    if (md5InfosMap.get(streamName) == null) {
+                                        fileMd5Info = new FileMD5Info();
+                                        md5InfosMap.put(streamName, fileMd5Info);
+                                    } else {
+                                        fileMd5Info = md5InfosMap.get(streamName);
+                                    }
+                                    fileMd5Info.setCreated(dv.getCREATED());
+//                                }
+//                                if (dv.getBinaryContent() != null) {
+//                                    fileNames.put(streamName, dv.getBinaryContent());
+//                                    FileMD5Info fileMd5Info;
+//                                    if (md5InfosMap.get(streamName) == null) {
+//                                        fileMd5Info = new FileMD5Info();
+//                                        md5InfosMap.put(streamName, fileMd5Info);
+//                                    } else {
+//                                        fileMd5Info = md5InfosMap.get(streamName);
+//                                    }
+//                                    fileMd5Info.setCreated(dv.getCREATED());
+//                                }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } catch (JAXBException | IOException | TransformerException e) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                }
+            } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                 List<DatastreamType> datastreams = metsElement.getSourceObject().getDatastream();
                 for (String dataStream : Const.streamMapping.get(streamName)) {
                     if (fileNames.get(streamName) != null) {
@@ -1047,6 +1096,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                     if ("RAW".equals(datastreamType.getID())) {
                                         if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty()) {
                                             com.qbizm.kramerius.imp.jaxb.DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
+                                            rawCreated = datastreamVersionType.getCREATED();
                                             InputStream is = AkubraUtils.getStreamContent(datastreamVersionType, akubraObject.getManager());
                                             String rawExtendsion = MimeType.getExtension(datastreamVersionType.getMIMETYPE());
                                             rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);

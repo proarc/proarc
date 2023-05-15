@@ -109,13 +109,13 @@ public final class AkubraImport {
             addParentMembers(batch, parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
             deleteImportFolder(batch);
-            DigitalObjectStatusUtils.setState(batch.getParentPid(), DigitalObjectStatusUtils.STATUS_CONNECTED);
-            try {
-                setWorkflowMetadataDescription("task.metadataDescriptionInProArc", getRoot(batch.getParentPid(), null));
-            } catch (MetsExportException e) {
-                e.printStackTrace();
-
-
+            if (!itemFailed) {
+                DigitalObjectStatusUtils.setState(batch.getParentPid(), DigitalObjectStatusUtils.STATUS_CONNECTED);
+                try {
+                    setWorkflowMetadataDescription("task.metadataDescriptionInProArc", getRoot(batch.getParentPid(), null));
+                } catch (MetsExportException e) {
+                    e.printStackTrace();
+                }
             }
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
@@ -174,6 +174,9 @@ public final class AkubraImport {
     }
 
     private IMetsElement getRoot(String pid, File file) throws MetsExportException, IOException {
+        if (pid == null) {
+            return null;
+        }
         MetsContext metsContext = null;
         FedoraObject object = null;
 
@@ -193,6 +196,9 @@ public final class AkubraImport {
 
     private MetsElement getMetsElement(FedoraObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
         dc.resetContext();
+        if (fo.getPid() == null || fo.getPid().isEmpty()) {
+            System.out.println("Error");
+        }
         DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), dc);
         if (dobj == null) {
             return null;
