@@ -137,10 +137,10 @@ public class DeviceResource {
         List<Device> result = new ArrayList<>();
 
         if (id == null) {
-            total = devRepo.findAllDevices(0).size();
-            result = devRepo.findAllDevices(startRow);
+            total = devRepo.findAllDevices(appConfig, 0).size();
+            result = devRepo.findAllDevices(appConfig, startRow);
         } else {
-            result = devRepo.find(id, fetchDescription, startRow);
+            result = devRepo.find(null, id, fetchDescription, startRow);
             total = result.size();
         }
         int endRow = startRow + result.size() - 1;
