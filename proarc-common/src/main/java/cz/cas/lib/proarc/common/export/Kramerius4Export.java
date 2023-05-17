@@ -21,6 +21,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -467,6 +468,7 @@ public final class Kramerius4Export {
             }
             File foxml = ExportUtils.pidAsXmlFile(output, object.getPid());
             LocalObject local = lstorage.create(foxml, dobj);
+            local = replaceObjectOwnerId(local);
             validate(object.getPid(), object.getParentPid());
             RelationEditor editor = new RelationEditor(local);
             if (NdkAudioPlugin.MODEL_PAGE.equals(editor.getModel())) { // ndk audio page se nexportuje ale jeho streamy se priradi k urovni vyse
@@ -493,6 +495,20 @@ public final class Kramerius4Export {
         } catch (DigitalObjectException | FedoraClientException | JAXBException | IOException ex) {
             throw new IllegalStateException(object.getPid(), ex);
         }
+    }
+
+    private LocalObject replaceObjectOwnerId(LocalObject local) {
+        if (kramerius4ExportOptions.getNewOwnerId() != null && !kramerius4ExportOptions.getNewOwnerId().isEmpty()) {
+            if (local.getDigitalObject() != null) {
+                for (PropertyType property : local.getDigitalObject().getObjectProperties().getProperty()) {
+                    if (FoxmlUtils.PROPERTY_OWNER.equals(property.getNAME())) {
+                        property.setVALUE(kramerius4ExportOptions.getNewOwnerId());
+                        break;
+                    }
+                }
+            }
+        }
+        return local;
     }
 
     private String createMissingModel(File outputFolder, LocalObject songObject) throws DigitalObjectException {
@@ -744,26 +760,8 @@ public final class Kramerius4Export {
             processMods(datastream);
             processOcr(datastream);
             processRelsExt(dobj.getPID(), datastream, editor, null, hasParent, missingObject);
-//            processStreams(dobj, datastream);
         }
     }
-
-//    private void processStreams(DigitalObject dobj, DatastreamType datastream) {
-//        if (DcStreamEditor.DATASTREAM_ID.equals(datastream.getID()) ||
-//                ModsStreamEditor.DATASTREAM_ID.equals(datastream.getID()) ||
-//                StringEditor.OCR_ID.equals(datastream.getID()) ||
-//                RelationEditor.DATASTREAM_ID.equals(datastream.getID())) {
-//            return ;
-//        }
-//        for (DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
-//            if (datastreamVersion.getContentLocation() != null) {
-//                InputStream is = AkubraUtils.getStreamContent(datastreamVersion, null);
-//
-//            }
-//        }
-//
-//
-//    }
 
     private void exportParentDatastreams(LocalObject local, Collection<String> includeChildPids, boolean hasParent) {
         DigitalObject dobj = local.getDigitalObject();

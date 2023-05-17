@@ -43,6 +43,8 @@ public final class Kramerius4ExportOptions {
     static final String PROP_EXCLUDE_DATASTREAM_ID = "export.kramerius4.excludeDatastreamId";
     static final String PROP_POLICY = "export.kramerius4.policy";
     static final String PROP_RENAME_PREFIX = "export.kramerius4.rename";
+    static final String PROP_REPLACE_OWNER_ID_NEW_VALUED = "export.kramerius4.owner.newValue";
+
 
     public static Kramerius4ExportOptions from(Configuration config) {
         Kramerius4ExportOptions options = new Kramerius4ExportOptions();
@@ -65,12 +67,18 @@ public final class Kramerius4ExportOptions {
         if (policy != null && !policy.isEmpty()) {
             options.setPolicy(policy);
         }
+
+        String newOwnerId = config.getString(PROP_REPLACE_OWNER_ID_NEW_VALUED);
+        if (newOwnerId != null && !newOwnerId.isEmpty()) {
+            options.setNewOwnerId(newOwnerId);
+        }
         return options;
     }
 
     private Set<String> excludeDatastreams = Collections.emptySet();
     private Map<String, String> dsIdMap = Collections.emptyMap();
     private String policy;
+    private String newOwnerId;
     // config options; it should go to proarc.properties
     private Map<String, String> relationMap = new HashMap<String, String>() {
         {
@@ -188,6 +196,14 @@ public final class Kramerius4ExportOptions {
 
     public void setPolicy(String policy) {
         this.policy = policy;
+    }
+
+    public String getNewOwnerId() {
+        return newOwnerId;
+    }
+
+    public void setNewOwnerId(String newOwnerId) {
+        this.newOwnerId = newOwnerId;
     }
 
     public Map<String, String> getRelationMap() {

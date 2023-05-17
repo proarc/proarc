@@ -150,6 +150,7 @@ public class AcceptedExports {
         }
         if (EXPORT_KRAMERIUS_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_KRAMERIUS);
+            acceptedItems.add(EXPORT_KRAMERIUS + BAGIT_SUFFIX);
         }
         if (EXPORT_KWIS_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_KWIS);
