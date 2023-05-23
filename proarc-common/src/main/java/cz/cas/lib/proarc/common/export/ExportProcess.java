@@ -74,7 +74,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
-import static cz.cas.lib.proarc.common.export.bagit.BagitExport.findExportFolder;
+import static cz.cas.lib.proarc.common.export.bagit.BagitExport.findNdkExportFolder;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
@@ -458,21 +458,26 @@ public final class ExportProcess implements Runnable {
                     batch = BatchUtils.finishedExportSuccessfully(batchManager, batch, r.getTargetFolder().getAbsolutePath());
                 }
             }
-            if ("done".equals(batch.getFolder())) {
+            if (Batch.State.EXPORT_DONE.equals(batch.getState())) {
+                LOG.info("Export " + batch.getId() + " done.");
                 if (params.isBagit()) {
-                    File targetFolder = findExportFolder(exportFolder, batch.getFolder());
-                    for (File targetFile : targetFolder.listFiles()) {
-                        if (targetFile.isDirectory()) {
-                            BagitExport bagitExport = new BagitExport(config, targetFile);
-                            bagitExport.prepare();
-                            bagitExport.bagit();
-                            bagitExport.zip();
-                            bagitExport.moveToBagitFolder();
-                            bagitExport.createMd5File();
-                            bagitExport.deleteExportFolder();
+                    LOG.info("Export " + batch.getId() + " - doing bagit.");
+                    File targetFolder = findNdkExportFolder(batch.getFolder());
+                    if (targetFolder != null) {
+                        for (File targetFile : targetFolder.listFiles()) {
+                            if (targetFile.isDirectory()) {
+                                BagitExport bagitExport = new BagitExport(config, targetFile);
+                                bagitExport.prepare();
+                                bagitExport.bagit();
+                                bagitExport.zip();
+                                bagitExport.moveToBagitFolder();
+                                bagitExport.createMd5File();
+                                bagitExport.moveToSpecifiedDirectories();
+                                bagitExport.deleteExportFolder();
+                            }
                         }
+                        targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
                     }
-                    targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
                 }
                 for (NdkExport.Result r : ndkResults) {
                     try {
@@ -483,6 +488,7 @@ public final class ExportProcess implements Runnable {
                 }
                 return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, ndkResults.get(0).getTargetFolder().getAbsolutePath());
             } else {
+                LOG.info("Export " + batch.getId() + " undone.");
                 return null;
             }
         } catch (Throwable t) {
