@@ -324,7 +324,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 
 ### LOGIN
-POST {{proarcRemoteUrl}}/proarclogin
+POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -339,8 +339,27 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 &folderPath=Mzk/Monografie/Kratka/&profile=profile.default&device=device:a93dd5e2-1db7-44d0-be85-804759da8afe&priority=medium
 
 ### EXPORT KRAMERIUS
-POST {{proarcLocalHostUrl}}/rest/v1/export/kramerius4
+POST {{proarcLocalHostUrl}}/rest/v1/export/archive
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:4a3b4ef7-0bc0-44e6-b0e2-9624d8ebb80e&isBagit=true&krameriusInstance=local
+&pid=uuid:4a3b4ef7-0bc0-44e6-b0e2-9624d8ebb80e&isBagit=true
+
+
+
+###
+
+GET https://ltp.cesnet.cz/api/v2/archive/?group=VO_nm&limit=10
+Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+Content-Type: application/json
+
+###
+
+GET https://ltp.cesnet.cz/api/v2/archive/?group=VO_nm&limit=10
+Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+Content-Type: application/json
+
+
+
+
+
