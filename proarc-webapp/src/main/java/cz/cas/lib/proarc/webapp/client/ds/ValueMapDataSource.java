@@ -25,11 +25,12 @@ import com.smartgwt.client.data.events.DataArrivedHandler;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.FieldType;
 import com.smartgwt.client.util.BooleanCallback;
+import cz.cas.lib.proarc.webapp.server.rest.v1.ValueMapResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import java.util.HashMap;
 
 /**
- * Provides value maps fetched from {@link cz.cas.lib.proarc.webapp.server.rest.ValueMapResource}.
+ * Provides value maps fetched from {@link ValueMapResourceV1}.
  * It is expected to be fetched on client start.
  *
  * @author Jan Pokorsky

@@ -17,11 +17,14 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.i18n.BundleName;
-import cz.cas.lib.proarc.webapp.server.rest.LocalizationResource.Item;
+import cz.cas.lib.proarc.webapp.server.rest.v1.LocalizationResourceV1;
+import cz.cas.lib.proarc.webapp.server.rest.v1.LocalizationResourceV1.Item;
 import java.util.EnumSet;
 import java.util.Set;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 /**
  *
@@ -37,7 +40,7 @@ public class LocalizationResourceTest {
         Set<BundleName> bundles = EnumSet.of(BundleName.MODS_PAGE_TYPES);
         String locale = "cs";
         boolean sorted = true;
-        LocalizationResource instance = new LocalizationResource(null);
+        LocalizationResourceV1 instance = new LocalizationResourceV1(null);
         SmartGwtResponse<Item> result = instance.getBundle(bundles, locale, sorted);
         assertNotNull(result);
         assertFalse(result.getData().isEmpty());

@@ -16,8 +16,10 @@
  */
 package cz.cas.lib.proarc.webapp.shared.rest;
 
+import cz.cas.lib.proarc.webapp.server.rest.v1.WorkflowResourceV1;
+
 /**
- * Constants for {@link cz.cas.lib.proarc.webapp.server.rest.WorkflowResource}
+ * Constants for {@link WorkflowResourceV1}
  * shared by GWT client.
  *
  * @author Jan Pokorsky

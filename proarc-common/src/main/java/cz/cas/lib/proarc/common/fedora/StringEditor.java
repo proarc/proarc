@@ -196,6 +196,11 @@ public final class StringEditor {
             this.pid = pid;
         }
 
+        public StringRecord(Throwable t) {
+            this.status = STATUS_FAILURE;
+            this.data = t;
+        }
+
         public String getKrameriusInstanceId() {
             return krameriusInstanceId;
         }

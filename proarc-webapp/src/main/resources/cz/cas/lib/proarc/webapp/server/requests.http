@@ -137,7 +137,7 @@ GET http://localhost:8081/proarc/rest/v1/object/createPid
 
 ###
 
-POST http://localhost:8081/proarc/rest/v1/import/batchStopped
+POST http://localhost:8081/proarc/rest/v2/import/batchStopped
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 

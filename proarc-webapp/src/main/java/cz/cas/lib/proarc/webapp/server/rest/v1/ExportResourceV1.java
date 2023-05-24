@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
@@ -37,8 +37,12 @@ import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
@@ -84,8 +88,9 @@ import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusI
  *
  * @author Jan Pokorsky
  */
-@Path(ExportResourceApi.PATH)
-public class ExportResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + ExportResourceApi.PATH)
+public class ExportResourceV1 {
 
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
@@ -94,7 +99,7 @@ public class ExportResource {
     private final ImportBatchManager batchManager;
     private HttpHeaders httpHeaders;
 
-    public ExportResource(
+    public ExportResourceV1(
             @Context SecurityContext securityCtx,
             @Context HttpServletRequest httpRequest
     ) throws AppConfigurationException {
@@ -111,7 +116,7 @@ public class ExportResource {
         user = session.getUser();
     }
 
-    public ExportResource(
+    public ExportResourceV1(
             @Context SecurityContext securityCtx,
             @Context HttpServletRequest httpRequest,
             @Context HttpHeaders httpHeaders

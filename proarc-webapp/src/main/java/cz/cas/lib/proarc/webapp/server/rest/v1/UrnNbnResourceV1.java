@@ -14,14 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UrnNbnResourceApi;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Logger;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -32,24 +38,20 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Lukas Sykora
  */
-@Path(UrnNbnResourceApi.PATH)
-public class UrnNbnResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + UrnNbnResourceApi.PATH)
+public class UrnNbnResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(UrnNbnResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(UrnNbnResourceV1.class.getName());
     private final HttpHeaders httpHeaders;
     private final AppConfiguration appConfig;
 
-    public UrnNbnResource(
+    public UrnNbnResourceV1(
             @Context HttpHeaders httpHeaders
     ) throws AppConfigurationException {
         this.httpHeaders = httpHeaders;
@@ -58,7 +60,7 @@ public class UrnNbnResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResource.ResolverDescriptor> findCatalog(
+    public SmartGwtResponse<ResolverDescriptor> findCatalog(
             @QueryParam(UrnNbnResourceApi.RESOLVER_ID) String id) {
 
         List<UrnNbnConfiguration.ResolverConfiguration> resolvers;
@@ -69,11 +71,11 @@ public class UrnNbnResource {
             UrnNbnConfiguration.ResolverConfiguration resolver = findResolver(listOfResolvers);
             resolvers = resolver != null ? Arrays.asList(resolver) : Collections.<UrnNbnConfiguration.ResolverConfiguration>emptyList();
         }
-        ArrayList<UrnNbnResource.ResolverDescriptor> result = new ArrayList<>(resolvers.size());
+        ArrayList<UrnNbnResourceV1.ResolverDescriptor> result = new ArrayList<>(resolvers.size());
         for (UrnNbnConfiguration.ResolverConfiguration rc : resolvers) {
-            result.add(UrnNbnResource.ResolverDescriptor.create(rc));
+            result.add(UrnNbnResourceV1.ResolverDescriptor.create(rc));
         }
-        return new SmartGwtResponse<UrnNbnResource.ResolverDescriptor>(result);
+        return new SmartGwtResponse<UrnNbnResourceV1.ResolverDescriptor>(result);
     }
 
     private UrnNbnConfiguration.ResolverConfiguration findResolver(List<UrnNbnConfiguration.ResolverConfiguration> listOfResolvers) {

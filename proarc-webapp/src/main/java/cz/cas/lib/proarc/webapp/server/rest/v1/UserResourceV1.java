@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.Permission;
@@ -22,8 +22,11 @@ import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,15 +54,16 @@ import javax.ws.rs.core.SecurityContext;
  *
  * @author Jan Pokorsky
  */
-@Path(UserResourceApi.PATH)
-public final class UserResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + UserResourceApi.PATH)
+public class UserResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(UserResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(UserResourceV1.class.getName());
     private final UserManager userManager;
     private final SessionContext session;
     private final HttpHeaders httpHeaders;
 
-    public UserResource(
+    public UserResourceV1(
             @Context HttpServletRequest httpRequest,
             @Context HttpHeaders httpHeaders,
             @Context SecurityContext securityCtx

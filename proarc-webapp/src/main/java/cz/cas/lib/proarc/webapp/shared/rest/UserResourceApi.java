@@ -16,8 +16,10 @@
  */
 package cz.cas.lib.proarc.webapp.shared.rest;
 
+import cz.cas.lib.proarc.webapp.server.rest.v1.UserResourceV1;
+
 /**
- * Constants for {@link cz.cas.lib.proarc.webapp.server.rest.UserResource}
+ * Constants for {@link UserResourceV1}
  * shared by GWT client.
  *
  * @author Jan Pokorsky

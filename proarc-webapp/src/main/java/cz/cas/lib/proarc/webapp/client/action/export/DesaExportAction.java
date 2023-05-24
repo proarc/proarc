@@ -350,7 +350,7 @@ public class DesaExportAction extends ExportAction {
     /**
      * Presents errors of the digital objects export result. Use {@link #showErrors} for
      * shared instance.
-     * @see cz.cas.lib.proarc.webapp.server.rest.ExportResource.ExportError
+     * @see ExportResourceV1.ExportError
      */
     static final class ExportResultWidget {
 

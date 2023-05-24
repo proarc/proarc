@@ -13,28 +13,28 @@ import javax.xml.bind.annotation.XmlElement;
 public class ProArcRequest {
 
     /**
-     * {@link DigitalObjectResource.DeleteObjectRequest} request body.
+     * {@link cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.DeleteObjectRequest} request body.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class DeleteObjectRequest {
 
         @XmlElement(name = ImportResourceApi.BATCHITEM_BATCHID)
-        Integer batchId;
+        public Integer batchId;
 
         @XmlElement(name = DigitalObjectResourceApi.DELETE_PID_PARAM)
-        List<String> pids;
+        public List<String> pids;
 
         @XmlElement(name = DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
         @DefaultValue("true")
-        boolean hierarchy;
+        public boolean hierarchy;
 
         @XmlElement(name = DigitalObjectResourceApi.DELETE_PURGE_PARAM)
         @DefaultValue("false")
-        boolean purge;
+        public boolean purge;
 
         @XmlElement(name = DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
         @DefaultValue("false")
-        boolean restore;
+        public boolean restore;
 
         public Set<String> getPidsAsSet() {
             return new HashSet<String>(pids);
@@ -42,38 +42,38 @@ public class ProArcRequest {
     }
 
     /**
-     * {@link DigitalObjectResource.SetMember} request body.
+     * {@link DigitalObjectResourceV1.SetMember} request body.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class SetMemberRequest {
 
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PARENT)
-        String parentPid;
+        public String parentPid;
 
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
-        Integer batchId;
+        public Integer batchId;
 
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PID)
-        List<String> toSetPids;
+        public List<String> toSetPids;
     }
 
     /**
-     * The helper for {@link DigitalObjectResource.MoveMembers} request body.
+     * The helper for {@link cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.MoveMembers} request body.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class MoveMembersRequest {
 
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID)
-        String srcParentPid;
+        public String srcParentPid;
 
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID)
-        String dstParentPid;
+        public String dstParentPid;
 
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
-        Integer batchId;
+        public Integer batchId;
 
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PID)
-        List<String> pids;
+        public List<String> pids;
     }
 
     /**
@@ -83,24 +83,24 @@ public class ProArcRequest {
     public static class CopyPagesMetadataRequest {
 
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_SOURCE_PIDS)
-        List<String> sourcePidsArray;
+        public List<String> sourcePidsArray;
 
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_DESTINATION_PIDS)
-        List<String> destinationPidsArray;
+        public List<String> destinationPidsArray;
 
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
-        Integer batchId;
+        public Integer batchId;
 
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_TYPE)
-        Boolean copyPageType;
+        public Boolean copyPageType;
 
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_INDEX)
-        Boolean copyPageIndex;
+        public Boolean copyPageIndex;
 
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_NUMBER)
-        Boolean copyPageNumber;
+        public Boolean copyPageNumber;
 
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_POSITION)
-        Boolean copyPagePosition;
+        public Boolean copyPagePosition;
     }
 }

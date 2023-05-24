@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
@@ -114,8 +114,15 @@ import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
+import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
@@ -188,10 +195,11 @@ import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContex
  *
  * @author Jan Pokorsky
  */
-@Path(DigitalObjectResourceApi.PATH)
-public class DigitalObjectResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + DigitalObjectResourceApi.PATH)
+public class DigitalObjectResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(DigitalObjectResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(DigitalObjectResourceV1.class.getName());
 
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
@@ -207,7 +215,7 @@ public class DigitalObjectResource {
     public static final String STATUS_LOCKED = "locked";
     public static final String STATUS_DONT_BE_IGNORED = "dontIgnored";
 
-    public DigitalObjectResource(
+    public DigitalObjectResourceV1(
             @Context Request request,
             @Context SecurityContext securityCtx,
             @Context HttpHeaders httpHeaders,
@@ -330,7 +338,7 @@ public class DigitalObjectResource {
         } catch (DigitalObjectExistException ex) {
             return SmartGwtResponse.<SearchViewItem>asError().error("pid", ex.getMessage()).build();
         } catch (WorkflowException ex) {
-            return SmartGwtResponse.asError(ex.getMessage());
+            return SmartGwtResponse.asError(ex);
         } catch (DigitalObjectValidationException ex) {
             return toValidationError(ex, session.getLocale(httpHeaders));
         }
@@ -1230,7 +1238,7 @@ public class DigitalObjectResource {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
             } else {
                 // MODS Custom editor doesnt use WorkFlowResource, if there is a validation error
-                return WorkflowResource.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, standard, session, httpHeaders);
+                return WorkflowResourceV1.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, standard, session, httpHeaders);
             }
         }
 
@@ -3695,7 +3703,7 @@ public class DigitalObjectResource {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fobject = dom.find2(pid, batch, null);
         if (!readonly && fobject instanceof LocalObject) {
-            ImportResource.checkBatchState(batch);
+            ImportResourceV1.checkBatchState(batch);
         }
         return dom.createHandler(fobject);
     }
@@ -3714,7 +3722,7 @@ public class DigitalObjectResource {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID, String.valueOf(batchId));
             }
             if (!readonly) {
-                ImportResource.checkBatchState(batch);
+                ImportResourceV1.checkBatchState(batch);
             }
             if (pid == null || ImportBatchManager.ROOT_ITEM_PID.equals(pid)) {
                 fobject = importManager.getRootObject(batch);
