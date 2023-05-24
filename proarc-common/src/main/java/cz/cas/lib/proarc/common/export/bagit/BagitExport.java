@@ -100,6 +100,17 @@ public class BagitExport {
         return null;
     }
 
+    public static File findNdkExportFolder(String folderName) {
+        if (folderName.startsWith("uuid:")) {
+            folderName = folderName.substring(5);
+        }
+        File targetFolder = new File(folderName);
+        if (targetFolder.exists()) {
+            return targetFolder;
+        }
+        return null;
+    }
+
     public void moveToBagitFolder() throws IOException {
         File parentFile = exportFolder.getParentFile();
         bagitFolder = new File(parentFile, "bagit_" + exportFolder.getName());

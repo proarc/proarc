@@ -81,6 +81,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -464,16 +465,23 @@ public class ImportResourceV1 {
     public SmartGwtResponse<BatchView> stopBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
     ) {
-        session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
-
         Batch batch = importManager.get(batchId);
         if (batch == null) {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
+        if (!(session.checkPermission(Permissions.ADMIN) ||
+                session.checkRole(UserRole.ROLE_SUPERADMIN) ||
+                isBatchOwner(batch))) {
+            throw new WebApplicationException(Status.FORBIDDEN);
+        }
         ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
         BatchView batchView = importManager.viewBatch(batch.getId());
         return new SmartGwtResponse<BatchView>(batchView);
+    }
+
+    private boolean isBatchOwner(Batch batch) {
+        return user.getId().equals(batch.getUserId());
     }
 
     @PUT
