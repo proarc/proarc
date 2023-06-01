@@ -72,7 +72,13 @@ public class BatchUtils {
     public static Batch finishedExportWithError(ImportBatchManager batchManager, Batch batch, List<MetsExportException.MetsExportExceptionElement> exceptions) {
         StringBuilder builder = new StringBuilder();
         for (MetsExportException.MetsExportExceptionElement exception : exceptions) {
-            builder.append(exception.getMessage() + " - " + ImportBatchManager.toString(exception.getEx())).append("\n");
+
+            builder.append(exception.getMessage());
+            builder.append(" - ");
+            if (exception.getEx() != null) {
+                builder.append(ImportBatchManager.toString(exception.getEx()));
+            }
+            builder.append("\n");
         }
         return BatchUtils.finishedExportWithError(batchManager, batch, batch.getFolder(), builder.toString());
     }

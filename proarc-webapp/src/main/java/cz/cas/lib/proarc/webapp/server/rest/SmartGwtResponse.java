@@ -114,6 +114,7 @@ public class SmartGwtResponse<T>{
     public static <T> SmartGwtResponse<T> asError(String msg) {
         SmartGwtResponse<T> result = new SmartGwtResponse<T>();
         result.setErrorData(msg);
+        result.setErrorMessage(msg);
         return result;
     }
 
@@ -205,6 +206,10 @@ public class SmartGwtResponse<T>{
 
     public String getErrorMessage() {
         return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 
     public String getErrorStackTrace() {

@@ -76,6 +76,9 @@ public final class ExportResourceApi {
 
     public static final String EXPORT_BAGIT = "isBagit";
 
+    public static final String EXPORT_LTP_CESNET = "ltpCesnet";
+    public static final String EXPORT_LTP_CESNET_TOKEN = "ltpCesnetToken";
+
     public static final String NDK_PACKAGE = "package";
     public enum Package {SIP, PSP, STT, CHRONICLE};
     public static final String RESULT_TARGET = "target";

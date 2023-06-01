@@ -81,7 +81,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -111,6 +110,7 @@ public class ImportResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(ImportResourceV1.class.getName());
     private static final Pattern INVALID_PATH_CONTENT = Pattern.compile("\\.\\.|//");
+    private static final String ERR_NO_PERMISSION = "Err_no_permission";
 
     private final HttpHeaders httpHeaders;
     // XXX inject with guice
@@ -470,14 +470,19 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        if (!(session.checkPermission(Permissions.ADMIN) ||
-                session.checkRole(UserRole.ROLE_SUPERADMIN) ||
-                isBatchOwner(batch))) {
-            throw new WebApplicationException(Status.FORBIDDEN);
+        if (!(session.checkPermission(Permissions.ADMIN) || session.checkRole(UserRole.ROLE_SUPERADMIN) || isBatchOwner(batch))) {
+            LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
+            return SmartGwtResponse.asError(returnValidationMessage(ERR_NO_PERMISSION));
         }
         ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
         BatchView batchView = importManager.viewBatch(batch.getId());
         return new SmartGwtResponse<BatchView>(batchView);
+    }
+
+    private String returnValidationMessage(String key) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key);
     }
 
     private boolean isBatchOwner(Batch batch) {

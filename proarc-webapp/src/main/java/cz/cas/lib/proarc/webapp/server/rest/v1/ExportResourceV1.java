@@ -383,12 +383,14 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.NDK_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage,
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
-            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token
             ) throws Exception {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
-        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit);
+        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_NDK, params);
 
         ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));

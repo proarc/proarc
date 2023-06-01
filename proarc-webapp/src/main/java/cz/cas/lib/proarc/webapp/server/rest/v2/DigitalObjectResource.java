@@ -115,6 +115,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         try {
             return super.newObject(modelId, pid, parentPid, seriesDateFrom, seriesDateTo, seriesDaysIncluded,
                     seriesPartNumberFrom, xmlMetadata, workflowJobId, catalogId, createObject, validation);
+        } catch (DigitalObjectException ex) {
+                LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+                return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -202,6 +205,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.findMembers(parent, root);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -217,6 +223,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.setMembers(request);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -234,6 +243,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.setMembers(parentPid, batchId, toSetPids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -251,6 +263,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.addMembers(parentPid, toAddPids, batchId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -267,6 +282,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.deleteMembers(parentPid, toRemovePids, batchId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -282,6 +300,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.moveMembers(request);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -300,6 +321,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.moveMembers(srcParentPid, dstParentPid, batchId, movePids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -373,6 +397,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.getDescriptionMetadata(pid, batchId, editorId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -397,6 +424,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updateDescriptionMetadata(pid, batchId, editorId, timestamp, jsonData, xmlData, jobId, model, ignoreValidation, standard);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -412,6 +442,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.validateObject(pid, batchId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -430,6 +463,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.addAuthority(pid, batchId, timestamp, jsonData, editorId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -458,6 +494,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         try {
             return super.updateDescriptionMetadataPages(pidsArray, applyTo, applyToFirstPage, prefix, suffix, useBrackets,
                     sequenceType, startNumber, incrementNumber, startIndex, pageType, doubleColumns, pagePosition, batchId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -473,6 +512,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.copyDescriptionMetadataToPages(request);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -494,6 +536,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.copyDescriptionMetadataToPages(sourcePids, destinationPids, copyPageNumber, copyPageType, copyPageIndex, copyPagePosition, batchId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -509,6 +554,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updatePagesAddBrackets(pidsArray, batchId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -524,6 +572,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updatePagesRemoveBrackets(pidsArray, batchId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -553,6 +604,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.getStreamProfile(pid, batchId, dsId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -652,6 +706,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.deleteDissemination(pid, batchId, dsId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -748,6 +805,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updateTechnicalMetadataAes(pid, batchId, timestamp, xmlData, jsonData);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -764,6 +824,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.getTechnicalMetadataAes(pid, batchId, editorId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -798,6 +861,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updateTechnicalMetadataPremis(pid, batchId, timestamp, xmlData, jsonData);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -833,6 +899,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updateCodingHisotry(pid, batchId, timestamp, xmlData, jsonData);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -849,6 +918,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.getCodingHistoryMetadata(pid, batchId, editorId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -896,6 +968,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.getAtm(pid, batchId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -918,6 +993,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updateAtm(pids, batchId, owner, deviceId, organization, status, userName, model, donator);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -948,6 +1026,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.lockObject(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -962,6 +1043,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.unlockObject(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -978,6 +1062,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.copyObject(pidOld, batchId, modelId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -994,6 +1081,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) throws DigitalObjectException {
         try {
             return super.generateJp2(pid, type, modelId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1008,6 +1098,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changePageToNdkPage(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1023,6 +1116,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkPageToPage(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1037,6 +1133,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeSttPageToNdkPage(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1051,6 +1150,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkPageToSttPage(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1065,6 +1167,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeClippingsVolumeToNdkMonographVolume(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1079,6 +1184,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkMonographVolumeToClippingsVolume(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1093,6 +1201,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkMonographTitleToClippingsTitle(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1108,6 +1219,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeClippingsTitleToNdkMonographTitle(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1122,6 +1236,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeK4PeriodicalToNdkPeriodical(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1136,6 +1253,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeK4PeriodicalVolumeToNdkPeriodicalVolume(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1150,6 +1270,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeK4PeriodicalIssueToNdkPeriodicalIssue(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1164,6 +1287,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeK4MonographToNdkMonographVolume(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1178,6 +1304,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeK4MonographUnitToNdkMonographVolume(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1192,6 +1321,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkMonographTitleToNdkMonographVolume(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1206,6 +1338,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkMonographVolumeToNdkMonographTitle(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1220,6 +1355,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkMusicsheetToOldprintMusicsheet(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1234,6 +1372,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeSttMusicsheetToNdkMusicsheet(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1249,6 +1390,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkChapterToOldprintChapter(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1263,6 +1407,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeOldprintChapterToNdkChapter(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1277,6 +1424,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkPictureToOldprintGraphic(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1291,6 +1441,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeOldprintGraphicToNdkPicture(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1305,6 +1458,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkCartographicToOldprintCartographic(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1319,6 +1475,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeOldprintCartographicToNdkCartographic(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1333,6 +1492,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkMonographVolumeToOldprintMonographVolume(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1347,6 +1509,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeOldPrintMonographVolumeToNdkMonographVolume(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1361,6 +1526,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeNdkMonographSupplementToOldPrintSupplement(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1375,6 +1543,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeOldPrintSupplementToNdkMonographSupplement(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1389,6 +1560,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeOldPrintMonographVolumeToOldprintGraphic(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1403,6 +1577,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.changeOldPrintMonographVolumeToOldprintMusicSheet(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1421,6 +1598,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.reindex(pid, parentPid, modelId, batchId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1436,6 +1616,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updateAllObjects(pid, modelId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1451,6 +1634,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updateNdkArticeObjects(pid, modelId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1466,6 +1652,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
         try {
             return super.updateNdkPageObjects(pid, modelId);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

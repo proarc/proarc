@@ -90,7 +90,9 @@ public final class AppConfiguration {
     public static final String EXPORT_BAGIT_POST_PROCESSOR = "export.bagit_post_processor.processor";
     public static final String EXPORT_BAGIT_PATH = "export.bagit.path";
     public static final String EXPORT_BAGIT_FOXML_PATH = "export.bagitFoxml.path";
-
+    public static final String EXPORT_LTP_CESNET_POST_PROCESSOR = "export.ltp_cesnet_post_processor.processor";
+    public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
+    public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
@@ -136,7 +138,7 @@ public final class AppConfiguration {
         return config.subset(ImportProfile.PROCESSOR + "." + processor);
     }
 
-    public Configuration getBagitExportPosProcessor() {
+    public Configuration getBagitExportPostProcessor() {
         String processor = config.getString(EXPORT_BAGIT_POST_PROCESSOR, "-");
         return config.subset(ImportProfile.PROCESSOR + "." + processor);
     }
@@ -147,6 +149,19 @@ public final class AppConfiguration {
 
     public String getBagitFoxmlExportPath() {
         return config.getString(EXPORT_BAGIT_FOXML_PATH);
+    }
+
+    public Configuration getLtpCesnetExportPostProcessor() {
+        String processor = config.getString(EXPORT_LTP_CESNET_POST_PROCESSOR, "-");
+        return config.subset(ImportProfile.PROCESSOR + "." + processor);
+    }
+
+    public String getLtpCesnetGroupToken() {
+        return config.getString(EXPORT_LTP_CESNET_GROUP_TOKEN);
+    }
+
+    public String getLtpCesnetScriptPath() {
+        return config.getString(EXPORT_LTP_CESNET_SCRIPT_PATH);
     }
 
     public String getFedoraUsername() {

@@ -197,10 +197,12 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.NDK_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage,
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
-            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token
     ) {
         try {
-            return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit);
+            return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

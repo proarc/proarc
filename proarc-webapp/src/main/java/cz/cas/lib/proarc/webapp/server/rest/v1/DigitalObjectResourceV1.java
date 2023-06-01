@@ -2454,7 +2454,9 @@ public class DigitalObjectResourceV1 {
             lockObject.findObjects();
             LockObject.LockObjectResult result = lockObject.setLocked();
             if (result != null) {
-                lockObject.setUnlocked();
+                if (!result.getEx().getMyMessage().equals(LockObject.MSG_ALREADY_LOCKED)) {
+                    lockObject.setUnlocked();
+                }
                 throw result.getEx();
             }
         }
@@ -2478,7 +2480,9 @@ public class DigitalObjectResourceV1 {
             lockObject.findObjects();
             LockObject.LockObjectResult result = lockObject.setUnlocked();
             if (result != null) {
-                lockObject.setLocked();
+                if (!result.getEx().getMyMessage().equals(LockObject.MSG_ALREADY_UNLOCKED)) {
+                    lockObject.setLocked();
+                }
                 throw result.getEx();
             }
         }

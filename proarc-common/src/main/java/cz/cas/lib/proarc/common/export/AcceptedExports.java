@@ -40,6 +40,7 @@ import java.util.Set;
 public class AcceptedExports {
 
     private final String BAGIT_SUFFIX = "_bagit";
+    private final String LTP_UPLOAD_SUFFIX = "_upload_cesnet";
 
     private List<String> ALL_MODELS = Arrays.asList(
             // pages//
@@ -100,6 +101,12 @@ public class AcceptedExports {
             OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintPlugin.MODEL_CHAPTER
     ));
 
+    private final Set<String> LTP_UPLOAD_MODELS = new HashSet<>(Arrays.asList(
+            NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
+            NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_PICTURE, NdkAudioPlugin.MODEL_MUSICDOCUMENT,
+            OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT
+    ));
+
     private final String EXPORT_NDK_SIP = "ndk_sip";
     private final Set<String> EXPORT_NDK_SIP_MODELS = new HashSet<>(Arrays.asList(
             NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER,
@@ -158,10 +165,16 @@ public class AcceptedExports {
         if (EXPORT_NDK_PSP_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_PSP);
             acceptedItems.add(EXPORT_NDK_PSP + BAGIT_SUFFIX);
+            if (LTP_UPLOAD_MODELS.contains(this.modelId)) {
+                acceptedItems.add(EXPORT_NDK_PSP + LTP_UPLOAD_SUFFIX);
+            }
         }
         if (EXPORT_NDK_OLDPRINT_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_OLDPRINT);
             acceptedItems.add(EXPORT_NDK_OLDPRINT + BAGIT_SUFFIX);
+            if (LTP_UPLOAD_MODELS.contains(this.modelId)) {
+                acceptedItems.add(EXPORT_NDK_OLDPRINT + LTP_UPLOAD_SUFFIX);
+            }
         }
         if (EXPORT_NDK_SIP_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_SIP);

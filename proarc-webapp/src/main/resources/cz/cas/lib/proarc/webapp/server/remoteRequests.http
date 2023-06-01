@@ -66,3 +66,7 @@ GET {{url}}/search/iiif/{{uuid}}/full/max/0/default.jpg
 Keep-Alive: timeout=600, max=1000
 Connection: Keep-Alive, Upgrade
 Authorization: Bearer {{token}}
+
+
+### UNLOCK OBJECT
+

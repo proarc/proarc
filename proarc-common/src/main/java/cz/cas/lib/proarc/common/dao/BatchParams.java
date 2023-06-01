@@ -40,6 +40,12 @@ public class BatchParams {
     @XmlElement (name = "bagit")
     private boolean bagit;
 
+    @XmlElement (name = "ltpCesnet")
+    private boolean ltpCesnet;
+
+    @XmlElement (name = "ltpCesnetToken")
+    private String ltpCesnetToken;
+
     public BatchParams() {}
 
     public BatchParams(List<String> pids) {
@@ -65,6 +71,15 @@ public class BatchParams {
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
         this.bagit = bagit;
+    }
+
+    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, boolean ltpCesnet, String ltpCesnetToken) {
+        this.pids = pids;
+        this.typeOfPackage = typeOfPackage;
+        this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
+        this.bagit = bagit;
+        this.ltpCesnet = ltpCesnet;
+        this.ltpCesnetToken = ltpCesnetToken;
     }
 
     public BatchParams(List<String> pids, String krameriusInstanceId) {
@@ -132,5 +147,13 @@ public class BatchParams {
 
     public List<String> getDsIds() {
         return dsIds;
+    }
+
+    public boolean isLtpCesnet() {
+        return ltpCesnet;
+    }
+
+    public String getLtpCesnetToken() {
+        return ltpCesnetToken;
     }
 }

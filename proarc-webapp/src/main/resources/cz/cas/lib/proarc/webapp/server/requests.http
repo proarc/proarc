@@ -135,13 +135,20 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 GET http://localhost:8081/proarc/rest/v1/object/createPid
 
+### LOGIN
+POST http://localhost:8081/proarc/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
 ###
 
 POST http://localhost:8081/proarc/rest/v2/import/batchStopped
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-{&id=773&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
+{&id=943&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
 
 ###
 
@@ -359,6 +366,41 @@ GET https://ltp.cesnet.cz/api/v2/archive/?group=VO_nm&limit=10
 Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
 Content-Type: application/json
 
+
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### NDK EXPORT with CESNET UPLOAD
+POST {{proarcLocalHostUrl}}/rest/v2/export/ndk
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:4d696c27-9253-41a6-bb24-9c0b6fdde49b&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
+###
+POST {{proarcLocalHostUrl}}/rest/v2/object/unlockObject
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:fb3e739d-37a4-4cc0-8fba-4296f99a988d
+
+
+### LOGIN
+POST {{proarcNmUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### NDK EXPORT with CESNET UPLOAD
+POST {{proarcNmUrl}}/rest/v2/export/ndk
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:0d8c130c-a170-4ca7-a20b-c4b8870cea5d&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
 
 
 

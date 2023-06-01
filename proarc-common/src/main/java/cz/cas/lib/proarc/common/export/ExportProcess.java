@@ -460,7 +460,7 @@ public final class ExportProcess implements Runnable {
             }
             if (Batch.State.EXPORT_DONE.equals(batch.getState())) {
                 LOG.info("Export " + batch.getId() + " done.");
-                if (params.isBagit()) {
+                if (params.isBagit() || params.isLtpCesnet()) {
                     LOG.info("Export " + batch.getId() + " - doing bagit.");
                     File targetFolder = findNdkExportFolder(batch.getFolder());
                     if (targetFolder != null) {
@@ -474,6 +474,10 @@ public final class ExportProcess implements Runnable {
                                 bagitExport.createMd5File();
                                 bagitExport.moveToSpecifiedDirectories();
                                 bagitExport.deleteExportFolder();
+                                if (params.isLtpCesnet() && !params.getLtpCesnetToken().isEmpty()) {
+                                    LOG.info("Bagit " + batch.getId() + " finished - uploading to ltp cesnet");
+                                    bagitExport.uploadToLtpCesnet(params.getLtpCesnetToken(), params.getPids().get(0));
+                                }
                             }
                         }
                         targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
