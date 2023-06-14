@@ -14,13 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,13 +41,14 @@ import javax.ws.rs.core.MediaType;
  *
  * @author Jan Pokorsky
  */
-@Path(ValueMapResourceApi.PATH)
-public class ValueMapResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + ValueMapResourceApi.PATH)
+public class ValueMapResourceV1 {
 
     private final SessionContext session;
     private final HttpHeaders httpHeaders;
 
-    public ValueMapResource(
+    public ValueMapResourceV1(
             @Context HttpHeaders httpHeaders,
             @Context HttpServletRequest httpRequest
             ) {

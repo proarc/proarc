@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.Permission;
@@ -22,11 +22,17 @@ import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +46,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -48,17 +55,21 @@ import javax.ws.rs.core.SecurityContext;
  *
  * @author Jan Pokorsky
  */
-@Path(UserResourceApi.PATH)
-public final class UserResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + UserResourceApi.PATH)
+public class UserResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(UserResource.class.getName());
-    private final UserManager userManager;
-    private final SessionContext session;
+    private static final Logger LOG = Logger.getLogger(UserResourceV1.class.getName());
+    protected final UserManager userManager;
+    protected final SessionContext session;
+    protected final HttpHeaders httpHeaders;
 
-    public UserResource(
+    public UserResourceV1(
             @Context HttpServletRequest httpRequest,
+            @Context HttpHeaders httpHeaders,
             @Context SecurityContext securityCtx
             ) {
+        this.httpHeaders = httpHeaders;
         this.session = SessionContext.from(httpRequest);
         this.userManager = UserUtil.getDefaultManger();
     }
@@ -137,17 +148,17 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction
             ) {
-
-        checkAccess(session.getUser(), UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, Permissions.USERS_CREATE);
+        Locale locale = session.getLocale(httpHeaders);
+        checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN, Permissions.USERS_CREATE);
         if (userName == null) {
             return SmartGwtResponse.<UserProfile>asError()
-                    .error(UserResourceApi.USER_NAME, "missing")
+                    .error(UserResourceApi.PATH,  ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Required"))
                     .build();
         }
         UserProfile found = userManager.find(userName);
         if (found != null) {
             return SmartGwtResponse.<UserProfile>asError()
-                    .error(UserResourceApi.USER_NAME, "already exists")
+                    .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Existing"))
                     .build();
         }
         UserProfile newProfile = new UserProfile();
@@ -163,8 +174,20 @@ public final class UserResource {
         newProfile.setLockObjectFunction(lockObjectFuction);
         newProfile.setUnlockObjectFunction(unlockObjectFuction);
         newProfile.setImportToProdFunction(importToProdFunction);
-        newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
-                session.getUser().getUserName(), session.asFedoraLog());
+        try {
+            newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
+                    session.getUser().getUserName(), session.asFedoraLog());
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            String message = ex.getMessage();
+            if (ex.getMessage().startsWith("Invalid user name")) {
+                message = ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Invalid");
+            } else if (ex.getMessage().startsWith("Invalid password")) {
+                message = ServerMessages.get(locale).getFormattedMessage("UserResouce_Password_Invalid");
+            }
+            return SmartGwtResponse.<UserProfile>asError()
+                    .error(UserResourceApi.PATH, message)
+                    .build();
+        }
         return new SmartGwtResponse<UserProfile>(newProfile);
     }
 
@@ -185,21 +208,22 @@ public final class UserResource {
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction
             ) {
 
+        Locale locale = session.getLocale(httpHeaders);
         UserProfile sessionUser = session.getUser();
         // check for admin or the same user
         UserProfile update = userId == null ? null : userManager.find(userId);
         boolean fullUpdate;
         if (update != null && update.getUserName().equals(sessionUser.getUserName())) {
-            checkAccess(sessionUser, UserRole.ROLE_SUPERADMIN, (Permission) null);
+            checkAccess(sessionUser, Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), (Permission) null);
 //            fullUpdate = grants.contains(Permissions.ADMIN);
             fullUpdate = true;
         } else {
-            checkAccess(sessionUser, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+            checkAccess(sessionUser, Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN);
             fullUpdate = true;
         }
         if (update == null) {
             return SmartGwtResponse.<UserProfile>asError()
-                    .error(UserResourceApi.USER_ID, "not found").build();
+                    .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_UserId_NotFound")).build();
         }
         if (passwd != null && update.getRemoteType() == null) {
             update.setUserPassword(passwd);
@@ -216,7 +240,7 @@ public final class UserResource {
             update.setImportToProdFunction(importToProdFunction);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
-                        .error(UserResourceApi.USER_SURNAME, "Required!").build();
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Surname_Required")).build();
             }
             update.setSurname(surname);
         }
@@ -243,7 +267,7 @@ public final class UserResource {
         return new SmartGwtResponse<Permission>(result);
     }
 
-    String checkAccess(UserProfile user, String requiredRole, Permission... permissions) {
+    protected String checkAccess(UserProfile user, List<String> requiredRoles, Permission... permissions) {
         if (user != null) {
             Set<Permission> grants = userManager.findUserPermissions(user.getId());
             for (Permission permission : permissions) {
@@ -252,13 +276,19 @@ public final class UserResource {
                 }
             }
             String role = userManager.findUserRole(user.getId());
-            if (role != null) {
+            for (String requiredRole : requiredRoles) {
                 if (requiredRole.equals(role)) {
                     return role;
                 }
             }
         }
         throw new WebApplicationException(Response.Status.FORBIDDEN);
+    }
+
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
     }
 
 }

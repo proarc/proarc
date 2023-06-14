@@ -16,8 +16,10 @@
  */
 package cz.cas.lib.proarc.webapp.shared.rest;
 
+import cz.cas.lib.proarc.webapp.server.rest.v1.ValueMapResourceV1;
+
 /**
- * Constants for {@link cz.cas.lib.proarc.webapp.server.rest.ValueMapResource}
+ * Constants for {@link ValueMapResourceV1}
  * shared by GWT client.
  *
  * @author Jan Pokorsky

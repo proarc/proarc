@@ -55,7 +55,10 @@ public final class RestConfig {
      */
     public static final String URL_LOGIN_SERVLET =  GWT.getHostPageBaseURL() + "proarclogin";
 
-    public static final String URL_ROOT = GWT.getHostPageBaseURL() + "rest/v1";
+    public static final String URL_API_VERSION_1 = "v1";
+    public static final String URL_API_VERSION_2 = "v2";
+
+    public static final String URL_ROOT = GWT.getHostPageBaseURL() + "rest/" + URL_API_VERSION_1;
     public static final String URL_IMPORT = path(URL_ROOT, ImportResourceApi.PATH);
     public static final String URL_IMPORT_FOLDER = path(URL_IMPORT, ImportResourceApi.FOLDER_PATH);
     public static final String URL_IMPORT_BATCH = path(URL_IMPORT, ImportResourceApi.BATCH_PATH);
@@ -248,6 +251,7 @@ public final class RestConfig {
         op.setDataProtocol(DSProtocol.GETPARAMS);
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("DELETE");
+        dsRequest.setContentType(RestConfig.TYPE_APPLICATION_JSON);
         op.setRequestProperties(dsRequest);
         return op;
     }

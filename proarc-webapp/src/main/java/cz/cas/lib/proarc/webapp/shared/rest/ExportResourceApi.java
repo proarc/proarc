@@ -16,8 +16,10 @@
  */
 package cz.cas.lib.proarc.webapp.shared.rest;
 
+import cz.cas.lib.proarc.webapp.server.rest.v1.ExportResourceV1;
+
 /**
- * Constants for {@link cz.cas.lib.proarc.webapp.server.rest.ExportResource}
+ * Constants for {@link ExportResourceV1}
  * shared by GWT client.
  *
  * @author Jan Pokorsky
@@ -40,6 +42,8 @@ public final class ExportResourceApi {
 
     public static final String CROSSREF_PATH = "crossref";
     public static final String CROSSREF_PID_PARAM = "pid";
+
+    public static final String BATCHES_IN_PROCESS_PATH = "processingBatches";
 
     public static final String KRAMERIUS4_PATH = "kramerius4";
     public static final String KRAMERIUS4_PID_PARAM = "pid";
@@ -71,6 +75,9 @@ public final class ExportResourceApi {
     public static final String IGNORE_MISSING_URNNBN = "ignoreMissingUrnNbn";
 
     public static final String EXPORT_BAGIT = "isBagit";
+
+    public static final String EXPORT_LTP_CESNET = "ltpCesnet";
+    public static final String EXPORT_LTP_CESNET_TOKEN = "ltpCesnetToken";
 
     public static final String NDK_PACKAGE = "package";
     public enum Package {SIP, PSP, STT, CHRONICLE};

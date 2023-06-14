@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -43,8 +43,16 @@ import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.DateTimeParam;
+import cz.cas.lib.proarc.webapp.server.rest.ImportFolder;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
+import cz.cas.lib.proarc.webapp.server.rest.ProfileStates;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
 import java.io.FileInputStream;
@@ -83,6 +91,7 @@ import org.apache.commons.io.IOUtils;
 
 import static cz.cas.lib.proarc.common.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
 import static cz.cas.lib.proarc.common.imports.ImportProcess.TMP_DIR_NAME;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 
 /**
  * Resource to handle imports.
@@ -96,10 +105,11 @@ import static cz.cas.lib.proarc.common.imports.ImportProcess.TMP_DIR_NAME;
  * @see <a href="http://127.0.0.1:8888/Editor/rest/application.wadl">WADL in dev mode</a>
  * @see <a href="http://127.0.0.1:8888/Editor/rest/application.wadl/xsd0.xsd">XML Scema in dev mode</a>
  */
-@Path(ImportResourceApi.PATH)
-public class ImportResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + ImportResourceApi.PATH)
+public class ImportResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(ImportResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(ImportResourceV1.class.getName());
     private static final Pattern INVALID_PATH_CONTENT = Pattern.compile("\\.\\.|//");
 
     private final HttpHeaders httpHeaders;
@@ -111,7 +121,7 @@ public class ImportResource {
     private final UserProfile user;
     private final SessionContext session;
 
-    public ImportResource(
+    public ImportResourceV1(
             @Context SecurityContext securityCtx,
             @Context HttpHeaders httpHeaders,
             @Context UriInfo uriInfo,
@@ -455,16 +465,28 @@ public class ImportResource {
     public SmartGwtResponse<BatchView> stopBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
     ) {
-        session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
-
         Batch batch = importManager.get(batchId);
         if (batch == null) {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
+        if (!(session.checkPermission(Permissions.ADMIN) || session.checkRole(UserRole.ROLE_SUPERADMIN) || isBatchOwner(batch))) {
+            LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
         BatchView batchView = importManager.viewBatch(batch.getId());
         return new SmartGwtResponse<BatchView>(batchView);
+    }
+
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
+    }
+
+    private boolean isBatchOwner(Batch batch) {
+        return user.getId().equals(batch.getUserId());
     }
 
     @PUT
@@ -591,7 +613,7 @@ public class ImportResource {
                     String newMessage = ex.getMessage().replace(messageOld, message);
                     return SmartGwtResponse.asError(newMessage.substring(0, newMessage.indexOf(" for Batch")));
                 } else {
-                    return SmartGwtResponse.asError(ex.getMessage());
+                    return SmartGwtResponse.asError(ex);
                 }
             }
         }

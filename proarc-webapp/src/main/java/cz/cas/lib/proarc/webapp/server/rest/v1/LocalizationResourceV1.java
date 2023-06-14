@@ -14,9 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -47,14 +50,15 @@ import javax.xml.bind.annotation.XmlElement;
  *
  * @author Jan Pokorsky
  */
-@Path(LocalizationResourceApi.PATH)
-public class LocalizationResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + LocalizationResourceApi.PATH)
+public class LocalizationResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(LocalizationResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(LocalizationResourceV1.class.getName());
 
     private final HttpHeaders httpHeaders;
 
-    public LocalizationResource(
+    public LocalizationResourceV1(
             @Context HttpHeaders httpHeaders
             ) {
         this.httpHeaders = httpHeaders;

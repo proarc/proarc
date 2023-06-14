@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.device;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
@@ -190,8 +191,8 @@ public final class DeviceRepository {
      * @return list of devices
      * @throws DeviceException failure
      */
-    public List<Device> find(String id) throws DeviceException {
-        return find(id, false, 0);
+    public List<Device> find(AppConfiguration config, String id) throws DeviceException {
+        return find(config, id, false, 0);
     }
 
     /**
@@ -202,14 +203,14 @@ public final class DeviceRepository {
      * @return list of devices
      * @throws DeviceException failure
      */
-    public List<Device> find(String id, boolean fetchDescription, int offset) throws DeviceException {
+    public List<Device> find(AppConfiguration config, String id, boolean fetchDescription, int offset) throws DeviceException {
         try {
             List<Device> devices;
             if (id != null) {
                 checkDeviceId(id);
-                devices = findDevice(id);
+                devices = findDevice(config, id);
             } else {
-                devices = findAllDevices(offset);
+                devices = findAllDevices(config, offset);
             }
             if (fetchDescription) {
                 fetchDeviceDescription(devices);
@@ -400,7 +401,7 @@ public final class DeviceRepository {
         return device;
     }
 
-    public List<Device> findAllDevices(int offset) throws DeviceException {
+    public List<Device> findAllDevices(AppConfiguration config, int offset) throws DeviceException {
         List<SearchViewItem> items = new ArrayList<>();
         try {
             SearchView searchView = null;
@@ -413,10 +414,10 @@ public final class DeviceRepository {
         } catch (IOException | FedoraClientException ex) {
             throw new DeviceException(ex.getMessage());
         }
-        return objectAsDevice(items, null);
+        return objectAsDevice(config, items, null);
     }
 
-    private List<Device> findDevice(String... pids) throws IOException, FedoraClientException {
+    private List<Device> findDevice(AppConfiguration config, String... pids) throws IOException, FedoraClientException {
         SearchView searchView = null;
         if (Storage.FEDORA.equals(typeOfStorage)) {
             searchView = remoteStorage.getSearch();
@@ -426,24 +427,39 @@ public final class DeviceRepository {
 
         List<SearchViewItem> items = searchView.findByModel(METAMODEL_ID);
         items.addAll(searchView.findByModel(METAMODEL_AUDIODEVICE_ID));
-        return objectAsDevice(items, new HashSet<String>(Arrays.asList(pids)));
+        return objectAsDevice(config, items, new HashSet<String>(Arrays.asList(pids)));
     }
 
-    private List<Device> objectAsDevice(List<SearchViewItem> items, Set<String> includes) {
+    private List<Device> objectAsDevice(AppConfiguration config, List<SearchViewItem> items, Set<String> includes) {
         ArrayList<Device> devices = new ArrayList<Device>(items.size());
         for (SearchViewItem item : items) {
             String label = item.getLabel();
             String pid = item.getPid();
             String model = item.getModel();
             if (includes == null || includes.contains(pid)) {
-                Device device = new Device();
-                device.setId(pid);
-                device.setLabel(label);
-                device.setModel(getModelLabel(model));
-                devices.add(device);
+                if (!ignoredDevice(config, pid)) {
+                    Device device = new Device();
+                    device.setId(pid);
+                    device.setLabel(label);
+                    device.setModel(getModelLabel(model));
+                    devices.add(device);
+                }
             }
         }
         return devices;
+    }
+
+    private boolean ignoredDevice(AppConfiguration config, String pid) {
+        if (config == null) {
+            return false;
+        } else {
+            String mainPid = config.getDevices().getMainUUid(pid);
+            if (mainPid != null && !mainPid.isEmpty()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     public static String getModelLabel(String model) {
@@ -550,7 +566,7 @@ public final class DeviceRepository {
                     } else if ("settings".equals(extension.getFirstChild().getLocalName()))
                         settings = extension.getFirstChild().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.INFO, "Error in premis:agentExtension");
+                    LOG.log(Level.FINE, "Error in premis:agentExtension");
                 }
                 try {
                     if ("serialNumber".equals(extension.getFirstChild().getNextSibling().getLocalName())) {
@@ -558,13 +574,13 @@ public final class DeviceRepository {
                     } else if ("settings".equals(extension.getFirstChild().getNextSibling().getLocalName()))
                         settings = extension.getFirstChild().getNextSibling().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.INFO, "Error in premis:agentExtension");
+                    LOG.log(Level.FINE, "Error in premis:agentExtension");
                 }
                 try {
                     if ("settings".equals(extension.getFirstChild().getNextSibling().getNextSibling().getLocalName()))
                         settings = extension.getFirstChild().getNextSibling().getNextSibling().getFirstChild().getNodeValue();
                 } catch (Exception ex) {
-                    LOG.log(Level.INFO, "Error in premis:agentExtension");
+                    LOG.log(Level.FINE, "Error in premis:agentExtension");
                 }
             }
             nk.setManufacturer(manufacturer);

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -31,7 +31,11 @@ import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,10 +67,11 @@ import static cz.cas.lib.proarc.common.device.DeviceRepository.getModelLabel;
  *
  * @author Jan Pokorsky
  */
-@Path(DeviceResourceApi.PATH)
-public class DeviceResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + DeviceResourceApi.PATH)
+public class DeviceResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(DeviceResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(DeviceResourceV1.class.getName());
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
     private final Request httpRequest;
@@ -74,7 +79,7 @@ public class DeviceResource {
     private final SessionContext session;
     private final DeviceRepository devRepo;
 
-    public DeviceResource(
+    public DeviceResourceV1(
             @Context Request request,
             @Context SecurityContext securityCtx,
             @Context HttpHeaders httpHeaders,
@@ -137,10 +142,10 @@ public class DeviceResource {
         List<Device> result = new ArrayList<>();
 
         if (id == null) {
-            total = devRepo.findAllDevices(0).size();
-            result = devRepo.findAllDevices(startRow);
+            total = devRepo.findAllDevices(appConfig, 0).size();
+            result = devRepo.findAllDevices(appConfig, startRow);
         } else {
-            result = devRepo.find(id, fetchDescription, startRow);
+            result = devRepo.find(null, id, fetchDescription, startRow);
             total = result.size();
         }
         int endRow = startRow + result.size() - 1;
@@ -205,6 +210,12 @@ public class DeviceResource {
         } catch (DeviceException ex) {
             throw new WebApplicationException(ex);
         }
+    }
+
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
     }
 
 }

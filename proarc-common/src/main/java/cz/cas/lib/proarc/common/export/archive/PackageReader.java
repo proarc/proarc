@@ -511,7 +511,7 @@ public class PackageReader {
 
             String modelId = relationEditor.getModel();
             MetaModel model = modelId == null ? null: MetaModelRepository.getInstance().find(modelId);
-            if (model == null && !DeviceRepository.METAMODEL_ID.equals(modelId)) {
+            if (model == null && !(DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId))) {
                 throw new DigitalObjectException(lObj.getPid(), null, dsId, "Unsupported modelId: " + modelId + ", see " + dsFile, null);
             }
 

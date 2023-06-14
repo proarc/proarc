@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.info.ApplicationInfo;
 import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -24,9 +23,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 
 /**
- * Helper class to annotate {@link Device} properties.
- *
- * @see JacksonProvider
+ * Helper class to annotate {@link ApplicationInfo} properties.
  *
  * @author Lukáš Sýkora
  */

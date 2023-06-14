@@ -135,13 +135,20 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 GET http://localhost:8081/proarc/rest/v1/object/createPid
 
-###
-
-POST http://localhost:8081/proarc/rest/v1/import/batchStopped
+### LOGIN
+POST http://localhost:8081/proarc/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-{&id=773&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+###
+
+POST http://localhost:8081/proarc/rest/v2/import/batchStopped
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&id=943&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
 
 ###
 
@@ -299,3 +306,116 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 GET {{proarcLocalHostUrl}}/rest/v1/export/validExports?model=model:oldprintvolume
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+### ADD NEW USER WOTH ERROR
+POST {{proarcLocalHostUrl}}/rest/v1/user
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&name=miqchal
+
+
+### REINDEX
+PUT {{proarcLocalHostUrl}}/rest/v1/object/reindexObjects
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&batchId=845&model=model:ndkpage
+
+### EDITOR PAGES
+PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+{&batchId=830&isc_metaDataPrefix=_&isc_dataFormat=json&pids=[uuid%3A5c52de64-2d85-4a13-a65b-1d0ff6d6650c,uuid%3Af7cf6e41-68e3-4919-be5f-a5548b5a3669]&timestamp=1597146647990&editorId=model%3Andkpage&_operationType=update&_textMatchStyle=exact&_dataSource=ModsCustomDataSource&pageType=obituary}
+
+
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+
+### IMPORT
+POST {{proarcRemoteUrl}}/rest/v1/import/batch
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&folderPath=Mzk/Monografie/Kratka/&profile=profile.default&device=device:a93dd5e2-1db7-44d0-be85-804759da8afe&priority=medium
+
+### EXPORT KRAMERIUS
+POST {{proarcLocalHostUrl}}/rest/v1/export/archive
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:4a3b4ef7-0bc0-44e6-b0e2-9624d8ebb80e&isBagit=true
+
+
+
+###
+
+GET https://ltp.cesnet.cz/api/v2/archive/?group=VO_nm&limit=10
+Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+Content-Type: application/json
+
+###
+
+GET https://ltp.cesnet.cz/api/v2/archive/?group=VO_nm&limit=10
+Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+Content-Type: application/json
+
+
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### NDK EXPORT with CESNET UPLOAD
+POST {{proarcLocalHostUrl}}/rest/v2/export/ndk
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:4d696c27-9253-41a6-bb24-9c0b6fdde49b&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
+###
+POST {{proarcLocalHostUrl}}/rest/v2/object/unlockObject
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:fb3e739d-37a4-4cc0-8fba-4296f99a988d
+
+
+### LOGIN
+POST {{proarcNmUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### NDK EXPORT with CESNET UPLOAD
+POST {{proarcNmUrl}}/rest/v2/export/ndk
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:0d8c130c-a170-4ca7-a20b-c4b8870cea5d&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
+
+
+select id, "CREATE", state from proarc_batch where folder = 'uuid:ed2ae08a-2333-4acb-80e2-c2722171ac9e';
+
+
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### Update device
+PUT {{proarcLocalHostUrl}}/rest/v2/device
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&device:1883a7de-2f01-40e4-91ee-c7b631c0353c

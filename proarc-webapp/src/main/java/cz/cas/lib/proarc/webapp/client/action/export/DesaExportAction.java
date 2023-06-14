@@ -201,7 +201,7 @@ public class DesaExportAction extends ExportAction {
                     if (erl.isEmpty()) {
                         String dryRun = export.getAttribute(ExportResourceApi.DESA_DRYRUN_PARAM);
                         SC.say(dryRun == null
-                                ? i18n.DesaExportAction_ExportDone_Msg()
+                                ? i18n.ExportAction_ProcessPlanned_Msg()
                                 : i18n.DesaExportAction_ValidationDone_Msg());
                     } else {
                         ExportResultWidget.showErrors(erl.toArray());
@@ -350,7 +350,7 @@ public class DesaExportAction extends ExportAction {
     /**
      * Presents errors of the digital objects export result. Use {@link #showErrors} for
      * shared instance.
-     * @see cz.cas.lib.proarc.webapp.server.rest.ExportResource.ExportError
+     * @see ExportResourceV1.ExportError
      */
     static final class ExportResultWidget {
 
@@ -417,7 +417,7 @@ public class DesaExportAction extends ExportAction {
                 window.setAutoCenter(true);
                 window.setIsModal(true);
                 window.addItem(widget);
-                window.setTitle(i18n.ExportResultWidget_Window_Title());
+                window.setTitle(i18n.ExportAction_Title());
                 window.setShowMinimizeButton(false);
                 window.setShowMaximizeButton(true);
                 window.setKeepInParentRect(true);

@@ -351,19 +351,37 @@ public class ReindexDigitalObjects {
     }
 
     private void setIndexToMods(ModsDefinition mods, int index, String model) {
+        boolean updated = false;
         if (mods != null && mods.getPart() != null) {
-            for (PartDefinition part : mods.getPart()) {
-                DetailDefinition detailDefinition = null;
-                for (DetailDefinition detail : part.getDetail()) {
-                    if (detail != null && "pageIndex".equals(detail.getType())) {
-                        if (detailDefinition == null) {
-                            detailDefinition = detail;
-                            break;
+            if (mods.getPart().isEmpty()) {
+                PartDefinition part = createNewPart(index);
+                mods.getPart().add(part);
+                updated = true;
+            } else {
+                for (PartDefinition part : mods.getPart()) {
+                    DetailDefinition detailDefinition = null;
+                    for (DetailDefinition detail : part.getDetail()) {
+                        if (detail != null && "pageIndex".equals(detail.getType())) {
+                            if (detailDefinition == null) {
+                                detailDefinition = detail;
+                                break;
+                            }
                         }
                     }
-                }
-                if (NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
-                    if (part.getType() == null) {
+                    if (NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
+                        if (part.getType() == null) {
+                            if (detailDefinition == null) {
+                                detailDefinition = new DetailDefinition();
+                                part.getDetail().add(detailDefinition);
+                                detailDefinition.setType("pageIndex");
+                            }
+                            detailDefinition.getNumber().clear();
+                            StringPlusLanguage number = new StringPlusLanguage();
+                            number.setValue(String.valueOf(index));
+                            detailDefinition.getNumber().add(number);
+                            updated = true;
+                        }
+                    } else if (NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model) || NdkAudioPlugin.MODEL_PAGE.equals(model)) {
                         if (detailDefinition == null) {
                             detailDefinition = new DetailDefinition();
                             part.getDetail().add(detailDefinition);
@@ -373,19 +391,27 @@ public class ReindexDigitalObjects {
                         StringPlusLanguage number = new StringPlusLanguage();
                         number.setValue(String.valueOf(index));
                         detailDefinition.getNumber().add(number);
+                        updated = true;
                     }
-                } else if (NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model) || NdkAudioPlugin.MODEL_PAGE.equals(model)) {
-                    if (detailDefinition == null) {
-                        detailDefinition = new DetailDefinition();
-                        part.getDetail().add(detailDefinition);
-                        detailDefinition.setType("pageIndex");
-                    }
-                    detailDefinition.getNumber().clear();
-                    StringPlusLanguage number = new StringPlusLanguage();
-                    number.setValue(String.valueOf(index));
-                    detailDefinition.getNumber().add(number);
                 }
+            }
+            if (!updated) {
+                PartDefinition part = createNewPart(index);
+                mods.getPart().add(part);
             }
         }
     }
+
+    private PartDefinition createNewPart(int index) {
+        PartDefinition part = new PartDefinition();
+        DetailDefinition detail = new DetailDefinition();
+        part.getDetail().add(detail);
+        detail.setType("pageIndex");
+        StringPlusLanguage number = new StringPlusLanguage();
+        number.setValue(String.valueOf(index));
+        detail.getNumber().add(number);
+        return part;
+    }
+
+
 }

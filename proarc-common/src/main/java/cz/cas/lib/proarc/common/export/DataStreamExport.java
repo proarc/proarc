@@ -107,7 +107,7 @@ public final class DataStreamExport {
             throw new IllegalArgumentException();
         }
 
-        File target = ExportUtils.createFolder(output, (dsIds.get(0) + "_" + FoxmlUtils.pidAsUuid(pids.get(0))).toLowerCase(), appConfig.getExportOptions().isOverwritePackage());
+        File target = ExportUtils.createFolder(output, (dsIds.get(0) + "_" + FoxmlUtils.pidAsUuid(pids.get(0))).toLowerCase(), appConfig.getExportParams().isOverwritePackage());
         toExport.addAll(pids);
         for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
             exportPid(target, hierarchy, pid, dsIds);

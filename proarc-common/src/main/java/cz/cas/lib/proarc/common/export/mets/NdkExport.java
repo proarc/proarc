@@ -97,7 +97,7 @@ public class NdkExport {
         if (exportsFolder != null && "NDK".equals(exportsFolder.getName())) {
             target = exportsFolder;
         } else {
-            target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, this.appConfig.getExportOptions().isOverwritePackage()));
+            target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, this.appConfig.getExportParams().isOverwritePackage()));
         }
         List<Result> results = new ArrayList<>(pids.size());
         for (String pid : pids) {

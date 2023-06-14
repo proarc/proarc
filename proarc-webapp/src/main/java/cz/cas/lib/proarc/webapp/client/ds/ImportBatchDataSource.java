@@ -104,7 +104,9 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         states.put(State.INGESTED.name(), i18n.ImportBatchDataSource_State_INGESTED());
         states.put(State.STOPPED.name(), i18n.ImportBatchDataSource_State_STOPPED());
         states.put(State.EXPORTING.name(), i18n.ImportBatchDataSource_State_EXPORTING());
+        states.put(State.EXPORT_PLANNED.name(), i18n.ImportBatchDataSource_State_EXPORT_PLANNED());
         states.put(State.EXPORT_FAILED.name(), i18n.ImportBatchDataSource_State_EXPORT_FAILED());
+        states.put(State.EXPORT_VALID_WARNING.name(), i18n.ImportBatchDataSource_State_EXPORT_FINISHED_WITH_WARNING());
         states.put(State.EXPORT_DONE.name(), i18n.ImportBatchDataSource_State_EXPORT_DONE());
         states.put(State.REINDEXING.name(), i18n.ImportBatchDataSource_State_REINDEXING());
         states.put(State.REINDEX_FAILED.name(), i18n.ImportBatchDataSource_State_REINDEX_FAILED());
@@ -133,11 +135,13 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put("profile.ndk_without_ocr", i18n.ImportProfile_NDK_FULL_WITHOUR_OCR_IMPORT());
         profiles.put("profile.oldprint_full_import", i18n.ImportProfile_OLDPRINT_FULL_IMPORT());
         profiles.put("profile.oldprint_without_ocr", i18n.ImportProfile_OLDPRINT_FULL_WITHOUR_OCR_IMPORT());
+        profiles.put("profile.createObjectWithMetadata_import", i18n.ImportProfile_CREATE_OBJECT_WITH_METADATA());
         profiles.put(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, i18n.ImportProfile_SOUNDRECORDING_IMPORT());
 
         profiles.put(Batch.UPLOAD_PROARC, i18n.UploadProfile_PROARC());
         profiles.put(Batch.UPLOAD_KRAMERIUS, i18n.UploadProfile_KRAMERIUS());
 
+        profiles.put("exportProfile.datastream", i18n.ExportProfile_Datastream());
         profiles.put("exportProfile.kramerius", i18n.ExportProfile_Kramerius());
         profiles.put("exportProfile.ndk", i18n.ExportProfile_Ndk());
         profiles.put("exportProfile.archive", i18n.ExportProfile_Archive());
@@ -302,7 +306,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
      */
     public enum State {
         EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,
-        EXPORTING, EXPORT_FAILED, EXPORT_DONE,
+        EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
         REINDEXING, REINDEX_FAILED, REINDEX_DONE,
         UPLOADING, UPLOAD_FAILED, UPLOAD_DONE;
 

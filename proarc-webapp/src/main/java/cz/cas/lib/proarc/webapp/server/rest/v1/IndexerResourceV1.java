@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.google.common.net.HttpHeaders;
 import com.google.gwt.http.client.Request;
@@ -16,7 +16,10 @@ import cz.cas.lib.proarc.common.fedora.akubra.SolrFeeder;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,10 +48,11 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 
-@Path(IndexerResourceApi.PATH)
-public class IndexerResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + IndexerResourceApi.PATH)
+public class IndexerResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(IndexerResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(IndexerResourceV1.class.getName());
 
     private final AppConfiguration appConfiguration;
     private final AkubraConfiguration akubraConfiguration;
@@ -58,7 +62,7 @@ public class IndexerResource {
     private final SessionContext session;
     private static Unmarshaller unmarshaller;
 
-    public IndexerResource(
+    public IndexerResourceV1(
             @Context Request httpRequest,
             @Context SecurityContext securityContext,
             @Context HttpHeaders httpHeaders,
@@ -102,6 +106,8 @@ public class IndexerResource {
         SolrClient solrClient = new ConcurrentUpdateSolrClient.Builder(processingSolrHost).withQueueSize(100).build();
         SolrFeeder feeder = new SolrFeeder(solrClient);
 
+        feeder.deleteProcessingIndex();
+        feeder.commit();
         //processRoot(feeder, datastreamStorePath, false);
         processRoot(feeder, objectStorePath, true);
 

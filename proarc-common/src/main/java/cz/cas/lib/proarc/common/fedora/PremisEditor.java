@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.fedora;
 
 
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
@@ -41,6 +42,7 @@ import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsConstants;
 import cz.cas.lib.proarc.mets.MetsType;
+import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.premis.AgentComplexType;
 import cz.cas.lib.proarc.premis.AgentIdentifierComplexType;
 import cz.cas.lib.proarc.premis.CreatingApplicationComplexType;
@@ -85,7 +87,6 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
@@ -222,7 +223,7 @@ public class PremisEditor {
 
             Mets deviceMets = MetsElementVisitor.getScannerMets(metsElement);
             HashMap<String, FileMD5Info> md5InfosMap = createMd5InfoMap(metsElement);
-            addPremisToAmdSec(amdSec, md5InfosMap, metsElement, null, deviceMets);
+            addPremisToAmdSec(amdSec, md5InfosMap, metsElement, null, deviceMets, null);
             return amdSecMets;
         } catch (Exception e) {
             throw new DigitalObjectException(fobject.getPid(), "Nepodarilo se vytvorit Technicka metadata");
@@ -304,7 +305,7 @@ public class PremisEditor {
         return md5InfosMap;
     }
 
-    public static void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement, HashMap<String, MetsType.FileSec.FileGrp> amdSecFileGrpMap, Mets mets) throws MetsExportException {
+    public static void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement, HashMap<String, MetsType.FileSec.FileGrp> amdSecFileGrpMap, Mets mets, Mix mixDevice) throws MetsExportException {
         HashMap<String, String> toGenerate = new HashMap<String, String>();
         toGenerate.put("OBJ_001", Const.RAW_GRP_ID);
         toGenerate.put("OBJ_002", Const.MC_GRP_ID);
@@ -321,7 +322,11 @@ public class PremisEditor {
             if (md5InfosMap.get(stream) == null) {
                 continue;
             }
-            addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream)), amdSec, obj, false, amdSecFileGrpMap);
+            if ("OBJ_001".equals(obj)) {
+                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), mixDevice), amdSec, obj, false, amdSecFileGrpMap);
+            } else {
+                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), null), amdSec, obj, false, amdSecFileGrpMap);
+            }
         }
 
         if (mets != null) {
@@ -410,8 +415,8 @@ public class PremisEditor {
      * @return
      * @throws MetsExportException
      */
-    public static Node getPremisFile(IMetsElement metsElement, String datastream, FileMD5Info md5Info) throws MetsExportException {
-        JAXBElement<PremisComplexType> jaxbPremix = PremisEditor.createPremisComplexType(metsElement, datastream, md5Info);
+    public static Node getPremisFile(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix) throws MetsExportException {
+        JAXBElement<PremisComplexType> jaxbPremix = PremisEditor.createPremisComplexType(metsElement, datastream, md5Info, mix);
 
         JAXBContext jc;
         try {
@@ -432,7 +437,7 @@ public class PremisEditor {
     }
 
 
-    public static JAXBElement<PremisComplexType> createPremisComplexType(IMetsElement metsElement, String datastream, FileMD5Info md5Info) throws MetsExportException {
+    public static JAXBElement<PremisComplexType> createPremisComplexType(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix) throws MetsExportException {
         PremisComplexType premis = new PremisComplexType();
         ObjectFactory factory = new ObjectFactory();
         JAXBElement<PremisComplexType> jaxbPremix = factory.createPremis(premis);
@@ -463,9 +468,9 @@ public class PremisEditor {
         FormatDesignationComplexType formatDesignation = new FormatDesignationComplexType();
         formatDesignation.setFormatName(md5Info.getMimeType());
         if (md5Info.getMimeType() != null && !md5Info.getMimeType().equals(md5Info.getFormatVersion())) {
-            formatDesignation.setFormatVersion(md5Info.getFormatVersion() == null ? "1.0" : md5Info.getFormatVersion());
+            formatDesignation.setFormatVersion(md5Info.getFormatVersion() == null ? setFormatVersion(mix) : md5Info.getFormatVersion());
         } else {
-            formatDesignation.setFormatVersion("1.0");
+            formatDesignation.setFormatVersion(setFormatVersion(mix));
         }
         JAXBElement<FormatDesignationComplexType> jaxbDesignation = factory.createFormatDesignation(formatDesignation);
         format.getContent().add(jaxbDesignation);
@@ -521,6 +526,15 @@ public class PremisEditor {
         originalName.setValue(originalFile);
         file.setOriginalName(originalName);
         return jaxbPremix;
+    }
+
+    private static String setFormatVersion(Mix mix) {
+        if (mix != null && mix.getBasicDigitalObjectInformation() != null && mix.getBasicDigitalObjectInformation().getFormatDesignation() != null &&
+                mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatVersion() != null && mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatVersion().getValue() != null) {
+            return mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatVersion().getValue();
+        } else {
+            return "1.0";
+        }
     }
 
     public static Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
@@ -610,7 +624,7 @@ public class PremisEditor {
             agentComplexType.getAgentExtension().add(extension);
             extension.getAny().add(addNkNode(agent));
         } catch (Exception ex) {
-            LOG.log(Level.INFO, "Can not get value from Premis, set defualt values");
+            LOG.log(Level.FINE, "Can not get value from Premis, set defualt values");
             agentName = "ProArc";
             agentType = "software";
         }

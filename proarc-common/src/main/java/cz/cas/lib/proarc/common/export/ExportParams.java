@@ -24,9 +24,9 @@ import org.apache.commons.configuration.Configuration;
  *
  * @author Lukas Sykora
  */
-public class ExportOptions {
+public class ExportParams {
 
-    private static final Logger LOG = Logger.getLogger(ExportOptions.class.getName());
+    private static final Logger LOG = Logger.getLogger(ExportParams.class.getName());
 
     static final String PROP_DELETE_PACKAGE = "export.deletePackageIfUrnNbnIsMissing";
     static final String PROP_OVERWRITE_PACKAGE = "export.overwritePackage";
@@ -36,18 +36,18 @@ public class ExportOptions {
     private boolean overwritePackage;
     private String journalsInfoPath;
 
-    public static ExportOptions getOptions(Configuration config) {
-        ExportOptions options = new ExportOptions();
+    public static ExportParams getParams(Configuration config) {
+        ExportParams exportParams = new ExportParams();
 
         String deletePackage = config.getString(PROP_DELETE_PACKAGE);
-        options.setDeletePackage(Boolean.TRUE.equals(Boolean.parseBoolean(deletePackage)));
+        exportParams.setDeletePackage(Boolean.TRUE.equals(Boolean.parseBoolean(deletePackage)));
 
         String overwritePackage = config.getString(PROP_OVERWRITE_PACKAGE);
-        options.setOverwritePackage(Boolean.TRUE.equals(Boolean.parseBoolean(overwritePackage)));
+        exportParams.setOverwritePackage(Boolean.TRUE.equals(Boolean.parseBoolean(overwritePackage)));
 
         String journalsInfoPath = config.getString(PROP_JOURNALS_INFO_PATH);
-        options.setJournalsInfoPath(journalsInfoPath);
-        return options;
+        exportParams.setJournalsInfoPath(journalsInfoPath);
+        return exportParams;
     }
 
     public boolean isDeletePackage() {

@@ -26,6 +26,7 @@ public class DigitalObjectException extends Exception {
 
     private final String pid;
     private final Integer batchId;
+    private final String message;
     private final String dsId;
 
     public DigitalObjectException(String pid) {
@@ -46,6 +47,7 @@ public class DigitalObjectException extends Exception {
 
     public DigitalObjectException(String pid, Integer batchId, String dsId, String message, Throwable cause) {
         super(buildMsg(pid, batchId, dsId, message), cause);
+        this.message = message;
         this.pid = pid;
         this.batchId = batchId;
         this.dsId = dsId;
@@ -61,6 +63,11 @@ public class DigitalObjectException extends Exception {
 
     public String getDsId() {
         return dsId;
+    }
+
+
+    public String getMyMessage() {
+        return message;
     }
 
     private static String buildMsg(String pid, Integer batchId, String dsId, String message) {

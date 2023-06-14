@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.cejsh;
 
-import cz.cas.lib.proarc.common.export.ExportOptions;
+import cz.cas.lib.proarc.common.export.ExportParams;
 import cz.cas.lib.proarc.common.export.cejsh.CejshBuilder.Article;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import java.io.File;
@@ -40,7 +40,7 @@ class CejshContext {
     private DigitalObjectElement articleParentFilter;
     private final File output;
 
-    public CejshContext(File output, CejshStatusHandler statusHandler, CejshConfig config, ExportOptions options) throws Exception {
+    public CejshContext(File output, CejshStatusHandler statusHandler, CejshConfig config, ExportParams options) throws Exception {
         this.builder = new CejshBuilder(config, options);
         this.statusHandler = statusHandler;
         this.output = output;

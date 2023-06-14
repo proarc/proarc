@@ -29,6 +29,9 @@ public class LockObject {
 
     private static final Logger LOGGER = Logger.getLogger(LockObject.class.getName());
 
+    public static final String MSG_ALREADY_LOCKED = "Object is already locked.";
+    public static final String MSG_ALREADY_UNLOCKED = "Object is already unlocked.";
+
     private static AppConfiguration appConfig;
     private static AkubraConfiguration akubraConfiguration;
     private static String pid;
@@ -108,7 +111,8 @@ public class LockObject {
         } catch (DigitalObjectException ex) {
             String message = "Locking objects failed, totaly items (" + pids.size() + "), locked only " + updated + "objects.";
             LOGGER.log(Level.SEVERE, message);
-            return new LockObjectResult(updatedPid, new DigitalObjectException(pid, message));
+            return new LockObjectResult(updatedPid, ex);
+//            return new LockObjectResult(updatedPid, new DigitalObjectException(pid, message));
         }
     }
 
@@ -129,9 +133,10 @@ public class LockObject {
             }
             return null;
         } catch (DigitalObjectException ex) {
-            String message = "Locking objects failed, totaly items (" + pids.size() + "), locked only " + updated + "objects.";
+            String message = "Locking objects failed, totaly items (" + pids.size() + "), locked only " + updated + " objects.";
             LOGGER.log(Level.SEVERE, message);
-            return new LockObjectResult(updatedPid, new DigitalObjectException(pid, message));
+            return new LockObjectResult(updatedPid, ex);
+//            return new LockObjectResult(updatedPid, new DigitalObjectException(pid, message));
         }
     }
 
@@ -139,6 +144,9 @@ public class LockObject {
         FedoraObject fedoraObject = dom.find(pid,null);
         DigitalObjectHandler handler = dom.createHandler(fedoraObject);
         RelationEditor relationEditor = handler.relations();
+        if (relationEditor.isLocked()) {
+            throw new DigitalObjectException(pid, MSG_ALREADY_LOCKED);
+        }
         relationEditor.setLock(username);
         relationEditor.write(relationEditor.getLastModified(), "Locked object by " + username);
         handler.commit();
@@ -148,6 +156,9 @@ public class LockObject {
         FedoraObject fedoraObject = dom.find(pid,null);
         DigitalObjectHandler handler = dom.createHandler(fedoraObject);
         RelationEditor relationEditor = handler.relations();
+        if (!relationEditor.isLocked()) {
+            throw new DigitalObjectException(pid, MSG_ALREADY_UNLOCKED);
+        }
         relationEditor.setUnlock();
         relationEditor.write(relationEditor.getLastModified(), "Unlocked object by " + username);
         handler.commit();

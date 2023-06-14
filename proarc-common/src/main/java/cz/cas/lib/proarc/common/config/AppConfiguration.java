@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.cas.lib.proarc.common.export.ExportOptions;
+import cz.cas.lib.proarc.common.export.ExportParams;
 import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.export.KwisExportOptions;
 import cz.cas.lib.proarc.common.export.desa.DesaServices;
@@ -89,7 +89,10 @@ public final class AppConfiguration {
     public static final String EXPORT_KWIS_POST_PROCESSOR = "export.export_post_processor.processor";
     public static final String EXPORT_BAGIT_POST_PROCESSOR = "export.bagit_post_processor.processor";
     public static final String EXPORT_BAGIT_PATH = "export.bagit.path";
-
+    public static final String EXPORT_BAGIT_FOXML_PATH = "export.bagitFoxml.path";
+    public static final String EXPORT_LTP_CESNET_POST_PROCESSOR = "export.ltp_cesnet_post_processor.processor";
+    public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
+    public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
@@ -135,13 +138,30 @@ public final class AppConfiguration {
         return config.subset(ImportProfile.PROCESSOR + "." + processor);
     }
 
-    public Configuration getBagitExportPosProcessor() {
+    public Configuration getBagitExportPostProcessor() {
         String processor = config.getString(EXPORT_BAGIT_POST_PROCESSOR, "-");
         return config.subset(ImportProfile.PROCESSOR + "." + processor);
     }
 
     public String getBagitExportPath() {
         return config.getString(EXPORT_BAGIT_PATH);
+    }
+
+    public String getBagitFoxmlExportPath() {
+        return config.getString(EXPORT_BAGIT_FOXML_PATH);
+    }
+
+    public Configuration getLtpCesnetExportPostProcessor() {
+        String processor = config.getString(EXPORT_LTP_CESNET_POST_PROCESSOR, "-");
+        return config.subset(ImportProfile.PROCESSOR + "." + processor);
+    }
+
+    public String getLtpCesnetGroupToken() {
+        return config.getString(EXPORT_LTP_CESNET_GROUP_TOKEN);
+    }
+
+    public String getLtpCesnetScriptPath() {
+        return config.getString(EXPORT_LTP_CESNET_SCRIPT_PATH);
     }
 
     public String getFedoraUsername() {
@@ -227,8 +247,8 @@ public final class AppConfiguration {
         return ModsRules.getOptions(config);
     }
 
-    public ExportOptions getExportOptions() {
-        return ExportOptions.getOptions(config);
+    public ExportParams getExportParams() {
+        return ExportParams.getParams(config);
     }
 
     public KrameriusOptions getKrameriusOptions() {

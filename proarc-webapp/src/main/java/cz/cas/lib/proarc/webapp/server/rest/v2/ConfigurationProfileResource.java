@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jan Pokorsky
+ * Copyright (C) 2023 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,18 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v2;
 
-import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
-import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.v1.ConfigurationProfileResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.ProfileGroup;
-import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -41,16 +39,12 @@ import javax.ws.rs.core.UriInfo;
 /**
  * The configuration profile resource.
  *
- * @author Jan Pokorsky
+ * @author Lukas Sykora
  */
-@Path(ConfigurationProfileResourceApi.PATH)
-public class ConfigurationProfileResource {
+@Path(RestConfig.URL_API_VERSION_2 + "/" + ConfigurationProfileResourceApi.PATH)
+public class ConfigurationProfileResource extends ConfigurationProfileResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(ConfigurationProfileResource.class.getName());
-
-    private final HttpHeaders httpHeaders;
-    private final AppConfiguration appConfig;
-    private final SessionContext session;
 
     public ConfigurationProfileResource(
             @Context SecurityContext securityCtx,
@@ -58,28 +52,20 @@ public class ConfigurationProfileResource {
             @Context UriInfo uriInfo,
             @Context HttpServletRequest httpRequest
             ) throws AppConfigurationException {
-
-        this.httpHeaders = httpHeaders;
-        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
-        this.session = SessionContext.from(httpRequest);
+        super(securityCtx, httpHeaders, uriInfo, httpRequest);
     }
 
-    /**
-     * Gets profiles of the given group.
-     * @param profileGroup a group to search
-     * @return the list of profiles
-     */
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ConfigurationProfile> listProfiles(
             @QueryParam(ConfigurationProfileResourceApi.PROFILE_GROUP_PARAM) ProfileGroup profileGroup
             ) {
-
-        if (profileGroup == null) {
-            return new SmartGwtResponse<ConfigurationProfile>(Collections.<ConfigurationProfile>emptyList());
+        try {
+            return super.listProfiles(profileGroup);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
         }
-        List<ConfigurationProfile> profiles = appConfig.getProfiles().getProfiles(profileGroup.getId());
-        return new SmartGwtResponse<ConfigurationProfile>(profiles);
     }
 
 }

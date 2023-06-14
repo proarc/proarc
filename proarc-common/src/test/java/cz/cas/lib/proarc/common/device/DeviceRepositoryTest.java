@@ -57,7 +57,7 @@ public class DeviceRepositoryTest {
     @Test
     public void testFindAll() throws Exception {
         Device expected = addTestDevice("testFindAll");
-        List<Device> result = repository.find(null);
+        List<Device> result = repository.find(null, null);
 
         String dump = String.valueOf(result);
         assertFalse(dump, result.isEmpty());
@@ -74,7 +74,7 @@ public class DeviceRepositoryTest {
     @Test
     public void testFind() throws Exception {
         Device expected = addTestDevice("testFind");
-        List<Device> result = repository.find(expected.getId());
+        List<Device> result = repository.find(null, expected.getId());
         assertDeviceEquals(expected, result);
     }
 
@@ -94,7 +94,7 @@ public class DeviceRepositoryTest {
         assertNotNull(result.getId());
 
         // test storage content
-        List<Device> found = repository.find(result.getId());
+        List<Device> found = repository.find(null, result.getId());
         assertDeviceEquals(expected, found);
     }
 
@@ -102,7 +102,7 @@ public class DeviceRepositoryTest {
     public void testDeleteDevice() throws Exception {
         Device delete = addTestDevice("testDeleteDevice");
         assertTrue(repository.deleteDevice(delete.getId(), "testDeleteDevice"));
-        List<Device> result = repository.find(delete.getId());
+        List<Device> result = repository.find(null, delete.getId());
         assertTrue(String.valueOf(result), result.isEmpty());
     }
 
@@ -140,7 +140,7 @@ public class DeviceRepositoryTest {
         assertEquals("ScannerManufacturer", resultDescription.getImageCaptureMetadata().getScannerCapture().getScannerManufacturer().getValue());
 
         // test storage content
-        List<Device> found = repository.find(update.getId(), true, 0);
+        List<Device> found = repository.find(null, update.getId(), true, 0);
         assertDeviceEquals(update, found);
         resultDescription = found.get(0).getDescription();
         assertEquals(device.getId(), "ScannerManufacturer", resultDescription.getImageCaptureMetadata().getScannerCapture().getScannerManufacturer().getValue());

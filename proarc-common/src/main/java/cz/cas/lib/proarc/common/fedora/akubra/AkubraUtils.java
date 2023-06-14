@@ -3,6 +3,7 @@ package cz.cas.lib.proarc.common.fedora.akubra;
 import com.qbizm.kramerius.imp.jaxb.DatastreamType;
 import com.qbizm.kramerius.imp.jaxb.DatastreamVersionType;
 import com.qbizm.kramerius.imp.jaxb.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
@@ -91,6 +92,47 @@ public class AkubraUtils {
                 synchronized(unmarshallerProArc) {
                     Object obj = unmarshallerProArc.unmarshal(inputStream);
                     com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject = (com.yourmediashelf.fedora.generated.foxml.DigitalObject) obj;
+                    return digitalObject;
+                }
+            } catch (Throwable ex) {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    } catch (Throwable var16) {
+                        ex.addSuppressed(var16);
+                    }
+                }
+
+                throw ex;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    // jen pro exporty, protoze s nahrazuji odkazy do datastoru za binaryContent
+    public static com.yourmediashelf.fedora.generated.foxml.DigitalObject getDigitalObjectToExport(AkubraDOManager manager, String pid) throws JAXBException {
+        try {
+            InputStream inputStream = manager.retrieveObject(pid);
+            try {
+                synchronized(unmarshallerProArc) {
+                    Object obj = unmarshallerProArc.unmarshal(inputStream);
+                    com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject = (com.yourmediashelf.fedora.generated.foxml.DigitalObject) obj;
+                    for (com.yourmediashelf.fedora.generated.foxml.DatastreamType datastream : digitalObject.getDatastream()) {
+                        for (com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+                            if (datastreamVersion.getContentLocation() != null) {
+                                datastreamVersion.setXmlContent(null);
+                                datastreamVersion.setBinaryContent(null);
+                                ContentLocationType contentLocationType = datastreamVersion.getContentLocation();
+                                InputStream is = manager.retrieveDatastream(contentLocationType.getREF());
+                                byte[] binaryContent = new byte[is.available()];
+                                is.read(binaryContent);
+                                datastreamVersion.setBinaryContent(binaryContent);
+                                datastreamVersion.setContentLocation(null);
+                            }
+                        }
+                    }
                     return digitalObject;
                 }
             } catch (Throwable ex) {

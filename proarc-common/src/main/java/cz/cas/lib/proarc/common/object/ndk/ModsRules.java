@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
+import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.configuration.Configuration;
@@ -44,7 +45,8 @@ public class ModsRules {
     private List<String> acceptableSiglaId;
 
     private static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE ="Err_Ndk_Supplement_Genre_Type";
-    private static final String ERR_NDK_PHYSICAL_LOCATION_SIGLA ="Err_Ndk_Physical_Location_Sigla";
+    private static final String ERR_NDK_PHYSICALLOCATION_SIGLA ="Err_Ndk_PhysicalLocation_Sigla";
+    private static final String ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA ="Err_Ndk_RelatedItem_PhysicalLocation_Sigla";
 
     private ModsRules() {}
 
@@ -60,20 +62,31 @@ public class ModsRules {
         if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             checkGenreType(mods);
         }
-        checkPhysicalLocation(mods);
+        checkPhysicalLocation(mods.getLocation());
+        checkRelatedItemPhysicalLocation(mods.getRelatedItem());
 
         if (!exception.getValidations().isEmpty()){
             throw exception;
         }
     }
 
-    private void checkPhysicalLocation(ModsDefinition mods) {
-        for (LocationDefinition location : mods.getLocation()) {
+    public void checkPhysicalLocation(List<LocationDefinition> locations) {
+        checkPhysicalLocation(locations, ERR_NDK_PHYSICALLOCATION_SIGLA);
+    }
+
+    public void checkRelatedItemPhysicalLocation(List<RelatedItemDefinition> relatedItems) {
+        for (RelatedItemDefinition relatedItem : relatedItems) {
+            checkPhysicalLocation(relatedItem.getLocation(), ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA);
+        }
+    }
+
+    public void checkPhysicalLocation (List<LocationDefinition> locations, String bundleKey) {
+        for (LocationDefinition location : locations) {
             for (PhysicalLocationDefinition physicalLocation : location.getPhysicalLocation()) {
                 if ("siglaADR".equals(physicalLocation.getAuthority())) {
                     List<String> accepted = config.getModsOptions().getAcceptableSiglaId();
                     if (!accepted.contains(physicalLocation.getValue())) {
-                        exception.addValidation("MODS rules", ERR_NDK_PHYSICAL_LOCATION_SIGLA, false, physicalLocation.getValue());
+                        exception.addValidation("MODS rules", bundleKey, false, physicalLocation.getValue());
                     }
                 }
             }

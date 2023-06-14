@@ -1,0 +1,15 @@
+package cz.cas.lib.proarc.webapp.server.rest;
+
+public class RestConsts {
+
+    public static final String ERR_IS_LOCKED = "Err_is_locked";
+    public static final String ERR_MISSING_PARAMETER = "Err_missing_parameter"; // 1 parameter
+    public static final String ERR_MISSING_PARAMETERS = "Err_missing_parameters"; // 2 parameters
+    public static final String ERR_SAME_PID_AND_PARENT = "Err_same_pid_and_parent"; // 2 parameters
+    public static final String ERR_DUPLICATES = "Err_duplicates"; // 1 parameter
+    public static final String ERR_NO_PERMISSION = "Err_no_permission"; // 0 parameters
+    public static final String ERR_IN_GETTING_CHILDREN = "Err_in_getting_children";
+    public static final String ERR_UNSUPPORTED_VALUE = "Err_unsupported_value"; // 1 parameter
+    public static final String STATUS_LOCKED = "locked";
+    public static final String STATUS_DONT_BE_IGNORED = "dontIgnored";
+}

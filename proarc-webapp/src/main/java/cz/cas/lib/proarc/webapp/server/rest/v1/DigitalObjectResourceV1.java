@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
@@ -114,8 +114,15 @@ import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
+import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
@@ -171,6 +178,10 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IN_GETTING_CHILDREN;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IS_LOCKED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_DONT_BE_IGNORED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_LOCKED;
 
 /**
  * Resource to manage digital objects.
@@ -188,10 +199,11 @@ import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContex
  *
  * @author Jan Pokorsky
  */
-@Path(DigitalObjectResourceApi.PATH)
-public class DigitalObjectResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + DigitalObjectResourceApi.PATH)
+public class DigitalObjectResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(DigitalObjectResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(DigitalObjectResourceV1.class.getName());
 
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
@@ -202,12 +214,8 @@ public class DigitalObjectResource {
     private final UserProfile user;
     private final SessionContext session;
 
-    private final String ERR_IS_LOCKED = "Err_is_locked";
-    private final String ERR_IN_GETTING_CHILDREN = "Err_in_getting_children";
-    public static final String STATUS_LOCKED = "locked";
-    public static final String STATUS_DONT_BE_IGNORED = "dontIgnored";
 
-    public DigitalObjectResource(
+    public DigitalObjectResourceV1(
             @Context Request request,
             @Context SecurityContext securityCtx,
             @Context HttpHeaders httpHeaders,
@@ -267,7 +275,7 @@ public class DigitalObjectResource {
                 .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
 
         if (isLocked(parentPid)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         if (modelId == null || !models.contains(modelId)) {
@@ -330,7 +338,7 @@ public class DigitalObjectResource {
         } catch (DigitalObjectExistException ex) {
             return SmartGwtResponse.<SearchViewItem>asError().error("pid", ex.getMessage()).build();
         } catch (WorkflowException ex) {
-            return SmartGwtResponse.asError(ex.getMessage());
+            return SmartGwtResponse.asError(ex);
         } catch (DigitalObjectValidationException ex) {
             return toValidationError(ex, session.getLocale(httpHeaders));
         }
@@ -353,7 +361,7 @@ public class DigitalObjectResource {
     ) throws IOException, PurgeException {
 
         if (isLocked(pids)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
@@ -423,14 +431,37 @@ public class DigitalObjectResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DigitalObject> deleteObject(
-            ProArcRequest.DeleteObjectRequest deleteObjectRequest
-    ) throws PurgeException, IOException {
-        return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
+            ProArcRequest.DeleteObjectRequest deleteObjectRequest,
+            @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
+            @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
+            @DefaultValue("true") boolean hierarchy,
+            @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
+            @DefaultValue("false") boolean purge,
+            @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
+            @DefaultValue("false") boolean restore) throws PurgeException, IOException {
+        if (deleteObjectRequest == null) {
+            return deleteObject(pids, hierarchy, purge, restore);
+        } else {
+            return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
+        }
     }
 
     public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
         return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, null, 0, null, null);
     }
+
+//    @DELETE
+//    @Consumes({MediaType.APPLICATION_JSON})
+//    @Produces({MediaType.APPLICATION_JSON})
+//    public SmartGwtResponse<DigitalObject> deleteObject(
+//            ProArcRequest.DeleteObjectRequest deleteObjectRequest
+//    ) throws PurgeException, IOException {
+//        return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
+//    }
+//
+//    public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
+//        return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, null, 0, null, null);
+//    }
 
     @GET
     @Path(DigitalObjectResourceApi.SEARCH_PATH)
@@ -723,7 +754,7 @@ public class DigitalObjectResource {
         }
 
         if (isLocked(parentPid)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
         boolean batchImportMembers = batchId != null;
         if (toSetPids == null || toSetPids.isEmpty()) {
@@ -858,7 +889,7 @@ public class DigitalObjectResource {
             throw RestException.plainText(Status.BAD_REQUEST, "parent and pid are same!");
         }
         if (isLocked(parentPid) || isLocked(toAddPids)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
         HashSet<String> addPidSet = new HashSet<String>(toAddPids);
         if (addPidSet.size() != toAddPids.size()) {
@@ -960,7 +991,7 @@ public class DigitalObjectResource {
         }
 
         if (isLocked(parentPid) || isLocked(toRemovePids)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         HashSet<String> toRemovePidSet = new HashSet<String>(toRemovePids);
@@ -1052,7 +1083,7 @@ public class DigitalObjectResource {
         }
 
         if (isLocked(srcParentPid) || isLocked(dstParentPid) || isLocked(movePids)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         HashSet<String> movePidSet = new HashSet<String>(movePids);
@@ -1207,7 +1238,7 @@ public class DigitalObjectResource {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
             } else {
                 // MODS Custom editor doesnt use WorkFlowResource, if there is a validation error
-                return WorkflowResource.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, standard, session, httpHeaders);
+                return WorkflowResourceV1.updateDescriptionMetadataFix(jobId, model, timestamp, editorId, jsonData, xmlData, ignoreValidation, standard, session, httpHeaders);
             }
         }
 
@@ -1947,7 +1978,7 @@ public class DigitalObjectResource {
     ) throws IOException, DigitalObjectException {
 
         if (isLocked(pid)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         if (timestamp == null) {
@@ -2021,7 +2052,7 @@ public class DigitalObjectResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
         if (isLocked(pid)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
@@ -2111,7 +2142,7 @@ public class DigitalObjectResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
         if (isLocked(pid)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
@@ -2167,7 +2198,7 @@ public class DigitalObjectResource {
     @PUT
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateCodingHisotry(
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateCodingHistory(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -2179,7 +2210,7 @@ public class DigitalObjectResource {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
         if (isLocked(pid)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
@@ -2319,7 +2350,7 @@ public class DigitalObjectResource {
     ) throws IOException, DigitalObjectException {
 
         if (isLocked(transform(pids))) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         ArrayList<AtmItem> result = new ArrayList<AtmItem>(pids.size());
@@ -2367,7 +2398,7 @@ public class DigitalObjectResource {
     ) {
 
         if (isLocked(pids)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnValidationMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
         List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
         if (!pids.isEmpty()) {
@@ -2423,7 +2454,9 @@ public class DigitalObjectResource {
             lockObject.findObjects();
             LockObject.LockObjectResult result = lockObject.setLocked();
             if (result != null) {
-                lockObject.setUnlocked();
+                if (!result.getEx().getMyMessage().equals(LockObject.MSG_ALREADY_LOCKED)) {
+                    lockObject.setUnlocked();
+                }
                 throw result.getEx();
             }
         }
@@ -2447,7 +2480,9 @@ public class DigitalObjectResource {
             lockObject.findObjects();
             LockObject.LockObjectResult result = lockObject.setUnlocked();
             if (result != null) {
-                lockObject.setLocked();
+                if (!result.getEx().getMyMessage().equals(LockObject.MSG_ALREADY_UNLOCKED)) {
+                    lockObject.setLocked();
+                }
                 throw result.getEx();
             }
         }
@@ -3459,8 +3494,14 @@ public class DigitalObjectResource {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException, IOException, FedoraClientException {
-        BatchParams params = new BatchParams(Collections.singletonList(pid));
-        Batch internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+        Batch internalBatch;
+        if (batchId != null && batchId > 0) {
+            BatchParams params = new BatchParams(Collections.singletonList(batchId.toString()));
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+        } else {
+            BatchParams params = new BatchParams(Collections.singletonList(pid));
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+        }
         Locale locale = session.getLocale(httpHeaders);
         try {
             ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, akubraConfiguration, user, pid, modelId);
@@ -3474,17 +3515,17 @@ public class DigitalObjectResource {
                     if (parentElement != null) {
 
                         if (isLocked(reindexObjects.getPids(parentElement))) {
-                            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnValidationMessage(ERR_IS_LOCKED), Batch.State.REINDEX_FAILED);
+                            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IS_LOCKED), Batch.State.REINDEX_FAILED);
                             return returnValidationError(ERR_IS_LOCKED);
                         }
                         reindexObjects.reindex(parentElement);
                     } else {
-                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnValidationMessage(ERR_IN_GETTING_CHILDREN), Batch.State.REINDEX_FAILED);
+                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IN_GETTING_CHILDREN), Batch.State.REINDEX_FAILED);
                         return returnValidationError(ERR_IN_GETTING_CHILDREN);
                     }
                 } else {
                     if (isLocked(parentPid)) {
-                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnValidationMessage(ERR_IS_LOCKED), Batch.State.REINDEX_FAILED);
+                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IS_LOCKED), Batch.State.REINDEX_FAILED);
                         return returnValidationError(ERR_IS_LOCKED);
                     }
                     reindexObjects.reindex(parentPid, locale);
@@ -3563,9 +3604,13 @@ public class DigitalObjectResource {
     }
 
     private void checkPermission(String role, Permission permission, String... attributes) {
-        if (!(session.checkPermission(permission) || session.checkRole(role) || hasAttribute(attributes))) {
+        if (!hasPermission(role, permission, attributes)) {
             throw new WebApplicationException(Status.FORBIDDEN);
         }
+    }
+
+    public boolean hasPermission(String role, Permission permission, String... attributes) {
+        return session.checkPermission(permission) || session.checkRole(role) || hasAttribute(attributes);
     }
 
     private boolean hasAttribute(String[] attributes) {
@@ -3582,7 +3627,7 @@ public class DigitalObjectResource {
             if (UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getChangeModelFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_IMPORT_TO_PROD_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getImportToProdFunction())) {
+            if (UserRole.PERMISSION_IMPORT_TO_PROD_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasPermissionToImportToProdFunction())) {
                 return true;
             }
         }
@@ -3666,7 +3711,7 @@ public class DigitalObjectResource {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         FedoraObject fobject = dom.find2(pid, batch, null);
         if (!readonly && fobject instanceof LocalObject) {
-            ImportResource.checkBatchState(batch);
+            ImportResourceV1.checkBatchState(batch);
         }
         return dom.createHandler(fobject);
     }
@@ -3685,7 +3730,7 @@ public class DigitalObjectResource {
                 throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID, String.valueOf(batchId));
             }
             if (!readonly) {
-                ImportResource.checkBatchState(batch);
+                ImportResourceV1.checkBatchState(batch);
             }
             if (pid == null || ImportBatchManager.ROOT_ITEM_PID.equals(pid)) {
                 fobject = importManager.getRootObject(batch);
@@ -3746,20 +3791,20 @@ public class DigitalObjectResource {
 
     private SmartGwtResponse<SearchViewItem> returnValidationError(String key) {
         SearchViewItem item = new SearchViewItem();
-        item.setValidation(returnValidationMessage(key));
+        item.setValidation(returnLocalizedMessage(key));
         List list = new ArrayList();
         list.add(item);
 
         return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, list);
     }
 
-    private String returnValidationMessage(String key) {
+    public String returnLocalizedMessage(String key, Object... arguments) {
         Locale locale = session.getLocale(httpHeaders);
         ServerMessages msgs = ServerMessages.get(locale);
-        return msgs.getFormattedMessage(key);
+        return msgs.getFormattedMessage(key, arguments);
     }
 
-    private boolean isLocked(String pid) {
+    public boolean isLocked(String pid) {
         if (pid == null) {
             return false;
         }
@@ -3768,7 +3813,7 @@ public class DigitalObjectResource {
         return isLocked(pids);
     }
 
-    private boolean isLocked(List<String> pids) {
+    public boolean isLocked(List<String> pids) {
         try {
             Locale locale = session.getLocale(httpHeaders);
             SearchView search = null;

@@ -21,6 +21,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -140,7 +141,8 @@ public final class Kramerius4Export {
     private final Kramerius4ExportOptions kramerius4ExportOptions;
     private AppConfiguration appConfig;
     private AkubraConfiguration akubraConfiguration;
-    private ExportOptions exportOptions;
+    private ExportParams exportParams;
+    private boolean isArchive;
 
     private final String policy;
 
@@ -150,7 +152,7 @@ public final class Kramerius4Export {
         this.appConfig = appConfiguration;
         this.rstorage = rstorage;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
-        this.exportOptions = appConfiguration.getExportOptions();
+        this.exportParams = appConfiguration.getExportParams();
         this.search = rstorage.getSearch();
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
         if (Arrays.asList(ALLOWED_POLICY).contains(appConfiguration.getKramerius4Export().getPolicy())) {
@@ -160,11 +162,12 @@ public final class Kramerius4Export {
         }
     }
 
-    public Kramerius4Export(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, String policy) throws IOException {
+    public Kramerius4Export(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, String policy, boolean isArchive) throws IOException {
         this.appConfig = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
-        this.exportOptions = appConfiguration.getExportOptions();
+        this.exportParams = appConfiguration.getExportParams();
+        this.isArchive = isArchive;
 
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
             this.rstorage = RemoteStorage.getInstance(this.appConfig);
@@ -197,7 +200,7 @@ public final class Kramerius4Export {
         result.setInputPid(pids[0]);
         reslog.getExports().add(result);
 
-        File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]), exportOptions.isOverwritePackage());
+        File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]), exportParams.isOverwritePackage());
         krameriusResult.setFile(target);
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
         toExport.addAll(createPair(null, selectedPids));
@@ -349,7 +352,7 @@ public final class Kramerius4Export {
                 } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     AkubraObject object = akubraStorage.find(pid);
-                    dobj = AkubraUtils.getDigitalObjectProArc(object.getManager(), pid);
+                    dobj = AkubraUtils.getDigitalObjectToExport(object.getManager(), pid);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
                 }
@@ -364,7 +367,7 @@ public final class Kramerius4Export {
                 DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext(); ) {
                     DatastreamType datastream = it.next();
-                    if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
+                    if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                         // use RAW if FULL is not available
                         if (rawDs != datastream) {
                             it.remove();
@@ -398,13 +401,13 @@ public final class Kramerius4Export {
                 } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     AkubraObject object = akubraStorage.find(pid);
-                    dobj = AkubraUtils.getDigitalObjectProArc(object.getManager(), pid);
+                    dobj = AkubraUtils.getDigitalObjectToExport(object.getManager(), pid);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
                 }
                 for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
                     DatastreamType datastream = it.next();
-                    if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
+                    if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                         it.remove();
                         continue;
                     }
@@ -459,12 +462,13 @@ public final class Kramerius4Export {
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject aobject = akubraStorage.find(object.getPid());
-                dobj = AkubraUtils.getDigitalObjectProArc(aobject.getManager(), object.getPid());
+                dobj = AkubraUtils.getDigitalObjectToExport(aobject.getManager(), object.getPid());
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
             File foxml = ExportUtils.pidAsXmlFile(output, object.getPid());
             LocalObject local = lstorage.create(foxml, dobj);
+            local = replaceObjectOwnerId(local);
             validate(object.getPid(), object.getParentPid());
             RelationEditor editor = new RelationEditor(local);
             if (NdkAudioPlugin.MODEL_PAGE.equals(editor.getModel())) { // ndk audio page se nexportuje ale jeho streamy se priradi k urovni vyse
@@ -491,6 +495,20 @@ public final class Kramerius4Export {
         } catch (DigitalObjectException | FedoraClientException | JAXBException | IOException ex) {
             throw new IllegalStateException(object.getPid(), ex);
         }
+    }
+
+    private LocalObject replaceObjectOwnerId(LocalObject local) {
+        if (kramerius4ExportOptions.getNewOwnerId() != null && !kramerius4ExportOptions.getNewOwnerId().isEmpty()) {
+            if (local.getDigitalObject() != null) {
+                for (PropertyType property : local.getDigitalObject().getObjectProperties().getProperty()) {
+                    if (FoxmlUtils.PROPERTY_OWNER.equals(property.getNAME())) {
+                        property.setVALUE(kramerius4ExportOptions.getNewOwnerId());
+                        break;
+                    }
+                }
+            }
+        }
+        return local;
     }
 
     private String createMissingModel(File outputFolder, LocalObject songObject) throws DigitalObjectException {
@@ -532,7 +550,7 @@ public final class Kramerius4Export {
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject aobject = akubraStorage.find(pid);
-                dobj = AkubraUtils.getDigitalObjectProArc(aobject.getManager(), pid);
+                dobj = AkubraUtils.getDigitalObjectToExport(aobject.getManager(), pid);
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
@@ -562,8 +580,12 @@ public final class Kramerius4Export {
     private List<String> filterStreams(String[] streams) {
         List<String> acceptedStreams = new ArrayList<>();
         for (String stream : streams) {
-            if (!kramerius4ExportOptions.getExcludeDatastreams().contains(stream)) {
+            if (isArchive) {
                 acceptedStreams.add(stream);
+            } else {
+                if (!kramerius4ExportOptions.getExcludeDatastreams().contains(stream)) {
+                    acceptedStreams.add(stream);
+                }
             }
         }
         return acceptedStreams;
@@ -651,7 +673,7 @@ public final class Kramerius4Export {
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject object = akubraStorage.find(pid);
-                dobj = AkubraUtils.getDigitalObjectProArc(object.getManager(), pid);
+                dobj = AkubraUtils.getDigitalObjectToExport(object.getManager(), pid);
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
@@ -725,7 +747,7 @@ public final class Kramerius4Export {
         DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
-            if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
+            if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 // use RAW if FULL is not available
                 if (rawDs != datastream ) {
                     it.remove();
@@ -746,7 +768,7 @@ public final class Kramerius4Export {
         RelationEditor editor = new RelationEditor(local);
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
-            if (kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
+            if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 it.remove();
                 continue;
             }

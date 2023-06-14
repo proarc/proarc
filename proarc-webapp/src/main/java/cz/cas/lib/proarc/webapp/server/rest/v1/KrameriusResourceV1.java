@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
@@ -48,7 +48,11 @@ import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
 import java.io.File;
@@ -87,13 +91,14 @@ import static cz.cas.lib.proarc.common.kramerius.KUtils.getExpectedSourcePath;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.transformKrameriusModel;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
-import static cz.cas.lib.proarc.webapp.server.rest.DigitalObjectResource.toValidationError;
+import static cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.toValidationError;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-@Path(KrameriusResourceApi.PATH)
-public class KrameriusResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + KrameriusResourceApi.PATH)
+public class KrameriusResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(KrameriusResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(KrameriusResourceV1.class.getName());
 
     private final AppConfiguration appConfig;
     private final ImportBatchManager batchManager;
@@ -101,7 +106,7 @@ public class KrameriusResource {
     private final UserProfile user;
     private final SessionContext session;
 
-    public KrameriusResource(
+    public KrameriusResourceV1(
             @Context Request request,
             @Context SecurityContext securityCtx,
             @Context HttpHeaders httpHeaders,
@@ -461,7 +466,7 @@ public class KrameriusResource {
         if (instance == null) {
             return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unknown_Value", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
-        if (!instance.isTestType() && !user.getImportToProdFunction()) {
+        if (!instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
             return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_No_Permission", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
@@ -508,5 +513,11 @@ public class KrameriusResource {
             BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), ex);
         }
         return new SmartGwtResponse<>(importResult);
+    }
+
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
     }
 }

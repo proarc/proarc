@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.server.rest;
+package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
@@ -53,7 +53,11 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
@@ -91,10 +95,11 @@ import javax.xml.bind.annotation.XmlElement;
  *
  * @author Jan Pokorsky
  */
-@Path(WorkflowResourceApi.PATH)
-public class WorkflowResource {
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + WorkflowResourceApi.PATH)
+public class WorkflowResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(WorkflowResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(WorkflowResourceV1.class.getName());
 
     private final SessionContext session;
     private final HttpHeaders httpHeaders;
@@ -102,7 +107,7 @@ public class WorkflowResource {
     private final WorkflowProfiles workflowProfiles;
     private final AppConfiguration appConfig;
 
-    public WorkflowResource(
+    public WorkflowResourceV1(
             @Context HttpHeaders httpHeaders,
             @Context HttpServletRequest httpRequest
     ) throws AppConfigurationException {
@@ -185,7 +190,7 @@ public class WorkflowResource {
                     SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
-            return SmartGwtResponse.asError(ex.getMessage());
+            return SmartGwtResponse.asError(ex);
         }
     }
 
@@ -364,7 +369,7 @@ public class WorkflowResource {
                     SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, tasks);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
-            return SmartGwtResponse.asError(ex.getMessage());
+            return SmartGwtResponse.asError(ex);
         }
     }
 
@@ -469,7 +474,7 @@ public class WorkflowResource {
                     SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, mvs);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
-            return SmartGwtResponse.asError(ex.getMessage());
+            return SmartGwtResponse.asError(ex);
         }
     }
 
@@ -618,7 +623,7 @@ public class WorkflowResource {
             return new SmartGwtResponse<TaskParameterView>(params);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
-            return SmartGwtResponse.asError(ex.getMessage());
+            return SmartGwtResponse.asError(ex);
         }
     }
 
@@ -672,7 +677,7 @@ public class WorkflowResource {
     private <T> SmartGwtResponse<T> toError(WorkflowException ex, String log) {
         if (ex.getValidations().isEmpty()) {
             LOG.log(Level.SEVERE, log, ex);
-            return SmartGwtResponse.asError(ex.getMessage());
+            return SmartGwtResponse.asError(ex);
         }
         StringBuilder sb = new StringBuilder();
         Locale locale = session.getLocale(httpHeaders);
@@ -696,6 +701,12 @@ public class WorkflowResource {
         }
         SmartGwtResponse response = SmartGwtResponse.asError(sb.toString());
         return response;
+    }
+
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
     }
 
 }

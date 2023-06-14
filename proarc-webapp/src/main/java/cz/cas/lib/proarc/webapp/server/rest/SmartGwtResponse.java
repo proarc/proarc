@@ -37,8 +37,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import static cz.cas.lib.proarc.webapp.server.rest.DigitalObjectResource.STATUS_DONT_BE_IGNORED;
-import static cz.cas.lib.proarc.webapp.server.rest.DigitalObjectResource.STATUS_LOCKED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_DONT_BE_IGNORED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_LOCKED;
 
 /**
  * Wrapper suitable as a RestDataSource response
@@ -47,7 +47,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.DigitalObjectResource.STATUS_
  */
 @XmlRootElement(name="response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class SmartGwtResponse<T> {
+public class SmartGwtResponse<T>{
 
     private static final Logger LOG = Logger.getLogger(SmartGwtResponse.class.getName());
 
@@ -71,6 +71,8 @@ public class SmartGwtResponse<T> {
     private List<T> typedData;
     /** The JAXB mapping for {@link #typedData} and {@link #errdata}. */
     private Object data;
+    private String errorMessage;
+    private String errorStackTrace;
     @XmlTransient
     private String errdata;
     /**
@@ -112,6 +114,7 @@ public class SmartGwtResponse<T> {
     public static <T> SmartGwtResponse<T> asError(String msg) {
         SmartGwtResponse<T> result = new SmartGwtResponse<T>();
         result.setErrorData(msg);
+        result.setErrorMessage(msg);
         return result;
     }
 
@@ -131,25 +134,36 @@ public class SmartGwtResponse<T> {
      * @see #asError(java.lang.String)
      */
     public static <T> SmartGwtResponse<T> asError(Throwable t) {
-        return asError(null, t);
+        return asError(t.getMessage(), t);
     }
 
     /**
      * @see #asError(java.lang.String)
      */
     public static <T> SmartGwtResponse<T> asError(String msg, Throwable t) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
+        StringWriter errorDataSW = new StringWriter();
+        PrintWriter errorDataPW = new PrintWriter(errorDataSW);
+        StringWriter stackTraceSW = new StringWriter();
+        PrintWriter stackTracePW = new PrintWriter(stackTraceSW);
         if (msg == null || msg.isEmpty()) {
             msg = t.getMessage();
         }
         if (msg != null && !msg.isEmpty()) {
-            pw.println(msg);
-            pw.println();
+            errorDataPW.println(msg);
+            errorDataPW.println();
         }
-        t.printStackTrace(pw);
-        pw.close();
-        return asError(sw.toString());
+        t.printStackTrace(errorDataPW);
+        t.printStackTrace(stackTracePW);
+        errorDataPW.close();
+        stackTracePW.close();
+        return asError(errorDataSW.toString(), t.getMessage(), errorDataSW.toString());
+    }
+
+    private static <T> SmartGwtResponse<T> asError(String errorData, String message, String stackTrace) {
+        SmartGwtResponse<T> result = new SmartGwtResponse<T>();
+        result.setErrorData(errorData);
+        result.setErrorInfo(message, stackTrace);
+        return result;
     }
 
     public static <T> SmartGwtResponse<T> asError(String fieldName, String message) {
@@ -164,7 +178,7 @@ public class SmartGwtResponse<T> {
         return typedData;
     }
 
-    String getDataAsError() {
+    public String getDataAsError() {
         return errdata;
     }
 
@@ -181,8 +195,25 @@ public class SmartGwtResponse<T> {
         this.typedData = null;
     }
 
+    private void setErrorInfo(String message, String stackTrace) {
+        this.errorMessage = message;
+        this.errorStackTrace = stackTrace;
+    }
+
     public Integer getEndRow() {
         return endRow;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public String getErrorStackTrace() {
+        return errorStackTrace;
     }
 
     public Map<String, List<ErrorMessage>> getErrors() {

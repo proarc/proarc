@@ -1,0 +1,61 @@
+### GET ACOUNT INFO
+
+GET https://ltp.cesnet.cz/api/auth/account/
+Content-Type: application/json
+Authorization: Token c009c808eb634e72297d27cc5f176bda0685c4783e554093abf3c04206a07d5b
+
+### GET ALL TOKENS
+
+GET https://ltp.cesnet.cz/api/auth/token/
+Content-Type: application/json
+Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+
+### CREATE NEW TOKEN
+
+POST https://ltp.cesnet.cz/api/auth/token/create/
+Content-Type: application/json
+Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+
+{
+  "app_name": "LS-test-from-cmd",
+  "scope": {},
+  "extra_data": {}
+}
+
+### Returned token 2f79689d88bce52304086e599ac9b26b869be9c257383efcc1d869e553c56482
+
+### GET STATUS
+
+GET https://ltp.cesnet.cz/api/status/
+Content-Type: application/json
+Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+
+### GET ALL PACKAGE
+
+GET https://ltp.cesnet.cz/api/v2/archive/?group=nm_LTP&limit=10
+Content-Type: application/json
+Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+
+### CREATE NEW PACKAGE
+
+POST https://ltp.cesnet.cz/api/v2/archive/
+Content-Type: application/json
+Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+
+{
+  "group": "b4fb0ae9980949228b285a6ef770b4ba",
+  "name": "PACKAGE",
+  "user_metadata": {}
+}
+
+###
+
+
+
+
+
+
+
+
+
+
