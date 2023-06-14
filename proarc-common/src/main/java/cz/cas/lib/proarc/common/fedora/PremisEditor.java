@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.fedora;
 
 
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
@@ -86,7 +87,6 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
@@ -468,9 +468,9 @@ public class PremisEditor {
         FormatDesignationComplexType formatDesignation = new FormatDesignationComplexType();
         formatDesignation.setFormatName(md5Info.getMimeType());
         if (md5Info.getMimeType() != null && !md5Info.getMimeType().equals(md5Info.getFormatVersion())) {
-            formatDesignation.setFormatVersion(md5Info.getFormatVersion() == null ? "1.0" : md5Info.getFormatVersion());
+            formatDesignation.setFormatVersion(md5Info.getFormatVersion() == null ? setFormatVersion(mix) : md5Info.getFormatVersion());
         } else {
-            formatDesignation.setFormatVersion("1.0");
+            formatDesignation.setFormatVersion(setFormatVersion(mix));
         }
         JAXBElement<FormatDesignationComplexType> jaxbDesignation = factory.createFormatDesignation(formatDesignation);
         format.getContent().add(jaxbDesignation);
@@ -526,6 +526,15 @@ public class PremisEditor {
         originalName.setValue(originalFile);
         file.setOriginalName(originalName);
         return jaxbPremix;
+    }
+
+    private static String setFormatVersion(Mix mix) {
+        if (mix != null && mix.getBasicDigitalObjectInformation() != null && mix.getBasicDigitalObjectInformation().getFormatDesignation() != null &&
+                mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatVersion() != null && mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatVersion().getValue() != null) {
+            return mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatVersion().getValue();
+        } else {
+            return "1.0";
+        }
     }
 
     public static Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
