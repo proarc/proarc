@@ -42,6 +42,10 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNSUPPORTED_VALUE;
+
 @Path(RestConfig.URL_API_VERSION_2 + "/" + KrameriusResourceApi.PATH)
 public class KrameriusResource extends KrameriusResourceV1 {
 
@@ -77,6 +81,15 @@ public class KrameriusResource extends KrameriusResourceV1 {
             @DefaultValue("true")
             @QueryParam(KrameriusResourceApi.KRAMERIUD_RERUN) boolean rerun
     ) {
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
+        }
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_UNSUPPORTED_VALUE, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
         try {
             return super.viewMods(pid, krameriusInstanceId, rerun);
         } catch (Throwable t) {
@@ -92,6 +105,15 @@ public class KrameriusResource extends KrameriusResourceV1 {
             @QueryParam(KrameriusResourceApi.KRAMERIUS_OBJECT_PID) String pid,
             @QueryParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId
     ) {
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
+        }
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_UNSUPPORTED_VALUE, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
         try {
             return super.viewImage(pid, krameriusInstanceId);
         } catch (Throwable t) {
@@ -115,6 +137,18 @@ public class KrameriusResource extends KrameriusResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
     ) {
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
+        }
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+        if (timestamp == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_UNSUPPORTED_VALUE, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
         try {
             return super.updateMods(pid, krameriusInstanceId, editorId, timestamp, jsonData, xmlData, model, ignoreValidation, standard);
         } catch (Throwable t) {
@@ -129,6 +163,15 @@ public class KrameriusResource extends KrameriusResourceV1 {
         @FormParam(KrameriusResourceApi.KRAMERIUS_OBJECT_PID) String pid,
         @FormParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId
     ) {
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
+        }
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_UNSUPPORTED_VALUE, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
         try {
             return super.import2ProArc(pid, krameriusInstanceId);
         } catch (Throwable t) {
@@ -144,6 +187,21 @@ public class KrameriusResource extends KrameriusResourceV1 {
             @FormParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @FormParam(KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE) String krameriusImportInstanceId
     ) {
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
+        }
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_UNSUPPORTED_VALUE, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+        }
+        if (krameriusImportInstanceId == null || krameriusImportInstanceId.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE));
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusImportInstanceId)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_UNSUPPORTED_VALUE, KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE));
+        }
         try {
             return super.import2Kramerius(pid, krameriusInstanceId, krameriusImportInstanceId);
         } catch (Throwable t) {

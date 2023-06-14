@@ -47,6 +47,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
+
 /**
  * Resource to handle imports.
  *
@@ -189,6 +192,9 @@ public class ImportResource extends ImportResourceV1 {
     public SmartGwtResponse<BatchView> stopBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
     ) {
+        if (batchId == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ImportResourceApi.IMPORT_BATCH_ID));
+        }
         try {
             return super.stopBatch(batchId);
         } catch (Throwable t) {
@@ -206,6 +212,9 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_STATE) Batch.State state,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
     ) {
+        if (batchId == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ImportResourceApi.IMPORT_BATCH_ID));
+        }
         try {
             return super.updateBatch(batchId, parentPid, state, profileId);
         } catch (Throwable t) {
@@ -260,6 +269,9 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
     ) {
+        if ((path == null || path.isEmpty()) && batchId == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, ImportResourceApi.IMPORT_BATCH_FOLDER, ImportResourceApi.IMPORT_BATCH_ID));
+        }
         try {
             return super.unlockFolder(path, batchId);
         } catch (Throwable t) {

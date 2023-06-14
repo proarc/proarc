@@ -37,8 +37,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import static cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.STATUS_DONT_BE_IGNORED;
-import static cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.STATUS_LOCKED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_DONT_BE_IGNORED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_LOCKED;
 
 /**
  * Wrapper suitable as a RestDataSource response

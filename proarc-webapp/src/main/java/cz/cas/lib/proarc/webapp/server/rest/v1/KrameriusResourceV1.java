@@ -514,4 +514,10 @@ public class KrameriusResourceV1 {
         }
         return new SmartGwtResponse<>(importResult);
     }
+
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
+    }
 }

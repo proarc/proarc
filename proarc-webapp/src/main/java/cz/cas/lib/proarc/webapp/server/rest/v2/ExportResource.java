@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.ExportResourceV1;
@@ -42,6 +43,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.CloseableService;
+
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 
 /**
  * REST resource to export data from the system.
@@ -74,6 +80,9 @@ public class ExportResource extends ExportResourceV1 {
     public SmartGwtResponse<List<String>> validExports(
             @QueryParam(ExportResourceApi.VALUD_EXPORTS_MODEL_PARAM) String modelId
     ) {
+        if (modelId == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.VALUD_EXPORTS_MODEL_PARAM));
+        }
         try {
             return super.validExports(modelId);
         } catch (Throwable t) {
@@ -116,6 +125,9 @@ public class ExportResource extends ExportResourceV1 {
     public SmartGwtResponse<ExportResult> reexport(
             @FormParam(ExportResourceApi.BATCH_ID) Integer batchId
     ) {
+        if (batchId == null || batchId < 1) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.BATCH_ID));
+        }
         try {
             return super.reexport(batchId);
         } catch (Throwable t) {
@@ -132,6 +144,12 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
             @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
     ) {
+        if (pids == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.DATASTREAM_PID_PARAM));
+        }
+        if (dsIds == null || dsIds.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.DATASTREAM_DSID_PARAM));
+        }
         try {
             return super.datastream(pids, dsIds, hierarchy);
         } catch (Throwable t) {
@@ -150,6 +168,13 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
     ) {
+        if (pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.KRAMERIUS4_PID_PARAM));
+        }
+        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+        if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         try {
             return super.kramerius4(pids, policy, hierarchy, krameriusInstanceId, isBagit);
         } catch (Throwable t) {
@@ -167,6 +192,9 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
             @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
     ) {
+        if (pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.DESA_PID_PARAM));
+        }
         try {
             return super.newDesaExport(pids, hierarchy, forDownload, dryRun);
         } catch (Throwable t) {
@@ -201,6 +229,9 @@ public class ExportResource extends ExportResourceV1 {
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
             @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token
     ) {
+        if (pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.NDK_PID_PARAM));
+        }
         try {
             return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token);
         } catch (Throwable t) {
@@ -215,6 +246,9 @@ public class ExportResource extends ExportResourceV1 {
     public SmartGwtResponse<ExportResult> newCejshExport(
             @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids
     ) {
+        if (pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.CEJSH_PID_PARAM));
+        }
         try {
             return super.newCejshExport(pids);
         } catch (Throwable t) {
@@ -229,6 +263,9 @@ public class ExportResource extends ExportResourceV1 {
     public SmartGwtResponse<ExportResult> newCrossrefExport(
             @FormParam(ExportResourceApi.CROSSREF_PID_PARAM) List<String> pids
     ) {
+        if (pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.CROSSREF_PID_PARAM));
+        }
         try {
             return super.newCrossrefExport(pids);
         } catch (Throwable t) {
@@ -246,6 +283,9 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
     ) {
+        if (pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.ARCHIVE_PID_PARAM));
+        }
         try {
             return super.newArchive(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit);
         } catch (Throwable t) {
@@ -262,6 +302,9 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
     ) {
+        if (pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.KWIS_PID_PARAM));
+        }
         try {
             return super.newKwisExport(pids, policy, hierarchy);
         } catch (Throwable t) {

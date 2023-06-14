@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -59,9 +60,9 @@ import javax.ws.rs.core.SecurityContext;
 public class UserResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(UserResourceV1.class.getName());
-    private final UserManager userManager;
-    private final SessionContext session;
-    private final HttpHeaders httpHeaders;
+    protected final UserManager userManager;
+    protected final SessionContext session;
+    protected final HttpHeaders httpHeaders;
 
     public UserResourceV1(
             @Context HttpServletRequest httpRequest,
@@ -148,7 +149,7 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction
             ) {
         Locale locale = session.getLocale(httpHeaders);
-        checkAccess(session.getUser(), UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, Permissions.USERS_CREATE);
+        checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN, Permissions.USERS_CREATE);
         if (userName == null) {
             return SmartGwtResponse.<UserProfile>asError()
                     .error(UserResourceApi.PATH,  ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Required"))
@@ -213,11 +214,11 @@ public class UserResourceV1 {
         UserProfile update = userId == null ? null : userManager.find(userId);
         boolean fullUpdate;
         if (update != null && update.getUserName().equals(sessionUser.getUserName())) {
-            checkAccess(sessionUser, UserRole.ROLE_SUPERADMIN, (Permission) null);
+            checkAccess(sessionUser, Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), (Permission) null);
 //            fullUpdate = grants.contains(Permissions.ADMIN);
             fullUpdate = true;
         } else {
-            checkAccess(sessionUser, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+            checkAccess(sessionUser, Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN);
             fullUpdate = true;
         }
         if (update == null) {
@@ -266,7 +267,7 @@ public class UserResourceV1 {
         return new SmartGwtResponse<Permission>(result);
     }
 
-    String checkAccess(UserProfile user, String requiredRole, Permission... permissions) {
+    protected String checkAccess(UserProfile user, List<String> requiredRoles, Permission... permissions) {
         if (user != null) {
             Set<Permission> grants = userManager.findUserPermissions(user.getId());
             for (Permission permission : permissions) {
@@ -275,13 +276,19 @@ public class UserResourceV1 {
                 }
             }
             String role = userManager.findUserRole(user.getId());
-            if (role != null) {
+            for (String requiredRole : requiredRoles) {
                 if (requiredRole.equals(role)) {
                     return role;
                 }
             }
         }
         throw new WebApplicationException(Response.Status.FORBIDDEN);
+    }
+
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
     }
 
 }

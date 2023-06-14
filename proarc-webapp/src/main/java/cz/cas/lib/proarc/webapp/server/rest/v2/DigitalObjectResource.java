@@ -19,13 +19,17 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
+import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
 import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
@@ -37,11 +41,14 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -63,6 +70,13 @@ import javax.ws.rs.core.UriInfo;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_DUPLICATES;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IS_LOCKED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_SAME_PID_AND_PARENT;
 
 /**
  * Resource to manage digital objects.
@@ -112,6 +126,17 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @DefaultValue("true") @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CREATE_OBJECT) boolean createObject,
             @DefaultValue("true") @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_VALIDATE_OBJECT) boolean validation
     ) {
+
+        Set<String> models = MetaModelRepository.getInstance().find()
+                .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
+
+        if (isLocked(parentPid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+
+        if (modelId == null || !models.contains(modelId)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_MODEL));
+        }
         try {
             return super.newObject(modelId, pid, parentPid, seriesDateFrom, seriesDateTo, seriesDaysIncluded,
                     seriesPartNumberFrom, xmlMetadata, workflowJobId, catalogId, createObject, validation);
@@ -136,6 +161,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
             @DefaultValue("false") boolean restore
     ) {
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.deleteObject(pids, hierarchy, purge, restore);
         } catch (Throwable t) {
@@ -241,6 +269,24 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toSetPids
     ) {
+        if (batchId == null && parentPid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+        }
+        if (isLocked(parentPid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        boolean batchImportMembers = batchId != null;
+        if (toSetPids == null || toSetPids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+        }
+        if (!batchImportMembers && toSetPids.contains(parentPid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+        }
+
+        HashSet<String> toSetPidSet = new HashSet<String>(toSetPids);
+        if (toSetPidSet.size() != toSetPids.size()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_DUPLICATES, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+        }
         try {
             return super.setMembers(parentPid, batchId, toSetPids);
         } catch (DigitalObjectException ex) {
@@ -261,6 +307,22 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toAddPids,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
+        if (parentPid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+        }
+        if (toAddPids == null || toAddPids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+        }
+        if (toAddPids.contains(parentPid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+        }
+        if (isLocked(parentPid) || isLocked(toAddPids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        HashSet<String> addPidSet = new HashSet<String>(toAddPids);
+        if (addPidSet.size() != toAddPids.size()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_DUPLICATES, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+        }
         try {
             return super.addMembers(parentPid, toAddPids, batchId);
         } catch (DigitalObjectException ex) {
@@ -280,6 +342,18 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toRemovePids,
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
+        if (parentPid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+        }
+        if (toRemovePids == null || toRemovePids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+        }
+        if (toRemovePids.contains(parentPid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+        }
+        if (isLocked(parentPid) || isLocked(toRemovePids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.deleteMembers(parentPid, toRemovePids, batchId);
         } catch (DigitalObjectException ex) {
@@ -319,6 +393,33 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> movePids
     ) {
+        if (srcParentPid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID));
+        }
+        if (dstParentPid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID));
+        }
+        if (srcParentPid.equals(dstParentPid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID, DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID));
+        }
+        if (movePids == null || movePids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+        }
+
+        if (isLocked(srcParentPid) || isLocked(dstParentPid) || isLocked(movePids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+
+        HashSet<String> movePidSet = new HashSet<String>(movePids);
+        if (movePidSet.isEmpty()) {
+            return new SmartGwtResponse<SearchViewItem>(Collections.<SearchViewItem>emptyList());
+        } else if (movePidSet.size() != movePids.size()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_DUPLICATES, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+        }
+        if (movePidSet.contains(dstParentPid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID));
+        }
+
         try {
             return super.moveMembers(srcParentPid, dstParentPid, batchId, movePids);
         } catch (DigitalObjectException ex) {
@@ -395,6 +496,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
     ) {
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
         try {
             return super.getDescriptionMetadata(pid, batchId, editorId);
         } catch (DigitalObjectException ex) {
@@ -422,6 +526,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
     ) {
+        if ((pid == null || pid.isEmpty()) && (jobId == null)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (timestamp == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+        }
+        if (isLocked(pid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.updateDescriptionMetadata(pid, batchId, editorId, timestamp, jsonData, xmlData, jobId, model, ignoreValidation, standard);
         } catch (DigitalObjectException ex) {
@@ -461,6 +574,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
     ) {
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (timestamp == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+        }
+        if (isLocked(pid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.addAuthority(pid, batchId, timestamp, jsonData, editorId);
         } catch (DigitalObjectException ex) {
@@ -491,6 +613,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_PAGE_POSITION) String pagePosition,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
+        if (pidsArray == null || pidsArray.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PIDS));
+        }
         try {
             return super.updateDescriptionMetadataPages(pidsArray, applyTo, applyToFirstPage, prefix, suffix, useBrackets,
                     sequenceType, startNumber, incrementNumber, startIndex, pageType, doubleColumns, pagePosition, batchId);
@@ -552,6 +677,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
+        if (pidsArray == null || pidsArray.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PIDS));
+        }
         try {
             return super.updatePagesAddBrackets(pidsArray, batchId);
         } catch (DigitalObjectException ex) {
@@ -570,6 +698,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
+        if (pidsArray == null || pidsArray.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PIDS));
+        }
         try {
             return super.updatePagesRemoveBrackets(pidsArray, batchId);
         } catch (DigitalObjectException ex) {
@@ -602,6 +733,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.STREAMPROFILE_ID) String dsId
     ) {
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
         try {
             return super.getStreamProfile(pid, batchId, dsId);
         } catch (DigitalObjectException ex) {
@@ -688,6 +822,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_MIME) String mimeType,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_ERROR) @DefaultValue("false") boolean jsonErrors
     ) {
+        if (pid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (file == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DISSEMINATION_FILE));
+        }
+        if (dsId != null && !dsId.equals(BinaryEditor.RAW_ID)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DISSEMINATION_DATASTREAM));
+        }
         try {
             return super.updateDissemination(pid, batchId, dsId, file, fileInfo, fileBodyPart, mimeType, jsonErrors);
         } catch (Throwable t) {
@@ -803,6 +946,18 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
             @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
     ) {
+        if (timestamp == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+        }
+        if (pid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA, DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA));
+        }
+        if (isLocked(pid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.updateTechnicalMetadataAes(pid, batchId, timestamp, xmlData, jsonData);
         } catch (DigitalObjectException ex) {
@@ -822,6 +977,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
     ) {
+        if (pid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
         try {
             return super.getTechnicalMetadataAes(pid, batchId, editorId);
         } catch (DigitalObjectException ex) {
@@ -859,6 +1017,18 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
             @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
     ) {
+        if (timestamp == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+        }
+        if (pid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA, DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA));
+        }
+        if (isLocked(pid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.updateTechnicalMetadataPremis(pid, batchId, timestamp, xmlData, jsonData);
         } catch (DigitalObjectException ex) {
@@ -890,15 +1060,27 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateCodingHisotry(
+    public SmartGwtResponse<DescriptionMetadata<Object>> updateCodingHistory(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
             @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
             @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
     ) {
+        if (timestamp == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+        }
+        if (pid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA, DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA));
+        }
+        if (isLocked(pid)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
-            return super.updateCodingHisotry(pid, batchId, timestamp, xmlData, jsonData);
+            return super.updateCodingHistory(pid, batchId, timestamp, xmlData, jsonData);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());
@@ -916,6 +1098,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
     ) {
+        if (pid == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
         try {
             return super.getCodingHistoryMetadata(pid, batchId, editorId);
         } catch (DigitalObjectException ex) {
@@ -991,6 +1176,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String model,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_DONATOR) String donator
     ) {
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
         try {
             return super.updateAtm(pids, batchId, owner, deviceId, organization, status, userName, model, donator);
         } catch (DigitalObjectException ex) {
@@ -1010,6 +1198,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.registerUrnNbn(pids, resolverId, hierarchy);
         } catch (Throwable t) {
@@ -1024,6 +1215,12 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> lockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
         try {
             return super.lockObject(pids);
         } catch (DigitalObjectException ex) {
@@ -1041,6 +1238,12 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> unlockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
         try {
             return super.unlockObject(pids);
         } catch (DigitalObjectException ex) {
@@ -1060,6 +1263,12 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
+        if (pidOld == null || pidOld.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pidOld)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.copyObject(pidOld, batchId, modelId);
         } catch (DigitalObjectException ex) {
@@ -1096,6 +1305,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changePageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changePageToNdkPage(pids);
         } catch (DigitalObjectException ex) {
@@ -1114,6 +1332,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkPageToPage(pids);
         } catch (DigitalObjectException ex) {
@@ -1131,6 +1358,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeSttPageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeSttPageToNdkPage(pids);
         } catch (DigitalObjectException ex) {
@@ -1148,6 +1384,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkPageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkPageToSttPage(pids);
         } catch (DigitalObjectException ex) {
@@ -1165,6 +1410,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeClippingsVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeClippingsVolumeToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
@@ -1182,6 +1436,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToClippingsVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkMonographVolumeToClippingsVolume(pids);
         } catch (DigitalObjectException ex) {
@@ -1199,6 +1462,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographTitleToClippingsTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkMonographTitleToClippingsTitle(pids);
         } catch (DigitalObjectException ex) {
@@ -1217,6 +1489,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeClippingsTitleToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeClippingsTitleToNdkMonographTitle(pids);
         } catch (DigitalObjectException ex) {
@@ -1234,6 +1515,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4PeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeK4PeriodicalToNdkPeriodical(pids);
         } catch (DigitalObjectException ex) {
@@ -1251,6 +1541,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeK4PeriodicalVolumeToNdkPeriodicalVolume(pids);
         } catch (DigitalObjectException ex) {
@@ -1268,6 +1567,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4PeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeK4PeriodicalIssueToNdkPeriodicalIssue(pids);
         } catch (DigitalObjectException ex) {
@@ -1285,6 +1593,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeK4MonographToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
@@ -1302,6 +1619,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4MonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeK4MonographUnitToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
@@ -1319,6 +1645,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographTitleToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkMonographTitleToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
@@ -1336,6 +1671,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkMonographVolumeToNdkMonographTitle(pids);
         } catch (DigitalObjectException ex) {
@@ -1353,6 +1697,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMusicsheetToOldprintMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkMusicsheetToOldprintMusicsheet(pids);
         } catch (DigitalObjectException ex) {
@@ -1370,6 +1723,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeSttMusicsheetToNdkMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeSttMusicsheetToNdkMusicsheet(pids);
         } catch (DigitalObjectException ex) {
@@ -1388,6 +1750,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkChapterToOldprintChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkChapterToOldprintChapter(pids);
         } catch (DigitalObjectException ex) {
@@ -1405,6 +1776,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldprintChapterToNdkChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeOldprintChapterToNdkChapter(pids);
         } catch (DigitalObjectException ex) {
@@ -1422,6 +1802,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkPictureToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkPictureToOldprintGraphic(pids);
         } catch (DigitalObjectException ex) {
@@ -1439,6 +1828,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldprintGraphicToNdkPicture(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeOldprintGraphicToNdkPicture(pids);
         } catch (DigitalObjectException ex) {
@@ -1456,6 +1854,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkCartographicToOldprintCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkCartographicToOldprintCartographic(pids);
         } catch (DigitalObjectException ex) {
@@ -1473,6 +1880,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldprintCartographicToNdkCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeOldprintCartographicToNdkCartographic(pids);
         } catch (DigitalObjectException ex) {
@@ -1490,6 +1906,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkMonographVolumeToOldprintMonographVolume(pids);
         } catch (DigitalObjectException ex) {
@@ -1507,6 +1932,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeOldPrintMonographVolumeToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
@@ -1524,6 +1958,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographSupplementToOldPrintSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeNdkMonographSupplementToOldPrintSupplement(pids);
         } catch (DigitalObjectException ex) {
@@ -1541,6 +1984,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldPrintSupplementToNdkMonographSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeOldPrintSupplementToNdkMonographSupplement(pids);
         } catch (DigitalObjectException ex) {
@@ -1558,6 +2010,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeOldPrintMonographVolumeToOldprintGraphic(pids);
         } catch (DigitalObjectException ex) {
@@ -1575,6 +2036,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintMusicSheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
         try {
             return super.changeOldPrintMonographVolumeToOldprintMusicSheet(pids);
         } catch (DigitalObjectException ex) {
@@ -1614,6 +2084,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         try {
             return super.updateAllObjects(pid, modelId);
         } catch (DigitalObjectException ex) {
@@ -1632,6 +2105,12 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
         try {
             return super.updateNdkArticeObjects(pid, modelId);
         } catch (DigitalObjectException ex) {
@@ -1650,6 +2129,12 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pid == null || pid.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
         try {
             return super.updateNdkPageObjects(pid, modelId);
         } catch (DigitalObjectException ex) {

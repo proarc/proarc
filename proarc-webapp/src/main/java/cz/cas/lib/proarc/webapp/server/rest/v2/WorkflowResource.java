@@ -53,6 +53,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
+
 /**
  * It allows to manage workflow remotely.
  *
@@ -141,6 +143,9 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @FormParam(WorkflowModelConsts.JOB_STATE) Job.State state,
             @FormParam(WorkflowModelConsts.JOB_TIMESTAMP) long timestamp
     ) {
+        if (id == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
+        }
         try {
             return super.updateJob(id, label, note, financed, userId, parentId, priority, state, timestamp);
         } catch (Throwable t) {
@@ -182,6 +187,12 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @FormParam(WorkflowModelConsts.TASK_JOBID) BigDecimal jobId,
             @FormParam(WorkflowModelConsts.TASK_PROFILENAME) String taskName
     ) {
+        if (jobId == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
+        }
+        if (taskName == null || taskName.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.TASK_PROFILENAME));
+        }
         try {
             return super.addTask(jobId, taskName);
         } catch (Throwable t) {
@@ -196,6 +207,9 @@ public class WorkflowResource extends WorkflowResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<TaskView> updateTask(TaskUpdate task
     ) {
+        if (task == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, "task"));
+        }
         try {
             return super.updateTask(task);
         } catch (Throwable t) {
@@ -230,6 +244,9 @@ public class WorkflowResource extends WorkflowResourceV1 {
     public SmartGwtResponse<MaterialView> updateMaterial(
             MaterialView mv
     ) {
+        if (mv == null || mv.getId() == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, "materialView"));
+        }
         try {
             return super.updateMaterial(mv);
         } catch (Throwable t) {
@@ -246,6 +263,9 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @QueryParam(MetaModelDataSource.FIELD_EDITOR) String editorId,
             @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
     ) {
+        if (jobId == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
+        }
         try {
             return super.getDescriptionMetadata(jobId, editorId, modelId);
         } catch (Throwable t) {
@@ -268,6 +288,9 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
     ) {
+        if (jobId == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
+        }
         try {
             return super.updateDescriptionMetadata(jobId, editorId, timestamp, jsonData, xmlData, modelId, ignoreValidation, standard);
         } catch (Throwable t) {
@@ -282,6 +305,9 @@ public class WorkflowResource extends WorkflowResourceV1 {
     public SmartGwtResponse<TaskParameterView> getParameter(
             @QueryParam(WorkflowModelConsts.PARAMETERPROFILE_TASKID) BigDecimal taskId
     ) {
+        if (taskId == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.PARAMETERPROFILE_TASKID));
+        }
         try {
             return super.getParameter(taskId);
         } catch (Throwable t) {

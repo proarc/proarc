@@ -41,6 +41,8 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
+
 /**
  * Resource to manage devices producing digital objects.
  *
@@ -118,6 +120,9 @@ public class DeviceResource extends DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
             ) {
+        if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DeviceResourceApi.DEVICE_ITEM_ID, DeviceResourceApi.DEVICE_ITEM_MODEL));
+        }
         try {
             return super.updateDevice(id, label, model, description, premis, timestamp, audiotimestamp);
         } catch (Throwable t) {

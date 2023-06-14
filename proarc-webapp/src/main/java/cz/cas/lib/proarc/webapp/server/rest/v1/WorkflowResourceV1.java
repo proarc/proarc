@@ -703,4 +703,10 @@ public class WorkflowResourceV1 {
         return response;
     }
 
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
+    }
+
 }

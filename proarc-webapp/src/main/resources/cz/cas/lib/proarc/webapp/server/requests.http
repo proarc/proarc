@@ -403,5 +403,19 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 &pid=uuid:0d8c130c-a170-4ca7-a20b-c4b8870cea5d&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
 
 
+select id, "CREATE", state from proarc_batch where folder = 'uuid:ed2ae08a-2333-4acb-80e2-c2722171ac9e';
 
 
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### Update device
+PUT {{proarcLocalHostUrl}}/rest/v2/device
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&device:1883a7de-2f01-40e4-91ee-c7b631c0353c

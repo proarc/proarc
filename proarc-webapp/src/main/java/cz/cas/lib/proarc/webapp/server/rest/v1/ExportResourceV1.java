@@ -92,9 +92,9 @@ import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusI
 @Path(RestConfig.URL_API_VERSION_1 + "/" + ExportResourceApi.PATH)
 public class ExportResourceV1 {
 
-    private final AppConfiguration appConfig;
+    protected final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
-    private final UserProfile user;
+    protected final UserProfile user;
     private final SessionContext session;
     private final ImportBatchManager batchManager;
     private HttpHeaders httpHeaders;
@@ -152,6 +152,12 @@ public class ExportResourceV1 {
         List<String> validExportItems = ae.getList();
 
         return new SmartGwtResponse<List<String>>(validExportItems);
+    }
+
+    public String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
     }
 
     @GET

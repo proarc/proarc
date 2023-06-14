@@ -91,6 +91,7 @@ import org.apache.commons.io.IOUtils;
 
 import static cz.cas.lib.proarc.common.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
 import static cz.cas.lib.proarc.common.imports.ImportProcess.TMP_DIR_NAME;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 
 /**
  * Resource to handle imports.
@@ -110,7 +111,6 @@ public class ImportResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(ImportResourceV1.class.getName());
     private static final Pattern INVALID_PATH_CONTENT = Pattern.compile("\\.\\.|//");
-    private static final String ERR_NO_PERMISSION = "Err_no_permission";
 
     private final HttpHeaders httpHeaders;
     // XXX inject with guice
@@ -472,17 +472,17 @@ public class ImportResourceV1 {
         }
         if (!(session.checkPermission(Permissions.ADMIN) || session.checkRole(UserRole.ROLE_SUPERADMIN) || isBatchOwner(batch))) {
             LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
-            return SmartGwtResponse.asError(returnValidationMessage(ERR_NO_PERMISSION));
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
         BatchView batchView = importManager.viewBatch(batch.getId());
         return new SmartGwtResponse<BatchView>(batchView);
     }
 
-    private String returnValidationMessage(String key) {
+    protected String returnLocalizedMessage(String key, Object... arguments) {
         Locale locale = session.getLocale(httpHeaders);
         ServerMessages msgs = ServerMessages.get(locale);
-        return msgs.getFormattedMessage(key);
+        return msgs.getFormattedMessage(key, arguments);
     }
 
     private boolean isBatchOwner(Batch batch) {
