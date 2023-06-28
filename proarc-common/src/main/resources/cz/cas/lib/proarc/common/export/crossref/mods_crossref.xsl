@@ -167,7 +167,7 @@ Author Miroslav Pavelka
                     <xsl:when test="./mods:nonSort!='' and ./mods:title!='' ">
                         <!-- &#160; je mezera -->
                         <xsl:value-of select="./mods:nonSort"/>
-                        <xsl:text>&#160;</xsl:text>
+<!--                        <xsl:text>&#160;</xsl:text>-->
                         <xsl:value-of select="./mods:title"/>
                     </xsl:when>
                     <xsl:otherwise>
