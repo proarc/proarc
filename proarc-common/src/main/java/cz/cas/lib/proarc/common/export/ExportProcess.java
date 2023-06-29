@@ -243,14 +243,14 @@ public final class ExportProcess implements Runnable {
                 //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
                 targetFolder = export.archive(params.getPids(), targetFolder, params.isIgnoreMissingUrnNbn());
             } catch (Exception ex) {
-                LOG.warning(ex.getMessage() + "\n" + ex.getStackTrace());
+                LOG.warning(ex.getMessage() + "\n" + ex.getCause());
             }
             ExportResultLog reslog = export.getResultLog();
             for (ExportResultLog.ExportResult logResult : reslog.getExports()) {
                 for (ExportResultLog.ResultError error : logResult.getError()) {
                     if (isMissingURNNBN(error) && config.getExportParams().isDeletePackage()) {
                         MetsUtils.deleteFolder(targetFolder);
-                        error.setDetails(null);
+                        error.setDetails(error.getMessage());
                         return finishedExportWithError(this.batchManager, batch, "Folder deleted.", error);
                     } else {
                         String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, null);
@@ -294,10 +294,10 @@ public final class ExportProcess implements Runnable {
                 if (r.getValidationError() != null) {
                     if (isMissingURNNBN(r) && config.getExportParams().isDeletePackage()) {
                         //MetsUtils.deleteFolder(r.getTargetFolder());
-                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, targetFolder.getAbsolutePath(), r.getValidationError().getExceptions());
+                        return BatchUtils.finishedExportWithError(this.batchManager, batch, targetFolder.getAbsolutePath(), r.getValidationError().getMessage());
                     } else {
                         String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, r.getValidationError().getExceptions());
+                        return BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, r.getValidationError().getMessage());
                     }
                 }
             }

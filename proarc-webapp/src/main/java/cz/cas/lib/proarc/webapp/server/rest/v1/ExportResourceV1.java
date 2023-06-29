@@ -29,6 +29,8 @@ import cz.cas.lib.proarc.common.export.DesaExport;
 import cz.cas.lib.proarc.common.export.ExportDispatcher;
 import cz.cas.lib.proarc.common.export.ExportException;
 import cz.cas.lib.proarc.common.export.ExportProcess;
+import cz.cas.lib.proarc.common.export.ExportUtils;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
@@ -396,6 +398,13 @@ public class ExportResourceV1 {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
+        try {
+            ExportUtils.missingUrnNbn(pids, ignoreMissingUrnNbn, appConfig, akubraConfiguration);
+        } catch (MetsExportException ex) {
+            ExportResult result = new ExportResult(ex.getExceptions());
+            result.setIgnoreMissingUrnNbn(true);
+            return new SmartGwtResponse<ExportResult>(result);
+        }
         BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_NDK, params);
 
@@ -471,6 +480,14 @@ public class ExportResourceV1 {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.ARCHIVE_PID_PARAM);
+        }
+
+        try {
+            ExportUtils.missingUrnNbn(pids, ignoreMissingUrnNbn, appConfig, akubraConfiguration);
+        } catch (MetsExportException ex) {
+            ExportResult result = new ExportResult(ex.getExceptions());
+            result.setIgnoreMissingUrnNbn(true);
+            return new SmartGwtResponse<ExportResult>(result);
         }
         BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_ARCHIVE, params);

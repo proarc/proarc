@@ -21,6 +21,9 @@ public class BatchUtils {
         } else {
             batch.setState(state);
             batch.setLog(null);
+            batch.setUserId(user.getId());
+            batch.setProfileId(processProfile);
+            batch.setParamsFromObject(params);
             //batch.setTimestamp(new Timestamp(System.currentTimeMillis()));
             return batchManager.update(batch);
         }
