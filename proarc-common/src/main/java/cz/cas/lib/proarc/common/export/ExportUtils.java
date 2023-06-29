@@ -16,12 +16,21 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.desa.Const;
+import cz.cas.lib.proarc.common.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.workflow.WorkflowExportFile;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -31,13 +40,17 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXB;
 
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
 
 /**
@@ -283,4 +296,37 @@ public final class ExportUtils {
     }
 
 
+    public static void missingUrnNbn(List<String> pids, boolean ignoreMissingUrnNbn, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) throws IOException, MetsExportException {
+        for (String pid: pids) {
+            MetsContext metsContext = null;
+            FedoraObject object = null;
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                RemoteStorage remoteStorage = RemoteStorage.getInstance();
+                object = remoteStorage.find(pid);
+                metsContext = buildFedoraContext(object, null, null, remoteStorage, appConfig.getNdkExportOptions());
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(pid);
+                metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+
+            MetsElement metsElement = getMetsElement(object, metsContext, true);
+            List<String> PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, true);
+            for (String pspPid : PSPs) {
+                metsContext.resetContext();
+                DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
+                MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, true);
+                String packageId = MetsUtils.getPackageID(metsElement, ignoreMissingUrnNbn);
+                LOG.info(packageId);
+            }
+        }
+    }
+
+    private static MetsElement getMetsElement(FedoraObject fo, MetsContext metsContext, boolean hierarchy) throws MetsExportException {
+        metsContext.resetContext();
+        DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), metsContext);
+        return MetsElement.getElement(dobj, null, metsContext, hierarchy);
+    }
 }
