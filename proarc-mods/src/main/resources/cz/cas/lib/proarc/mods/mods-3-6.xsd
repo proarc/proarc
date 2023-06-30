@@ -343,13 +343,13 @@
     <xs:element name="location" type="locationDefinition"/>
     <!--   -->
     <xs:complexType name="locationDefinition">
-        <xs:sequence>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element ref="physicalLocation" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="shelfLocator" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="url" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="holdingSimple" minOccurs="0"/>
             <xs:element ref="holdingExternal" minOccurs="0"/>
-        </xs:sequence>
+        </xs:choice>
         <xs:attributeGroup ref="languageAttributeGroup"/>
         <xs:attribute name="displayLabel" type="xs:string"/>
         <xs:attribute name="altRepGroup" type="xs:string"/>
