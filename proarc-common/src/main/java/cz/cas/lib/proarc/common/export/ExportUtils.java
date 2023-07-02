@@ -318,7 +318,7 @@ public final class ExportUtils {
                 metsContext.resetContext();
                 DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
                 MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, true);
-                String packageId = MetsUtils.getPackageID(metsElement, ignoreMissingUrnNbn);
+                String packageId = MetsUtils.getPackageID(mElm, ignoreMissingUrnNbn);
                 LOG.info(packageId);
             }
         }
