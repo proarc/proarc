@@ -74,10 +74,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.Zip4jConstants;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 /**
  * Builds the cejsh package of articles.
@@ -295,9 +297,9 @@ class CejshBuilder {
     void writeZip(File pkgFile, File packageFolder) throws ZipException {
         ZipFile zipFile = new ZipFile(pkgFile);
         ZipParameters zipParameters = new ZipParameters();
-        zipParameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);
-        zipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
-        zipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
+        zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+        zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
+        zipParameters.setCompressionLevel(CompressionLevel.NORMAL);
         zipParameters.setIncludeRootFolder(false);
         zipParameters.setDefaultFolderPath(packageFolder.getAbsolutePath());
         zipFile.addFiles(listZipFiles(packageFolder), zipParameters);

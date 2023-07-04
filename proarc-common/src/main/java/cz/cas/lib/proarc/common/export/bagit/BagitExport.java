@@ -29,10 +29,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.Zip4jConstants;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 public class BagitExport {
 
@@ -72,9 +74,9 @@ public class BagitExport {
         try {
             ZipFile zipFile = new ZipFile(zipFileName);
             ZipParameters zipParameters = new ZipParameters();
-            zipParameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);
-            zipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
-            zipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
+            zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+            zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
+            zipParameters.setCompressionLevel(CompressionLevel.NORMAL);
             zipParameters.setIncludeRootFolder(true);
             zipParameters.setDefaultFolderPath(file2Zip.getAbsolutePath());
             zipFile.addFiles(listZipFiles(file2Zip), zipParameters);

@@ -17,38 +17,10 @@
 
 package cz.cas.lib.proarc.common.export.desa.structure;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.Zip4jConstants;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-
 import cz.cas.lib.proarc.common.export.desa.Const;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
@@ -72,6 +44,31 @@ import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.nsesss2.Spis;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 /**
  * Visitor class for creating mets document out of Desa objects
@@ -100,10 +97,11 @@ public class DesaElementVisitor implements IDesaElementVisitor {
                 LOG.log(Level.FINE, "File:" + zipFileName + " exists, so it was deleted");
             }
             ZipFile zipFile = new ZipFile(zipFileName);
-            ZipParameters zip4jZipParameters = new ZipParameters();
-            zip4jZipParameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
-            zip4jZipParameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
-            zipFile.addFiles(fileList, zip4jZipParameters);
+            ZipParameters zipParameters = new ZipParameters();
+            zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+            zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
+            zipParameters.setCompressionLevel(CompressionLevel.NORMAL);
+            zipFile.addFiles(fileList, zipParameters);
             LOG.log(Level.FINE, "Zip archive created:" + zipFileName + " for " + desaElement.getElementType());
         } catch (ZipException e) {
             throw new MetsExportException(desaElement.getOriginalPid(), "Unable to create a zip file:" + zipFileName, false, e);
