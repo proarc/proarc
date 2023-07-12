@@ -157,7 +157,7 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                     item.setPageIndex(page.getIndex());
                     item.setPageNumber(page.getNumber());
                     item.setPageType(page.getType());
-                    item.setPageTypeLabel(page.getIndex());
+                    item.setPageTypeLabel(page.getType());
                     return item;
                 } else {
                     throw new DigitalObjectException(fobject.getPid(), "Unexpected model for oldprint page: " + modelId);

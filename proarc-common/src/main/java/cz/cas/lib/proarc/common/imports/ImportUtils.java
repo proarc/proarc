@@ -86,6 +86,8 @@ public class ImportUtils {
 
                     String id = String.format("%02d", song) + "_" + String.format("%02d", track);
                     sortedList.put(id, batchItem);
+                } else {
+                    sortedList.put(name, batchItem);
                 }
             } catch (NumberFormatException ex) {
                 sortedList.put(name, batchItem);
