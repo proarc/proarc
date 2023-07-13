@@ -131,16 +131,20 @@ public class WorkflowExport {
         MetsContext metsContext = null;
         FedoraObject object = null;
 
-        if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-            RemoteStorage remoteStorage = RemoteStorage.getInstance();
-            object = remoteStorage.find(pid);
-            metsContext = buildFedoraContext(object, null, exportFolder, remoteStorage, appConfiguration.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
-            AkubraStorage akubraStorage = AkubraStorage.getInstance();
-            object = akubraStorage.find(pid);
-            metsContext = buildAkubraContext(object, null, exportFolder, akubraStorage, appConfiguration.getNdkExportOptions());
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+        try {
+            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+                RemoteStorage remoteStorage = RemoteStorage.getInstance();
+                object = remoteStorage.find(pid);
+                metsContext = buildFedoraContext(object, null, exportFolder, remoteStorage, appConfiguration.getNdkExportOptions());
+            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(pid);
+                metsContext = buildAkubraContext(object, null, exportFolder, akubraStorage, appConfiguration.getNdkExportOptions());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
         }
         return getMetsElement(object, metsContext, true);
     }

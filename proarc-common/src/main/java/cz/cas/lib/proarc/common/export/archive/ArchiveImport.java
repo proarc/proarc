@@ -57,7 +57,7 @@ public class ArchiveImport implements ImportHandler {
 
     @Override
     public void start(ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration config) throws Exception {
-        isession = new ImportSession(ImportBatchManager.getInstance(), importConfig, config.getTypeOfStorage());
+        isession = new ImportSession(ImportBatchManager.getInstance(), importConfig, config);
         load(importConfig, config);
         ingest(importConfig);
     }

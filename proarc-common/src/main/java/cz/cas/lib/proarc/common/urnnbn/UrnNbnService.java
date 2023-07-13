@@ -23,6 +23,8 @@ import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -49,12 +51,17 @@ public final class UrnNbnService {
     public UrnNbnService(AppConfiguration appConfig, UrnNbnConfiguration.ResolverConfiguration resolverConfig) {
         dom = DigitalObjectManager.getDefault();
         this.client = appConfig.getUrnNbnConfiguration().getClient(resolverConfig);
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            search = RemoteStorage.getInstance().getSearch();
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            search = AkubraStorage.getInstance().getSearch();
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        try {
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                search = RemoteStorage.getInstance().getSearch();
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+                search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 

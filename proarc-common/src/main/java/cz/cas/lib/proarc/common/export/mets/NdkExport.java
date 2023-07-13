@@ -265,15 +265,19 @@ public class NdkExport {
 
     public MetsContext buildContext(String pid, File target) {
         FedoraObject object = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            object = remoteStorage.find(pid);
-            return buildFedoraContext(object, null, target, remoteStorage, appConfig.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            AkubraStorage akubraStorage = AkubraStorage.getInstance();
-            object = akubraStorage.find(pid);
-            return buildAkubraContext(object, null, target, akubraStorage, appConfig.getNdkExportOptions());
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        try {
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                object = remoteStorage.find(pid);
+                return buildFedoraContext(object, null, target, remoteStorage, appConfig.getNdkExportOptions());
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(pid);
+                return buildAkubraContext(object, null, target, akubraStorage, appConfig.getNdkExportOptions());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
         }
     }
 

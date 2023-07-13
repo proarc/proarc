@@ -23,6 +23,7 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import com.yourmediashelf.fedora.util.DateUtility;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -36,6 +37,8 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet;
@@ -762,17 +765,21 @@ public class FileReader {
         /** The user cache. */
         private final Map<String, String> external2internalUserMap = new HashMap<String, String>();
 
-        public ImportSession(ImportBatchManager ibm, ImportOptions options, Storage typeOfStorage) {
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                this.typeOfStorage = typeOfStorage;
-                this.remotes = RemoteStorage.getInstance();
-                this.search = this.remotes.getSearch();
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
-                this.typeOfStorage = typeOfStorage;
-                this.akubraStorage = AkubraStorage.getInstance();
-                this.search = this.akubraStorage.getSearch();
-            } else {
-                throw new IllegalStateException("Unsupported type of storage: " + typeOfStorage);
+        public ImportSession(ImportBatchManager ibm, ImportOptions options, AppConfiguration config) {
+            this.typeOfStorage = config.getTypeOfStorage();
+            try {
+                if (Storage.FEDORA.equals(typeOfStorage)) {
+                    this.remotes = RemoteStorage.getInstance();
+                    this.search = this.remotes.getSearch();
+                } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                    AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
+                    this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                    this.search = this.akubraStorage.getSearch();
+                } else {
+                    throw new IllegalStateException("Unsupported type of storage: " + typeOfStorage);
+                }
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
             }
             this.locals = new LocalStorage();
             this.ibm = ibm;

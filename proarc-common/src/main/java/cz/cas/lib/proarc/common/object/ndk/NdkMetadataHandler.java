@@ -36,6 +36,8 @@ import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.fedora.SearchViewQuery;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
@@ -120,6 +122,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     protected DigitalObjectCrawler crawler;
     private final NdkMapperFactory mapperFactory;
     private static AppConfiguration appConfiguration;
+    private static AkubraConfiguration akubraConfiguration;
 
     public NdkMetadataHandler(DigitalObjectHandler handler) {
         this(handler, new NdkMapperFactory());
@@ -134,6 +137,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         this.mapperFactory = mapperFactory;
         try {
             this.appConfiguration = AppConfigurationFactory.getInstance().defaultInstance();
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfiguration.getConfigHome());
         } catch (AppConfigurationException e) {
             e.printStackTrace();
         }
@@ -754,12 +758,16 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             return ;
         }
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-            search = RemoteStorage.getInstance().getSearch();
-        } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
-            search = AkubraStorage.getInstance().getSearch();
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+        try {
+            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+                search = RemoteStorage.getInstance().getSearch();
+            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+                search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+            }
+        } catch (IOException ioException) {
+            throw new IllegalStateException(ioException);
         }
         for (IdentifierDefinition idDef : mods.getIdentifier()) {
             if ("doi".equals(idDef.getType()) && idDef.getValue() != null) {
@@ -859,12 +867,16 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
     public DigitalObjectCrawler getCrawler() {
         if (crawler == null) {
-            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), RemoteStorage.getInstance().getSearch());
-            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
-                crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), AkubraStorage.getInstance().getSearch());
-            } else {
-                throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+            try {
+                if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+                    crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), RemoteStorage.getInstance().getSearch());
+                } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+                    crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), AkubraStorage.getInstance(akubraConfiguration).getSearch());
+                } else {
+                    throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+                }
+            } catch (Exception ex) {
+              throw new IllegalStateException(ex);
             }
         }
         return crawler;

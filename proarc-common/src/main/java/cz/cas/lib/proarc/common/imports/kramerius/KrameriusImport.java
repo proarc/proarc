@@ -62,7 +62,7 @@ public class KrameriusImport implements ImportHandler {
 
     @Override
     public void start(ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration configuration) throws Exception {
-        isession = new ImportSession(ImportBatchManager.getInstance(), importConfig, configuration.getTypeOfStorage());
+        isession = new ImportSession(ImportBatchManager.getInstance(), importConfig, configuration);
         load(importConfig);
         ingest(importConfig);
     }

@@ -57,12 +57,16 @@ public class ArchiveProducer {
         this.appConfig = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
         SearchView searchView = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            searchView = RemoteStorage.getInstance().getSearch();
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            searchView = AkubraStorage.getInstance().getSearch();
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        try {
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                searchView = RemoteStorage.getInstance().getSearch();
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                searchView = AkubraStorage.getInstance(akubraConfiguration).getSearch();
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
         }
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), searchView);
     }
