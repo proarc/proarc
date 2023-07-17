@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.Storage;
@@ -37,6 +38,7 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.FileSet;
 import cz.cas.lib.proarc.common.imports.TiffAsJp2Importer;
 import cz.cas.lib.proarc.common.process.TiffToJpgConvert;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -184,6 +186,24 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                 if (inputStream == null) {
                     throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
                 }
+                Date lastModification = new Date(editor.getLastModified());
+                return Response.ok(inputStream, "text/xml").lastModified(lastModification).build();
+            } else if (MixEditor.RAW_ID.equals(dsId)) {
+                MixEditor editor = MixEditor.raw(object);
+                String mix = editor.readAsString();
+                if (mix == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                }
+                InputStream inputStream = new ByteArrayInputStream(mix.getBytes());
+                Date lastModification = new Date(editor.getLastModified());
+                return Response.ok(inputStream, "text/xml").lastModified(lastModification).build();
+            } else if (MixEditor.NDK_ARCHIVAL_ID.equals(dsId)) {
+                MixEditor editor = MixEditor.ndkArchival(object);
+                String mix = editor.readAsString();
+                if (mix == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                }
+                InputStream inputStream = new ByteArrayInputStream(mix.getBytes());
                 Date lastModification = new Date(editor.getLastModified());
                 return Response.ok(inputStream, "text/xml").lastModified(lastModification).build();
             } else {

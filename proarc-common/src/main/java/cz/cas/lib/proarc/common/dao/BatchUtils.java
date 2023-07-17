@@ -77,11 +77,11 @@ public class BatchUtils {
         for (MetsExportException.MetsExportExceptionElement exception : exceptions) {
 
             builder.append(exception.getMessage());
-            builder.append(" - ");
             if (exception.getEx() != null) {
+                builder.append(" - ");
                 builder.append(ImportBatchManager.toString(exception.getEx()));
+                builder.append("\n");
             }
-            builder.append("\n");
         }
         return BatchUtils.finishedExportWithError(batchManager, batch, batch.getFolder(), builder.toString());
     }
@@ -107,7 +107,7 @@ public class BatchUtils {
     }
 
     public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions) {
-        return finishedExportWithWarning(batchManager, batch, path, exceptions, Batch.State.EXPORT_VALID_WARNING);
+        return finishedExportWithWarning(batchManager, batch, path, exceptions, Batch.State.EXPORT_FAILED);
     }
 
     public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions, Batch.State state) {
@@ -132,7 +132,7 @@ public class BatchUtils {
     }
 
     public static Batch finishedExportWithWarning(ImportBatchManager batchManager, Batch batch, String path, String message) {
-        return finishedWithWarning(batchManager, batch, path, message, Batch.State.EXPORT_VALID_WARNING);
+        return finishedWithWarning(batchManager, batch, path, message, Batch.State.EXPORT_FAILED);
     }
 
     public static Batch finishedExportSuccessfully(ImportBatchManager batchManager, Batch batch, String path) {

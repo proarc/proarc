@@ -107,7 +107,7 @@ public class ChangeNdkMonographTitleToNdkMonographVolumeAction extends AbstractA
                 if (hasValidationError(response)) {
                     handleValidations(response);
                 } else if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.ChangeNdkMonographTitleToClippingTitleAction_FinishStep_Msg());
+                    StatusView.getInstance().show(i18n.ChangeNdkMonographTitleToNdkMonographVolumeAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);

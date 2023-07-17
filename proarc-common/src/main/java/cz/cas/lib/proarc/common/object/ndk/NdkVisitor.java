@@ -39,6 +39,8 @@ public interface NdkVisitor<R, P> extends DigitalObjectVisitor<R, P> {
 
     R visitNdkMonographTitle(DigitalObjectElement elm, P p) throws VisitorException;
 
+    R visitNdkMonographUnit(DigitalObjectElement elm, P p) throws VisitorException;
+
     R visitNdkMonographVolume(DigitalObjectElement elm, P p) throws VisitorException;
 
     R visitNdkMonographSupplement(DigitalObjectElement elm, P p) throws VisitorException;

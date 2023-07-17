@@ -52,6 +52,8 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkMonographVolume(elm, p);
         } else if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(model)) {
             return visitNdkMonographTitle(elm, p);
+        } else if (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(model)) {
+            return visitNdkMonographUnit(elm, p);
         } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(model)) {
             return visitNdkMonographSupplement(elm, p);
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model)) {
@@ -127,6 +129,11 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
 
     @Override
     public R visitNdkMonographTitle(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    @Override
+    public R visitNdkMonographUnit(DigitalObjectElement elm, P p) throws VisitorException {
         return visitChildren(elm, p);
     }
 

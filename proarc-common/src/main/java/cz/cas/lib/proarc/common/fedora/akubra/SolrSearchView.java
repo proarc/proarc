@@ -210,6 +210,9 @@ public class SolrSearchView extends SearchView {
     public List<SearchViewItem> findChildren(String parentPid) throws IOException, DigitalObjectException {
         AkubraObject parent = storage.find(parentPid);
         List<String> memberPids = new RelationEditor(parent).getMembers();
+        if (memberPids.isEmpty()) {
+            return Collections.EMPTY_LIST;
+        }
         List<SearchViewItem> items = find(memberPids);
         return items;
     }

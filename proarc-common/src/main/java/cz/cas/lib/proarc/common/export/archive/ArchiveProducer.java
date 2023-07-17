@@ -150,7 +150,17 @@ public class ArchiveProducer {
     }
 
     private void archiveImpl(List<String> pids, File archiveRootFolder, boolean ignoreMissingUrnNbn) {
-        List<List<DigitalObjectElement>> objectPaths = selectObjects(pids);
+        List<List<DigitalObjectElement>> objectPaths = null;
+        try {
+            objectPaths = selectObjects(pids);
+        } catch (MetsExportException ex) {
+            ExportResult result = new ExportResult();
+            result.setInputPid(pids.get(0));
+            result.setStatus(ResultStatus.FAILED);
+            reslog.getExports().add(result);
+            result.getError().add(new ResultError(pids.get(0), ex.getMessage(), ex.getMessage(), null));
+            throw new IllegalStateException("Archivation failed!", ex);
+        }
 
         ArchiveObjectProcessor processor = new ArchiveObjectProcessor(crawler, archiveRootFolder, appConfig, akubraConfiguration, ignoreMissingUrnNbn);
         for (List<DigitalObjectElement> path : objectPaths) {
@@ -176,7 +186,7 @@ public class ArchiveProducer {
         }
     }
 
-    protected List<List<DigitalObjectElement>> selectObjects(List<String> pids) {
+    protected List<List<DigitalObjectElement>> selectObjects(List<String> pids) throws MetsExportException {
         ArchiveObjectSelector selector = new ArchiveObjectSelector(crawler);
         try {
             selector.select(pids);

@@ -61,7 +61,8 @@ public class Const {
     public final static String PAGE_MODEL = NdkPlugin.MODEL_PAGE;
     public final static String PAGE_NDK_MODEL = NdkPlugin.MODEL_NDK_PAGE;
     public final static String MONOGRAPH_TITLE_MODEL = NdkPlugin.MODEL_MONOGRAPHTITLE;
-    public final static String MONOGRAPH_MODEL = NdkPlugin.MODEL_MONOGRAPHVOLUME;
+    public final static String MONOGRAPH_UNIT_MODEL = NdkPlugin.MODEL_MONOGRAPHUNIT;
+    public final static String MONOGRAPH_MODEL = NdkPlugin.MODEL_MONOGRAPHVOLUME; //TODO nutne zkontrolovat
     public final static String PICTURE_MODEL = NdkPlugin.MODEL_PICTURE;
     public final static String ARTICLE_MODEL = NdkPlugin.MODEL_ARTICLE;
     public final static String CHAPTER_MODEL = NdkPlugin.MODEL_CHAPTER;
@@ -221,6 +222,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + PAGE_MODEL, PAGE);
         typeMap.put(FEDORAPREFIX + PAGE_NDK_MODEL, PAGE);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_MODEL, MONOGRAPH_UNIT);
+        typeMap.put(FEDORAPREFIX + MONOGRAPH_UNIT_MODEL, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + MONOGRAPH_TITLE_MODEL, MONOGRAPH_MULTIPART);
         typeMap.put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, MONOGRAPH_MULTIPART);
         typeMap.put(FEDORAPREFIX + PICTURE_MODEL, PICTURE);

@@ -64,6 +64,7 @@ public final class NdkForms {
         mappers.put("model:ndkchapter", new NdkChapterForm()::build);
         mappers.put("model:ndkpicture", new NdkPictureForm()::build);
         mappers.put("model:ndkmonographvolume", new NdkMonographVolumeForm()::build);
+        mappers.put("model:ndkmonographunit", new NdkMonographUnitForm()::build);
         mappers.put("model:ndkmonographtitle", new NdkMonographTitleForm()::build);
         mappers.put("model:ndkmonographsupplement", new NdkMonographSupplementForm()::build);
         mappers.put("model:ndkmap", new NdkCartographicForm()::build);

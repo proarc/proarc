@@ -91,6 +91,7 @@ public class UpdateNdkPageAction extends AbstractAction {
             if (dobj != null) {
                 String modelId = dobj.getModelId();
                 if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)
+                        || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)
                         || NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)
                         || NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
                         || NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)

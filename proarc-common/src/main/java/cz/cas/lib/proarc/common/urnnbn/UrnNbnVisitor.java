@@ -67,6 +67,7 @@ import org.xml.sax.SAXException;
  *
  * <p>It registers {@link NdkPlugin#MODEL_PERIODICALISSUE issue},
  * {@link NdkPlugin#MODEL_MONOGRAPHVOLUME monograph volume},
+ * {@link NdkPlugin#MODEL_MONOGRAPHUNIT monograph unit},
  * {@link NdkPlugin#MODEL_CARTOGRAPHIC},
  * {@link NdkPlugin#MODEL_SHEETMUSIC}.
  *
@@ -84,6 +85,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkPlugin.MODEL_PERIODICALISSUE,
             NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
             NdkPlugin.MODEL_MONOGRAPHVOLUME,
+            NdkPlugin.MODEL_MONOGRAPHUNIT,
             NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
             NdkPlugin.MODEL_ARTICLE,
             NdkPlugin.MODEL_CARTOGRAPHIC,
@@ -205,7 +207,25 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            return processNdkMonographVolumeOrSupplement(elm, p);
+            return processNdkMonographVolumeOrUnitOrSupplement(elm, p);
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    @Override
+    public Void visitNdkMonographUnit(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The unit under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            return processNdkMonographVolumeOrUnitOrSupplement(elm, p);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {
@@ -234,7 +254,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     @Override
     public Void visitNdkMonographSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
         if (registeringObject != null) {
-            if (!NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(registeringObject.getModelId())) {
+            if (!(NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(registeringObject.getModelId())
+                    || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(registeringObject.getModelId()))) {
                 // supplement under monograph volume - ignore
                 // invalid hierarchy
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -247,7 +268,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             if (parent == DigitalObjectElement.NULL || NdkPlugin.MODEL_MONOGRAPHTITLE.equals(parent.getModelId())) {
                 try {
                     registeringObject = elm;
-                    return processNdkMonographVolumeOrSupplement(elm, p);
+                    return processNdkMonographVolumeOrUnitOrSupplement(elm, p);
                 } finally {
                     registeringObject = null;
                 }
@@ -698,7 +719,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         return null;
     }
 
-    private Void processNdkMonographVolumeOrSupplement(DigitalObjectElement elm, UrnNbnContext p)
+    private Void processNdkMonographVolumeOrUnitOrSupplement(DigitalObjectElement elm, UrnNbnContext p)
             throws DigitalObjectException, VisitorException {
 
         final String pid = elm.getPid();

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.archive;
 
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -56,20 +57,20 @@ public class ArchiveObjectSelector {
      * @param pids a list of PIDs to search
      * @throws DigitalObjectException failure
      */
-    public void select(List<String> pids) throws DigitalObjectException {
+    public void select(List<String> pids) throws DigitalObjectException, MetsExportException {
         for (String pid : pids) {
             select(pid);
         }
     }
 
-    private void select(String pid) throws DigitalObjectException {
+    private void select(String pid) throws DigitalObjectException, MetsExportException {
         DigitalObjectElement entry = crawler.getEntry(pid);
         List<DigitalObjectElement> entryPath = crawler.getPath(pid);
         entryPath.add(0, entry);
         searchPath(entryPath);
     }
 
-    protected void searchPath(List<DigitalObjectElement> entryPath) throws DigitalObjectException {
+    protected void searchPath(List<DigitalObjectElement> entryPath) throws DigitalObjectException, MetsExportException {
         DigitalObjectElement entry = entryPath.get(0);
         if (processedPids.contains(entry.getPid())) {
             return ;
@@ -77,12 +78,17 @@ public class ArchiveObjectSelector {
         processedPids.add(entry.getPid());
         String modelId = entry.getModelId();
         if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)
+                || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)
                 || NdkPlugin.MODEL_CARTOGRAPHIC.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
                 || NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)
                 || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)
                 || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)
                 ) {
+            if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) && entryPath.size() > 0 && entryPath.get(1) != null &&
+                    NdkPlugin.MODEL_MONOGRAPHTITLE.equals(entryPath.get(1).getModelId())) {
+                throw new MetsExportException("Nepovolená vazba - Ndk Svazek monografie pod Ndk Vícedílnou monografii.");
+            }
             addSelection(entryPath);
         } else if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICAL.equals(modelId)
@@ -116,7 +122,7 @@ public class ArchiveObjectSelector {
         }
     }
 
-    protected void searchChildren(DigitalObjectElement entry, List<DigitalObjectElement> entryPath) throws DigitalObjectException {
+    protected void searchChildren(DigitalObjectElement entry, List<DigitalObjectElement> entryPath) throws DigitalObjectException, MetsExportException {
         List<DigitalObjectElement> children = crawler.getChildren(entry.getPid());
         for (DigitalObjectElement child : children) {
             List<DigitalObjectElement> childPath = new ArrayList<>(entryPath.size() + 1);

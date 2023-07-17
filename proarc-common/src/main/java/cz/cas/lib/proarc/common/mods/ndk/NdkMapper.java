@@ -253,7 +253,8 @@ public abstract class NdkMapper {
                 put(NdkPlugin.MODEL_CHAPTER, "model:internalpart");
                 put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
                 put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
-                put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monographunit");
+                put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
+                put(NdkPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
                 put(NdkPlugin.MODEL_PERIODICAL, "model:periodical");
                 put(NdkPlugin.MODEL_PERIODICALISSUE, "model:periodicalitem");
                 put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "model:supplement");

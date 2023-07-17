@@ -616,6 +616,11 @@ public final class Kramerius4Export {
             throw new MetsExportException(pid, "K4 export - nevytvoren element pro " + pid, false, null);
         } else {
             String model = ExportUtils.getModel(element.getModel());
+            if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(model)) {
+                if (element.getParent() != null && NdkPlugin.MODEL_MONOGRAPHTITLE.equals(ExportUtils.getModel(element.getParent().getModel()))) {
+                    throw new MetsExportException("Nepovolená vazba - Ndk Svazek monografie pod Ndk Vícedílnou monografii.", false);
+                }
+            }
 //            if (NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model) || NdkAudioPlugin.MODEL_PAGE.equals(model)) {
             if (NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
                 ModsDefinition mods = getMods(element.getOriginalPid());
@@ -824,7 +829,7 @@ public final class Kramerius4Export {
             Element typeElm = (Element) typeNodes.item(i);
             String type = typeElm.getTextContent();
             String k4ModelId;
-            if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type) || K4Plugin.MODEL_MONOGRAPH.equals(type))) {
+            if (hasParent && (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type) || K4Plugin.MODEL_MONOGRAPH.equals(type))) {
                 k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
                 k4ModelId = kramerius4ExportOptions.getModelMap().get(type);
@@ -958,7 +963,7 @@ public final class Kramerius4Export {
             List<Element> relations = editor.getRelations();
 
             setOaiId(pid, relations, doc);
-            
+
             setImportFile(editor, relations, doc);
 
             setPolicy(policy, relations, doc);
@@ -979,7 +984,7 @@ public final class Kramerius4Export {
 
             String modelId = editor.getModel();
             String k4ModelId;
-            if (hasParent && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) || OldPrintPlugin.MODEL_VOLUME.equals(modelId))) {
+            if (hasParent && (OldPrintPlugin.MODEL_VOLUME.equals(modelId))) {
                 k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
                 k4ModelId = kramerius4ExportOptions.getModelMap().get(modelId);

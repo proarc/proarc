@@ -92,6 +92,7 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_CARTOGRAPHIC, "hasUnit");
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "hasIntCompPart");
             put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "hasUnit");
+            put(NdkPlugin.MODEL_MONOGRAPHUNIT, "hasUnit");
             put(NdkPlugin.MODEL_PERIODICALISSUE, "hasItem");
             put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "hasIntCompPart");
             put(NdkPlugin.MODEL_PERIODICALVOLUME, "hasVolume");
@@ -124,7 +125,7 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
             put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
-            // XXX should be model:monographunit in case the parent is monograph
+            put(NdkPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
             put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
             put(NdkPlugin.MODEL_PERIODICAL, "model:periodical");
             put(NdkPlugin.MODEL_PERIODICALISSUE, "model:periodicalitem");
@@ -158,7 +159,7 @@ public final class Kramerius4ExportOptions {
             put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
             put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
             put("model:monograph", NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            put("model:monographunit", NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            put("model:monographunit", NdkPlugin.MODEL_MONOGRAPHUNIT);
             put("model:periodical", NdkPlugin.MODEL_PERIODICAL);
             put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
             put("model:periodicalvolume", NdkPlugin.MODEL_PERIODICALVOLUME);

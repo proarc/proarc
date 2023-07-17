@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Lukas Sykora
+ * Copyright (C) 2023 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,12 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk;
+package cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
+import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
@@ -35,21 +36,21 @@ import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
- * Change Ndk Monograph Volume to Ndk Monograph Title
+ * Change K4 Monograph Unit to Ndk Monograph Unit
  *
  * @author Lukas Sykora
  */
-public class ChangeNdkMonographVolumeToNdkMonographTitleAction extends AbstractAction {
+public class ChangeK4MonographUnitToNdkMonographUnitAction extends AbstractAction {
 
     private final ClientMessages i18n;
 
-    public ChangeNdkMonographVolumeToNdkMonographTitleAction(ClientMessages i18n) {
-        this(i18n, i18n.ChangeNdkMonographVolumeToNdkMonographTitleAction_Title(),
+    public ChangeK4MonographUnitToNdkMonographUnitAction(ClientMessages i18n) {
+        this(i18n, i18n.ChangeK4MonographUnitToNdkMonographUnitAction_Title(),
                 "[SKIN]/headerIcons/transfer.png",
                 i18n.ChangeModelAction_Hint());
     }
 
-    public ChangeNdkMonographVolumeToNdkMonographTitleAction(ClientMessages i18n, String title, String icon, String tooltip) {
+    public ChangeK4MonographUnitToNdkMonographUnitAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
     }
@@ -86,7 +87,9 @@ public class ChangeNdkMonographVolumeToNdkMonographTitleAction extends AbstractA
             DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (modelId != null && (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId))) {
+                if (modelId != null && (K4Plugin.MODEL_MONOGRAPHUNIT.equals(modelId) ||
+                        K4Plugin.MODEL_MONOGRAPH.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)
+                        || NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId))) {
                     accept = true;
                     continue;
                 }
@@ -100,14 +103,14 @@ public class ChangeNdkMonographVolumeToNdkMonographTitleAction extends AbstractA
     private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkMonographVolumeToNdkMonographTitle();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeK4MonographUnitToNdkMonographUnit();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (hasValidationError(response)) {
                     handleValidations(response);
                 } else if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.ChangeNdkMonographTitleToClippingTitleAction_FinishStep_Msg());
+                    StatusView.getInstance().show(i18n.ChangeK4MonographUnitToNdkMonographUnitAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);

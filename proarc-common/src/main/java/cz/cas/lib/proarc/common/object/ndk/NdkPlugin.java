@@ -72,6 +72,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
     public static final String MODEL_PERIODICALISSUE = "model:ndkperiodicalissue";
     public static final String MODEL_PERIODICALSUPPLEMENT = "model:ndkperiodicalsupplement";
     public static final String MODEL_MONOGRAPHTITLE = "model:ndkmonographtitle";
+    public static final String MODEL_MONOGRAPHUNIT = "model:ndkmonographunit";
     public static final String MODEL_MONOGRAPHVOLUME = "model:ndkmonographvolume";
     public static final String MODEL_MONOGRAPHSUPPLEMENT = "model:ndkmonographsupplement";
     public static final String MODEL_CARTOGRAPHIC = "model:ndkmap";
@@ -179,6 +180,16 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 new RelationCriteria[] {new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
+                MODEL_MONOGRAPHUNIT, null, null,
+                Arrays.asList(new ElementType("NDK Monograph Unit", "en"), new ElementType("NDK Svazek Vícedílné monografie", "cs")),
+                ModsConstants.NS,
+                MODEL_MONOGRAPHUNIT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
                 MODEL_MONOGRAPHVOLUME, true, null,
                 Arrays.asList(new ElementType("NDK Monograph Volume", "en"), new ElementType("NDK Svazek monografie", "cs")),
                 ModsConstants.NS,
@@ -186,8 +197,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
+                        DatastreamEditorType.ATM)
                 ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPHSUPPLEMENT, null, null,
@@ -198,7 +208,9 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID)}
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID)}
                 ).setPriority(2));
         models.add(new MetaModel(
                 MODEL_CHAPTER, null, null,
@@ -209,7 +221,9 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID)}
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_CARTOGRAPHIC, true, null,
@@ -243,6 +257,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 new RelationCriteria[] {
                         new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
@@ -264,6 +279,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 new RelationCriteria[]{
                         new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkPlugin.MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkPlugin.MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),

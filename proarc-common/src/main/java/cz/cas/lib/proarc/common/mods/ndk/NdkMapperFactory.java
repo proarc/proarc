@@ -53,6 +53,7 @@ public class NdkMapperFactory {
         mappers.put(NdkPlugin.MODEL_ARTICLE, NdkArticleMapper::new);
         mappers.put(NdkPlugin.MODEL_PICTURE, NdkPictureMapper::new);
         mappers.put(NdkPlugin.MODEL_MONOGRAPHTITLE, NdkMonographTitleMapper::new);
+        mappers.put(NdkPlugin.MODEL_MONOGRAPHUNIT, NdkMonographUnitMapper::new);
         mappers.put(NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkMonographVolumeMapper::new);
         mappers.put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkMonographSupplementMapper::new);
         mappers.put(NdkPlugin.MODEL_CHAPTER, NdkChapterMapper::new);

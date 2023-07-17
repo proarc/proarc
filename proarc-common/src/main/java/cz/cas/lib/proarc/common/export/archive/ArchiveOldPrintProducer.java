@@ -2,6 +2,7 @@ package cz.cas.lib.proarc.common.export.archive;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.export.ExportResultLog;
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -17,7 +18,7 @@ public class ArchiveOldPrintProducer extends ArchiveProducer {
     }
 
     @Override
-    protected List<List<DigitalObjectElement>> selectObjects(List<String> pids) {
+    protected List<List<DigitalObjectElement>> selectObjects(List<String> pids) throws MetsExportException {
         ArchiveObjectSelector selector = new ArchiveOldPrintObjectSelector(crawler);
         try {
             selector.select(pids);

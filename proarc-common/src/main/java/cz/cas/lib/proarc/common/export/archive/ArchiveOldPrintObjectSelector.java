@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.export.archive;
 
+import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -35,7 +36,7 @@ public class ArchiveOldPrintObjectSelector extends ArchiveObjectSelector {
     }
 
     @Override
-    protected void searchPath(List<DigitalObjectElement> entryPath) throws DigitalObjectException {
+    protected void searchPath(List<DigitalObjectElement> entryPath) throws DigitalObjectException, MetsExportException {
         DigitalObjectElement entry = entryPath.get(0);
         if (processedPids.contains(entry.getPid())) {
             return ;

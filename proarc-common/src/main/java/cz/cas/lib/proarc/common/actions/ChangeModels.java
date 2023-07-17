@@ -118,8 +118,8 @@ public class ChangeModels {
             }
             return null;
         } catch (DigitalObjectException ex) {
-            LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items.") ;
-            return new ChangeModelResult(updatedPid, new DigitalObjectException(pid, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + "items."));
+            LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items.") ;
+            return new ChangeModelResult(updatedPid, new DigitalObjectException(pid, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items."));
         }
     }
 
@@ -221,6 +221,9 @@ public class ChangeModels {
                     case NdkPlugin.MODEL_MONOGRAPHTITLE:
                         mods.getGenre().clear();
                         break;
+                    case NdkPlugin.MODEL_MONOGRAPHUNIT:
+                        // no metadata change needed
+                        break;
                     default:
                         throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported previous model (" + oldModel + ").");
                 }
@@ -229,6 +232,15 @@ public class ChangeModels {
                 switch (oldModel) {
                     case NdkPlugin.MODEL_MONOGRAPHVOLUME:
                         mods.getGenre().clear();
+                        break;
+                    default:
+                        throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported previous model (" + oldModel + ").");
+                }
+                break;
+            case NdkPlugin.MODEL_MONOGRAPHUNIT:
+                switch (oldModel) {
+                    case NdkPlugin.MODEL_MONOGRAPHVOLUME:
+                        // no metadata change needed
                         break;
                     default:
                         throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported previous model (" + oldModel + ").");
@@ -263,12 +275,13 @@ public class ChangeModels {
                 fixNdkPeriodicalIssueFromK4PeriodicalIssue(mods, parentPid);
                 break;
             case NdkPlugin.MODEL_MONOGRAPHVOLUME:
+            case NdkPlugin.MODEL_MONOGRAPHUNIT:
                 switch (oldModel) {
                     case K4Plugin.MODEL_MONOGRAPH:
                         fixNdkMonographVolumeFromK4Monograph(mods, parentPid);
                         break;
                     case K4Plugin.MODEL_MONOGRAPHUNIT:
-                        fixNdkMonographVolumeFromK4MonographUnit(mods, parentPid);
+                        fixNdkMonographVolumeOrUnitFromK4MonographUnit(mods, parentPid);
                         break;
                     default:
                         throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported previous model (" + oldModel + ").");
@@ -279,7 +292,7 @@ public class ChangeModels {
         }
     }
 
-    private void fixNdkMonographVolumeFromK4MonographUnit(ModsDefinition mods, String parentPid) throws DigitalObjectException {
+    private void fixNdkMonographVolumeOrUnitFromK4MonographUnit(ModsDefinition mods, String parentPid) throws DigitalObjectException {
         LOG.info("Updating mods for Ndk Monograph Volume (previous mode K4 Monograph Unit).");
         ModsDefinition parentMods = getParentMods(parentPid);
 

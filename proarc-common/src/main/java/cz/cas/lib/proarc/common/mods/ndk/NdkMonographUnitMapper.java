@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jan Pokorsky
+ * Copyright (C) 2023 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
@@ -59,9 +58,9 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
- * @author Jan Pokorsky
+ * @author Lukas Sykora
  */
-public class NdkMonographVolumeMapper extends RdaNdkMapper {
+public class NdkMonographUnitMapper extends RdaNdkMapper {
 
     private boolean addTextResource = true;
 
@@ -195,11 +194,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
         addName(mods.getName(), dc.getCreators());
         addNameIdentifier(mods.getName(), dc.getCreators());
 
-        if (getModelId().equals(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME)) {
-            addElementType(dc.getTypes(), "model:electronicmonograph");
-        } else {
-            addElementType(dc.getTypes(), getDcType());
-        }
+        addElementType(dc.getTypes(), getDcType());
 
         addOriginInfo(mods.getOriginInfo(), dc);
         addLanguage(mods.getLanguage(), dc);

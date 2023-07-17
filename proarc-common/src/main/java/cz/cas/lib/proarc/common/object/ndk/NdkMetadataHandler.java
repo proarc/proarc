@@ -206,6 +206,16 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
+            title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHUNIT);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+                inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
+                inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            }
             title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
             if (title != null) {
                 ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
@@ -229,7 +239,16 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
-        } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
+            title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHUNIT);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+                inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            }
+//        } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
+        } else if (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
             //issue 540
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHTITLE);
             if (title != null) {

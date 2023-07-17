@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Lukas Sykora
+ * Copyright (C) 2023 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,21 +35,21 @@ import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
- * Change Ndk Monograph Volume to Ndk Monograph Title
+ * Change Ndk Monograph Volume to Ndk Monograph Unit
  *
  * @author Lukas Sykora
  */
-public class ChangeNdkMonographVolumeToNdkMonographTitleAction extends AbstractAction {
+public class ChangeNdkMonographVolumeToNdkMonographUnitAction extends AbstractAction {
 
     private final ClientMessages i18n;
 
-    public ChangeNdkMonographVolumeToNdkMonographTitleAction(ClientMessages i18n) {
-        this(i18n, i18n.ChangeNdkMonographVolumeToNdkMonographTitleAction_Title(),
+    public ChangeNdkMonographVolumeToNdkMonographUnitAction(ClientMessages i18n) {
+        this(i18n, i18n.ChangeNdkMonographVolumeToNdkMonographUnitAction_Title(),
                 "[SKIN]/headerIcons/transfer.png",
                 i18n.ChangeModelAction_Hint());
     }
 
-    public ChangeNdkMonographVolumeToNdkMonographTitleAction(ClientMessages i18n, String title, String icon, String tooltip) {
+    public ChangeNdkMonographVolumeToNdkMonographUnitAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
     }
@@ -86,7 +86,7 @@ public class ChangeNdkMonographVolumeToNdkMonographTitleAction extends AbstractA
             DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (modelId != null && (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId))) {
+                if (modelId != null && (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId))) {
                     accept = true;
                     continue;
                 }
@@ -100,14 +100,14 @@ public class ChangeNdkMonographVolumeToNdkMonographTitleAction extends AbstractA
     private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkMonographVolumeToNdkMonographTitle();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkMonographVolumeToNdkMonographUnit();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (hasValidationError(response)) {
                     handleValidations(response);
                 } else if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.ChangeNdkMonographTitleToClippingTitleAction_FinishStep_Msg());
+                    StatusView.getInstance().show(i18n.ChangeNdkMonographVolumeToNdkMonographUnitAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);

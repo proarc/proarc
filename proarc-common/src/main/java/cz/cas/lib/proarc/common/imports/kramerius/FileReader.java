@@ -123,6 +123,7 @@ public class FileReader {
             // put("model:monograph", NdkPlugin.MODEL_MONOGRAPHTITLE);
             put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
             put("model:monograph", NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            put("model:monographunit", NdkPlugin.MODEL_MONOGRAPHUNIT);
             //put("model:periodical", NdkPlugin.MODEL_PERIODICAL);
             //put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
             //put("model:supplement", NdkPlugin.MODEL_PERIODICALSUPPLEMENT);

@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.export.mets.Const;
 import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.export.mets.JHoveOutput;
@@ -232,7 +233,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /**
-     * Returns date od publication if element is monograph volume
+     * Returns date od publication if element is monograph volume or unit
      */
     public static String getYear(IMetsElement metsElement) throws MetsExportException {
         if (isMonograph(metsElement)) {
@@ -274,10 +275,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /**
-     * Returns true if element is monograph volume, else return false
+     * Returns true if element is monograph volume or unit, else return false
      */
     private static boolean isMonograph(IMetsElement metsElement) {
-        return metsElement.getModel().contains(NdkPlugin.MODEL_MONOGRAPHVOLUME);
+        return metsElement.getModel().contains(NdkPlugin.MODEL_MONOGRAPHVOLUME) || metsElement.getModel().contains(NdkPlugin.MODEL_MONOGRAPHUNIT);
     }
 
 
@@ -1948,7 +1949,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      * @throws MetsExportException
      */
-    protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
+        protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
         mets.setTYPE("Monograph");
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
@@ -1963,6 +1964,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             containsUnit = true;
         }
         for (IMetsElement childMetsElement : metsElement.getChildren()) {
+            if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(ExportUtils.getModel(metsElement.getModel()))) {
+                if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(ExportUtils.getModel(childMetsElement.getModel()))) {
+                    throw new MetsExportException("Nepovolená vazba - Ndk Svazek monografie pod Ndk Vícedílnou monografii.", false);
+                }
+            }
             if (Const.MONOGRAPH_UNIT.equals(childMetsElement.getElementType())) {
                 containsUnit = true;
                 break;
