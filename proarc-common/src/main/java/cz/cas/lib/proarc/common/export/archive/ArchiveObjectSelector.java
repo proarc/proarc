@@ -105,6 +105,14 @@ public class ArchiveObjectSelector {
             } else {
                 addSelection(entryPath);
             }
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(modelId)) {
+            DigitalObjectElement parent = entryPath.get(1);
+            if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(parent.getModelId())) {
+                // select the parent issue
+                searchPath(entryPath.subList(1, entryPath.size()));
+            } else {
+                addSelection(entryPath);
+            }
         } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId)
                 || NdkPlugin.MODEL_CHAPTER.equals(modelId)
                 || NdkPlugin.MODEL_PAGE.equals(modelId)

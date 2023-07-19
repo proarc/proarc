@@ -279,6 +279,7 @@ public final class MediaEditor implements DatastreamEditor, Refreshable {
         String modelId = digitalObject.getModelId();
         return modelId != null && (modelId.startsWith("model:bdm") || "model:derFile".equals(modelId) || "model:desFile".equals(modelId)
                 || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)
+                || NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(modelId)
                 || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId) || NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId));
     }
 

@@ -72,8 +72,12 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkEMonographTitle(elm, p);
         } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(model)) {
             return visitNdkEMonographVolume(elm, p);
+        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT.equals(model)) {
+            return visitNdkEMonographSupplement(elm, p);
         } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(model)) {
             return visitNdkEPeriodicalIssue(elm, p);
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(model)) {
+            return visitNdkEPeriodicalSupplement(elm, p);
         } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(model)) {
             return visitNdkEArticle(elm, p);
         } else if (NdkEbornPlugin.MODEL_ECHAPTER.equals(model)) {
@@ -177,6 +181,14 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
     }
 
     public R visitNdkEMonographVolume(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitNdkEMonographSupplement(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitNdkEPeriodicalSupplement(DigitalObjectElement elm, P p) throws VisitorException {
         return visitChildren(elm, p);
     }
 

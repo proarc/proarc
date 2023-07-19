@@ -110,8 +110,10 @@ public final class Kramerius4ExportOptions {
             put(NdkEbornPlugin.MODEL_EARTICLE, "hasIntCompPart");
             put(NdkEbornPlugin.MODEL_ECHAPTER, "hasIntCompPart");
             put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "hasUnit");
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "hasIntCompPart");
             put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "hasItem");
             put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "hasVolume");
+            put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, "hasIntCompPart");
             put(NdkAudioPlugin.MODEL_SONG, "hasSoundUnit");
             put(NdkAudioPlugin.MODEL_TRACK, "containsTrack");
         }

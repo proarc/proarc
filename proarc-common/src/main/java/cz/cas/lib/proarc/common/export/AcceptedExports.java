@@ -52,8 +52,8 @@ public class AcceptedExports {
             // ndkAudio //
             NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK, NdkAudioPlugin.MODEL_PHONOGRAPH,
             // ndkEPlugion //
-            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER,
-            NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL,
+            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
+            NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
             NdkEbornPlugin.MODEL_EARTICLE,
             // chronicle //
             ChroniclePlugin.MODEL_CHRONICLETITLE, ChroniclePlugin.MODEL_CHRONICLEVOLUME, ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT,
@@ -109,8 +109,8 @@ public class AcceptedExports {
 
     private final String EXPORT_NDK_SIP = "ndk_sip";
     private final Set<String> EXPORT_NDK_SIP_MODELS = new HashSet<>(Arrays.asList(
-            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER,
-            NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL,
+            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
+            NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
             NdkEbornPlugin.MODEL_EARTICLE
     ));
 

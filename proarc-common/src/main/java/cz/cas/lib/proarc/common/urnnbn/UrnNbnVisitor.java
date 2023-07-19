@@ -91,8 +91,10 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkPlugin.MODEL_CARTOGRAPHIC,
             NdkPlugin.MODEL_SHEETMUSIC,
             NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME,
+            NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
             NdkEbornPlugin.MODEL_ECHAPTER,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE,
+            NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
             NdkEbornPlugin.MODEL_EARTICLE,
             NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT,
@@ -198,6 +200,36 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     }
 
     @Override
+    public Void visitNdkEPeriodicalSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            if (!NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(registeringObject.getModelId())) {
+                // supplement under issue - ignore
+                // invalid hierarchy
+                p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                        "The supplement under " + registeringObject.toLog());
+            }
+            return null;
+        }
+        try {
+            DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
+            String parentModelId = parent.getModelId();
+            if (parent == DigitalObjectElement.NULL || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(parentModelId)  || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(parentModelId)) {
+                try {
+                    registeringObject = elm;
+                    return processNdkEPeriodicalIssue(elm, p);
+                } finally {
+                    registeringObject = null;
+                }
+            } else {
+                // the visitor started on issue's supplement
+                return visitEnclosingElement2Register(elm, p);
+            }
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        }
+    }
+
+    @Override
     public Void visitNdkMonographVolume(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
         if (registeringObject != null) {
             // invalid hierarchy
@@ -243,7 +275,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            return processNdkEMonographVolume(elm, p);
+            return processNdkEMonographVolumeOrSupplement(elm, p);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {
@@ -274,6 +306,36 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 }
             } else {
                 // the visitor started on volume's supplement
+                return visitEnclosingElement2Register(elm, p);
+            }
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        }
+    }
+
+    @Override
+    public Void visitNdkEMonographSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            if (!(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(registeringObject.getModelId()))) {
+                // supplement under monograph volume - ignore
+                // invalid hierarchy
+                p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                        "The supplement under " + registeringObject.toLog());
+            }
+            return null;
+        }
+        try {
+            DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
+            String parentModelId = parent.getModelId();
+            if (parent == DigitalObjectElement.NULL || NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(parentModelId)) {
+                try {
+                    registeringObject = elm;
+                    return processNdkEMonographVolumeOrSupplement(elm, p);
+                } finally {
+                    registeringObject = null;
+                }
+            } else {
+                // the visitor started on issue's supplement
                 return visitEnclosingElement2Register(elm, p);
             }
         } catch (DigitalObjectException ex) {
@@ -825,7 +887,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         return null;
     }
 
-    private Void processNdkEMonographVolume(DigitalObjectElement elm, UrnNbnContext p)
+    private Void processNdkEMonographVolumeOrSupplement(DigitalObjectElement elm, UrnNbnContext p)
             throws DigitalObjectException, VisitorException {
 
         final String pid = elm.getPid();

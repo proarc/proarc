@@ -28,8 +28,10 @@ import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEArticleForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalIssueForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalSupplementForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalVolumeForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographChapterForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographSupplementForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographTitleForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographVolumeForm;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
@@ -74,11 +76,13 @@ public final class NdkForms {
         mappers.put(NdkAudioPlugin.MODEL_SONG, new NdkSoundRecordingForm()::build);
         mappers.put(NdkAudioPlugin.MODEL_TRACK, new NdkSoundPartForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, new NdkEmonographVolumeForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, new NdkEmonographSupplementForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_ECHAPTER, new NdkEmonographChapterForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, new NdkEmonographTitleForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICAL, new NdkEPeriodicalForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, new NdkEPeriodicalIssueForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, new NdkEPeriodicalVolumeForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, new NdkEPeriodicalSupplementForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EARTICLE, new NdkEArticleForm()::build);
         mappers.put(NdkPlugin.MODEL_NDK_PAGE, new NdkNewPageForm()::build);
     }

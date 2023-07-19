@@ -265,9 +265,11 @@ public abstract class NdkMapper {
                 put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
                 put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "model:electronicmonograph");
                 put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "model:electronicmonographunit");
+                put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "model:supplement");
                 put(NdkEbornPlugin.MODEL_EPERIODICAL, "model:electronic_periodical");
                 put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "model:periodicvolume");
                 put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "model:periodicitem");
+                put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, "model:supplement");
                 put(NdkEbornPlugin.MODEL_ECHAPTER, "model:internalpart");
                 put(NdkEbornPlugin.MODEL_EARTICLE, "model:internalpart");
             }

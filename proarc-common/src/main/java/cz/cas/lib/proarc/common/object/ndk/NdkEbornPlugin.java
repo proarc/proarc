@@ -52,20 +52,24 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
     private static final String ID = "ndkEborn";
 
     public static final String MODEL_EMONOGRAPHVOLUME = "model:ndkemonographvolume";
+    public static final String MODEL_EMONOGRAPHSUPPLEMENT = "model:ndkemonographsupplement";
     public static final String MODEL_EMONOGRAPHTITLE = "model:ndkemonographtitle";
     public static final String MODEL_ECHAPTER = "model:ndkechapter";
 
     public static final String MODEL_EPERIODICALISSUE = "model:ndkeperiodicalissue";
     public static final String MODEL_EPERIODICALVOLUME = "model:ndkeperiodicalvolume";
     public static final String MODEL_EPERIODICAL = "model:ndkeperiodical";
+    public static final String MODEL_EPERIODICALSUPPLEMENT = "model:ndkeperiodicalsupplement";
     public static final String MODEL_EARTICLE = "model:ndkearticle";
 
     public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, Const.MONOGRAPH_UNIT);
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, Const.SUPPLEMENT);
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_ECHAPTER, Const.CHAPTER);
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICALVOLUME, Const.PERIODICAL_VOLUME);
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICAL, Const.PERIODICAL_TITLE);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, Const.SUPPLEMENT);
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EPERIODICALISSUE, Const.ISSUE);
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EARTICLE, Const.ARTICLE);
     }});
@@ -100,6 +104,17 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
                 new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_EMONOGRAPHSUPPLEMENT, null, null,
+                Arrays.asList(new ElementType("NDK eMonograph Supplement", "en"), new ElementType("NDK Příloha eMonografie", "cs")),
+                ModsConstants.NS,
+                MODEL_EMONOGRAPHSUPPLEMENT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHVOLUME, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
                 MODEL_ECHAPTER, null, null,
@@ -148,6 +163,19 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM, DatastreamEditorType.MEDIA),
                 new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_EPERIODICALSUPPLEMENT, null, null,
+                Arrays.asList(new ElementType("NDK ePeriodical Supplement", "en"), new ElementType("NDK Příloha ePeriodika", "cs")),
+                ModsConstants.NS,
+                MODEL_EPERIODICALSUPPLEMENT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
                 MODEL_EARTICLE, null, null,
