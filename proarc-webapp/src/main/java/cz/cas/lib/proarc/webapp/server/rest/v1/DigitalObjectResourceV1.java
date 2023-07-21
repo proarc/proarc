@@ -178,8 +178,11 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_CHANGING_MODEL_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IN_GETTING_CHILDREN;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IS_LOCKED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNLOCKING_OBJECT_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_DONT_BE_IGNORED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_LOCKED;
 
@@ -1514,7 +1517,7 @@ public class DigitalObjectResourceV1 {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
             UpdatePages updatePages = new UpdatePages();
             updatePages.editBracketsLocal(objects, pids, true, false);
-            return new SmartGwtResponse<>();
+            return returnFunctionSuccess();
         } else {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
             if (isLocked(pids)) {
@@ -1525,7 +1528,7 @@ public class DigitalObjectResourceV1 {
 
             UpdatePages updatePages = new UpdatePages();
             updatePages.editBrackets(pids, true, false);
-            return new SmartGwtResponse<>();
+            return returnFunctionSuccess();
         }
     }
 
@@ -1547,7 +1550,7 @@ public class DigitalObjectResourceV1 {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
             UpdatePages updatePages = new UpdatePages();
             updatePages.editBracketsLocal(objects, pids, false, true);
-            return new SmartGwtResponse<>();
+            return returnFunctionSuccess();
         } else {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
             if (isLocked(pids)) {
@@ -1558,7 +1561,7 @@ public class DigitalObjectResourceV1 {
 
             UpdatePages updatePages = new UpdatePages();
             updatePages.editBrackets(pids, false, true);
-            return new SmartGwtResponse<>();
+            return returnFunctionSuccess();
         }
     }
 
@@ -2447,7 +2450,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         for (String pid : pids) {
             LockObject lockObject = new LockObject(appConfig, akubraConfiguration, pid, user.getUserName());
@@ -2457,10 +2460,10 @@ public class DigitalObjectResourceV1 {
                 if (!result.getEx().getMyMessage().equals(LockObject.MSG_ALREADY_LOCKED)) {
                     lockObject.setUnlocked();
                 }
-                throw result.getEx();
+                return returnFunctionError(ERR_UNLOCKING_OBJECT_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2473,7 +2476,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         for (String pid : pids) {
             LockObject lockObject = new LockObject(appConfig, akubraConfiguration, pid, user.getUserName());
@@ -2483,10 +2486,10 @@ public class DigitalObjectResourceV1 {
                 if (!result.getEx().getMyMessage().equals(LockObject.MSG_ALREADY_UNLOCKED)) {
                     lockObject.setLocked();
                 }
-                throw result.getEx();
+                return returnFunctionError(ERR_UNLOCKING_OBJECT_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2513,7 +2516,7 @@ public class DigitalObjectResourceV1 {
             SearchViewItem item = items.get(0);
             return search(item.getPid());
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2526,7 +2529,7 @@ public class DigitalObjectResourceV1 {
     ) throws DigitalObjectException {
 
 
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2539,7 +2542,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
 
         if (isLocked(pids)) {
@@ -2557,10 +2560,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PAGE);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
 
@@ -2574,7 +2577,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2590,10 +2593,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_NDK_PAGE);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2606,7 +2609,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2622,10 +2625,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_PAGE);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2638,7 +2641,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2654,10 +2657,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_NDK_PAGE);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2670,7 +2673,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2687,10 +2690,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2703,7 +2706,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2720,10 +2723,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHVOLUME);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2736,7 +2739,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2752,10 +2755,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHTITLE);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
 
@@ -2769,7 +2772,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2785,10 +2788,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2801,7 +2804,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2817,10 +2820,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_PERIODICAL);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2833,7 +2836,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2850,10 +2853,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_PERIODICALVOLUME);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2866,7 +2869,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2883,14 +2886,14 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_PERIODICALITEM);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
-    @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME)
+    @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
@@ -2899,7 +2902,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2916,15 +2919,15 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_MONOGRAPH);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
-    @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPHT_VOLUME)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME)
+     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeK4MonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
@@ -2932,7 +2935,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2949,10 +2952,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_MONOGRAPHUNIT);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2965,7 +2968,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -2982,10 +2985,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHTITLE);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -2998,7 +3001,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3015,10 +3018,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHVOLUME);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3031,7 +3034,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3048,10 +3051,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_SHEETMUSIC);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3064,7 +3067,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3081,10 +3084,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_SHEETMUSIC);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
 
@@ -3098,7 +3101,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3115,10 +3118,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_CHAPTER);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3131,7 +3134,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3148,10 +3151,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_CHAPTER);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3164,7 +3167,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3181,10 +3184,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PICTURE);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3197,7 +3200,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3214,10 +3217,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_GRAPHICS);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3230,7 +3233,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3247,10 +3250,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_CARTOGRAPHIC);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3263,7 +3266,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3280,10 +3283,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_CARTOGRAPHIC);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3296,7 +3299,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3313,10 +3316,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHVOLUME);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3329,7 +3332,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3346,10 +3349,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_VOLUME);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3362,7 +3365,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3379,10 +3382,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3395,7 +3398,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3412,10 +3415,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_SUPPLEMENT);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3428,7 +3431,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3445,10 +3448,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_VOLUME);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3461,7 +3464,7 @@ public class DigitalObjectResourceV1 {
         checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
-            return new SmartGwtResponse<>();
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         if (isLocked(pids)) {
             return returnValidationError(ERR_IS_LOCKED);
@@ -3478,10 +3481,10 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_VOLUME);
-                throw result.getEx();
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
 
@@ -3532,7 +3535,7 @@ public class DigitalObjectResourceV1 {
                 }
             }
             BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), null, Batch.State.REINDEX_DONE);
-            return new SmartGwtResponse<>();
+            return returnFunctionSuccess();
         } catch (Exception ex) {
             BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), ImportBatchManager.toString(ex), Batch.State.REINDEX_FAILED);
             throw ex;
@@ -3556,7 +3559,7 @@ public class DigitalObjectResourceV1 {
         //Map<String, Integer> map = updateObjects.countObjects(objects);
         updateObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
         LOG.log(Level.INFO, "Update finished, updated " + updateObjects.getUpdatedObjects() + "/" + objects.size() + " object(s).");
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3578,7 +3581,7 @@ public class DigitalObjectResourceV1 {
         }
 
         updateObjects.repair(NdkPlugin.MODEL_ARTICLE);
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -3600,7 +3603,7 @@ public class DigitalObjectResourceV1 {
         }
 
         updateObjects.repair(NdkPlugin.MODEL_NDK_PAGE);
-        return new SmartGwtResponse<>();
+        return returnFunctionSuccess();
     }
 
     private void checkPermission(String role, Permission permission, String... attributes) {
@@ -3792,10 +3795,23 @@ public class DigitalObjectResourceV1 {
     private SmartGwtResponse<SearchViewItem> returnValidationError(String key) {
         SearchViewItem item = new SearchViewItem();
         item.setValidation(returnLocalizedMessage(key));
-        List list = new ArrayList();
-        list.add(item);
+        return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, Collections.singletonList(item));
+    }
 
-        return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, list);
+    private SmartGwtResponse<SearchViewItem> returnFunctionError(String key, DigitalObjectException ex) {
+        return returnFunctionError(key, ex.getMessage());
+    }
+
+    private SmartGwtResponse<SearchViewItem> returnFunctionError(String key, String message) {
+        SearchViewItem item = new SearchViewItem();
+        item.setValidation(returnLocalizedMessage(key, message));
+        return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, Collections.singletonList(item));
+    }
+
+    private SmartGwtResponse<SearchViewItem> returnFunctionSuccess() {
+        SearchViewItem item = new SearchViewItem();
+        item.setStatus("OK");
+        return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, 1, Collections.singletonList(item));
     }
 
     public String returnLocalizedMessage(String key, Object... arguments) {

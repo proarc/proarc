@@ -3,6 +3,8 @@ package cz.cas.lib.proarc.webapp.server.rest;
 public class RestConsts {
 
     public static final String ERR_IS_LOCKED = "Err_is_locked";
+    public static final String ERR_CHANGING_MODEL_FAILED = "Err_changing_model_failed"; // 1 parameter
+    public static final String ERR_UNLOCKING_OBJECT_FAILED = "Err_unlocking_object_failed"; // 1 parameter
     public static final String ERR_MISSING_PARAMETER = "Err_missing_parameter"; // 1 parameter
     public static final String ERR_MISSING_PARAMETERS = "Err_missing_parameters"; // 2 parameters
     public static final String ERR_SAME_PID_AND_PARENT = "Err_same_pid_and_parent"; // 2 parameters
