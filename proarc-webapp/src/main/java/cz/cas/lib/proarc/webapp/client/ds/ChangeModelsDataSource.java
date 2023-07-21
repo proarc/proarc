@@ -97,7 +97,7 @@ public class ChangeModelsDataSource extends ProarcDataSource {
     }
 
     public static ChangeModelsDataSource changeK4MonographToNdkMonographVolume() {
-        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME);
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPH_VOLUME);
     }
 
     public static ChangeModelsDataSource changeK4MonographUnitToNdkMonographVolume() {

@@ -285,7 +285,7 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL = "changeK4PeriodicalToNdkPeriodical";
     public static final String CHANGE_K4_PERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME = "changeK4PeriodicalVolumeToNdkPeriodicalVolume";
     public static final String CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE = "changeK4PeriodicalIssueToNdkPeriodicalIssue";
-    public static final String CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME = "changeK4MonographToNdkMonographVolume";
+    public static final String CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPH_VOLUME = "changeK4MonographToNdkMonographVolume";
     public static final String CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME = "changeK4MonographUnitToNdkMonographVolume";
     public static final String CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_UNIT = "changeK4MonographUnitToNdkMonographUnit";
     public static final String CHANGE_NDK_CHAPTER_TO_STT_CHAPTER = "changeNdkChapterToOldPrintChapter";

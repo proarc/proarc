@@ -1588,7 +1588,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     }
 
     @POST
-    @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPHT_VOLUME)
+    @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
