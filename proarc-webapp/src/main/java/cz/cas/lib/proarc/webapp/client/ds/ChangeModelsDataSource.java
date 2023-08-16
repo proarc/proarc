@@ -52,6 +52,14 @@ public class ChangeModelsDataSource extends ProarcDataSource {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_PAGE_TO_PAGE);
     }
 
+    public static ChangeModelsDataSource changePageToSttPage() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_PAGE_TO_STT_PAGE);
+    }
+
+    public static ChangeModelsDataSource changeSttPageToPage() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_STT_PAGE_TO_PAGE);
+    }
+
     public static ChangeModelsDataSource changeClippingsVolumeToNdkMonographVolume() {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME);
     }
@@ -142,6 +150,10 @@ public class ChangeModelsDataSource extends ProarcDataSource {
 
     public static ChangeModelsDataSource changeOldPrintMonographSupplementToNdkMonographSupplement() {
         return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT);
+    }
+
+    public static ChangeModelsDataSource changeOldPrintGraphicToToOldPrintMonographVolume() {
+        return new ChangeModelsDataSource(RestConfig.URl_CHANGE_STT_GRAPHIC_TO_STT_MONOGRAPH_VOLUME);
     }
 
     public static ChangeModelsDataSource changeOldPrintMonographVolumeToOldPrintMusicSheet() {

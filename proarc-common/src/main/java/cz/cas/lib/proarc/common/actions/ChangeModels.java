@@ -191,6 +191,7 @@ public class ChangeModels {
             case NdkPlugin.MODEL_NDK_PAGE:
                 fixNdkPageMods(mods);
                 break;
+            case NdkPlugin.MODEL_PAGE:
             case NdkPlugin.MODEL_CARTOGRAPHIC:
             case NdkPlugin.MODEL_CHAPTER:
             case NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT:
@@ -199,6 +200,7 @@ public class ChangeModels {
             case NdkPlugin.MODEL_SHEETMUSIC:
             case OldPrintPlugin.MODEL_GRAPHICS:
             case OldPrintPlugin.MODEL_SHEETMUSIC:
+            case OldPrintPlugin.MODEL_VOLUME:
                 // no metadata change needed
                 break;
             default:
@@ -215,7 +217,16 @@ public class ChangeModels {
                 fixNdkPageMods(mods);
                 break;
             case OldPrintPlugin.MODEL_PAGE:
-                fixOldPrintMods(mods);
+                switch (oldModel) {
+                    case NdkPlugin.MODEL_NDK_PAGE:
+                        fixOldPrintMods(mods);
+                        break;
+                    case NdkPlugin.MODEL_PAGE:
+                        break;
+                    default:
+                        throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported old model (" + oldModel + ").");
+                }
+                break;
             case NdkPlugin.MODEL_MONOGRAPHVOLUME:
                 switch (oldModel) {
                     case NdkPlugin.MODEL_MONOGRAPHTITLE:
