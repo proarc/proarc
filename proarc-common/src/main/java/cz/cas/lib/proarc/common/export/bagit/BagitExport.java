@@ -52,14 +52,30 @@ public class BagitExport {
 
 
     public void bagit() throws IOException {
-        BagitProcess process = new BagitProcess(appConfiguration.getBagitExportPostProcessor(), exportFolder);
-        if (process != null) {
-            process.run();
-
-            if (!process.isOk()) {
-                throw new IOException("Processing Bagit failed. \n" + process.getFullOutput());
+        String scriptPath = appConfiguration.getBagitScriptPath();
+        File script = new File(scriptPath);
+        if (scriptPath == null || script == null || !script.exists()) {
+            BagitProcess process = new BagitProcess(appConfiguration.getBagitExportPostProcessor(), exportFolder);
+            if (process != null) {
+                process.run();
+                if (!process.isOk()) {
+                    throw new IOException("Processing Bagit failed. \n" + process.getFullOutput());
+                }
+            } else {
+                throw new IOException("Processing Bagit failed - process is null.");
+            }
+        } else {
+            BagitExternalProcess process = new BagitExternalProcess(appConfiguration.getBagitExportPostProcessor(), script, exportFolder);
+            if (process != null) {
+                process.run();
+                if (!process.isOk()) {
+                    throw new IOException("Processing external Bagit failed. \n" + process.getFullOutput());
+                }
+            } else {
+                throw new IOException("Processing external Bagit failed - process is null.");
             }
         }
+
     }
 
     public void zip() throws IOException {

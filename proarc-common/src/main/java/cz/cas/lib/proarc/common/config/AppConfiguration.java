@@ -93,6 +93,7 @@ public final class AppConfiguration {
     public static final String EXPORT_LTP_CESNET_POST_PROCESSOR = "export.ltp_cesnet_post_processor.processor";
     public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
     public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
+    public static final String EXPORT_BAGIT_SCRIPT_PATH = "export.bagit.scriptPath";
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
@@ -162,6 +163,10 @@ public final class AppConfiguration {
 
     public String getLtpCesnetScriptPath() {
         return config.getString(EXPORT_LTP_CESNET_SCRIPT_PATH);
+    }
+
+    public String getBagitScriptPath() {
+        return config.getString(EXPORT_BAGIT_SCRIPT_PATH);
     }
 
     public String getFedoraUsername() {

@@ -2600,6 +2600,70 @@ public class DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_STT_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changePageToSttPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
+        if (pids == null || pids.isEmpty()) {
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_PAGE, OldPrintPlugin.MODEL_PAGE);
+            changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PAGE);
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
+            }
+        }
+        return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeSttPageToPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
+        if (pids == null || pids.isEmpty()) {
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_PAGE);
+            changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_PAGE);
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
+            }
+        }
+        return returnFunctionSuccess();
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeSttPageToNdkPage(
@@ -3547,6 +3611,39 @@ public class DigitalObjectResourceV1 {
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
                 changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_VOLUME);
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
+            }
+        }
+        return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_STT_MONOGRAPH_VOLUME)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeOldPrintGraphicToOldPrintMonographVolume(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
+        if (pids == null || pids.isEmpty()) {
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_VOLUME);
+            changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_GRAPHICS);
                 return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }

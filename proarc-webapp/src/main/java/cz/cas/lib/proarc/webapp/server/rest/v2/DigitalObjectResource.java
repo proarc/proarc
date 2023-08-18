@@ -1353,6 +1353,58 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_STT_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changePageToSttPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        try {
+            return super.changePageToSttPage(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeSttPageToPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        try {
+            return super.changeSttPageToPage(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeSttPageToNdkPage(
@@ -2099,6 +2151,32 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         }
         try {
             return super.changeOldPrintMonographVolumeToOldprintGraphic(pids);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_STT_MONOGRAPH_VOLUME)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeOldPrintGraphicToOldPrintMonographVolume(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        try {
+            return super.changeOldPrintGraphicToOldPrintMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());

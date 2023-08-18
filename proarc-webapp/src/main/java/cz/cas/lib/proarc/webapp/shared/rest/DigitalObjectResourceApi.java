@@ -274,6 +274,8 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_STT_PAGE_TO_NDK_PAGE = "changeSttPageToNdkPage";
     public static final String CHANGE_NDK_PAGE_TO_PAGE = "changeNdkPageToPage";
     public static final String CHANGE_NDK_PAGE_TO_STT_PAGE = "changeNdkPageToSttPage";
+    public static final String CHANGE_PAGE_TO_STT_PAGE = "changePageToSttPage";
+    public static final String CHANGE_STT_PAGE_TO_PAGE = "changeSttPageToPage";
     public static final String CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME = "changeClippingsVolumeToNdkMonographVolume";
     public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME = "changeNdkMonographVolumeToClippingsVolume";
     public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE = "changeNdkMonographVolumeToNdkMonographTitle";
@@ -300,6 +302,7 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET = "changeOldPrintMusicSheetToNdkMusicSheet";
     public static final String CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT = "changeNdkMonographSupplementToOldPrintMonographSupplement";
     public static final String CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT = "changeOldPrintMonographSupplementToNdkMonographSupplement";
+    public static final String CHANGE_STT_GRAPHIC_TO_STT_MONOGRAPH_VOLUME = "changeOldPrintGraphicToOldprintMonographVolume";
     public static final String CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC = "changeOldPrintMonographVolumeToOldPrintGraphic";
     public static final String CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET = "changeOldPrintMonographVolumeToOldPrintMusicSheet";
 

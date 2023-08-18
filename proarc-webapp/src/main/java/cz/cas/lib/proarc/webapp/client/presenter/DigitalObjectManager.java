@@ -44,6 +44,25 @@ import cz.cas.lib.proarc.webapp.client.action.CopyObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkCartographicToOldprintCartographicAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkChapterToOldprintChapterAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographSupplementToOldprintMonographSupplementAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographVolumeToOldprintMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMusicsheetToOldprintMusicsheetAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkPictureToOldprintGraphicAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintChapterToNdkChapterAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintGraphicToNdkPictureAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintCartographicToNdkCartographicAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintGraphicToOldPrintMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToNdkMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToOldPrintGraphicAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToOldPrintMusicSheetAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMusicsheetToNdkMusicsheetAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographSupplementToNdkMonographSupplementAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangePageToSttPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeSttPageToPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.indexObjects.IndexAllObjectsAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.LockObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
@@ -158,6 +177,8 @@ public final class DigitalObjectManager {
     private GenerateMasterCopyAction generateMasterCopyAction;
     private ChangePageToNdkPageAction changePageToNdkPageAction;
     private ChangeNdkPageToPageAction changeNdkPageToPageAction;
+    private ChangePageToSttPageAction changePageToSttPageAction;
+    private ChangeSttPageToPageAction changeSttPageToPageAction;
     private ChangeSttPageToNdkPageAction changeSttPageToNdkPageAction;
     private ChangeNdkPageToSttPageAction changeNdkPageToSttPageAction;
     private ChangeClippingsVolumeToNdkMonographVolumeAction changeClippingsVolumeToNdkMonographVolumeAction;
@@ -186,6 +207,7 @@ public final class DigitalObjectManager {
     private ChangeOldprintMonographVolumeToNdkMonographVolumeAction changeOldprintMonographToNdkMonographAction;
     private ChangeOldprintMonographVolumeToOldPrintMusicSheetAction changeOldprintMonographVolumeToOldPrintMusicSheetAction;
     private ChangeOldprintMonographVolumeToOldPrintGraphicAction changeOldprintMonographVolumeToOldPrintGraphicAction;
+    private ChangeOldprintGraphicToOldPrintMonographVolumeAction changeOldprintGraphicToOldprintMonographVolumeAction;
     private ChangeOldprintMusicsheetToNdkMusicsheetAction changeOldprintMusicsheetToNdkMusicsheetAction;
     private ChangeOldprintMonographSupplementToNdkMonographSupplementAction changeOldprintSupplementToNdkSupplementAction;
     private UpdateNdkArticleAction updateNdkArticleAction;
@@ -363,6 +385,8 @@ public final class DigitalObjectManager {
         generateMasterCopyAction = new GenerateMasterCopyAction(i18n);
         changePageToNdkPageAction = new ChangePageToNdkPageAction(i18n);
         changeNdkPageToPageAction = new ChangeNdkPageToPageAction(i18n);
+        changePageToSttPageAction = new ChangePageToSttPageAction(i18n);
+        changeSttPageToPageAction = new ChangeSttPageToPageAction(i18n);
         changeSttPageToNdkPageAction = new ChangeSttPageToNdkPageAction(i18n);
         changeNdkPageToSttPageAction = new ChangeNdkPageToSttPageAction(i18n);
         changeClippingsVolumeToNdkMonographVolumeAction = new ChangeClippingsVolumeToNdkMonographVolumeAction(i18n);
@@ -518,6 +542,7 @@ public final class DigitalObjectManager {
         changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintMonographToNdkMonographAction, actionSource, false));
 //        changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintMonographVolumeToOldPrintGraphicAction, actionSource, false));
 //        changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintMonographVolumeToOldPrintMusicSheetAction, actionSource, false));
+//        changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintGraphicToOldprintMonographVolumeAction, actionSource, false));
         changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintMusicsheetToNdkMusicsheetAction, actionSource, false));
         changeSttModelsMenu.addItem(Actions.asMenuItem(changeOldprintSupplementToNdkSupplementAction, actionSource, false));
         changeNdkModels.setSubmenu(changeSttModelsMenu);
@@ -531,6 +556,8 @@ public final class DigitalObjectManager {
         changePageModelsMenu.addItem(Actions.asMenuItem(changeNdkPageToPageAction, actionSource, false));
         changePageModelsMenu.addItem(Actions.asMenuItem(changeSttPageToNdkPageAction, actionSource, false));
         changePageModelsMenu.addItem(Actions.asMenuItem(changeNdkPageToSttPageAction, actionSource, false));
+        changePageModelsMenu.addItem(Actions.asMenuItem(changePageToSttPageAction, actionSource, false));
+        changePageModelsMenu.addItem(Actions.asMenuItem(changeSttPageToPageAction, actionSource, false));
         changePageModels.setSubmenu(changePageModelsMenu);
         return changePageModels;
     }

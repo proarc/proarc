@@ -85,7 +85,7 @@ public class ArchiveObjectSelector {
                 || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)
                 || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)
                 ) {
-            if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) && entryPath.size() > 0 && entryPath.get(1) != null &&
+            if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) && entryPath.size() > 1 && entryPath.get(1) != null &&
                     NdkPlugin.MODEL_MONOGRAPHTITLE.equals(entryPath.get(1).getModelId())) {
                 throw new MetsExportException("Nepovolená vazba - Ndk Svazek monografie pod Ndk Vícedílnou monografii.");
             }
