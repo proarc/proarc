@@ -38,7 +38,7 @@ public class KImporter {
         this.instance = instance;
     }
 
-    public String importToKramerius(File exportFolder, boolean updateExisting) throws JSONException, IOException, InterruptedException {
+    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting) throws JSONException, IOException, InterruptedException {
         String krameriusVersion = instance.getVersion();
         if (krameriusVersion == null || krameriusVersion.isEmpty()) {
             LOG.severe("Kramerius have to set field \"version\".");

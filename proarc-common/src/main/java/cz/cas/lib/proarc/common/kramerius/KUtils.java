@@ -34,6 +34,16 @@ public class KUtils {
     public static final String KRAMERIUS_PROCESS_PLANNED = "PLANNED";
     public static final String KRAMERIUS_PROCESS_RUNNING = "RUNNING";
 
+    public static final String KRAMERIUS_BATCH_NO_BATCH_V5 = "NO_BATCH";
+    public static final String KRAMERIUS_BATCH_STARTED_V5 = "BATCH_STARTED";
+    public static final String KRAMERIUS_BATCH_FINISHED_V5 = "BATCH_FINISHED ";
+    public static final String KRAMERIUS_BATCH_FAILED_V5 = "BATCH_FAILED";
+
+    public static final String KRAMERIUS_BATCH_RUNNING_V7 = "RUNNING";
+    public static final String KRAMERIUS_BATCH_PLANNED_V7 = "PLANNED";
+    public static final String KRAMERIUS_BATCH_FINISHED_V7 = "FINISHED";
+    public static final String KRAMERIUS_BATCH_FAILED_V7 = "FAILED";
+    public static final String KRAMERIUS_BATCH_KILLED_V7 = "KILLED";
     public static DigitalObjectHandler findHandler(String pid, String krameriusInstanceId)
             throws DigitalObjectNotFoundException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
@@ -196,6 +206,25 @@ public class KUtils {
 
         public void setReason(String reason) {
             this.reason = reason;
+        }
+    }
+
+    public static class ImportState {
+
+        private String processState;
+        private String batchState;
+
+        public ImportState(String processState, String batchState) {
+            this.processState = processState;
+            this.batchState = batchState;
+        }
+
+        public String getProcessState() {
+            return processState;
+        }
+
+        public String getBatchState() {
+            return batchState;
         }
     }
 }

@@ -59,7 +59,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 Connection: keep-alive
 
-{"defid":"import","params": {"inputDataDir":"/k7_edit_27e8598c-59d8-11ed-a227-001b63bd97ba","startIndexer": true, "uddateExisting": true}}
+{"defid":"import","params": {"inputDataDir":"/proarc-export/k4_fe91d1d0-fc5c-4ea7-9300-3504922a08d4","startIndexer": true, "uddateExisting": true}}
 
 ### GET IMAGE
 GET {{url}}/search/iiif/{{uuid}}/full/max/0/default.jpg
@@ -68,5 +68,12 @@ Connection: Keep-Alive, Upgrade
 Authorization: Bearer {{token}}
 
 
-### UNLOCK OBJECT
+### KRAMERIUS PROCESS STATUS
+
+GET {{url}}/search/api/admin/v7.0/processes/by_process_uuid/ee659f71-6516-4f56-aae7-d3f62254f2ed
+Keep-Alive: timeout=600, max=1000
+Connection: Keep-Alive, Upgrade
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
 

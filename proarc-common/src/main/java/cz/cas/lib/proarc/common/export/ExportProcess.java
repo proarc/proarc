@@ -46,6 +46,7 @@ import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
