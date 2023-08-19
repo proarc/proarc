@@ -20,5 +20,3 @@ Authorization: Basic a3JhbWVyaXVzQWRtaW46a3JhbWVyaXVzQWRtaW4=
 
 
 ###
-
-Base64.getEncoder().encodeToString(("krameriusAdmin:Nm19011987").getBytes(StandardCharsets.UTF_8));
