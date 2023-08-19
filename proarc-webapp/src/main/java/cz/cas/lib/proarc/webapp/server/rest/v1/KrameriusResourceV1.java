@@ -82,6 +82,12 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.fcrepo.utilities.FileUtils;
 
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V7;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_KILLED_V7;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
@@ -484,26 +490,48 @@ public class KrameriusResourceV1 {
                 throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_CantCopyContent", sourceFile.getAbsolutePath(), destinationFile.getAbsolutePath()));
             }
             KImporter kImporter = new KImporter(appConfig, instance);
-            String state = kImporter.importToKramerius(destinationFile.getParentFile(), true);
-            if (KRAMERIUS_PROCESS_FINISHED.equals(state)) {
+            KUtils.ImportState state = kImporter.importToKramerius(destinationFile.getParentFile(), true);
+            if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                 if (instance.deleteAfterImport()) {
                     MetsUtils.deleteFolder(destinationFile.getParentFile());
                 }
             }
-            switch (state) {
-                case KRAMERIUS_PROCESS_FINISHED:
+            switch (state.getBatchState()) {
+                case KRAMERIUS_BATCH_FINISHED_V5:
+                case KRAMERIUS_BATCH_FINISHED_V7:
                     importResult.setStatus("Successful");
                     BatchUtils.finishedUploadSuccessfully(this.batchManager, batch, instance.getUrl());
                     break;
-                case KRAMERIUS_PROCESS_FAILED:
+                case KRAMERIUS_BATCH_FAILED_V5:
+                case KRAMERIUS_BATCH_FAILED_V7:
+                case KRAMERIUS_BATCH_KILLED_V7:
                     importResult.setStatus("Failed");
                     importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImportKrameriuFailed_status", instance.getId(), instance.getUrl()));
                     BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), new IOException("Import selhal."));
                     break;
-                case KRAMERIUS_PROCESS_WARNING:
+                case KRAMERIUS_BATCH_NO_BATCH_V5:
+                    switch (state.getProcessState()) {
+                        case KRAMERIUS_PROCESS_FINISHED:
+                            importResult.setStatus("Failed");
+                            importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImportKrameriuFailed_status", instance.getId(), instance.getUrl()));
+                            BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), new IOException("Import selhal."));
+                            break;
+                        case KRAMERIUS_PROCESS_FAILED:
+                            importResult.setStatus("Failed");
+                            importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImportKrameriuFailed_status", instance.getId(), instance.getUrl()));
+                            BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), new IOException("Import selhal."));
+                            break;
+                        case KRAMERIUS_PROCESS_WARNING:
+                            importResult.setStatus("Failed");
+                            importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImportKrameriuWarning_status", instance.getId(), instance.getUrl()));
+                            BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), new IOException("Import pro3el s chybou."));
+                            break;
+                    }
+                    break;
+                default:
                     importResult.setStatus("Failed");
-                    importResult.setReason(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImportKrameriuWarning_status", instance.getId(), instance.getUrl()));
-                    BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), new IOException("Import pro3el s chybou."));
+                    importResult.setReason("Unknown status: " + state.getBatchState());
+                    BatchUtils.finishedExportWithError(this.batchManager, batch, instance.getUrl(), new IOException("Import selhal - neznamy status: "+ state.getBatchState()));
                     break;
             }
         } catch (Exception ex) {
