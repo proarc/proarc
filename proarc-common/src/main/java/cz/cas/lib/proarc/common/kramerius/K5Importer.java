@@ -33,9 +33,14 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_STARTED_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 
 
 public class K5Importer {
@@ -50,7 +55,7 @@ public class K5Importer {
         this.instance = instance;
     }
 
-    public String importToKramerius(File exportFolder, boolean updateExisting) throws JSONException, IOException, InterruptedException {
+    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting) throws JSONException, IOException, InterruptedException {
         String credentials = instance.getUsername() + ":" + instance.getPassword();
 
         String proarcExport = instance.getExportFolder() + exportFolder.getName();
@@ -83,7 +88,7 @@ public class K5Importer {
 
         int status = conn.getResponseCode();
         InputStream in = null;
-        String state = null;
+        KUtils.ImportState state = null;
 
         try {
             if (status < HTTP_BAD_REQUEST) {
@@ -98,7 +103,7 @@ public class K5Importer {
                 String processUuid = object.get("uuid").toString();
                 query = instance.getUrl() + instance.getUrlStateQuery() + processUuid;
                 state = getState(query, credentials);
-                LOG.info("Requesting Kramerius import success, server response is : " + state);
+                LOG.info("Requesting Kramerius import success, server response is (process: " + state.getProcessState() + ", batch: " + state.getBatchState() + ").");
                 return state;
             } else {
                 if (conn.getErrorStream() == null) {
@@ -120,10 +125,12 @@ public class K5Importer {
         }
     }
 
-    public static String getState(String query, String credentials) throws IOException, InterruptedException, JSONException {
+    public static KUtils.ImportState getState(String query, String credentials) throws IOException, InterruptedException, JSONException {
         String state = KRAMERIUS_PROCESS_PLANNED;
+        String batchState = KRAMERIUS_BATCH_NO_BATCH_V5;
+        int error403counter = 0;
 
-        while (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING)) {
+        while (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING) || (state.equals(KRAMERIUS_PROCESS_FINISHED) && batchState.equals(KRAMERIUS_BATCH_STARTED_V5))) {
             URL url = new URL(query);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(5000);
@@ -140,21 +147,36 @@ public class K5Importer {
             InputStream in = new BufferedInputStream(conn.getInputStream());
 
             if (status < HTTP_BAD_REQUEST) {
+                error403counter = 0;
                 String result = IOUtils.toString(in, StandardCharsets.UTF_8);
                 JSONObject object = (new JSONArray(result)).getJSONObject(0);
                 state = object.get("state").toString();
+                batchState = object.get("batchState").toString();
                 LOG.info("Kramerius response to query " + query + " is " + state);
                 in.close();
                 conn.disconnect();
             } else {
-                in.close();
-                conn.disconnect();
-                break;
+                if (status == HTTP_FORBIDDEN) {
+                    if (error403counter < 25) {
+                        error403counter++;
+                        TimeUnit.SECONDS.sleep(30);
+                    } else {
+                        in.close();
+                        conn.disconnect();
+                        state = KRAMERIUS_BATCH_FAILED_V5;
+                        break;
+                    }
+                } else {
+                    in.close();
+                    conn.disconnect();
+                    state = KRAMERIUS_BATCH_FAILED_V5;
+                    break;
+                }
             }
-            if (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING)) {
+            if (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING) || (state.equals(KRAMERIUS_PROCESS_FINISHED) && batchState.equals(KRAMERIUS_BATCH_STARTED_V5))) {
                 TimeUnit.SECONDS.sleep(20);
             }
         }
-        return state;
+        return new KUtils.ImportState(state, batchState);
     }
 }

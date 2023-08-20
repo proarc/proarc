@@ -54,6 +54,7 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
 import cz.cas.lib.proarc.common.fedora.relation.Relations;
 import cz.cas.lib.proarc.common.kramerius.KImporter;
+import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -102,6 +103,12 @@ import static cz.cas.lib.proarc.common.export.ExportUtils.containPageType;
 import static cz.cas.lib.proarc.common.export.ExportUtils.getPageIndex;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V7;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_KILLED_V7;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
@@ -220,24 +227,43 @@ public final class Kramerius4Export {
             if (!(krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId))) {
                 KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
                 KImporter kImporter = new KImporter(appConfig, instance);
-                String state = kImporter.importToKramerius(krameriusResult.getFile(), false);
-                if (KRAMERIUS_PROCESS_FINISHED.equals(state)) {
+                KUtils.ImportState state = kImporter.importToKramerius(krameriusResult.getFile(), false);
+                if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                     if (instance.deleteAfterImport()) {
                         MetsUtils.deleteFolder(krameriusResult.getFile());
                     }
                 }
-                switch (state) {
-                    case KRAMERIUS_PROCESS_FINISHED:
+                switch (state.getBatchState()) {
+                    case KRAMERIUS_BATCH_FINISHED_V5:
+                    case KRAMERIUS_BATCH_FINISHED_V7:
                         krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
                         krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FINISHED);
                         break;
-                    case KRAMERIUS_PROCESS_FAILED:
+                    case KRAMERIUS_BATCH_FAILED_V5:
+                    case KRAMERIUS_BATCH_FAILED_V7:
+                    case KRAMERIUS_BATCH_KILLED_V7:
                         krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
                         krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
                         break;
-                    case KRAMERIUS_PROCESS_WARNING:
-                        krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel s chybou.");
-                        krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                    case KRAMERIUS_BATCH_NO_BATCH_V5:
+                        switch (state.getProcessState()) {
+                            case KRAMERIUS_PROCESS_FINISHED:
+                                krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel, ale nebyla spuštěna indexace.");
+                                krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                                break;
+                            case KRAMERIUS_PROCESS_FAILED:
+                                krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
+                                krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
+                                break;
+                            case KRAMERIUS_PROCESS_WARNING:
+                                krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel s chybou.");
+                                krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                                break;
+                        }
+                        break;
+                    default:
+                        krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
+                        krameriusResult.setMessage("Unknown status: " + state.getBatchState());
                         break;
                 }
             }

@@ -419,3 +419,11 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &device:1883a7de-2f01-40e4-91ee-c7b631c0353c
+
+
+### NDK Export s Bagit
+POST {{proarcLocalHostUrl}}/rest/v1/export/ndk
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid={{uuid}}&krameriusInstance=kramerius7

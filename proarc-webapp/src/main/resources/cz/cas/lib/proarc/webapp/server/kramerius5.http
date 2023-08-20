@@ -1,0 +1,22 @@
+POST https://lmda.silvarium.cz/search/search/api/v4.6/processes/?def=ndkmets
+Content-Type: application/json; charset=UTF-8
+Authorization: a3JhbWVyaXVzQWRtaW46a3JhbWVyaXVzQWRtaW4=
+
+{"mapping": {"convertTargetDirectory":"/opt/app-root/src/.kramerius4/convert-converted","convertDirectory":"/opt/app-root/src/.kramerius4/convert/0fde73cf-c404-4bf8-89e3-8e55bbadec7b","startIndexer":"true","defaultRights":"false","ingestSkip":"false","shutImageServer":"false"}}
+
+###
+
+GET https://lmda.silvarium.cz/search/api/v4.6/processes?uuid=59bcca48-9559-4b27-88e1-3997dcfc20fc
+Content-Type: application/json; charset=UTF-8
+Authorization: a3JhbWVyaXVzQWRtaW46a3JhbWVyaXVzQWRtaW4=
+
+###
+
+GET https://lmda.silvarium.cz/search/api/v5.0/user
+Content-Type: application/json; charset=UTF-8
+Authorization: Basic a3JhbWVyaXVzQWRtaW46a3JhbWVyaXVzQWRtaW4=
+
+
+
+
+###
