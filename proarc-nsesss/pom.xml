@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>4.1-DEV-visk23-ndkStandards</version>
+        <version>4.0.7-DEV</version>
     </parent>
 
     <artifactId>proarc-nsesss</artifactId>
