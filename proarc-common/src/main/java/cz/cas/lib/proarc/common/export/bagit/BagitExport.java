@@ -53,29 +53,16 @@ public class BagitExport {
 
     public void bagit() throws IOException {
         String scriptPath = appConfiguration.getBagitScriptPath();
-        File script = new File(scriptPath);
-        if (scriptPath == null || script == null || !script.exists()) {
-            BagitProcess process = new BagitProcess(appConfiguration.getBagitExportPostProcessor(), exportFolder);
-            if (process != null) {
-                process.run();
-                if (!process.isOk()) {
-                    throw new IOException("Processing Bagit failed. \n" + process.getFullOutput());
-                }
-            } else {
-                throw new IOException("Processing Bagit failed - process is null.");
-            }
+        if (scriptPath == null || scriptPath.isEmpty()) {
+            runBagitJavaProcess();
         } else {
-            BagitExternalProcess process = new BagitExternalProcess(appConfiguration.getBagitExportPostProcessor(), script, exportFolder);
-            if (process != null) {
-                process.run();
-                if (!process.isOk(exportFolder)) {
-                    throw new IOException("Processing external Bagit failed. \n" + process.getFullOutput());
-                }
+            File script = new File(scriptPath);
+            if (script == null || !script.exists()) {
+                runBagitJavaProcess();
             } else {
-                throw new IOException("Processing external Bagit failed - process is null.");
+                runBagitExternalProcess(script);
             }
         }
-
     }
 
     public void zip() throws IOException {
@@ -153,8 +140,8 @@ public class BagitExport {
         if (bagitFolder.exists()) {
             MetsUtils.deleteFolder(bagitFolder);
         }
-        if(!bagitFolder.mkdir()) {
-          throw new IOException("Impossible to create folder " + bagitFolder.getName());
+        if (!bagitFolder.mkdir()) {
+            throw new IOException("Impossible to create folder " + bagitFolder.getName());
         }
 
         File zipFolder = new File(exportFolder.getAbsolutePath() + ".zip");
@@ -177,7 +164,7 @@ public class BagitExport {
             ByteSource byteSource = Files.asByteSource(file);
             HashCode hc = byteSource.hash(Hashing.md5());
             checksumBuilder.append("MD5").append(" ").append(hc.toString().toLowerCase());
-            }
+        }
         File checksumFile = new File(bagitFolder, exportFolder.getName() + ".sums");
         BufferedWriter writer = null;
         try {
@@ -265,7 +252,7 @@ public class BagitExport {
 
     public void uploadToLtpCesnet(String ltpCesnetToken, String pid) throws IOException, DigitalObjectException {
         if (destinationFolder != null && destinationFolder.exists()) {
-            String metadata =  createMetadataJson(destinationFolder.getName(), pid);
+            String metadata = createMetadataJson(destinationFolder.getName(), pid);
             LtpCesnetProcess process = new LtpCesnetProcess(appConfiguration.getLtpCesnetExportPostProcessor(), ltpCesnetToken, appConfiguration.getLtpCesnetGroupToken(), appConfiguration.getLtpCesnetScriptPath(), destinationFolder, metadata);
 
             if (process != null) {
@@ -290,8 +277,8 @@ public class BagitExport {
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
         NdkMapper.Context context = new NdkMapper.Context(handler);
         XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
-                    MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
-                    MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
+                MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
         ModsDefinition mods = modsStreamEditor.read();
 
@@ -357,5 +344,29 @@ public class BagitExport {
         }
         writer.append("}'");
         return writer.toString();
+    }
+
+    private void runBagitExternalProcess(File script) throws IOException {
+        BagitExternalProcess process = new BagitExternalProcess(appConfiguration.getBagitExportPostProcessor(), script, exportFolder);
+        if (process != null) {
+            process.run();
+            if (!process.isOk(exportFolder)) {
+                throw new IOException("Processing external Bagit failed. \n" + process.getFullOutput());
+            }
+        } else {
+            throw new IOException("Processing external Bagit failed - process is null.");
+        }
+    }
+
+    private void runBagitJavaProcess() throws IOException {
+        BagitProcess process = new BagitProcess(appConfiguration.getBagitExportPostProcessor(), exportFolder);
+        if (process != null) {
+            process.run();
+            if (!process.isOk()) {
+                throw new IOException("Processing Bagit failed. \n" + process.getFullOutput());
+            }
+        } else {
+            throw new IOException("Processing Bagit failed - process is null.");
+        }
     }
 }
