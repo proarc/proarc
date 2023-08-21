@@ -38,7 +38,7 @@ public class KImporter {
         this.instance = instance;
     }
 
-    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting) throws JSONException, IOException, InterruptedException {
+    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting, String exportType, String policy) throws JSONException, IOException, InterruptedException {
         String krameriusVersion = instance.getVersion();
         if (krameriusVersion == null || krameriusVersion.isEmpty()) {
             LOG.severe("Kramerius have to set field \"version\".");
@@ -46,10 +46,10 @@ public class KImporter {
         krameriusVersion = krameriusVersion.replaceAll("[^0-9]", "");
         if (krameriusVersion.startsWith("7")) {
             K7Importer k7Importer = new K7Importer(appConfig, instance);
-            return k7Importer.importToKramerius(exportFolder, updateExisting);
+            return k7Importer.importToKramerius(exportFolder, updateExisting, exportType, policy);
         } else if (krameriusVersion.startsWith("5")) {
             K5Importer k5Importer = new K5Importer(appConfig, instance);
-            return k5Importer.importToKramerius(exportFolder, updateExisting);
+            return k5Importer.importToKramerius(exportFolder, updateExisting, exportType, policy);
         } else {
             LOG.severe("Unknown kramerius version. Expected values are 5.x or 7.x");
             throw new IOException("Unknown kramerius version \"" + instance.getVersion() + "\". Expected values are 5.x or 7.x");

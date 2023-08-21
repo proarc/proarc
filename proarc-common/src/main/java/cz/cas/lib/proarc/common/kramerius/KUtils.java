@@ -44,6 +44,10 @@ public class KUtils {
     public static final String KRAMERIUS_BATCH_FINISHED_V7 = "FINISHED";
     public static final String KRAMERIUS_BATCH_FAILED_V7 = "FAILED";
     public static final String KRAMERIUS_BATCH_KILLED_V7 = "KILLED";
+
+    public static final String EXPORT_KRAMERIUS = "kramerius";
+    public static final String EXPORT_NDK = "ndk";
+
     public static DigitalObjectHandler findHandler(String pid, String krameriusInstanceId)
             throws DigitalObjectNotFoundException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
@@ -93,15 +97,15 @@ public class KUtils {
         }
     }
     public static String getExpectedDestinationPath(KrameriusOptions.KrameriusInstance instance, String pid) {
-        if (instance.getExportFolder().endsWith("/") || instance.getExportFolder().endsWith("\\")) {
-            return instance.getExportFolder() + "k7_edit_" + getPidAsFile(pid) + File.separator + getPidAsFile(pid) + ".xml";
+        if (instance.getExportFoxmlFolder().endsWith("/") || instance.getExportFoxmlFolder().endsWith("\\")) {
+            return instance.getExportFoxmlFolder() + "k7_edit_" + getPidAsFile(pid) + File.separator + getPidAsFile(pid) + ".xml";
         } else {
-            return instance.getExportFolder() + File.separator + "k7_edit_" + getPidAsFile(pid) + File.separator + getPidAsFile(pid) + ".xml";
+            return instance.getExportFoxmlFolder() + File.separator + "k7_edit_" + getPidAsFile(pid) + File.separator + getPidAsFile(pid) + ".xml";
         }
     }
 
     public static File getExportFile(AppConfiguration appConfiguration, KrameriusOptions.KrameriusInstance instance, String pid) throws IOException {
-        File exportRoot = new File(instance.getExportFolder());
+        File exportRoot = new File(instance.getExportFoxmlFolder());
         if (!exportRoot.exists()) {
             if (!exportRoot.mkdir()) {
                 throw new IOException("Kramerius export folder can not be created (" + exportRoot.getAbsolutePath() + ")");

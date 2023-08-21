@@ -227,13 +227,15 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
-            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token,
+            @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.NDK_PID_PARAM));
         }
         try {
-            return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token);
+            return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

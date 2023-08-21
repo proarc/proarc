@@ -393,7 +393,9 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
-            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token,
+            @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy
             ) throws Exception {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
@@ -405,7 +407,7 @@ public class ExportResourceV1 {
             result.setIgnoreMissingUrnNbn(true);
             return new SmartGwtResponse<ExportResult>(result);
         }
-        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token);
+        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_NDK, params);
 
         ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));

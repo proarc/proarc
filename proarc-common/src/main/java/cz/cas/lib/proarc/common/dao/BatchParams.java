@@ -73,13 +73,15 @@ public class BatchParams {
         this.bagit = bagit;
     }
 
-    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, boolean ltpCesnet, String ltpCesnetToken) {
+    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, boolean ltpCesnet, String ltpCesnetToken, String krameriusInstanceId, String policy) {
         this.pids = pids;
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
         this.bagit = bagit;
         this.ltpCesnet = ltpCesnet;
         this.ltpCesnetToken = ltpCesnetToken;
+        this.krameriusInstanceId = krameriusInstanceId;
+        this.policy = policy;
     }
 
     public BatchParams(List<String> pids, String krameriusInstanceId) {

@@ -16,6 +16,9 @@
  */
 package cz.cas.lib.proarc.common.kramerius;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -66,6 +69,31 @@ public class KrameriusOptions {
         return null;
     }
 
+    public static File getExportFolder(String krameriusInstanceId, URI exportUri, AppConfiguration appConfig, String type) {
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            return new File(exportUri);
+        } else {
+            KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+            if (KUtils.EXPORT_KRAMERIUS.equals(type)) {
+                File exportFile = new File(instance.getExportFoxmlFolder());
+                if (!exportFile.exists() || !exportFile.isDirectory() || !exportFile.canRead() || !exportFile.canWrite()) {
+                    throw new IllegalArgumentException("Error s nakonfigurovanou cestou: " + instance.getExportFoxmlFolder() + " (zkontrolujte, ze cesta existuje a mate do ni prava na cteni a zapis.");
+                } else {
+                    return exportFile;
+                }
+            } else if (KUtils.EXPORT_NDK.equals(type)) {
+                File exportFile = new File(instance.getExportNdkFolder());
+                if (!exportFile.exists() || !exportFile.isDirectory() || !exportFile.canRead() || !exportFile.canWrite()) {
+                    throw new IllegalArgumentException("Error s nakonfigurovanou cestou: " + instance.getExportNdkFolder() + " (zkontrolujte, ze cesta existuje a mate do ni prava na cteni a zapis.");
+                } else {
+                    return exportFile;
+                }
+            } else {
+                throw new IllegalArgumentException("Nepodporovany typ exportu: " + type);
+            }
+        }
+    }
+
     private static boolean valid(KrameriusInstance conf) {
         boolean ok = true;
         int version = 0;
@@ -99,8 +127,9 @@ public class KrameriusOptions {
             warning(conf, KrameriusInstance.PROPERTY_URL);
             ok = false;
         }
-        if (conf.getUrlParametrizedImportQuery() == null) {
+        if (conf.getUrlParametrizedImportQuery() == null && conf.getUrlConvertImportQuery() == null) {
             warning(conf, KrameriusInstance.PROPERTY_URL_PARAMETRIZED_IMPORT_QUERY);
+            warning(conf, KrameriusInstance.PROPERTY_URL_CONVERT_IMPORT_QUERY);
             ok = false;
         }
         if (conf.getUrlStateQuery() == null) {
@@ -115,12 +144,14 @@ public class KrameriusOptions {
             warning(conf, KrameriusInstance.PROPERTY_USERNAME);
             ok = false;
         }
-        if (conf.getExportFolder() == null) {
-            warning(conf, KrameriusInstance.PROPERTY_EXPORT_FOLDER);
+        if (conf.getExportFoxmlFolder() == null && conf.getExportNdkFolder() == null) {
+            warning(conf, KrameriusInstance.PROPERTY_EXPORT_FOXML_FOLDER);
+            warning(conf, KrameriusInstance.PROPERTY_EXPORT_NDK_FOLDER);
             ok = false;
         }
-        if (conf.getKrameriusImportFoxmlFolder() == null) {
+        if (conf.getKrameriusImportFoxmlFolder() == null && conf.getKrameriusConvertNdkFolder() == null) {
             warning(conf, KrameriusInstance.PROPERTY_KRAMERIUS_IMPORT_FOXML_FOLDER);
+            warning(conf, KrameriusInstance.PROPERTY_KRAMERIUS_CONVERT_NDK_FOLDER);
             ok = false;
         }
         if (7 == version) {
@@ -148,6 +179,11 @@ public class KrameriusOptions {
                 warning(conf, KrameriusInstance.PROPERTY_GRANT_TYPE);
                 ok = false;
             }
+        } else if (5 == version) {
+            if (conf.getKrameriusConvertNdkFolder() != null && conf.getKrameriusTargetConvertedFolder() == null) {
+                warning(conf, KrameriusInstance.PROPERTY_KRAMERIUS_TARGET_CONVERTED_FOLDER);
+                ok = false;
+            }
         }
 
         return ok;
@@ -165,6 +201,7 @@ public class KrameriusOptions {
         static final String PROPERTY_URL = "url";
         static final String PROPERTY_URL_LOGIN = "urlLogin";
         static final String PROPERTY_URL_PARAMETRIZED_IMPORT_QUERY = "urlParametrizedImportQuery";
+        static final String PROPERTY_URL_CONVERT_IMPORT_QUERY = "urlConvertImportQuery";
         static final String PROPERTY_URL_STATE_QUERY = "urlStateQuery";
         static final String PROPERTY_URL_DOWNLOAD_FOXML = "urlDownloadFoxml";
         static final String PROPERTY_URL_IMAGE = "urlImage";
@@ -174,8 +211,11 @@ public class KrameriusOptions {
         static final String PROPERTY_CLIENT_SECRET="clientSecret";
         static final String PROPERTY_GRANT_TYPE = "grantType";
         static final String PROPERTY_TYPE = "type";
-        static final String PROPERTY_EXPORT_FOLDER = "exportFolder";
+        static final String PROPERTY_EXPORT_FOXML_FOLDER = "exportFoxmlFolder";
         static final String PROPERTY_KRAMERIUS_IMPORT_FOXML_FOLDER = "krameriusImportFoxmlFolder";
+        static final String PROPERTY_EXPORT_NDK_FOLDER = "exportNdkFolder";
+        static final String PROPERTY_KRAMERIUS_CONVERT_NDK_FOLDER = "krameriusConvertNdkFolder";
+        static final String PROPERTY_KRAMERIUS_TARGET_CONVERTED_FOLDER = "krameriusTargetConvertedFolder";
         static final String PROPERTY_DELETE_AFTER_IMPORT = "deleteAfterImport";
 
         private final String id;
@@ -226,8 +266,12 @@ public class KrameriusOptions {
             return config.getString(PROPERTY_USERNAME);
         }
 
-        public String getExportFolder() {
-            return config.getString(PROPERTY_EXPORT_FOLDER);
+        public String getExportFoxmlFolder() {
+            return config.getString(PROPERTY_EXPORT_FOXML_FOLDER);
+        }
+
+        public String getExportNdkFolder() {
+            return config.getString(PROPERTY_EXPORT_NDK_FOLDER);
         }
 
         public String getType() {
@@ -236,6 +280,10 @@ public class KrameriusOptions {
 
         public String getUrlParametrizedImportQuery() {
             return config.getString(PROPERTY_URL_PARAMETRIZED_IMPORT_QUERY);
+        }
+
+        public String getUrlConvertImportQuery() {
+            return config.getString(PROPERTY_URL_CONVERT_IMPORT_QUERY);
         }
 
         public String getUrlImage() {
@@ -252,6 +300,14 @@ public class KrameriusOptions {
 
         public String getKrameriusImportFoxmlFolder() {
             return config.getString(PROPERTY_KRAMERIUS_IMPORT_FOXML_FOLDER);
+        }
+
+        public String getKrameriusConvertNdkFolder() {
+            return config.getString(PROPERTY_KRAMERIUS_CONVERT_NDK_FOLDER);
+        }
+
+        public String getKrameriusTargetConvertedFolder () {
+            return config.getString(PROPERTY_KRAMERIUS_TARGET_CONVERTED_FOLDER);
         }
 
         public boolean deleteAfterImport() {

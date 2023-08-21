@@ -280,11 +280,11 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 &pid={{localUuid}}&isBagit=true
 
 ### NDK Export s Bagit
-POST {{proarcLocalHostUrl}}/rest/v1/export/ndk
+POST {{proarcRemoteUrl}}/rest/v1/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid={{localUuid}}&isBagit=true
+&pid={{remoteUuid}}&isBagit=true
 
 
 ### GENERATE ALTO OCR RECURSIVELY
@@ -296,7 +296,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcRemoteUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -427,3 +427,20 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &pid={{uuid}}&krameriusInstance=kramerius7
+
+
+### NDK Export s Kramerius Importem
+POST {{proarcRemoteUrl}}/rest/v2/export/ndk
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid={{remoteUuid}}&krameriusInstance=kramerius7
+
+### LOGIN
+POST {{proarcRemoteUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+

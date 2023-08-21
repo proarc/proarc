@@ -35,6 +35,9 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.kramerius.KImporter;
+import cz.cas.lib.proarc.common.kramerius.KUtils;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.mets.info.Info;
 import java.io.File;
 import java.util.ArrayList;
@@ -48,6 +51,17 @@ import org.apache.commons.lang.Validate;
 
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V7;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_KILLED_V7;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.
@@ -89,7 +103,8 @@ public class NdkExport {
      */
     public List<Result> export(File exportsFolder, List<String> pids,
                                boolean hierarchy, boolean keepResult, Boolean overwrite,
-                               boolean ignoreMissingUrnNbn, String log) throws ExportException {
+                               boolean ignoreMissingUrnNbn, String log, String krameriusInstanceId,
+                               String policy) throws ExportException {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
@@ -100,20 +115,66 @@ public class NdkExport {
             target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, this.appConfig.getExportParams().isOverwritePackage()));
         }
         List<Result> results = new ArrayList<>(pids.size());
+        KUtils.ImportState state = null;
         for (String pid : pids) {
             ExportResultLog.ExportResult logItem = new ExportResultLog.ExportResult();
             logItem.setInputPid(pid);
             reslog.getExports().add(logItem);
             try {
-                Result r = export(target, pid, hierarchy, keepResult, ignoreMissingUrnNbn, log);
-                results.add(r);
+                Result result = export(target, pid, hierarchy, keepResult, ignoreMissingUrnNbn, log);
+                results.add(result);
                 deleteUnnecessaryFolder(target);
                 Info info = getInfo(getInfoFile(target));
                 if (info != null) {
                     logItem.getItemList().add(new ItemList(getTotalSize(info), getFileSize(info, "alto"), getFileSize(info, "txt"),
                             getFileSize(info, "usercopy"), getFileSize(info, "mastercopy"), getFileSize(info, "amdsec"), getFileSize(info, "original")));
                 }
-                logResult(r, logItem);
+                logResult(result, logItem);
+                if (!(krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId))) {
+                    KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+                    KImporter kImporter = new KImporter(appConfig, instance);
+                    state = kImporter.importToKramerius(result.getTargetFolder(), false, KUtils.EXPORT_NDK, policy);
+                    LOG.fine("PROCESS " + state.getProcessState() + " BATCH " + state.getBatchState() + " DELETE " + instance.deleteAfterImport());
+                    if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState())  && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
+                        if (instance.deleteAfterImport()) {
+                            LOG.fine("Mazu soubor " + result.getTargetFolder());
+                            MetsUtils.deleteFolder(result.getTargetFolder());
+                        }
+                    }
+                    switch (state.getBatchState()) {
+                        case KRAMERIUS_BATCH_FINISHED_V5:
+                        case KRAMERIUS_BATCH_FINISHED_V7:
+                            result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
+                            result.setKrameriusImportState(KRAMERIUS_PROCESS_FINISHED);
+                            break;
+                        case KRAMERIUS_BATCH_FAILED_V5:
+                        case KRAMERIUS_BATCH_FAILED_V7:
+                        case KRAMERIUS_BATCH_KILLED_V7:
+                            result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
+                            result.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
+                            break;
+                        case KRAMERIUS_BATCH_NO_BATCH_V5:
+                            switch (state.getProcessState()) {
+                                case KRAMERIUS_PROCESS_FINISHED:
+                                    result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel, ale nebyla spuštěna indexace.");
+                                    result.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                                    break;
+                                case KRAMERIUS_PROCESS_FAILED:
+                                    result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
+                                    result.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
+                                    break;
+                                case KRAMERIUS_PROCESS_WARNING:
+                                    result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel s chybou.");
+                                    result.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                                    break;
+                            }
+                            break;
+                        default:
+                            result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
+                            result.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
+                            break;
+                    }
+                }
             } catch (ExportException ex) {
                 logItem.setStatus(ResultStatus.FAILED);
                 logItem.getError().add(new ResultError(null, ex));
@@ -138,7 +199,13 @@ public class NdkExport {
                 logItem.setEnd();
             }
         }
-        ExportUtils.writeExportResult(target, reslog);
+        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+            ExportUtils.writeExportResult(target, reslog);
+        } else {
+            if (!(KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState())  && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState())))) {
+                ExportUtils.writeExportResult(target, reslog);
+            }
+        }
         return results;
     }
 
@@ -489,6 +556,8 @@ public class NdkExport {
         private Exception error;
         private String pid;
         private Integer pageIndexCount;
+        private String krameriusImportState;
+        private String message;
 
         public MetsExportException getValidationError() {
             return validationError;
@@ -536,6 +605,22 @@ public class NdkExport {
 
         public void setPageIndexCount(Integer pageIndexCount) {
             this.pageIndexCount = pageIndexCount;
+        }
+
+        public String getKrameriusImportState() {
+            return krameriusImportState;
+        }
+
+        public void setKrameriusImportState(String krameriusImportState) {
+            this.krameriusImportState = krameriusImportState;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
         }
     }
 }

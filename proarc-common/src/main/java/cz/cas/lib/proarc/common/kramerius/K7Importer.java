@@ -43,24 +43,37 @@ public class K7Importer {
         this.instance = instance;
     }
 
-    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting) throws JSONException, IOException, InterruptedException {
+    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting, String exportType, String policy) throws JSONException, IOException, InterruptedException {
 
         K7Authenticator authenticator = new K7Authenticator(instance);
         String token = authenticator.authenticate();
 
-        String parametrizedQueryUrl = instance.getUrl() + instance.getUrlParametrizedImportQuery();
-        LOG.info("Trying to create new Kramerius process " + parametrizedQueryUrl);
+        String query = "";
+        String json = "";
+
+        if (KUtils.EXPORT_KRAMERIUS.equals(exportType)) {
+            query = instance.getUrl() + instance.getUrlParametrizedImportQuery();
+            String exportFolderPath = instance.getKrameriusImportFoxmlFolder() + exportFolder.getName();
+            json = "{\"defid\":\"import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"startIndexer\": true, \"updateExisting\": " + updateExisting + "}}";
+        } else if (KUtils.EXPORT_NDK.equals(exportType)) {
+            query = instance.getUrl() + instance.getUrlConvertImportQuery();
+            String exportFolderPath = instance.getKrameriusConvertNdkFolder() + exportFolder.getName();
+            json = "{\"defid\":\"convert_and_import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"policy\": \"" + getPolicy(policy) + "\", \"startIndexer\": true, \"useIIPServer\": \"true\"}}";
+        }
+
+
+        LOG.info("Trying to create new Kramerius process " + query + ".");
 
         HttpClient httpClient = HttpClients.createDefault();
-        HttpPost httpPost = new HttpPost(parametrizedQueryUrl);
+        HttpPost httpPost = new HttpPost(query);
 
         httpPost.setHeader(new BasicHeader("Connection", "keep-alive"));
         if (token != null && !token.isEmpty()) {
             httpPost.setHeader(new BasicHeader("Authorization", "Bearer " + token));
         }
         httpPost.setHeader(new BasicHeader("Content-Type", "application/json"));
-        String exportFolderPath = instance.getKrameriusImportFoxmlFolder() + exportFolder.getName();
-        String json = "{\"defid\":\"import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"startIndexer\": true, \"updateExisting\": " + updateExisting + "}}";
+
+
         LOG.info("Params to import:" + json);
 
         httpPost.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
@@ -95,10 +108,14 @@ public class K7Importer {
         }
     }
 
+    private String getPolicy(String policy) {
+        return "PUBLIC".equalsIgnoreCase(policy) ? "PUBLIC" : "PRIVATE";
+    }
+
     private KUtils.ImportState getState(String processUuid, String token) throws IOException, InterruptedException, JSONException {
 
         String processQueryUrl = instance.getUrl() + instance.getUrlStateQuery() + processUuid;
-        LOG.info("Trying to get Kramerius process status" + processQueryUrl);
+        LOG.info("Trying to get Kramerius process status " + processQueryUrl);
 
         String state = KRAMERIUS_PROCESS_PLANNED;
         String batchState = KRAMERIUS_BATCH_PLANNED_V7;

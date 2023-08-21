@@ -490,7 +490,7 @@ public class KrameriusResourceV1 {
                 throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_CantCopyContent", sourceFile.getAbsolutePath(), destinationFile.getAbsolutePath()));
             }
             KImporter kImporter = new KImporter(appConfig, instance);
-            KUtils.ImportState state = kImporter.importToKramerius(destinationFile.getParentFile(), true);
+            KUtils.ImportState state = kImporter.importToKramerius(destinationFile.getParentFile(), true, KUtils.EXPORT_KRAMERIUS, params.getPolicy());
             if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                 if (instance.deleteAfterImport()) {
                     MetsUtils.deleteFolder(destinationFile.getParentFile());

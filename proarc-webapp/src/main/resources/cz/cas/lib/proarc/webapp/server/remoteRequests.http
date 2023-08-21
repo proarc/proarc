@@ -70,7 +70,7 @@ Authorization: Bearer {{token}}
 
 ### KRAMERIUS PROCESS STATUS
 
-GET {{url}}/search/api/admin/v7.0/processes/by_process_uuid/ee659f71-6516-4f56-aae7-d3f62254f2ed
+GET {{url}}/search/api/admin/v7.0/processes/by_process_uuid/6c83855c-0db5-4040-a0ea-aa293514c6e3
 Keep-Alive: timeout=600, max=1000
 Connection: Keep-Alive, Upgrade
 Content-Type: application/json

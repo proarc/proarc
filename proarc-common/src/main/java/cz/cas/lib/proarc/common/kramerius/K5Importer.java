@@ -55,22 +55,41 @@ public class K5Importer {
         this.instance = instance;
     }
 
-    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting) throws JSONException, IOException, InterruptedException {
+    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting, String exportType, String policy) throws JSONException, IOException, InterruptedException {
         String credentials = instance.getUsername() + ":" + instance.getPassword();
 
-        String proarcExport = instance.getExportFolder() + exportFolder.getName();
-        String krameriusFoxmlImport = proarcExport.replace(instance.getExportFolder(), instance.getKrameriusImportFoxmlFolder());
+        String proarcExport = "";
+        String query = "";
+        String json = "";
 
-        String query = instance.getUrl() + instance.getUrlParametrizedImportQuery();
-        String json =
-                "{" +
+        if (KUtils.EXPORT_KRAMERIUS.equals(exportType)) {
+            query =  instance.getUrl() + instance.getUrlParametrizedImportQuery();
+            proarcExport = instance.getExportFoxmlFolder() + exportFolder.getName();
+            String krameriusFoxmlImport = proarcExport.replace(instance.getExportFoxmlFolder(), instance.getKrameriusImportFoxmlFolder());
+            json =
+                    "{" +
+                            "\"mapping\":" +
+                            "{" +
+                            "\"importDirectory\":\"" + krameriusFoxmlImport + "\"," +
+                            "\"startIndexer\":\"true\"," +
+                            "\"updateExisting\":\"" + updateExisting + "\"" +
+                            "}" +
+                            "}";
+        } else if (KUtils.EXPORT_NDK.equals(exportType)) {
+            query = instance.getUrl() + instance.getUrlConvertImportQuery();
+            proarcExport = instance.getExportNdkFolder() + exportFolder.getName();
+            String ndkImport = proarcExport.replace(instance.getExportNdkFolder(), instance.getKrameriusConvertNdkFolder());
+            json = "{" +
                         "\"mapping\":" +
                         "{" +
-                        "\"importDirectory\":\"" + krameriusFoxmlImport + "\"," +
-                        "\"startIndexer\":\"true\"," +
-                        "\"updateExisting\":\"" + updateExisting + "\"" +
+                            "\"convertDirectory\":\"" + ndkImport + "\"," +
+                            "\"convertTargetDirectory\":\"" + instance.getKrameriusTargetConvertedFolder() + "\"," +
+                            "\"ingestSkip\":\"false\"," +
+                            "\"startIndexer\":\"true\"," +
+                            "\"defaultRights\":\"" + String.valueOf(getPolicy(policy)) + "\"" +
                         "}" +
-                        "}";
+                    "}";
+        }
 
         URL url = new URL(query);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -123,6 +142,10 @@ public class K5Importer {
             }
             conn.disconnect();
         }
+    }
+
+    private boolean getPolicy(String policy) {
+        return "PUBLIC".equalsIgnoreCase(policy);
     }
 
     public static KUtils.ImportState getState(String query, String credentials) throws IOException, InterruptedException, JSONException {

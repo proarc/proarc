@@ -46,6 +46,8 @@ import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
+import cz.cas.lib.proarc.common.kramerius.KUtils;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -415,8 +417,8 @@ public final class ExportProcess implements Runnable {
 
     private Batch ndkExport(Batch batch, BatchParams params) {
         try {
-            URI exportUri = user.getExportFolder();
-            File exportFolder = new File(exportUri);
+//            URI exportUri = user.getExportFolder();
+//            File exportFolder = new File(exportUri);
 //            List<ExportResult> result = new ArrayList<>(params.getPids().size());
             NdkExport export;
 
@@ -439,7 +441,8 @@ public final class ExportProcess implements Runnable {
                     throw new IllegalArgumentException("Unsupported type of package");
             }
 
-            List<NdkExport.Result> ndkResults = export.export(exportFolder, params.getPids(), true, true, null, params.isIgnoreMissingUrnNbn(), exportOptions.getLog());
+            File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_NDK);
+            List<NdkExport.Result> ndkResults = export.export(exportFolder, params.getPids(), true, true, null, params.isIgnoreMissingUrnNbn(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPolicy());
             for (NdkExport.Result r : ndkResults) {
                 if (r.getError() != null) {
                     String exportPath = MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
@@ -459,38 +462,51 @@ public final class ExportProcess implements Runnable {
                 }
             }
             if (Batch.State.EXPORT_DONE.equals(batch.getState())) {
-                LOG.info("Export " + batch.getId() + " done.");
-                if (params.isBagit() || params.isLtpCesnet()) {
-                    LOG.info("Export " + batch.getId() + " - doing bagit.");
-                    File targetFolder = findNdkExportFolder(batch.getFolder());
-                    if (targetFolder != null) {
-                        for (File targetFile : targetFolder.listFiles()) {
-                            if (targetFile.isDirectory()) {
-                                BagitExport bagitExport = new BagitExport(config, targetFile);
-                                bagitExport.prepare();
-                                bagitExport.bagit();
-                                bagitExport.zip();
-                                bagitExport.moveToBagitFolder();
-                                bagitExport.createMd5File();
-                                bagitExport.moveToSpecifiedDirectories();
-                                bagitExport.deleteExportFolder();
-                                if (params.isLtpCesnet() && !params.getLtpCesnetToken().isEmpty()) {
-                                    LOG.info("Bagit " + batch.getId() + " finished - uploading to ltp cesnet");
-                                    bagitExport.uploadToLtpCesnet(params.getLtpCesnetToken(), params.getPids().get(0));
+                if (params.getKrameriusInstanceId() == null || params.getKrameriusInstanceId().isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(params.getKrameriusInstanceId())) {
+                    LOG.info("Export " + batch.getId() + " done.");
+                    if (params.isBagit() || params.isLtpCesnet()) {
+                        LOG.info("Export " + batch.getId() + " - doing bagit.");
+                        File targetFolder = findNdkExportFolder(batch.getFolder());
+                        if (targetFolder != null) {
+                            for (File targetFile : targetFolder.listFiles()) {
+                                if (targetFile.isDirectory()) {
+                                    BagitExport bagitExport = new BagitExport(config, targetFile);
+                                    bagitExport.prepare();
+                                    bagitExport.bagit();
+                                    bagitExport.zip();
+                                    bagitExport.moveToBagitFolder();
+                                    bagitExport.createMd5File();
+                                    bagitExport.moveToSpecifiedDirectories();
+                                    bagitExport.deleteExportFolder();
+                                    if (params.isLtpCesnet() && !params.getLtpCesnetToken().isEmpty()) {
+                                        LOG.info("Bagit " + batch.getId() + " finished - uploading to ltp cesnet");
+                                        bagitExport.uploadToLtpCesnet(params.getLtpCesnetToken(), params.getPids().get(0));
+                                    }
                                 }
                             }
+                            targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
                         }
-                        targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
                     }
-                }
-                for (NdkExport.Result r : ndkResults) {
-                    try {
-                        setWorkflowExport("task.exportNdkPsp", "param.exportNdkPsp.numberOfPackages", r.getPageIndexCount(), params, getRoot(r.getPid(), exportFolder));
-                    } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
-                        return BatchUtils.finishedExportWithWarning(batchManager, batch, batch.getFolder(), "Vyexportovano ale nepodarilo se propojit s RDflow.");
+                    for (NdkExport.Result r : ndkResults) {
+                        try {
+                            setWorkflowExport("task.exportNdkPsp", "param.exportNdkPsp.numberOfPackages", r.getPageIndexCount(), params, getRoot(r.getPid(), exportFolder));
+                        } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
+                            return BatchUtils.finishedExportWithWarning(batchManager, batch, batch.getFolder(), "Vyexportovano ale nepodarilo se propojit s RDflow.");
+                        }
                     }
+                    return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, ndkResults.get(0).getTargetFolder().getAbsolutePath());
+                } else {
+                    for (NdkExport.Result r : ndkResults) {
+                        if (r.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FAILED.equals(r.getKrameriusImportState())) {
+                            batch = finishedExportWithError(this.batchManager, batch, r.getTargetFolder().getAbsolutePath(), r.getMessage());
+                        } else if (r.getKrameriusImportState() != null && KRAMERIUS_PROCESS_WARNING.equals(r.getKrameriusImportState())) {
+                            batch = BatchUtils.finishedExportWithWarning(this.batchManager, batch, r.getTargetFolder().getAbsolutePath(), r.getMessage());
+                        } else if (r.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FINISHED.equals(r.getKrameriusImportState())) {
+                            batch = BatchUtils.finishedExportSuccessfully(this.batchManager, batch, r.getTargetFolder().getAbsolutePath(), r.getMessage());
+                        }
+                    }
+                    return batch;
                 }
-                return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, ndkResults.get(0).getTargetFolder().getAbsolutePath());
             } else {
                 LOG.info("Export " + batch.getId() + " undone.");
                 return null;
@@ -561,7 +577,7 @@ public final class ExportProcess implements Runnable {
     private Batch krameriusExport(Batch batch, BatchParams params) throws Exception {
         try {
             Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.isArchive());
-            File exportFolder = export.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder());
+            File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_KRAMERIUS);
             Kramerius4Export.Result k4Result = export.export(exportFolder, params.isHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPids().toArray(new String[params.getPids().size()]));
             if (k4Result.getException() != null) {
                 String exportPath = MetsUtils.renameFolder(exportFolder, k4Result.getFile(), null);

@@ -75,7 +75,6 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -227,7 +226,7 @@ public final class Kramerius4Export {
             if (!(krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId))) {
                 KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
                 KImporter kImporter = new KImporter(appConfig, instance);
-                KUtils.ImportState state = kImporter.importToKramerius(krameriusResult.getFile(), false);
+                KUtils.ImportState state = kImporter.importToKramerius(krameriusResult.getFile(), false, KUtils.EXPORT_KRAMERIUS, policy);
                 if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                     if (instance.deleteAfterImport()) {
                         MetsUtils.deleteFolder(krameriusResult.getFile());
@@ -1295,20 +1294,6 @@ public final class Kramerius4Export {
             Element elm = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":file");
             elm.setTextContent(importFile);
             relations.add(0, elm);
-        }
-    }
-
-    public File getExportFolder(String krameriusInstanceId, URI exportUri) {
-        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return new File(exportUri);
-        } else {
-            KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
-            File exportFile = new File(instance.getExportFolder());
-            if (!exportFile.exists() || !exportFile.isDirectory() || !exportFile.canRead() || !exportFile.canWrite()) {
-                throw new IllegalArgumentException("Error s nakonfigurovanou cestou: " + instance.getExportFolder() + " (zkontrolujte, ze cesta existuje a mate do ni prava na cteni a zapis.");
-            } else {
-                return exportFile;
-            }
         }
     }
 
