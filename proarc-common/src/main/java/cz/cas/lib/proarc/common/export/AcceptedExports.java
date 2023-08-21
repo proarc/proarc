@@ -41,6 +41,7 @@ public class AcceptedExports {
 
     private final String BAGIT_SUFFIX = "_bagit";
     private final String LTP_UPLOAD_SUFFIX = "_upload_cesnet";
+    private final String KRAMERIUS_UPLOAD_SUFFIX = "_upload_kramerius";
 
     private List<String> ALL_MODELS = Arrays.asList(
             // pages//
@@ -165,6 +166,7 @@ public class AcceptedExports {
         if (EXPORT_NDK_PSP_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_PSP);
             acceptedItems.add(EXPORT_NDK_PSP + BAGIT_SUFFIX);
+            acceptedItems.add(EXPORT_NDK_PSP + KRAMERIUS_UPLOAD_SUFFIX);
             if (LTP_UPLOAD_MODELS.contains(this.modelId)) {
                 acceptedItems.add(EXPORT_NDK_PSP + LTP_UPLOAD_SUFFIX);
             }
@@ -172,6 +174,7 @@ public class AcceptedExports {
         if (EXPORT_NDK_OLDPRINT_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_OLDPRINT);
             acceptedItems.add(EXPORT_NDK_OLDPRINT + BAGIT_SUFFIX);
+            acceptedItems.add(EXPORT_NDK_OLDPRINT + KRAMERIUS_UPLOAD_SUFFIX);
             if (LTP_UPLOAD_MODELS.contains(this.modelId)) {
                 acceptedItems.add(EXPORT_NDK_OLDPRINT + LTP_UPLOAD_SUFFIX);
             }
