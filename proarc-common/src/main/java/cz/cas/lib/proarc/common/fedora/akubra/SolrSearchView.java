@@ -109,7 +109,7 @@ public class SolrSearchView extends SearchView {
 
     @Override
     public List<SearchViewItem> find(boolean onlyActive, List<String> pids) throws IOException {
-        return searchImplementation(0, null, null, null, onlyActive, null, pids);
+        return pids.isEmpty() ? Collections.EMPTY_LIST : searchImplementation(0, null, null, null, onlyActive, null, pids);
     }
 
     @Override

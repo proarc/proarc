@@ -317,12 +317,19 @@ public final class Kramerius4Export {
 
     private boolean hasParent(String pid) throws DigitalObjectException {
         Set<String> parentModels = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(NdkPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHTITLE, ChroniclePlugin.MODEL_CHRONICLETITLE)));
-        IMetsElement element = getElement(pid);
-        if (element == null || element.getParent() == null || element.getParent().getModel() == null) {
+        SearchViewItem parentItem = getParentItem(pid);
+        if (parentItem == null || parentItem.getModel() == null) {
             return false;
         } else {
-            return parentModels.contains(element.getParent().getModel().substring(12));
+            return parentModels.contains(parentItem.getModel());
         }
+
+//        IMetsElement element = getElement(pid);
+//        if (element == null || element.getParent() == null || element.getParent().getModel() == null) {
+//            return false;
+//        } else {
+//            return parentModels.contains(element.getParent().getModel().substring(12));
+//        }
     }
 
     public IMetsElement getElement(String pid) throws DigitalObjectException {
@@ -347,6 +354,27 @@ public final class Kramerius4Export {
             return MetsElement.getElement(dobj, null, metsContext, true);
         } catch (IOException | MetsExportException ex) {
             throw new DigitalObjectException(pid, "K4 export: imposible to find element.", ex);
+        }
+    }
+
+    private SearchViewItem getParentItem(String pid) throws DigitalObjectException {
+        try {
+            List<SearchViewItem> parentsList;
+
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                parentsList = this.search.findReferrers(pid);
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                parentsList = this.search.findReferrers(pid);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+            if (parentsList.isEmpty()) {
+                return null;
+            } else {
+                return parentsList.get(0);
+            }
+        } catch (IOException | FedoraClientException ex) {
+            throw new DigitalObjectException(pid, "K4 export: imposible to find parent.", ex);
         }
     }
 
