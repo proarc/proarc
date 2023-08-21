@@ -68,7 +68,7 @@ public class BagitExport {
             BagitExternalProcess process = new BagitExternalProcess(appConfiguration.getBagitExportPostProcessor(), script, exportFolder);
             if (process != null) {
                 process.run();
-                if (!process.isOk()) {
+                if (!process.isOk(exportFolder)) {
                     throw new IOException("Processing external Bagit failed. \n" + process.getFullOutput());
                 }
             } else {

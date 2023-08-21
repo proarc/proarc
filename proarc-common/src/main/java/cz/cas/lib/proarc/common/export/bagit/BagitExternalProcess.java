@@ -20,13 +20,13 @@ public class BagitExternalProcess {
     private File script;
     private Configuration conf;
     private String output;
-    private int exitCode;
+//    private int exitCode;
 
     public BagitExternalProcess(Configuration conf, File script, File exportFolder) {
         this.conf = conf;
         this.script = script;
         this.exportFolder = exportFolder;
-        this.exitCode = 0;
+//        this.exitCode = 0;
     }
 
     public void run() throws IOException{
@@ -51,28 +51,34 @@ public class BagitExternalProcess {
         StringWriter errorWriter = new StringWriter();
         try {
             Process p = r.exec(script.getAbsolutePath());
-            BufferedReader info = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            LOG.info("Bagit Process finished");
 
-
-            while ((s = info.readLine()) != null) {
-//               System.out.println(s);
-                infoWriter.append(s).append("\n");
-            }
-            if (!infoWriter.toString().isEmpty()) {
-                LOG.info(infoWriter.toString());
-                output += infoWriter.toString();
-            }
+//            BufferedReader info = new BufferedReader(new InputStreamReader(p.getInputStream()));
+//
+//
+//            while ((s = info.readLine()) != null) {
+////               System.out.println(s);
+//                infoWriter.append(s).append("\n");
+//            }
+//            if (!infoWriter.toString().isEmpty()) {
+//                LOG.info(infoWriter.toString());
+//                output += infoWriter.toString();
+//            }
 
 
             BufferedReader error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            int i = 0;
             while ((s = error.readLine()) != null) {
 //                System.out.println(s);
                 errorWriter.append(s).append("\n");
+                LOG.fine("Line " + i++ + " " + s);
             }
             if (!errorWriter.toString().isEmpty()) {
-                LOG.severe(errorWriter.toString());
+                LOG.info(errorWriter.toString());
                 output += "\n" + errorWriter.toString();
-                this.exitCode = -1;
+//                this.exitCode = -1;
+            } else {
+                LOG.info("No errors in bagit process.");
             }
         } finally {
             infoWriter.close();
@@ -97,7 +103,9 @@ public class BagitExternalProcess {
         return output;
     }
 
-    public boolean isOk() {
-        return exitCode == 0;
+    public boolean isOk(File folder) {
+        File tagManifestMd5 = new File(folder, "tagmanifest-md5.txt");
+        LOG.info("Checking process status - file " + tagManifestMd5.getAbsolutePath() + " exists " + (tagManifestMd5 != null && tagManifestMd5.exists()));
+        return tagManifestMd5 != null && tagManifestMd5.exists();
     }
 }

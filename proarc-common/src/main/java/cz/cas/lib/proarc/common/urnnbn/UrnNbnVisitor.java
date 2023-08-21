@@ -507,7 +507,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            MixType mixType = searchMixElement(getParent(elm), p);
+            MixType mixType = searchMix(elm, p);
             return processOtherEntity(elm, "oldprint-picture", p, mixType);
         } catch (DigitalObjectException ex) {
             throw  new VisitorException(ex);
