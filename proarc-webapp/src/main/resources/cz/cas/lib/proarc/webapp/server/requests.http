@@ -443,4 +443,26 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### REGISTER URNNBN
+POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:455a7723-c4ab-4b80-8e75-b1203ccefa59&resolcerId=inovatika
+
+### INVALIDATE URNNBN
+POST {{proarcLocalHostUrl}}/rest/v1/object/urnnbn/invalidateLocal
+#POST {{proarcLocalHostUrl}}/rest/v1/object/urnnbn/invalidateLocal
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:455a7723-c4ab-4b80-8e75-b1203ccefa59&resolcerId=inovatika
+
 

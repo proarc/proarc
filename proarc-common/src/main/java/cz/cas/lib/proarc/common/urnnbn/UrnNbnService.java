@@ -42,15 +42,17 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public final class UrnNbnService {
+public class UrnNbnService {
 
     private final DigitalObjectManager dom;
     private final SearchView search;
-    private final ResolverClient client;
+    private ResolverClient client;
 
     public UrnNbnService(AppConfiguration appConfig, UrnNbnConfiguration.ResolverConfiguration resolverConfig) {
         dom = DigitalObjectManager.getDefault();
-        this.client = appConfig.getUrnNbnConfiguration().getClient(resolverConfig);
+        if (resolverConfig != null) {
+            this.client = appConfig.getUrnNbnConfiguration().getClient(resolverConfig);
+        }
         try {
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
                 search = RemoteStorage.getInstance().getSearch();
@@ -65,8 +67,16 @@ public final class UrnNbnService {
         }
     }
 
+    public UrnNbnService(AppConfiguration appConfig) {
+        this(appConfig, null);
+    }
+
     public UrnNbnStatusHandler register(String pid, boolean hierarchy) {
         return register(Collections.singleton(pid), hierarchy);
+    }
+
+    public UrnNbnStatusHandler invalidateValue(String pid) {
+        return invalidateValue(Collections.singleton(pid));
     }
 
     public UrnNbnStatusHandler register(Collection<String> pids, boolean hierarchy) {
@@ -77,6 +87,8 @@ public final class UrnNbnService {
         UrnNbnContext ctx = new UrnNbnContext();
         ctx.setStatus(statusHandler);
         ctx.setClient(client);
+        ctx.setRegisterNewPid(true);
+
         if (initJhove(ctx) == null) {
             return statusHandler;
         }
@@ -94,6 +106,38 @@ public final class UrnNbnService {
             }
         } finally {
             ctx.getJhoveContext().destroy();
+        }
+        for (String pid : queue) {
+            statusHandler.warning(pid, Status.NOT_PROCESSED, "Not processed! \n" + pid, null);
+        }
+        return statusHandler;
+    }
+
+    public UrnNbnStatusHandler invalidateValue(Collection<String> pids) {
+        LinkedHashSet<String> queue = new LinkedHashSet<>(pids);
+        UrnNbnStatusHandler statusHandler = new UrnNbnStatusHandler();
+        DigitalObjectCrawler crawler = new DigitalObjectCrawler(dom, search, null);
+        UrnNbnVisitor req = new UrnNbnVisitor(crawler);
+        UrnNbnContext context = new UrnNbnContext();
+        context.setStatus(statusHandler);
+        context.setInvalidateUrnNbn(true);
+
+        try {
+            for (String pid : pids) {
+                queue.remove(pid);
+                try {
+                    DigitalObjectElement elm = crawler.getEntry(pid);
+                    elm.accept(req, context);
+                } catch (Exception ex) {
+                    Logger.getLogger(UrnNbnService.class.getName()).log(Level.SEVERE, null, ex);
+                    statusHandler.error(pid, ex);
+                    break;
+                }
+            }
+        } finally {
+            if (context.getJhoveContext() != null) {
+                context.getJhoveContext().destroy();
+            }
         }
         for (String pid : queue) {
             statusHandler.warning(pid, Status.NOT_PROCESSED, "Not processed! \n" + pid, null);

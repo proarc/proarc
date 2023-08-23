@@ -40,9 +40,9 @@ import java.util.List;
  */
 public class ResolverUtils {
 
-    static String getIdentifier(String type, ModsDefinition... mods) {
+    static String getIdentifierValue(String type, ModsDefinition... mods) {
         for (ModsDefinition modsItem : mods) {
-            String id = getIdentifier(type, modsItem);
+            String id = getIdentifierValue(type, modsItem);
             if (id != null) {
                 return id;
             }
@@ -50,13 +50,18 @@ public class ResolverUtils {
         return null;
     }
 
-    public static String getIdentifier(String type, ModsDefinition mods) {
+    public static IdentifierDefinition getIdentifier(String type, ModsDefinition mods) {
         for (IdentifierDefinition identifierDefinition : mods.getIdentifier()) {
             if (type.equals(identifierDefinition.getType()) && isValid(identifierDefinition)) {
-                return identifierDefinition.getValue();
+                return identifierDefinition;
             }
         }
         return null;
+    }
+
+    public static String getIdentifierValue(String type, ModsDefinition mods) {
+        IdentifierDefinition identifier = getIdentifier(type, mods);
+        return identifier == null ? null : identifier.getValue();
     }
 
     static String getTitlePartNumber(ModsDefinition mods) {

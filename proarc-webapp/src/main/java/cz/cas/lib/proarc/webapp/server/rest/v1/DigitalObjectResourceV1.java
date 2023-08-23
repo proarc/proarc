@@ -2441,6 +2441,38 @@ public class DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_INVALIDATE_LOCAL_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<UrnNbnResult> invalidateLocalUrnNbn(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
+    ) {
+
+        if (isLocked(pids)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
+        if (!pids.isEmpty()) {
+            UrnNbnService service = new UrnNbnService(appConfig);
+            UrnNbnStatusHandler status = service.invalidateValue(pids);
+            for (Entry<String, PidResult> entry : status.getPids().entrySet()) {
+                PidResult pidResult = entry.getValue();
+                String entryPid = entry.getKey();
+                for (StatusEntry statusEntry : pidResult.getErrors()) {
+                    result.add(new UrnNbnResult(entryPid, statusEntry, false, pidResult.getPid()));
+                }
+                for (StatusEntry statusEntry : pidResult.getWarnings()) {
+                    result.add(new UrnNbnResult(entryPid, statusEntry, true, pidResult.getPid()));
+                }
+                if (pidResult.getUrnNbn() != null) {
+                    result.add(new UrnNbnResult(entryPid, pidResult.getUrnNbn(), pidResult.getPid()));
+                }
+            }
+        }
+        return new SmartGwtResponse<UrnNbnResult>(result);
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.LOCK_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> lockObject(

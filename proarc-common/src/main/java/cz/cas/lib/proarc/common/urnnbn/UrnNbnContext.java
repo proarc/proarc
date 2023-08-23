@@ -28,6 +28,9 @@ public class UrnNbnContext {
     private UrnNbnStatusHandler status;
     private ResolverClient client;
     private JhoveContext jhoveContext;
+    private boolean registerNewPid = false;
+    private boolean invalidateUrnNbn = false;
+
 
     public ResolverClient getClient() {
         return client;
@@ -53,4 +56,19 @@ public class UrnNbnContext {
         this.jhoveContext = jhoveContext;
     }
 
+    public boolean isRegisterNewPid() {
+        return registerNewPid;
+    }
+
+    public void setRegisterNewPid(boolean registerNewPid) {
+        this.registerNewPid = registerNewPid;
+    }
+
+    public boolean isInvalidateUrnNbn() {
+        return invalidateUrnNbn;
+    }
+
+    public void setInvalidateUrnNbn(boolean invalidateUrnNbn) {
+        this.invalidateUrnNbn = invalidateUrnNbn;
+    }
 }

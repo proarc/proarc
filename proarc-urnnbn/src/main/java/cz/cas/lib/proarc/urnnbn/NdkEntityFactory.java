@@ -49,12 +49,12 @@ public class NdkEntityFactory {
             ) throws SAXException {
 
         MonographVolume m = new MonographVolume();
-        m.setCcnb(ResolverUtils.getIdentifier("ccnb", volumeMods, titleMods));
+        m.setCcnb(ResolverUtils.getIdentifierValue("ccnb", volumeMods, titleMods));
         m.setDigitalBorn(false);
         if (oldPrint) {
             m.setDocumentType("oldprint-monographVolume");
         }
-        m.setIsbn(ResolverUtils.getIdentifier("isbn", volumeMods, titleMods));
+        m.setIsbn(ResolverUtils.getIdentifierValue("isbn", volumeMods, titleMods));
         //mods:name[@type='personal' and not(@usage='primary')]//mods:namePart[not(@type= 'date')]
         m.setOtherOriginator(ResolverUtils.getOriginator("personal", false, volumeMods, titleMods));
         m.setPrimaryOriginator(ResolverUtils.getPrimaryOriginator(volumeMods, titleMods));
@@ -74,7 +74,7 @@ public class NdkEntityFactory {
         Import imp = new Import();
         imp.setMonographVolume(m);
         DigitalDocument digitalDocument = new DigitalDocumentBuilder()
-                .setUuid(ResolverUtils.getIdentifier("uuid", volumeMods))
+                .setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods))
                 .setMix(mix)
                 .build();
         imp.setDigitalDocument(digitalDocument);
@@ -88,12 +88,12 @@ public class NdkEntityFactory {
             ) throws SAXException {
 
         Monograph m = new Monograph();
-        m.setCcnb(ResolverUtils.getIdentifier("ccnb", volumeMods));
+        m.setCcnb(ResolverUtils.getIdentifierValue("ccnb", volumeMods));
         m.setDigitalBorn(eBorn);
         if (oldPrint) {
             m.setDocumentType("oldprint-monograph");
         }
-        m.setIsbn(ResolverUtils.getIdentifier("isbn", volumeMods));
+        m.setIsbn(ResolverUtils.getIdentifierValue("isbn", volumeMods));
         //mods:name[@type='personal' and not(@usage='primary')]//mods:namePart[not(@type= 'date')]
         m.setOtherOriginator(ResolverUtils.getOriginator("personal", false, volumeMods));
 
@@ -121,9 +121,9 @@ public class NdkEntityFactory {
         imp.setMonograph(m);
         DigitalDocument digitalDocument;
         if (eBorn) {
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", volumeMods)).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods)).build();
         } else{
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", volumeMods)).setMix(mix).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods)).setMix(mix).build();
         }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
@@ -151,7 +151,7 @@ public class NdkEntityFactory {
         Import imp = new Import();
         imp.setMonograph(m);
         DigitalDocument digitalDocument;
-        digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", documentMods)).build();
+        digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", documentMods)).build();
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
         ResolverXmlUtils.validate(imp, status);
@@ -167,13 +167,13 @@ public class NdkEntityFactory {
         Import imp = new Import();
         PeriodicalIssue issue = new PeriodicalIssue();
         // optional
-        issue.setCcnb(ResolverUtils.getIdentifier("ccnb", issueMods, volumeMods, titleMods));
+        issue.setCcnb(ResolverUtils.getIdentifierValue("ccnb", issueMods, volumeMods, titleMods));
         // optional
         issue.setDigitalBorn(eBorn);
         // optional
 //        issue.setDocumentType("???");
         // optional
-        issue.setIssn(ResolverUtils.getIdentifier("issn", issueMods, volumeMods, titleMods));
+        issue.setIssn(ResolverUtils.getIdentifierValue("issn", issueMods, volumeMods, titleMods));
         // optional; maxOccurs="1" !!! ???
 //        issue.setOtherId("type:value");
         // optional
@@ -216,9 +216,9 @@ public class NdkEntityFactory {
 
         DigitalDocument digitalDocument;
         if (eBorn) {
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", issueMods)).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", issueMods)).build();
         } else{
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", issueMods)).setMix(mix).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", issueMods)).setMix(mix).build();
         }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
@@ -254,10 +254,10 @@ public class NdkEntityFactory {
             ) throws SAXException {
 
         OtherEntity entity = new OtherEntity();
-        entity.setCcnb(ResolverUtils.getIdentifier("ccnb", titleMods));
+        entity.setCcnb(ResolverUtils.getIdentifierValue("ccnb", titleMods));
         entity.setDigitalBorn(eBorn);
         entity.setDocumentType(documentType);
-        entity.setIsbn(ResolverUtils.getIdentifier("isbn", titleMods));
+        entity.setIsbn(ResolverUtils.getIdentifierValue("isbn", titleMods));
         //mods:name[@type='personal' and not(@usage='primary')]//mods:namePart[not(@type= 'date')]
         entity.setOtherOriginator(ResolverUtils.getOriginator("personal", false, titleMods));
 
@@ -286,9 +286,9 @@ public class NdkEntityFactory {
 
         DigitalDocument digitalDocument;
         if (eBorn) {
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", titleMods)).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).build();
         } else{
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifier("uuid", titleMods)).setMix(mix).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setMix(mix).build();
         }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);

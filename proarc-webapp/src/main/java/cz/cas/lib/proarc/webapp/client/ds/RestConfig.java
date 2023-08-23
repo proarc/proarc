@@ -99,6 +99,7 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_THUMBNAIL = path(URL_DIGOBJECT, DigitalObjectResourceApi.THUMB_PATH);
     public static final String URL_DIGOBJECT_URNNBN = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.URNNBN_PATH);
+    public static final String URL_DIGOBJECT_URNNBN_INVALIDATE_LOCAL = path(URL_DIGOBJECT_URNNBN, DigitalObjectResourceApi.URNNBN_INVALIDATE_LOCAL_PATH);
     public static final String URL_URNNBN_RESOLVER = path(URL_ROOT, UrnNbnResourceApi.PATH);
     public static final String URL_DIGOBJECT_COPYOBJECT = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.COPYOBJECT_PATH);

@@ -608,23 +608,35 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         final MetadataHandler<ModsDefinition> modsHandler = handler.<ModsDefinition>metadata();
         final DescriptionMetadata<ModsDefinition> documentDescription = modsHandler.getMetadata();
         ModsDefinition documentMods = documentDescription.getData();
-        String urnnbn = ResolverUtils.getIdentifier("urnnbn", documentMods);
-        if (urnnbn != null) {
-            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
-            return null;
-        }
-        try {
-            Import document;
-            ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
-            document = resolverEntities.createMusicDocumentImport(documentMods, xmlHandler);
-            if (!validateEntity(xmlHandler, elm, p)) {
+        String urnnbn = ResolverUtils.getIdentifierValue("urnnbn", documentMods);
+        if (p.isRegisterNewPid()) {
+            if (urnnbn != null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
                 return null;
             }
-            UrnNbn urnNbnResponse = registerEntity(document, elm, p);
-            updateModsWithUrnNbn(urnNbnResponse, documentMods, documentDescription, modsHandler, elm, p);
-        } catch (SAXException ex) {
-            // registration request not valid
-            p.getStatus().error(elm, ex);
+            try {
+                Import document;
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                document = resolverEntities.createMusicDocumentImport(documentMods, xmlHandler);
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerEntity(document, elm, p);
+                updateModsWithUrnNbn(urnNbnResponse, documentMods, documentDescription, modsHandler, elm, p);
+            } catch (SAXException ex) {
+                // registration request not valid
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isInvalidateUrnNbn()) {
+            if (urnnbn == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                invalidateUrnNbn(documentMods, documentDescription, modsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -670,55 +682,67 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         final DescriptionMetadata<ModsDefinition> issueDescription = issueModsHandler.getMetadata();
         ModsDefinition issueMods = issueDescription.getData();
         // check URNNBN exists
-        String urnnbn = ResolverUtils.getIdentifier("urnnbn", issueMods);
-        if (urnnbn != null) {
-            p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
-            return null;
-        }
-        Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
-        if (!path.hasNext()) {
-            p.getStatus().error(elm, Status.MISSING_PARENT, "Requires Periodical Title or Volume as parent!");
-            return null;
-        }
-        DigitalObjectElement titleElm = path.next();
-        if (!NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId())) {
-            p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
-                    "Requires Periodical Title as a root of the hierarchy instead of %s!",
-                    titleElm.toLog()));
-            return null;
-        }
-        ModsDefinition titleMods = titleElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
-        ModsDefinition volumeMods = null;
-
-        if (path.hasNext()) {
-            DigitalObjectElement volumeElm = path.next();
-            if (!NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId())) {
+        String urnnbn = ResolverUtils.getIdentifierValue("urnnbn", issueMods);
+        if (p.isRegisterNewPid()) {
+            if (urnnbn != null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
+                return null;
+            }
+            Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
+            if (!path.hasNext()) {
+                p.getStatus().error(elm, Status.MISSING_PARENT, "Requires Periodical Title or Volume as parent!");
+                return null;
+            }
+            DigitalObjectElement titleElm = path.next();
+            if (!NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId())) {
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
-                        "Requires Periodical Title or Volume as parent instead of %s!",
-                        volumeElm.toLog()));
+                        "Requires Periodical Title as a root of the hierarchy instead of %s!",
+                        titleElm.toLog()));
                 return null;
             }
-            volumeMods = volumeElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
-        }
-        MixType mix = searchMix(elm, p);
-        if (mix == null) {
-            return null;
-        }
-        if (volumeMods == null) {
-            volumeMods = new ModsDefinition();
-        }
-        try {
-            ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
-            Import issueImport = resolverEntities.createPeriodicalIssueImport(
-                    titleMods, volumeMods, issueMods, mix, xmlHandler, false);
-            if (!validateEntity(xmlHandler, elm, p)) {
+            ModsDefinition titleMods = titleElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
+            ModsDefinition volumeMods = null;
+
+            if (path.hasNext()) {
+                DigitalObjectElement volumeElm = path.next();
+                if (!NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId())) {
+                    p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
+                            "Requires Periodical Title or Volume as parent instead of %s!",
+                            volumeElm.toLog()));
+                    return null;
+                }
+                volumeMods = volumeElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
+            }
+            MixType mix = searchMix(elm, p);
+            if (mix == null) {
                 return null;
             }
-            UrnNbn urnNbnResponse = registerEntity(issueImport, elm, p);
-            updateModsWithUrnNbn(urnNbnResponse, issueMods, issueDescription, issueModsHandler, elm, p);
-        } catch (SAXException ex) {
-            // registration request not valid
-            p.getStatus().error(elm, ex);
+            if (volumeMods == null) {
+                volumeMods = new ModsDefinition();
+            }
+            try {
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                Import issueImport = resolverEntities.createPeriodicalIssueImport(
+                        titleMods, volumeMods, issueMods, mix, xmlHandler, false);
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerEntity(issueImport, elm, p);
+                updateModsWithUrnNbn(urnNbnResponse, issueMods, issueDescription, issueModsHandler, elm, p);
+            } catch (SAXException ex) {
+                // registration request not valid
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isInvalidateUrnNbn()) {
+            if (urnnbn == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                invalidateUrnNbn(issueMods, issueDescription, issueModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -732,7 +756,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         final DescriptionMetadata<ModsDefinition> issueDescription = issueModsHandler.getMetadata();
         ModsDefinition issueMods = issueDescription.getData();
         // check URNNBN exists
-        String urnnbn = ResolverUtils.getIdentifier("urnnbn", issueMods);
+        String urnnbn = ResolverUtils.getIdentifierValue("urnnbn", issueMods);
+        if (p.isRegisterNewPid()) {
         if (urnnbn != null) {
             p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
@@ -778,6 +803,17 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             // registration request not valid
             p.getStatus().error(elm, ex);
         }
+        } else if (p.isInvalidateUrnNbn()) {
+            if (urnnbn == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                invalidateUrnNbn(issueMods, issueDescription, issueModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        }
         return null;
     }
 
@@ -791,7 +827,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         ModsDefinition volumeMods = volumeDescription.getData();
         ModsDefinition titleMods = null;
         // check URNNBN exists
-        String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
+        String urnnbn = ResolverUtils.getIdentifierValue("urnnbn", volumeMods);
+        if (p.isRegisterNewPid()) {
         if (urnnbn != null) {
             p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
@@ -831,6 +868,17 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             // registration request not valid
             p.getStatus().error(elm, ex);
         }
+        } else if (p.isInvalidateUrnNbn()) {
+            if (urnnbn == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                invalidateUrnNbn(volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        }
         return null;
     }
 
@@ -844,7 +892,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         ModsDefinition volumeMods = volumeDescription.getData();
         ModsDefinition titleMods = null;
         // check URNNBN exists
-        String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
+        String urnnbn = ResolverUtils.getIdentifierValue("urnnbn", volumeMods);
+        if (p.isRegisterNewPid()) {
         if (urnnbn != null) {
             p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
@@ -884,6 +933,17 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             // registration request not valid
             p.getStatus().error(elm, ex);
         }
+        } else if (p.isInvalidateUrnNbn()) {
+            if (urnnbn == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                invalidateUrnNbn(volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        }
         return null;
     }
 
@@ -896,7 +956,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         final DescriptionMetadata<ModsDefinition> volumeDescription = volumeModsHandler.getMetadata();
         ModsDefinition volumeMods = volumeDescription.getData();
         // check URNNBN exists
-        String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
+        String urnnbn = ResolverUtils.getIdentifierValue("urnnbn", volumeMods);
+        if (p.isRegisterNewPid()) {
         if (urnnbn != null) {
             p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
@@ -914,6 +975,18 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             // registration request not valid
             p.getStatus().error(elm, ex);
         }
+        } else if (p.isInvalidateUrnNbn()) {
+            if (urnnbn == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                invalidateUrnNbn(volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+            return null;
+        }
         return null;
     }
 
@@ -925,7 +998,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         final DescriptionMetadata<ModsDefinition> volumeDescription = volumeModsHandler.getMetadata();
         ModsDefinition volumeMods = volumeDescription.getData();
         // check URNNBN exists
-        String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
+        String urnnbn = ResolverUtils.getIdentifierValue("urnnbn", volumeMods);
+        if (p.isRegisterNewPid()) {
         if (urnnbn != null) {
             p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
@@ -949,6 +1023,17 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             // registration request not valid
             p.getStatus().error(elm, ex);
         }
+        } else if (p.isInvalidateUrnNbn()) {
+            if (urnnbn == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                invalidateUrnNbn(volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        }
         return null;
     }
 
@@ -960,7 +1045,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         final DescriptionMetadata<ModsDefinition> volumeDescription = volumeModsHandler.getMetadata();
         ModsDefinition volumeMods = volumeDescription.getData();
         // check URNNBN exists
-        String urnnbn = ResolverUtils.getIdentifier("urnnbn", volumeMods);
+        String urnnbn = ResolverUtils.getIdentifierValue("urnnbn", volumeMods);
+        if (p.isRegisterNewPid()) {
         if (urnnbn != null) {
             p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN exists.", urnnbn);
             return null;
@@ -977,6 +1063,17 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         } catch (SAXException ex) {
             // registration request not valid
             p.getStatus().error(elm, ex);
+        }
+        } else if (p.isInvalidateUrnNbn()) {
+            if (urnnbn == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                invalidateUrnNbn(volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -1047,6 +1144,26 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             // fatal error, stop further registrations!
             throw new IllegalStateException(elm.getPid() + ": Cannot write URN:NBN " + urnnbn, ex);
         }
+    }
+
+    private void invalidateUrnNbn(ModsDefinition elmMods, DescriptionMetadata<ModsDefinition> elmDescription,
+            MetadataHandler<ModsDefinition> elmModsHandler, DigitalObjectElement elm, UrnNbnContext p) {
+        try {
+            IdentifierDefinition identifierDefinition = ResolverUtils.getIdentifier("urnnbn", elmMods);
+            if (identifierDefinition != null) {
+                identifierDefinition.setInvalid("yes");
+                DigitalObjectHandler objectHandler = elm.getHandler();
+                elmDescription.setData(elmMods);
+                elmModsHandler.setMetadata(elmDescription, "Invalidate URN:NBN", NdkMetadataHandler.OPERATION_URNNBN);
+                objectHandler.commit();
+                p.getStatus().ok(elm, "Invalid " + identifierDefinition.getValue());
+            } else {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException(elm.getPid() + ": Cannot invalidate URN:NBN", ex);
+        }
+
     }
 
     private MixType searchMix(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
