@@ -12,9 +12,13 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.logging.Logger;
@@ -32,6 +36,7 @@ public class CatalogUtils {
     private static final Logger LOG = Logger.getLogger(CatalogUtils.class.getName());
 
     public static String repairHtml(String s) {
+        s = sortHtml(s);
         s = s.replaceAll("\\n", "");
         s = s.replaceAll("\\r", "");
         s = replaceMoreSpace(s);
@@ -682,4 +687,110 @@ public class CatalogUtils {
         }
     }
 
+    private static String sortHtml(String html) {
+        String htmlBck = html;
+        html = html.replaceAll("<table xmlns:xlink=\"http://www.w3.org/1999/xlink\">", "");
+        html = html.replaceAll("</table>", "");
+        String[] arr = html.split("<tr>");
+        List<String> lines = Arrays.asList(arr);
+        List<HtmlLine> htmlLine = new ArrayList<>();
+        ModsConstants constant = null;
+        for (String line : lines) {
+            if (line.isEmpty() || containsOnlyWhiteSpaces(line)) {
+                continue;
+            } else if (line.contains("<b>abstract") || line.contains("<b>Abstract") || line.contains("<b>Abstrakt")) {
+                constant = ModsConstants.ABSTRACT;
+            } else if (line.contains("<b>accessCondition") || line.contains("<b>Access Condition")) {
+                constant = ModsConstants.ACCESS_CONDITION;
+            } else if (line.contains("<b>classification") || line.contains("<b>Classification") || line.contains("<b>Klasifikace")) {
+                constant = ModsConstants.CLASSIFICATION;
+            } else if (line.contains("<b>extension")) {
+                constant = ModsConstants.EXTENSION;
+            } else if (line.contains("<b>genre") || line.contains("<b>Genre") || line.contains("<b>Ž&aacute;nr")) {
+                constant = ModsConstants.GENRE;
+            } else if (line.contains("<b>identifier") || line.contains("<b>Identifier") || line.contains("<b>Identifik&aacute;tor")) {
+                constant = ModsConstants.IDENTIFIER;
+            } else if (line.contains("td colspan=2><b>language") || line.contains("td colspan=2><b>Language") || line.contains("<b>Jazyk")) {
+                constant = ModsConstants.LANGUAGE;
+            } else if (line.contains("<b>location") || line.contains("<b>Location") || line.contains("<b>Lokace")) {
+                constant = ModsConstants.LOCATION;
+            } else if (line.contains("<b>name") || line.contains("<b>Name") || line.contains("<b>Jm&eacute;no")) {
+                constant = ModsConstants.NAME;
+            } else if (line.contains("<b>note") || line.contains("<b>Note") || line.contains("<b>Pozn&aacute;mka")) {
+                constant = ModsConstants.NOTE;
+            } else if (line.contains("<b>originInfo") || line.contains("<b>Origin Information")) {
+                constant = ModsConstants.ORIGIN_INFO;
+            } else if (line.contains("<b>part") || line.contains("<b>Part")) {
+                constant = ModsConstants.PART;
+            } else if (line.contains("<b>physicalDescription") || line.contains("<b>Physical Description") || line.contains("<b>Fyzick&yacute; popis")) {
+                constant = ModsConstants.PHYSICAL_DESCRIPTION;
+            } else if (line.contains("<b>recordInfo") || line.contains("<b>Record Information") || line.contains("<b>Informace o z&aacute;znamu")) {
+                constant = ModsConstants.RECORD_INFO;
+            } else if (line.contains("<b>relatedItem") || line.contains("<b>Related Item") || line.contains("<b>Souvisej&iacute;c&iacute; položka")) {
+                constant = ModsConstants.RELATED_ITEM;
+            } else if (line.contains("<b>subject") || line.contains("<b>Subject") || line.contains("<b>Předmět")) {
+                constant = ModsConstants.SUBJECT;
+            } else if (line.contains("<b>tableOfContents") || line.contains("<b>Table of Contents")) {
+                constant = ModsConstants.TABLE_OF_CONTENTS;
+            } else if (line.contains("<b>targetAudience")) {
+                constant = ModsConstants.TARGET_AUDIENCE;
+            } else if (line.contains("<b>titleInfo") || line.contains("<b>Title Information)") || line.contains("<b>Informace o titulu")) {
+                constant = ModsConstants.TITLE_INFO;
+            } else if (line.contains("<b>typeOfResource") || line.contains("<b>Type of Resource")|| line.contains("<b>Typ zdroje")) {
+                constant = ModsConstants.TYPE_OF_RESOURCE;
+            }
+            htmlLine.add(new HtmlLine("<tr>" + line, constant));
+        }
+
+        try {
+            Collections.sort(htmlLine, new ModsComparator());
+        } catch (NullPointerException ex) {
+            ex.printStackTrace();
+            return htmlBck;
+        }
+
+        StringWriter writer = new StringWriter();
+        writer.append("<table xmlns:xlink=http://www.w3.org/1999/xlink>");
+        for (HtmlLine line : htmlLine) {
+            writer.append(line.getLine());
+        }
+        writer.append("</table>");
+        return writer.toString();
+    }
+
+    private static boolean containsOnlyWhiteSpaces(String line) {
+        return line.replaceAll("\r", "").replaceAll("\n", "").replaceAll(" ", "").isEmpty();
+    }
+
+    public enum ModsConstants {
+        TITLE_INFO, NAME, ORIGIN_INFO, LOCATION, IDENTIFIER, LANGUAGE, PHYSICAL_DESCRIPTION,
+        ABSTRACT, NOTE, TYPE_OF_RESOURCE, GENRE, CLASSIFICATION, SUBJECT, PART, TABLE_OF_CONTENTS,
+        ACCESS_CONDITION, EXTENSION, TARGET_AUDIENCE, RECORD_INFO, RELATED_ITEM
+    }
+
+    private static class HtmlLine {
+        private String line;
+        private ModsConstants constants;
+
+        public HtmlLine(String line, ModsConstants constants) {
+            this.line = line;
+            this.constants = constants;
+        }
+
+        public String getLine() {
+            return line;
+        }
+
+        public ModsConstants getConstants() {
+            return constants;
+        }
+    }
+
+    private static class ModsComparator implements Comparator<HtmlLine> {
+
+        @Override
+        public int compare(HtmlLine line1, HtmlLine line2) {
+            return line1.getConstants().compareTo(line2.getConstants());
+        }
+    }
 }
