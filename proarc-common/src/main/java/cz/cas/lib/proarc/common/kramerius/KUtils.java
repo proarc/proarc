@@ -36,7 +36,7 @@ public class KUtils {
 
     public static final String KRAMERIUS_BATCH_NO_BATCH_V5 = "NO_BATCH";
     public static final String KRAMERIUS_BATCH_STARTED_V5 = "BATCH_STARTED";
-    public static final String KRAMERIUS_BATCH_FINISHED_V5 = "BATCH_FINISHED ";
+    public static final String KRAMERIUS_BATCH_FINISHED_V5 = "BATCH_FINISHED";
     public static final String KRAMERIUS_BATCH_FAILED_V5 = "BATCH_FAILED";
 
     public static final String KRAMERIUS_BATCH_RUNNING_V7 = "RUNNING";
