@@ -16,24 +16,12 @@
  */
 package cz.cas.lib.proarc.urnnbn;
 
-import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
+import cz.cas.lib.proarc.mix.*;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.FormatDesignation;
-import cz.cas.lib.proarc.mix.BasicImageInformationType;
 import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics;
-import cz.cas.lib.proarc.mix.ImageAssessmentMetadataType;
 import cz.cas.lib.proarc.mix.ImageAssessmentMetadataType.SpatialMetrics;
-import cz.cas.lib.proarc.mix.MixType;
-import cz.cas.lib.proarc.mix.PositiveIntegerType;
-import cz.cas.lib.proarc.mix.RationalType;
-import cz.cas.lib.proarc.mix.StringType;
-import cz.cas.lib.proarc.urnnbn.model.registration.Compression;
-import cz.cas.lib.proarc.urnnbn.model.registration.DigitalDocument;
-import cz.cas.lib.proarc.urnnbn.model.registration.Format;
-import cz.cas.lib.proarc.urnnbn.model.registration.PictureSize;
-import cz.cas.lib.proarc.urnnbn.model.registration.RegistrarScopeIdentifier;
-import cz.cas.lib.proarc.urnnbn.model.registration.RegistrarScopeIdentifiers;
-import cz.cas.lib.proarc.urnnbn.model.registration.Resolution;
-import cz.cas.lib.proarc.urnnbn.model.registration.TechnicalMetadata;
+import cz.cas.lib.proarc.urnnbn.model.registration.*;
+
 import java.math.BigInteger;
 import java.util.List;
 
@@ -129,6 +117,24 @@ public class DigitalDocumentBuilder {
                     resolution.setHorizontal(xRatio);
                     resolution.setVertical(yRatio);
                     getTechnicalMetadata().setResolution(resolution);
+                }
+            }
+            ImageAssessmentMetadataType.ImageColorEncoding imageColorEncoding = imageAssessmentMetadata.getImageColorEncoding();
+            if (imageColorEncoding != null) {
+                ImageAssessmentMetadataType.ImageColorEncoding.BitsPerSample bitsPerSample = imageColorEncoding.getBitsPerSample();
+                if (bitsPerSample != null) {
+                    for (PositiveIntegerType depth : bitsPerSample.getBitsPerSampleValue()) {
+                        if (depth != null && depth.getValue() != null) {
+                            Color color = getTechnicalMetadata().getColor();
+                            if (color == null) {
+                                color = new Color();
+                                getTechnicalMetadata().setColor(color);
+                            }
+                            color.setDepth(depth.getValue());
+
+                            break;
+                        }
+                    }
                 }
             }
         }

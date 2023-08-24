@@ -18,25 +18,22 @@ package cz.cas.lib.proarc.urnnbn;
 
 import cz.cas.lib.proarc.urnnbn.model.registration.Import;
 import cz.cas.lib.proarc.urnnbn.model.response.Response;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.logging.LoggingFeature;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.*;
+import javax.ws.rs.core.MediaType;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.logging.LoggingFeature;
 
 /**
  * The resolver HTTP client.
@@ -76,7 +73,7 @@ public final class ResolverClient {
 
     /**
      * Registers an digital document to get URN:NBN.
-     * <p>{@code POST http://resolver.nkp.cz/api/v3/registrars/boa001/digitalDocuments}
+     * <p>{@code POST http://resolver.nkp.cz/v4/registrars/boa001/digitalDocuments}
      * @param object a digital document
      * @return the resolver response
      */
@@ -131,7 +128,7 @@ public final class ResolverClient {
     }
 
     private WebTarget resource() {
-        // https://resolver.nkp.cz/api/v3
+        // https://resolver.nkp.cz/v4
         WebTarget target = getHttpClient().target(serviceUrl);
         if (LOG.isLoggable(Level.FINEST)) {
             target.register(new LoggingFeature(LOG));

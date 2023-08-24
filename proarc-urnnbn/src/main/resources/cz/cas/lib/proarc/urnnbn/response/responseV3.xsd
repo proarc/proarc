@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-Copyright (C) 2011 - 2016 Martin Řehánek
+Copyright (C) 2011, 2012 Martin Řehánek
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,44 +14,41 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-Author : Martin Řehánek Description: This XML Schema (W3C) document
-validates APIv4 operations' response data. https://github.com/NLCR/CZIDLO
-https://github.com/NLCR/CZIDLO/wiki/API
 -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:czidlo="http://resolver.nkp.cz/v4/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" elementFormDefault="qualified" targetNamespace="http://resolver.nkp.cz/v4/" xsi:schemaLocation="http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema.xsd">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:r="http://resolver.nkp.cz/v3/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" elementFormDefault="qualified" targetNamespace="http://resolver.nkp.cz/v3/" xsi:schemaLocation="http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema.xsd">
 
-    <!--OAI response doesn't need czidlo:response element-->
-    <xs:element name="digitalDocument" type="czidlo:digitalDocument" />
+    <!--OAI response doesn't need r:response element-->
+    <xs:element name="digitalDocument" type="r:digitalDocument" />
 
     <xs:element name="response">
         <xs:complexType>
             <xs:choice>
-                <xs:element name="error" type="czidlo:errorType" />
-                <xs:element name="digitalInstances" type="czidlo:digitalInstances" />
-                <xs:element name="digitalInstance" type="czidlo:digitalInstance" />
-                <xs:element name="registrars" type="czidlo:registrars" />
-                <xs:element name="registrar" type="czidlo:registrar" />
-                <xs:element name="urnNbn" type="czidlo:urnNbn" />
-                <xs:element name="urnNbnReservations" type="czidlo:urnNbnReservations" />
-                <xs:element name="urnNbnReservation" type="czidlo:urnNbnReservation" />
-                <xs:element name="digitalDocuments" type="czidlo:digitalDocuments" />
-                <xs:element name="digitalDocument" type="czidlo:digitalDocument" />
-                <xs:element name="registrarScopeIdentifiers" type="czidlo:registrarScopeIdentifiers" />
-                <xs:element name="id" type="czidlo:registrarScopeIdentifier" />
+                <xs:element name="error" type="r:errorType" />
+                <xs:element name="digitalInstances" type="r:digitalInstances" />
+                <xs:element name="digitalInstance" type="r:digitalInstance" />
+                <xs:element name="registrars" type="r:registrars" />
+                <xs:element name="registrar" type="r:registrar" />
+                <xs:element name="urnNbn" type="r:urnNbn" />
+                <xs:element name="urnNbnReservations" type="r:urnNbnReservations" />
+                <xs:element name="urnNbnReservation" type="r:urnNbnReservation" />
+                <xs:element name="digitalDocuments" type="r:digitalDocuments" />
+                <xs:element name="digitalDocument" type="r:digitalDocument" />
+                <xs:element name="registrarScopeIdentifiers" type="r:registrarScopeIdentifiers" />
+                <xs:element name="id" type="r:registrarScopeIdentifier" />
             </xs:choice>
         </xs:complexType>
     </xs:element>
 
     <xs:complexType name="digitalInstance">
         <xs:sequence>
-            <xs:element name="url" type="czidlo:url" />
+            <xs:element name="url" type="r:url" />
             <xs:element name="format" type="xs:string" minOccurs="0" />
             <xs:element name="accessibility" type="xs:string" minOccurs="0" />
             <xs:element name="digitalLibraryId" type="xs:int" minOccurs="0" />
             <xs:element name="created" type="xs:dateTime" />
             <xs:element name="deactivated" type="xs:dateTime" minOccurs="0" />
-            <xs:element name="digitalLibrary" type="czidlo:digitalLibrary" minOccurs="0" />
-            <xs:element name="digitalDocument" type="czidlo:digitalDocument" minOccurs="0" />
+            <xs:element name="digitalLibrary" type="r:digitalLibrary" minOccurs="0" />
+            <xs:element name="digitalDocument" type="r:digitalDocument" minOccurs="0" />
         </xs:sequence>
         <xs:attribute name="active" use="required" type="xs:boolean" />
         <xs:attribute name="id" use="required" type="xs:int" />
@@ -59,7 +56,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
 
     <xs:complexType name="digitalInstances">
         <xs:sequence>
-            <xs:element name="digitalInstance" type="czidlo:digitalInstance" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="digitalInstance" type="r:digitalInstance" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attribute name="count" use="optional" type="xs:int" />
     </xs:complexType>
@@ -69,10 +66,10 @@ https://github.com/NLCR/CZIDLO/wiki/API
         <xs:sequence>
             <xs:element name="name" type="xs:string" />
             <xs:element name="description" type="xs:string" minOccurs="0" />
-            <xs:element name="url" type="czidlo:url" minOccurs="0" />
+            <xs:element name="url" type="r:url" minOccurs="0" />
             <xs:element name="created" type="xs:dateTime" />
             <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
-            <xs:element name="registrar" type="czidlo:registrar" minOccurs="0" />
+            <xs:element name="registrar" type="r:registrar" minOccurs="0" />
         </xs:sequence>
         <xs:attribute name="id" use="required" type="xs:int" />
     </xs:complexType>
@@ -82,7 +79,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
         <xs:sequence>
             <xs:element name="name" type="xs:string" />
             <xs:element name="description" type="xs:string" minOccurs="0" />
-            <xs:element name="urlPrefix" type="czidlo:url" minOccurs="0" />
+            <xs:element name="urlPrefix" type="r:url" minOccurs="0" />
             <xs:element name="created" type="xs:dateTime" />
             <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
         </xs:sequence>
@@ -92,7 +89,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
     <!-- registrars -->
     <xs:complexType name="registrars">
         <xs:sequence>
-            <xs:element name="registrar" type="czidlo:registrar" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="registrar" type="r:registrar" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
 
@@ -101,20 +98,20 @@ https://github.com/NLCR/CZIDLO/wiki/API
         <xs:sequence>
             <xs:element name="name" type="xs:string" />
             <xs:element name="description" type="xs:string" minOccurs="0" />
-            <xs:element name="created" type="xs:dateTime" />
+            <xs:element name="created" type="xs:dateTime" minOccurs="0" />
             <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
-            <xs:element name="registrationModes" type="czidlo:registrationModes" minOccurs="0" />
+            <xs:element name="registrationModes" type="r:registrationModes" minOccurs="0" />
             <xs:element name="digitalLibraries" minOccurs="0">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="digitalLibrary" type="czidlo:digitalLibrary" minOccurs="0" maxOccurs="unbounded" />
+                        <xs:element name="digitalLibrary" type="r:digitalLibrary" minOccurs="0" maxOccurs="unbounded" />
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="catalogs" minOccurs="0">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="catalog" type="czidlo:catalog" minOccurs="0" maxOccurs="unbounded" />
+                        <xs:element name="catalog" type="r:catalog" minOccurs="0" maxOccurs="unbounded" />
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -129,7 +126,6 @@ https://github.com/NLCR/CZIDLO/wiki/API
             <xs:element name="name" type="xs:string" />
             <xs:element name="description" type="xs:string" minOccurs="0" />
             <xs:element name="created" type="xs:dateTime" minOccurs="0" />
-            <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
         </xs:sequence>
         <xs:attribute name="id" use="optional" type="xs:string" />
     </xs:complexType>
@@ -137,7 +133,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
     <!--registration modes-->
     <xs:complexType name="registrationModes">
         <xs:sequence>
-            <xs:element name="mode" type="czidlo:registrationMode" minOccurs="0" maxOccurs="3" />
+            <xs:element name="mode" type="r:registrationMode" minOccurs="0" maxOccurs="3" />
         </xs:sequence>
     </xs:complexType>
 
@@ -158,17 +154,17 @@ https://github.com/NLCR/CZIDLO/wiki/API
     <!-- digital document -->
     <xs:complexType name="digitalDocument">
         <xs:sequence>
-            <xs:element name="urnNbn" type="czidlo:urnNbn" />
+            <xs:element name="urnNbn" type="r:urnNbn" />
             <xs:element name="financed" type="xs:string" minOccurs="0" />
             <xs:element name="contractNumber" type="xs:string" minOccurs="0" />
             <xs:element name="created" type="xs:dateTime" />
             <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
-            <xs:element name="intelectualEntity" type="czidlo:intelectualEntity" minOccurs="0" />
-            <xs:element name="technicalMetadata" type="czidlo:technicalMetadata" />
-            <xs:element name="registrarScopeIdentifiers" type="czidlo:registrarScopeIdentifiers" minOccurs="0" />
-            <xs:element name="registrar" type="czidlo:registrar" minOccurs="0" />
-            <xs:element name="archiver" type="czidlo:archiver" minOccurs="0" />
-            <xs:element name="digitalInstances" type="czidlo:digitalInstances" minOccurs="0" />
+            <xs:element name="intelectualEntity" type="r:intelectualEntity" minOccurs="0" />
+            <xs:element name="technicalMetadata" type="r:technicalMetadata" />
+            <xs:element name="registrarScopeIdentifiers" type="r:registrarScopeIdentifiers" minOccurs="0" />
+            <xs:element name="registrar" type="r:registrar" minOccurs="0" />
+            <xs:element name="archiver" type="r:archiver" minOccurs="0" />
+            <xs:element name="digitalInstances" type="r:digitalInstances" minOccurs="0" />
         </xs:sequence>
         <xs:attribute name="id" use="required" type="xs:int" />
     </xs:complexType>
@@ -176,7 +172,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
     <!-- digital documents -->
     <xs:complexType name="digitalDocuments">
         <xs:sequence>
-            <xs:element name="digitalDocument" type="czidlo:digitalDocument" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="digitalDocument" type="r:digitalDocument" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attribute name="count" use="required" type="xs:int" />
     </xs:complexType>
@@ -191,7 +187,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
             <xs:element name="reserved">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="urnNbn" type="czidlo:urnNbnReserved" minOccurs="0" maxOccurs="unbounded" />
+                        <xs:element name="urnNbn" type="r:urnNbnReserved" minOccurs="0" maxOccurs="unbounded" />
                     </xs:sequence>
                     <xs:attribute name="totalSize" use="optional" type="xs:int" />
                 </xs:complexType>
@@ -209,7 +205,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
 
     <xs:complexType name="urnNbnReservation">
         <xs:sequence>
-            <xs:element name="urnNbn" type="czidlo:urnNbnReserved" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="urnNbn" type="r:urnNbnReserved" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
 
@@ -218,20 +214,20 @@ https://github.com/NLCR/CZIDLO/wiki/API
         <xs:sequence>
             <xs:element name="created" type="xs:dateTime" />
             <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
-            <xs:element name="titleInfo" type="czidlo:titleInfo" />
+            <xs:element name="titleInfo" type="r:titleInfo" />
             <xs:element name="ccnb" type="xs:string" minOccurs="0" />
             <xs:element name="isbn" type="xs:string" minOccurs="0" />
             <xs:element name="issn" type="xs:string" minOccurs="0" />
             <xs:element name="otherId" type="xs:string" minOccurs="0" />
             <xs:element name="documentType" type="xs:string" minOccurs="0" />
             <xs:element name="digitalBorn" type="xs:boolean" minOccurs="0" />
-            <xs:element name="primaryOriginator" type="czidlo:primaryOriginator" minOccurs="0" />
+            <xs:element name="primaryOriginator" type="r:primaryOriginator" minOccurs="0" />
             <xs:element name="otherOriginator" type="xs:string" minOccurs="0" />
-            <xs:element name="publication" type="czidlo:publication" minOccurs="0" />
-            <xs:element name="sourceDocument" type="czidlo:sourceDocument" minOccurs="0" />
+            <xs:element name="publication" type="r:publication" minOccurs="0" />
+            <xs:element name="sourceDocument" type="r:sourceDocument" minOccurs="0" />
             <xs:element name="degreeAwardingInstitution" type="xs:string" minOccurs="0" />
         </xs:sequence>
-        <xs:attribute name="type" use="required" type="czidlo:ieType" />
+        <xs:attribute name="type" use="required" type="r:ieType" />
     </xs:complexType>
 
     <xs:simpleType name="ieType">
@@ -274,42 +270,38 @@ https://github.com/NLCR/CZIDLO/wiki/API
     <!-- registrar scope identifiers -->
     <xs:complexType name="registrarScopeIdentifiers">
         <xs:sequence>
-            <xs:element name="id" type="czidlo:registrarScopeIdentifier" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="id" type="r:registrarScopeIdentifier" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
 
     <!-- registrar scope identifier and type -->
     <xs:complexType name="registrarScopeIdentifier">
         <xs:simpleContent>
-            <xs:extension base="czidlo:registrarScopeIdValueType">
-                <xs:attribute name="type" use="required" type="czidlo:registrarScopeIdTypeType" />
-                <xs:attribute name="previousValue" use="optional" type="czidlo:registrarScopeIdValueType" />
+            <xs:extension base="r:registarScopeIdValueType">
+                <xs:attribute name="type" use="required" type="r:registarScopeIdTypeType" />
+                <xs:attribute name="previousValue" use="optional" type="r:registarScopeIdValueType" />
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
 
     <!-- identifier value -->
-    <xs:simpleType name="registrarScopeIdValueType">
+    <xs:simpleType name="registarScopeIdValueType">
         <!-- In API V2 were allowed only these characters: A-Z a-z 0-9 $ - _ . + ! * ' ( ) , : @ -->
-        <!-- Now all reserved and unreserved URI characters as specified in RFC 3986 (sections 2.2 and 2.3)
-        are allowed, except for '/'. Must start and end with number letter (capital or not).
-        Length must be between 1 and 60 characters.-->
+        <!-- Now are allowed all reserved and unreserved URI characters as specified in RFC 3986 (sections 2.2 and 2.3)-->
         <!-- unreserved characters: -->
         <!-- A-Z a-z 0-9 -_.~ -->
-        <!-- reserved characters (all except for '/'): -->
-        <!-- ! * ' ( ) ; : @ & = + $ , ? # [ ] -->
-        <!-- i.e. these characters are newly allowed: ? [ ] ; & = #-->
+        <!-- reserved characters (must be url-encoded): -->
+        <!-- ! * ' ( ) ; : @ & = + $ , / ? # [ ] -->
+        <!-- i.e. these characters are newly allowed: ? [ ] ; & = / #-->
         <xs:restriction base="xs:token">
-            <xs:pattern value="[A-Za-z0-9]{1}[A-Za-z0-9\-_\.~!\*'\(\);:@&amp;=+$,\?#\[\]]{0,58}[A-Za-z0-9]{1}|[A-Za-z0-9]{1}" />
+            <xs:pattern value="[A-Za-z0-9\-_\.~!\*'\(\);:@&amp;=+$,/\?#\[\]]{1,60}" />
         </xs:restriction>
     </xs:simpleType>
 
     <!-- identifier type -->
-    <xs:simpleType name="registrarScopeIdTypeType">
+    <xs:simpleType name="registarScopeIdTypeType">
         <xs:restriction base="xs:token">
-            <!--  uppercase/lowercase letters, numbers, '_', '-', ':'. Must
-                            start and end with letter or number. Length must be between 1 and 20 characters.  -->
-            <xs:pattern value="[A-Za-z0-9]{1}[A-Za-z0-9_\-:]{0,18}[A-Za-z0-9]{1}" />
+            <xs:pattern value="[A-Za-z0-9_\-:]{1,20}" />
         </xs:restriction>
     </xs:simpleType>
 
@@ -317,7 +309,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
     <xs:complexType name="primaryOriginator">
         <xs:simpleContent>
             <xs:extension base="xs:string">
-                <xs:attribute name="type" use="required" type="czidlo:originatorTypeType" />
+                <xs:attribute name="type" use="required" type="r:originatorTypeType" />
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
@@ -347,7 +339,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
             <xs:element name="isbn" type="xs:string" minOccurs="0" maxOccurs="1" />
             <xs:element name="issn" type="xs:string" minOccurs="0" maxOccurs="1" />
             <xs:element name="otherId" type="xs:string" minOccurs="0" maxOccurs="1" />
-            <xs:element name="publication" type="czidlo:publication" minOccurs="0" maxOccurs="1" />
+            <xs:element name="publication" type="r:publication" minOccurs="0" maxOccurs="1" />
         </xs:sequence>
     </xs:complexType>
 
@@ -405,17 +397,17 @@ https://github.com/NLCR/CZIDLO/wiki/API
                 </xs:simpleType>
             </xs:element>
             <xs:element name="deactivationNote" type="xs:string" minOccurs="0" />
-            <xs:element name="value" type="czidlo:urnNbnType" />
-            <xs:element name="countryCode" type="czidlo:countryCode" minOccurs="0" />
-            <xs:element name="registrarCode" type="czidlo:registrarCode" minOccurs="0" />
-            <xs:element name="documentCode" type="czidlo:documentCode" minOccurs="0" />
+            <xs:element name="value" type="r:urnNbnType" />
+            <xs:element name="countryCode" type="r:countryCode" minOccurs="0" />
+            <xs:element name="registrarCode" type="r:registrarCode" minOccurs="0" />
+            <xs:element name="documentCode" type="r:documentCode" minOccurs="0" />
             <xs:element name="digitalDocumentId" type="xs:int" minOccurs="0" />
             <xs:element name="reserved" type="xs:dateTime" minOccurs="0" />
             <xs:element name="registered" type="xs:dateTime" minOccurs="0" />
             <xs:element name="deactivated" type="xs:dateTime" minOccurs="0" />
             <xs:element name="modified" type="xs:dateTime" minOccurs="0" />
-            <xs:element name="predecessor" type="czidlo:predecessor" minOccurs="0" maxOccurs="unbounded" />
-            <xs:element name="successor" type="czidlo:successor" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="predecessor" type="r:predecessor" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="successor" type="r:successor" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
 
@@ -423,7 +415,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
     <xs:complexType name="predecessor">
         <xs:simpleContent>
             <xs:extension base="xs:string">
-                <xs:attribute name="value" type="czidlo:urnNbnType" />
+                <xs:attribute name="value" type="r:urnNbnType" />
                 <xs:attribute name="note" use="optional" type="xs:string" />
             </xs:extension>
         </xs:simpleContent>
@@ -433,7 +425,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
     <xs:complexType name="successor">
         <xs:simpleContent>
             <xs:extension base="xs:string">
-                <xs:attribute name="value" type="czidlo:urnNbnType" />
+                <xs:attribute name="value" type="r:urnNbnType" />
                 <xs:attribute name="note" use="optional" type="xs:string" />
             </xs:extension>
         </xs:simpleContent>
@@ -442,13 +434,13 @@ https://github.com/NLCR/CZIDLO/wiki/API
     <!-- technical metadata -->
     <xs:complexType name="technicalMetadata">
         <xs:sequence>
-            <xs:element name="format" type="czidlo:format" minOccurs="0" maxOccurs="1" />
+            <xs:element name="format" type="r:format" minOccurs="0" maxOccurs="1" />
             <xs:element name="extent" type="xs:string" minOccurs="0" maxOccurs="1" />
-            <xs:element name="resolution" type="czidlo:resolution" minOccurs="0" maxOccurs="1" />
-            <xs:element name="compression" type="czidlo:compression" minOccurs="0" maxOccurs="1" />
-            <xs:element name="color" type="czidlo:color" minOccurs="0" maxOccurs="1" />
+            <xs:element name="resolution" type="r:resolution" minOccurs="0" maxOccurs="1" />
+            <xs:element name="compression" type="r:compression" minOccurs="0" maxOccurs="1" />
+            <xs:element name="color" type="r:color" minOccurs="0" maxOccurs="1" />
             <xs:element name="iccProfile" type="xs:string" minOccurs="0" maxOccurs="1" />
-            <xs:element name="pictureSize" type="czidlo:pictureSize" minOccurs="0" maxOccurs="1" />
+            <xs:element name="pictureSize" type="r:pictureSize" minOccurs="0" maxOccurs="1" />
         </xs:sequence>
     </xs:complexType>
 
@@ -496,7 +488,7 @@ https://github.com/NLCR/CZIDLO/wiki/API
 
     <xs:complexType name="errorType">
         <xs:sequence>
-            <xs:element name="code" type="czidlo:errorCodeType" />
+            <xs:element name="code" type="r:errorCodeType" />
             <xs:element name="message" type="xs:string" />
         </xs:sequence>
     </xs:complexType>
@@ -509,26 +501,23 @@ https://github.com/NLCR/CZIDLO/wiki/API
             <xs:enumeration value="INCORRECT_PREDECESSOR_RESERVED" />
             <xs:enumeration value="INVALID_ARCHIVER_ID" />
             <xs:enumeration value="INVALID_DATA" />
-            <xs:enumeration value="UNKNOWN_REGISTRAR_SCOPE_IDENTIFIER" />
-            <xs:enumeration value="REGISTRAR_SCOPE_IDENTIFIER_COLLISION" />
-            <xs:enumeration value="INVALID_REGISTRAR_SCOPE_ID_TYPE" />
-            <xs:enumeration value="INVALID_REGISTRAR_SCOPE_ID_VALUE" />
+            <xs:enumeration value="INVALID_REGISTRAR_SCOPE_IDENTIFIER" />
+            <xs:enumeration value="INVALID_DIGITAL_DOCUMENT_ID_TYPE" />
             <xs:enumeration value="INVALID_DIGITAL_INSTANCE_ID" />
             <xs:enumeration value="INVALID_QUERY_PARAM_VALUE" />
             <xs:enumeration value="INVALID_REGISTRAR_CODE" />
             <xs:enumeration value="INVALID_URN_NBN" />
             <xs:enumeration value="MISSING_PARAMETER" />
-            <xs:enumeration value="NO_ACCESS_RIGHTS" />
+            <xs:enumeration value="NOT_AUTHENTICATED" />
+            <xs:enumeration value="NOT_AUTHORIZED" />
             <xs:enumeration value="NOT_DEFINED" />
-            <xs:enumeration value="ILLEGAL_REGISTRATION_MODE" />
+            <xs:enumeration value="UNAUTHORIZED_REGISTRATION_MODE" />
             <xs:enumeration value="UNKNOWN_DIGITAL_DOCUMENT" />
             <xs:enumeration value="UNKNOWN_DIGITAL_INSTANCE" />
             <xs:enumeration value="UNKNOWN_DIGITAL_LIBRARY" />
             <xs:enumeration value="UNKNOWN_REGISTRAR" />
-            <xs:enumeration value="UNKNOWN_URN_NBN" />
+            <xs:enumeration value="UNKNOWN_URN" />
             <xs:enumeration value="URN_NBN_DEACTIVATED" />
-            <xs:enumeration value="INCORRECT_URN_NBN_STATE" />
-            <xs:enumeration value="INTERNAL_ERROR" />
         </xs:restriction>
     </xs:simpleType>
 

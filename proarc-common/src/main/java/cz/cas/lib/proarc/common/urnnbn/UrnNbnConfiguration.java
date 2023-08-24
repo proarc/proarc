@@ -17,10 +17,11 @@
 package cz.cas.lib.proarc.common.urnnbn;
 
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
+import org.apache.commons.configuration.Configuration;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
 
 /**
  * The configuration of URN:NBN resolvers.
@@ -87,6 +88,9 @@ public class UrnNbnConfiguration {
         }
         if (conf.getUrl() == null) {
             warning(conf, ResolverConfiguration.PROPERTY_URL);
+            ok = false;
+        } else if (conf.getUrl().contains("v3")) {
+            LOG.warning(String.format("Unsupported %s.%s.%s in proarc.cfg - required URL version 4", PREFIX_RESOLVER, conf.getId(), ResolverConfiguration.PROPERTY_URL));
             ok = false;
         }
         if (conf.getUser()== null) {
