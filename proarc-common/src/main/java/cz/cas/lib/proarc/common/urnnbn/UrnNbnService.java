@@ -145,6 +145,42 @@ public class UrnNbnService {
         return statusHandler;
     }
 
+    public UrnNbnStatusHandler createSuccessor(Collection<String> pids, boolean hierarchy) {
+        LinkedHashSet<String> queue = new LinkedHashSet<String>(pids);
+        UrnNbnStatusHandler statusHandler = new UrnNbnStatusHandler();
+        DigitalObjectCrawler crawler = new DigitalObjectCrawler(dom, search, null);
+        UrnNbnVisitor reg = new UrnNbnVisitor(crawler);
+        UrnNbnContext ctx = new UrnNbnContext();
+        ctx.setStatus(statusHandler);
+        ctx.setClient(client);
+        ctx.setCreateSuccessor(true);
+        if (initJhove(ctx) == null) {
+            return statusHandler;
+        }
+
+        try {
+            for (String pid : pids) {
+                queue.remove(pid);
+                try {
+                    DigitalObjectElement elm = crawler.getEntry(pid);
+                    elm.accept(reg, ctx);
+                } catch (Exception ex) {
+                    Logger.getLogger(UrnNbnService.class.getName()).log(Level.SEVERE, null, ex);
+                    statusHandler.error(pid, ex);
+                    break;
+                }
+            }
+        } finally {
+            if (ctx.getJhoveContext() != null) {
+                ctx.getJhoveContext().destroy();
+            }
+        }
+        for (String pid : queue) {
+            statusHandler.warning(pid, Status.NOT_PROCESSED, "Not processed! \n" + pid, null);
+        }
+        return statusHandler;
+    }
+
     private JhoveContext initJhove(UrnNbnContext ctx) {
         try {
             ctx.setJhoveContext(JhoveUtility.createContext());

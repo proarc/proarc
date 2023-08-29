@@ -254,6 +254,7 @@ public final class DigitalObjectResourceApi {
     public static final String URNNBN_HIERARCHY = "hierarchy";
     public static final String URNNBN_RESOLVER = "resolverId";
     public static final String URNNBN_INVALIDATE_LOCAL_PATH = "invalidateLocal";
+    public static final String URNNBN_CREATE_SUCCESSOR_PATH = "createSuccessor";
 
     public static final String REINDEX_PATH = "reindexObjects";
     public static final String UPDATE_ALL_OBJECTS_PATH = "updateAllObjectsObjects";

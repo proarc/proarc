@@ -68,6 +68,19 @@ public class DigitalDocumentBuilder {
         return this;
     }
 
+    public DigitalDocumentBuilder setPreccessor(String urnNbnValue) {
+        if (urnNbnValue != null && !urnNbnValue.isEmpty()) {
+            DigitalDocument.UrnNbn urnNbn = new DigitalDocument.UrnNbn();
+            Predecessor predecessor = new Predecessor();
+            urnNbn.getPredecessor().add(predecessor);
+
+            predecessor.setUrnNbnValue(urnNbnValue);
+            predecessor.setNote("Úprava metadat objektu.");
+            digitalDocument.setUrnNbn(urnNbn);
+        }
+        return this;
+    }
+
     public DigitalDocumentBuilder setMix(MixType mix) {
         BasicDigitalObjectInformationType basicDigitalObjectInformation = mix.getBasicDigitalObjectInformation();
         if (basicDigitalObjectInformation != null) {

@@ -18,22 +18,25 @@ package cz.cas.lib.proarc.urnnbn;
 
 import cz.cas.lib.proarc.urnnbn.model.registration.Import;
 import cz.cas.lib.proarc.urnnbn.model.response.Response;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.logging.LoggingFeature;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.*;
-import javax.ws.rs.core.MediaType;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.logging.LoggingFeature;
 
 /**
  * The resolver HTTP client.
@@ -96,6 +99,28 @@ public final class ResolverClient {
                     .path("digitalDocuments")
                     .request()
                         .post(Entity.entity(object, MediaType.APPLICATION_XML_TYPE), Response.class);
+        } catch (WebApplicationException ex) {
+            response = readResponseError(ex.getResponse(), ex);
+        } catch (ResponseProcessingException ex) {
+            response = readResponseError(ex.getResponse(), ex);
+        }
+        return response;
+    }
+
+    public Response removeUuidFromObject(String urnNbnValue) {
+        if (urnNbnValue == null || urnNbnValue.isEmpty()) {
+            throw new IllegalArgumentException("urnNbn");
+        }
+
+        Response response = null;
+        try {
+            response = resource()
+                    .path("resolver")
+                    .path(urnNbnValue)
+                    .path("registrarScopeIdentifiers")
+                    .path("uuid")
+                    .request()
+                        .delete(Response.class);
         } catch (WebApplicationException ex) {
             response = readResponseError(ex.getResponse(), ex);
         } catch (ResponseProcessingException ex) {

@@ -16,14 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import com.google.gwt.core.client.GWT;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.OperationBinding;
-import com.smartgwt.client.rpc.RPCResponse;
-import com.smartgwt.client.types.DSDataFormat;
-import com.smartgwt.client.types.DSOperationType;
-import com.smartgwt.client.types.DSProtocol;
 import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.AuthorityCatalogResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
@@ -38,6 +30,14 @@ import cz.cas.lib.proarc.webapp.shared.rest.UrnNbnResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import com.google.gwt.core.client.GWT;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.OperationBinding;
+import com.smartgwt.client.rpc.RPCResponse;
+import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
+import com.smartgwt.client.types.DSProtocol;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,6 +100,7 @@ public final class RestConfig {
     public static final String URL_DIGOBJECT_URNNBN = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.URNNBN_PATH);
     public static final String URL_DIGOBJECT_URNNBN_INVALIDATE_LOCAL = path(URL_DIGOBJECT_URNNBN, DigitalObjectResourceApi.URNNBN_INVALIDATE_LOCAL_PATH);
+    public static final String URL_DIGOBJECT_URNNBN_CREATE_SUCCESSOR = path(URL_DIGOBJECT_URNNBN, DigitalObjectResourceApi.URNNBN_CREATE_SUCCESSOR_PATH);
     public static final String URL_URNNBN_RESOLVER = path(URL_ROOT, UrnNbnResourceApi.PATH);
     public static final String URL_DIGOBJECT_COPYOBJECT = path(
             URL_DIGOBJECT, DigitalObjectResourceApi.COPYOBJECT_PATH);

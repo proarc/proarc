@@ -59,6 +59,15 @@ public class ResolverUtils {
         return null;
     }
 
+    public static IdentifierDefinition getIdentifierWithValue(String type, String value, ModsDefinition mods) {
+        for (IdentifierDefinition identifierDefinition : mods.getIdentifier()) {
+            if (type.equals(identifierDefinition.getType()) && value.equals(identifierDefinition.getValue()) && isValid(identifierDefinition)) {
+                return identifierDefinition;
+            }
+        }
+        return null;
+    }
+
     public static String getIdentifierValue(String type, ModsDefinition mods) {
         IdentifierDefinition identifier = getIdentifier(type, mods);
         return identifier == null ? null : identifier.getValue();

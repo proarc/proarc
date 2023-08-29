@@ -45,7 +45,7 @@ public class NdkEntityFactory {
 
     public Import createMultipartMonographImport(
             ModsDefinition titleMods,  ModsDefinition volumeMods,
-            MixType mix, ErrorHandler status, boolean oldPrint
+            MixType mix, ErrorHandler status, boolean oldPrint, String urnNbnValue
             ) throws SAXException {
 
         MonographVolume m = new MonographVolume();
@@ -75,7 +75,7 @@ public class NdkEntityFactory {
         imp.setMonographVolume(m);
         DigitalDocument digitalDocument = new DigitalDocumentBuilder()
                 .setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods))
-                .setMix(mix)
+                .setMix(mix).setPreccessor(urnNbnValue)
                 .build();
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
@@ -84,7 +84,7 @@ public class NdkEntityFactory {
     }
 
     public Import createMonographImport(
-            ModsDefinition volumeMods, MixType mix, ErrorHandler status, boolean eBorn, boolean oldPrint
+            ModsDefinition volumeMods, MixType mix, ErrorHandler status, boolean eBorn, boolean oldPrint, String urnNbnValue
             ) throws SAXException {
 
         Monograph m = new Monograph();
@@ -121,9 +121,9 @@ public class NdkEntityFactory {
         imp.setMonograph(m);
         DigitalDocument digitalDocument;
         if (eBorn) {
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods)).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods)).setPreccessor(urnNbnValue).build();
         } else{
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods)).setMix(mix).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods)).setMix(mix).setPreccessor(urnNbnValue).build();
         }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
@@ -131,7 +131,7 @@ public class NdkEntityFactory {
         return imp;
     }
 
-    public Import createMusicDocumentImport(ModsDefinition documentMods, ErrorHandler status)
+    public Import createMusicDocumentImport(ModsDefinition documentMods, ErrorHandler status, String urnNbnValue)
             throws SAXException {
 
         Monograph m = new Monograph();
@@ -151,7 +151,7 @@ public class NdkEntityFactory {
         Import imp = new Import();
         imp.setMonograph(m);
         DigitalDocument digitalDocument;
-        digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", documentMods)).build();
+        digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", documentMods)).setPreccessor(urnNbnValue).build();
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
         ResolverXmlUtils.validate(imp, status);
@@ -161,7 +161,7 @@ public class NdkEntityFactory {
 
     public Import createPeriodicalIssueImport(
             ModsDefinition titleMods, ModsDefinition volumeMods,
-            ModsDefinition issueMods, MixType mix, ErrorHandler status, boolean eBorn
+            ModsDefinition issueMods, MixType mix, ErrorHandler status, boolean eBorn, String urnNbnValue
             ) throws SAXException {
 
         Import imp = new Import();
@@ -216,9 +216,9 @@ public class NdkEntityFactory {
 
         DigitalDocument digitalDocument;
         if (eBorn) {
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", issueMods)).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", issueMods)).setPreccessor(urnNbnValue).build();
         } else{
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", issueMods)).setMix(mix).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", issueMods)).setPreccessor(urnNbnValue).setMix(mix).build();
         }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);
@@ -227,17 +227,17 @@ public class NdkEntityFactory {
     }
 
     public Import createCartographicImport(
-            ModsDefinition titleMods, MixType mix, ErrorHandler status
+            ModsDefinition titleMods, MixType mix, ErrorHandler status, String urnNbnValue
             ) throws SAXException {
 
-        return createOtherEntityImport(titleMods, "cartographic", mix, status, false);
+        return createOtherEntityImport(titleMods, "cartographic", mix, status, false, urnNbnValue);
     }
 
     public Import createSheetMusicImport(
-            ModsDefinition titleMods, MixType mix, ErrorHandler status
+            ModsDefinition titleMods, MixType mix, ErrorHandler status, String urnNbnValue
             ) throws SAXException {
 
-        return createOtherEntityImport(titleMods, "sheetmusic", mix, status, false);
+        return createOtherEntityImport(titleMods, "sheetmusic", mix, status, false, urnNbnValue);
     }
 
     /**
@@ -250,8 +250,8 @@ public class NdkEntityFactory {
      * @throws SAXException
      */
     public Import createOtherEntityImport(
-            ModsDefinition titleMods, String documentType, MixType mix, ErrorHandler status, boolean eBorn
-            ) throws SAXException {
+            ModsDefinition titleMods, String documentType, MixType mix, ErrorHandler status, boolean eBorn,
+            String urnNbnValue) throws SAXException {
 
         OtherEntity entity = new OtherEntity();
         entity.setCcnb(ResolverUtils.getIdentifierValue("ccnb", titleMods));
@@ -286,9 +286,9 @@ public class NdkEntityFactory {
 
         DigitalDocument digitalDocument;
         if (eBorn) {
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setPreccessor(urnNbnValue).build();
         } else{
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setMix(mix).build();
+            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setMix(mix).setPreccessor(urnNbnValue).build();
         }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);

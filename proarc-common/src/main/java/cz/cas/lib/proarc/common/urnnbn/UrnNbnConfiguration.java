@@ -17,11 +17,10 @@
 package cz.cas.lib.proarc.common.urnnbn;
 
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
-import org.apache.commons.configuration.Configuration;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.configuration.Configuration;
 
 /**
  * The configuration of URN:NBN resolvers.

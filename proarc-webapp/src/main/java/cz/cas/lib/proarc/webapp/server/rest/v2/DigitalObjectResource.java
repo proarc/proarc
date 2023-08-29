@@ -1228,6 +1228,25 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_CREATE_SUCCESSOR_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<UrnNbnResult> createSuccessorUrnNbn(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
+            @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
+    ) {
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        try {
+            return super.createSuccessorUrnNbn(pids, resolverId, hierarchy);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.LOCK_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> lockObject(

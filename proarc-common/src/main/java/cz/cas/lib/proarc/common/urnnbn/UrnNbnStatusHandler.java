@@ -128,7 +128,8 @@ public class UrnNbnStatusHandler {
         MISSING_PARENT, NO_PAGE_FOUND, NOT_PROCESSED,
         UNEXPECTED_PARENT,
         URNNBN_EXISTS, XML_REQUEST_NOT_VALID,
-        URNNBN_DONT_EXISTS
+        URNNBN_DONT_EXISTS,
+        WRONG_UUID_DELETED
     }
 
     public enum LogType { ERROR, REGISTERED, WARNING}
