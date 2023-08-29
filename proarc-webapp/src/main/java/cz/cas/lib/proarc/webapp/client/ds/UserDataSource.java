@@ -16,6 +16,11 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.widget.Organization;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.smartgwt.client.data.DSRequest;
@@ -28,11 +33,6 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.widgets.form.fields.StaticTextItem;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.cas.lib.proarc.webapp.client.widget.Organization;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 
 /**
  * Manages application users.
@@ -52,6 +52,7 @@ public final class UserDataSource extends ProarcDataSource {
     public static final String FIELD_LOCK_OBJECT_FUNCTION = UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION;
     public static final String FIELD_UNLOCK_OBJECT_FUNCTION = UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION;
     public static final String FIELD_IMPORT_TO_PROD_FUNCTION = UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION;
+    public static final String FIELD_CZIDLO_FUNCTION = UserResourceApi.USER_CZIDLO_FUNCTION;
 
     private static UserDataSource INSTANCE;
 
@@ -111,6 +112,9 @@ public final class UserDataSource extends ProarcDataSource {
         DataSourceBooleanField importToProdFunction = new DataSourceBooleanField(FIELD_IMPORT_TO_PROD_FUNCTION);
         importToProdFunction.setTitle(i18n.UsersView_ListHeader_ImportToProdFunction_Title());
 
+        DataSourceBooleanField czidloFunction = new DataSourceBooleanField(FIELD_CZIDLO_FUNCTION);
+        czidloFunction.setTitle(i18n.UsersView_ListHeader_CzidloFunction_Title());
+
         DataSourceTextField email = new DataSourceTextField(UserResourceApi.USER_EMAIL);
         email.setTitle(i18n.UsersView_ListHeader_Email_Title());
 
@@ -136,7 +140,7 @@ public final class UserDataSource extends ProarcDataSource {
         remoteType.setHidden(true);
 
         setFields(userId, userName, passwd, surname, forename, organization, role, email, created, remoteName,
-                remoteType, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction, importToProdFunction);
+                remoteType, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction, importToProdFunction, czidloFunction);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));

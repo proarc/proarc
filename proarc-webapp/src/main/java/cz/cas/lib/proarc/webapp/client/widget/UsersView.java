@@ -16,6 +16,14 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
@@ -44,14 +52,6 @@ import com.smartgwt.client.widgets.grid.ListGrid;
 import com.smartgwt.client.widgets.grid.ListGridRecord;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
-import cz.cas.lib.proarc.webapp.client.action.Actions;
-import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
-import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.util.logging.Logger;
 
 /**
@@ -240,6 +240,8 @@ public final class UsersView implements RefreshAction.Refreshable {
         unlockObjectFunction.setCanEdit(admin);
         BooleanItem importToProdFunction = new BooleanItem(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION);
         importToProdFunction.setCanEdit(admin);
+        BooleanItem czidloFunctio = new BooleanItem(UserResourceApi.USER_CZIDLO_FUNCTION);
+        czidloFunctio.setCanEdit(admin);
         TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
         email.setColSpan("*");
         email.setWidth(300);
@@ -281,7 +283,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         cancel.setStartRow(false);
 
         form.setFields(username, password, forename, surname, email,
-                remoteName, remoteType, organization, role, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction, importToProdFunction,
+                remoteName, remoteType, organization, role, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction, importToProdFunction, czidloFunctio,
                 new RowSpacerItem(), submit, cancel);
 
         return form;

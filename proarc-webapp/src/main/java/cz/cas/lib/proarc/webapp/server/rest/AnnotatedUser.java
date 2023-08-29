@@ -120,6 +120,10 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract Boolean getImportToProdFunction();
 
+    @XmlElement(name = UserResourceApi.USER_CZIDLO_FUNCTION)
+    @Override
+    public abstract Boolean getCzidloFunction();
+
     @XmlTransient
     @Override
     public abstract URI getImportFolder();

@@ -54,7 +54,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 14;
+    public static final int VERSION = 15;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -202,6 +202,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn lockObjectFunction;
         public final DBTableColumn unlockObjectFunction;
         public final DBTableColumn importToProdFunction;
+        public final DBTableColumn czidloFunction;
 
         public UserTable(DBDatabase db) {
             super("PROARC_USERS", db);
@@ -232,6 +233,7 @@ public class ProarcDatabase extends DBDatabase {
             lockObjectFunction = addColumn("LOCK_OBJECT_FUNCTION", DataType.BOOL, 0, false);
             unlockObjectFunction = addColumn("UNLOCK_OBJECT_FUNCTION", DataType.BOOL, 0, false);
             importToProdFunction = addColumn("IMPORT_TO_PROD_FUNCTION", DataType.BOOL, 0, false);
+            czidloFunction = addColumn("CZIDLO_FUNCTION", DataType.BOOL, 0, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
@@ -551,7 +553,7 @@ public class ProarcDatabase extends DBDatabase {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
                 LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
-                schemaVersion = ProarcDatabaseV13.upgradeToVersion14(
+                schemaVersion = ProarcDatabaseV14.upgradeToVersion15(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);

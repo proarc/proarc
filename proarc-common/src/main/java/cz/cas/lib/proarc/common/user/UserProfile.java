@@ -51,6 +51,7 @@ public class UserProfile {
     private Boolean lockObjectFunction;
     private Boolean unlockObjectFunction;
     private Boolean importToProdFunction;
+    private Boolean czidloFunction;
     private Date created;
     private Date lastLogin;
     private String status;
@@ -303,6 +304,18 @@ public class UserProfile {
 
     public void setImportToProdFunction(Boolean importToProdFunction) {
         this.importToProdFunction = importToProdFunction;
+    }
+
+    public Boolean getCzidloFunction() {
+        return czidloFunction;
+    }
+
+    public Boolean hasCzidloFunction() {
+        return Boolean.TRUE.equals(czidloFunction);
+    }
+
+    public void setCzidloFunction(Boolean czidloFunction) {
+        this.czidloFunction = czidloFunction;
     }
 
     @Override

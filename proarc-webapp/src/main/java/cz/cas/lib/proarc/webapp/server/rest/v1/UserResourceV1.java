@@ -146,7 +146,8 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION) Boolean updateModelFunction,
             @FormParam(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION) Boolean lockObjectFuction,
             @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction
+            @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
+            @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction
             ) {
         Locale locale = session.getLocale(httpHeaders);
         checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN, Permissions.USERS_CREATE);
@@ -174,6 +175,7 @@ public class UserResourceV1 {
         newProfile.setLockObjectFunction(lockObjectFuction);
         newProfile.setUnlockObjectFunction(unlockObjectFuction);
         newProfile.setImportToProdFunction(importToProdFunction);
+        newProfile.setCzidloFunction(czidloFunction);
         try {
             newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
                     session.getUser().getUserName(), session.asFedoraLog());
@@ -205,7 +207,8 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION) Boolean updateModelFunction,
             @FormParam(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION) Boolean lockObjectFuction,
             @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction
+            @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
+            @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction
             ) {
 
         Locale locale = session.getLocale(httpHeaders);
@@ -238,6 +241,7 @@ public class UserResourceV1 {
             update.setLockObjectFunction(lockObjectFuction);
             update.setUnlockObjectFunction(unlockObjectFuction);
             update.setImportToProdFunction(importToProdFunction);
+            update.setCzidloFunction(czidloFunction);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Surname_Required")).build();

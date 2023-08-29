@@ -16,6 +16,39 @@
  */
 package cz.cas.lib.proarc.webapp.client;
 
+import cz.cas.lib.proarc.webapp.client.ClientUtils.SweepTask;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.LocalizationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.UserPermissionDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
+import cz.cas.lib.proarc.webapp.client.presenter.DeviceManager;
+import cz.cas.lib.proarc.webapp.client.presenter.DeviceManaging.DeviceManagerPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreator;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectManager;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectManaging.DigitalObjectManagerPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.ImportPresenter;
+import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace.Type;
+import cz.cas.lib.proarc.webapp.client.presenter.UserManaging.UsersPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJob;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJobEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
+import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
+import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
+import cz.cas.lib.proarc.webapp.client.widget.UserInfoView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.client.widget.UsersView;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.UrlBuilder;
@@ -57,39 +90,6 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
-import cz.cas.lib.proarc.webapp.client.ClientUtils.SweepTask;
-import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
-import cz.cas.lib.proarc.webapp.client.action.Actions;
-import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.LocalizationDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.UserPermissionDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
-import cz.cas.lib.proarc.webapp.client.presenter.DeviceManager;
-import cz.cas.lib.proarc.webapp.client.presenter.DeviceManaging.DeviceManagerPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreator;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectManager;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectManaging.DigitalObjectManagerPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.ImportPresenter;
-import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace.Type;
-import cz.cas.lib.proarc.webapp.client.presenter.UserManaging.UsersPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJob;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJobEditor;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
-import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
-import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
-import cz.cas.lib.proarc.webapp.client.widget.UserInfoView;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-import cz.cas.lib.proarc.webapp.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -214,6 +214,7 @@ public class Editor implements EntryPoint {
                 String permissionRunUpdateFunction = "none";
                 String permissionRunLockFunction = "none";
                 String permissionRunUnlockFunction = "none";
+                String permissionCzidloFunction = "none";
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
                     if (data.length > 0) {
@@ -223,6 +224,7 @@ public class Editor implements EntryPoint {
                         permissionRunLockFunction = data[0].getAttribute(UserDataSource.FIELD_LOCK_OBJECT_FUNCTION);
                         permissionRunUnlockFunction = data[0].getAttribute(UserDataSource.FIELD_UNLOCK_OBJECT_FUNCTION);
                         permissionRunChangeFunction = data[0].getAttribute(UserDataSource.FIELD_IMPORT_TO_PROD_FUNCTION);
+                        permissionCzidloFunction = data[0].getAttribute(UserDataSource.FIELD_CZIDLO_FUNCTION);
                     }
                     permissions.clear();
                     permissions.add(role);
@@ -230,6 +232,7 @@ public class Editor implements EntryPoint {
                     permissions.add("true".equals(permissionRunUpdateFunction) ? UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION : "none");
                     permissions.add("true".equals(permissionRunLockFunction) ? UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION : "none");
                     permissions.add("true".equals(permissionRunUnlockFunction) ? UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION : "none");
+                    permissions.add("true".equals(permissionCzidloFunction) ? UserRole.PERMISSION_CZIDLO_FUNCTION : "none");
                     sweepTask.release();
                 }
             }
