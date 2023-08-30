@@ -42,6 +42,7 @@ public class AcceptedExports {
     private final String BAGIT_SUFFIX = "_bagit";
     private final String LTP_UPLOAD_SUFFIX = "_upload_cesnet";
     private final String KRAMERIUS_UPLOAD_SUFFIX = "_upload_kramerius";
+    private final String EXTENDED = "_extended"; // rozsireni o nezpracoane skeny do archivniho baliku
 
     private List<String> ALL_MODELS = Arrays.asList(
             // pages//
@@ -150,11 +151,15 @@ public class AcceptedExports {
         List<String> acceptedItems = new ArrayList<>();
         if (EXPORT_ARCHIVE_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_ARCHIVE);
+            acceptedItems.add(EXPORT_ARCHIVE + EXTENDED);
             acceptedItems.add(EXPORT_ARCHIVE + BAGIT_SUFFIX);
+            acceptedItems.add(EXPORT_ARCHIVE + EXTENDED + BAGIT_SUFFIX);
         }
         if (EXPORT_ARCHIVE_STT_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_ARCHIVE_STT);
+            acceptedItems.add(EXPORT_ARCHIVE_STT + EXTENDED);
             acceptedItems.add(EXPORT_ARCHIVE_STT + BAGIT_SUFFIX);
+            acceptedItems.add(EXPORT_ARCHIVE_STT + EXTENDED + BAGIT_SUFFIX);
         }
         if (EXPORT_KRAMERIUS_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_KRAMERIUS);
