@@ -1260,7 +1260,7 @@
                     </dateIssued>
                 </xsl:if>
                 <xsl:if test="marc:subfield[@code='3']">
-                    <dateOther>
+                    <dateOther type="publication">
                         <xsl:value-of select="marc:subfield[@code='3']"/>
                     </dateOther>
                 </xsl:if>

@@ -1113,7 +1113,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     </dateIssued>
                 </xsl:for-each>
                 <xsl:for-each select="marc:subfield[@code='3']">
-                    <dateOther>
+                    <dateOther type="publication">
                         <xsl:call-template name="chopPunctuation">
                             <xsl:with-param name="chopString" select="."/>
                         </xsl:call-template>
