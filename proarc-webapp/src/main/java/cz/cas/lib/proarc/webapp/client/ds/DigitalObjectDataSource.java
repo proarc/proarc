@@ -16,6 +16,17 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
+import cz.cas.lib.proarc.webapp.client.action.DeleteAction.Deletable;
+import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction.Restorable;
+import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
+import cz.cas.lib.proarc.webapp.client.widget.StatusView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.shared.GWT;
 import com.smartgwt.client.data.Criteria;
@@ -30,17 +41,6 @@ import com.smartgwt.client.types.PromptStyle;
 import com.smartgwt.client.util.SC;
 import com.smartgwt.client.widgets.form.DynamicForm;
 import com.smartgwt.client.widgets.form.fields.BooleanItem;
-import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.cas.lib.proarc.webapp.client.Editor;
-import cz.cas.lib.proarc.webapp.client.action.DeleteAction.Deletable;
-import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction.Restorable;
-import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
-import cz.cas.lib.proarc.webapp.client.widget.StatusView;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +55,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
     public static final String FIELD_MODS = DigitalObjectResourceApi.NEWOBJECT_XML_PARAM;
+    public static final String FIELD_VALIDATION = DigitalObjectResourceApi.MODS_CUSTOM_VALIDATE_OBJECT;
     public static final String FIELD_CATALOGID = DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID;
     public static final String FIELD_WF_JOB_ID = WorkflowModelConsts.PARAMETER_JOBID;
     /** Synthetic attribute holding {@link DigitalObject}. */
@@ -70,7 +71,9 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
 
         DataSourceTextField catalogId = new DataSourceTextField(FIELD_CATALOGID);
-        setFields(pid, model, catalogId);
+
+        DataSourceTextField validation = new DataSourceTextField(FIELD_VALIDATION);
+        setFields(pid, model, catalogId, validation);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createDeleteOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
@@ -151,6 +154,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
         if (mods != null) {
             r.setAttribute(DigitalObjectDataSource.FIELD_MODS, mods);
+            r.setAttribute(DigitalObjectDataSource.FIELD_VALIDATION, "false");
         }
         if (pid != null && !pid.isEmpty()) {
             r.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);

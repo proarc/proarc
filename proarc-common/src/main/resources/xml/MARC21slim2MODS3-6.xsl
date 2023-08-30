@@ -1259,6 +1259,11 @@
                         <xsl:value-of select="marc:subfield[@code='c']"/>
                     </dateIssued>
                 </xsl:if>
+                <xsl:if test="marc:subfield[@code='3']">
+                    <dateOther>
+                        <xsl:value-of select="marc:subfield[@code='3']"/>
+                    </dateOther>
+                </xsl:if>
             </originInfo>
         </xsl:for-each>
         <!--  1.121  -->
