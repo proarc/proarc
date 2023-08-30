@@ -477,7 +477,9 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage,
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
-            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
+            @FormParam(ExportResourceApi.ARCHIVE_NO_TIF_AVAILABLE_MESSAGE) String noTifAvailableMessage,
+            @FormParam(ExportResourceApi.ARCHIVE_ADDITIONAL_INFO_MESSAGE) String additionalInfoMessage
             ) throws Exception {
 
         if (pids.isEmpty()) {
@@ -491,7 +493,7 @@ public class ExportResourceV1 {
             result.setIgnoreMissingUrnNbn(true);
             return new SmartGwtResponse<ExportResult>(result);
         }
-        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit);
+        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_ARCHIVE, params);
 
         ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
