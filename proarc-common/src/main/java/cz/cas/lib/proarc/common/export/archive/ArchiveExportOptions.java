@@ -28,10 +28,12 @@ public class ArchiveExportOptions {
     static final String PROP_ARCHIVE_PACKAGE_EXTENDED = "export.archive.extended";
     static final String PROP_ARCHIVAL_COPY_FOLDER_NAME = "export.archive.archivalCopy.folderName";
     static final String PROP_NO_TIFF_AVAILABLE_FILE_NAME = "export.archive.noTif.fileName";
+    static final String PROP_NO_TIFF_AVAILABLE_PATH = "export.archive.noTif.path";
     static final String PROP_ADDITIONAL_INFO_FILE_NAME = "export.archive.addInfo.fileName";
     private boolean extendedPackage;
     private String archivalCopyFolderName;
-    private String noTiffAvailableFileName;
+    private String noTifAvailableFileName;
+    private String noTifAvailablePath;
     private String additionalInfoFileName;
 
     public static ArchiveExportOptions getOptions(Configuration config) {
@@ -48,12 +50,17 @@ public class ArchiveExportOptions {
 
         String noTiffAvailableFileName = config.getString(PROP_NO_TIFF_AVAILABLE_FILE_NAME, "No_Tif_available.txt");
         if (noTiffAvailableFileName != null && !noTiffAvailableFileName.isEmpty()) {
-            options.setNoTiffAvailableFileName(noTiffAvailableFileName);
+            options.setNoTifAvailableFileName(noTiffAvailableFileName);
         }
 
         String additionalInfoFileName = config.getString(PROP_ADDITIONAL_INFO_FILE_NAME, "Addition_Info.txt");
         if (additionalInfoFileName != null && !additionalInfoFileName.isEmpty()) {
             options.setAdditionalInfoFileName(additionalInfoFileName);
+        }
+
+        String noTiffAvailablePath = config.getString(PROP_NO_TIFF_AVAILABLE_PATH, "${proarc.home}/noTifAvailable.tif");
+        if (noTiffAvailablePath != null && !noTiffAvailablePath.isEmpty()) {
+            options.setNoTifAvailablePath(noTiffAvailablePath);
         }
 
         return options;
@@ -75,12 +82,12 @@ public class ArchiveExportOptions {
         this.archivalCopyFolderName = archivalCopyFolderName;
     }
 
-    public String getNoTiffAvailableFileName() {
-        return noTiffAvailableFileName;
+    public String getNoTifAvailableFileName() {
+        return noTifAvailableFileName;
     }
 
-    public void setNoTiffAvailableFileName(String noTiffAvailableFileName) {
-        this.noTiffAvailableFileName = noTiffAvailableFileName;
+    public void setNoTifAvailableFileName(String noTiffAvailableFileName) {
+        this.noTifAvailableFileName = noTiffAvailableFileName;
     }
 
     public String getAdditionalInfoFileName() {
@@ -89,5 +96,13 @@ public class ArchiveExportOptions {
 
     public void setAdditionalInfoFileName(String additionalInfoFileName) {
         this.additionalInfoFileName = additionalInfoFileName;
+    }
+
+    public String getNoTifAvailablePath() {
+        return noTifAvailablePath;
+    }
+
+    public void setNoTifAvailablePath(String noTiffAvailablePath) {
+        this.noTifAvailablePath = noTiffAvailablePath;
     }
 }

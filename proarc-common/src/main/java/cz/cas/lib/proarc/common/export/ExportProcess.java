@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.export;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
@@ -62,7 +61,14 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -306,6 +312,72 @@ public final class ExportProcess implements Runnable {
             if (Const.EXPORT_NDK4SIP.equals(typeOfPackage)) {
                 ArchiveProducer.fixPdfFile(targetFolder);
             }
+            try {
+                if (config.getArchiveExportOptions().isExtendedPackage()) { // pokud neni tak normalne jedu dal
+                    for (File folder : targetFolder.listFiles()) {
+                        if (folder.isDirectory()) {
+                            String pid = "uuid:" + folder.getName();
+                            File archivalCopiesSource = getSourceLocation(pid);
+                            if (archivalCopiesSource == null || !archivalCopiesSource.exists()) {
+                                if (params.getNoTifAvailableMessage() != null && !params.getNoTifAvailableMessage().isEmpty()) {
+                                    File archivalCopiesDestination = new File(folder, config.getArchiveExportOptions().getArchivalCopyFolderName());
+                                    if (!archivalCopiesDestination.mkdir()) {
+                                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se vytvořit složku k archivním kopiím: " + archivalCopiesDestination.getAbsolutePath());
+                                    }
+                                    if (!archivalCopiesDestination.exists()) {
+                                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se dostat do složky archivních kopií: " + archivalCopiesDestination.getAbsolutePath());
+                                    }
+                                    String filename = config.getArchiveExportOptions().getNoTifAvailableFileName();
+                                    writeToFile(new File(archivalCopiesDestination, filename.endsWith(".txt") ? filename : filename + ".txt"), params.getNoTifAvailableMessage());
+                                    String noTifAvailablePath = config.getArchiveExportOptions().getNoTifAvailablePath();
+                                    File noTifAvailableSource = new File(noTifAvailablePath);
+                                    if (noTifAvailableSource == null || !noTifAvailableSource.exists()) {
+                                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nenalezen soubor, ktery se kopiruje v pripade chybejicich skenu: " + noTifAvailableSource.getAbsolutePath());
+                                    }
+                                    FileUtils.copyFile(noTifAvailableSource, new File(archivalCopiesDestination, noTifAvailableSource.getName()));
+                                    createMd5File(archivalCopiesDestination);
+                                } else {
+                                    if (archivalCopiesSource == null) {
+                                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nedefinovana cesta k archivnim kopiim.");
+                                    }
+                                    String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nenalezena cesta k archivnim kopiim: " + archivalCopiesSource.getAbsolutePath());
+                                }
+                            } else {
+                                File archivalCopiesDestination = new File(folder, config.getArchiveExportOptions().getArchivalCopyFolderName());
+                                if (!archivalCopiesDestination.mkdir()) {
+                                    String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se vytvořit složku k archivním kopiím: " + archivalCopiesDestination.getAbsolutePath());
+                                }
+                                if (!archivalCopiesDestination.exists()) {
+                                    String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se dostat do složky archivních kopií: " + archivalCopiesDestination.getAbsolutePath());
+                                }
+                                try {
+                                    FileUtils.copyDirectory(archivalCopiesSource, archivalCopiesDestination);
+                                } catch (IOException ex) {
+                                    ex.printStackTrace();
+                                    String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se překopírovat obsah z " + archivalCopiesSource.getAbsolutePath() + " do " + archivalCopiesDestination.getAbsolutePath());
+                                }
+                                if (params.getAdditionalInfoMessage() != null && !params.getAdditionalInfoMessage().isEmpty()) {
+                                    String filename = config.getArchiveExportOptions().getAdditionalInfoFileName();
+                                    writeToFile(new File(archivalCopiesDestination, filename.endsWith(".txt") ? filename : filename + ".txt"), params.getAdditionalInfoMessage());
+                                }
+                                createMd5File(archivalCopiesDestination);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Neočekávaná chyba " + ex.getMessage());
+            }
 
             ExportUtils.writeExportResult(targetFolder, export.getResultLog());
             if (params.isBagit()) {
@@ -350,6 +422,40 @@ public final class ExportProcess implements Runnable {
             IOException ex = new IOException(t.getMessage(), t);
             return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
         }
+    }
+
+    private void createMd5File(File folder) throws IOException {
+        StringBuilder checksumBuilder = new StringBuilder();
+        for (File file : folder.listFiles()) {
+            ByteSource byteSource = Files.asByteSource(file);
+            HashCode hc = byteSource.hash(Hashing.md5());
+            checksumBuilder.append(hc.toString().toLowerCase()).append(" ").append(file.getName()).append("\n");
+        }
+        writeToFile(new File(folder, "info.md5"), checksumBuilder.toString());
+    }
+
+    private void writeToFile(File file, String message) throws IOException {
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(file));
+            writer.append(message);
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+    }
+
+    private File getSourceLocation(String pid) {
+        File source = null;
+        File archivalCopies = new File(config.getConfigHome(), "archival_copies");
+        if (archivalCopies.exists()) {
+            source = new File(archivalCopies, pid.substring(5));
+            if (source != null && source.exists()) {
+                return source;
+            }
+        }
+        return null;
     }
 
     private Batch crossrefExport(Batch batch, BatchParams params) {
