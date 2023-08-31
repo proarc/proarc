@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.export;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
@@ -45,10 +44,12 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -58,11 +59,19 @@ import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -125,6 +134,7 @@ public final class ExportProcess implements Runnable {
 
     /**
      * Starts the process.
+     *
      * @return the import batch
      */
     public Batch start() {
@@ -139,7 +149,7 @@ public final class ExportProcess implements Runnable {
         }
         try {
             batch = BatchUtils.startWaitingExportBatch(batchManager, batch);
-            switch(profileId) {
+            switch (profileId) {
                 case Batch.EXPORT_KRAMERIUS:
                     return krameriusExport(batch, params);
                 case Batch.EXPORT_DATASTREAM:
@@ -306,6 +316,72 @@ public final class ExportProcess implements Runnable {
             if (Const.EXPORT_NDK4SIP.equals(typeOfPackage)) {
                 ArchiveProducer.fixPdfFile(targetFolder);
             }
+            try {
+                if (config.getArchiveExportOptions().isExtendedPackage()) { // pokud neni tak normalne jedu dal
+                    for (File folder : targetFolder.listFiles()) {
+                        if (folder.isDirectory()) {
+                            String pid = "uuid:" + folder.getName();
+                            File archivalCopiesSource = getSourceLocation(pid, folder);
+                            if (archivalCopiesSource == null || !archivalCopiesSource.exists()) {
+                                if (params.getNoTifAvailableMessage() != null && !params.getNoTifAvailableMessage().isEmpty()) {
+                                    File archivalCopiesDestination = new File(folder, config.getArchiveExportOptions().getArchivalCopyFolderName());
+                                    if (!archivalCopiesDestination.mkdir()) {
+                                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se vytvořit složku k archivním kopiím: " + archivalCopiesDestination.getAbsolutePath());
+                                    }
+                                    if (!archivalCopiesDestination.exists()) {
+                                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se dostat do složky archivních kopií: " + archivalCopiesDestination.getAbsolutePath());
+                                    }
+                                    String filename = config.getArchiveExportOptions().getNoTifAvailableFileName();
+                                    writeToFile(new File(archivalCopiesDestination, filename.endsWith(".txt") ? filename : filename + ".txt"), params.getNoTifAvailableMessage());
+                                    String noTifAvailablePath = config.getArchiveExportOptions().getNoTifAvailablePath();
+                                    File noTifAvailableSource = new File(noTifAvailablePath);
+                                    if (noTifAvailableSource == null || !noTifAvailableSource.exists()) {
+                                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nenalezen soubor, ktery se kopiruje v pripade chybejicich skenu: " + noTifAvailableSource.getAbsolutePath());
+                                    }
+                                    FileUtils.copyFile(noTifAvailableSource, new File(archivalCopiesDestination, noTifAvailableSource.getName()));
+                                    createMd5File(archivalCopiesDestination);
+                                } else {
+                                    if (archivalCopiesSource == null) {
+                                        String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nedefinovana cesta k archivnim kopiim.");
+                                    }
+                                    String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nenalezena cesta k archivnim kopiim: " + archivalCopiesSource.getAbsolutePath());
+                                }
+                            } else {
+                                File archivalCopiesDestination = new File(folder, config.getArchiveExportOptions().getArchivalCopyFolderName());
+                                if (!archivalCopiesDestination.mkdir()) {
+                                    String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se vytvořit složku k archivním kopiím: " + archivalCopiesDestination.getAbsolutePath());
+                                }
+                                if (!archivalCopiesDestination.exists()) {
+                                    String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se dostat do složky archivních kopií: " + archivalCopiesDestination.getAbsolutePath());
+                                }
+                                try {
+                                    FileUtils.copyDirectory(archivalCopiesSource, archivalCopiesDestination);
+                                } catch (IOException ex) {
+                                    ex.printStackTrace();
+                                    String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se překopírovat obsah z " + archivalCopiesSource.getAbsolutePath() + " do " + archivalCopiesDestination.getAbsolutePath());
+                                }
+                                if (params.getAdditionalInfoMessage() != null && !params.getAdditionalInfoMessage().isEmpty()) {
+                                    String filename = config.getArchiveExportOptions().getAdditionalInfoFileName();
+                                    writeToFile(new File(archivalCopiesDestination, filename.endsWith(".txt") ? filename : filename + ".txt"), params.getAdditionalInfoMessage());
+                                }
+                                createMd5File(archivalCopiesDestination);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
+                return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Neočekávaná chyba " + ex.getMessage());
+            }
 
             ExportUtils.writeExportResult(targetFolder, export.getResultLog());
             if (params.isBagit()) {
@@ -350,6 +426,89 @@ public final class ExportProcess implements Runnable {
             IOException ex = new IOException(t.getMessage(), t);
             return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
         }
+    }
+
+    private void createMd5File(File folder) throws IOException {
+        StringBuilder checksumBuilder = new StringBuilder();
+        for (File file : folder.listFiles()) {
+            ByteSource byteSource = Files.asByteSource(file);
+            HashCode hc = byteSource.hash(Hashing.md5());
+            checksumBuilder.append(hc.toString().toLowerCase()).append(" ").append("./" + folder.getName() + "/"+ file.getName()).append("\n");
+        }
+        writeToFile(new File(folder.getParentFile(), folder.getName() + ".md5"), checksumBuilder.toString());
+    }
+
+    private void writeToFile(File file, String message) throws IOException {
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(file));
+            writer.append(message);
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+    }
+
+    private File getSourceLocation(String pid, File targetFolder) {
+        File source = null;
+
+        if (source == null || !source.exists()) {
+            // hledani archivnich skenu v ATM
+            try {
+                DigitalObjectManager dom = DigitalObjectManager.getDefault();
+                FedoraObject fedoraObject = dom.find(pid, null);
+                DigitalObjectHandler handler = dom.createHandler(fedoraObject);
+                RelationEditor relationEditor = handler.relations();
+                String sourcePath = relationEditor.getArchivalCopiesPath();
+                if (sourcePath != null && !sourcePath.isEmpty()) {
+                    source = new File(sourcePath);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+                LOG.warning("Nepodarilo se hledat v ATM/archivalCopies");
+            }
+        }
+        if (source == null || !source.exists()) {
+            // hledani archivnich skenu v ${PROARC.HOME}/archival_copies
+            File archivalCopies = new File(config.getConfigHome(), "archival_copies");
+            if (archivalCopies.exists()) {
+                source = new File(archivalCopies, pid.substring(5));
+            }
+        }
+        if (source == null || !source.exists()) {
+            try {
+                IMetsElement element = getRoot(pid, targetFolder);
+                String sourcePath = findArchivalCopiesInWorkFlow(element);
+                if (sourcePath != null && !sourcePath.isEmpty()) {
+                    source = new File(sourcePath);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+                LOG.warning("Nepodarilo se hledat ve WorkFlow");
+            }
+
+        }
+
+        return source != null && source.exists() ? source : null;
+    }
+
+    private String findArchivalCopiesInWorkFlow(IMetsElement element) throws DigitalObjectException {
+        if (element != null) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            DigitalObjectManager.CreateHandler handler = dom.create(element.getModel(), element.getOriginalPid(), null, user, null, exportOptions.getLog());
+            Job selectedJob = handler.getWfJob(element.getOriginalPid(), exportOptions.getLocale());
+            if (selectedJob == null) {
+                return null;
+            }
+            List<MaterialView> materials = handler.getMaterial(selectedJob.getId(), exportOptions.getLocale());
+            for (MaterialView material : materials) {
+                if ("material.folder.rawScan".equals(material.getName())) {
+                    return material.getPath();
+                }
+            }
+        }
+        return null;
     }
 
     private Batch crossrefExport(Batch batch, BatchParams params) {
@@ -714,7 +873,8 @@ public final class ExportProcess implements Runnable {
                     taskFilter.setLocale(locale);
                     Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
                             .findFirst().get().getState();
-                 */   if (parameterName != null) {
+                 */
+                    if (parameterName != null) {
                         Map<String, Object> parameters = new HashMap<>();
                         parameters.put(parameterName, pageCount);
                         workflowManager.tasks().updateTask(editedTask, parameters, workflow);
@@ -785,8 +945,8 @@ public final class ExportProcess implements Runnable {
     }
 
     /*
-    * @return true if at least one exception contains "URNNBN misssing" otherwise @return false
-    */
+     * @return true if at least one exception contains "URNNBN misssing" otherwise @return false
+     */
     private boolean isMissingURNNBN(NdkExport.Result r) {
         for (MetsExportException.MetsExportExceptionElement exception : r.getValidationError().getExceptions()) {
             if ("URNNBN identifier is missing".equals(exception.getMessage())) {

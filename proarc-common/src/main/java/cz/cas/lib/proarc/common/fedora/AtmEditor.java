@@ -16,9 +16,8 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
@@ -26,10 +25,13 @@ import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -73,7 +75,7 @@ public final class AtmEditor {
      * @param role
      * @throws DigitalObjectException
      */
-    public void write(String deviceId, String organization, String user, String status, String donator, String message, String role) throws DigitalObjectException {
+    public void write(String deviceId, String organization, String user, String status, String donator, String archivalCopiesPath, String message, String role) throws DigitalObjectException {
         boolean changedUser = false;
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
@@ -125,6 +127,14 @@ public final class AtmEditor {
             String newVal = NULL.equals(donator) ? null : donator;
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
                 relationEditor.setDonator(donator);
+                write = true;
+            }
+        }
+        if (archivalCopiesPath != null && !archivalCopiesPath.isEmpty()) {
+            String oldVal = relationEditor.getArchivalCopiesPath();
+            String newVal = NULL.equals(archivalCopiesPath) ? null : archivalCopiesPath;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                relationEditor.setArchivalCopiesPath(archivalCopiesPath);
                 write = true;
             }
         }
@@ -248,10 +258,11 @@ public final class AtmEditor {
         atm.lockedBy = relationEditor.getLockedBy();
         atm.lockedDate = relationEditor.getLockedDate();
         atm.donator = relationEditor.getDonator();
+        atm.archivalCopies = relationEditor.getArchivalCopiesPath();
         return atm;
     }
 
-    public void setChild(String parentPid, String organization, String user, String state, String donator, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, SearchView search, String sessionLog) throws DigitalObjectException, IOException {
+    public void setChild(String parentPid, String organization, String user, String state, String donator, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, SearchView search, String sessionLog) throws DigitalObjectException, IOException, AppConfigurationException {
         List<String> pids = findElements(parentPid, appConfig, akubraConfiguration);
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, appConfig);
@@ -261,11 +272,18 @@ public final class AtmEditor {
         }
     }
 
-    private FedoraObject findFedoraObject(String pid, AppConfiguration appConfig) throws IOException {
+    private FedoraObject findFedoraObject(String pid, AppConfiguration appConfig) throws IOException, AppConfigurationException {
         if (pid == null) {
             throw new NullPointerException("pid");
         }
-        return RemoteStorage.getInstance(appConfig).find(pid);
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            return RemoteStorage.getInstance(appConfig).find(pid);
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+            return AkubraStorage.getInstance(akubraConfiguration).find(pid);
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
     }
 
     private List<String> findElements(String parentPid, AppConfiguration config, AkubraConfiguration akubraConfiguration) throws DigitalObjectException {
@@ -338,6 +356,7 @@ public final class AtmEditor {
         private String lockedBy;
         private Date lockedDate;
         private String donator;
+        private String archivalCopies;
 
         public AtmItem() {
         }
@@ -427,6 +446,10 @@ public final class AtmEditor {
         }
 
         public String getDonator() { return donator;}
+
+        public String getArchivalCopies() {
+            return archivalCopies;
+        }
     }
 
 }

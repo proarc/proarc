@@ -2349,8 +2349,9 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_STATUS) String status,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String model,
-            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DONATOR) String donator
-    ) throws IOException, DigitalObjectException {
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DONATOR) String donator,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_ARCHIVAL_COPIES) String archivalCopiesPath
+    ) throws IOException, DigitalObjectException, AppConfigurationException {
 
         if (isLocked(transform(pids))) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2379,7 +2380,7 @@ public class DigitalObjectResourceV1 {
         for (String pid : pids) {
             FedoraObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, organization, userName, status, donator, session.asFedoraLog(), user.getRole());
+            editor.write(deviceId, organization, userName, status, donator, archivalCopiesPath, session.asFedoraLog(), user.getRole());
             fobject.flush();
             if (!(model != null && model.length() > 0 && model.contains("page"))) {
                 editor.setChild(pid, organization, userName, status, donator, appConfig, akubraConfiguration, search, session.asFedoraLog());

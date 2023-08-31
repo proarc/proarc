@@ -1174,13 +1174,14 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_STATUS) String status,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String model,
-            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DONATOR) String donator
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_DONATOR) String donator,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_ARCHIVAL_COPIES) String archivalCopiesPath
     ) {
         if (pids == null || pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
-            return super.updateAtm(pids, batchId, owner, deviceId, organization, status, userName, model, donator);
+            return super.updateAtm(pids, batchId, owner, deviceId, organization, status, userName, model, donator, archivalCopiesPath);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());

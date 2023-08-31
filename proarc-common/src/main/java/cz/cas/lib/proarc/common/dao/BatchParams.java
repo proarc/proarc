@@ -46,6 +46,12 @@ public class BatchParams {
     @XmlElement (name = "ltpCesnetToken")
     private String ltpCesnetToken;
 
+    @XmlElement (name="noTifAvailableMessage")
+    private String noTifAvailableMessage;
+
+    @XmlElement (name = "additionalInfoMessage")
+    private String additionalInfoMessage;
+
     public BatchParams() {}
 
     public BatchParams(List<String> pids) {
@@ -66,11 +72,13 @@ public class BatchParams {
         this.krameriusImportInstanceId = krameriusImportInstanceId;
     }
 
-    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit) {
+    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, String noTifAvailableMessage, String additionalInfoMessage) {
         this.pids = pids;
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
         this.bagit = bagit;
+        this.noTifAvailableMessage = noTifAvailableMessage;
+        this.additionalInfoMessage = additionalInfoMessage;
     }
 
     public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, boolean ltpCesnet, String ltpCesnetToken, String krameriusInstanceId, String policy) {
@@ -157,5 +165,13 @@ public class BatchParams {
 
     public String getLtpCesnetToken() {
         return ltpCesnetToken;
+    }
+
+    public String getNoTifAvailableMessage() {
+        return noTifAvailableMessage;
+    }
+
+    public String getAdditionalInfoMessage() {
+        return additionalInfoMessage;
     }
 }

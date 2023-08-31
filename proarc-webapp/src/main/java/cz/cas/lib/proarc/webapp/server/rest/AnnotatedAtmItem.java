@@ -116,4 +116,8 @@ public abstract class AnnotatedAtmItem extends AtmItem {
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_DONATOR)
     @Override
     public abstract String getDonator();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_ARCHIVAL_COPIES)
+    @Override
+    public abstract String getArchivalCopies();
 }

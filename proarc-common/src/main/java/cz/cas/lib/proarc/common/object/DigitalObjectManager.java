@@ -478,6 +478,18 @@ public class DigitalObjectManager {
             return tasks;
         }
 
+        public List<MaterialView> getMaterial(BigDecimal jobId, Locale locale) {
+            MaterialFilter filter = new MaterialFilter();
+            filter.setLocale(locale);
+            filter.setType(MaterialType.FOLDER);
+            filter.setJobId(jobId);
+
+            WorkflowManager workflowManager = WorkflowManager.getInstance();
+            List<MaterialView> materials = workflowManager.findMaterial(filter);
+
+            return materials;
+        }
+
         private List<SearchViewItem> createBatch(boolean createObject, boolean validation) throws DigitalObjectException {
             ArrayList<SearchViewItem> items = new ArrayList<>();
             while (hasNext()) {
