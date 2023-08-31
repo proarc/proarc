@@ -44,10 +44,12 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -57,6 +59,7 @@ import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
@@ -131,6 +134,7 @@ public final class ExportProcess implements Runnable {
 
     /**
      * Starts the process.
+     *
      * @return the import batch
      */
     public Batch start() {
@@ -145,7 +149,7 @@ public final class ExportProcess implements Runnable {
         }
         try {
             batch = BatchUtils.startWaitingExportBatch(batchManager, batch);
-            switch(profileId) {
+            switch (profileId) {
                 case Batch.EXPORT_KRAMERIUS:
                     return krameriusExport(batch, params);
                 case Batch.EXPORT_DATASTREAM:
@@ -317,7 +321,7 @@ public final class ExportProcess implements Runnable {
                     for (File folder : targetFolder.listFiles()) {
                         if (folder.isDirectory()) {
                             String pid = "uuid:" + folder.getName();
-                            File archivalCopiesSource = getSourceLocation(pid);
+                            File archivalCopiesSource = getSourceLocation(pid, folder);
                             if (archivalCopiesSource == null || !archivalCopiesSource.exists()) {
                                 if (params.getNoTifAvailableMessage() != null && !params.getNoTifAvailableMessage().isEmpty()) {
                                     File archivalCopiesDestination = new File(folder, config.getArchiveExportOptions().getArchivalCopyFolderName());
@@ -446,13 +450,62 @@ public final class ExportProcess implements Runnable {
         }
     }
 
-    private File getSourceLocation(String pid) {
+    private File getSourceLocation(String pid, File targetFolder) {
         File source = null;
-        File archivalCopies = new File(config.getConfigHome(), "archival_copies");
-        if (archivalCopies.exists()) {
-            source = new File(archivalCopies, pid.substring(5));
-            if (source != null && source.exists()) {
-                return source;
+
+        if (source == null || !source.exists()) {
+            // hledani archivnich skenu v ATM
+            try {
+                DigitalObjectManager dom = DigitalObjectManager.getDefault();
+                FedoraObject fedoraObject = dom.find(pid, null);
+                DigitalObjectHandler handler = dom.createHandler(fedoraObject);
+                RelationEditor relationEditor = handler.relations();
+                String sourcePath = relationEditor.getArchivalCopiesPath();
+                if (sourcePath != null && !sourcePath.isEmpty()) {
+                    source = new File(sourcePath);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+                LOG.warning("Nepodarilo se hledat v ATM/archivalCopies");
+            }
+        }
+        if (source == null || !source.exists()) {
+            // hledani archivnich skenu v ${PROARC.HOME}/archival_copies
+            File archivalCopies = new File(config.getConfigHome(), "archival_copies");
+            if (archivalCopies.exists()) {
+                source = new File(archivalCopies, pid.substring(5));
+            }
+        }
+        if (source == null || !source.exists()) {
+            try {
+                IMetsElement element = getRoot(pid, targetFolder);
+                String sourcePath = findArchivalCopiesInWorkFlow(element);
+                if (sourcePath != null && !sourcePath.isEmpty()) {
+                    source = new File(sourcePath);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+                LOG.warning("Nepodarilo se hledat ve WorkFlow");
+            }
+
+        }
+
+        return source != null && source.exists() ? source : null;
+    }
+
+    private String findArchivalCopiesInWorkFlow(IMetsElement element) throws DigitalObjectException {
+        if (element != null) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            DigitalObjectManager.CreateHandler handler = dom.create(element.getModel(), element.getOriginalPid(), null, user, null, exportOptions.getLog());
+            Job selectedJob = handler.getWfJob(element.getOriginalPid(), exportOptions.getLocale());
+            if (selectedJob == null) {
+                return null;
+            }
+            List<MaterialView> materials = handler.getMaterial(selectedJob.getId(), exportOptions.getLocale());
+            for (MaterialView material : materials) {
+                if ("material.folder.rawScan".equals(material.getName())) {
+                    return material.getPath();
+                }
             }
         }
         return null;
@@ -820,7 +873,8 @@ public final class ExportProcess implements Runnable {
                     taskFilter.setLocale(locale);
                     Task.State previousState = workflowManager.tasks().findTask(taskFilter, workflow).stream()
                             .findFirst().get().getState();
-                 */   if (parameterName != null) {
+                 */
+                    if (parameterName != null) {
                         Map<String, Object> parameters = new HashMap<>();
                         parameters.put(parameterName, pageCount);
                         workflowManager.tasks().updateTask(editedTask, parameters, workflow);
@@ -891,8 +945,8 @@ public final class ExportProcess implements Runnable {
     }
 
     /*
-    * @return true if at least one exception contains "URNNBN misssing" otherwise @return false
-    */
+     * @return true if at least one exception contains "URNNBN misssing" otherwise @return false
+     */
     private boolean isMissingURNNBN(NdkExport.Result r) {
         for (MetsExportException.MetsExportExceptionElement exception : r.getValidationError().getExceptions()) {
             if ("URNNBN identifier is missing".equals(exception.getMessage())) {

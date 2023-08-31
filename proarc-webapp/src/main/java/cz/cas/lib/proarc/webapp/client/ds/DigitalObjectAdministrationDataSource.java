@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.FieldType;
-import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.logging.Logger;
 
 /**
@@ -50,6 +50,7 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
     public static final String FIELD_CROSSREF_EXPORT = DigitalObjectResourceApi.ATM_ITEM_CROSSREF_EXPORT;
     public static final String FIELD_ORGANIZATION = DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION;
     public static final String FIELD_DONATOR = DigitalObjectResourceApi.ATM_ITEM_DONATOR;
+    public static final String FIELD_ARCHIVAL_COPIES = DigitalObjectResourceApi.ATM_ITEM_ARCHIVAL_COPIES;
     public static final String FIELD_STATUS = DigitalObjectResourceApi.ATM_ITEM_STATUS;
     public static final String FIELD_USER = DigitalObjectResourceApi.ATM_ITEM_USER;
     public static final String FIELD_LOCKED = DigitalObjectResourceApi.ATM_ITEM_LOCKED;
@@ -85,13 +86,14 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
         DataSourceTextField crossrefExport = new DataSourceTextField(FIELD_CROSSREF_EXPORT);
         DataSourceTextField organization = new DataSourceTextField(FIELD_ORGANIZATION);
         DataSourceTextField donator = new DataSourceTextField(FIELD_DONATOR);
+        DataSourceTextField archivalCopies = new DataSourceTextField(FIELD_ARCHIVAL_COPIES);
         DataSourceTextField status = new DataSourceTextField(FIELD_STATUS);
         DataSourceTextField user = new DataSourceTextField(FIELD_USER);
         DataSourceBooleanField locked = new DataSourceBooleanField(FIELD_LOCKED);
         DataSourceTextField lockedBy = new DataSourceTextField(FIELD_LOCKED_BY);
         DataSourceTextField lockedDate = new DataSourceTextField(FIELD_LOCKED_DATE);
 
-        setFields(pid, model, state, owner, created, modified, device, filename, export, organization, user, ndkExport, archiveExport, krameriusExport, crossrefExport, status, locked, lockedBy, lockedDate, donator);
+        setFields(pid, model, state, owner, created, modified, device, filename, export, organization, user, ndkExport, archiveExport, krameriusExport, crossrefExport, status, locked, lockedBy, lockedDate, donator, archivalCopies);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

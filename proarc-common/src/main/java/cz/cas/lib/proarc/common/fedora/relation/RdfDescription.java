@@ -58,6 +58,9 @@ public class RdfDescription {
     @XmlAttribute(namespace = Relations.RDF_NS)
     private RelationResource about;
 
+    @XmlElement (namespace = Relations.PROARC_RELS_NS)
+    private String archivalCopiesPath;
+
     /**
      * RDF relation defines model of the digital object. E.g.:
      *
@@ -368,5 +371,13 @@ public class RdfDescription {
 
     public void setLockedUser(String lockedUser) {
         this.lockedUser = lockedUser;
+    }
+
+    public String getArchivalCopiesPath() {
+        return archivalCopiesPath;
+    }
+
+    public void setArchivalCopiesPath(String archivalCopiesPath) {
+        this.archivalCopiesPath = archivalCopiesPath;
     }
 }

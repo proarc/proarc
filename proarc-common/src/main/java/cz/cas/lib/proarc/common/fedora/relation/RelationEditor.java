@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.fedora.relation;
 
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -24,6 +23,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -341,6 +341,14 @@ public final class RelationEditor {
 
     public Date getLockedDate() throws DigitalObjectException {
         return getRdf().getDescription().getLockedDate();
+    }
+
+    public String getArchivalCopiesPath() throws DigitalObjectException {
+        return getRdf().getDescription().getArchivalCopiesPath();
+    }
+
+    public void setArchivalCopiesPath(String archivalCopiesPath) throws DigitalObjectException {
+        getRdf().getDescription().setArchivalCopiesPath(archivalCopiesPath);
     }
 
     /**

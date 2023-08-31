@@ -16,18 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.Record;
-import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.form.DynamicForm;
-import com.smartgwt.client.widgets.form.fields.BooleanItem;
-import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
-import com.smartgwt.client.widgets.form.fields.DateItem;
-import com.smartgwt.client.widgets.form.fields.SelectItem;
-import com.smartgwt.client.widgets.form.fields.TextItem;
-import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
@@ -40,6 +28,18 @@ import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.form.DynamicForm;
+import com.smartgwt.client.widgets.form.fields.BooleanItem;
+import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
+import com.smartgwt.client.widgets.form.fields.DateItem;
+import com.smartgwt.client.widgets.form.fields.SelectItem;
+import com.smartgwt.client.widgets.form.fields.TextItem;
+import com.smartgwt.client.widgets.layout.VLayout;
 import java.util.LinkedHashMap;
 
 /**
@@ -310,7 +310,12 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
                     i18n.DigitalObjectEditor_AdministrationAction_NoDonator_Title()));
             donator.setWidth(250);
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status, locked, lockedBy, lockedDate, donator);
+            TextItem archivalCopies = new TextItem(DigitalObjectAdministrationDataSource.FIELD_ARCHIVAL_COPIES,
+                    i18n.DigitalObjectEditor_AdministrationAction_ArchivalCopies());
+            archivalCopies.setWidth("*");
+            archivalCopies.setCanEdit(Boolean.TRUE);
+
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status, locked, lockedBy, lockedDate, donator, archivalCopies);
             widget.setMembers(form);
         }
 
@@ -326,6 +331,7 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             form.invalidateCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_DEVICE).invalidateDisplayValueCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_DONATOR).invalidateDisplayValueCache();
+            form.getField(DigitalObjectAdministrationDataSource.FIELD_ARCHIVAL_COPIES).invalidateDisplayValueCache();
         }
 
     }
@@ -367,6 +373,7 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             form.invalidateCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_DEVICE).invalidateDisplayValueCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_DONATOR).invalidateDisplayValueCache();
+            form.getField(DigitalObjectAdministrationDataSource.FIELD_ARCHIVAL_COPIES).invalidateDisplayValueCache();
         }
 
     }
