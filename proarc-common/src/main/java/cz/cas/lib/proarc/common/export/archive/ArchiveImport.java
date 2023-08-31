@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.export.archive.PackageReader.ImportSession;
+import cz.cas.lib.proarc.common.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
@@ -33,6 +34,7 @@ import cz.cas.lib.proarc.common.imports.ImportProcess.ImportOptions;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 
 /**
  * Imports proarc archive packages.
@@ -59,7 +61,46 @@ public class ArchiveImport implements ImportHandler {
     public void start(ImportOptions importConfig, ImportBatchManager batchManager, AppConfiguration config) throws Exception {
         isession = new ImportSession(ImportBatchManager.getInstance(), importConfig, config);
         load(importConfig, config);
+        storeArchivalCopies(importConfig);
         ingest(importConfig);
+
+    }
+
+    private void storeArchivalCopies(ImportOptions importConfig) throws Exception {
+        AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
+        File archivalCopiesHome = new File(config.getConfigHome(), "archival_copies");
+        if (!archivalCopiesHome.exists()) {
+            archivalCopiesHome.mkdir();
+            if (!archivalCopiesHome.exists()) {
+                throw new Exception("Nepodarilo se vytvorit slozku: " + archivalCopiesHome.getAbsolutePath());
+            }
+        }
+        File importFolders = importConfig.getImportFolder();
+        for (File importFolder : importFolders.listFiles()) {
+            if (importFolder.isDirectory()) {
+                for (File archivalCopyFolder : importFolder.listFiles()) {
+                    if (archivalCopyFolder.isDirectory()) {
+                        if (config.getArchiveExportOptions().getArchivalCopyFolderName().equals(archivalCopyFolder.getName())) {
+                            File destination = new File(archivalCopiesHome, importFolder.getName());
+                            if (destination.exists()) {
+                                MetsUtils.deleteFolder(destination);
+                            }
+                            destination.mkdir();
+                            FileUtils.copyDirectory(archivalCopyFolder, destination);
+
+                            for (File file : destination.listFiles()) {
+                                if (file.getName().endsWith(".txt") || file.getName().endsWith(".md5")) {
+                                    MetsUtils.deleteFolder(file);
+                                }
+                                if (config.getArchiveExportOptions().getNoTifAvailableFileName().equals(file.getName())) {
+                                    MetsUtils.deleteFolder(file);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public void load(ImportOptions importConfig, AppConfiguration config) throws Exception {

@@ -433,9 +433,9 @@ public final class ExportProcess implements Runnable {
         for (File file : folder.listFiles()) {
             ByteSource byteSource = Files.asByteSource(file);
             HashCode hc = byteSource.hash(Hashing.md5());
-            checksumBuilder.append(hc.toString().toLowerCase()).append(" ").append(file.getName()).append("\n");
+            checksumBuilder.append(hc.toString().toLowerCase()).append(" ").append("./" + folder.getName() + "/"+ file.getName()).append("\n");
         }
-        writeToFile(new File(folder, "info.md5"), checksumBuilder.toString());
+        writeToFile(new File(folder.getParentFile(), folder.getName() + ".md5"), checksumBuilder.toString());
     }
 
     private void writeToFile(File file, String message) throws IOException {
