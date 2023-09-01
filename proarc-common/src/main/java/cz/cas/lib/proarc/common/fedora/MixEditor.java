@@ -16,15 +16,15 @@
  */
 package cz.cas.lib.proarc.common.fedora;
 
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixType;
 import cz.cas.lib.proarc.mix.MixUtils;
-import javax.xml.transform.Source;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import java.io.File;
+import javax.xml.transform.Source;
 
 /**
  * Edits technical metadata in MIX format.

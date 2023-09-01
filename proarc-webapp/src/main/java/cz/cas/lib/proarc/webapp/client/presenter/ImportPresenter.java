@@ -16,19 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.presenter;
 
-import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.safehtml.shared.SafeHtmlUtils;
-import com.smartgwt.client.data.Criteria;
-import com.smartgwt.client.data.DSCallback;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.Record;
-import com.smartgwt.client.types.PromptStyle;
-import com.smartgwt.client.util.BooleanCallback;
-import com.smartgwt.client.util.SC;
-import com.smartgwt.client.widgets.Canvas;
-import com.smartgwt.client.widgets.layout.VLayout;
-import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.ErrorHandler;
@@ -62,6 +49,19 @@ import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard.StepKind;
 import cz.cas.lib.proarc.webapp.client.widget.Wizard.WizardStep;
+import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.smartgwt.client.data.Criteria;
+import com.smartgwt.client.data.DSCallback;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.Record;
+import com.smartgwt.client.types.PromptStyle;
+import com.smartgwt.client.util.BooleanCallback;
+import com.smartgwt.client.util.SC;
+import com.smartgwt.client.widgets.Canvas;
+import com.smartgwt.client.widgets.layout.VLayout;
+import com.smartgwt.client.widgets.toolbar.ToolStrip;
 import java.util.logging.Logger;
 
 /**
@@ -383,7 +383,7 @@ public class ImportPresenter {
                         Record[] data = response.getData();
                         if (data != null && data.length > 0) {
                             BatchRecord newBatch = new BatchRecord(data[0]);
-                            if (newBatch.isArchiveOrKramerius()) {
+                            if (newBatch.isArchiveOrKrameriusOrReplaceStream()) {
                                 SC.say(i18n.ImportWizard_SelectFolderStep_ImportScheduled_Title());
                                 response.setInvalidateCache(true);
                                 dsBatch.updateCaches(response, request);
