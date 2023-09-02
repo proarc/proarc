@@ -577,7 +577,7 @@ public class TiffImporter implements ImageImporter {
         return f;
     }
 
-    private static File writeImage(BufferedImage image, File folder, String filename, ImageMimeType imageType) throws IOException {
+    public static File writeImage(BufferedImage image, File folder, String filename, ImageMimeType imageType) throws IOException {
         File imgFile = new File(folder, filename);
         FileImageOutputStream fos = new FileImageOutputStream(imgFile);
         try {
@@ -588,7 +588,7 @@ public class TiffImporter implements ImageImporter {
         }
     }
 
-    private static BufferedImage scale(BufferedImage tiff, ScalingMethod method,
+    public static BufferedImage scale(BufferedImage tiff, ScalingMethod method,
             Integer maxWidth, Integer maxHeight) {
 
         long start = System.nanoTime();

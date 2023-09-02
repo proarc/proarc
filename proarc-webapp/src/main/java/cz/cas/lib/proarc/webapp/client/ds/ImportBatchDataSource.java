@@ -16,6 +16,11 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
@@ -30,11 +35,6 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
-import cz.cas.lib.proarc.common.config.ConfigurationProfile;
-import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
-import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -128,6 +128,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_STT_IMPORT());
         profiles.put(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_MONOGRAPH_IMPORT());
         profiles.put(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_PERIODIKA_IMPORT());
+        profiles.put(ConfigurationProfile.REPLACE_STREAM_IMPORT, i18n.ImportProfile_REPLACE_STREAM_IMPORT());
         profiles.put("profile.chronicle", i18n.ImportProfile_CHRONICLE_IMPORT());
         profiles.put("profile.oldprint", i18n.ImportProfile_OLDPRINT_IMPORT());
         profiles.put("profile.oldprintocr", i18n.ImportProfile_OLDPRINT_OCR_IMPORT());
@@ -267,6 +268,10 @@ public final class ImportBatchDataSource extends ProarcDataSource {
             return ConfigurationProfileResourceApi.ARCHIVE_ID.equals(profileId);
         }
 
+        public static boolean isReplaceStream(String profileId) {
+            return ConfigurationProfileResourceApi.REPLACE_STREAM_ID.equals(profileId);
+        }
+
         public static boolean isKramerius(String profileID) {
             return ConfigurationProfileResourceApi.KRAMERIUS_DEFAULT_ID.equals(profileID)
                     || ConfigurationProfileResourceApi.KRAMERIUS_NDK_MONOGRAPH_ID.equals(profileID)
@@ -276,6 +281,10 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 
         public boolean isArchive() {
             return isArchive(getProfileId());
+        }
+
+        public boolean isReplaceStream() {
+            return isReplaceStream(getProfileId());
         }
 
         public boolean isKrameirus() {
@@ -295,8 +304,8 @@ public final class ImportBatchDataSource extends ProarcDataSource {
             return delegate;
         }
 
-        public boolean isArchiveOrKramerius() {
-            return isKrameirus() || isArchive();
+        public boolean isArchiveOrKrameriusOrReplaceStream() {
+            return isKrameirus() || isArchive() || isReplaceStream();
         }
     }
 

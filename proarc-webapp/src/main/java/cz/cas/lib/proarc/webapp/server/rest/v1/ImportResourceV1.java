@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -54,6 +53,7 @@ import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -216,6 +216,7 @@ public class ImportResourceV1 {
             states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.STT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusStt(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.REPLACE_STREAM_IMPORT, subfolder.getStatusReplaceStream(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, subfolder.getStatusSoundrecording(appConfig).name()));
             result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath, states));
         }

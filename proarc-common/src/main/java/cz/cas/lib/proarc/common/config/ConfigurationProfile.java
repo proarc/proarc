@@ -44,6 +44,8 @@ public class ConfigurationProfile {
     public static final String NDK_PERIODICAL_KRAMERIUS_IMPORT = "profile.ndk_periodical_kramerius_import";
     /** The ID of profile that only generates ALTO and OCR. */
     public static final String GENERATE_ALTO_OCR = "profile.generate";
+    /** The ID of profile that replace stream according to file name. */
+    public static final String REPLACE_STREAM_IMPORT = "profile.replace_stream_import";
     private final String id;
     private File file;
     private String label;

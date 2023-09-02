@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.export.archive.ArchiveImport;
 import cz.cas.lib.proarc.common.imports.audio.SoundRecordingImport;
 import cz.cas.lib.proarc.common.imports.kramerius.FileReader;
 import cz.cas.lib.proarc.common.imports.kramerius.KrameriusImport;
+import cz.cas.lib.proarc.common.imports.replaceStream.ReplaceStreamImport;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
@@ -41,6 +42,7 @@ public final class ImportProfile {
     /** The configuration key to register import configuration profiles. */
     public static final String PROFILES = "import.profiles";
 
+    public static final String RAW_SUFFIX = "import.raw.file.suffix";
     public static final String ALTO_SUFFIX = "import.alto.file.suffix";
     public static final String ALTO_FILE_PATH = "import.alto.file.path";
     public static final String ALTO_VERSION = "import.alto.file.version";
@@ -90,6 +92,7 @@ public final class ImportProfile {
     public static final String IMPORT_FOXML_FOLDER_PATH = "import.foxml.folder.path";
 
 
+    public static final String[] FILE_EXTENSIONS = new String[]{".xml", ".jp2", ".txt", ".jpg", ".jpeg", ".mp3", ".ogg", ".wav", ".flac", ".tif"};
 
     private final Configuration config;
     private final String profileId;
@@ -125,6 +128,8 @@ public final class ImportProfile {
                 return new FileSetImportWithParentCreated();
             case ConfigurationProfile.GENERATE_ALTO_OCR:
                 return new GeneratorAltoOcr();
+            case ConfigurationProfile.REPLACE_STREAM_IMPORT:
+                return new ReplaceStreamImport();
             default:
                 return new FileSetImport();
         }
@@ -152,6 +157,11 @@ public final class ImportProfile {
     public boolean isPagePath() {
         String val = config.getString(PAGE_PATH, "false");
         return Boolean.parseBoolean(val);
+    }
+
+    public String getRawFileSuffix() {
+        String suffix = config.getString(RAW_SUFFIX, ".tif");
+        return suffix.toLowerCase();
     }
 
     public String getPlainOcrCharset() {
