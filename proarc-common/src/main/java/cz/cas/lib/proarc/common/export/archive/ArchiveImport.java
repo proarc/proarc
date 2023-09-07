@@ -117,11 +117,11 @@ public class ArchiveImport implements ImportHandler {
         Batch batch = importConfig.getBatch();
         AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
         if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(), ibm, null);
+            FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(), ibm, null, importConfig);
             ingest.importBatch(batch, importConfig.getUsername(), null);
         } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
-            AkubraImport ingest = new AkubraImport(config, akubraConfiguration, ibm, null);
+            AkubraImport ingest = new AkubraImport(config, akubraConfiguration, ibm, null, importConfig);
             ingest.importBatch(batch, importConfig.getUsername(), null);
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());

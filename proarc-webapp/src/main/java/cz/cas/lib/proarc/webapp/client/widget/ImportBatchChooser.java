@@ -16,22 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
-import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.cas.lib.proarc.webapp.client.Editor;
-import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
-import cz.cas.lib.proarc.webapp.client.action.Action;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
-import cz.cas.lib.proarc.webapp.client.action.Actions;
-import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
-import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
-import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
-import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
-import cz.cas.lib.proarc.webapp.client.widget.Dialog.DialogCloseHandler;
-import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.ProfileGroup;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
@@ -55,6 +39,22 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.Action;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditing.DigitalObjectEditorPlace;
+import cz.cas.lib.proarc.webapp.client.widget.Dialog.DialogCloseHandler;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.ProfileGroup;
 
 /**
  * The widget to select a batch from import history. There should be 2 kinds of
@@ -406,6 +406,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
                     case LOADING_FAILED:
                     case STOPPED:
                     case LOADED:
+                    case LOADING_CONFLICT:
                         setTitle(i18n.ImportBatchChooser_ActionResetLoad_Title());
                         setTooltip(i18n.ImportBatchChooser_ActionResetLoad_Hint());
                         accept = true;

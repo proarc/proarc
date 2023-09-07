@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
@@ -39,8 +40,10 @@ import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager;
 import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.imports.ImportProcess;
 import cz.cas.lib.proarc.common.imports.ImportProfile;
 import cz.cas.lib.proarc.common.imports.ImportUtils.Hierarchy;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
@@ -54,6 +57,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -79,8 +83,9 @@ public final class AkubraImport {
     private final UserProfile user;
     private final AppConfiguration config;
     private final AkubraConfiguration akubraConfiguration;
+    private final ImportProcess.ImportOptions options;
 
-    public AkubraImport(AppConfiguration config, AkubraConfiguration akubraConfiguration, ImportBatchManager ibm, UserProfile user) throws IOException {
+    public AkubraImport(AppConfiguration config, AkubraConfiguration akubraConfiguration, ImportBatchManager ibm, UserProfile user, ImportProcess.ImportOptions options) throws IOException {
         this.config = config;
         this.akubraConfiguration = akubraConfiguration;
         this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
@@ -88,6 +93,7 @@ public final class AkubraImport {
         this.ibm = ibm;
         this.user = user;
         this.localStorage = new LocalStorage();
+        this.options = options;
     }
 
     public Batch importBatch(Batch batch, String importer, String message) throws DigitalObjectException {
@@ -371,6 +377,32 @@ public final class AkubraImport {
                     object.flush();
                 }
             }
+        } else if (getOverride() && akubraStorage.exist(item.getPid())) {
+            AkubraObject aObj = akubraStorage.find(item.getPid());
+            RelationEditor localRelEditor = new RelationEditor(lobj);
+            if (!DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(localRelEditor.getModel()) || !DeviceRepository.METAMODEL_ID.equals(localRelEditor.getModel())) {
+                // rels-ext
+                List<String> members = localRelEditor.getMembers();
+                RelationEditor remoteRelEditor = new RelationEditor(aObj);
+                remoteRelEditor.setMembers(members);
+                remoteRelEditor.write(remoteRelEditor.getLastModified(), "The override RELS-EXT object from " + foxml);
+
+                // mods
+                ModsStreamEditor localModsEditor = new ModsStreamEditor(lobj);
+                ModsDefinition mods = localModsEditor.read();
+                ModsStreamEditor remoteModsEditor = new ModsStreamEditor(aObj);
+                remoteModsEditor.write(mods, remoteModsEditor.getLastModified(), "The override MODS object from " + foxml);
+
+                // dc
+                DcStreamEditor localDcEditor = new DcStreamEditor(lobj);
+                DcStreamEditor.DublinCoreRecord dc = localDcEditor.read();
+                DcStreamEditor remoteDcEditor = new DcStreamEditor(aObj);
+                remoteDcEditor.write(dc, "The override DC object from " + foxml);
+
+                aObj.setLabel(lobj.getLabel());
+
+                aObj.flush();
+            }
         } else {
 //            DigitalObject object = lobj.getDigitalObject();
 //            akubraStorage.updateProperties(object.getObjectProperties());
@@ -380,6 +412,10 @@ public final class AkubraImport {
         }
         item.setState(ObjectState.INGESTED);
         return item;
+    }
+
+    private boolean getOverride() {
+        return options == null ? false : options.isUseNewMetadata() || options.isUseOriginalMetadata();
     }
 
     private void addParentMembers(Batch batch, String parent, List<String> pids, String message) throws DigitalObjectException {

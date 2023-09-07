@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.imports.kramerius;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
@@ -70,7 +71,18 @@ public class KrameriusImport implements ImportHandler {
     public void load(ImportOptions importConfig) throws Exception {
         File importFolder = importConfig.getImportFolder();
         List<File> importFiles = KrameriusScanner.findImportableFiles(importFolder);
-        consume(importFiles, importConfig);
+        try {
+            consume(importFiles, importConfig);
+        } catch (DigitalObjectException ex) {
+            if (ex != null && ex.getPid() != null && ex.getPid().contains("The repository already contains pid:")) {
+                Batch batch = importConfig.getBatch();
+                batch.setState(Batch.State.LOADING_CONFLICT);
+                isession.getImportManager().update(batch);
+                throw new IllegalStateException(ex.getMessage(), ex);
+            } else {
+                throw new IllegalStateException(ex != null && ex.getMessage() != null ? ex.getMessage() : ex.getPid(), ex);
+            }
+        }
         Batch batch = importConfig.getBatch();
         batch.setState(Batch.State.LOADED);
         isession.getImportManager().update(batch);
@@ -81,18 +93,18 @@ public class KrameriusImport implements ImportHandler {
         Batch batch = importConfig.getBatch();
         AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
         if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(config), ibm, null);
+            FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(config), ibm, null, importConfig);
             ingest.importBatch(batch, importConfig.getUsername(), null);
         } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
-            AkubraImport ingest = new AkubraImport(config, akubraConfiguration, ibm, null);
+            AkubraImport ingest = new AkubraImport(config, akubraConfiguration, ibm, null, importConfig);
             ingest.importBatch(batch, importConfig.getUsername(), null);
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
         }
     }
 
-    public void consume(List<File> importFiles, ImportOptions ctx) throws InterruptedException {
+    public void consume(List<File> importFiles, ImportOptions ctx) throws InterruptedException, DigitalObjectException {
         int index = 1;
         for (File file : importFiles) {
             if (Thread.interrupted()) {
@@ -102,7 +114,7 @@ public class KrameriusImport implements ImportHandler {
         }
     }
 
-    private void consumeKrameriusFile(File file, ImportOptions ctx, int index) {
+    private void consumeKrameriusFile(File file, ImportOptions ctx, int index) throws DigitalObjectException {
         File targetFolder = ctx.getTargetFolder();
         FileReader reader = new FileReader(targetFolder, isession, type);
         reader.read(file, ctx, index);

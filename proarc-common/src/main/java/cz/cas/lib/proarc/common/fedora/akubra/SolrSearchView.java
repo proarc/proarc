@@ -378,7 +378,7 @@ public class SolrSearchView extends SearchView {
 
         StringBuilder queryBuilder = createQuery(true, models, null, null, organization, username, null, status, allowAllForUser);
         if (phrase != null && !phrase.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_FULLTEXT + ":\"" + status + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_FULLTEXT + ":\"" + phrase + "\"");
         }
         return queryBuilder;
     }

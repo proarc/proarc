@@ -101,10 +101,12 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
     ) {
         try {
-            return super.newBatch(path, device, indices, profileId, priority);
+            return super.newBatch(path, device, indices, profileId, priority, useNewMetadata, useOriginalMetadata);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -134,10 +136,12 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
     ) {
         try {
-            return super.newBatches(pathes, device, indices, profileId, priority);
+            return super.newBatches(pathes, device, indices, profileId, priority, useNewMetadata, useOriginalMetadata);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -210,13 +214,15 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PARENTPID) String parentPid,
             @FormParam(ImportResourceApi.IMPORT_BATCH_STATE) Batch.State state,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
     ) {
         if (batchId == null) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ImportResourceApi.IMPORT_BATCH_ID));
         }
         try {
-            return super.updateBatch(batchId, parentPid, state, profileId);
+            return super.updateBatch(batchId, parentPid, state, profileId, useNewMetadata, useOriginalMetadata);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

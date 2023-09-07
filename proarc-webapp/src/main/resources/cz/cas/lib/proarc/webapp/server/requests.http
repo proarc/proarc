@@ -472,3 +472,17 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 #&pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolcerId=inovatika
 &pid=uuid:bab0d255-4819-45f0-9521-28715cabfee1&resolverId=inovatika
 
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### IMPORT WITH REWRITE WITH NEW
+PUT {{proarcLocalHostUrl}}/rest/v2/import/batch
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&state=LOADING_FAILED&profile=profile.ndk_periodical_kramerius_import&id=86&useNewMetadata=true
+

@@ -123,10 +123,10 @@ public class FileSetImportWithParentCreated extends FileSetImport {
                         batch.setState(Batch.State.LOADED);
                         batchManager.update(batch);
                         if (Storage.FEDORA.equals(configuration.getTypeOfStorage())) {
-                            batch = new FedoraImport(configuration, RemoteStorage.getInstance(configuration), batchManager, importConfig.getUser()).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
+                            batch = new FedoraImport(configuration, RemoteStorage.getInstance(configuration), batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
                         } else if (Storage.AKUBRA.equals(configuration.getTypeOfStorage())) {
                             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(configuration.getConfigHome());
-                            batch = new AkubraImport(configuration, akubraConfiguration, batchManager, importConfig.getUser()).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
+                            batch = new AkubraImport(configuration, akubraConfiguration, batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
                         } else {
                             throw new IllegalStateException("Unsupported type of storage: " + configuration.getTypeOfStorage());
                         }

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -53,7 +54,6 @@ import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -231,7 +231,9 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
             ) throws URISyntaxException, IOException {
         
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -250,7 +252,7 @@ public class ImportResourceV1 {
             for (File importFile : folder.listFiles()) {
                 if (importFile.exists() && importFile.isDirectory()) {
                     ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
-                            importManager, device, indices, true, priority, appConfig.getImportConfiguration(profile), appConfig);
+                            importManager, device, indices, true, priority, useNewMetadata, useOriginalMetadata, appConfig.getImportConfiguration(profile), appConfig);
                     ImportDispatcher.getDefault().addImport(process);
                     listBatches.add(process.getBatch());
                 }
@@ -258,7 +260,7 @@ public class ImportResourceV1 {
             return new SmartGwtResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                    importManager, device, indices, priority, appConfig.getImportConfiguration(profile), appConfig);
+                    importManager, device, indices, priority, useNewMetadata, useOriginalMetadata, appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
             return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -281,7 +283,7 @@ public class ImportResourceV1 {
         File importFolder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, ConfigurationProfile.GENERATE_ALTO_OCR);
         ImportProcess process = ImportProcess.prepare(importFolder, folderPath, user,
-                importManager, null, false, null, appConfig.getImportConfiguration(profile), appConfig);
+                importManager, null, false, null, false, false, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -296,7 +298,9 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -316,7 +320,7 @@ public class ImportResourceV1 {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, indices, priority, appConfig.getImportConfiguration(profile), appConfig);
+                        importManager, device, indices, priority, useNewMetadata, useOriginalMetadata, appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {
@@ -498,7 +502,9 @@ public class ImportResourceV1 {
             // empty string stands for remove
             @FormParam(ImportResourceApi.IMPORT_BATCH_PARENTPID) String parentPid,
             @FormParam(ImportResourceApi.IMPORT_BATCH_STATE) Batch.State state,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
             ) throws IOException, FedoraClientException, DigitalObjectException {
 
         Batch batch = importManager.get(batchId);
@@ -540,22 +546,22 @@ public class ImportResourceV1 {
                 }
             }
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                batch = new FedoraImport(appConfig, RemoteStorage.getInstance(appConfig), importManager, user)
+                batch = new FedoraImport(appConfig, RemoteStorage.getInstance(appConfig), importManager, user, null)
                         .importBatch(batch, user.getUserName(), session.asFedoraLog());
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                batch = new AkubraImport(appConfig, akubraConfiguration, importManager, user)
+                batch = new AkubraImport(appConfig, akubraConfiguration, importManager, user, null)
                         .importBatch(batch, user.getUserName(), session.asFedoraLog());
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
-        } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED) {
+        } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED || state == Batch.State.LOADING_CONFLICT) {
             Batch.State realState = batch.getState();
             // try to reset import
-            if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED && realState != Batch.State.STOPPED) {
+            if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED && realState != Batch.State.STOPPED && realState != Batch.State.LOADING_CONFLICT) {
                 throw new UnsupportedOperationException("Cannot reset: " + batch);
             }
             ConfigurationProfile profile = findImportProfile(batchId, profileId);
-            ImportProcess resume = ImportProcess.resume(batch, importManager,
+            ImportProcess resume = ImportProcess.resume(batch, useNewMetadata, useOriginalMetadata, importManager,
                     appConfig.getImportConfiguration(profile));
             try {
                 ImportDispatcher.getDefault().addImport(resume);

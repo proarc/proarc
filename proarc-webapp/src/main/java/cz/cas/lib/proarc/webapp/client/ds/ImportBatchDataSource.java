@@ -16,11 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import cz.cas.lib.proarc.common.config.ConfigurationProfile;
-import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
-import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.AdvancedCriteria;
 import com.smartgwt.client.data.Criteria;
@@ -35,6 +30,11 @@ import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.DSOperationType;
 import com.smartgwt.client.types.DateDisplayFormat;
 import com.smartgwt.client.types.OperatorId;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -103,6 +103,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         states.put(State.INGESTING_FAILED.name(), i18n.ImportBatchDataSource_State_INGESTING_FAILED());
         states.put(State.INGESTED.name(), i18n.ImportBatchDataSource_State_INGESTED());
         states.put(State.STOPPED.name(), i18n.ImportBatchDataSource_State_STOPPED());
+        states.put(State.LOADING_CONFLICT.name(), i18n.ImportBatchDataSource_State_LOADING_CONFLICT());
         states.put(State.EXPORTING.name(), i18n.ImportBatchDataSource_State_EXPORTING());
         states.put(State.EXPORT_PLANNED.name(), i18n.ImportBatchDataSource_State_EXPORT_PLANNED());
         states.put(State.EXPORT_FAILED.name(), i18n.ImportBatchDataSource_State_EXPORT_FAILED());
@@ -314,7 +315,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
      * XXX make it GWT accessible and remove this.
      */
     public enum State {
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,
+        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,LOADING_CONFLICT,
         EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
         REINDEXING, REINDEX_FAILED, REINDEX_DONE,
         UPLOADING, UPLOAD_FAILED, UPLOAD_DONE;

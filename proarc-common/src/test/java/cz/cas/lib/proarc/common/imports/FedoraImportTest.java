@@ -108,7 +108,7 @@ public class FedoraImportTest {
         appConf = AppConfigurationFactory.getInstance().create(env);
 
         ibm = new ImportBatchManager(appConf, daos);
-        fedoraImport = new FedoraImport(appConf, remoteStorage, ibm, null);
+        fedoraImport = new FedoraImport(appConf, remoteStorage, ibm, null, null);
     }
 
     @After

@@ -53,8 +53,12 @@ import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
+import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -170,9 +174,16 @@ public class FileReader {
         this.type = type;
     }
 
-    public void read(File file, ImportOptions ctx, int index) throws IllegalStateException {
+    public void read(File file, ImportOptions ctx, int index) throws IllegalStateException, DigitalObjectException {
         try {
             readImpl(file, ctx, index);
+        } catch (DigitalObjectException ex) {
+            if (ex != null && ex.getPid() != null && ex.getPid().contains("The repository already contains pid:")) {
+                ex.setMessage(file.getAbsolutePath());
+                throw ex;
+            } else {
+                throw new IllegalStateException(file.getAbsolutePath(), ex);
+            }
         } catch (Exception ex) {
             throw new IllegalStateException(file.getAbsolutePath(), ex);
         }
@@ -207,21 +218,63 @@ public class FileReader {
                 dObj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
                 isNewObject = false;
                 if (!isNewObject) {
-                    throw new DigitalObjectException("The repository already contains pid: " + pid);
+                    if (!model2Override(object.getModel()) && !ctx.isUseNewMetadata() && !ctx.isUseOriginalMetadata()) {
+                        throw new DigitalObjectException("The repository already contains pid: " + pid);
+                    }
                 }
             } catch (DigitalObjectNotFoundException ex) {
                 // no remote
             }
-            if (dObj == null) {
-                dObj = FoxmlUtils.unmarshal(new StreamSource(file), DigitalObject.class);
+            if (!isNewObject) {
+                if (ctx.isUseNewMetadata()) {
+                    // vytvoreni noveho foxml z noveho pidu v importni davce
+                    dObj = FoxmlUtils.unmarshal(new StreamSource(file), DigitalObject.class);
+                    setDateAndUser(dObj);
+                    repairDatastreams(dObj);
+                    removeDataStreams(dObj);
+                    createDataStreams(dObj, ctx);
+                    lObj = iSession.getLocals().create(objFile, dObj);
+                    updateLocalObject(lObj, ctx);
+
+                    RelationEditor editor = new RelationEditor(object);
+                    List<String> members = editor.getMembers();
+                    if (members != null && !members.isEmpty()) {
+                        RelationEditor editorLObj = new RelationEditor(lObj);
+                        members.addAll(editorLObj.getMembers());
+                        editorLObj.setMembers(members);
+                        editorLObj.write(editorLObj.getLastModified(), "doplneni starych potomku");
+                        lObj.flush();
+                    }
+                    importItem = iSession.addObject(lObj, true);
+                } else if (ctx.isUseOriginalMetadata()) {
+                    // nejprve vytvorim novy foxml pro jiz existuji pid
+                    lObj = iSession.getLocals().create(objFile, dObj);
+
+                    // pote z foxml v importni davce vytrahnu pouze potomky, ktere se maji pripadne doplnit
+                    LocalObject localObject = new LocalStorage().load(pid, file);
+                    RelationEditor relationEditor = new RelationEditor(localObject);
+                    List<String> members = relationEditor.getMembers();
+                    if (members != null && !members.isEmpty()) {
+                        RelationEditor editorLObj = new RelationEditor(lObj);
+                        members.addAll(0, editorLObj.getMembers());
+                        editorLObj.setMembers(members);
+                        editorLObj.write(editorLObj.getLastModified(), "doplneni novych potomku");
+                        lObj.flush();
+                    }
+                    importItem = iSession.addObject(lObj, true);
+                }
+            } else {
+                if (dObj == null) {
+                    dObj = FoxmlUtils.unmarshal(new StreamSource(file), DigitalObject.class);
+                }
+                setDateAndUser(dObj);
+                repairDatastreams(dObj);
+                removeDataStreams(dObj);
+                createDataStreams(dObj, ctx);
+                lObj = iSession.getLocals().create(objFile, dObj);
+                updateLocalObject(lObj, ctx);
+                importItem = iSession.addObject(lObj, true);
             }
-            setDateAndUser(dObj);
-            repairDatastreams(dObj);
-            removeDataStreams(dObj);
-            createDataStreams(dObj, ctx);
-            lObj = iSession.getLocals().create(objFile, dObj);
-            updateLocalObject(lObj, ctx);
-            importItem = iSession.addObject(lObj, true);
         } else {
             LOG.log(Level.SEVERE, "The object with pid: "+ pid + " was already imported!");
             throw new DigitalObjectException("The object with pid: "+ pid + " was already imported!");
@@ -230,6 +283,17 @@ public class FileReader {
         //modifyMetadataStreams(lObj.getPid(), model);
         importItem.setState(BatchItem.ObjectState.LOADED);
         iSession.getImportManager().update(importItem);
+    }
+
+    private boolean model2Override(String model) {
+        List<String> acceptableModels = Arrays.asList(
+                NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME,
+                OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_CONVOLUTTE,
+                NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
+                NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH, NdkAudioPlugin.MODEL_SONG,
+                ChroniclePlugin.MODEL_CHRONICLETITLE);
+        return acceptableModels.contains(model);
+
     }
 
     private void repairDatastreams(DigitalObject dObj) {

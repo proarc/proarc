@@ -82,9 +82,10 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, ImportBatchManager batchManager,
             String device, boolean generateIndices, String priority,
+            boolean useNewMetadata, boolean useOriginalMetadata,
             ImportProfile profile, AppConfiguration config
             ) throws IOException {
-        return prepare(importFolder, description, user, batchManager, device, generateIndices, false, priority, profile, config);
+        return prepare(importFolder, description, user, batchManager, device, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, profile, config);
     }
 
     /**
@@ -95,11 +96,11 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, ImportBatchManager batchManager,
             String device, boolean generateIndices, boolean generatePageNumber, String priority,
-            ImportProfile profile, AppConfiguration config
+            boolean useNewMetadata, boolean useOriginalMetadata, ImportProfile profile, AppConfiguration config
             ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device,
-                generateIndices, generatePageNumber, user, profile, priority);
+                generateIndices, generatePageNumber, user, profile, priority, useNewMetadata, useOriginalMetadata);
         ImportProcess process = new ImportProcess(options, batchManager, config);
         process.prepare(description, user);
         return process;
@@ -110,12 +111,12 @@ public final class ImportProcess implements Runnable {
      * @see #prepare
      * @see ImportDispatcher
      */
-    public static ImportProcess resume(Batch batch, ImportBatchManager ibm, ImportProfile profile) {
+    public static ImportProcess resume(Batch batch, boolean useNewMetadata, boolean useOriginalMetadata, ImportBatchManager ibm, ImportProfile profile) {
         UserManager users = UserUtil.getDefaultManger();
         UserProfile user = users.find(batch.getUserId());
         File importFolder = ibm.resolveBatchFile(batch.getFolder());
         ImportOptions options = ImportOptions.fromBatch(
-                batch, importFolder, user, profile);
+                batch, importFolder, useNewMetadata, useOriginalMetadata, user, profile);
         options.setOriginalBatchState(batch.getState());
         // if necessary reset old computed batch items
         ImportProcess process = new ImportProcess(options, ibm, ibm.getAppConfig());
@@ -139,7 +140,7 @@ public final class ImportProcess implements Runnable {
             try {
                 ConfigurationProfile profile = resolveProfile(batch, profiles);
                 ImportProfile importCfg = config.getImportConfiguration(profile);
-                ImportProcess resume = ImportProcess.resume(batch, ibm, importCfg);
+                ImportProcess resume = ImportProcess.resume(batch, false, false, ibm, importCfg);
                 dispatcher.addImport(resume);
             } catch (Exception ex) {
                 logBatchFailure(ibm, batch, ex);
@@ -220,7 +221,9 @@ public final class ImportProcess implements Runnable {
 
     private static Batch logBatchFailure(ImportBatchManager batchManager, Batch batch, Throwable t) {
         LOG.log(Level.SEVERE, batch.toString(), t);
-        batch.setState(Batch.State.LOADING_FAILED);
+        if (!Batch.State.LOADING_CONFLICT.equals(batch.getState())) {
+            batch.setState(Batch.State.LOADING_FAILED);
+        }
         batch.setLog(ImportBatchManager.toString(t));
         return batchManager.update(batch);
     }
@@ -389,14 +392,16 @@ public final class ImportProcess implements Runnable {
         private JhoveContext jhoveContext;
         private ImportHandler importer;
         private String priority;
+        private boolean useNewMetadata;
+        private boolean useOriginalMetadata;
 
         public ImportOptions(File importFolder, String device, boolean generateIndices, UserProfile username, ImportProfile profile, String priority) {
-            this(importFolder, device, generateIndices, false, username, profile, priority);
+            this(importFolder, device, generateIndices, false, username, profile, priority, false, false);
         }
 
         public ImportOptions(File importFolder, String device,
                 boolean generateIndices, boolean gerenatePageNumber, UserProfile username,
-                ImportProfile profile, String priority
+                ImportProfile profile, String priority, boolean useNewMetadata, boolean useOriginalMetadata
                 ) {
             this.device = device;
             this.generateIndices = generateIndices;
@@ -405,6 +410,8 @@ public final class ImportProcess implements Runnable {
             this.importFolder = importFolder;
             this.profile = profile;
             this.priority = priority;
+            this.useNewMetadata = useNewMetadata;
+            this.useOriginalMetadata = useOriginalMetadata;
         }
 
         public ImportHandler getImporter() {
@@ -491,11 +498,11 @@ public final class ImportProcess implements Runnable {
         }
 
         public static ImportOptions fromBatch(Batch batch, File importFolder,
-                UserProfile username, ImportProfile profile) {
+                                              boolean useNewMetadata, boolean useOriginalMetadata, UserProfile username, ImportProfile profile) {
 
             ImportOptions options = new ImportOptions(
                     importFolder, batch.getDevice(),
-                    batch.isGenerateIndices(), batch.isGeneratePageNumber(), username, profile, batch.getPriority());
+                    batch.isGenerateIndices(), batch.isGeneratePageNumber(), username, profile, batch.getPriority(), useNewMetadata, useOriginalMetadata);
             options.setBatch(batch);
             return options;
         }
@@ -522,6 +529,22 @@ public final class ImportProcess implements Runnable {
 
         public void setOriginalBatchState(Batch.State originalBatchState) {
             this.originalBatchState = originalBatchState;
+        }
+
+        public boolean isUseNewMetadata() {
+            return useNewMetadata;
+        }
+
+        public void setUseNewMetadata(boolean useNewMetadata) {
+            this.useNewMetadata = useNewMetadata;
+        }
+
+        public boolean isUseOriginalMetadata() {
+            return useOriginalMetadata;
+        }
+
+        public void setUseOriginalMetadata(boolean useOriginalMetadata) {
+            this.useOriginalMetadata = useOriginalMetadata;
         }
     }
 
