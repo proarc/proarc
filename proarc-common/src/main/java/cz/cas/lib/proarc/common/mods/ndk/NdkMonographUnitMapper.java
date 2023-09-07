@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
+import cz.cas.lib.proarc.mods.IssuanceDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
@@ -121,6 +122,16 @@ public class NdkMonographUnitMapper extends RdaNdkMapper {
             // sets type in element dateOther
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
                 dateOther.setType(oi.getEventType());
+            }
+            IssuanceDefinition issuanceDefinition = null;
+            for (IssuanceDefinition issuance : oi.getIssuance()) {
+                if (IssuanceDefinition.MONOGRAPHIC.value().equals(issuance.value())) {
+                    issuanceDefinition = IssuanceDefinition.MULTIPART_MONOGRAPH;
+                }
+            }
+            if (issuanceDefinition != null) {
+                oi.getIssuance().clear();
+                oi.getIssuance().add(issuanceDefinition);
             }
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
