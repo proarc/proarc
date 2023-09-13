@@ -55,7 +55,6 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
     public static final String FIELD_PID = DigitalObjectResourceApi.DIGITALOBJECT_PID;
     public static final String FIELD_MODEL = DigitalObjectResourceApi.DIGITALOBJECT_MODEL;
     public static final String FIELD_MODS = DigitalObjectResourceApi.NEWOBJECT_XML_PARAM;
-    public static final String FIELD_VALIDATION = DigitalObjectResourceApi.MODS_CUSTOM_VALIDATE_OBJECT;
     public static final String FIELD_CATALOGID = DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID;
     public static final String FIELD_WF_JOB_ID = WorkflowModelConsts.PARAMETER_JOBID;
     /** Synthetic attribute holding {@link DigitalObject}. */
@@ -72,8 +71,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
 
         DataSourceTextField catalogId = new DataSourceTextField(FIELD_CATALOGID);
 
-        DataSourceTextField validation = new DataSourceTextField(FIELD_VALIDATION);
-        setFields(pid, model, catalogId, validation);
+        setFields(pid, model, catalogId);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createDeleteOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
@@ -154,7 +152,6 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
         r.setAttribute(DigitalObjectDataSource.FIELD_MODEL, modelId);
         if (mods != null) {
             r.setAttribute(DigitalObjectDataSource.FIELD_MODS, mods);
-            r.setAttribute(DigitalObjectDataSource.FIELD_VALIDATION, "false");
         }
         if (pid != null && !pid.isEmpty()) {
             r.setAttribute(DigitalObjectDataSource.FIELD_PID, pid);
