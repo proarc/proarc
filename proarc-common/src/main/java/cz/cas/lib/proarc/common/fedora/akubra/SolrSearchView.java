@@ -276,7 +276,11 @@ public class SolrSearchView extends SearchView {
         if (q.getIdentifier() != null && !q.getIdentifier().isEmpty()) {
             pids = Collections.singletonList(q.getIdentifier());
         }
-        return searchImplementation(0, maxLimit, null, null, onlyActive, models, pids, q.getOwner(), q.getOrganization(), q.getCreator(), q.getLabel(), q.getStatus(), false);
+        String title = q.getTitle();
+        if (title == null || title.isEmpty()) {
+            title = q.getLabel();
+        }
+        return searchImplementation(0, maxLimit, null, null, onlyActive, models, pids, q.getOwner(), q.getOrganization(), q.getCreator(), title, q.getStatus(), false);
     }
 
     @Override
