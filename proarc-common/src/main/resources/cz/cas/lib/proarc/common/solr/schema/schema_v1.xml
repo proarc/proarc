@@ -458,7 +458,7 @@
     <field name="fulltext" type="text_cz" multiValued="true"/>
     <field name="isLocked" type="boolean"/>
     <field name="krameriusExport" type="string"/>
-    <field name="label" type="text_cz"/>
+    <field name="label" type="text_general" multiValued="false"/>
     <field name="members" type="text_general"/>
     <field name="model" type="string"/>
     <field name="modified" type="pdate"/>
