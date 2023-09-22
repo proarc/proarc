@@ -6,6 +6,7 @@ import com.qbizm.kramerius.imp.jaxb.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
+import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.incad.kramerius.fedora.om.impl.AkubraDOManager;
 import cz.incad.kramerius.utils.XMLUtils;
@@ -119,19 +120,28 @@ public class AkubraUtils {
                 synchronized(unmarshallerProArc) {
                     Object obj = unmarshallerProArc.unmarshal(inputStream);
                     com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject = (com.yourmediashelf.fedora.generated.foxml.DigitalObject) obj;
+                    List<com.yourmediashelf.fedora.generated.foxml.DatastreamType> toDelete = new ArrayList<>();
                     for (com.yourmediashelf.fedora.generated.foxml.DatastreamType datastream : digitalObject.getDatastream()) {
                         for (com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
                             if (datastreamVersion.getContentLocation() != null) {
                                 datastreamVersion.setXmlContent(null);
                                 datastreamVersion.setBinaryContent(null);
                                 ContentLocationType contentLocationType = datastreamVersion.getContentLocation();
-                                InputStream is = manager.retrieveDatastream(contentLocationType.getREF());
-                                byte[] binaryContent = new byte[is.available()];
-                                is.read(binaryContent);
-                                datastreamVersion.setBinaryContent(binaryContent);
-                                datastreamVersion.setContentLocation(null);
+                                if (contentLocationType.getREF().startsWith(FoxmlUtils.LOCAL_FEDORA_OBJ_PATH)) {
+                                    toDelete.add(datastream);
+                                    continue;
+                                } else {
+                                    InputStream is = manager.retrieveDatastream(contentLocationType.getREF());
+                                    byte[] binaryContent = new byte[is.available()];
+                                    is.read(binaryContent);
+                                    datastreamVersion.setBinaryContent(binaryContent);
+                                    datastreamVersion.setContentLocation(null);
+                                }
                             }
                         }
+                    }
+                    if (!toDelete.isEmpty()) {
+                        digitalObject.getDatastream().removeAll(toDelete);
                     }
                     return digitalObject;
                 }

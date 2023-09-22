@@ -71,7 +71,7 @@ public final class FoxmlUtils {
     /** The audit data stream ID. */
     public static final String DS_AUDIT_ID = "AUDIT";
     public static final String PID_PREFIX = "uuid:";
-    static final String LOCAL_FEDORA_OBJ_PATH = "http://local.fedora.server/fedora/get/";
+    public static final String LOCAL_FEDORA_OBJ_PATH = "http://local.fedora.server/fedora/get/";
 
     static {
         XmlSchema schema = ObjectFactory.class.getPackage().getAnnotation(XmlSchema.class);
