@@ -55,6 +55,10 @@ public class SolrUtils {
         return appendValue(queryBuilder, "\"" + value + "\"", QueryOperator.OR.name());
     }
 
+    private static StringBuilder appendPidListValue(StringBuilder queryBuilder, String value) {
+        return appendValue(queryBuilder, "*" + value.replaceAll(":", "\\\\:") + "*", QueryOperator.OR.name());
+    }
+
     private static StringBuilder appendValue(StringBuilder queryBuilder, String value, String operator) {
         if (queryBuilder == null) {
             queryBuilder = new StringBuilder();
@@ -89,7 +93,7 @@ public class SolrUtils {
     }
 
     public static String getPidsQuery(List<String> pids) {
-        return getListQuery(pids, FIELD_PID);
+        return getPidListQuery(pids, FIELD_PID);
     }
 
     public static String getModelQuery(List<String> models) {
@@ -116,6 +120,25 @@ public class SolrUtils {
                 queryBuilder.append("\"" + value + "\"");
             } else {
                 queryBuilder = appendListValue(queryBuilder, value);
+            }
+        }
+        queryBuilder.append(")");
+        return queryBuilder.toString();
+    }
+
+    private static String getPidListQuery(List<String> list, String key) {
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append(key).append(":(");
+        boolean isFirst = true;
+        for (String value : list) {
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
+            if (isFirst) {
+                isFirst = false;
+                queryBuilder.append("*" + value.replaceAll(":", "\\\\:") + "*");
+            } else {
+                queryBuilder = appendPidListValue(queryBuilder, value);
             }
         }
         queryBuilder.append(")");

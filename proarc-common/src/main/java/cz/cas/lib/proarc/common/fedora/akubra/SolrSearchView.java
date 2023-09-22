@@ -451,7 +451,7 @@ public class SolrSearchView extends SearchView {
             queryBuilder = appendAndValue(queryBuilder, getUserQuery(Collections.singletonList(user), allowAllForUser));
         }
         if (label != null && !label.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_LABEL + ":\"" + label + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_LABEL + ":*" + label.replaceAll(":", "\\\\:") + "*");
         }
         if (status != null && !status.isEmpty()) {
             queryBuilder = appendAndValue(queryBuilder, FIELD_STATUS + ":\"" + status + "\"");
