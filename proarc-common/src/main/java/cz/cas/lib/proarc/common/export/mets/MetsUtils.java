@@ -946,14 +946,14 @@ public class MetsUtils {
         if (md5 != null) {
             Checksum checkSum = new Checksum();
             checkSum.setChecksum(md5);
-            checkSum.setType("MD5");
+            checkSum.setType("md5");
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
         }
         addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb, metsContext.getRootElement().getModel());
         Validation validation = new Validation();
-        validation.setValue("W3C-XML");
-        validation.setVersion(0.0f);
+        validation.setValue("ProArc");
+        validation.setVersion(getVersion(metsContext.getOptions().getVersion()));
         infoJaxb.setValidation(validation);
         infoJaxb.setCreator(metsContext.getOptions().getCreator());
         infoJaxb.setPackageid(metsContext.getPackageID());
@@ -1012,6 +1012,21 @@ public class MetsUtils {
                 LOG.fine(error);
             }
             throw metsException;
+        }
+    }
+
+    private static float getVersion(String version) {
+        version = version.replaceAll("[^0-9]", "");
+        if (version == null || version.isEmpty()) {
+            return 1.0f;
+        } else if (version.length() >= 3) {
+            version = version.substring(0, 1) + "." + version.substring(1, 3) + "f";
+            return Float.parseFloat(version);
+        } else if (version.length() >= 2) {
+            version = version.substring(0, 1) + "." + version.substring(1, 2) + "f";
+            return Float.parseFloat(version);
+        } else {
+            return Float.parseFloat(version + "f");
         }
     }
 

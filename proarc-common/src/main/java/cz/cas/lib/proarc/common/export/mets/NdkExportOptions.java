@@ -26,11 +26,13 @@ import org.apache.commons.configuration.Configuration;
 public class NdkExportOptions {
     static final String PROP_NDK_AGENT_ARCHIVIST = "export.ndk.agent.archivist";
     static final String PROP_NDK_AGENT_CREATOR = "export.ndk.agent.creator";
+    static final String PROP_NDK_PREMIS_EVENTTYPE_DELETION = "export.ndk.premis.eventType.deletion";
     static final String PROP_PROARC_VERSION = "proarc.version";
     static final String PROP_PROARC_REVISION = "proarc.build.revision";
     static final String PROP_PROARC_TIMESTAMP = "proarc.build.timestamp";
     private String archivist;
     private String creator;
+    private Boolean premisEventTypeDeletion;
     private String version;
     private String timestamp;
     private String revision;
@@ -62,6 +64,9 @@ public class NdkExportOptions {
         if (revision != null && !revision.isEmpty()) {
             options.setRevision(revision);
         }
+
+        Boolean premisEventTypeDeletion = config.getBoolean(PROP_NDK_PREMIS_EVENTTYPE_DELETION, false);
+        options.setPremisEventTypeDeletion(premisEventTypeDeletion);
 
         return options;
     }
@@ -110,5 +115,13 @@ public class NdkExportOptions {
 
     public void setRevision(String revision) {
         this.revision = revision;
+    }
+
+    public Boolean getPremisEventTypeDeletion() {
+        return premisEventTypeDeletion;
+    }
+
+    public void setPremisEventTypeDeletion(Boolean premisEventTypeDeletion) {
+        this.premisEventTypeDeletion = premisEventTypeDeletion;
     }
 }

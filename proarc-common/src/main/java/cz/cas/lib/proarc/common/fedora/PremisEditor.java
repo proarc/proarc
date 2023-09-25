@@ -31,6 +31,7 @@ import cz.cas.lib.proarc.common.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
 import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
@@ -223,7 +224,7 @@ public class PremisEditor {
 
             Mets deviceMets = MetsElementVisitor.getScannerMets(metsElement);
             HashMap<String, FileMD5Info> md5InfosMap = createMd5InfoMap(metsElement);
-            addPremisToAmdSec(amdSec, md5InfosMap, metsElement, null, deviceMets, null);
+            addPremisToAmdSec(config.getNdkExportOptions(), amdSec, md5InfosMap, metsElement, null, deviceMets, null);
             return amdSecMets;
         } catch (Exception e) {
             throw new DigitalObjectException(fobject.getPid(), "Nepodarilo se vytvorit Technicka metadata");
@@ -305,7 +306,7 @@ public class PremisEditor {
         return md5InfosMap;
     }
 
-    public static void addPremisToAmdSec(AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement, HashMap<String, MetsType.FileSec.FileGrp> amdSecFileGrpMap, Mets mets, Mix mixDevice) throws MetsExportException {
+    public static void addPremisToAmdSec(NdkExportOptions options, AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, IMetsElement metsElement, HashMap<String, MetsType.FileSec.FileGrp> amdSecFileGrpMap, Mets mets, Mix mixDevice) throws MetsExportException {
         HashMap<String, String> toGenerate = new HashMap<String, String>();
         toGenerate.put("OBJ_001", Const.RAW_GRP_ID);
         toGenerate.put("OBJ_002", Const.MC_GRP_ID);
@@ -364,6 +365,9 @@ public class PremisEditor {
         if (md5InfosMap.get(Const.TXT_GRP_ID) != null){
             addPremisNodeToMets(getPremisEvent(metsElement, Const.TXT_GRP_ID, md5InfosMap.get(Const.TXT_GRP_ID), "capture/TXT_creation"), amdSec, "EVT_005", true, amdSecFileGrpMap);
         }*/
+        if (md5InfosMap.get(Const.RAW_GRP_ID) != null && options.getPremisEventTypeDeletion()) {
+            addPremisNodeToMets(getPremisEvent(metsElement, Const.RAW_GRP_ID, md5InfosMap.get(Const.RAW_GRP_ID), "deletetion/PS_deletion"), amdSec, "EVT_004", true, null);
+        }
 
         if (mets != null && mets.getAmdSec().size() != 0) {
             for (AmdSecType amd : mets.getAmdSec()) {
