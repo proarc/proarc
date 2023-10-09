@@ -68,8 +68,10 @@ public final class Catalogs {
         ArrayList<CatalogConfiguration> catalogs = new ArrayList<CatalogConfiguration>();
         for (String catalogId : config.getStringArray(PROPERTY_CATALOGS)) {
             CatalogConfiguration catalog = readConfiguration(catalogId);
-            if (catalog != null && catalog.allowCatalogUpdateRecord()) {
-                catalogs.add(catalog);
+            if (catalog != null) {
+                if (catalog.getCatalogUpdateUrl() != null && !catalog.getCatalogUpdateUrl().isEmpty() && catalog.allowCatalogUpdateRecord()) {
+                    catalogs.add(catalog);
+                }
             }
         }
         return catalogs;
