@@ -28,7 +28,6 @@ import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
-import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
@@ -314,11 +313,12 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 if (modelId.equals(MODEL_PAGE)) {
                     ModsDefinition mods = editor.read();
                     OldPrintPageMapper mapper = new OldPrintPageMapper();
-                    Page page = mapper.toJsonObject(mods, new Context(handler));
+//                    NdkNewPageMapper page = mapper.toJsonObject(mods, new Context(handler));
                     PageViewItem item = new PageViewItem();
-                    item.setPageIndex(page.getIndex());
-                    item.setPageNumber(page.getNumber());
-                    item.setPageType(page.getType());
+                    item.setPageIndex(mapper.getIndex(mods));
+                    item.setPageNumber(mapper.getNumber(mods));
+                    item.setPageType(mapper.getType(mods));
+                    item.setPagePosition(mapper.getPosition(mods));
                     item.setPageTypeLabel(OldPrintPageMapper.getPageTypeLabel(item.getPageType(), locale));
                     return item;
                 } else {

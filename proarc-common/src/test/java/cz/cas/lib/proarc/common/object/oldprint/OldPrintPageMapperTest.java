@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.PageMapperTest;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import java.util.Arrays;
@@ -64,13 +65,13 @@ public class OldPrintPageMapperTest {
     public void testToJsonObject() {
         OldPrintPageMapper mapper = new OldPrintPageMapper();
         ModsDefinition mods = ModsUtils.unmarshal(PageMapperTest.class.getResource("page_mods.xml"), ModsDefinition.class);
-        Page page = mapper.toJsonObject(mods, null);
-        assertNotNull(page);
-        assertEquals("1", page.getIndex());
-        assertEquals("[1]", page.getNumber());
-        assertEquals("Blank", page.getType());
-        assertEquals("note", page.getPhysicalDescription());
-        List<IdentifierItem> identifiers = page.getIdentifiers();
+//        Page page = mapper.toJsonObject(mods, null);
+        assertNotNull(mods);
+        assertEquals("1", mapper.getIndex(mods));
+        assertEquals("[1]", mapper.getNumber(mods));
+        assertEquals("Blank", mapper.getType(mods));
+        assertEquals("note", mapper.getPhysicalDescription(mods));
+        List<IdentifierDefinition> identifiers = mapper.getIdentifiers(mods);
         assertEquals(2, identifiers.size());
         assertEquals("issn", identifiers.get(0).getType());
         assertEquals("issn value", identifiers.get(0).getValue());
@@ -82,13 +83,13 @@ public class OldPrintPageMapperTest {
     public void testToJsonObjectJaxb() {
         OldPrintPageMapper mapper = new OldPrintPageMapper();
         ModsDefinition mods = ModsUtils.unmarshal(PageMapperTest.class.getResource("page_mods.xml"), ModsDefinition.class);
-        Page page = mapper.toJsonObject(mods, null);
-        assertNotNull(page);
-        assertEquals("1", page.getIndex());
-        assertEquals("[1]", page.getNumber());
-        assertEquals("Blank", page.getType());
-        assertEquals("note", page.getPhysicalDescription());
-        List<IdentifierItem> identifiers = page.getIdentifiers();
+//        Page page = mapper.toJsonObject(mods, null);
+        assertNotNull(mods);
+        assertEquals("1", mapper.getIndex(mods));
+        assertEquals("[1]", mapper.getNumber(mods));
+        assertEquals("Blank", mapper.getType(mods));
+        assertEquals("note", mapper.getPhysicalDescription(mods));
+        List<IdentifierDefinition> identifiers = mapper.getIdentifiers(mods);
         assertEquals(2, identifiers.size());
         assertEquals("issn", identifiers.get(0).getType());
         assertEquals("issn value", identifiers.get(0).getValue());
@@ -113,13 +114,16 @@ public class OldPrintPageMapperTest {
         assertEquals("text", resultType.getValue());
         assertEquals("yes", resultType.getManuscript());
 
-        Page result = mapper.toJsonObject(mods, ctx);
-        assertNotNull(result);
-        assertEquals(page.getIndex(), result.getIndex());
-        assertEquals(page.getNumber(), result.getNumber());
-        assertEquals(page.getType(), result.getType());
-        assertEquals(page.getPhysicalDescription(), result.getPhysicalDescription());
-        assertEquals(Arrays.asList(new IdentifierItem(null, "uuid", "1")), result.getIdentifiers());
+//        Page result = mapper.toJsonObject(mods, ctx);
+        assertNotNull(mods);
+        assertEquals(page.getIndex(), mapper.getIndex(mods));
+        assertEquals(page.getNumber(), mapper.getNumber(mods));
+        assertEquals(page.getType(), mapper.getType(mods));
+        assertEquals(page.getPhysicalDescription(), mapper.getPhysicalDescription(mods));
+        IdentifierDefinition idenfier = new IdentifierDefinition();
+        idenfier.setType("uuid");
+        idenfier.setValue("1");
+        assertEquals(Arrays.asList(idenfier), mapper.getIdentifiers(mods));
     }
 
     @Test

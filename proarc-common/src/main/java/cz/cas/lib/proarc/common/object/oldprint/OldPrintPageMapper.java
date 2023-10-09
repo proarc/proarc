@@ -18,8 +18,13 @@
 package cz.cas.lib.proarc.common.object.oldprint;
 
 import cz.cas.lib.proarc.common.i18n.BundleName;
+import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -29,7 +34,7 @@ import java.util.logging.Logger;
  *
  * @author Jan Pokorsky
  */
-public class OldPrintPageMapper extends NdkPageMapper {
+public class OldPrintPageMapper extends NdkNewPageMapper {
 
     private static final Logger LOG = Logger.getLogger(OldPrintPageMapper.class.getName());
 
@@ -61,4 +66,18 @@ public class OldPrintPageMapper extends NdkPageMapper {
 //        OldPrintMapperUtils.addTypeOfResource(mods);
     }
 
+    public String getPhysicalDescription(ModsDefinition mods) {
+        for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
+            for (PhysicalDescriptionNote note : physicalDescription.getNote()) {
+                if (note.getValue() != null && !note.getValue().isEmpty()) {
+                    return note.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<IdentifierDefinition> getIdentifiers(ModsDefinition mods) {
+        return mods.getIdentifier();
+    }
 }

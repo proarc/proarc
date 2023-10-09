@@ -23,7 +23,7 @@ import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource.MetaModelRecord;
 import cz.cas.lib.proarc.webapp.client.widget.mods.NdkFormGenerator;
-import cz.cas.lib.proarc.webapp.client.widget.mods.PageForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.NdkNewPageForm;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
 import cz.cas.lib.proarc.webapp.shared.form.Form;
@@ -52,7 +52,7 @@ public class OldPrintForms {
             f = new OldPrintSupplementForm().build();
         } else if (OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
             //return new PageForm(i18n, BundleName.MODS_OLDPRINT_PAGE_TYPES);
-            return new PageForm(i18n);
+            f = new NdkNewPageForm().build();
         } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
             f = new OldPrintMonographTitleForm().build();
         } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {

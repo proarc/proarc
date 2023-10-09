@@ -507,3 +507,11 @@ GET {{proarcLocalHostUrl}}/rest/v1/bibliographies?allowUpdate=true
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
+### update oldprint page
+
+PUT {{proarcLocalHostUrl}}/rest/v1/object/mods/custom
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:01c76b77-09bf-438e-8659-1eb910284e3c&editorId=model:oldprintpage&jsonData={"mods":{"identifier":[{"type":"uuid","value":"ac76fd47-abe2-46d7-8029-278806ebec64"}],"note":[{"value":"right"}],"genre":[{"value":"reprePage"}]},"pageNumber":"8","pageIndex":"8","pageType":"normalPage"}&timestamp=1696856079750
+
