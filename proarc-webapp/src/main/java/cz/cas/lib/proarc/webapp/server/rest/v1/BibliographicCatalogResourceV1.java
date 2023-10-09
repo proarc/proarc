@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -75,14 +76,27 @@ public class BibliographicCatalogResourceV1 {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<CatalogDescriptor> findCatalog(
-            @QueryParam(BibliographicCatalogResourceApi.CATALOG_ID) String id) {
-
+            @QueryParam(BibliographicCatalogResourceApi.CATALOG_ID) String id,
+            @DefaultValue ("false") @QueryParam(BibliographicCatalogResourceApi.CATALOG_ALLOW_UPDATE) Boolean allowCatalogUpdate
+    ) {
         List<CatalogConfiguration> catalogs;
         if (id == null) {
-            catalogs = appConfig.getCatalogs().getConfigurations();
+            if (allowCatalogUpdate) {
+                catalogs = appConfig.getCatalogs().getAllowEditingRecordConfiguration();
+            } else {
+                catalogs = appConfig.getCatalogs().getConfigurations();
+            }
         } else {
             CatalogConfiguration catalog = appConfig.getCatalogs().findConfiguration(id);
-            catalogs = catalog != null ? Arrays.asList(catalog) : Collections.<CatalogConfiguration>emptyList();
+            if (allowCatalogUpdate) {
+                if (catalog != null && catalog.allowCatalogUpdateRecord()) {
+                    catalogs = catalog != null ? Arrays.asList(catalog) : Collections.<CatalogConfiguration>emptyList();
+                } else {
+                    catalogs = Collections.emptyList();
+                }
+            } else {
+                catalogs = catalog != null ? Arrays.asList(catalog) : Collections.<CatalogConfiguration>emptyList();
+            }
         }
         ArrayList<CatalogDescriptor> result = new ArrayList<CatalogDescriptor>(catalogs.size());
         for (CatalogConfiguration cp : catalogs) {

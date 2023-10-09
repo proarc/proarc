@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.webapp.server.rest.v1.BibliographicCatalogResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -51,9 +52,11 @@ public class BibliographicCatalogResource extends BibliographicCatalogResourceV1
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<CatalogDescriptor> findCatalog(
-            @QueryParam(BibliographicCatalogResourceApi.CATALOG_ID) String id) {
+            @QueryParam(BibliographicCatalogResourceApi.CATALOG_ID) String id,
+            @DefaultValue("false") @QueryParam(BibliographicCatalogResourceApi.CATALOG_ALLOW_UPDATE) Boolean allowCatalogUpdate
+    ) {
         try {
-            return super.findCatalog(id);
+            return super.findCatalog(id, allowCatalogUpdate);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

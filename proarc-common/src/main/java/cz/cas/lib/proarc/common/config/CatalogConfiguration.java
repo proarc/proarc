@@ -48,6 +48,16 @@ public final class CatalogConfiguration {
     public static final String FIELD_PREFIX = "field";
     public static final String PROPERTY_DEFAULT_SEARCH_FIELD = "defaultSearchField";
 
+    /* konfigurace jen pro editaci zaznamu v katalogu */
+    public static final String PROPERTY_AUTHORIZATION_CATALOG_URL = "authorizationUrl";
+    public static final String PROPERTY_UPDATE_CATALOG_URL = "updateRecordUrl";
+    public static final String PROPERTY_LOGIN_USERNAME = "username";
+    public static final String PROPERTY_LOGIN_PASSWORD = "password";
+    public static final String PROPERTY_UPDATE_FIELD = "recordField";
+    public static final String PROPERTY_UPDATE_SUBFIELD_APP = "recordSubfieldAppIdentifier";
+    public static final String PROPERTY_UPDATE_SUBFIELD_OBJECT = "recordSubfieldObjectIdentifier";
+    public static final String PROPERTY_UPDATE_SUBFIELD_DIGITALIZED = "recordSubfieldDigitalizated";
+
     private final String id;
     private final String prefix;
     private final Configuration properties;
@@ -95,6 +105,76 @@ public final class CatalogConfiguration {
         return properties.getString(PROPERTY_DEFAULT_SEARCH_FIELD);
     }
 
+    public Boolean allowCatalogUpdateRecord() {
+        boolean ok = true;
+        if (getCatalogAuthorizationUrl() == null || getCatalogAuthorizationUrl().isEmpty()) {
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_AUTHORIZATION_CATALOG_URL));
+            ok = false;
+        }
+        if (getCatalogUpdateUrl() == null || getCatalogUpdateUrl().isEmpty()) {
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_CATALOG_URL));
+            ok = false;
+        }
+        if (getCatalogUsername() == null || getCatalogUsername().isEmpty()) {
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_LOGIN_USERNAME));
+            ok = false;
+        }
+        if (getCatalogPassword() == null || getCatalogPassword().isEmpty()) {
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_LOGIN_PASSWORD));
+            ok = false;
+        }
+        if (getUpdateField() == null || getUpdateField().isEmpty()) {
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_FIELD));
+            ok = false;
+        }
+        if (getUpdateSubfieldApp() == null || getUpdateSubfieldApp().isEmpty()) {
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_SUBFIELD_APP));
+            ok = false;
+        }
+        if (getUpdateSubfieldObject() == null || getUpdateSubfieldObject().isEmpty()) {
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_SUBFIELD_OBJECT));
+            ok = false;
+        }
+        if (getUpdateSubfieldDigitalized() == null || getUpdateSubfieldDigitalized().isEmpty()) {
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_SUBFIELD_DIGITALIZED));
+            ok = false;
+        }
+
+        return ok;
+    }
+
+    public String getCatalogAuthorizationUrl() {
+        return properties.getString(PROPERTY_AUTHORIZATION_CATALOG_URL);
+    }
+
+    public String getCatalogUpdateUrl() {
+        return properties.getString(PROPERTY_UPDATE_CATALOG_URL);
+    }
+
+    public String getCatalogUsername() {
+        return properties.getString(PROPERTY_LOGIN_USERNAME);
+    }
+
+    public String getCatalogPassword() {
+        return properties.getString(PROPERTY_LOGIN_PASSWORD);
+    }
+
+    public String getUpdateField() {
+        return properties.getString(PROPERTY_UPDATE_FIELD);
+    }
+
+    public String getUpdateSubfieldApp() {
+        return properties.getString(PROPERTY_UPDATE_SUBFIELD_APP);
+    }
+
+    public String getUpdateSubfieldObject() {
+        return properties.getString(PROPERTY_UPDATE_SUBFIELD_OBJECT);
+    }
+
+    public String getUpdateSubfieldDigitalized() {
+        return properties.getString(PROPERTY_UPDATE_SUBFIELD_DIGITALIZED);
+    }
+
     /**
      * Fills fields for existing configurations to ensure backward compatibility.
      */
@@ -136,6 +216,8 @@ public final class CatalogConfiguration {
     public String getProperty(String name, String defaultValue) {
         return properties.getString(name, defaultValue);
     }
+
+
 
     @Override
     public String toString() {

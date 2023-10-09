@@ -36,4 +36,6 @@ public final class BibliographicCatalogResourceApi {
     public static final String CATALOG_FIELD_ID = "fieldId";
     public static final String CATALOG_FIELD_TITLE = "fieldTitle";
 
+    public static final String CATALOG_ALLOW_UPDATE = "allowUpdate";
+
 }

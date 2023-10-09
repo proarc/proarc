@@ -1,0 +1,15 @@
+### verbis login
+
+POST https://cmh.opac.nm.cz/oauth/token?grant_type=client_credentials
+Authorization: Basic cHJvYXJjOk5nMmd5VW5aYllNdDc0eDNQd05h
+Content-Type: application/x-www-form-urlencoded
+
+
+###
+
+POST https://cmh.opac.nm.cz/api/records/fields/bulkedit/complex
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2NtaC5vcGFjLm5tLmN6IiwiZXhwIjoxNjk2NTE3OTM5LCJzY29wZSI6IiIsInVzZXJfaWQiOjE0NH0.SmSlf-UMMIh0FXGkkyHWhqhIRDeOHYHr7wqFTPYBOmk
+Content-Type: application/json; charset=UTF-8
+
+{ "reusing": [{"id": "f1:kpw0695768"}], "value": [ { "reusing": [{ "type": "D.856", "havingField": {"type": "D.856.o", "value": "proarcId"} }], "set": { "type": "D.856", "value": [ { "reusing": [{"type": "D.856.o"}], "set": {"type": "D.856.o", "value": "proarcId"} }, { "reusing": [{"type": "D.856.y"}], "set": {"type": "D.856.y", "value": "uuid:455a7723-c4ab-4b80-8e75-b1203ccefa59"} }, { "reusing": [{"type": "D.856.d"}], "set": {"type": "D.856.d", "value": "zdigitalizováno"} } ] } } ]}
+

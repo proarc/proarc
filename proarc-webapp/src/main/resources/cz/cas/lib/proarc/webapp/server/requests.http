@@ -486,3 +486,24 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &state=LOADING_FAILED&profile=profile.ndk_periodical_kramerius_import&id=86&useNewMetadata=true
 
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### UPDATE VERBIS RECORD
+POST {{proarcLocalHostUrl}}/rest/v2/object/updateCatalogRecord
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:455a7723-c4ab-4b80-8e75-b1203ccefa59&catalogId=cmh
+
+
+### GET RELEVANT CATALOG
+
+GET {{proarcLocalHostUrl}}/rest/v1/bibliographies?allowUpdate=true
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+

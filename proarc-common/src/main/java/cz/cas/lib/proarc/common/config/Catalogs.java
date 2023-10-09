@@ -64,6 +64,17 @@ public final class Catalogs {
         return catalogs;
     }
 
+    public List<CatalogConfiguration> getAllowEditingRecordConfiguration() {
+        ArrayList<CatalogConfiguration> catalogs = new ArrayList<CatalogConfiguration>();
+        for (String catalogId : config.getStringArray(PROPERTY_CATALOGS)) {
+            CatalogConfiguration catalog = readConfiguration(catalogId);
+            if (catalog != null && catalog.allowCatalogUpdateRecord()) {
+                catalogs.add(catalog);
+            }
+        }
+        return catalogs;
+    }
+
     /**
      * Gets configuration of all registered authority catalogs.
      * @return list of configurations

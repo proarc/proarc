@@ -314,6 +314,8 @@ public final class DigitalObjectResourceApi {
     public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
     public static final String UPDATE_NDK_PAGE = "updateNdkPage";
 
+    public static final String UPDATE_CATALOG_RECORD = "updateCatalogRecord";
+
     public enum SearchType {
         
         LAST_CREATED(SEARCH_TYPE_PARAM_DEFAULT),

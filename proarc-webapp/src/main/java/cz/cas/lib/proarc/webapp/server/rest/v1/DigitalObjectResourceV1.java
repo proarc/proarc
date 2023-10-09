@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.LockObject;
@@ -23,6 +25,7 @@ import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.UpdateObjects;
 import cz.cas.lib.proarc.common.actions.UpdatePages;
 import cz.cas.lib.proarc.common.actions.UpdatePagesMetadata;
+import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -126,8 +129,6 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -172,6 +173,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import org.apache.commons.io.FileUtils;
+import org.codehaus.jettison.json.JSONException;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -3886,6 +3888,21 @@ public class DigitalObjectResourceV1 {
         }
 
         updateObjects.repair(NdkPlugin.MODEL_NDK_PAGE);
+        return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_CATALOG_RECORD)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> updateCatalogRecord(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
+    ) throws DigitalObjectException, JSONException, IOException {
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+
+        CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration, user);
+        catalogRecord.update(catalogId, pid);
+
         return returnFunctionSuccess();
     }
 
