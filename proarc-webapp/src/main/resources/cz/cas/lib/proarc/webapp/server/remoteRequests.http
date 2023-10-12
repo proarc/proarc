@@ -76,4 +76,18 @@ Connection: Keep-Alive, Upgrade
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
+### LOGIN
+POST {{proarcRemoteUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### UPDATE VERBIS RECORD
+POST {{proarcRemoteUrl}}/rest/v2/object/updateCatalogRecord
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:f7e18b00-8e1a-424c-be31-1f436f812340&catalogId=oaicmh
+
 

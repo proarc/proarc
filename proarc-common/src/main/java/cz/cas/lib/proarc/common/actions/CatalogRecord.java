@@ -57,7 +57,7 @@ public class CatalogRecord {
 
         String object001 = getObjectField001(pid);
         if (object001 == null || object001.isEmpty()) {
-            throw new DigitalObjectException("Missing field 001 for object " + pid);
+            throw new DigitalObjectException(pid, "Missing field 001");
         }
 
         CatalogConfiguration bCatalog = appConfig.getCatalogs().findConfiguration(catalogId);
@@ -68,11 +68,11 @@ public class CatalogRecord {
                 return updateRecord(bCatalog, verbisToken, object001, pid);
             } else {
                 LOG.severe("Catalog with id " + catalogId + " does not support Record modification");
-                throw new DigitalObjectException("Catalog with id " + catalogId + " does not support Record modification");
+                throw new IOException("Catalog with id " + catalogId + " does not support Record modification");
             }
         } else {
             LOG.severe("No catalog configuration for id " + catalogId);
-            throw new DigitalObjectException("No catalog configuration for id " + catalogId);
+            throw new IOException("No catalog configuration for id " + catalogId);
         }
     }
 
@@ -138,7 +138,7 @@ public class CatalogRecord {
         }
     }
 
-    private String getCatalogToken(CatalogConfiguration catalogConfig) throws IOException, DigitalObjectException, JSONException {
+    private String getCatalogToken(CatalogConfiguration catalogConfig) throws IOException, JSONException {
         String client_id = catalogConfig.getCatalogUsername();
         String client_secret = catalogConfig.getCatalogPassword();
 
@@ -163,18 +163,18 @@ public class CatalogRecord {
                     JSONObject object = new JSONObject(result);
                     String accessToken = object.getString("access_token");
                     if (accessToken == null || accessToken.isEmpty()) {
-                        throw new DigitalObjectException("Connected to Catalog but access token is null or empty: " + accessToken);
+                        throw new IOException("Connected to Catalog but access token is null or empty: " + accessToken);
                     } else {
                         return accessToken;
                     }
                 } else {
-                    throw new DigitalObjectException("Connected to Catalog but unexpected response." + result);
+                    throw new IOException("Connected to Catalog but unexpected response." + result);
                 }
             } else {
-                throw new DigitalObjectException("Connected to Catalog but entity is null");
+                throw new IOException("Connected to Catalog but entity is null");
             }
         } else {
-            throw new DigitalObjectException("Connecing to Catalog ended with code " + response.getStatusLine().getStatusCode());
+            throw new IOException("Connecing to Catalog ended with code " + response.getStatusLine().getStatusCode());
         }
     }
 
