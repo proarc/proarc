@@ -35,7 +35,11 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_SERIES_DATE_FROM_PARAM = "seriesDateFrom";
     public static final String DIGITALOBJECT_SERIES_DATE_TO_PARAM = "seriesDateTo";
     public static final String DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM = "seriesDaysIncluded";
+    public static final String DIGITALOBJECT_SERIES_DAYS_IN_RANGE_PARAM = "seriesDaysInRange";
     public static final String DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM = "seriesPartNumberFrom";
+    public static final String DIGITALOBJECT_SERIES_SIGNATURA = "seriesSignatura";
+    public static final String DIGITALOBJECT_SERIES_FREQUENCY = "seriesFrequency";
+    public static final String DIGITALOBJECT_SERIES_DATE_FORMAT = "seriesDateFormat";
     public static final String DIGITALOBJECT_SOURCE_PIDS = "sourcePids";
     public static final String DIGITALOBJECT_DESTINATION_PIDS = "destinationPids";
     public static final String DIGITALOBJECT_COPY_PAGE_NUMBER = "copyPageNumber";

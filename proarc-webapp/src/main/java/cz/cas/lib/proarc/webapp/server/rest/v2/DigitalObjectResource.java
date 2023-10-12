@@ -119,7 +119,11 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_FROM_PARAM) LocalDateParam seriesDateFrom,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_TO_PARAM) LocalDateParam seriesDateTo,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM) List<Integer> seriesDaysIncluded,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DAYS_IN_RANGE_PARAM) List<Integer> seriesDaysInRange,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_SIGNATURA) String seriesSignatura,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_FREQUENCY) String seriesFrequency,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_FORMAT) String seriesDateFormat,
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata,
             @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal workflowJobId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId,
@@ -138,8 +142,8 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_MODEL));
         }
         try {
-            return super.newObject(modelId, pid, parentPid, seriesDateFrom, seriesDateTo, seriesDaysIncluded,
-                    seriesPartNumberFrom, xmlMetadata, workflowJobId, catalogId, createObject, validation);
+            return super.newObject(modelId, pid, parentPid, seriesDateFrom, seriesDateTo, seriesDaysIncluded, seriesDaysInRange,
+                    seriesPartNumberFrom, seriesSignatura, seriesFrequency, seriesDateFormat, xmlMetadata, workflowJobId, catalogId, createObject, validation);
         } catch (DigitalObjectException ex) {
                 LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
                 return SmartGwtResponse.asError(ex.getMyMessage());

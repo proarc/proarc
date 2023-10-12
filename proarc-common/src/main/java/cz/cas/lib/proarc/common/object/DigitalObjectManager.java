@@ -270,6 +270,14 @@ public class DigitalObjectManager {
         private LocalDate seriesDateTo;
         private Set<DayOfWeek> seriesDaysIncluded;
 
+        private String seriesFrequency;
+        private String seriesDateFormat;
+
+        private Boolean isFirstSeries = true;
+        private Boolean setPrecision = true;
+        private Integer selectedDay;
+        private Integer daysInRange = 0;
+
         private Integer seriesPartNumberFrom;
 
         public CreateHandler(String modelId, String pid, String parentPid, UserProfile user, String xml, String message) {
@@ -302,7 +310,8 @@ public class DigitalObjectManager {
          * @param partNumberFrom a partNumber to start the series
          * @return the handler
          */
-        public CreateHandler issueSeries(LocalDate from, LocalDate to, List<Integer> dayIdxs, Integer partNumberFrom) {
+        public CreateHandler issueSeries(LocalDate from, LocalDate to, List<Integer> dayIdxs, List<Integer> daysInRange, Integer partNumberFrom,
+                                         String seriesFrequency, String seriesDateFormat, String seriesSignatura) {
             this.seriesDateFrom = Objects.requireNonNull(from, "from");
             if (to != null) {
                 if (to.isBefore(from)) {
@@ -315,24 +324,91 @@ public class DigitalObjectManager {
                 to = from.with(TemporalAdjusters.lastDayOfYear());
             }
             this.seriesDateTo = to;
-            this.seriesDaysIncluded = dayIdxs == null || dayIdxs.isEmpty()
-                    ? EnumSet.allOf(DayOfWeek.class)
-                    : dayIdxs.stream()
+            this.seriesFrequency = seriesFrequency;
+            this.seriesDateFormat = seriesDateFormat;
+            this.selectedDay = seriesDateFrom.getDayOfMonth();
+
+            if (dayIdxs == null || dayIdxs.isEmpty()) {
+                if (daysInRange == null || daysInRange.isEmpty()) {
+                    this.seriesDaysIncluded = EnumSet.allOf(DayOfWeek.class);
+                } else {
+                    this.daysInRange = daysInRange.get(daysInRange.size() - 1) - daysInRange.get(0);
+                    dayIdxs.add(daysInRange.get(0));
+                    this.seriesDaysIncluded = dayIdxs.stream()
+                            .filter(day -> day != null && day >= 1 && day <= 7)
+                            .map(i -> DayOfWeek.of(i))
+                            .collect(Collectors.toSet());
+                }
+            } else {
+                this.seriesDaysIncluded = dayIdxs.stream()
                         .filter(day -> day != null && day >= 1 && day <= 7)
                         .map(i -> DayOfWeek.of(i))
                         .collect(Collectors.toSet());
+            }
+//            this.seriesDaysIncluded = dayIdxs == null || dayIdxs.isEmpty()
+//                    ? EnumSet.allOf(DayOfWeek.class)
+//                    : dayIdxs.stream()
+//                        .filter(day -> day != null && day >= 1 && day <= 7)
+//                        .map(i -> DayOfWeek.of(i))
+//                        .collect(Collectors.toSet());
             if (seriesDaysIncluded.contains(seriesDateFrom.getDayOfWeek())) {
-                params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
-                        seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                if (seriesFrequency == null || seriesFrequency.isEmpty() || "other".equalsIgnoreCase(seriesFrequency) || "d".equalsIgnoreCase(seriesFrequency) || "w".equalsIgnoreCase(seriesFrequency) || "hm".equalsIgnoreCase(seriesFrequency)) {
+                    if ("yyyy".equalsIgnoreCase(seriesDateFormat) || "MM.yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                        throw new IllegalArgumentException("Nepovolená kombinace pole formátu a frekvence.");
+                    } else {
+                        params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                        setTmpLastDateFromRange("dd.MM.yyyy");
+                    }
+                } else if ("m".equalsIgnoreCase(seriesFrequency) || "qy".equalsIgnoreCase(seriesFrequency) || "hy".equalsIgnoreCase(seriesFrequency)){
+                    if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                        throw new IllegalArgumentException("Nepovolená kombinace pole formátu a frekvence.");
+                    } else if ("MM.yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                        params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                seriesDateFrom.format(DateTimeFormatter.ofPattern("MM.yyyy")));
+                        checkDaysRange();
+                    } else {
+                        params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                        checkDaysRange();
+                    }
+                } else if ("y".equalsIgnoreCase(seriesFrequency)){
+                    if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                        params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                seriesDateFrom.format(DateTimeFormatter.ofPattern("yyyy")));
+                        checkDaysRange();
+                    } else if ("MM.yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                        params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                seriesDateFrom.format(DateTimeFormatter.ofPattern("MM.yyyy")));
+                        checkDaysRange();
+                    } else {
+                        params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                        checkDaysRange();
+                    }
+                }
+                this.isFirstSeries = false;
             } else {
                 // move the start to the first acceptable day
                 this.hasNext = nextDate();
+            }
+            if (seriesSignatura != null && !seriesSignatura.isEmpty()) {
+                params.put(DigitalObjectHandler.PARAM_SIGNATURA, seriesSignatura);
             }
             this.seriesPartNumberFrom = partNumberFrom;
             if (partNumberFrom != null) {
                 params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
             }
             return this;
+        }
+
+        private void setTmpLastDateFromRange(String datePattern) {
+            if (this.daysInRange > 0) {
+                LocalDate tmpDate = seriesDateFrom;
+                tmpDate = tmpDate.plusDays(daysInRange);
+                params.put(DigitalObjectHandler.PARAM_ISSUE_DATE_END_OF_RANGE,
+                        tmpDate.format(DateTimeFormatter.ofPattern(datePattern)));
+            }
         }
 
         public boolean isBatch() {
@@ -362,17 +438,90 @@ public class DigitalObjectManager {
 
         private boolean nextDate() {
             if (seriesDateFrom != null) {
-                seriesDateFrom = seriesDateFrom.plusDays(1);
+                createNewSeriesDateFrom();
                 while (!seriesDateFrom.isAfter(seriesDateTo)) {
                     if (seriesDaysIncluded.contains(seriesDateFrom.getDayOfWeek())) {
-                        params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
-                                seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                        if (seriesFrequency == null || seriesFrequency.isEmpty() || "other".equalsIgnoreCase(seriesFrequency) || "d".equalsIgnoreCase(seriesFrequency) || "w".equalsIgnoreCase(seriesFrequency) || "hm".equalsIgnoreCase(seriesFrequency)) {
+                            if ("yyyy".equalsIgnoreCase(seriesDateFormat) || "MM.yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                                throw new IllegalArgumentException("Nepovolená kombinace pole formátu a frekvence.");
+                            } else {
+                                params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                        seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                                setTmpLastDateFromRange("dd.MM.yyyy");
+                            }
+                        } else if ("m".equalsIgnoreCase(seriesFrequency) || "qy".equalsIgnoreCase(seriesFrequency) || "hy".equalsIgnoreCase(seriesFrequency)){
+                            if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                                throw new IllegalArgumentException("Nepovolená kombinace pole formátu a frekvence.");
+                            } else if ("MM.yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                                params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                        seriesDateFrom.format(DateTimeFormatter.ofPattern("MM.yyyy")));
+                                checkDaysRange();
+                            } else {
+                                params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                        seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                                checkDaysRange();
+                            }
+                        } else if ("y".equalsIgnoreCase(seriesFrequency)){
+                            if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                                params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                        seriesDateFrom.format(DateTimeFormatter.ofPattern("yyyy")));
+                                checkDaysRange();
+                            } else if ("MM.yyyy".equalsIgnoreCase(seriesDateFormat)) {
+                                params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                        seriesDateFrom.format(DateTimeFormatter.ofPattern("MM.yyyy")));
+                                checkDaysRange();
+                            } else {
+                                params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
+                                        seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                                checkDaysRange();
+                            }
+                        }
+                        this.isFirstSeries = false;
+                        this.setPrecision = false;
                         return true;
                     }
-                    seriesDateFrom = seriesDateFrom.plusDays(1);
+                    this.setPrecision = true;
+                    createNewSeriesDateFrom();
                 }
             }
             return false;
+        }
+
+        private void checkDaysRange() {
+            if (seriesFrequency == null || seriesFrequency.isEmpty() || "other".equalsIgnoreCase(seriesFrequency) || "d".equalsIgnoreCase(seriesFrequency) || "w".equalsIgnoreCase(seriesFrequency)) {
+                return;
+            } else {
+                if (daysInRange > 0) {
+                    throw new IllegalArgumentException("Nepovolená kombinace pole rozsahu a frekvence.");
+                }
+            }
+        }
+
+        private void createNewSeriesDateFrom() {
+            if (isFirstSeries || setPrecision) {
+                seriesDateFrom = seriesDateFrom.plusDays(1);
+            } else {
+                if (seriesFrequency == null || seriesFrequency.isEmpty() || "other".equalsIgnoreCase(seriesFrequency) || "d".equalsIgnoreCase(seriesFrequency) || "w".equalsIgnoreCase(seriesFrequency)) {
+                    seriesDateFrom = seriesDateFrom = seriesDateFrom.plusDays(1);
+                } else if ("hm".equalsIgnoreCase(seriesFrequency)) {
+                    seriesDateFrom = seriesDateFrom = seriesDateFrom.plusWeeks(14);
+                } else if ("m".equalsIgnoreCase(seriesFrequency)) {
+                    seriesDateFrom = seriesDateFrom.plusMonths(1);
+                    seriesDateFrom = seriesDateFrom.withDayOfMonth(selectedDay);
+                } else if ("qy".equalsIgnoreCase(seriesFrequency)) {
+                    seriesDateFrom = seriesDateFrom.plusMonths(3);
+                    seriesDateFrom = seriesDateFrom.withDayOfMonth(selectedDay);
+                } else if ("hy".equalsIgnoreCase(seriesFrequency)) {
+                    seriesDateFrom = seriesDateFrom.plusMonths(6);
+                    seriesDateFrom = seriesDateFrom.withDayOfMonth(selectedDay);
+                } else if ("y".equalsIgnoreCase(seriesFrequency)) {
+                    seriesDateFrom = seriesDateFrom.plusYears(1);
+                    seriesDateFrom = seriesDateFrom.withDayOfMonth(selectedDay);
+                } else {
+                    seriesDateFrom = seriesDateFrom.plusDays(1);
+                    seriesDateFrom = seriesDateFrom.withDayOfMonth(selectedDay);
+                }
+            }
         }
 
         public UserProfile getUser() {

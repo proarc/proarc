@@ -183,7 +183,11 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             }
             String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
             String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
-            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal);
+            String dateIssuedEndOfRangeVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE_END_OF_RANGE);
+            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal, dateIssuedEndOfRangeVal);
+
+            String signaturaVal = handler.getParameter(DigitalObjectHandler.PARAM_SIGNATURA);
+            replaceShelfLocator(defaultMods, signaturaVal);
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             // issue 137
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
@@ -270,7 +274,11 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             }
             String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
             String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
-            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal);
+            String dateIssuedEndOfRangeVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE_END_OF_RANGE);
+            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal, dateIssuedEndOfRangeVal);
+
+            String signaturaVal = handler.getParameter(DigitalObjectHandler.PARAM_SIGNATURA);
+            replaceShelfLocator(defaultMods, signaturaVal);
         } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
             copyEArticle(parent, defaultMods);
         } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
@@ -309,6 +317,16 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
 
         return defaultMods;
+    }
+
+    private void replaceShelfLocator(ModsDefinition defaultMods, String signatura) {
+        if (signatura != null && !signatura.isEmpty()) {
+            for (LocationDefinition loc : defaultMods.getLocation()) {
+                for (StringPlusLanguage shelfLocator : loc.getShelfLocator()) {
+                    shelfLocator.setValue(signatura);
+                }
+            }
+        }
     }
 
     private void copyEArticle(DigitalObjectHandler parent, ModsDefinition defaultMods) throws DigitalObjectException {
@@ -368,7 +386,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         mods.getRecordInfo().add(0, recordInfo);
     }
 
-    private void fillIssueSeries(ModsDefinition mods, String partNumberVal, String dateIssuedVal) {
+    private void fillIssueSeries(ModsDefinition mods, String partNumberVal, String dateIssuedVal, String dateIssuedEndOfRangeVal) {
         if (partNumberVal != null) {
             TitleInfoDefinition titleInfo = mods.getTitleInfo().stream()
                     .filter(ti -> ti.getType() == null).findFirst().orElse(null);
@@ -389,6 +407,14 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             DateDefinition dateIssued = new DateDefinition();
             dateIssued.setValue(dateIssuedVal);
             originInfo.getDateIssued().add(dateIssued);
+
+            if (dateIssuedEndOfRangeVal != null && !dateIssuedEndOfRangeVal.isEmpty()) {
+                dateIssued.setPoint("start");
+                DateDefinition dateIssuedEndOfRange = new DateDefinition();
+                dateIssuedEndOfRange.setValue(dateIssuedEndOfRangeVal);
+                dateIssuedEndOfRange.setPoint("end");
+                originInfo.getDateIssued().add(dateIssuedEndOfRange);
+            }
         }
     }
 

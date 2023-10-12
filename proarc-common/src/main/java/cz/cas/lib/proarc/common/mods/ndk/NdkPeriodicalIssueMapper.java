@@ -176,6 +176,14 @@ public class NdkPeriodicalIssueMapper extends RdaNdkMapper {
                 }
             }
         }
+        for (OriginInfoDefinition originInfo : originInfos) {
+            if (!originInfo.getDateIssued().isEmpty()) {
+                DateDefinition dateIssued = originInfo.getDateIssued().get(0);
+                if ("start".equals(dateIssued.getPoint())) {
+                    return toValue(dateIssued.getValue());
+                }
+            }
+        }
         return null;
     }
 

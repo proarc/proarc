@@ -515,3 +515,17 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid:01c76b77-09bf-438e-8659-1eb910284e3c&editorId=model:oldprintpage&jsonData={"mods":{"identifier":[{"type":"uuid","value":"ac76fd47-abe2-46d7-8029-278806ebec64"}],"note":[{"value":"right"}],"genre":[{"value":"reprePage"}]},"pageNumber":"8","pageIndex":"8","pageType":"normalPage"}&timestamp=1696856079750
 
+
+### LOGIN
+POST {{proarcLocalHostUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### CREATE PERIODICAL ISSUE
+POST {{proarcLocalHostUrl}}/rest/v2/object
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+seriesPartNumberFrom=1&seriesDateFrom=2023-01-15&seriesDateTo=2023-11-05&seriesDaysInRange=1&seriesDaysInRange=4&model=model%3Andkperiodicalissue&parent=uuid%3A4f749d4c-7580-4211-b634-c3ec7fea75f0&seriesSignatura=TEST-SIGNATURA&seriesDateFormat=dd.mm.yyyy&seriesFrequency=m
