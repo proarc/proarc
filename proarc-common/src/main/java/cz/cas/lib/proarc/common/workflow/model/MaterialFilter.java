@@ -16,9 +16,9 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
-import javax.xml.bind.annotation.XmlElement;
 import java.math.BigDecimal;
 import java.util.Locale;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  * The filter to view materials.
@@ -39,6 +39,8 @@ public class MaterialFilter {
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_OFFSET)
     private int offset = 0;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_PID)
+    private String pid;
     private int maxCount = 100;
     private Locale locale;
 
@@ -106,4 +108,11 @@ public class MaterialFilter {
         this.locale = locale;
     }
 
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
 }

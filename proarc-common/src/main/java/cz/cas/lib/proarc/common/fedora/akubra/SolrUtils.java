@@ -56,6 +56,9 @@ public class SolrUtils {
     }
 
     private static StringBuilder appendValue(StringBuilder queryBuilder, String value, String operator) {
+        if (value == null) {
+            return queryBuilder;
+        }
         if (queryBuilder == null) {
             queryBuilder = new StringBuilder();
         }
@@ -98,7 +101,7 @@ public class SolrUtils {
 
     public static String getUserQuery(List<String> usernames, Boolean allowAllForUser) {
         if (allowAllForUser == Boolean.TRUE) {
-            usernames.add("all");
+            return null;
         }
         return getListQuery(usernames, FIELD_USER);
     }

@@ -447,21 +447,21 @@ public class DigitalObjectManager {
 
         public Job getWfJob(String pid, Locale locale) {
             WorkflowManager workflowManager = WorkflowManager.getInstance();
-            List<MaterialView> materials = findAllWorkflowJob(workflowManager, locale, 10000);
+            List<MaterialView> materials = findAllWorkflowJob(pid, workflowManager, locale, 10000);
             for (MaterialView material : materials) {
                 if (pid.equals(material.getPid())) {
                     return workflowManager.getJobs(material.getId());
                 }
             }
             return null;
-
         }
 
-        public List<MaterialView> findAllWorkflowJob(WorkflowManager workflowManager, Locale locale, int maxCount) {
+        public List<MaterialView> findAllWorkflowJob(String pid, WorkflowManager workflowManager, Locale locale, int maxCount) {
             MaterialFilter filter = new MaterialFilter();
             filter.setLocale(locale);
             filter.setType(MaterialType.DIGITAL_OBJECT);
             filter.setMaxCount(maxCount);
+            filter.setPid(pid);
             return workflowManager.findMaterial(filter);
         }
 
