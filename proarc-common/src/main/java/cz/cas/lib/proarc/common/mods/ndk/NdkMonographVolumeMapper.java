@@ -124,16 +124,8 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
                 dateOther.setType(oi.getEventType());
             }
-            IssuanceDefinition issuanceDefinition = null;
-            for (IssuanceDefinition issuance : oi.getIssuance()) {
-                if (IssuanceDefinition.MONOGRAPHIC.value().equals(issuance.value()) || IssuanceDefinition.MULTIPART_MONOGRAPH.equals(issuance.value())) {
-                    issuanceDefinition = IssuanceDefinition.SINGLE_UNIT;
-                }
-            }
-            if (issuanceDefinition != null) {
-                oi.getIssuance().clear();
-                oi.getIssuance().add(issuanceDefinition);
-            }
+            oi.getIssuance().clear();
+            oi.getIssuance().add(IssuanceDefinition.SINGLE_UNIT);
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
