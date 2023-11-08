@@ -2,7 +2,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.google.common.net.HttpHeaders;
 import com.google.gwt.http.client.Request;
-import com.qbizm.kramerius.imp.jaxb.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;

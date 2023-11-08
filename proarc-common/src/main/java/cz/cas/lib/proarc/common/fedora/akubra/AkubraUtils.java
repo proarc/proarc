@@ -1,23 +1,24 @@
 package cz.cas.lib.proarc.common.fedora.akubra;
 
-import com.qbizm.kramerius.imp.jaxb.DatastreamType;
-import com.qbizm.kramerius.imp.jaxb.DatastreamVersionType;
-import com.qbizm.kramerius.imp.jaxb.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
-import cz.incad.kramerius.fedora.om.impl.AkubraDOManager;
-import cz.incad.kramerius.utils.XMLUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.math.BigInteger;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -32,7 +33,11 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.uri.UriComponent;
 import org.w3c.dom.Element;
@@ -42,6 +47,7 @@ public class AkubraUtils {
     private static final Logger LOG = Logger.getLogger(AkubraUtils.class.getName());
     private static final String LOCAL_REF_PREFIX = "http://local.fedora.server/fedora/get/";
 
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'");
 
     private static Unmarshaller unmarshallerKram = null;
     private static Unmarshaller unmarshallerProArc = null;
@@ -62,7 +68,7 @@ public class AkubraUtils {
         }
     }
 
-    public static DigitalObject getDigitalObject(AkubraDOManager manager, String pid) throws JAXBException {
+    public static DigitalObject getDigitalObject(AkubraManager manager, String pid) throws JAXBException {
         try {
             InputStream inputStream = manager.retrieveObject(pid);
             try {
@@ -86,13 +92,13 @@ public class AkubraUtils {
             throw new RuntimeException(e);
         }
     }
-    public static com.yourmediashelf.fedora.generated.foxml.DigitalObject getDigitalObjectProArc(AkubraDOManager manager, String pid) throws JAXBException {
+    public static DigitalObject getDigitalObjectProArc(AkubraManager manager, String pid) throws JAXBException {
         try {
             InputStream inputStream = manager.retrieveObject(pid);
             try {
                 synchronized(unmarshallerProArc) {
                     Object obj = unmarshallerProArc.unmarshal(inputStream);
-                    com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject = (com.yourmediashelf.fedora.generated.foxml.DigitalObject) obj;
+                    DigitalObject digitalObject = (DigitalObject) obj;
                     return digitalObject;
                 }
             } catch (Throwable ex) {
@@ -113,16 +119,16 @@ public class AkubraUtils {
 
 
     // jen pro exporty, protoze s nahrazuji odkazy do datastoru za binaryContent
-    public static com.yourmediashelf.fedora.generated.foxml.DigitalObject getDigitalObjectToExport(AkubraDOManager manager, String pid) throws JAXBException {
+    public static DigitalObject getDigitalObjectToExport(AkubraManager manager, String pid) throws JAXBException {
         try {
             InputStream inputStream = manager.retrieveObject(pid);
             try {
                 synchronized(unmarshallerProArc) {
                     Object obj = unmarshallerProArc.unmarshal(inputStream);
-                    com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject = (com.yourmediashelf.fedora.generated.foxml.DigitalObject) obj;
-                    List<com.yourmediashelf.fedora.generated.foxml.DatastreamType> toDelete = new ArrayList<>();
-                    for (com.yourmediashelf.fedora.generated.foxml.DatastreamType datastream : digitalObject.getDatastream()) {
-                        for (com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+                    DigitalObject digitalObject = (DigitalObject) obj;
+                    List<DatastreamType> toDelete = new ArrayList<>();
+                    for (DatastreamType datastream : digitalObject.getDatastream()) {
+                        for (DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
                             if (datastreamVersion.getContentLocation() != null) {
                                 datastreamVersion.setXmlContent(null);
                                 datastreamVersion.setBinaryContent(null);
@@ -240,11 +246,11 @@ public class AkubraUtils {
         return profileList;
     }
 
-    public static InputStream getStreamContent(DatastreamVersionType stream, AkubraDOManager manager) throws TransformerException, IOException {
+    public static InputStream getStreamContent(DatastreamVersionType stream, AkubraManager manager) throws TransformerException, IOException {
         if (stream.getXmlContent() != null) {
             StringWriter wrt = new StringWriter();
             for (Element element : stream.getXmlContent().getAny()) {
-                XMLUtils.print(element, wrt);
+                print(element, wrt);
             }
             return IOUtils.toInputStream(wrt.toString(), Charset.forName("UTF-8"));
         } else if (stream.getContentLocation() != null) {
@@ -273,8 +279,8 @@ public class AkubraUtils {
     }
 
     public static InputStream getDatastreamDissemination(AkubraObject object, String streamName) throws IOException, TransformerException, JAXBException {
-        com.qbizm.kramerius.imp.jaxb.DigitalObject digitalObject = AkubraUtils.getDigitalObject(object.getManager(), object.getPid());
-        for (com.qbizm.kramerius.imp.jaxb.DatastreamType datastreamType : digitalObject.getDatastream()) {
+        DigitalObject digitalObject = AkubraUtils.getDigitalObject(object.getManager(), object.getPid());
+        for (DatastreamType datastreamType : digitalObject.getDatastream()) {
             if (streamName.equals(datastreamType.getID())) {
                 if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty()) {
                     DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
@@ -342,5 +348,34 @@ public class AkubraUtils {
         } catch (DatatypeConfigurationException e) {
             return null;
         }
+    }
+
+    public static PropertyType createProperty(String name, String value) {
+        PropertyType propertyType = new PropertyType();
+        propertyType.setNAME(name);
+        propertyType.setVALUE(value);
+        return propertyType;
+    }
+
+    public static String currentTimeString() {
+        return DATE_FORMAT.format(new Date());
+    }
+
+    public static XMLGregorianCalendar getCurrentXMLGregorianCalendar() {
+        try {
+            return DatatypeFactory.newInstance().newXMLGregorianCalendar(DATE_FORMAT.format(new Date()));
+        } catch (DatatypeConfigurationException e) {
+            LOG.log(Level.SEVERE, e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void print(Element elm, Writer out) throws TransformerException {
+        TransformerFactory tFactory = TransformerFactory.newInstance();
+        Transformer transformer = tFactory.newTransformer();
+
+        DOMSource source = new DOMSource(elm);
+        StreamResult result = new StreamResult(out);
+        transformer.transform(source, result);
     }
 }

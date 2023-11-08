@@ -1,14 +1,14 @@
 package cz.cas.lib.proarc.common.fedora.akubra;
 
 
-import com.qbizm.kramerius.imp.jaxb.ContentLocationType;
-import com.qbizm.kramerius.imp.jaxb.DatastreamType;
-import com.qbizm.kramerius.imp.jaxb.DatastreamVersionType;
-import com.qbizm.kramerius.imp.jaxb.DigitalObject;
-import com.qbizm.kramerius.imp.jaxb.ObjectPropertiesType;
-import com.qbizm.kramerius.imp.jaxb.PropertyType;
-import com.qbizm.kramerius.imp.jaxb.StateType;
-import com.qbizm.kramerius.imp.jaxb.XmlContentType;
+import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import com.yourmediashelf.fedora.generated.foxml.StateType;
+import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
@@ -24,11 +24,6 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
-import cz.incad.kramerius.fedora.om.Repository;
-import cz.incad.kramerius.fedora.om.RepositoryException;
-import cz.incad.kramerius.fedora.om.impl.AkubraDOManager;
-import cz.incad.kramerius.fedora.om.impl.AkubraRepository;
-import cz.incad.kramerius.utils.conf.KConfiguration;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -68,8 +63,6 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.ehcache.CacheManager;
-import org.ehcache.config.builders.CacheManagerBuilder;
 import org.fcrepo.server.errors.LowlevelStorageException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -89,11 +82,10 @@ public class AkubraStorage {
 
     private static final Logger LOG = Logger.getLogger(AkubraStorage.class.getName());
     private XPathFactory xPathFactory;
-    private KConfiguration configuration;
+    private AkubraConfiguration configuration;
     private static SolrClient solrClient;
     private static AkubraStorage INSTANCE;
-    private AkubraDOManager manager;
-    private Repository repository;
+    private AkubraManager manager;
     private SolrFeeder feeder;
 
     public static AkubraStorage getInstance() {
@@ -108,26 +100,22 @@ public class AkubraStorage {
             String processingSolrHost = conf.getSolrProcessingHost();
             SolrClient solrClient = new ConcurrentUpdateSolrClient.Builder(processingSolrHost).withQueueSize(100).build();
             SolrFeeder feeder = new SolrFeeder(solrClient);
-            CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build();
-            cacheManager.init();
 
-            INSTANCE = new AkubraStorage(conf, feeder, cacheManager);
+            INSTANCE = new AkubraStorage(conf, feeder);
         }
         return INSTANCE;
     }
 
     public AkubraStorage(AkubraConfiguration configuration,
-                         SolrFeeder feeder,
-                         CacheManager cacheManager) throws IOException {
+                         SolrFeeder feeder) throws IOException {
         this.configuration = configuration;
         this.xPathFactory = XPathFactory.newInstance();
         try {
             String proccessingSolrHost = configuration.getSolrProcessingHost();
             SolrClient solrClient = new HttpSolrClient.Builder(proccessingSolrHost).build();
             this.solrClient = solrClient;
-            this.manager = new AkubraDOManager(configuration, cacheManager);
+            this.manager = new AkubraManager(configuration);
             this.feeder = feeder;
-            this.repository = AkubraRepository.build(feeder, this.manager);
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -138,11 +126,7 @@ public class AkubraStorage {
     }
 
     public boolean exist(String pid) throws DigitalObjectException {
-        try {
-            return this.repository.objectExists(pid);
-        } catch (RepositoryException e) {
-            throw new DigitalObjectException(pid, e);
-        }
+        return this.manager.objectExists(pid);
     }
 
 
@@ -331,11 +315,11 @@ public class AkubraStorage {
 
         private String label;
         private String modelId;
-        private AkubraDOManager manager;
+        private AkubraManager manager;
         private SolrFeeder feeder;
 
 
-        public AkubraObject(AkubraDOManager manager, SolrFeeder feeder, String pid) {
+        public AkubraObject(AkubraManager manager, SolrFeeder feeder, String pid) {
             super(pid);
             this.manager = manager;
             this.feeder = feeder;
@@ -528,25 +512,17 @@ public class AkubraStorage {
         }
 
         private List<DatastreamProfile> getDatastreamProfile(String dsId) throws DigitalObjectException {
-            try {
-                DigitalObject object = this.manager.readObjectFromStorage(getPid());
-                DatastreamProfile profile = AkubraUtils.createDatastremProfile(object, dsId);
-                return Collections.singletonList(profile);
-            } catch (IOException ex) {
-                throw new DigitalObjectException(getPid(), ex);
-            }
+            DigitalObject object = this.manager.readObjectFromStorage(getPid());
+            DatastreamProfile profile = AkubraUtils.createDatastremProfile(object, dsId);
+            return Collections.singletonList(profile);
         }
 
         public List<DatastreamProfile> getDatastreamProfiles() throws DigitalObjectException {
-            try {
-                DigitalObject object = this.manager.readObjectFromStorage(getPid());
-                return AkubraUtils.createDatastremProfiles(object);
-            } catch (IOException ex) {
-                throw new DigitalObjectException(getPid(), ex);
-            }
+            DigitalObject object = this.manager.readObjectFromStorage(getPid());
+            return AkubraUtils.createDatastremProfiles(object);
         }
 
-        public AkubraDOManager getManager() {
+        public AkubraManager getManager() {
             return manager;
         }
 
@@ -558,7 +534,7 @@ public class AkubraStorage {
     public static final class AkubraXmlStreamEditor implements XmlStreamEditor {
 
         private final AkubraObject object;
-        private final AkubraDOManager manager;
+        private final AkubraManager manager;
         private final SolrFeeder solrFeeder;
         private final String dsId;
         private long lastModified;
@@ -856,7 +832,7 @@ public class AkubraStorage {
         }
 
 
-        private void purgeDatastream(DatastreamProfile profile) throws IOException {
+        private void purgeDatastream(DatastreamProfile profile) throws IOException, DigitalObjectException {
             manager.deleteStream(this.object.getPid(), profile.getDsID());
         }
 

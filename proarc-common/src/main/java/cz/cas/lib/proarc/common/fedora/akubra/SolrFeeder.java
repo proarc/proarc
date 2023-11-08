@@ -1,8 +1,8 @@
 package cz.cas.lib.proarc.common.fedora.akubra;
 
-import com.qbizm.kramerius.imp.jaxb.DigitalObject;
-import com.qbizm.kramerius.imp.jaxb.ObjectPropertiesType;
-import com.qbizm.kramerius.imp.jaxb.PropertyType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import cz.cas.lib.proarc.common.export.ExportUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;

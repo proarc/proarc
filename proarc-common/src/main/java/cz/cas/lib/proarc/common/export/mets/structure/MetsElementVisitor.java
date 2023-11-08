@@ -17,12 +17,12 @@
 
 package cz.cas.lib.proarc.common.export.mets.structure;
 
-import com.qbizm.kramerius.imp.jaxb.DigitalObject;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
@@ -792,11 +792,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                         if (fileNames.get(streamName) != null) {
                             break;
                         }
-                        for (com.qbizm.kramerius.imp.jaxb.DatastreamType datastreamType : object.getDatastream()) {
+                        for (DatastreamType datastreamType : object.getDatastream()) {
                             if (MetsUtils.equalDataStreams(datastreamType.getID(), dataStream)) {
-                                Iterator<com.qbizm.kramerius.imp.jaxb.DatastreamVersionType> dvIter = datastreamType.getDatastreamVersion().iterator();
+                                Iterator<DatastreamVersionType> dvIter = datastreamType.getDatastreamVersion().iterator();
                                 while (dvIter.hasNext()) {
-                                    com.qbizm.kramerius.imp.jaxb.DatastreamVersionType dv = dvIter.next();
+                                    DatastreamVersionType dv = dvIter.next();
                                     mimeTypes.put(streamName, dv.getMIMETYPE());
                                     InputStream is = AkubraUtils.getStreamContent(dv, akubraObject.getManager());
 //                                if (dv.getContentLocation() != null) {
@@ -1092,11 +1092,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
                             AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
                             try {
-                                com.qbizm.kramerius.imp.jaxb.DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
-                                for (com.qbizm.kramerius.imp.jaxb.DatastreamType datastreamType : digitalObject.getDatastream()) {
+                                DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
+                                for (DatastreamType datastreamType : digitalObject.getDatastream()) {
                                     if ("RAW".equals(datastreamType.getID())) {
                                         if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty()) {
-                                            com.qbizm.kramerius.imp.jaxb.DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
+                                            DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
                                             rawCreated = datastreamVersionType.getCREATED();
                                             InputStream is = AkubraUtils.getStreamContent(datastreamVersionType, akubraObject.getManager());
                                             String rawExtendsion = MimeType.getExtension(datastreamVersionType.getMIMETYPE());
@@ -1192,11 +1192,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
                             AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
                             try {
-                                com.qbizm.kramerius.imp.jaxb.DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
-                                for (com.qbizm.kramerius.imp.jaxb.DatastreamType datastreamType : digitalObject.getDatastream()) {
+                                DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
+                                for (DatastreamType datastreamType : digitalObject.getDatastream()) {
                                     if (BinaryEditor.RAW_AUDIO_ID.equals(datastreamType.getID())) {
                                         if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty()) {
-                                            com.qbizm.kramerius.imp.jaxb.DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
+                                            DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
                                             InputStream is = AkubraUtils.getStreamContent(datastreamVersionType, akubraObject.getManager());
                                             String rawExtendsion = MimeType.getExtension(datastreamVersionType.getMIMETYPE());
                                             rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "rawAes" + "." + rawExtendsion);
@@ -2509,11 +2509,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                             AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
                             AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
                             try {
-                                com.qbizm.kramerius.imp.jaxb.DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
-                                for (com.qbizm.kramerius.imp.jaxb.DatastreamType datastreamType : digitalObject.getDatastream()) {
+                                DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
+                                for (DatastreamType datastreamType : digitalObject.getDatastream()) {
                                     if (dataStream.equals(datastreamType.getID())) {
                                         if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty()) {
-                                            com.qbizm.kramerius.imp.jaxb.DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
+                                            DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
                                             createDates.put(streamName, datastreamVersionType.getCREATED());
 
                                             InputStream is = AkubraUtils.getStreamContent(datastreamVersionType, akubraObject.getManager());

@@ -2,7 +2,6 @@ package cz.cas.lib.proarc.common.fedora.akubra;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
-import cz.incad.kramerius.utils.conf.KConfiguration;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +21,7 @@ import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 
 import static cz.cas.lib.proarc.common.config.AppConfiguration.initConfigFolder;
 
-public class AkubraConfiguration extends KConfiguration {
+public class AkubraConfiguration {
 
     private static final Logger LOG = Logger.getLogger(AkubraConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/akubra.properties";
@@ -36,7 +35,6 @@ public class AkubraConfiguration extends KConfiguration {
     private Map<String, String> environment;
 
     public AkubraConfiguration(Map<String, String> environment, File configHome) throws IOException {
-        super(configHome.getAbsolutePath());
         this.environment = environment;
         this.config = init();
         this.configHome = configHome;
@@ -53,17 +51,9 @@ public class AkubraConfiguration extends KConfiguration {
         return cc;
     }
 
-    @Override
     public Configuration getConfiguration() {
         return this.config;
     }
-
-    @Override
-    public String getProperty(String key) {
-        return this.config.getString(key);
-    }
-
-
 
     private void buildConfiguration(CompositeConfiguration cc, File cfgFile) {
         try {
@@ -144,22 +134,18 @@ public class AkubraConfiguration extends KConfiguration {
         }
     }
 
-    @Override
     public String getSolrProcessingHost() {
         return config.getString("solrProcessingHost");
     }
 
-    @Override
     public String getSolrSearchHost() {
         return config.getString("solrSearchHost");
     }
 
-    @Override
     public String getSolrSearchLogin() {
         return config.getString("solrSearchLogin");
     }
 
-    @Override
     public String getSolrSearchPassword() {
         return config.getString("solrSearchPassword");
     }
