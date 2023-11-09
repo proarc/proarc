@@ -372,6 +372,7 @@ public class DigitalObjectManager {
                                 seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
                         checkDaysRange();
                     }
+                    this.setPrecision = false;
                 } else if ("y".equalsIgnoreCase(seriesFrequency)){
                     if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
                         params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
@@ -386,6 +387,9 @@ public class DigitalObjectManager {
                                 seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
                         checkDaysRange();
                     }
+                    this.setPrecision = false;
+                } else {
+                    throw new IllegalArgumentException("Unssuported value in element frequency: " + seriesFrequency);
                 }
                 this.isFirstSeries = false;
             } else {
