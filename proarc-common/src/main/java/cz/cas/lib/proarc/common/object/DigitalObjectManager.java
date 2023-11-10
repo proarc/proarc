@@ -269,6 +269,7 @@ public class DigitalObjectManager {
         private LocalDate seriesDateFrom;
         private LocalDate seriesDateTo;
         private Set<DayOfWeek> seriesDaysIncluded;
+        private Boolean seriesMissingDaysIncluded;
 
         private String seriesFrequency;
         private String seriesDateFormat;
@@ -310,7 +311,7 @@ public class DigitalObjectManager {
          * @param partNumberFrom a partNumber to start the series
          * @return the handler
          */
-        public CreateHandler issueSeries(LocalDate from, LocalDate to, List<Integer> dayIdxs, List<Integer> daysInRange, Integer partNumberFrom,
+        public CreateHandler issueSeries(LocalDate from, LocalDate to, List<Integer> dayIdxs, Boolean seriesMissingDaysIncluded, List<Integer> daysInRange, Integer partNumberFrom,
                                          String seriesFrequency, String seriesDateFormat, String seriesSignatura) {
             this.seriesDateFrom = Objects.requireNonNull(from, "from");
             if (to != null) {
@@ -327,6 +328,7 @@ public class DigitalObjectManager {
             this.seriesFrequency = seriesFrequency;
             this.seriesDateFormat = seriesDateFormat;
             this.selectedDay = seriesDateFrom.getDayOfMonth();
+            this.seriesMissingDaysIncluded = seriesMissingDaysIncluded;
 
             if (dayIdxs == null || dayIdxs.isEmpty()) {
                 if (daysInRange == null || daysInRange.isEmpty()) {
@@ -359,6 +361,9 @@ public class DigitalObjectManager {
                         params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
                                 seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
                         setTmpLastDateFromRange("dd.MM.yyyy");
+                    }
+                    if (("hm".equalsIgnoreCase(seriesFrequency) || "w".equalsIgnoreCase(seriesFrequency)) && seriesMissingDaysIncluded) {
+                        this.setPrecision = false;
                     }
                 } else if ("m".equalsIgnoreCase(seriesFrequency) || "qy".equalsIgnoreCase(seriesFrequency) || "hy".equalsIgnoreCase(seriesFrequency)){
                     if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
@@ -505,10 +510,12 @@ public class DigitalObjectManager {
             if (isFirstSeries || setPrecision) {
                 seriesDateFrom = seriesDateFrom.plusDays(1);
             } else {
-                if (seriesFrequency == null || seriesFrequency.isEmpty() || "other".equalsIgnoreCase(seriesFrequency) || "d".equalsIgnoreCase(seriesFrequency) || "w".equalsIgnoreCase(seriesFrequency)) {
-                    seriesDateFrom = seriesDateFrom = seriesDateFrom.plusDays(1);
+                if (seriesFrequency == null || seriesFrequency.isEmpty() || "other".equalsIgnoreCase(seriesFrequency) || "d".equalsIgnoreCase(seriesFrequency)) {
+                    seriesDateFrom = seriesDateFrom.plusDays(1);
+                } else if ("w".equalsIgnoreCase(seriesFrequency)) {
+                    seriesDateFrom = seriesDateFrom.plusDays(7);
                 } else if ("hm".equalsIgnoreCase(seriesFrequency)) {
-                    seriesDateFrom = seriesDateFrom = seriesDateFrom.plusWeeks(14);
+                    seriesDateFrom = seriesDateFrom.plusDays(14);
                 } else if ("m".equalsIgnoreCase(seriesFrequency)) {
                     seriesDateFrom = seriesDateFrom.plusMonths(1);
                     seriesDateFrom = seriesDateFrom.withDayOfMonth(selectedDay);

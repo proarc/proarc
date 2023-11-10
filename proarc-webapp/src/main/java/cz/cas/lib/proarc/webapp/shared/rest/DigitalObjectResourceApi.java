@@ -35,6 +35,7 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_SERIES_DATE_FROM_PARAM = "seriesDateFrom";
     public static final String DIGITALOBJECT_SERIES_DATE_TO_PARAM = "seriesDateTo";
     public static final String DIGITALOBJECT_SERIES_DAYS_INCLUDED_PARAM = "seriesDaysIncluded";
+    public static final String DIGITALOBJECT_SERIES_MISSING_DAYS_INCLUDED_PARAM = "seriesMissingDaysIncluded";
     public static final String DIGITALOBJECT_SERIES_DAYS_IN_RANGE_PARAM = "seriesDaysInRange";
     public static final String DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM = "seriesPartNumberFrom";
     public static final String DIGITALOBJECT_SERIES_SIGNATURA = "seriesSignatura";
