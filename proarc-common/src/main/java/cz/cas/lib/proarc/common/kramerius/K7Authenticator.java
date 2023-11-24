@@ -84,7 +84,7 @@ public class K7Authenticator {
                 } else if (result.startsWith("[")){
                     JSONArray jsonArray = new JSONArray(result);
                     for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject jsonObject = jsonArray.getJSONObject(0);
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
                         String token = jsonObject.optString("access_token");
                         if (token != null || !token.isEmpty()) {
                             LOG.fine("Connected to Kramerius and get token " + token);

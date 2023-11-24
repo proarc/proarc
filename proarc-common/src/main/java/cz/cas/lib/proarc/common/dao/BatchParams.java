@@ -52,18 +52,22 @@ public class BatchParams {
     @XmlElement (name = "additionalInfoMessage")
     private String additionalInfoMessage;
 
+    @XmlElement (name = "license")
+    private String license;
+
     public BatchParams() {}
 
     public BatchParams(List<String> pids) {
         this.pids = pids;
     }
 
-    public BatchParams(List<String> pids, String policy, boolean hierarchy, String krameriusInstanceId, boolean bagit) {
+    public BatchParams(List<String> pids, String policy, boolean hierarchy, String krameriusInstanceId, boolean bagit, String license) {
         this.pids = pids;
         this.policy = policy;
         this.hierarchy = hierarchy;
         this.krameriusInstanceId = krameriusInstanceId;
         this.bagit = bagit;
+        this.license = license;
     }
 
     public BatchParams(List<String> pids, String krameriusInstanceId, String krameriusImportInstanceId) {
@@ -173,5 +177,9 @@ public class BatchParams {
 
     public String getAdditionalInfoMessage() {
         return additionalInfoMessage;
+    }
+
+    public String getLicense() {
+        return license;
     }
 }

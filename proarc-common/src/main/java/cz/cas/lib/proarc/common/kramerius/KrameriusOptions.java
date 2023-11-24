@@ -179,6 +179,10 @@ public class KrameriusOptions {
                 warning(conf, KrameriusInstance.PROPERTY_GRANT_TYPE);
                 ok = false;
             }
+            if (conf.getUrlLicense() == null) {
+                warning(conf, KrameriusInstance.PROPERTY_URL_LICENSE);
+                ok = false;
+            }
         } else if (5 == version) {
             if (conf.getKrameriusConvertNdkFolder() != null && conf.getKrameriusTargetConvertedFolder() == null) {
                 warning(conf, KrameriusInstance.PROPERTY_KRAMERIUS_TARGET_CONVERTED_FOLDER);
@@ -205,6 +209,7 @@ public class KrameriusOptions {
         static final String PROPERTY_URL_STATE_QUERY = "urlStateQuery";
         static final String PROPERTY_URL_DOWNLOAD_FOXML = "urlDownloadFoxml";
         static final String PROPERTY_URL_IMAGE = "urlImage";
+        static final String PROPERTY_URL_LICENSE = "urlLicense";
         static final String PROPERTY_USERNAME = "username";
         static final String PROPERTY_PASSWORD = "passwd";
         static final String PROPERTY_CLIENT_ID = "clientId";
@@ -290,6 +295,10 @@ public class KrameriusOptions {
             return config.getString(PROPERTY_URL_IMAGE);
         }
 
+        public String getUrlLicense() {
+            return config.getString(PROPERTY_URL_LICENSE);
+        }
+
         public String getUrlStateQuery() {
             return config.getString(PROPERTY_URL_STATE_QUERY);
         }
@@ -317,6 +326,53 @@ public class KrameriusOptions {
         public boolean isTestType() {
             String type = getType();
             return "test".equalsIgnoreCase(type);
+        }
+
+        public List<KrameriusLicense> getLicenses() {
+            if (KRAMERIUS_INSTANCE_LOCAL.equals(this.getId())) {
+                return null;
+            } else if (!isVersion7()) {
+                return null;
+            } else {
+                K7License licenseHandler = new K7License();
+                List<KrameriusLicense> licenses = null;
+                try {
+                    licenses = licenseHandler.getLicenses(this.getUrl() + this.getUrlLicense());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                return licenses;
+            }
+        }
+
+        private boolean isVersion7() {
+            String tmpVersion = this.getVersion();
+            tmpVersion = tmpVersion.replaceAll("[^0-9]", "");
+            return tmpVersion.startsWith("7");
+        }
+
+        public static class KrameriusLicense {
+            private String id;
+            private String name;
+            private String description;
+
+            public KrameriusLicense(String id, String name, String description) {
+                this.id = id;
+                this.name = name;
+                this.description = description;
+            }
+
+            public String getId() {
+                return id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public String getDescription() {
+                return description;
+            }
         }
     }
 

@@ -79,6 +79,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.server.CloseableService;
 
@@ -288,6 +289,7 @@ public class ExportResourceV1 {
     public SmartGwtResponse<ExportResult> kramerius4(
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
@@ -300,7 +302,7 @@ public class ExportResourceV1 {
         if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
                 throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
         }
-        BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId, isBagit);
+        BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId, isBagit, license);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS, params);
 
         ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
@@ -508,13 +510,14 @@ public class ExportResourceV1 {
     public SmartGwtResponse<ExportResult> newKwisExport(
             @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
     ) throws Exception {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
-        BatchParams params = new BatchParams(pids, policy, hierarchy, null, false);
+        BatchParams params = new BatchParams(pids, policy, hierarchy, null, false, license);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KWIS, params);
 
         ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
@@ -546,17 +549,53 @@ public class ExportResourceV1 {
     public static class KrameriusDescriptor {
 
         public static KrameriusDescriptor create(KrameriusOptions.KrameriusInstance krameriusInstance) {
-            return new KrameriusDescriptor(krameriusInstance.getId(), krameriusInstance.getTitle());
+            return new KrameriusDescriptor(krameriusInstance.getId(), krameriusInstance.getTitle(), krameriusInstance.getLicenses());
         }
 
         @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_ID)
         private String id;
         @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_NAME)
         private String name;
+        @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSES)
+        private List<KrameriusLicenseDescriptor> licenses;
 
-        public KrameriusDescriptor(String id, String name) {
+        public KrameriusDescriptor(String id, String name, List<KrameriusOptions.KrameriusInstance.KrameriusLicense> licenses) {
             this.id = id;
             this.name = name;
+            this.licenses = createLicense(licenses);
+        }
+
+        private List<KrameriusLicenseDescriptor> createLicense(List<KrameriusOptions.KrameriusInstance.KrameriusLicense> licenses) {
+            if (licenses == null) {
+                return null;
+            }
+            List<KrameriusLicenseDescriptor> descriptors = new ArrayList<>();
+            for (KrameriusOptions.KrameriusInstance.KrameriusLicense license : licenses) {
+                descriptors.add(KrameriusLicenseDescriptor.create(license));
+            }
+            return descriptors;
+        }
+
+        @XmlAccessorType(XmlAccessType.FIELD)
+        private static class KrameriusLicenseDescriptor {
+
+            public static KrameriusLicenseDescriptor create(KrameriusOptions.KrameriusInstance.KrameriusLicense krameriusLicense) {
+                return new KrameriusLicenseDescriptor(krameriusLicense.getId(), krameriusLicense.getName(), krameriusLicense.getDescription());
+            }
+
+            @XmlTransient
+            @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSE_ID)
+            private String id;
+            @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSE_NAME)
+            private String name;
+            @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSE_DESCRIPTION)
+            private String description;
+
+            public KrameriusLicenseDescriptor(String id, String name, String description) {
+                this.id = id;
+                this.name = name;
+                this.description = description;
+            }
         }
     }
 

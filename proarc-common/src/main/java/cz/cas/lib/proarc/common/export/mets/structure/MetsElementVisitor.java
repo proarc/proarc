@@ -1375,7 +1375,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (premisMets != null) {
                 addEditedPremisToAmdSec(amdSec, premisMets);
             } else {
-                addPremisToAmdSec(metsElement.getMetsContext().getOptions(), amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice, jHoveOutputRaw.getMix());
+                addPremisToAmdSec(metsElement.getMetsContext().getOptions(), amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice, jHoveOutputRaw == null ? null : jHoveOutputRaw.getMix());
             }
 
             mapType.setDiv(divType);
