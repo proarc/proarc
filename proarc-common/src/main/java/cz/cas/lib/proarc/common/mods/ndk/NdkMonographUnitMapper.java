@@ -123,16 +123,8 @@ public class NdkMonographUnitMapper extends RdaNdkMapper {
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
                 dateOther.setType(oi.getEventType());
             }
-            IssuanceDefinition issuanceDefinition = null;
-            for (IssuanceDefinition issuance : oi.getIssuance()) {
-                if (IssuanceDefinition.MONOGRAPHIC.value().equals(issuance.value())) {
-                    issuanceDefinition = IssuanceDefinition.MULTIPART_MONOGRAPH;
-                }
-            }
-            if (issuanceDefinition != null) {
-                oi.getIssuance().clear();
-                oi.getIssuance().add(issuanceDefinition);
-            }
+            oi.getIssuance().clear();
+            oi.getIssuance().add(IssuanceDefinition.MULTIPART_MONOGRAPH);
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
