@@ -187,9 +187,11 @@ public class AcceptedExports {
         if (EXPORT_NDK_SIP_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_SIP);
             acceptedItems.add(EXPORT_NDK_SIP + BAGIT_SUFFIX);
+            acceptedItems.add(EXPORT_NDK_SIP + KRAMERIUS_UPLOAD_SUFFIX);
         }
         if (EXPORT_NDK_CHRONICLE_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_NDK_CHRONICLE);
+            acceptedItems.add(EXPORT_NDK_CHRONICLE + KRAMERIUS_UPLOAD_SUFFIX);
         }
         if (EXPORT_DATASTREAM_FULL_MODELS.contains(this.modelId)) {
             acceptedItems.add(EXPORT_DATASTREAM_FULL);
