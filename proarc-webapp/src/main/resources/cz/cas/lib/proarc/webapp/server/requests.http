@@ -204,7 +204,7 @@ instance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-001b63bd97ba
 
 ###
 GET http://localhost:8081/proarc/rest/v1/kramerius/viewMods?instance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-001b63bd97ba
-Accept: application/json
+Accept: application/jsonf
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
@@ -229,6 +229,12 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
+### Kramerius export
+POST {{proarcLocalHostUrl}}/rest/v2/export/kramerius4
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid%3Ae5031795-e913-4cb4-9d7b-074fdb5d400c&license=onsite&krameriusInstance=local
 ###
 POST {{proarcLocalHostUrl}}/rest/v1/export/reexport
 Accept: application/json

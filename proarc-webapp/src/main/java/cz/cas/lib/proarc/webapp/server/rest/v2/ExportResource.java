@@ -164,6 +164,7 @@ public class ExportResource extends ExportResourceV1 {
     public SmartGwtResponse<ExportResult> kramerius4(
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
@@ -176,7 +177,7 @@ public class ExportResource extends ExportResourceV1 {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
-            return super.kramerius4(pids, policy, hierarchy, krameriusInstanceId, isBagit);
+            return super.kramerius4(pids, policy, license, hierarchy, krameriusInstanceId, isBagit);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -304,13 +305,14 @@ public class ExportResource extends ExportResourceV1 {
     public SmartGwtResponse<ExportResult> newKwisExport(
             @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.KWIS_PID_PARAM));
         }
         try {
-            return super.newKwisExport(pids, policy, hierarchy);
+            return super.newKwisExport(pids, policy, license, hierarchy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
@@ -43,6 +44,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -313,7 +316,12 @@ public final class ExportUtils {
             }
 
             MetsElement metsElement = getMetsElement(object, metsContext, true);
-            List<String> PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, true);
+            List<String> PSPs = new ArrayList<>();
+            if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(ExportUtils.getModel(metsElement.getModel())) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(ExportUtils.getModel(metsElement.getModel()))) {
+                PSPs = Collections.singletonList(metsElement.getOriginalPid());
+            }   else {
+                PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, true);
+            }
             for (String pspPid : PSPs) {
                 metsContext.resetContext();
                 DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);

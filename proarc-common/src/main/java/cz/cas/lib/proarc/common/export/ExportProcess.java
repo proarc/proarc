@@ -16,6 +16,11 @@
  */
 package cz.cas.lib.proarc.common.export;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
@@ -64,11 +69,6 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -735,7 +735,7 @@ public final class ExportProcess implements Runnable {
 
     private Batch krameriusExport(Batch batch, BatchParams params) throws Exception {
         try {
-            Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.isArchive());
+            Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.getLicense(), params.isArchive());
             File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_KRAMERIUS);
             Kramerius4Export.Result k4Result = export.export(exportFolder, params.isHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPids().toArray(new String[params.getPids().size()]));
             if (k4Result.getException() != null) {
@@ -790,7 +790,7 @@ public final class ExportProcess implements Runnable {
     }
 
     private URI runK4Export(String path, BatchParams params, String exportPageContext) throws Exception {
-        Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.isArchive());
+        Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.getLicense(), params.isArchive());
         if (path == null || path.isEmpty()) {
             path = user.getExportFolder().getPath();
         }

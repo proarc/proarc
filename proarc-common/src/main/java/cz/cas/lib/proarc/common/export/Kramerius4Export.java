@@ -151,6 +151,7 @@ public final class Kramerius4Export {
     private boolean isArchive;
 
     private final String policy;
+    private final String license;
 
     private String exportPageContext;
 
@@ -161,6 +162,7 @@ public final class Kramerius4Export {
         this.exportParams = appConfiguration.getExportParams();
         this.search = rstorage.getSearch();
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
+        this.license = null;
         if (Arrays.asList(ALLOWED_POLICY).contains(appConfiguration.getKramerius4Export().getPolicy())) {
             this.policy = appConfiguration.getKramerius4Export().getPolicy();
         } else {
@@ -168,7 +170,7 @@ public final class Kramerius4Export {
         }
     }
 
-    public Kramerius4Export(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, String policy, boolean isArchive) throws IOException {
+    public Kramerius4Export(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, String policy, String license, boolean isArchive) throws IOException {
         this.appConfig = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
@@ -185,10 +187,16 @@ public final class Kramerius4Export {
         }
         this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
 
-        if (Arrays.asList(ALLOWED_POLICY).contains(policy)) {
-            this.policy = policy;
+        if (license != null && !license.isEmpty()) {
+            this.license = license;
+            this.policy = "policy:private";
         } else {
-            this.policy = kramerius4ExportOptions.getPolicy();
+            this.license = null;
+            if (Arrays.asList(ALLOWED_POLICY).contains(policy)) {
+                this.policy = policy;
+            } else {
+                this.policy = kramerius4ExportOptions.getPolicy();
+            }
         }
     }
 
@@ -870,11 +878,13 @@ public final class Kramerius4Export {
         Element dcElm = xmlContent.getAny().get(0);
         FoxmlUtils.fixFoxmlDc(dcElm);
         // add policy
-        if (policy != null) {
-            Element elmRights = dcElm.getOwnerDocument().createElementNS(
-                    DcConstants.NS_PURL, DcConstants.PREFIX_NS_PURL + ':' + DcConstants.RIGHTS);
-            elmRights.setTextContent(policy);
-            dcElm.appendChild(elmRights);
+        if (license == null || license.isEmpty()) {
+            if (policy != null) {
+                Element elmRights = dcElm.getOwnerDocument().createElementNS(
+                        DcConstants.NS_PURL, DcConstants.PREFIX_NS_PURL + ':' + DcConstants.RIGHTS);
+                elmRights.setTextContent(policy);
+                dcElm.appendChild(elmRights);
+            }
         }
         // map proarc/K4 models
         NodeList typeNodes = dcElm.getElementsByTagNameNS(DcConstants.NS_PURL, DcConstants.TYPE);
@@ -1019,7 +1029,11 @@ public final class Kramerius4Export {
 
             setImportFile(editor, relations, doc);
 
-            setPolicy(policy, relations, doc);
+            if (license != null && !license.isEmpty()) {
+                setLicense(license, relations, doc);
+            } else {
+                setPolicy(policy, relations, doc);
+            }
 
             setDonator(relations, doc, editor);
 
@@ -1281,6 +1295,14 @@ public final class Kramerius4Export {
             Element elmPolicy = doc.createElementNS(KRAMERIUS_RELATION_NS, KRAMERIUS_RELATION_PREFIX + ":policy");
             elmPolicy.setTextContent(policy);
             relations.add(elmPolicy);
+        }
+    }
+
+    private static void setLicense(String license, List<Element> relations, Document doc) {
+        if (license != null) {
+            Element elmLicense = doc.createElementNS(KRAMERIUS_RELATION_NS, "license:license");
+            elmLicense.setTextContent(license);
+            relations.add(elmLicense);
         }
     }
 
