@@ -129,6 +129,21 @@ public final class ResolverClient {
         return response;
     }
 
+    public Response deactivateUrnNbnValue(String urnNbnValue) {
+        if (urnNbnValue == null || urnNbnValue.isEmpty()) {
+            throw new IllegalArgumentException("urnNbn");
+        }
+        Response response = null;
+        try {
+            response = resource().path("urnnbn").path(urnNbnValue).request().delete(Response.class);
+        } catch (WebApplicationException ex) {
+            response = readResponseError(ex.getResponse(), ex);
+        } catch (ResponseProcessingException ex) {
+            response = readResponseError(ex.getResponse(), ex);
+        }
+        return response;
+    }
+
     private Response readResponseError(javax.ws.rs.core.Response errResponse, RuntimeException ex) {
         try {
             Response response = null;

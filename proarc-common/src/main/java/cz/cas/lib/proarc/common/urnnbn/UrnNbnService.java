@@ -31,6 +31,9 @@ import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.Status;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
+import cz.cas.lib.proarc.urnnbn.model.response.ErrorType;
+import cz.cas.lib.proarc.urnnbn.model.response.RegistrarScopeIdentifier;
+import cz.cas.lib.proarc.urnnbn.model.response.UrnNbn;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -38,15 +41,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * The service to register digital objects to the URN:NBN resolver.
+ * The service to operate with digital objects in the URN:NBN resolver.
  *
  * @author Jan Pokorsky
  */
 public class UrnNbnService {
 
+    private static final Logger LOG = Logger.getLogger(UrnNbnService.class.getName());
+
     private final DigitalObjectManager dom;
     private final SearchView search;
     private ResolverClient client;
+
+    private final static String URNNBN_PREFIX = "urn:nbn:cz:";
 
     public UrnNbnService(AppConfiguration appConfig, UrnNbnConfiguration.ResolverConfiguration resolverConfig) {
         dom = DigitalObjectManager.getDefault();
@@ -190,4 +197,63 @@ public class UrnNbnService {
         return ctx.getJhoveContext();
     }
 
+    public UrnNbnStatusHandler invalidateRemoteValue(String urnNbnValue, boolean hierarchy) {
+        UrnNbnStatusHandler statusHandler = new UrnNbnStatusHandler();
+        UrnNbnContext ctx = new UrnNbnContext();
+        ctx.setStatus(statusHandler);
+        ctx.setClient(client);
+
+        if (!urnNbnValue.startsWith(URNNBN_PREFIX)) {
+            urnNbnValue = URNNBN_PREFIX + urnNbnValue;
+        }
+
+        try {
+            cz.cas.lib.proarc.urnnbn.model.response.Response response = ctx.getClient().deactivateUrnNbnValue(urnNbnValue);;
+            ErrorType error = response.getError();
+            if (error != null) {
+                // remote deactivation failed
+                LOG.log(Level.SEVERE, "{0}: {1}: {2}", new Object[]{urnNbnValue, error.getCode(), error.getMessage()});
+                if ("INCORRECT_URN_NBN_STATE".equals(error.getCode().name())) {
+                    if (error.getMessage().endsWith("FREE")) {
+                        statusHandler.error(urnNbnValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                    } else {
+                        statusHandler.error(urnNbnValue, Status.EXCEPTION, "Already deactivated " + urnNbnValue);
+                    }
+                } else {
+                    statusHandler.error(urnNbnValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                }
+                return statusHandler;
+            }
+            UrnNbn urnNbn = response.getUrnNbn();
+            if (urnNbn == null || urnNbn.getValue() == null) {
+                statusHandler.error(urnNbnValue, Status.EXCEPTION,
+                        "The resolver returns no URN:NBN value! Check the server configuration.");
+            } else {
+                if ("DEACTIVATED".equals(urnNbn.getStatus())) {
+                    response = ctx.getClient().removeUuidFromObject(urnNbnValue);
+                    error = response.getError();
+                    if (error != null) {
+                        // remote registration failed
+                        statusHandler.error(urnNbnValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                        LOG.log(Level.SEVERE, "{0}: {1}: {2}",
+                                new Object[]{urnNbnValue, error.getCode(), error.getMessage()});
+                        return statusHandler;
+                    }
+                    RegistrarScopeIdentifier registrarScopeIdentifier = response.getId();
+                    if (registrarScopeIdentifier == null || registrarScopeIdentifier.getValue() == null || registrarScopeIdentifier.getType() == null) {
+                        statusHandler.warning(urnNbnValue, Status.EXCEPTION, "The resolver returns no UUID value! Check the server configuration.", urnNbnValue);
+                    } else {
+                        statusHandler.ok(registrarScopeIdentifier.getType() + ":" + registrarScopeIdentifier.getValue(), "Deactivated " + urnNbnValue);
+                    }
+                } else {
+                    statusHandler.error(urnNbnValue, Status.EXCEPTION, urnNbn.getStatus() + ":" + urnNbn.getValue());
+                }
+            }
+        } catch (Exception ex) {
+            // unexpected remote registration failure
+            statusHandler.error(urnNbnValue, ex);
+            return null;
+        }
+        return statusHandler;
+    }
 }

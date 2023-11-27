@@ -457,12 +457,19 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolverId=inovatika
 
-### INVALIDATE URNNBN
+### INVALIDATE LOCAL URNNBN
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/invalidateLocal
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolverId=inovatika
+
+### INVALIDATE REMOTE URNNBN
+POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/invalidateRemote
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&valueToDeactivate=aba007-0000xi&resolverId=inovatika
 
 ### REGISTER URNNBN - SUCCESSOR
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/createSuccessor

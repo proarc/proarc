@@ -1266,6 +1266,25 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_INVALIDATE_REMOTE_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<UrnNbnResult> invalidateRemoteUrnNbn(
+            @FormParam(DigitalObjectResourceApi.URNNBN_VALUE_TO_DEACTIVATE) String urnNbnValue,
+            @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
+            @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
+    ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        try {
+            return super.invalidateRemoteUrnNbn(urnNbnValue, resolverId, hierarchy);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.LOCK_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> lockObject(
