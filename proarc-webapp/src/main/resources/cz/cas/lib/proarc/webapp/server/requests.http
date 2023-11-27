@@ -477,6 +477,13 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &valueToDeactivate=aba007-0000xi&resolverId=inovatika
 
+### NEW REGISTRATION URNNBN WITH OLD VALUE DEACTIVATION
+POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/registerAgain
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:91e24ccc-4292-49a4-9674-95192edef5ee&resolverId=inovatika
+
 ### REGISTER URNNBN - SUCCESSOR
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/createSuccessor
 Accept: application/json

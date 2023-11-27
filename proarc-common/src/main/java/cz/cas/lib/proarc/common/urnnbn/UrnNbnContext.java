@@ -29,6 +29,7 @@ public class UrnNbnContext {
     private ResolverClient client;
     private JhoveContext jhoveContext;
     private boolean registerNewPid = false;
+    private boolean registerAgainPid = false;
     private boolean invalidateUrnNbn = false;
     private boolean createSuccessor = false;
 
@@ -79,5 +80,13 @@ public class UrnNbnContext {
 
     public void setCreateSuccessor(boolean createSuccessor) {
         this.createSuccessor = createSuccessor;
+    }
+
+    public boolean isRegisterAgainPid() {
+        return registerAgainPid;
+    }
+
+    public void setRegisterAgainPid(boolean registerAgainPid) {
+        this.registerAgainPid = registerAgainPid;
     }
 }

@@ -2582,6 +2582,54 @@ public class DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_REGISTER_AGAIN_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<UrnNbnResult> registerAgainUrnNbn(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
+            @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
+    ) {
+        if (isLocked(pids)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
+        if (!pids.isEmpty()) {
+            UrnNbnConfiguration config = appConfig.getUrnNbnConfiguration();
+            ResolverConfiguration resolverConfig = null;
+            if (resolverId == null) {
+                // no resolver passed, try the first registered
+                List<ResolverConfiguration> confs = config.getResolverConfigurations();
+                if (!confs.isEmpty()) {
+                    resolverConfig = confs.get(0);
+                }
+            } else {
+                resolverConfig = config.findResolverConfiguration(resolverId);
+            }
+            if (resolverConfig == null) {
+                throw RestException.plainText(Status.BAD_REQUEST,
+                        String.format("Unknown property '%s' = '%s'. Check server configuration!",
+                                DigitalObjectResourceApi.URNNBN_RESOLVER, resolverId));
+            }
+            UrnNbnService service = new UrnNbnService(appConfig, resolverConfig);
+            UrnNbnStatusHandler status = service.registerAgain(pids, hierarchy);
+            for (Entry<String, PidResult> entry : status.getPids().entrySet()) {
+                PidResult pidResult = entry.getValue();
+                String entryPid = entry.getKey();
+                for (StatusEntry statusEntry : pidResult.getErrors()) {
+                    result.add(new UrnNbnResult(entryPid, statusEntry, false, pidResult.getPid()));
+                }
+                for (StatusEntry statusEntry : pidResult.getWarnings()) {
+                    result.add(new UrnNbnResult(entryPid, statusEntry, true, pidResult.getPid()));
+                }
+                if (pidResult.getUrnNbn() != null) {
+                    result.add(new UrnNbnResult(entryPid, pidResult.getUrnNbn(), pidResult.getPid()));
+                }
+            }
+        }
+        return new SmartGwtResponse<UrnNbnResult>(result);
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.LOCK_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> lockObject(
