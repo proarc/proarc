@@ -95,6 +95,10 @@ public class UrnNbnStatusHandler {
         getEntry(elm.getPid()).setPid(elm.getItem()).ok(urnNbn);
     }
 
+    public void ok(String pid, String urnNbn) {
+        getEntry(pid).ok(urnNbn);
+    }
+
     public void log(LogType logType, DigitalObjectElement elm, Status status, String msg, String urnNbn) {
         getEntry(elm.getPid())
                 .setPid(elm.getItem())
