@@ -1292,11 +1292,45 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         if (isLocked(pids)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.registerAgainUrnNbn(pids, resolverId, hierarchy);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_UPDATE_IDENTIFIER_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<UrnNbnResult> updateIdentifierUrnNbn(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.URNNBN_IDENTIFIER) String identifier,
+            @FormParam(DigitalObjectResourceApi.URNNBN_OPERATION) String operation,
+            @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
+            @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
+    ) {
+        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        if (operation == null || operation.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_OPERATION));
+        }
+        if (identifier == null || identifier.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_IDENTIFIER));
+        }
+
+        try {
+            return super.updateIdentifierUrnNbn(pids, identifier, operation, resolverId, hierarchy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

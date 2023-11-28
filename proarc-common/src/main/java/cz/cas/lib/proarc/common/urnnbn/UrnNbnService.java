@@ -230,7 +230,7 @@ public class UrnNbnService {
                         "The resolver returns no URN:NBN value! Check the server configuration.");
             } else {
                 if ("DEACTIVATED".equals(urnNbn.getStatus())) {
-                    response = ctx.getClient().removeUuidFromObject(urnNbnValue);
+                    response = ctx.getClient().removeUuidCzidloRecord(urnNbnValue);
                     error = response.getError();
                     if (error != null) {
                         // remote registration failed
@@ -266,6 +266,43 @@ public class UrnNbnService {
         ctx.setStatus(statusHandler);
         ctx.setClient(client);
         ctx.setRegisterAgainPid(true);
+
+        if (initJhove(ctx) == null) {
+            return statusHandler;
+        }
+        try {
+            for (String pid : pids) {
+                queue.remove(pid);
+                try {
+                    DigitalObjectElement elm = crawler.getEntry(pid);
+                    elm.accept(reg, ctx);
+                } catch (Exception ex) {
+                    Logger.getLogger(UrnNbnService.class.getName()).log(Level.SEVERE, null, ex);
+                    statusHandler.error(pid, ex);
+                    break;
+                }
+            }
+        } finally {
+            ctx.getJhoveContext().destroy();
+        }
+        for (String pid : queue) {
+            statusHandler.warning(pid, Status.NOT_PROCESSED, "Not processed! \n" + pid, null);
+        }
+        return statusHandler;
+    }
+
+
+    public UrnNbnStatusHandler updateCzidloRecord(Collection<String> pids, String identifier, String operation, boolean hierarchy) {
+        LinkedHashSet<String> queue = new LinkedHashSet<String>(pids);
+        UrnNbnStatusHandler statusHandler = new UrnNbnStatusHandler();
+        DigitalObjectCrawler crawler = new DigitalObjectCrawler(dom, search, null);
+        UrnNbnVisitor reg = new UrnNbnVisitor(crawler);
+        UrnNbnContext ctx = new UrnNbnContext();
+        ctx.setStatus(statusHandler);
+        ctx.setClient(client);
+        ctx.setUpdateCzidloRecord(true);
+        ctx.setUpdateCzidloRecordOperation(operation);
+        ctx.setUpdateCzidloRecordIdentifier(identifier);
 
         if (initJhove(ctx) == null) {
             return statusHandler;

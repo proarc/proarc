@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.LockObject;
@@ -25,7 +26,6 @@ import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.UpdateObjects;
 import cz.cas.lib.proarc.common.actions.UpdatePages;
 import cz.cas.lib.proarc.common.actions.UpdatePagesMetadata;
-import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -2589,6 +2589,8 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
@@ -2612,6 +2614,65 @@ public class DigitalObjectResourceV1 {
             }
             UrnNbnService service = new UrnNbnService(appConfig, resolverConfig);
             UrnNbnStatusHandler status = service.registerAgain(pids, hierarchy);
+            for (Entry<String, PidResult> entry : status.getPids().entrySet()) {
+                PidResult pidResult = entry.getValue();
+                String entryPid = entry.getKey();
+                for (StatusEntry statusEntry : pidResult.getErrors()) {
+                    result.add(new UrnNbnResult(entryPid, statusEntry, false, pidResult.getPid()));
+                }
+                for (StatusEntry statusEntry : pidResult.getWarnings()) {
+                    result.add(new UrnNbnResult(entryPid, statusEntry, true, pidResult.getPid()));
+                }
+                if (pidResult.getUrnNbn() != null) {
+                    result.add(new UrnNbnResult(entryPid, pidResult.getUrnNbn(), pidResult.getPid()));
+                }
+            }
+        }
+        return new SmartGwtResponse<UrnNbnResult>(result);
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_UPDATE_IDENTIFIER_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<UrnNbnResult> updateIdentifierUrnNbn(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.URNNBN_IDENTIFIER) String identifier,
+            @FormParam(DigitalObjectResourceApi.URNNBN_OPERATION) String operation,
+            @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
+            @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
+    ) {
+        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+
+        if (isLocked(pids)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        if (operation == null || operation.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_OPERATION));
+        }
+        if (identifier == null || identifier.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_IDENTIFIER));
+        }
+
+        List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
+        if (!pids.isEmpty()) {
+            UrnNbnConfiguration config = appConfig.getUrnNbnConfiguration();
+            ResolverConfiguration resolverConfig = null;
+            if (resolverId == null) {
+                // no resolver passed, try the first registered
+                List<ResolverConfiguration> confs = config.getResolverConfigurations();
+                if (!confs.isEmpty()) {
+                    resolverConfig = confs.get(0);
+                }
+            } else {
+                resolverConfig = config.findResolverConfiguration(resolverId);
+            }
+            if (resolverConfig == null) {
+                throw RestException.plainText(Status.BAD_REQUEST,
+                        String.format("Unknown property '%s' = '%s'. Check server configuration!",
+                                DigitalObjectResourceApi.URNNBN_RESOLVER, resolverId));
+            }
+            UrnNbnService service = new UrnNbnService(appConfig, resolverConfig);
+            UrnNbnStatusHandler status = service.updateCzidloRecord(pids, identifier, operation, hierarchy);
             for (Entry<String, PidResult> entry : status.getPids().entrySet()) {
                 PidResult pidResult = entry.getValue();
                 String entryPid = entry.getKey();

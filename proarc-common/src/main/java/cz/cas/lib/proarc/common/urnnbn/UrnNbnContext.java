@@ -28,10 +28,13 @@ public class UrnNbnContext {
     private UrnNbnStatusHandler status;
     private ResolverClient client;
     private JhoveContext jhoveContext;
+    private String updateCzidloRecordOperation;
+    private String updateCzidloRecordIdentifier;
     private boolean registerNewPid = false;
     private boolean registerAgainPid = false;
     private boolean invalidateUrnNbn = false;
     private boolean createSuccessor = false;
+    private boolean updateCzidloRecord = false;
 
 
     public ResolverClient getClient() {
@@ -88,5 +91,29 @@ public class UrnNbnContext {
 
     public void setRegisterAgainPid(boolean registerAgainPid) {
         this.registerAgainPid = registerAgainPid;
+    }
+
+    public boolean isUpdateCzidloRecord() {
+        return updateCzidloRecord;
+    }
+
+    public void setUpdateCzidloRecord(boolean updateCzidloRecord) {
+        this.updateCzidloRecord = updateCzidloRecord;
+    }
+
+    public String getUpdateCzidloRecordOperation() {
+        return updateCzidloRecordOperation;
+    }
+
+    public void setUpdateCzidloRecordOperation(String updateCzidloRecordOperation) {
+        this.updateCzidloRecordOperation = updateCzidloRecordOperation;
+    }
+
+    public String getUpdateCzidloRecordIdentifier() {
+        return updateCzidloRecordIdentifier;
+    }
+
+    public void setUpdateCzidloRecordIdentifier(String updateCzidloRecordIdentifier) {
+        this.updateCzidloRecordIdentifier = updateCzidloRecordIdentifier;
     }
 }

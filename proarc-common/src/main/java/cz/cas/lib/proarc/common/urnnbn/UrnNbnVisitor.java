@@ -684,6 +684,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, documentMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -899,6 +909,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, issueMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -1071,6 +1091,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, issueMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -1221,6 +1251,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 }
                 UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, monographImport, elm, p);
                 updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
@@ -1377,6 +1417,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -1462,6 +1512,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 }
                 UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, eMonographImport, elm, p);
                 updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
@@ -1568,6 +1628,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -1609,7 +1679,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
-        }else if (p.isCreateSuccessor()) {
+        } else if (p.isCreateSuccessor()) {
             if (urnnbnOldValue == null) {
                 p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
                 return null;
@@ -1636,7 +1706,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (SAXException ex) {
                 p.getStatus().error(elm, ex);
             }
-        }else if (p.isRegisterAgainPid()) {
+        } else if (p.isRegisterAgainPid()) {
             if (urnnbnOldValue == null) {
                 p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN does not exists.", urnnbnOldValue);
                 return null;
@@ -1649,6 +1719,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 }
                 UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, entityImport, elm, p);
                 updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
@@ -1695,7 +1775,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
     private RegistrarScopeIdentifier removeUuidFromObject(String urnnbn, DigitalObjectElement elm, UrnNbnContext p) {
         try {
-            cz.cas.lib.proarc.urnnbn.model.response.Response response = p.getClient().removeUuidFromObject(urnnbn);
+            cz.cas.lib.proarc.urnnbn.model.response.Response response = p.getClient().removeUuidCzidloRecord(urnnbn);
             ErrorType error = response.getError();
             if (error != null) {
                 // remote registration failed
@@ -1737,7 +1817,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                         "The resolver returns no URN:NBN value! Check the server configuration.");
             } else {
                 if ("DEACTIVATED".equals(urnNbn.getStatus())) {
-                    response = p.getClient().removeUuidFromObject(urnNbnOldValue);
+                    response = p.getClient().removeUuidCzidloRecord(urnNbnOldValue);
                     error = response.getError();
                     if (error != null) {
                         // remote registration failed
@@ -1775,6 +1855,65 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             p.getStatus().error(elm, ex);
         }
         return null;
+    }
+
+    private void updateCzidloRecord(String urnNbnValue, ModsDefinition elmMods, DigitalObjectElement elm, UrnNbnContext p) {
+        try {
+            String identifier = p.getUpdateCzidloRecordIdentifier();
+            if ("isbn".equalsIgnoreCase(identifier) || "ccnb".equalsIgnoreCase(identifier) || "urnnbn".equalsIgnoreCase(identifier)) {
+                p.getStatus().error(elm, Status.EXCEPTION, String.format("Identifier \"%s\" can not be updated", identifier));
+                return;
+            }
+            if ("delete".equalsIgnoreCase(p.getUpdateCzidloRecordOperation())) {
+                cz.cas.lib.proarc.urnnbn.model.response.Response response = p.getClient().removeIdentifierCzidloRecord(urnNbnValue, identifier);
+                ErrorType error = response.getError();
+                if (error != null) {
+                    // remote registration failed
+                    p.getStatus().error(urnNbnValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                    LOG.log(Level.SEVERE, "{0}: {1}: {2}",
+                            new Object[]{elm, error.getCode(), error.getMessage()});
+                    return;
+                }
+                RegistrarScopeIdentifier registrarScopeIdentifier = response.getId();
+                if (registrarScopeIdentifier == null || registrarScopeIdentifier.getValue() == null || registrarScopeIdentifier.getType() == null) {
+                    p.getStatus().warning(urnNbnValue, Status.EXCEPTION, "The resolver returns no value! Check the server configuration.", urnNbnValue);
+                } else {
+                    p.getStatus().ok(registrarScopeIdentifier.getType() + ":" + registrarScopeIdentifier.getValue(),
+                            String.format("Deleted \"%s\" from \"%s\".", identifier, urnNbnValue));
+                }
+                return;
+            } else if ("update".equalsIgnoreCase(p.getUpdateCzidloRecordOperation())) {
+                IdentifierDefinition identifierDefinition = ResolverUtils.getIdentifier(identifier, elmMods);
+                if (identifierDefinition != null) {
+                    cz.cas.lib.proarc.urnnbn.model.response.Response response = p.getClient().updateCzidloRecord(urnNbnValue, identifier, identifierDefinition.getValue());
+                    ErrorType error = response.getError();
+                    if (error != null) {
+                        // remote registration failed
+                        p.getStatus().error(urnNbnValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                        LOG.log(Level.SEVERE, "{0}: {1}: {2}",
+                                new Object[]{elm, error.getCode(), error.getMessage()});
+                        return;
+                    }
+                    RegistrarScopeIdentifier registrarScopeIdentifier = response.getId();
+                    if (registrarScopeIdentifier == null || registrarScopeIdentifier.getValue() == null || registrarScopeIdentifier.getType() == null) {
+                        p.getStatus().warning(urnNbnValue, Status.EXCEPTION, "The resolver returns no value! Check the server configuration.", urnNbnValue);
+                    } else {
+                        p.getStatus().ok(registrarScopeIdentifier.getType() + ":" + registrarScopeIdentifier.getValue(),
+                                String.format("Updated \"%s\":\"%s\" for \"%s\".", identifier, identifierDefinition.getValue(), urnNbnValue));
+                    }
+                    return;
+                } else {
+                    p.getStatus().warning(elm, Status.EXCEPTION, String.format("\"%s\" does not exists", identifier), elm.getPid());
+                }
+            } else {
+                p.getStatus().error(elm, Status.EXCEPTION, String.format("Unsupported operation %s", p.getUpdateCzidloRecordOperation()));
+                return;
+            }
+        } catch (Exception ex) {
+            // unexpected remote registration failure
+            p.getStatus().error(elm, ex);
+        }
+        return;
     }
 
     private void updateModsWithUrnNbn(UrnNbn urnNbn,

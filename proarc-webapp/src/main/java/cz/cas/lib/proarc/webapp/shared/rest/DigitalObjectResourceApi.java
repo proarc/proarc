@@ -262,8 +262,11 @@ public final class DigitalObjectResourceApi {
     public static final String URNNBN_INVALIDATE_REMOTE_PATH = "invalidateRemote";
     public static final String URNNBN_CREATE_SUCCESSOR_PATH = "createSuccessor";
     public static final String URNNBN_REGISTER_AGAIN_PATH = "registerAgain";
+    public static final String URNNBN_UPDATE_IDENTIFIER_PATH = "updateIdentifier";
     public static final String URNNBN_HIERARCHY = "hierarchy";
     public static final String URNNBN_RESOLVER = "resolverId";
+    public static final String URNNBN_IDENTIFIER = "identifier";
+    public static final String URNNBN_OPERATION = "operation";
 
     public static final String REINDEX_PATH = "reindexObjects";
     public static final String UPDATE_ALL_OBJECTS_PATH = "updateAllObjectsObjects";
