@@ -477,6 +477,13 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &valueToDeactivate=aba007-0000xi&resolverId=inovatika
 
+### NEW REGISTRATION URNNBN WITH OLD VALUE DEACTIVATION
+POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/registerAgain
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:5d3fba10-2f81-4262-8a24-7c1e38eeba55&resolverId=inovatika
+
 ### REGISTER URNNBN - SUCCESSOR
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/createSuccessor
 Accept: application/json
@@ -484,6 +491,13 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 #&pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolcerId=inovatika
 &pid=uuid:bab0d255-4819-45f0-9521-28715cabfee1&resolverId=inovatika
+
+### UPDATE RESOLVER WITH IDENTIFIER
+POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/updateIdentifier
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&pid=uuid:5d3fba10-2f81-4262-8a24-7c1e38eeba55&resolverId=inovatika&identifier=proarcId&operation=delete
 
 ### LOGIN
 POST {{proarcLocalHostUrl}}/proarclogin

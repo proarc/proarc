@@ -1,0 +1,6 @@
+PUT {{url}}/resolcer/{{urnnbn}}/registrarScopeIdentifiers/{{identifier}}
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Authorization: Basic {{loginPwdB64}}
+
+&id={{identifierValue}}

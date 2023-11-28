@@ -107,7 +107,11 @@ public final class ResolverClient {
         return response;
     }
 
-    public Response removeUuidFromObject(String urnNbnValue) {
+    public Response removeUuidCzidloRecord(String urnNbn) {
+        return removeIdentifierCzidloRecord(urnNbn, "uuid");
+    }
+
+    public Response removeIdentifierCzidloRecord(String urnNbnValue, String identifier) {
         if (urnNbnValue == null || urnNbnValue.isEmpty()) {
             throw new IllegalArgumentException("urnNbn");
         }
@@ -118,9 +122,31 @@ public final class ResolverClient {
                     .path("resolver")
                     .path(urnNbnValue)
                     .path("registrarScopeIdentifiers")
-                    .path("uuid")
+                    .path(identifier)
                     .request()
                         .delete(Response.class);
+        } catch (WebApplicationException ex) {
+            response = readResponseError(ex.getResponse(), ex);
+        } catch (ResponseProcessingException ex) {
+            response = readResponseError(ex.getResponse(), ex);
+        }
+        return response;
+    }
+
+    public Response updateCzidloRecord(String urnNbnValue, String identifier, String value) {
+        if (urnNbnValue == null || urnNbnValue.isEmpty()) {
+            throw new IllegalArgumentException("urnNbn");
+        }
+
+        Response response = null;
+        try {
+            response = resource()
+                    .path("resolver")
+                    .path(urnNbnValue)
+                    .path("registrarScopeIdentifiers")
+                    .path(identifier)
+                    .request()
+                        .put(Entity.entity(value, MediaType.APPLICATION_XML_TYPE), Response.class);
         } catch (WebApplicationException ex) {
             response = readResponseError(ex.getResponse(), ex);
         } catch (ResponseProcessingException ex) {

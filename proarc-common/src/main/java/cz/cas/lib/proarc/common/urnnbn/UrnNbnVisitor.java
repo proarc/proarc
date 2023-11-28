@@ -667,6 +667,33 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (SAXException ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isRegisterAgainPid()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN does not exists.", urnnbnOldValue);
+                return null;
+            }
+            try {
+                Import document;
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                document = resolverEntities.createMusicDocumentImport(documentMods, xmlHandler, null);
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, document, elm, p);
+                updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, documentMods, documentDescription, modsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, documentMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -833,6 +860,65 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (SAXException ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isRegisterAgainPid()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN does not exists.", urnnbnOldValue);
+                return null;
+            }
+            Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
+            if (!path.hasNext()) {
+                p.getStatus().error(elm, Status.MISSING_PARENT, "Requires Periodical Title or Volume as parent!");
+                return null;
+            }
+            DigitalObjectElement titleElm = path.next();
+            if (!NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId())) {
+                p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
+                        "Requires Periodical Title as a root of the hierarchy instead of %s!",
+                        titleElm.toLog()));
+                return null;
+            }
+            ModsDefinition titleMods = titleElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
+            ModsDefinition volumeMods = null;
+
+            if (path.hasNext()) {
+                DigitalObjectElement volumeElm = path.next();
+                if (!NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId())) {
+                    p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
+                            "Requires Periodical Title or Volume as parent instead of %s!",
+                            volumeElm.toLog()));
+                    return null;
+                }
+                volumeMods = volumeElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
+            }
+            MixType mix = searchMix(elm, p);
+            if (mix == null) {
+                return null;
+            }
+            if (volumeMods == null) {
+                volumeMods = new ModsDefinition();
+            }
+            try {
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                Import issueImport = resolverEntities.createPeriodicalIssueImport(
+                        titleMods, volumeMods, issueMods, mix, xmlHandler, false, null);
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, issueImport, elm, p);
+                updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, issueMods, issueDescription, issueModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, issueMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -960,6 +1046,61 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (SAXException ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isRegisterAgainPid()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN does not exists.", urnnbnOldValue);
+                return null;
+            }
+            Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
+            if (!path.hasNext()) {
+                p.getStatus().error(elm, Status.MISSING_PARENT, "Requires ePeriodical Title or Volume as parent!");
+                return null;
+            }
+            DigitalObjectElement titleElm = path.next();
+            if (!NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId())) {
+                p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
+                        "Requires ePeriodical Title as a root of the hierarchy instead of %s!",
+                        titleElm.toLog()));
+                return null;
+            }
+            ModsDefinition titleMods = titleElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
+            ModsDefinition volumeMods = null;
+
+            if (path.hasNext()) {
+                DigitalObjectElement volumeElm = path.next();
+                if (!NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId())) {
+                    p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
+                            "Requires ePeriodical Volume as parent instead of %s!",
+                            volumeElm.toLog()));
+                    return null;
+                }
+                volumeMods = volumeElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
+            }
+            if (volumeMods == null) {
+                volumeMods = new ModsDefinition();
+            }
+            try {
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                Import issueImport = resolverEntities.createPeriodicalIssueImport(
+                        titleMods, volumeMods, issueMods, null, xmlHandler, true, null);
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, issueImport, elm, p);
+                updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, issueMods, issueDescription, issueModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, issueMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -1072,6 +1213,55 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 UrnNbn urnNbnResponse = registerEntity(monographImport, elm, p);
                 updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
             } catch (SAXException ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isRegisterAgainPid()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN does not exists.", urnnbnOldValue);
+                return null;
+            }
+            Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
+            DigitalObjectElement titleElm = null;
+            if (path.hasNext()) {
+                titleElm = path.next();
+                if (!NdkPlugin.MODEL_MONOGRAPHTITLE.equals(titleElm.getModelId())) {
+                    p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
+                            "Requires Multipart Monograph or nothing as parent instead of %s!",
+                            titleElm.toLog()));
+                    return null;
+                }
+                titleMods = titleElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
+            }
+
+            MixType mix = searchMix(elm, p);
+            if (mix == null) {
+                return null;
+            }
+
+            try {
+                Import monographImport;
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                if (titleElm == null) {
+                    monographImport = resolverEntities.createMonographImport(volumeMods, mix, xmlHandler, false, false, null);
+                } else {
+                    monographImport = resolverEntities.createMultipartMonographImport(titleMods, volumeMods, mix, xmlHandler, false, null);
+                }
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, monographImport, elm, p);
+                updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
+            } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
         }
@@ -1188,6 +1378,55 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (SAXException ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isRegisterAgainPid()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN does not exists.", urnnbnOldValue);
+                return null;
+            }
+            Iterator<DigitalObjectElement> path = getCrawler().getReversePath(pid).iterator();
+            DigitalObjectElement titleElm = null;
+            if (path.hasNext()) {
+                titleElm = path.next();
+                if (!(OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(titleElm.getModelId()) || OldPrintPlugin.MODEL_CONVOLUTTE.equals(titleElm.getModelId()))) {
+                    p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
+                            "Requires Multipart Monograph or Convolutte or nothing as parent instead of %s!",
+                            titleElm.toLog()));
+                    return null;
+                }
+                titleMods = titleElm.getHandler().<ModsDefinition>metadata().getMetadata().getData();
+            }
+
+            MixType mix = searchMix(elm, p);
+            if (mix == null) {
+                return null;
+            }
+
+            try {
+                Import monographImport;
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                if (titleElm == null) {
+                    monographImport = resolverEntities.createMonographImport(volumeMods, mix, xmlHandler, false, true, null);
+                } else {
+                    monographImport = resolverEntities.createMultipartMonographImport(titleMods, volumeMods, mix, xmlHandler, true, null);
+                }
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, monographImport, elm, p);
+                updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -1259,6 +1498,33 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (SAXException ex) {
                 p.getStatus().error(elm, ex);
             }
+        } else if (p.isRegisterAgainPid()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN does not exists.", urnnbnOldValue);
+                return null;
+            }
+            try {
+                Import eMonographImport;
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                eMonographImport = resolverEntities.createMonographImport(volumeMods, null, xmlHandler, true, false, null);
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, eMonographImport, elm, p);
+                updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
         }
         return null;
     }
@@ -1306,7 +1572,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
-        }else if (p.isCreateSuccessor()) {
+        } else if (p.isCreateSuccessor()) {
             if (urnnbnOldValue == null) {
                 p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
                 return null;
@@ -1337,6 +1603,39 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 UrnNbn urnNbnResponse = registerEntity(entityImport, elm, p);
                 updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
             } catch (SAXException ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isRegisterAgainPid()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN does not exists.", urnnbnOldValue);
+                return null;
+            }
+            if (mix == null) {
+                mix = searchMix(elm, p);
+                if (mix == null) {
+                    return null;
+                }
+            }
+
+            try {
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                Import entityImport = resolverEntities.createOtherEntityImport(volumeMods, entityType, mix, xmlHandler, false, null);
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, entityImport, elm, p);
+                updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
+            } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
         }
@@ -1380,7 +1679,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
-        }else if (p.isCreateSuccessor()) {
+        } else if (p.isCreateSuccessor()) {
             if (urnnbnOldValue == null) {
                 p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
                 return null;
@@ -1405,6 +1704,32 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 UrnNbn urnNbnResponse = registerEntity(entityImport, elm, p);
                 updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
             } catch (SAXException ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isRegisterAgainPid()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_EXISTS, "URN:NBN does not exists.", urnnbnOldValue);
+                return null;
+            }
+            try {
+                ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
+                Import entityImport = resolverEntities.createOtherEntityImport(volumeMods, entityType, null, xmlHandler, true, null);
+                if (!validateEntity(xmlHandler, elm, p)) {
+                    return null;
+                }
+                UrnNbn urnNbnResponse = registerAgainEntity(urnnbnOldValue, entityImport, elm, p);
+                updateModsWithSuccessorUrnNbn(urnnbnOldValue, urnNbnResponse, volumeMods, volumeDescription, volumeModsHandler, elm, p);
+            } catch (Exception ex) {
+                p.getStatus().error(elm, ex);
+            }
+        } else if (p.isUpdateCzidloRecord()) {
+            if (urnnbnOldValue == null) {
+                p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
+                return null;
+            }
+            try {
+                updateCzidloRecord(urnnbnOldValue, volumeMods, elm, p);
+            } catch (Exception ex) {
                 p.getStatus().error(elm, ex);
             }
         }
@@ -1450,7 +1775,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
     private RegistrarScopeIdentifier removeUuidFromObject(String urnnbn, DigitalObjectElement elm, UrnNbnContext p) {
         try {
-            cz.cas.lib.proarc.urnnbn.model.response.Response response = p.getClient().removeUuidFromObject(urnnbn);
+            cz.cas.lib.proarc.urnnbn.model.response.Response response = p.getClient().removeUuidCzidloRecord(urnnbn);
             ErrorType error = response.getError();
             if (error != null) {
                 // remote registration failed
@@ -1466,6 +1791,129 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             p.getStatus().error(elm, ex);
             return null;
         }
+    }
+
+    private UrnNbn registerAgainEntity(String urnNbnOldValue, Import entity, DigitalObjectElement elm, UrnNbnContext p) {
+        try {
+            cz.cas.lib.proarc.urnnbn.model.response.Response response = p.getClient().deactivateUrnNbnValue(urnNbnOldValue);
+            ErrorType error = response.getError();
+            if (error != null) {
+                // remote deactivation failed
+                LOG.log(Level.SEVERE, "{0}: {1}: {2}", new Object[]{elm, error.getCode(), error.getMessage()});
+                if ("INCORRECT_URN_NBN_STATE".equals(error.getCode().name())) {
+                    if (error.getMessage().endsWith("FREE")) {
+                        p.getStatus().error(elm, Status.EXCEPTION, urnNbnOldValue + " was never used");
+                    } else {
+                        p.getStatus().error(elm, Status.EXCEPTION, "Already deactivated " + urnNbnOldValue);
+                    }
+                } else {
+                    p.getStatus().error(urnNbnOldValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                }
+                return null;
+            }
+            UrnNbn urnNbn = response.getUrnNbn();
+            if (urnNbn == null || urnNbn.getValue() == null) {
+                p.getStatus().error(urnNbnOldValue, Status.EXCEPTION,
+                        "The resolver returns no URN:NBN value! Check the server configuration.");
+            } else {
+                if ("DEACTIVATED".equals(urnNbn.getStatus())) {
+                    response = p.getClient().removeUuidCzidloRecord(urnNbnOldValue);
+                    error = response.getError();
+                    if (error != null) {
+                        // remote registration failed
+                        p.getStatus().error(elm, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                        LOG.log(Level.SEVERE, "{0}: {1}: {2}",
+                                new Object[]{urnNbnOldValue, error.getCode(), error.getMessage()});
+                        return null;
+                    }
+                    RegistrarScopeIdentifier registrarScopeIdentifier = response.getId();
+                    if (registrarScopeIdentifier == null || registrarScopeIdentifier.getValue() == null || registrarScopeIdentifier.getType() == null) {
+                        p.getStatus().warning(elm, Status.EXCEPTION, "The resolver returns no UUID value! Check the server configuration.", urnNbnOldValue);
+                    } else {
+                        response = p.getClient().registerObject(entity);
+                        error = response.getError();
+                        if (error != null) {
+                            // remote registration failed
+                            p.getStatus().error(elm, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                            LOG.log(Level.SEVERE, "{0}: {1}: {2}",
+                                    new Object[]{elm, error.getCode(), error.getMessage()});
+                            return null;
+                        }
+                        urnNbn = response.getUrnNbn();
+                        if (urnNbn == null || urnNbn.getValue() == null) {
+                            p.getStatus().error(elm, Status.EXCEPTION,
+                                    "The resolver returns no URN:NBN value! Check the server configuration.");
+                        }
+                        return urnNbn;
+                    }
+                } else {
+                    p.getStatus().error(elm, Status.EXCEPTION, urnNbn.getStatus() + ":" + urnNbn.getValue());
+                }
+            }
+        } catch (Exception ex) {
+            // unexpected remote registration failure
+            p.getStatus().error(elm, ex);
+        }
+        return null;
+    }
+
+    private void updateCzidloRecord(String urnNbnValue, ModsDefinition elmMods, DigitalObjectElement elm, UrnNbnContext p) {
+        try {
+            String identifier = p.getUpdateCzidloRecordIdentifier();
+            if ("isbn".equalsIgnoreCase(identifier) || "ccnb".equalsIgnoreCase(identifier) || "urnnbn".equalsIgnoreCase(identifier)) {
+                p.getStatus().error(elm, Status.EXCEPTION, String.format("Identifier \"%s\" can not be updated", identifier));
+                return;
+            }
+            if ("delete".equalsIgnoreCase(p.getUpdateCzidloRecordOperation())) {
+                cz.cas.lib.proarc.urnnbn.model.response.Response response = p.getClient().removeIdentifierCzidloRecord(urnNbnValue, identifier);
+                ErrorType error = response.getError();
+                if (error != null) {
+                    // remote registration failed
+                    p.getStatus().error(urnNbnValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                    LOG.log(Level.SEVERE, "{0}: {1}: {2}",
+                            new Object[]{elm, error.getCode(), error.getMessage()});
+                    return;
+                }
+                RegistrarScopeIdentifier registrarScopeIdentifier = response.getId();
+                if (registrarScopeIdentifier == null || registrarScopeIdentifier.getValue() == null || registrarScopeIdentifier.getType() == null) {
+                    p.getStatus().warning(urnNbnValue, Status.EXCEPTION, "The resolver returns no value! Check the server configuration.", urnNbnValue);
+                } else {
+                    p.getStatus().ok(registrarScopeIdentifier.getType() + ":" + registrarScopeIdentifier.getValue(),
+                            String.format("Deleted \"%s\" from \"%s\".", identifier, urnNbnValue));
+                }
+                return;
+            } else if ("update".equalsIgnoreCase(p.getUpdateCzidloRecordOperation())) {
+                IdentifierDefinition identifierDefinition = ResolverUtils.getIdentifier(identifier, elmMods);
+                if (identifierDefinition != null) {
+                    cz.cas.lib.proarc.urnnbn.model.response.Response response = p.getClient().updateCzidloRecord(urnNbnValue, identifier, identifierDefinition.getValue());
+                    ErrorType error = response.getError();
+                    if (error != null) {
+                        // remote registration failed
+                        p.getStatus().error(urnNbnValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                        LOG.log(Level.SEVERE, "{0}: {1}: {2}",
+                                new Object[]{elm, error.getCode(), error.getMessage()});
+                        return;
+                    }
+                    RegistrarScopeIdentifier registrarScopeIdentifier = response.getId();
+                    if (registrarScopeIdentifier == null || registrarScopeIdentifier.getValue() == null || registrarScopeIdentifier.getType() == null) {
+                        p.getStatus().warning(urnNbnValue, Status.EXCEPTION, "The resolver returns no value! Check the server configuration.", urnNbnValue);
+                    } else {
+                        p.getStatus().ok(registrarScopeIdentifier.getType() + ":" + registrarScopeIdentifier.getValue(),
+                                String.format("Updated \"%s\":\"%s\" for \"%s\".", identifier, identifierDefinition.getValue(), urnNbnValue));
+                    }
+                    return;
+                } else {
+                    p.getStatus().warning(elm, Status.EXCEPTION, String.format("\"%s\" does not exists", identifier), elm.getPid());
+                }
+            } else {
+                p.getStatus().error(elm, Status.EXCEPTION, String.format("Unsupported operation %s", p.getUpdateCzidloRecordOperation()));
+                return;
+            }
+        } catch (Exception ex) {
+            // unexpected remote registration failure
+            p.getStatus().error(elm, ex);
+        }
+        return;
     }
 
     private void updateModsWithUrnNbn(UrnNbn urnNbn,
