@@ -50,7 +50,6 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -177,7 +176,6 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
         fillAbstract(mods);
-        fillRecordInfo(mods);
     }
 
     protected FormDefinition newFormDefinition() {

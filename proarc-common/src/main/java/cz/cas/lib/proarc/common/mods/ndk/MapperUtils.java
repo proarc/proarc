@@ -27,12 +27,14 @@ import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.LanguageDefinition;
 import cz.cas.lib.proarc.mods.LanguageTermDefinition;
+import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.NamePartDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
@@ -229,6 +231,27 @@ public final class MapperUtils {
             note.setValue(recordInfo.getRecordOrigin().get(0).getValue());
             recordInfo.getRecordInfoNote().add(note);
             recordInfo.getRecordOrigin().get(0).setValue("machine generated");
+        }
+    }
+
+    public static void fillLocation(ModsDefinition mods) {
+        PhysicalLocationDefinition physical = null;
+        for (LocationDefinition location : mods.getLocation()) {
+            for (PhysicalLocationDefinition physicalLocation :location.getPhysicalLocation()) {
+                if (physicalLocation.getValue() != null) {
+                    physical = physicalLocation;
+                }
+            }
+        }
+        if (physical != null) {
+            if (physical.getAuthority() == null) {
+                physical.setAuthority("siglaADR");
+            }
+            for (LocationDefinition location : mods.getLocation()) {
+                if (!location.getShelfLocator().isEmpty() && location.getPhysicalLocation().isEmpty()) {
+                    location.getPhysicalLocation().add(physical);
+                }
+            }
         }
     }
 

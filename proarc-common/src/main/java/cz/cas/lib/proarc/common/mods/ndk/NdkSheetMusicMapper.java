@@ -54,7 +54,6 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -152,7 +151,6 @@ public class NdkSheetMusicMapper extends RdaNdkMapper {
             }
         }
         fillAbstract(mods);
-        fillRecordInfo(mods);
     }
 
     @Override

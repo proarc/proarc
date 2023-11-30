@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
+
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
@@ -44,7 +45,6 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguag
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
 
@@ -76,7 +76,6 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
         fillPhysicalDescription(mods);
         fixAndAddGenre(mods, ctx);
         fillAbstract(mods);
-        fillRecordInfo(mods);
     }
 
     private void fillPhysicalDescription(ModsDefinition mods) {
