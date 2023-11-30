@@ -2683,7 +2683,14 @@ public class DigitalObjectResourceV1 {
                     result.add(new UrnNbnResult(entryPid, statusEntry, true, pidResult.getPid()));
                 }
                 if (pidResult.getUrnNbn() != null) {
-                    result.add(new UrnNbnResult(entryPid, pidResult.getUrnNbn(), pidResult.getPid()));
+                    if (pidResult.getInfos() == null || pidResult.getInfos().isEmpty()) {
+                        result.add(new UrnNbnResult(entryPid, pidResult.getUrnNbn(), pidResult.getPid()));
+                    } else {
+                        for (StatusEntry statusEntry : pidResult.getInfos()) {
+                            result.add(new UrnNbnResult(entryPid, pidResult.getUrnNbn(), pidResult.getPid(), statusEntry));
+                        }
+                    }
+
                 }
             }
         }
@@ -4134,6 +4141,19 @@ public class DigitalObjectResourceV1 {
         public UrnNbnResult(String pid, String urnnbn, SearchViewItem elm) {
             this.pid = pid;
             this.urnnbn = urnnbn;
+            if (elm != null) {
+                this.modelId = elm.getModel();
+                this.label = elm.getLabel();
+            }
+        }
+
+        public UrnNbnResult(String pid, String urnnbn, SearchViewItem elm, StatusEntry me) {
+            this.pid = pid;
+            this.urnnbn = urnnbn;
+            if (me != null) {
+                this.message = me.getMessage();
+                this.type = me.getStatus().name();
+            }
             if (elm != null) {
                 this.modelId = elm.getModel();
                 this.label = elm.getLabel();
