@@ -1807,7 +1807,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                         p.getStatus().error(elm, Status.EXCEPTION, "Already deactivated " + urnNbnOldValue);
                     }
                 } else {
-                    p.getStatus().error(urnNbnOldValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                    p.getStatus().error(elm, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
                 }
                 return null;
             }
@@ -1823,7 +1823,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                         // remote registration failed
                         p.getStatus().error(elm, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
                         LOG.log(Level.SEVERE, "{0}: {1}: {2}",
-                                new Object[]{urnNbnOldValue, error.getCode(), error.getMessage()});
+                                new Object[]{elm, error.getCode(), error.getMessage()});
                         return null;
                     }
                     RegistrarScopeIdentifier registrarScopeIdentifier = response.getId();
@@ -1860,7 +1860,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     private void updateCzidloRecord(String urnNbnValue, ModsDefinition elmMods, DigitalObjectElement elm, UrnNbnContext p) {
         try {
             String identifier = p.getUpdateCzidloRecordIdentifier();
-            if ("isbn".equalsIgnoreCase(identifier) || "ccnb".equalsIgnoreCase(identifier) || "urnnbn".equalsIgnoreCase(identifier)) {
+            if ("isbn".equalsIgnoreCase(identifier) || "issn".equalsIgnoreCase(identifier) || "ccnb".equalsIgnoreCase(identifier) || "urnnbn".equalsIgnoreCase(identifier)) {
                 p.getStatus().error(elm, Status.EXCEPTION, String.format("Identifier \"%s\" can not be updated", identifier));
                 return;
             }
@@ -1869,17 +1869,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 ErrorType error = response.getError();
                 if (error != null) {
                     // remote registration failed
-                    p.getStatus().error(urnNbnValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                    p.getStatus().error(elm, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
                     LOG.log(Level.SEVERE, "{0}: {1}: {2}",
                             new Object[]{elm, error.getCode(), error.getMessage()});
                     return;
                 }
                 RegistrarScopeIdentifier registrarScopeIdentifier = response.getId();
                 if (registrarScopeIdentifier == null || registrarScopeIdentifier.getValue() == null || registrarScopeIdentifier.getType() == null) {
-                    p.getStatus().warning(urnNbnValue, Status.EXCEPTION, "The resolver returns no value! Check the server configuration.", urnNbnValue);
+                    p.getStatus().warning(elm, Status.EXCEPTION, "The resolver returns no value! Check the server configuration.", urnNbnValue);
                 } else {
-                    p.getStatus().ok(registrarScopeIdentifier.getType() + ":" + registrarScopeIdentifier.getValue(),
-                            String.format("Deleted \"%s\" from \"%s\".", identifier, urnNbnValue));
+                    p.getStatus().ok(elm, urnNbnValue, String.format("Deleted \"%s\" from \"%s\".", identifier, urnNbnValue));
                 }
                 return;
             } else if ("update".equalsIgnoreCase(p.getUpdateCzidloRecordOperation())) {
@@ -1889,16 +1888,16 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                     ErrorType error = response.getError();
                     if (error != null) {
                         // remote registration failed
-                        p.getStatus().error(urnNbnValue, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
+                        p.getStatus().error(elm, Status.EXCEPTION, error.getCode() + ": " + error.getMessage());
                         LOG.log(Level.SEVERE, "{0}: {1}: {2}",
                                 new Object[]{elm, error.getCode(), error.getMessage()});
                         return;
                     }
                     RegistrarScopeIdentifier registrarScopeIdentifier = response.getId();
                     if (registrarScopeIdentifier == null || registrarScopeIdentifier.getValue() == null || registrarScopeIdentifier.getType() == null) {
-                        p.getStatus().warning(urnNbnValue, Status.EXCEPTION, "The resolver returns no value! Check the server configuration.", urnNbnValue);
+                        p.getStatus().warning(elm, Status.EXCEPTION, "The resolver returns no value! Check the server configuration.", urnNbnValue);
                     } else {
-                        p.getStatus().ok(registrarScopeIdentifier.getType() + ":" + registrarScopeIdentifier.getValue(),
+                        p.getStatus().ok(elm, urnNbnValue,
                                 String.format("Updated \"%s\":\"%s\" for \"%s\".", identifier, identifierDefinition.getValue(), urnNbnValue));
                     }
                     return;
@@ -1978,7 +1977,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             elmDescription.setData(elmMods);
             elmModsHandler.setMetadata(elmDescription, "URN:NBN created successor", NdkMetadataHandler.OPERATION_URNNBN);
             objectHandler.commit();
-            p.getStatus().ok(elm, urnNbnValueOld + " --> " + urnnbn);
+            p.getStatus().ok(elm, urnnbn, urnNbnValueOld + " --> " + urnnbn);
         } catch (Exception ex) {
             // fatal error, stop further registrations!
             throw new IllegalStateException(elm.getPid() + "/" + urnNbnValueOld + ": Cannot create Successor URN:NBN " + urnnbn, ex);

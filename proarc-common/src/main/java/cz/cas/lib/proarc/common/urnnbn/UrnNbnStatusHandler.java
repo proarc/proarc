@@ -99,6 +99,10 @@ public class UrnNbnStatusHandler {
         getEntry(pid).ok(urnNbn);
     }
 
+    public void ok(DigitalObjectElement elm, String urnNbn, String msg) {
+        getEntry(elm.getPid()).setPid(elm.getItem()).ok(urnNbn).getLogs(LogType.INFO).add(new StatusEntry(Status.DETAIL_INFO, msg, urnNbn));
+    }
+
     public void log(LogType logType, DigitalObjectElement elm, Status status, String msg, String urnNbn) {
         getEntry(elm.getPid())
                 .setPid(elm.getItem())
@@ -133,10 +137,11 @@ public class UrnNbnStatusHandler {
         UNEXPECTED_PARENT,
         URNNBN_EXISTS, XML_REQUEST_NOT_VALID,
         URNNBN_DONT_EXISTS,
-        WRONG_UUID_DELETED
+        WRONG_UUID_DELETED,
+        DETAIL_INFO
     }
 
-    public enum LogType { ERROR, REGISTERED, WARNING}
+    public enum LogType { ERROR, REGISTERED, WARNING, INFO}
 
     public static class PidResult {
 
@@ -179,6 +184,11 @@ public class UrnNbnStatusHandler {
         public List<StatusEntry> getWarnings() {
             List<StatusEntry> warnings = logs.get(LogType.WARNING);
             return warnings != null ? warnings : Collections.<StatusEntry>emptyList();
+        }
+
+        public List<StatusEntry> getInfos() {
+            List<StatusEntry> infos = logs.get(LogType.INFO);
+            return infos != null ? infos : Collections.emptyList();
         }
 
     }
