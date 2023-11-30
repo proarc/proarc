@@ -26,7 +26,6 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -40,7 +39,6 @@ public class NdkMonographTitleMapper extends RdaNdkMapper {
         addGenre(mods);
         updateOriginInfo(mods);
         fillAbstract(mods);
-        fillRecordInfo(mods);
     }
 
     private void updateOriginInfo(ModsDefinition mods) {

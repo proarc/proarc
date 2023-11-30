@@ -60,6 +60,8 @@ import org.apache.empire.commons.StringUtils;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLocation;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
 /**
@@ -164,6 +166,8 @@ public abstract class NdkMapper {
             addPid(mods, ctx.getPid());
             checkUuidIdentifier(mods, ctx.getPid());
         }
+        fillLocation(mods);
+        fillRecordInfo(mods);
     }
 
     private void checkUuidIdentifier(ModsDefinition mods, String pid) {

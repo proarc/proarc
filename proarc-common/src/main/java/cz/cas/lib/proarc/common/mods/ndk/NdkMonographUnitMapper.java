@@ -55,7 +55,6 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -173,7 +172,6 @@ public class NdkMonographUnitMapper extends RdaNdkMapper {
             }
         }
         fillAbstract(mods);
-        fillRecordInfo(mods);
     }
 
     protected void addGenre(ModsDefinition mods) {

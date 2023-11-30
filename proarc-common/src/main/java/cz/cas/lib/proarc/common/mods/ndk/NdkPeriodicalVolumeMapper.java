@@ -28,7 +28,6 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 /**
@@ -47,7 +46,6 @@ public class NdkPeriodicalVolumeMapper extends RdaNdkMapper {
         //  mods/genre="volume"
         addGenre(mods);
         fillAbstract(mods);
-        fillRecordInfo(mods);
     }
 
     protected void addGenre(ModsDefinition mods) {

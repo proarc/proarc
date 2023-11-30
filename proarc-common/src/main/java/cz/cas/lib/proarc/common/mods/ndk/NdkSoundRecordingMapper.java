@@ -39,7 +39,6 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPartNumber;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -62,7 +61,6 @@ public class NdkSoundRecordingMapper extends RdaNdkMapper {
             }
         }
         fillLanguage(mods);
-        fillRecordInfo(mods);
     }
 
     @Override

@@ -42,7 +42,6 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguag
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
 /**
@@ -80,7 +79,6 @@ public final class NdkPictureMapper extends RdaNdkMapper {
             repairAuthorityInClassification(classification);
         }
         fillAbstract(mods);
-        fillRecordInfo(mods);
     }
 
     protected void addGenre(ModsDefinition mods) {

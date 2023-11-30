@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.mods.TableOfContentsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.List;
+
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
@@ -44,7 +45,6 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguag
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
 
 /**
  *
@@ -112,8 +112,6 @@ public class NdkSoundCollectionMapper extends RdaNdkMapper {
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
-
-        fillRecordInfo(mods);
     }
 
     @Override
