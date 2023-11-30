@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.mods.CartographicsDefinition;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;

@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.CustomTemporaryFolder;
-import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

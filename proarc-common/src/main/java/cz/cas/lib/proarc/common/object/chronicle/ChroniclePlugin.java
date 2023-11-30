@@ -1,6 +1,6 @@
 package cz.cas.lib.proarc.common.object.chronicle;
 
-import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
 import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
+import static cz.cas.lib.proarc.common.process.export.mets.Const.FEDORAPREFIX;
 
 /**
  *

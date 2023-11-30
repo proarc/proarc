@@ -26,7 +26,7 @@ import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
 import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.imports.TiffImporterTest;
+import cz.cas.lib.proarc.common.process.imports.TiffImporterTest;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

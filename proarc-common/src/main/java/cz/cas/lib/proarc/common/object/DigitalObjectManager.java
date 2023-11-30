@@ -35,8 +35,8 @@ import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -103,13 +103,13 @@ public class DigitalObjectManager {
 
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
-    private final ImportBatchManager ibm;
+    private final BatchManager ibm;
     private RemoteStorage remotes;
     private AkubraStorage akubraStorage;
     private final MetaModelRepository models;
     private final UserManager userManager;
 
-    public DigitalObjectManager(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, ImportBatchManager ibm,
+    public DigitalObjectManager(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, BatchManager ibm,
                                 MetaModelRepository models, UserManager userManager) {
 
         this.appConfig = appConfig;
@@ -160,7 +160,7 @@ public class DigitalObjectManager {
 //            if (!readonly) {
 //                ImportResource.checkBatchState(batch);
 //            }
-            if (pid == null || ImportBatchManager.ROOT_ITEM_PID.equals(pid)) {
+            if (pid == null || BatchManager.ROOT_ITEM_PID.equals(pid)) {
                 fobject = ibm.getRootObject(batch);
             } else {
                 BatchItemObject item = ibm.findBatchObject(batch.getId(), pid);

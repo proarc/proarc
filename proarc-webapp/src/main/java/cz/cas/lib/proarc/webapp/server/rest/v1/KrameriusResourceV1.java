@@ -22,7 +22,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
@@ -30,7 +30,7 @@ import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.StringEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.kramerius.K7Authenticator;
 import cz.cas.lib.proarc.common.kramerius.K7Downloader;
 import cz.cas.lib.proarc.common.kramerius.KDataHandler;
@@ -107,7 +107,7 @@ public class KrameriusResourceV1 {
     private static final Logger LOG = Logger.getLogger(KrameriusResourceV1.class.getName());
 
     private final AppConfiguration appConfig;
-    private final ImportBatchManager batchManager;
+    private final BatchManager batchManager;
     private final HttpHeaders httpHeaders;
     private final UserProfile user;
     private final SessionContext session;
@@ -122,7 +122,7 @@ public class KrameriusResourceV1 {
 
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
-        this.batchManager = ImportBatchManager.getInstance(appConfig);
+        this.batchManager = BatchManager.getInstance(appConfig);
         session = SessionContext.from(httpRequest);
         user = session.getUser();
         LOG.fine(user.toString());

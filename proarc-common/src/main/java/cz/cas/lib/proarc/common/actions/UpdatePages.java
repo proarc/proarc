@@ -24,7 +24,7 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -205,7 +205,7 @@ public class UpdatePages {
         }
     }
 
-    public void updatePagesLocal(List<ImportBatchManager.BatchItemObject> objects, String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition) throws DigitalObjectException {
+    public void updatePagesLocal(List<BatchManager.BatchItemObject> objects, String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition) throws DigitalObjectException {
         this.pageType = trim(pageType, "{", "}");
         this.pagePosition = trim(pagePosition, "{", "}");
         this.pagePositionIndex = 0;
@@ -214,7 +214,7 @@ public class UpdatePages {
 
         objects = getRelevantObjects(objects, updatedPids);
         if (objects != null && !objects.isEmpty()) {
-            for (ImportBatchManager.BatchItemObject object : objects) {
+            for (BatchManager.BatchItemObject object : objects) {
                 File foxml = object.getFile();
                 if (foxml == null || !foxml.exists() || !foxml.canRead()) {
                     throw new IllegalStateException("Cannot read foxml: " + foxml);
@@ -480,10 +480,10 @@ public class UpdatePages {
         }
     }
 
-    public void editBracketsLocal(List<ImportBatchManager.BatchItemObject> objects, List<String> pids, boolean addBrackets, boolean removeBrackets) throws DigitalObjectException {
+    public void editBracketsLocal(List<BatchManager.BatchItemObject> objects, List<String> pids, boolean addBrackets, boolean removeBrackets) throws DigitalObjectException {
         objects = getRelevantObjects(objects, pids);
         if (objects != null && !objects.isEmpty()) {
-            for (ImportBatchManager.BatchItemObject object : objects) {
+            for (BatchManager.BatchItemObject object : objects) {
                 File foxml = object.getFile();
                 if (foxml == null || !foxml.exists() || !foxml.canRead()) {
                     throw new IllegalStateException("Cannot read foxml: " + foxml);
@@ -518,13 +518,13 @@ public class UpdatePages {
         }
     }
 
-    public static List<ImportBatchManager.BatchItemObject> getRelevantObjects(List<ImportBatchManager.BatchItemObject> objects, List<String> pids) {
+    public static List<BatchManager.BatchItemObject> getRelevantObjects(List<BatchManager.BatchItemObject> objects, List<String> pids) {
         if (pids == null || pids.isEmpty() || objects == null || objects.isEmpty()) {
             return null;
         }
-        List<ImportBatchManager.BatchItemObject> selectedList = new ArrayList<>();
+        List<BatchManager.BatchItemObject> selectedList = new ArrayList<>();
         for (String pid : pids) {
-            for (ImportBatchManager.BatchItemObject object :objects) {
+            for (BatchManager.BatchItemObject object :objects) {
                 if (object.getPid().equals(pid)) {
                     selectedList.add(object);
                 }

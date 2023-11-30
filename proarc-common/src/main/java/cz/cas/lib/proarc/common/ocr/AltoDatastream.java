@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.ocr;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import cz.cas.lib.proarc.common.export.mets.MetsLSResolver;
+import cz.cas.lib.proarc.common.process.export.mets.MetsLSResolver;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -31,7 +31,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import org.xml.sax.SAXException;
 
 /**

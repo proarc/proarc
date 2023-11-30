@@ -34,11 +34,6 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor;
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
@@ -70,8 +65,6 @@ import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.fedora.akubra.PurgeAkubraObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.mods.AuthorityMetadataInjector;
 import cz.cas.lib.proarc.common.mods.MetadataInjector;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
@@ -92,6 +85,15 @@ import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.object.technicalMetadata.TechnicalMetadataMapper;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.process.internal.InternalDispatcher;
+import cz.cas.lib.proarc.common.process.internal.InternalProcess;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration.ResolverConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnService;
@@ -178,8 +180,8 @@ import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_CHANGING_MODEL_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IN_GETTING_CHILDREN;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IS_LOCKED;
@@ -213,11 +215,12 @@ public class DigitalObjectResourceV1 {
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
     private final MetaModelRepository metamodels = MetaModelRepository.getInstance();
-    private final ImportBatchManager importManager;
+    private final BatchManager importManager;
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
     private final UserProfile user;
     private final SessionContext session;
+    private final BatchManager batchManager;
 
 
     public DigitalObjectResourceV1(
@@ -236,9 +239,10 @@ public class DigitalObjectResourceV1 {
         } else {
             this.akubraConfiguration = null;
         }
-        this.importManager = ImportBatchManager.getInstance(appConfig);
+        this.importManager = BatchManager.getInstance(appConfig);
         session = SessionContext.from(httpRequest);
         user = session.getUser();
+        this.batchManager = BatchManager.getInstance();
         LOG.fine(user.toString());
     }
 
@@ -2005,6 +2009,25 @@ public class DigitalObjectResourceV1 {
         } catch (DigitalObjectNotFoundException ex) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<InternalProcessResult> generateAlto(
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_PID) String pid
+    ) throws IOException {
+        if (pid == null || pid.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + DigitalObjectResourceApi.ATM_ITEM_PID);
+        }
+        BatchParams params = new BatchParams(Collections.singletonList(pid));
+        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, pid, user, Batch.INTERNAL_PERO, params);
+
+        InternalProcess process = InternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalDispatcher.getDefault().addInternalProcess(process);
+        InternalProcessResult result = new InternalProcessResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<InternalProcessResult>(result);
+
     }
 
     @GET
@@ -3990,7 +4013,7 @@ public class DigitalObjectResourceV1 {
             BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), null, Batch.State.REINDEX_DONE);
             return returnFunctionSuccess();
         } catch (Exception ex) {
-            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), ImportBatchManager.toString(ex), Batch.State.REINDEX_FAILED);
+            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), BatchManager.toString(ex), Batch.State.REINDEX_FAILED);
             throw ex;
         }
     }
@@ -4219,7 +4242,7 @@ public class DigitalObjectResourceV1 {
             if (!readonly) {
                 ImportResourceV1.checkBatchState(batch);
             }
-            if (pid == null || ImportBatchManager.ROOT_ITEM_PID.equals(pid)) {
+            if (pid == null || BatchManager.ROOT_ITEM_PID.equals(pid)) {
                 fobject = importManager.getRootObject(batch);
             } else {
                 BatchItemObject item = importManager.findBatchObject(batchId, pid);
@@ -4345,5 +4368,34 @@ public class DigitalObjectResourceV1 {
             pids.add(uuid);
         }
         return pids;
+    }
+
+    /**
+     * The export result.
+     */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class InternalProcessResult {
+
+        @XmlElement(name = DigitalObjectResourceApi.RESULT_ID)
+        private Integer processId;
+
+        @XmlElement(name = DigitalObjectResourceApi.RESULT_MSG)
+        private String msg;
+
+        public InternalProcessResult() {
+        }
+
+        public InternalProcessResult(Integer processId, String msg) {
+            this.processId = processId;
+            this.msg = msg;
+        }
+
+        public Integer getProcessId() {
+            return processId;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
     }
 }

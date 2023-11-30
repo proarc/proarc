@@ -23,7 +23,7 @@ import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -67,14 +67,14 @@ public class UpdatePagesMetadata {
         this.copyPagePosition = copyPagePosition;
     }
 
-    public void updatePagesLocal(List<ImportBatchManager.BatchItemObject> objects) throws DigitalObjectException {
-        List<ImportBatchManager.BatchItemObject> relevantSourceObjects = getRelevantObjects(objects, sourcePids);
-        List<ImportBatchManager.BatchItemObject> relevantDestinationObjects = getRelevantObjects(objects, destinationPids);
+    public void updatePagesLocal(List<BatchManager.BatchItemObject> objects) throws DigitalObjectException {
+        List<BatchManager.BatchItemObject> relevantSourceObjects = getRelevantObjects(objects, sourcePids);
+        List<BatchManager.BatchItemObject> relevantDestinationObjects = getRelevantObjects(objects, destinationPids);
 
         if (relevantSourceObjects != null && !relevantSourceObjects.isEmpty()) {
             if (relevantDestinationObjects != null && !relevantDestinationObjects.isEmpty()) {
                 int index = 0;
-                for (ImportBatchManager.BatchItemObject destinationObject : relevantDestinationObjects) {
+                for (BatchManager.BatchItemObject destinationObject : relevantDestinationObjects) {
                     File foxml = destinationObject.getFile();
                     if (foxml == null || !foxml.exists() || !foxml.canRead()) {
                         throw new IllegalStateException("Cannot read foxml: " + foxml.getAbsolutePath());
@@ -291,7 +291,7 @@ public class UpdatePagesMetadata {
         }
     }
 
-    private SourceModsInfo getSourceObjectLocal(ImportBatchManager.BatchItemObject sourceObject) throws DigitalObjectException {
+    private SourceModsInfo getSourceObjectLocal(BatchManager.BatchItemObject sourceObject) throws DigitalObjectException {
         File foxml = sourceObject.getFile();
         if (foxml == null || !foxml.exists() || !foxml.canRead()) {
             throw new IllegalStateException("Cannot read foxml: " + foxml.getAbsolutePath());

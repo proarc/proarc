@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods;
 
-import cz.cas.lib.proarc.common.export.mets.MetsLSResolver;
+import cz.cas.lib.proarc.common.process.export.mets.MetsLSResolver;
 import cz.cas.lib.proarc.common.xml.Transformers;
 import cz.cas.lib.proarc.common.xml.Transformers.Format;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;

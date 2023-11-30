@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.oldprint;
 
-import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
+import static cz.cas.lib.proarc.common.process.export.mets.Const.FEDORAPREFIX;
 
 /**
  * The plug-in to support old print digital objects.

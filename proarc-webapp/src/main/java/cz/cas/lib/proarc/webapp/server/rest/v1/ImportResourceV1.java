@@ -24,7 +24,7 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.Item;
@@ -33,14 +33,14 @@ import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraImport;
-import cz.cas.lib.proarc.common.imports.FedoraImport;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.imports.ImportDispatcher;
-import cz.cas.lib.proarc.common.imports.ImportFileScanner;
-import cz.cas.lib.proarc.common.imports.ImportFileScanner.Folder;
-import cz.cas.lib.proarc.common.imports.ImportProcess;
-import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.FedoraImport;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
+import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
+import cz.cas.lib.proarc.common.process.imports.ImportFileScanner.Folder;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -89,8 +89,8 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.io.IOUtils;
 
-import static cz.cas.lib.proarc.common.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
-import static cz.cas.lib.proarc.common.imports.ImportProcess.TMP_DIR_NAME;
+import static cz.cas.lib.proarc.common.process.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
+import static cz.cas.lib.proarc.common.process.imports.ImportProcess.TMP_DIR_NAME;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 
 /**
@@ -114,7 +114,7 @@ public class ImportResourceV1 {
 
     private final HttpHeaders httpHeaders;
     // XXX inject with guice
-    private final ImportBatchManager importManager;
+    private final BatchManager importManager;
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
 
@@ -136,7 +136,7 @@ public class ImportResourceV1 {
         } else {
             this.akubraConfiguration = null;
         }
-        this.importManager = ImportBatchManager.getInstance();
+        this.importManager = BatchManager.getInstance();
         session = SessionContext.from(httpRequest);
         user = session.getUser();
     }

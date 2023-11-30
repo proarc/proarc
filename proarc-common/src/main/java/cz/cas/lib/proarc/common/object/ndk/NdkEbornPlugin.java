@@ -16,7 +16,7 @@
 
 package cz.cas.lib.proarc.common.object.ndk;
 
-import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.JsonValueMap;
@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static cz.cas.lib.proarc.common.export.mets.Const.FEDORAPREFIX;
+import static cz.cas.lib.proarc.common.process.export.mets.Const.FEDORAPREFIX;
 
 
 @SuppressWarnings("MethodParameterOfConcreteClass")

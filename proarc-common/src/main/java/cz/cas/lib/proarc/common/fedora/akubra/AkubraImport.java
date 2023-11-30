@@ -24,11 +24,11 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
@@ -38,11 +38,11 @@ import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.imports.ImportProcess;
-import cz.cas.lib.proarc.common.imports.ImportProfile;
-import cz.cas.lib.proarc.common.imports.ImportUtils.Hierarchy;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.ImportUtils.Hierarchy;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
@@ -69,23 +69,23 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.imports.ImportProcess.getTargetFolder;
-import static cz.cas.lib.proarc.common.imports.ImportUtils.createPidHierarchy;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.process.imports.ImportProcess.getTargetFolder;
+import static cz.cas.lib.proarc.common.process.imports.ImportUtils.createPidHierarchy;
 
 public final class AkubraImport {
 
     private static final Logger LOG = Logger.getLogger(AkubraImport.class.getName());
     private final AkubraStorage akubraStorage;
     private final LocalStorage localStorage;
-    private final ImportBatchManager ibm;
+    private final BatchManager ibm;
     private final SearchView search;
     private final UserProfile user;
     private final AppConfiguration config;
     private final AkubraConfiguration akubraConfiguration;
     private final ImportProcess.ImportOptions options;
 
-    public AkubraImport(AppConfiguration config, AkubraConfiguration akubraConfiguration, ImportBatchManager ibm, UserProfile user, ImportProcess.ImportOptions options) throws IOException {
+    public AkubraImport(AppConfiguration config, AkubraConfiguration akubraConfiguration, BatchManager ibm, UserProfile user, ImportProcess.ImportOptions options) throws IOException {
         this.config = config;
         this.akubraConfiguration = akubraConfiguration;
         this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
@@ -126,7 +126,7 @@ public final class AkubraImport {
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
             batch.setState(Batch.State.INGESTING_FAILED);
-            batch.setLog(ImportBatchManager.toString(t));
+            batch.setLog(BatchManager.toString(t));
         } finally {
             batch = ibm.update(batch);
             LOG.log(Level.FINE, "Total ingest time {0} ms. Ingested items: {1}.\n{2}",
@@ -291,7 +291,7 @@ public final class AkubraImport {
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(item), t);
             item.setState(ObjectState.INGESTING_FAILED);
-            item.setLog(ImportBatchManager.toString(t));
+            item.setLog(BatchManager.toString(t));
         }
         if (item != null) {
             ibm.update(item);

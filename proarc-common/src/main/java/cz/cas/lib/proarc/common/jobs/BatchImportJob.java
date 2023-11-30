@@ -19,12 +19,12 @@ package cz.cas.lib.proarc.common.jobs;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
-import cz.cas.lib.proarc.common.imports.ImportDispatcher;
-import cz.cas.lib.proarc.common.imports.ImportFileScanner;
-import cz.cas.lib.proarc.common.imports.ImportHandler;
-import cz.cas.lib.proarc.common.imports.ImportProcess;
-import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
+import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
+import cz.cas.lib.proarc.common.process.imports.ImportHandler;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -183,7 +183,7 @@ public class BatchImportJob implements Job, ProArcJob {
                 UserProfile user = userManger.find(DEFAULT_ADMIN_USER);
 
                 process = ImportProcess.prepare(folder.getHandle(), folder.getHandle().getName(), user,
-                        ImportBatchManager.getInstance(), deviceUUID, true, Batch.PRIORITY_MEDIUM, false, false, appConfig.getImportConfiguration(profile), appConfig);
+                        BatchManager.getInstance(), deviceUUID, true, Batch.PRIORITY_MEDIUM, false, false, appConfig.getImportConfiguration(profile), appConfig);
 
                 ImportDispatcher.getDefault().addImport(process);
                 Batch batch = process.getBatch();
