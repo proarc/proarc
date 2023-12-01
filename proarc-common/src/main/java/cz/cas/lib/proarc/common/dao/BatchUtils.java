@@ -167,6 +167,11 @@ public class BatchUtils {
         return finishedSuccessfully(batchManager, batch, path, null, Batch.State.INTERNAL_DONE);
     }
 
+    public static Batch startWaitingInternalBatch(BatchManager batchManager, Batch batch) {
+        batch.setState(Batch.State.INTERNAL_RUNNING);
+        return batchManager.update(batch);
+    }
+
     public static String getPid(List<String> pids) {
         if (!pids.isEmpty()) {
             return pids.get(0);

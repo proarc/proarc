@@ -33,6 +33,8 @@ import java.util.Locale;
 import java.util.logging.Logger;
 
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
+import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalSuccessfully;
+import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalWithError;
 
 /**
  * Other process
@@ -89,25 +91,32 @@ public final class InternalProcess implements Runnable {
             return finishedExportWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
         }
         try {
-            batch = BatchUtils.startWaitingExportBatch(batchManager, batch);
+            batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
             switch (profileId) {
                 case Batch.INTERNAL_PERO:
                     return peroProcess(batch, params);
                 default:
                     return finishedExportWithError(batchManager, batch, batch.getFolder(), new Exception("Unknown export profile."));
             }
-        } catch (InterruptedException ex) {
-            // rollback files on batch resume
-            return null;
         } catch (Throwable t) {
             return BatchUtils.finishedExportWithError(batchManager, batch, batch.getFolder(), t);
         }
     }
 
-    private Batch peroProcess(Batch batch, BatchParams params) throws InterruptedException {
-        // TODO
-        throw new InterruptedException("test");
-//        return batch;
+    private Batch peroProcess(Batch batch, BatchParams params) {
+        try {
+            PeroInternalProcess internalProcess = new PeroInternalProcess(config, akubraConfiguration);
+            PeroInternalProcess.Result result = internalProcess.generateAlto(params.getPids(), options.getImportFolder());
+            if (result.getException() != null) {
+                batch = finishedInternalWithError(this.batchManager, batch, batch.getFolder(), result.getException());
+                throw result.getException();
+            } else {
+                batch = finishedInternalSuccessfully(this.batchManager, batch, batch.getFolder());
+            }
+            return batch;
+        } catch (Exception ex) {
+            return finishedInternalWithError(this.batchManager, batch, batch.getFolder(), ex);
+        }
     }
 
     public static void resumeAll(BatchManager ibm, InternalDispatcher dispatcher, AppConfiguration config, AkubraConfiguration akubraConfiguration) {
@@ -132,11 +141,11 @@ public final class InternalProcess implements Runnable {
 
     public static final class InternalOptions {
 
-        private File targetFolder;
         private AppConfiguration configuration;
         private Batch batch;
         private String log;
         private Locale locale;
+        private File importFolder;
 
         public InternalOptions(AppConfiguration config, Batch batch, String log, Locale locale) {
             this.configuration = config;
@@ -145,12 +154,12 @@ public final class InternalProcess implements Runnable {
             this.locale = locale;
         }
 
-        public File getTargetFolder() {
-            return targetFolder;
+        public File getImportFolder() {
+            return importFolder;
         }
 
-        public void setTargetFolder(File targetFolder) {
-            this.targetFolder = targetFolder;
+        public void setImportFolder(File importFolder) {
+            this.importFolder = importFolder;
         }
 
         public AppConfiguration getConfiguration() {
