@@ -70,6 +70,16 @@ public final class InternalProcess implements Runnable {
         return process;
     }
 
+    /**
+     * Prepares a new other process.
+     * to run with {@link #start} immediately or later with {@link ExportDispatcher}.
+     */
+    public static InternalProcess prepare(AppConfiguration config, AkubraConfiguration akubraConfig, Batch batch, BatchManager batchManager, UserProfile user, String log, Locale locale, File folder) throws IOException {
+        InternalOptions options = new InternalOptions(config, batch, log, locale, folder);
+        InternalProcess process = new InternalProcess(options, batchManager, config, akubraConfig, user);
+        return process;
+    }
+
     @Override
     public void run() {
         start();
@@ -88,7 +98,7 @@ public final class InternalProcess implements Runnable {
         String profileId = batch.getProfileId();
         BatchParams params = batch.getParamsAsObject();
         if (params == null) {
-            return finishedExportWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
+            return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
         }
         try {
             batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
@@ -106,7 +116,7 @@ public final class InternalProcess implements Runnable {
     private Batch peroProcess(Batch batch, BatchParams params) {
         try {
             PeroInternalProcess internalProcess = new PeroInternalProcess(config, akubraConfiguration);
-            PeroInternalProcess.Result result = internalProcess.generateAlto(params.getPids(), options.getImportFolder());
+            PeroInternalProcess.Result result = internalProcess.generateAlto(params.getPids(), options.getFolder());
             if (result.getException() != null) {
                 batch = finishedInternalWithError(this.batchManager, batch, batch.getFolder(), result.getException());
                 throw result.getException();
@@ -145,7 +155,7 @@ public final class InternalProcess implements Runnable {
         private Batch batch;
         private String log;
         private Locale locale;
-        private File importFolder;
+        private File folder;
 
         public InternalOptions(AppConfiguration config, Batch batch, String log, Locale locale) {
             this.configuration = config;
@@ -154,12 +164,20 @@ public final class InternalProcess implements Runnable {
             this.locale = locale;
         }
 
-        public File getImportFolder() {
-            return importFolder;
+        public InternalOptions(AppConfiguration config, Batch batch, String log, Locale locale, File folder) {
+            this.configuration = config;
+            this.batch = batch;
+            this.log = log;
+            this.locale = locale;
+            this.folder = folder;
         }
 
-        public void setImportFolder(File importFolder) {
-            this.importFolder = importFolder;
+        public File getFolder() {
+            return folder;
+        }
+
+        public void setFolder(File folder) {
+            this.folder = folder;
         }
 
         public AppConfiguration getConfiguration() {

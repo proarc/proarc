@@ -22,9 +22,10 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchParams;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.PageView.Item;
@@ -33,14 +34,17 @@ import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraImport;
-import cz.cas.lib.proarc.common.process.imports.FedoraImport;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.imports.FedoraImport;
 import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.internal.InternalDispatcher;
+import cz.cas.lib.proarc.common.process.internal.InternalProcess;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -64,6 +68,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -760,6 +765,32 @@ public class ImportResourceV1 {
             }
         }
         return new SmartGwtResponse<>(batchView);
+    }
+
+    @POST
+    @Path(ImportResourceApi.GENERATE_ALTO_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DigitalObjectResourceV1.InternalProcessResult> generateAlto(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
+    ) throws IOException, URISyntaxException {
+        if (path == null || path.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "missing values in parameter \"folderPath\".");
+        }
+        String folderPath = validateParentPath(path);
+        URI userRoot = user.getImportFolder();
+        URI folderUri = (folderPath != null)
+                // URI multi param constructor escapes input unlike single param constructor or URI.create!
+                ? userRoot.resolve(new URI(null, null, folderPath, null))
+                : userRoot;
+        File folder = new File(folderUri);
+
+        BatchParams params = new BatchParams(Collections.singletonList(folderPath));
+        Batch batch = BatchUtils.addNewInternalBatch(this.importManager, folderPath, user, Batch.INTERNAL_PERO, params);
+
+        InternalProcess process = InternalProcess.prepare(appConfig, akubraConfiguration, batch, importManager, user, session.asFedoraLog(), session.getLocale(httpHeaders), folder);
+        InternalDispatcher.getDefault().addInternalProcess(process);
+        DigitalObjectResourceV1.InternalProcessResult result = new DigitalObjectResourceV1.InternalProcessResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<DigitalObjectResourceV1.InternalProcessResult>(result);
     }
 
 }

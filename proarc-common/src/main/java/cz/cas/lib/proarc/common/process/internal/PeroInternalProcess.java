@@ -53,20 +53,32 @@ public class PeroInternalProcess {
         }
     }
 
-    public Result generateAlto(List<String> pids, File importFolder) {
+    public Result generateAlto(List<String> pids, File folder) {
         Result result = new Result();
         try {
-            if ((pids == null || pids.isEmpty()) && (importFolder == null || !importFolder.exists())) {
+            if ((pids == null || pids.isEmpty()) && (folder == null || !folder.exists())) {
                 throw new IllegalArgumentException("Missing required parameters");
+            } else if (folder != null && folder.exists()) {
+                generateMultipleAlto(folder);
             } else if (pids != null && !pids.isEmpty()) {
                 generateSingleAlto(pids);
-            } else {
-                throw new IllegalStateException("Method is not yet implemented.");
             }
         } catch (Exception ex) {
             result.setException(ex);
         } finally {
             return result;
+        }
+    }
+
+    private void generateMultipleAlto(File folder) throws IOException {
+        if (folder == null || !folder.exists() || !folder.canRead() || !folder.canWrite()) {
+            throw new IOException("It is not possiblke to access " + (folder == null ? null : folder.getAbsolutePath()));
+        }
+        for (File file : folder.listFiles()) {
+            if (file.getName().endsWith("tiff") || file.getName().endsWith("tif") || file.getName().endsWith("jpg")) {
+                File imgFile = file;
+                generateOCR(imgFile);
+            }
         }
     }
 

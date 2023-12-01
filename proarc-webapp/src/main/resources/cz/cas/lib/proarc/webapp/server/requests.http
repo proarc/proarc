@@ -558,9 +558,16 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 seriesPartNumberFrom=61&seriesDateFrom=2022-01-01&seriesDateTo=2022-05-01&model=model%3Andkperiodicalissue&parent=uuid:4f749d4c-7580-4211-b634-c3ec7fea75f0&seriesDateFormat=dd.mm.yyyy&seriesFrequency=w&seriesDaysIncluded=3
 
 
-### GENERATE ALTO
+### GENERATE ALTO TO PID
 POST {{proarcLocalHostUrl}}/rest/v2/object/generateAlto
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &pid=uuid:5637ab30-2ed2-4dcc-a5ac-ecc4741e43b3
+
+### GENERATE ALTO TO FOLDER
+POST {{proarcLocalHostUrl}}/rest/v2/import/generateAlto
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&folderPath=altoToTest
