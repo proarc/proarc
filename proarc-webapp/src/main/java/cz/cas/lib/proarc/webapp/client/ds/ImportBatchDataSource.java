@@ -115,6 +115,10 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         states.put(State.UPLOADING.name(), i18n.ImportBatchDataSource_State_UPLOADING());
         states.put(State.UPLOAD_FAILED.name(), i18n.ImportBatchDataSource_State_UPLOAD_FAILED());
         states.put(State.UPLOAD_DONE.name(), i18n.ImportBatchDataSource_State_UPLOAD_DONE());
+        states.put(State.INTERNAL_PLANNED.name(), i18n.ImportBatchDataSource_State_INTERNAL_PLANNED());
+        states.put(State.INTERNAL_RUNNING.name(), i18n.ImportBatchDataSource_State_INTERNAL_RUNNING());
+        states.put(State.INTERNAL_DONE.name(), i18n.ImportBatchDataSource_State_INTERNAL_DONE());
+        states.put(State.INTERNAL_FAILED.name(), i18n.ImportBatchDataSource_State_INTERNAL_FAILED());
         state.setValueMap(states);
 
         DataSourceTextField parent = new DataSourceTextField(FIELD_PARENT);
@@ -318,7 +322,8 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,LOADING_CONFLICT,
         EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
         REINDEXING, REINDEX_FAILED, REINDEX_DONE,
-        UPLOADING, UPLOAD_FAILED, UPLOAD_DONE;
+        UPLOADING, UPLOAD_FAILED, UPLOAD_DONE,
+        INTERNAL_RUNNING, INTERNAL_PLANNED, INTERNAL_FAILED, INTERNAL_DONE;
 
         public static State fromString(String value) {
             try {
