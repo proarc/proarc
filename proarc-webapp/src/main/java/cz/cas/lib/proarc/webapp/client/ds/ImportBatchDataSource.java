@@ -158,6 +158,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 //        profiles.put("exportProfile.aleph", i18n.ExportProfile_Aleph());
 
         profiles.put("internalProfile.reindex", i18n.InternalProfile_Reindex());
+        profiles.put("internalProfile.pero", i18n.InternalProfile_Pero());
         profileId.setValueMap(profiles);
         profileId.setHidden(true);
 

@@ -25,7 +25,7 @@ import org.apache.commons.configuration.Configuration;
  */
 public class OcrGenerator extends ExternalProcess {
 
-    public static final String ID = "abbycmd";
+    public static final String PROP_KEY = "key";
 
     private final File input;
     private final File outputOcr;
@@ -90,6 +90,8 @@ public class OcrGenerator extends ExternalProcess {
         cmdLine.add(outputOcrFile);
         cmdLine.add("-oA");
         cmdLine.add(outputAltoFile);
+        cmdLine.add("-key");
+        cmdLine.add(conf.getString(PROP_KEY));
         return cmdLine;
     }
 }

@@ -544,7 +544,7 @@ pid=uuid:01c76b77-09bf-438e-8659-1eb910284e3c&editorId=model:oldprintpage&jsonDa
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -559,11 +559,11 @@ seriesPartNumberFrom=61&seriesDateFrom=2022-01-01&seriesDateTo=2022-05-01&model=
 
 
 ### GENERATE ALTO TO PID
-POST {{proarcLocalHostUrl}}/rest/v2/object/generateAlto
+POST {{proarcUrl}}/rest/v2/object/generateAlto
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:5637ab30-2ed2-4dcc-a5ac-ecc4741e43b3
+&pid={{uuid}}
 
 ### GENERATE ALTO TO FOLDER
 POST {{proarcLocalHostUrl}}/rest/v2/import/generateAlto
