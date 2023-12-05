@@ -17,6 +17,10 @@
 package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchParams;
+import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
@@ -25,25 +29,39 @@ import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
+import cz.cas.lib.proarc.common.process.export.ExportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
 import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1;
+import cz.cas.lib.proarc.webapp.server.rest.v1.ExportResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
+import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -927,6 +945,20 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return new StringRecord(t);
+        }
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<InternalProcessResult> generateAlto(
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_PID) String pid
+    ) {
+        try {
+            return super.generateAlto(pid);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
         }
     }
 

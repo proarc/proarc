@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.urnnbn;
 
-import cz.cas.lib.proarc.common.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 
 /**

@@ -16,7 +16,7 @@
 
 package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
-import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPeriodicalVolumeMapper;
 import cz.cas.lib.proarc.mods.ModsDefinition;

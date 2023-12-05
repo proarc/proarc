@@ -21,12 +21,12 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.export.mets.Const;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -39,7 +39,7 @@ import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -62,8 +62,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Reindex all digital objects
@@ -144,19 +144,19 @@ public class ReindexDigitalObjects {
         return pids;
     }
 
-    public void reindexLocal(List<ImportBatchManager.BatchItemObject> objectList) throws DigitalObjectException {
+    public void reindexLocal(List<BatchManager.BatchItemObject> objectList) throws DigitalObjectException {
         if (objectList != null && !objectList.isEmpty()) {
             int pageIndex = 1;
             int audioPageIndex = 1;
 
-            for (ImportBatchManager.BatchItemObject object : objectList) {
+            for (BatchManager.BatchItemObject object : objectList) {
                 reindexLocalMods(pageIndex++, object, fixModel(modelId));
                 reindexLocalDc(object, fixModel(modelId));
             }
         }
     }
 
-    private void reindexLocalDc(ImportBatchManager.BatchItemObject object, String model) throws DigitalObjectException {
+    private void reindexLocalDc(BatchManager.BatchItemObject object, String model) throws DigitalObjectException {
         File foxml = object.getFile();
         if (foxml == null || !foxml.exists() || !foxml.canRead()) {
             throw new IllegalStateException("Cannot read foxml: " + foxml);
@@ -184,7 +184,7 @@ public class ReindexDigitalObjects {
         lobj.flush();
     }
 
-    private void reindexLocalMods(int index, ImportBatchManager.BatchItemObject object, String model) throws DigitalObjectException {
+    private void reindexLocalMods(int index, BatchManager.BatchItemObject object, String model) throws DigitalObjectException {
         File foxml = object.getFile();
         if (foxml == null || !foxml.exists() || !foxml.canRead()) {
             throw new IllegalStateException("Cannot read foxml: " + foxml);

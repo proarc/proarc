@@ -17,9 +17,9 @@
 package cz.cas.lib.proarc.common.urnnbn;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.export.mets.JhoveContext;
-import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.Storage;

@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.common.object.technicalMetadata;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;

@@ -24,7 +24,7 @@ import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -71,7 +71,7 @@ public class DigitalObjectPluginTest {
         );
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 config, akubraConfiguration,
-                EasyMock.createNiceMock(ImportBatchManager.class),
+                EasyMock.createNiceMock(BatchManager.class),
                 MetaModelRepository.getInstance(),
                 EasyMock.createNiceMock(UserManager.class)));
     }

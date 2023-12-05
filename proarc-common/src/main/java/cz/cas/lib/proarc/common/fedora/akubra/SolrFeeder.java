@@ -3,7 +3,7 @@ package cz.cas.lib.proarc.common.fedora.akubra;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import cz.cas.lib.proarc.common.export.ExportUtils;
+import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;

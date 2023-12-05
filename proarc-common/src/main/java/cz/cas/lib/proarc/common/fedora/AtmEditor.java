@@ -18,11 +18,11 @@ package cz.cas.lib.proarc.common.fedora;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
@@ -37,8 +37,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_ASSIGN;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_CONNECTED;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_DESCRIBED;

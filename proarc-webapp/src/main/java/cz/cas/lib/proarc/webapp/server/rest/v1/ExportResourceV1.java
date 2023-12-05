@@ -24,18 +24,18 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
-import cz.cas.lib.proarc.common.export.AcceptedExports;
-import cz.cas.lib.proarc.common.export.DesaExport;
-import cz.cas.lib.proarc.common.export.ExportDispatcher;
-import cz.cas.lib.proarc.common.export.ExportException;
-import cz.cas.lib.proarc.common.export.ExportProcess;
-import cz.cas.lib.proarc.common.export.ExportUtils;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException.MetsExportExceptionElement;
+import cz.cas.lib.proarc.common.process.export.AcceptedExports;
+import cz.cas.lib.proarc.common.process.export.DesaExport;
+import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
+import cz.cas.lib.proarc.common.process.export.ExportException;
+import cz.cas.lib.proarc.common.process.export.ExportProcess;
+import cz.cas.lib.proarc.common.process.export.ExportUtils;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException.MetsExportExceptionElement;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -99,7 +99,7 @@ public class ExportResourceV1 {
     private final AkubraConfiguration akubraConfiguration;
     protected final UserProfile user;
     private final SessionContext session;
-    private final ImportBatchManager batchManager;
+    private final BatchManager batchManager;
     private HttpHeaders httpHeaders;
 
     public ExportResourceV1(
@@ -115,7 +115,7 @@ public class ExportResourceV1 {
         }
         this.httpHeaders = httpHeaders;
         session = SessionContext.from(httpRequest);
-        this.batchManager = ImportBatchManager.getInstance();
+        this.batchManager = BatchManager.getInstance();
         user = session.getUser();
     }
 
@@ -133,7 +133,7 @@ public class ExportResourceV1 {
         }
         this.httpHeaders = httpHeaders;
         session = SessionContext.from(httpRequest);
-        this.batchManager = ImportBatchManager.getInstance();
+        this.batchManager = BatchManager.getInstance();
         user = session.getUser();
     }
 

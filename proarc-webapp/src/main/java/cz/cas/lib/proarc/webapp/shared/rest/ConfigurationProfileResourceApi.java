@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.webapp.shared.rest;
 
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
-import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 
 /**
  * The resource {@code /profile} API.

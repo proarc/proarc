@@ -153,6 +153,22 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     }
 
     @Override
+    public List<Batch> findWaitingInternalBatches() {
+        BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
+        result.getCommand().where(table.state.is(State.INTERNAL_PLANNED));
+        result.fetch(getConnection());
+        return Collections.unmodifiableList(result);
+    }
+
+    @Override
+    public List<Batch> findIntenalRunningBatches() {
+        BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
+        result.getCommand().where(table.state.is(State.INTERNAL_RUNNING));
+        result.fetch(getConnection());
+        return Collections.unmodifiableList(result);
+    }
+
+    @Override
     public List<Batch> findBatch(String pid, String processProfile, State state) {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(state));

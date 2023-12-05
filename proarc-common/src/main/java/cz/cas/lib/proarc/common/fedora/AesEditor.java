@@ -23,15 +23,15 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.export.mets.JHoveOutput;
-import cz.cas.lib.proarc.common.export.mets.JhoveContext;
-import cz.cas.lib.proarc.common.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.MimeType;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.MimeType;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
@@ -49,8 +49,8 @@ import javax.xml.transform.Source;
 import org.aes.audioobject.AudioObject;
 import org.aes.audioobject.AudioObjectType;
 
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Edits technical metadata in MIX format.

@@ -24,19 +24,21 @@ import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
-import cz.cas.lib.proarc.common.export.ExportDispatcher;
-import cz.cas.lib.proarc.common.export.ExportProcess;
+import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
+import cz.cas.lib.proarc.common.process.export.ExportProcess;
 import cz.cas.lib.proarc.common.fedora.FedoraStorageInitializer;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.imports.ImportBatchManager;
-import cz.cas.lib.proarc.common.imports.ImportDispatcher;
-import cz.cas.lib.proarc.common.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.internal.InternalDispatcher;
+import cz.cas.lib.proarc.common.process.internal.InternalProcess;
 import cz.cas.lib.proarc.common.sql.DbUtils;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -104,10 +106,12 @@ public final class ProarcInitializer {
         initUsers(config, proarcSource, daoFactory);
         finishedExportingBatch(config, daoFactory);
         finishUploadingBatch(config, daoFactory);
+        finishedInternalRunningBatch(config, daoFactory);
         initImport(config, daoFactory);
         initExport(config, akubraConfiguration, daoFactory);
+        initInternal(config, akubraConfiguration, daoFactory);
         DigitalObjectManager.setDefault(new DigitalObjectManager(
-                config, akubraConfiguration, ImportBatchManager.getInstance(),
+                config, akubraConfiguration, BatchManager.getInstance(),
                 MetaModelRepository.getInstance(), UserUtil.getDefaultManger()));
         Authenticators.setInstance(new Authenticators(config.getAuthenticators()));
         initWorkflow(config, daoFactory, UserUtil.getDefaultManger());
@@ -213,8 +217,8 @@ public final class ProarcInitializer {
     }
 
     private void initImport(AppConfiguration config, DaoFactory daoFactory) {
-        ImportBatchManager.setInstance(config, daoFactory);
-        ImportBatchManager ibm = ImportBatchManager.getInstance();
+        BatchManager.setInstance(config, daoFactory);
+        BatchManager ibm = BatchManager.getInstance();
         ImportDispatcher importDispatcher = new ImportDispatcher();
         ImportDispatcher.setDefault(importDispatcher);
         importDispatcher.init();
@@ -222,24 +226,39 @@ public final class ProarcInitializer {
     }
 
     private void initExport(AppConfiguration config, AkubraConfiguration akubraConfiguration, DaoFactory daoFactory) {
-        ImportBatchManager.setInstance(config, daoFactory);
-        ImportBatchManager ibm = ImportBatchManager.getInstance();
+        BatchManager.setInstance(config, daoFactory);
+        BatchManager ibm = BatchManager.getInstance();
         ExportDispatcher exportDispatcher = new ExportDispatcher();
         ExportDispatcher.setDefault(exportDispatcher);
         exportDispatcher.init();
         ExportProcess.resumeAll(ibm, exportDispatcher, config, akubraConfiguration);
     }
 
+    private void initInternal(AppConfiguration config, AkubraConfiguration akubraConfiguration, DaoFactory daoFactory) {
+        BatchManager.setInstance(config, daoFactory);
+        BatchManager ibm = BatchManager.getInstance();
+        InternalDispatcher internalDispatcher = new InternalDispatcher();
+        InternalDispatcher.setDefault(internalDispatcher);
+        internalDispatcher.init();
+        InternalProcess.resumeAll(ibm, internalDispatcher, config, akubraConfiguration);
+    }
+
     private void finishedExportingBatch(AppConfiguration config, DaoFactory daoFactory) {
-        ImportBatchManager.setInstance(config, daoFactory);
-        ImportBatchManager ibm = ImportBatchManager.getInstance();
+        BatchManager.setInstance(config, daoFactory);
+        BatchManager ibm = BatchManager.getInstance();
         BatchUtils.finishedExportingBatch(ibm, config);
     }
 
     private void finishUploadingBatch(AppConfiguration config, DaoFactory daoFactory) {
-        ImportBatchManager.setInstance(config, daoFactory);
-        ImportBatchManager ibm = ImportBatchManager.getInstance();
+        BatchManager.setInstance(config, daoFactory);
+        BatchManager ibm = BatchManager.getInstance();
         BatchUtils.finishedUploadingBatch(ibm, config);
+    }
+
+    private void finishedInternalRunningBatch(AppConfiguration config, DaoFactory daoFactory) {
+        BatchManager.setInstance(config, daoFactory);
+        BatchManager ibm = BatchManager.getInstance();
+        BatchUtils.finishedInternalRunningBatch(ibm, config);
     }
 
     private void initWorkflow(AppConfiguration config, DaoFactory daoFactory, UserManager users) {

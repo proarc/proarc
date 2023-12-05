@@ -18,7 +18,7 @@
 package cz.cas.lib.proarc.common.object.oldprint;
 
 
-import cz.cas.lib.proarc.common.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.RdaNdkMapper;
 import cz.cas.lib.proarc.mods.ModsDefinition;

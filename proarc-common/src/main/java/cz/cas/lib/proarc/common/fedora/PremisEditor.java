@@ -25,16 +25,16 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.export.mets.Const;
-import cz.cas.lib.proarc.common.export.mets.FileMD5Info;
-import cz.cas.lib.proarc.common.export.mets.JhoveContext;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
-import cz.cas.lib.proarc.common.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.NdkExportOptions;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
@@ -89,8 +89,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Edits technical metadata in Coding history format.

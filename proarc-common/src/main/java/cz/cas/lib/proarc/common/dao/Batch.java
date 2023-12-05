@@ -52,13 +52,15 @@ public class Batch {
     public static final String UPLOAD_KRAMERIUS = "uploadProfile.kramerius";
 
     public static final String INTERNAL_REINDEX = "internalProfile.reindex";
+    public static final String INTERNAL_PERO = "internalProfile.pero";
 
     public enum State {
 
         EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED, LOADING_CONFLICT,
         EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
         REINDEXING, REINDEX_FAILED, REINDEX_DONE,
-        UPLOADING, UPLOAD_FAILED, UPLOAD_DONE
+        UPLOADING, UPLOAD_FAILED, UPLOAD_DONE,
+        INTERNAL_RUNNING, INTERNAL_PLANNED, INTERNAL_FAILED, INTERNAL_DONE
     }
     
     private Integer id;

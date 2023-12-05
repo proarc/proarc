@@ -25,7 +25,9 @@ import cz.cas.lib.proarc.webapp.server.rest.DateTimeParam;
 import cz.cas.lib.proarc.webapp.server.rest.ImportFolder;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1;
 import cz.cas.lib.proarc.webapp.server.rest.v1.ImportResourceV1;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.util.Set;
 import java.util.logging.Level;
@@ -280,6 +282,20 @@ public class ImportResource extends ImportResourceV1 {
         }
         try {
             return super.unlockFolder(path, batchId);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
+    @Path(ImportResourceApi.GENERATE_ALTO_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<DigitalObjectResourceV1.InternalProcessResult> generateAlto(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
+    ) {
+        try {
+            return super.generateAlto(path);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

@@ -18,8 +18,8 @@ package cz.cas.lib.proarc.common.actions;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
@@ -49,8 +49,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
+import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Create digital copy of selected model

@@ -16,15 +16,15 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.cas.lib.proarc.common.export.ExportParams;
-import cz.cas.lib.proarc.common.export.Kramerius4ExportOptions;
-import cz.cas.lib.proarc.common.export.KwisExportOptions;
-import cz.cas.lib.proarc.common.export.archive.ArchiveExportOptions;
-import cz.cas.lib.proarc.common.export.desa.DesaServices;
-import cz.cas.lib.proarc.common.export.mets.NdkExportOptions;
+import cz.cas.lib.proarc.common.process.export.ExportParams;
+import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
+import cz.cas.lib.proarc.common.process.export.KwisExportOptions;
+import cz.cas.lib.proarc.common.process.export.archive.ArchiveExportOptions;
+import cz.cas.lib.proarc.common.process.export.desa.DesaServices;
+import cz.cas.lib.proarc.common.process.export.mets.NdkExportOptions;
 import cz.cas.lib.proarc.common.fedora.SearchOptions;
 import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.ndk.ModsRules;

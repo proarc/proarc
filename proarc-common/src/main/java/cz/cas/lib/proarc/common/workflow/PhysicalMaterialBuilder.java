@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.workflow;
 
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
-import cz.cas.lib.proarc.common.export.mets.ValidationErrorHandler;
+import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;

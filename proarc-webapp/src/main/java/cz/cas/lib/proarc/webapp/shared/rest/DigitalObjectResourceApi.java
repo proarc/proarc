@@ -209,6 +209,8 @@ public final class DigitalObjectResourceApi {
     /** Resource /object/ocr */
     public static final String OCR_PATH = "ocr";
 
+    public static final String GENERATE_ALTO_PATH = "generateAlto";
+
     /** Resource /object/technicalMetadata */
     public static final String TECHNICALMETADATA_AES_PATH = "technicalMetadataAes";
     public static final String TECHNICALMETADATA_CODING_HISTORY_PATH = "technicalMetadataCodingHistory";
@@ -326,6 +328,9 @@ public final class DigitalObjectResourceApi {
     public static final String UPDATE_NDK_PAGE = "updateNdkPage";
 
     public static final String UPDATE_CATALOG_RECORD = "updateCatalogRecord";
+
+    public static final String RESULT_ID = "processId";
+    public static final String RESULT_MSG = "msg";
 
     public enum SearchType {
         

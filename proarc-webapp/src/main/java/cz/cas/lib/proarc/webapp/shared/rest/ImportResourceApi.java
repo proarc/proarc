@@ -87,4 +87,6 @@ public final class ImportResourceApi {
     public static final String BATCHITEM_TIMESTAMP = "timestamp";
     public static final String BATCHITEM_USER = "user";
 
+    public static final String GENERATE_ALTO_PATH = "generateAlto";
+
 }
