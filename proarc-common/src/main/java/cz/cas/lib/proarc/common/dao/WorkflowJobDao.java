@@ -36,4 +36,5 @@ public interface WorkflowJobDao extends Dao {
 
     List<JobView> view(JobFilter filter);
 
+    String getDevice(BigDecimal id);
 }

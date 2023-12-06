@@ -26,10 +26,15 @@ import cz.cas.lib.proarc.common.dao.WorkflowJobDao;
 import cz.cas.lib.proarc.common.dao.WorkflowMaterialDao;
 import cz.cas.lib.proarc.common.dao.WorkflowParameterDao;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
+import cz.cas.lib.proarc.common.device.Device;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchViewItem;
 import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -145,10 +150,53 @@ public class WorkflowManager {
                     job.setTaskLabel(job.getTaskName());
                     job.setTaskHint("Unknown task XML ID: " + job.getTaskName());
                 }
+                job.setDevice(getDevice(jobDao.getDevice(job.getId())));
+            }
+            if (filter.getDeviceId() != null) {
+                jobs = filterDeviceJobs(jobs, filter.getDeviceId());
             }
             return jobs;
         } finally {
             tx.close();
+        }
+    }
+
+    private List<JobView> filterDeviceJobs(List<JobView> jobs, String deviceId) {
+        List<JobView> filteredJob = new ArrayList<>();
+        for (JobView job : jobs) {
+            if (deviceId.equals(job.getDeviceId())) {
+                filteredJob.add(job);
+            }
+        }
+        return filteredJob;
+    }
+
+    private Device getDevice(String deviceLabel) {
+        if (deviceLabel == null || deviceLabel.isEmpty()) {
+            return null;
+        }
+        DeviceRepository devRepo;
+        Device retValDevice = null;
+        try {
+            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
+                devRepo = new DeviceRepository(RemoteStorage.getInstance(appConfiguration));
+            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+                AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfiguration.getConfigHome());
+                devRepo = new DeviceRepository(AkubraStorage.getInstance(akubraConfiguration));
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+            }
+            List<Device> devices = devRepo.findAllDevices(appConfiguration, 0);
+            for (Device device : devices) {
+                if (deviceLabel.equals(device.getLabel())) {
+                    retValDevice = device;
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            return retValDevice;
         }
     }
 

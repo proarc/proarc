@@ -147,8 +147,8 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USER) String taskUser,
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME) String taskUserName,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID) String pid,
-            @QueryParam(WorkflowModelConsts.JOB_FILTER_RAW_PATH) String rawPath
-
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_RAW_PATH) String rawPath,
+            @QueryParam(WorkflowModelConsts.JOB_DEVICE_ID) String deviceId
     ) {
         int pageSize = 100;
         JobFilter filter = new JobFilter();
@@ -180,6 +180,7 @@ public class WorkflowResourceV1 {
         filter.setTaskDate(taskDate);
         filter.setTaskUser(taskUser);
         filter.setRawPath(rawPath);
+        filter.setDeviceId(deviceId);
         filter.setPid(pid);
         try {
             List<JobView> jobs = workflowManager.findJob(filter);
