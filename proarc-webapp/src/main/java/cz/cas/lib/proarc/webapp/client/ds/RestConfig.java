@@ -16,6 +16,14 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
+import com.google.gwt.core.client.GWT;
+import com.smartgwt.client.data.DSRequest;
+import com.smartgwt.client.data.DSResponse;
+import com.smartgwt.client.data.OperationBinding;
+import com.smartgwt.client.rpc.RPCResponse;
+import com.smartgwt.client.types.DSDataFormat;
+import com.smartgwt.client.types.DSOperationType;
+import com.smartgwt.client.types.DSProtocol;
 import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.AuthorityCatalogResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
@@ -26,18 +34,11 @@ import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.NewClientResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UrnNbnResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
-import com.google.gwt.core.client.GWT;
-import com.smartgwt.client.data.DSRequest;
-import com.smartgwt.client.data.DSResponse;
-import com.smartgwt.client.data.OperationBinding;
-import com.smartgwt.client.rpc.RPCResponse;
-import com.smartgwt.client.types.DSDataFormat;
-import com.smartgwt.client.types.DSOperationType;
-import com.smartgwt.client.types.DSProtocol;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -184,6 +185,8 @@ public final class RestConfig {
     public static final String URL_WORKFLOW_PROFILE = path(URL_WORKFLOW, WorkflowResourceApi.PROFILE_PATH);
     public static final String URL_WORKFLOW_TASK = path(URL_WORKFLOW, WorkflowResourceApi.TASK_PATH);
     public static final String URL_WORKFLOW_MODS = path(URL_WORKFLOW, WorkflowResourceApi.MODS_PATH);
+    public static final String URL_NEW_CLIENT = path(URL_ROOT, NewClientResourceApi.PATH);
+    public static final String URL_NEW_CLINT_URL = path(URL_NEW_CLIENT, NewClientResourceApi.URL_PATH);
 
     public static DSRequest createRestRequest(DSDataFormat format) {
         DSRequest dsr = new DSRequest();

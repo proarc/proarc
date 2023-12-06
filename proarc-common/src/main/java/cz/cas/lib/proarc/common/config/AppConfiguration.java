@@ -95,6 +95,7 @@ public final class AppConfiguration {
     public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
     public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
     public static final String EXPORT_BAGIT_SCRIPT_PATH = "export.bagit.scriptPath";
+    public static final String PROPERTY_NEW_CLIENT_URL = "proarc.client.url";
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
@@ -279,6 +280,10 @@ public final class AppConfiguration {
 
     public UrnNbnConfiguration getUrnNbnConfiguration() {
         return new UrnNbnConfiguration(config);
+    }
+
+    public String getNewClientUrl() {
+        return config.getString(PROPERTY_NEW_CLIENT_URL);
     }
 
     public String[] getPlugins() {
