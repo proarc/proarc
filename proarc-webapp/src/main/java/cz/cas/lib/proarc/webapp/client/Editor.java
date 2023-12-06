@@ -16,39 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client;
 
-import cz.cas.lib.proarc.webapp.client.ClientUtils.SweepTask;
-import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
-import cz.cas.lib.proarc.webapp.client.action.Actions;
-import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.LocalizationDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.UserPermissionDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
-import cz.cas.lib.proarc.webapp.client.presenter.DeviceManager;
-import cz.cas.lib.proarc.webapp.client.presenter.DeviceManaging.DeviceManagerPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreator;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectManager;
-import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectManaging.DigitalObjectManagerPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.ImportPresenter;
-import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace.Type;
-import cz.cas.lib.proarc.webapp.client.presenter.UserManaging.UsersPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJob;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJobEditor;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
-import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
-import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
-import cz.cas.lib.proarc.webapp.client.widget.UserInfoView;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-import cz.cas.lib.proarc.webapp.client.widget.UsersView;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.UrlBuilder;
@@ -90,6 +57,39 @@ import com.smartgwt.client.widgets.tree.events.FolderClosedEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClosedHandler;
 import com.smartgwt.client.widgets.tree.events.LeafClickEvent;
 import com.smartgwt.client.widgets.tree.events.LeafClickHandler;
+import cz.cas.lib.proarc.webapp.client.ClientUtils.SweepTask;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.ds.LanguagesDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.LocalizationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.UserPermissionDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
+import cz.cas.lib.proarc.webapp.client.presenter.DeviceManager;
+import cz.cas.lib.proarc.webapp.client.presenter.DeviceManaging.DeviceManagerPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreating.DigitalObjectCreatorPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectCreator;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectManager;
+import cz.cas.lib.proarc.webapp.client.presenter.DigitalObjectManaging.DigitalObjectManagerPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.ImportPresenter;
+import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.Importing.ImportPlace.Type;
+import cz.cas.lib.proarc.webapp.client.presenter.UserManaging.UsersPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowJobPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowNewJobPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowManaging.WorkflowTaskPlace;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJob;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowNewJobEditor;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowTasksEditor;
+import cz.cas.lib.proarc.webapp.client.widget.AboutWindow;
+import cz.cas.lib.proarc.webapp.client.widget.LoginWindow;
+import cz.cas.lib.proarc.webapp.client.widget.UserInfoView;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.client.widget.UsersView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -290,6 +290,7 @@ public class Editor implements EntryPoint {
         mainHeader.addMember(createButtonImportHistory());
         mainHeader.addMember(createButtonSearchObject());
         mainHeader.addMember(createButtonZamer());
+        mainHeader.addMember(createButtonNewClient());
         mainHeader.addFill();
         mainHeader.addMember(headerItem);
         mainHeader.addSpacer(6);
@@ -334,6 +335,18 @@ public class Editor implements EntryPoint {
                 PlaceController placeController = getEditorWorkFlow().getPlaceController();
                 placeController.goTo(new WorkflowJobPlace());
                 return;
+            }
+        });
+        return btn;
+    }
+
+    private Canvas createButtonNewClient() {
+        IconButton btn = new IconButton();
+        btn.setTitle(i18n.MainMenu_New_Client_Title());
+        btn.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                com.google.gwt.user.client.Window.open(RestConfig.URL_NEW_CLINT_URL,"ProArc","");
             }
         });
         return btn;
