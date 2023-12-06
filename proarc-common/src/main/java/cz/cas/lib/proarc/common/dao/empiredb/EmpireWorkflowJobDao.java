@@ -24,6 +24,9 @@ import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -227,6 +230,23 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
             return viewItems;
         } finally {
             reader.close();
+        }
+    }
+
+    @Override
+    public String getDevice(BigDecimal jobId) {
+        String device = "";
+        try {
+            Connection connection = getConnection();
+            PreparedStatement SCANNER = connection.prepareStatement("select p1.value_string as device from proarc_wf_job j1 left join proarc_wf_task t1 on j1.id = t1.job_id left join proarc_wf_parameter p1 on t1.id = p1.task_id where t1.type_ref='task.scan' and p1.param_ref='param.scan.scannerNew' and j1.id = " + String.valueOf(jobId));
+            final ResultSet resultSet = SCANNER.executeQuery();
+            while(resultSet.next()) {
+                device = resultSet.getString("device");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            return device;
         }
     }
 

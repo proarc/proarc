@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import cz.cas.lib.proarc.common.device.Device;
 import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -71,6 +72,10 @@ public class JobView extends Job {
     private String taskUser;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME)
     private String taskUsername;
+    @XmlElement(name = WorkflowModelConsts.JOB_DEVICE_ID)
+    private String deviceId;
+    @XmlElement(name = WorkflowModelConsts.JOB_DEVICE_LABEL)
+    private String deviceLabel;
 
     public String getRawPath() {
         return rawPath;
@@ -247,5 +252,28 @@ public class JobView extends Job {
 
     public void setTaskUsername(String taskUsername) {
         this.taskUsername = taskUsername;
+    }
+
+    public void setDevice(Device device) {
+        if (device != null) {
+            this.deviceId = device.getId();
+            this.deviceLabel = device.getLabel();
+        }
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public String getDeviceLabel() {
+        return deviceLabel;
+    }
+
+    public void setDeviceLabel(String deviceLabel) {
+        this.deviceLabel = deviceLabel;
     }
 }

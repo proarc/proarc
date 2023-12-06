@@ -42,6 +42,8 @@ public final class WorkflowModelConsts {
     public static final String JOB_TASK_CHANGE_DATE = "taskDate";
     public static final String JOB_TASK_CHANGE_USER = "taskUser";
     public static final String JOB_TASK_CHANGE_USERNAME = "taskUsername";
+    public static final String JOB_DEVICE_ID = "deviceID";
+    public static final String JOB_DEVICE_LABEL = "deviceLabel";
     /**
      * It is same like {@link #JOB_MODIFIED} but in a long number format to keep precision.
      */

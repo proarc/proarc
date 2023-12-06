@@ -16,38 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget.workflow;
 
-import cz.cas.lib.proarc.common.workflow.model.Job;
-import cz.cas.lib.proarc.common.workflow.model.MaterialType;
-import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.cas.lib.proarc.webapp.client.Editor;
-import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
-import cz.cas.lib.proarc.webapp.client.action.Action;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
-import cz.cas.lib.proarc.webapp.client.action.Actions;
-import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
-import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
-import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
-import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
-import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
-import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
-import cz.cas.lib.proarc.webapp.client.widget.Dialog;
-import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
-import cz.cas.lib.proarc.webapp.client.widget.form.CustomUUIDValidator;
-import cz.cas.lib.proarc.webapp.client.widget.mods.NewIssueEditor;
-import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
 import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.GWT;
 import com.smartgwt.client.data.AdvancedCriteria;
@@ -84,6 +52,39 @@ import com.smartgwt.client.widgets.menu.Menu;
 import com.smartgwt.client.widgets.menu.MenuItem;
 import com.smartgwt.client.widgets.menu.events.ItemClickEvent;
 import com.smartgwt.client.widgets.toolbar.ToolStrip;
+import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.Action;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.Actions.ActionSource;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ValueMapDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowJobDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.WorkflowProfileDataSource;
+import cz.cas.lib.proarc.webapp.client.presenter.WorkflowJobsEditor;
+import cz.cas.lib.proarc.webapp.client.widget.CanvasSizePersistence;
+import cz.cas.lib.proarc.webapp.client.widget.Dialog;
+import cz.cas.lib.proarc.webapp.client.widget.ListGridPersistance;
+import cz.cas.lib.proarc.webapp.client.widget.form.CustomUUIDValidator;
+import cz.cas.lib.proarc.webapp.client.widget.mods.NewIssueEditor;
+import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *
@@ -579,8 +580,8 @@ public class WorkflowJobView implements Refreshable {
                 new ListGridField(WorkflowJobDataSource.FIELD_STATE, 50),
                 //new ListGridField(WorkflowJobDataSource.FIELD_OWNER, 50),
                 new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
-                new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100)
-
+                new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_DEVICE_ID, 100)
                 );
         g.getField(WorkflowJobDataSource.FIELD_RAW_PATH).setHidden(true);
         g.getField(WorkflowJobDataSource.FIELD_MBARCODE).setHidden(false);
@@ -605,6 +606,7 @@ public class WorkflowJobView implements Refreshable {
         g.getField(WorkflowJobDataSource.FIELD_STATE).setHidden(true);
         g.getField(WorkflowJobDataSource.FIELD_CREATED).setHidden(true);
         g.getField(WorkflowJobDataSource.FIELD_MODIFIED).setHidden(true);
+        g.getField(WorkflowJobDataSource.FIELD_DEVICE_ID).setHidden(true);
 
         g.setSortField(WorkflowJobDataSource.FIELD_CREATED);
         g.setSortDirection(SortDirection.ASCENDING);
@@ -628,6 +630,13 @@ public class WorkflowJobView implements Refreshable {
         taskOwner.setValueField(UserDataSource.FIELD_ID);
         taskOwner.setDisplayField(UserDataSource.FIELD_USERNAME);
         g.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setFilterEditorProperties(taskOwner);
+
+        SelectItem device = new SelectItem();
+        DeviceDataSource.setOptionDataSource(device);
+        device.setWidth(250);
+        device.setValueField(DeviceDataSource.FIELD_ID);
+        device.setDisplayField(DeviceDataSource.FIELD_LABEL);
+        g.getField(WorkflowJobDataSource.FIELD_DEVICE_ID).setFilterEditorProperties(device);
 
         g.addSelectionUpdatedHandler((SelectionUpdatedEvent event) -> {
             if (!ignoreSubjobSelection) {
@@ -681,7 +690,8 @@ public class WorkflowJobView implements Refreshable {
                 new ListGridField(WorkflowJobDataSource.FIELD_STATE, 50),
                 //new ListGridField(WorkflowJobDataSource.FIELD_OWNER, 50),
                 new ListGridField(WorkflowJobDataSource.FIELD_CREATED, 100),
-                new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100)
+                new ListGridField(WorkflowJobDataSource.FIELD_MODIFIED, 100),
+                new ListGridField(WorkflowJobDataSource.FIELD_DEVICE_ID, 100)
                 );
 
         jobGrid.getField(WorkflowJobDataSource.FIELD_RAW_PATH).setHidden(true);
@@ -707,6 +717,7 @@ public class WorkflowJobView implements Refreshable {
         jobGrid.getField(WorkflowJobDataSource.FIELD_STATE).setHidden(true);
         jobGrid.getField(WorkflowJobDataSource.FIELD_CREATED).setHidden(true);
         jobGrid.getField(WorkflowJobDataSource.FIELD_MODIFIED).setHidden(true);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_DEVICE_ID).setHidden(true);
 
         jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setWidth("80%");
         jobGrid.getField(WorkflowJobDataSource.FIELD_LABEL).setFilterOnKeypress(false);
@@ -747,6 +758,13 @@ public class WorkflowJobView implements Refreshable {
         taskOwner.setDisplayField(UserDataSource.FIELD_USERNAME);
         jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setFilterEditorProperties(taskOwner);
         jobGrid.getField(WorkflowJobDataSource.FIELD_TASK_CHANGE_USER).setCanSort(false);
+
+        SelectItem device = new SelectItem();
+        DeviceDataSource.setOptionDataSource(device);
+        device.setValueField(DeviceDataSource.FIELD_ID);
+        device.setDisplayField(DeviceDataSource.FIELD_LABEL);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_DEVICE_ID).setFilterEditorProperties(device);
+        jobGrid.getField(WorkflowJobDataSource.FIELD_DEVICE_ID).setCanSort(false);
 
         jobGrid.getField(WorkflowJobDataSource.FIELD_NOTE).setCanSort(false);
 

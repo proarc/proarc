@@ -92,6 +92,8 @@ public class JobFilter {
     private String taskUser;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME)
     private String taskUsername;
+    @XmlElement(name = WorkflowModelConsts.JOB_DEVICE_ID)
+    private String deviceId;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_SORTBY)
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_OFFSET)
@@ -337,5 +339,13 @@ public class JobFilter {
 
     public void setPid(String pid) {
         this.pid = pid;
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 }
