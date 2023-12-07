@@ -14,8 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.process.export.archive;
+package cz.cas.lib.proarc.common.process.imports.archive;
 
+import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;

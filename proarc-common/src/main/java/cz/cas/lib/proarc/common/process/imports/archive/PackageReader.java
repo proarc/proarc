@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.process.export.archive;
+package cz.cas.lib.proarc.common.process.imports.archive;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
+import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder;
 import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder.MdType;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;

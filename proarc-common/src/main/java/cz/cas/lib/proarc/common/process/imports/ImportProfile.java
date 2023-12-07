@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.common.process.imports;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
-import cz.cas.lib.proarc.common.process.export.archive.ArchiveImport;
+import cz.cas.lib.proarc.common.process.imports.archive.ArchiveImport;
 import cz.cas.lib.proarc.common.process.imports.audio.SoundRecordingImport;
 import cz.cas.lib.proarc.common.process.imports.kramerius.FileReader;
 import cz.cas.lib.proarc.common.process.imports.kramerius.KrameriusImport;
