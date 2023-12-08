@@ -370,29 +370,32 @@ public final class FedoraImport {
                     rObj.flush();
                 }
             }
-        } else if (getOverride() && fedora.exist(item.getPid())) {
+        } else if (getUpdate() && fedora.exist(item.getPid())) {
             RemoteObject rObj = fedora.find(item.getPid());
             RelationEditor localRelEditor = new RelationEditor(lobj);
             if (!DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(localRelEditor.getModel()) || !DeviceRepository.METAMODEL_ID.equals(localRelEditor.getModel())) {
                 // rels-ext
-                List<String> members = localRelEditor.getMembers();
                 RelationEditor remoteRelEditor = new RelationEditor(rObj);
+                List<String> members = remoteRelEditor.getMembers();
+                members.addAll(localRelEditor.getMembers());
                 remoteRelEditor.setMembers(members);
                 remoteRelEditor.write(remoteRelEditor.getLastModified(), "The override RELS-EXT object from " + foxml);
 
-                // mods
-                ModsStreamEditor localModsEditor = new ModsStreamEditor(lobj);
-                ModsDefinition mods = localModsEditor.read();
-                ModsStreamEditor remoteModsEditor = new ModsStreamEditor(rObj);
-                remoteModsEditor.write(mods, remoteModsEditor.getLastModified(), "The override MODS object from " + foxml);
+                if (getOverride()) {
+                    // mods
+                    ModsStreamEditor localModsEditor = new ModsStreamEditor(lobj);
+                    ModsDefinition mods = localModsEditor.read();
+                    ModsStreamEditor remoteModsEditor = new ModsStreamEditor(rObj);
+                    remoteModsEditor.write(mods, remoteModsEditor.getLastModified(), "The override MODS object from " + foxml);
 
-                // dc
-                DcStreamEditor localDcEditor = new DcStreamEditor(lobj);
-                DcStreamEditor.DublinCoreRecord dc = localDcEditor.read();
-                DcStreamEditor remoteDcEditor = new DcStreamEditor(rObj);
-                remoteDcEditor.write(dc, "The override DC object from " + foxml);
+                    // dc
+                    DcStreamEditor localDcEditor = new DcStreamEditor(lobj);
+                    DcStreamEditor.DublinCoreRecord dc = localDcEditor.read();
+                    DcStreamEditor remoteDcEditor = new DcStreamEditor(rObj);
+                    remoteDcEditor.write(dc, "The override DC object from " + foxml);
 
-                rObj.setLabel(lobj.getLabel());
+                    rObj.setLabel(lobj.getLabel());
+                }
                 rObj.flush();
             }
         } else {
@@ -404,8 +407,12 @@ public final class FedoraImport {
         return item;
     }
 
-    private boolean getOverride() {
+    private boolean getUpdate() {
         return options == null ? false : options.isUseNewMetadata() || options.isUseOriginalMetadata();
+    }
+
+    private boolean getOverride() {
+        return options == null ? false : options.isUseNewMetadata();
     }
 
     private void addParentMembers(Batch batch, String parent, List<String> pids, String message) throws DigitalObjectException {

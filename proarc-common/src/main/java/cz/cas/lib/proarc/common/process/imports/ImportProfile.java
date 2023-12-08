@@ -19,13 +19,14 @@ package cz.cas.lib.proarc.common.process.imports;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.process.imports.archive.ArchiveImport;
 import cz.cas.lib.proarc.common.process.imports.audio.SoundRecordingImport;
 import cz.cas.lib.proarc.common.process.imports.kramerius.FileReader;
 import cz.cas.lib.proarc.common.process.imports.kramerius.KrameriusImport;
+import cz.cas.lib.proarc.common.process.imports.ndk.NdkImport;
 import cz.cas.lib.proarc.common.process.imports.replaceStream.ReplaceStreamImport;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
 import org.apache.commons.configuration.Configuration;
@@ -114,6 +115,8 @@ public final class ImportProfile {
         switch(getProfileId()) {
             case ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT:
                 return new ArchiveImport();
+            case ConfigurationProfile.DEFAULT_NDK_IMPORT:
+                return new NdkImport();
             case ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT:
                 return new KrameriusImport(FileReader.K4_MAP);
             case ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT:

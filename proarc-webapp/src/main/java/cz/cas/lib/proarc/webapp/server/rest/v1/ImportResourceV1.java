@@ -217,6 +217,8 @@ public class ImportResourceV1 {
             List<ProfileStates> states = new ArrayList();
             states.add(new ProfileStates(ConfigurationProfile.DEFAULT, subfolder.getStatusDefault(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, subfolder.getStatusArchive(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_NDK_IMPORT, subfolder.getStatusNdk(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_NDK_IMPORT, subfolder.getStatusNdk(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusK4(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));

@@ -85,6 +85,7 @@ public class Profiles {
         if (filePath == null) {
             if (ConfigurationProfile.DEFAULT.equals(profile.getId())
                     || ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(profile.getId())
+                    || ConfigurationProfile.DEFAULT_NDK_IMPORT.equals(profile.getId())
                     || ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT.equals(profile.getId())) {
                 // default profile
                 return null;
