@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.process.imports.ndk;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -51,8 +52,13 @@ import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.external.ExternalProcess;
+import cz.cas.lib.proarc.common.process.external.KakaduExpand;
+import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.InputUtils;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.mets.DivType;
@@ -71,6 +77,9 @@ import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
+import cz.incad.imgsupport.ImageMimeType;
+import cz.incad.imgsupport.ImageSupport;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -79,10 +88,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXB;
 import javax.xml.transform.dom.DOMSource;
+import org.apache.commons.configuration.Configuration;
 import org.w3c.dom.Node;
 
+import static cz.cas.lib.proarc.common.process.imports.TiffImporter.scale;
+import static cz.cas.lib.proarc.common.process.imports.TiffImporter.writeImage;
 import static cz.cas.lib.proarc.common.process.imports.ndk.StreamFileType.getFileType;
 
 /**
@@ -145,7 +158,7 @@ public class FileReader {
         }
     }
 
-    private void loadStructMaps(Mets mets, ImportOptions ctx) throws DigitalObjectException, IOException {
+    private void loadStructMaps(Mets mets, ImportOptions ctx) throws Exception {
         for (StructMapType structMap : mets.getStructMap()) {
             if ("PHYSICAL".equalsIgnoreCase(structMap.getTYPE())) {
                 loadPages(structMap, ctx);
@@ -352,7 +365,7 @@ public class FileReader {
         relEditor.write(0, null);
     }
 
-    private void loadPages(StructMapType structMap, ImportOptions ctx) throws DigitalObjectException, IOException {
+    private void loadPages(StructMapType structMap, ImportOptions ctx) throws Exception {
         DivType object = structMap.getDiv();
         if (object == null) {
             throw new IllegalStateException("Missing children DIV for" + structMap.getID());
@@ -387,7 +400,7 @@ public class FileReader {
             DigitalObjectHandler dobjHandler = DigitalObjectManager.getDefault().createHandler(localObject);
             createPageRelsExt(dobjHandler, ctx);
             createPageMetadata(dobjHandler, mods, pageIndex, pageNumber, pageType, localObject, ctx);
-            createFiles(localObject, pageDiv);
+            createFiles(localObject, pageDiv, ctx);
             dobjHandler.commit();
             objects.put(pageDiv.getID(), localObject);
             importItem.setState(BatchItem.ObjectState.LOADED);
@@ -399,7 +412,7 @@ public class FileReader {
         return identifier.getType() + ":" + identifier.getValue();
     }
 
-    private void createFiles(LocalStorage.LocalObject localObject, DivType pageDiv) throws IOException, DigitalObjectException {
+    private void createFiles(LocalStorage.LocalObject localObject, DivType pageDiv, ImportOptions ctx) throws Exception {
         for (Fptr fptr : pageDiv.getFptr()) {
             FileType fileId = (FileType) fptr.getFILEID();
             FileDescriptor fileDesc = fileMap.get(fileId.getID());
@@ -426,6 +439,7 @@ public class FileReader {
                 case MASTER_IMAGE:
                     BinaryEditor archivalEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.IMAGE_JP2);
                     archivalEditor.write(file.toURI(), 0, null);
+                    processImage(localObject, file, ctx);
                     break;
                 case AMD:
                     // TODO
@@ -434,6 +448,141 @@ public class FileReader {
                     throw new IllegalArgumentException("Unsupported fileType: " + fileDesc.getFileType());
             }
         }
+    }
+
+    private void processImage(LocalStorage.LocalObject localObject, File jp2File, ImportOptions ctx) throws DigitalObjectException, IOException, AppConfigurationException {
+        ImportProfile config = ctx.getConfig();
+        if (jp2File != null && jp2File.exists()) {
+            File tiffFile = convertToTiff(jp2File, ctx.getTargetFolder(), config.getConvertorJp2Processor());
+            if (tiffFile != null && tiffFile.exists()) {
+                if (!InputUtils.isTiff(tiffFile)) {
+                    throw new IllegalStateException("Not a TIFF content: " + tiffFile);
+                }
+                BinaryEditor tiffEditor = BinaryEditor.dissemination(localObject, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF);
+                tiffEditor.write(tiffFile.toURI(), 0, null);
+
+                boolean runCustomConversion = config.isTiffToJpgDefined();
+
+                long start;
+                long endRead = 0;
+                BufferedImage tiff = null;
+                File file = null;
+
+                ImageMimeType imageType = ImageMimeType.JPEG;
+                MediaType mediaType = MediaType.valueOf(imageType.getMimeType());
+
+
+                String targetName = String.format("%s.full.%s", getFileName(tiffFile), imageType.getDefaultFileExtension());
+                start = System.nanoTime();
+                if (runCustomConversion) {
+                    file = new File(ctx.getTargetFolder(), targetName);
+                    ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), tiffFile, file);
+                    p.run();
+
+                    if (!p.isOk()) {
+                        throw new IllegalStateException("Converting tiff to FULL jpg failed: " + p.getFullOutput());
+                    }
+                } else {
+                    if (tiff == null) {
+                        start = System.nanoTime();
+                        tiff = ImageSupport.readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
+                        endRead = System.nanoTime() - start;
+                    }
+                    file = writeImage(tiff, ctx.getTargetFolder(), targetName, imageType);
+                }
+                if (!InputUtils.isJpeg(file)) {
+                    throw new IllegalStateException("Not a JPEG content: " + file);
+                }
+                long endFull = System.nanoTime() - start;
+                BinaryEditor fullEditor = BinaryEditor.dissemination(localObject, BinaryEditor.FULL_ID, mediaType);
+                fullEditor.write(file, 0, null);
+
+
+                targetName = String.format("%s.preview.%s", getFileName(tiffFile), imageType.getDefaultFileExtension());
+                Integer previewMaxHeight = config.getPreviewMaxHeight();
+                Integer previewMaxWidth = config.getPreviewMaxWidth();
+                config.checkPreviewScaleParams();
+                start = System.nanoTime();
+                if (runCustomConversion) {
+                    file = new File(ctx.getTargetFolder(), targetName);
+                    ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), tiffFile, file, previewMaxWidth, previewMaxHeight);
+                    p.run();
+
+                    if (!p.isOk()) {
+                        throw new IllegalStateException("Converting tiff to PREVIEW jpg failed: " + p.getFullOutput());
+                    }
+                } else {
+                    if (tiff == null) {
+                        start = System.nanoTime();
+                        tiff = ImageSupport.readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
+                        endRead = System.nanoTime() - start;
+                    }
+                    file = writeImage(
+                                scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
+                                ctx.getTargetFolder(), targetName, imageType);
+                }
+                if (!InputUtils.isJpeg(file)) {
+                    throw new IllegalStateException("Not a JPEG content: " + file);
+                }
+                long endPreview = System.nanoTime() - start;
+                BinaryEditor previewEditor = BinaryEditor.dissemination(localObject, BinaryEditor.PREVIEW_ID, mediaType);
+                previewEditor.write(file, 0, null);
+
+                targetName = String.format("%s.thumb.%s", getFileName(tiffFile), imageType.getDefaultFileExtension());
+                Integer thumbMaxHeight = config.getThumbnailMaxHeight();
+                Integer thumbMaxWidth = config.getThumbnailMaxWidth();
+                config.checkThumbnailScaleParams();
+                start = System.nanoTime();
+                if (runCustomConversion) {
+                    file = new File(ctx.getTargetFolder(), targetName);
+                    ExternalProcess p = new TiffToJpgConvert(config.getConvertorTiffToJpgProcessor(), tiffFile, file, thumbMaxWidth, thumbMaxHeight);
+                    p.run();
+
+                    if (!p.isOk()) {
+                        throw new IllegalStateException("Converting tiff to THUMBNAIL jpg failed: " + p.getFullOutput());
+                    }
+                } else {
+                    if (tiff == null) {
+                        start = System.nanoTime();
+                        tiff = ImageSupport.readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
+                        endRead = System.nanoTime() - start;
+                    }
+                    file = writeImage(
+                            scale(tiff, config.getThumbnailScaling(), thumbMaxWidth, thumbMaxHeight),
+                            ctx.getTargetFolder(), targetName, imageType);
+                }
+                long endThumb = System.nanoTime() - start;
+                BinaryEditor thumbnailEditor = BinaryEditor.dissemination(localObject, BinaryEditor.THUMB_ID, mediaType);
+                thumbnailEditor.write(file, 0, null);
+
+                LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
+                        tiffFile.getName(), endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
+            }
+        }
+    }
+
+    private File convertToTiff(File jp2File, File targetFolder, Configuration processorConfig) throws IOException {
+        if (processorConfig != null && !processorConfig.isEmpty()) {
+            File tiffFile = new File(targetFolder, String.format("%s.%s", getFileName(jp2File), "tif"));
+            String processorType = processorConfig.getString("type");
+            ExternalProcess process = null;
+            if (KakaduExpand.ID.equals(processorType)) {
+                process = new KakaduExpand(processorConfig, jp2File, tiffFile);
+            } else {
+                throw new IllegalArgumentException("No suitable convertor found.");
+            }
+            process.run();
+
+//            if (!process.isOk()) {
+//                throw new IOException(tiffFile.getAbsolutePath() + "\n" + process.getFullOutput());
+//            }
+            return tiffFile;
+        }
+        return null;
+    }
+
+    private String getFileName(File sourceFile) {
+        return sourceFile.getName().substring(0, sourceFile.getName().indexOf("."));
     }
 
     private void createMetadata(DigitalObjectHandler dobjHandler, ModsDefinition mods, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DigitalObjectException {

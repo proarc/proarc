@@ -51,6 +51,7 @@ public final class ImportProfile {
     public static final String MODEL_AUDIO_ID="import.ndkaudiopage.modelId";
     public static final String PAGE_PATH="import.page.path";
     public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
+    public static final String JP2_TO_TIFF_PROCESSOR = "import.jp2ToTiff.processor";
     public static final String NDK_ARCHIVAL_SUFFIX = "import.ndk_archival.file.suffix";
     public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
     public static final String NDK_USER_SUFFIX = "import.ndk_user.file.suffix";
