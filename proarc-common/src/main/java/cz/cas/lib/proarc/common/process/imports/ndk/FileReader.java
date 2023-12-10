@@ -21,12 +21,17 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
+import cz.cas.lib.proarc.common.device.Device;
+import cz.cas.lib.proarc.common.device.DeviceException;
+import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.LocalStorage;
+import cz.cas.lib.proarc.common.fedora.MixEditor;
 import cz.cas.lib.proarc.common.fedora.PageView;
 import cz.cas.lib.proarc.common.fedora.RemoteStorage;
 import cz.cas.lib.proarc.common.fedora.SearchView;
@@ -62,6 +67,7 @@ import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.process.imports.InputUtils;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
 import cz.cas.lib.proarc.mets.FileType;
@@ -73,6 +79,10 @@ import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.MetsType.StructLink;
 import cz.cas.lib.proarc.mets.StructLinkType.SmLink;
 import cz.cas.lib.proarc.mets.StructMapType;
+import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
+import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
+import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.mix.MixUtils;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -469,12 +479,117 @@ public class FileReader {
                     processImage(localObject, file, ctx);
                     break;
                 case AMD:
-                    // TODO
+                    processTechnicalMetadata(localObject, file, ctx);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported fileType: " + fileDesc.getFileType());
             }
         }
+    }
+
+    private void processTechnicalMetadata(LocalStorage.LocalObject localObject, File amdSec, ImportOptions ctx) throws DigitalObjectException, DeviceException {
+        Mets amdMets = JAXB.unmarshal(amdSec, Mets.class);
+        for (AmdSecType amdSecType : amdMets.getAmdSec()) {
+            for (MdSecType techMd : amdSecType.getTechMD()) {
+                if (techMd.getID().startsWith("MIX")) {
+                    processMix(techMd, localObject, ctx);
+                }
+            }
+        }
+    }
+
+    private void processMix(MdSecType techMd, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DigitalObjectException, DeviceException {
+        Node data = (Node) techMd.getMdWrap().getXmlData().getAny().get(0);
+        Mix mix = MixUtils.unmarshalMix(new DOMSource(data));
+        String type = getMixType(mix);
+
+        switch (type.toUpperCase()) {
+            case "NDK_ARCHIVAL":
+                MixEditor mixNdkArchivalEditor = MixEditor.ndkArchival(localObject);
+                mixNdkArchivalEditor.write(mix, 0, null);
+                break;
+            case "RAW":
+                MixEditor mixRawEditor = MixEditor.raw(localObject);
+                mixRawEditor.write(getFileMix(mix), 0, null);
+
+                processDevice(getDeviceMix(mix), localObject, ctx);
+                break;
+            default:
+                LOG.info("Unsupported BasicDigitalObjectInformation/ObjectIdentifier/objectIdentifierValue value: " + type);
+        }
+    }
+
+    private void processDevice(Mix deviceMix, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DeviceException, DigitalObjectException {
+        String deviceId = getDevice(deviceMix);
+        if (deviceId == null || deviceId.isEmpty()) {
+            DeviceRepository deviceRepository = iSession.getDeviceRepository();
+            Device device = deviceRepository.addDeviceWithMetadata(ctx.getUsername(), DeviceRepository.METAMODEL_ID, "Importer device", "Init metadata", deviceMix, null);
+            deviceId = device.getId();
+        }
+        if (deviceId != null && !deviceId.isEmpty()) {
+            RelationEditor relationEditor = new RelationEditor(localObject);
+            relationEditor.setDevice(deviceId);
+            relationEditor.write(relationEditor.getLastModified(), "set child");
+            localObject.flush();
+        } else {
+            throw new DigitalObjectNotFoundException(localObject.getPid(), "Missing device Id");
+        }
+    }
+
+    private String getDevice(Mix deviceMix) throws DeviceException {
+        List<Device> devices  = iSession.findAllDevices();
+        for (Device device : devices) {
+            if (isEqualDevice(deviceMix, device.getDescription())) {
+                return device.getId();
+            }
+        }
+        return null;
+    }
+
+    private boolean isEqualDevice(Mix newMix, Mix sourceMix) {
+        DeviceIdentification newDevice = new DeviceIdentification(newMix);
+        DeviceIdentification sourceDevice = new DeviceIdentification(sourceMix);
+        return newDevice.equals(sourceDevice);
+    }
+
+    private Mix getDeviceMix(Mix mixOriginal) {
+        Mix mixNew = new Mix();
+        if (mixOriginal.getImageCaptureMetadata() != null) {
+            mixNew.setImageCaptureMetadata(mixOriginal.getImageCaptureMetadata());
+        }
+        return mixNew;
+    }
+
+    private Mix getFileMix(Mix mixOriginal) {
+        Mix mixNew = new Mix();
+        if (mixOriginal.getBasicDigitalObjectInformation() != null) {
+            mixNew.setBasicDigitalObjectInformation(mixOriginal.getBasicDigitalObjectInformation());
+        }
+        if (mixOriginal.getBasicImageInformation() != null) {
+            mixNew.setBasicImageInformation(mixOriginal.getBasicImageInformation());
+        }
+        if (mixOriginal.getImageAssessmentMetadata() != null) {
+            mixNew.setImageAssessmentMetadata(mixOriginal.getImageAssessmentMetadata());
+        }
+        if (mixOriginal.getChangeHistory() != null) {
+            mixNew.setChangeHistory(mixOriginal.getChangeHistory());
+        }
+        return mixNew;
+    }
+
+    private String getMixType(Mix mix) {
+        String identifierValue = null;
+        if (mix.getBasicDigitalObjectInformation() != null) {
+            for (BasicDigitalObjectInformationType.ObjectIdentifier objectIdentifier : mix.getBasicDigitalObjectInformation().getObjectIdentifier()) {
+                if (objectIdentifier.getObjectIdentifierValue() != null) {
+                    identifierValue = objectIdentifier.getObjectIdentifierValue().getValue();
+                }
+            }
+        }
+        if (identifierValue != null) {
+            return identifierValue.substring(identifierValue.lastIndexOf("/") + 1);
+        }
+        return null;
     }
 
     private void processImage(LocalStorage.LocalObject localObject, File jp2File, ImportOptions ctx) throws DigitalObjectException, IOException, AppConfigurationException {
@@ -783,9 +898,12 @@ public class FileReader {
         private final Batch batch;
         private final LocalStorage locals;
         private final SearchView search;
+        private final DeviceRepository deviceRepository;
         private final Storage typeOfStorage;
-        private RemoteStorage remotes;
+        private RemoteStorage fedoraStorage;
         private AkubraStorage akubraStorage;
+        private final AppConfiguration config;
+
         /**
          * The user cache.
          */
@@ -795,18 +913,21 @@ public class FileReader {
             try {
                 this.typeOfStorage = appConfig.getTypeOfStorage();
                 if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.remotes = RemoteStorage.getInstance();
-                    this.search = this.remotes.getSearch();
+                    this.fedoraStorage = RemoteStorage.getInstance(appConfig);
+                    this.search = this.fedoraStorage.getSearch();
+                    this.deviceRepository = new DeviceRepository(this.fedoraStorage);
                 } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
                     this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     this.search = this.akubraStorage.getSearch();
+                    this.deviceRepository = new DeviceRepository(this.akubraStorage);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + typeOfStorage);
                 }
             } catch (Exception ex) {
                 throw new IllegalStateException(ex);
             }
+            this.config = appConfig;
             this.locals = new LocalStorage();
             this.batchManager = batchManager;
             this.options = options;
@@ -815,7 +936,7 @@ public class FileReader {
 
         public boolean exists(String pid) throws DigitalObjectException {
             if (Storage.FEDORA.equals(this.typeOfStorage)) {
-                if (this.remotes.exist(pid)) {
+                if (this.fedoraStorage.exist(pid)) {
                     throw new DigitalObjectExistException(pid, null, "Object with PID " + pid + " already exists!", null);
                 }
             } else if (Storage.AKUBRA.equals(this.typeOfStorage)) {
@@ -828,6 +949,10 @@ public class FileReader {
             return false;
         }
 
+        public List<Device> findAllDevices() throws DeviceException {
+            return this.deviceRepository.find(config, null, true,0);
+        }
+
         public BatchManager getImportManager() {
             return batchManager;
         }
@@ -836,12 +961,16 @@ public class FileReader {
             return locals;
         }
 
-        public RemoteStorage getRemotes() {
-            return remotes;
+        public RemoteStorage getFedoraRemotes() {
+            return fedoraStorage;
         }
 
         public AkubraStorage getAkubraStorage() {
             return akubraStorage;
+        }
+
+        public DeviceRepository getDeviceRepository() {
+            return deviceRepository;
         }
 
         public Storage getTypeOfStorage() {
@@ -945,5 +1074,83 @@ public class FileReader {
 
     private static enum Genre {
         NONE, CARTOGRAPHIC, SHEETMUSIC
+    }
+
+    private class DeviceIdentification {
+
+        private String imageProducer = null;
+        private String captureDevice = null;
+        private String scannerManufacturer = null;
+        private String scannerSensor = null;
+        private String digitalCameraManufacturer = null;
+        private String digitalCameraModelName = null;
+
+        public DeviceIdentification(Mix mix) {
+            if (mix != null) {
+                ImageCaptureMetadataType imageCapture = mix.getImageCaptureMetadata();
+                if (imageCapture != null && imageCapture.getGeneralCaptureInformation() != null) {
+                    ImageCaptureMetadataType.GeneralCaptureInformation captureInformation = imageCapture.getGeneralCaptureInformation();
+                    if (captureInformation.getImageProducer() != null && !captureInformation.getImageProducer().isEmpty() && captureInformation.getImageProducer().get(0) != null && captureInformation.getImageProducer().get(0).getValue() != null) {
+                        this.imageProducer = captureInformation.getImageProducer().get(0).getValue();
+                    }
+                    if (captureInformation.getCaptureDevice() != null && captureInformation.getCaptureDevice().getValue() != null) {
+                        this.captureDevice = captureInformation.getCaptureDevice().getValue().value();
+                    }
+                }
+                if (imageCapture != null && imageCapture.getScannerCapture() != null && imageCapture.getScannerCapture().getScannerManufacturer() != null && imageCapture.getScannerCapture().getScannerManufacturer().getValue() != null) {
+                    this.scannerManufacturer = imageCapture.getScannerCapture().getScannerManufacturer().getValue();
+                }
+                if (imageCapture != null && imageCapture.getScannerCapture() != null && imageCapture.getScannerCapture().getScannerSensor() != null && imageCapture.getScannerCapture().getScannerSensor().getValue() != null) {
+                    this.scannerSensor = imageCapture.getScannerCapture().getScannerSensor().getValue().value();
+                }
+                if (imageCapture != null && imageCapture.getDigitalCameraCapture() != null) {
+                    ImageCaptureMetadataType.DigitalCameraCapture digitalCamera = imageCapture.getDigitalCameraCapture();
+                    if (digitalCamera.getDigitalCameraManufacturer() != null && digitalCamera.getDigitalCameraManufacturer().getValue() != null) {
+                        this.digitalCameraManufacturer = digitalCamera.getDigitalCameraManufacturer().getValue();
+                    }
+                    if (digitalCamera.getDigitalCameraModel() != null && digitalCamera.getDigitalCameraModel().getDigitalCameraModelName() != null && digitalCamera.getDigitalCameraModel().getDigitalCameraModelName().getValue() != null) {
+                        this.digitalCameraModelName = digitalCamera.getDigitalCameraModel().getDigitalCameraModelName().getValue();
+                    }
+                }
+            }
+        }
+
+        public String getImageProducer() {
+            return imageProducer;
+        }
+
+        public String getCaptureDevice() {
+            return captureDevice;
+        }
+
+        public String getScannerManufacturer() {
+            return scannerManufacturer;
+        }
+
+        public String getScannerSensor() {
+            return scannerSensor;
+        }
+
+        public String getDigitalCameraManufacturer() {
+            return digitalCameraManufacturer;
+        }
+
+        public String getDigitalCameraModelName() {
+            return digitalCameraModelName;
+        }
+
+        @Override
+        public boolean equals(Object sourceDevice) {
+            if (sourceDevice instanceof DeviceIdentification) {
+                DeviceIdentification device = (DeviceIdentification) sourceDevice;
+                return imageProducer.equals(device.getImageProducer()) &&
+                        captureDevice.equals(device.getCaptureDevice()) &&
+                        scannerManufacturer.equals(device.getScannerManufacturer()) &&
+                        scannerSensor.equals(device.getScannerSensor()) &&
+                        digitalCameraManufacturer.equals(device.getDigitalCameraManufacturer()) &&
+                        digitalCameraModelName.equals(device.getDigitalCameraModelName());
+            }
+            return false;
+        }
     }
 }

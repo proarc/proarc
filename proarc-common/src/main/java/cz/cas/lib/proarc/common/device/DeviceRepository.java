@@ -138,6 +138,19 @@ public final class DeviceRepository {
         }
     }
 
+    public Device addDeviceWithMetadata(String owner, String model, String label, String log, Mix mix, Mets mets) throws DeviceException {
+        UUID uuid = UUID.randomUUID();
+        String pid = DEVICE_ID_PREFIX + uuid.toString();
+        try {
+            Device device = addDevice(pid, owner, model, label, log);
+            device.setDescription(mix);
+            device.setAudioDescription(mets);
+            return update(device, "Init device metadata");
+        } catch (DigitalObjectException ex) {
+            throw new DeviceException(pid, ex);
+        }
+    }
+
     /**
      * Deletes a device.
      *
