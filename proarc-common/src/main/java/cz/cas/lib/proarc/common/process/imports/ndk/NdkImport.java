@@ -57,10 +57,7 @@ public class NdkImport implements ImportHandler {
     public void start(ImportOptions importConfig, BatchManager batchManager, AppConfiguration config) throws Exception {
         iSession = new ImportSession(BatchManager.getInstance(), importConfig, config);
         load(importConfig, config);
-        if (Batch.State.LOADED.equals(importConfig.getBatch().getState())) {
-            ingest(importConfig, config);
-        }
-
+        ingest(importConfig, config);
     }
 
     private void ingest(ImportOptions importConfig, AppConfiguration config) throws Exception {

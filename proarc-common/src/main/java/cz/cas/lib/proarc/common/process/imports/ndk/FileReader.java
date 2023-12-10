@@ -43,6 +43,7 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
+import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
@@ -149,6 +150,12 @@ public class FileReader {
             loadModsAndDc(mets);
             loadFileMap(mets);
             loadStructMaps(mets, ctx);
+        } catch (DigitalObjectExistException ex) {
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            Batch batch = ctx.getBatch();
+            batch.setState(Batch.State.LOADING_CONFLICT);
+            batch.setLog(BatchManager.toString(ex));
+            iSession.getImportManager().update(batch);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
             Batch batch = ctx.getBatch();
@@ -258,6 +265,14 @@ public class FileReader {
             pid = FoxmlUtils.createPid();
         }
 
+        try {
+            iSession.exists(pid);
+        } catch (DigitalObjectExistException ex) {
+            if (!override(ctx)) {
+                throw ex;
+            }
+        }
+
         BatchManager.BatchItemObject importItem = iSession.findItem(pid);
         LocalStorage.LocalObject localObject = iSession.findLocalObject(importItem);
         if (localObject == null) {
@@ -287,6 +302,10 @@ public class FileReader {
             processDiv(localObject, model, partDiv, ctx, false);
         }
         return localObject;
+    }
+
+    private boolean override(ImportOptions ctx) {
+        return ctx.isUseOriginalMetadata() || ctx.isUseNewMetadata();
     }
 
     private Genre getSpecialGenre(ModsDefinition mods) {
@@ -388,6 +407,14 @@ public class FileReader {
             } else {
                 LOG.info("Using mods from mets for page " + pageNumber);
                 pid = identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
+            }
+
+            try {
+                iSession.exists(pid);
+            } catch (DigitalObjectExistException ex) {
+                if (!override(ctx)) {
+                    throw ex;
+                }
             }
 
             BatchManager.BatchItemObject importItem = iSession.findItem(pid);
@@ -784,6 +811,21 @@ public class FileReader {
             this.batchManager = batchManager;
             this.options = options;
             this.batch = options.getBatch();
+        }
+
+        public boolean exists(String pid) throws DigitalObjectException {
+            if (Storage.FEDORA.equals(this.typeOfStorage)) {
+                if (this.remotes.exist(pid)) {
+                    throw new DigitalObjectExistException(pid, null, "Object with PID " + pid + " already exists!", null);
+                }
+            } else if (Storage.AKUBRA.equals(this.typeOfStorage)) {
+                if (this.akubraStorage.exist(pid)) {
+                    throw new DigitalObjectExistException(pid, null, "Object with PID " + pid + " already exists!", null);
+                }
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + typeOfStorage);
+            }
+            return false;
         }
 
         public BatchManager getImportManager() {
