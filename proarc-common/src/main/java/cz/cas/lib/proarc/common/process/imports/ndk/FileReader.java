@@ -87,6 +87,7 @@ import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import cz.cas.lib.proarc.premis.ObjectIdentifierComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import cz.incad.imgsupport.ImageMimeType;
@@ -108,6 +109,7 @@ import org.w3c.dom.Node;
 
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.scale;
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.writeImage;
+import static cz.cas.lib.proarc.common.process.imports.ndk.StreamFileType.AMD;
 import static cz.cas.lib.proarc.common.process.imports.ndk.StreamFileType.getFileType;
 
 /**
@@ -414,7 +416,10 @@ public class FileReader {
             String pid;
             if (mods == null) {
                 LOG.info("Creating new Mods for page " + pageNumber);
-                pid = FoxmlUtils.createPid();
+                pid = findPidInAmdSec(pageDiv, ctx);
+                if (pid == null) {
+                    pid = FoxmlUtils.createPid();
+                }
             } else {
                 LOG.info("Using mods from mets for page " + pageNumber);
                 pid = identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
@@ -444,6 +449,57 @@ public class FileReader {
             importItem.setState(BatchItem.ObjectState.LOADED);
             iSession.getImportManager().update(importItem);
         }
+    }
+
+    private String findPidInAmdSec(DivType pageDiv, ImportOptions ctx) throws IOException {
+        for (Fptr fptr : pageDiv.getFptr()) {
+            FileType fileId = (FileType) fptr.getFILEID();
+            FileDescriptor fileDesc = fileMap.get(fileId.getID());
+            if (fileDesc == null) {
+                throw new IllegalStateException("Invalid file pointer:" + fileId.getID());
+            }
+            File file = new File(rootFolder, fileDesc.getFilename());
+            if (!file.exists()) {
+                throw new IOException("File does not exists: " + file.getAbsolutePath());
+            }
+            if (AMD.equals(fileDesc.getFileType())) {
+                return findPidInAmdSec(file, ctx);
+            }
+        }
+        return null;
+    }
+
+    private String findPidInAmdSec(File amdSec, ImportOptions ctx) {
+        Mets amdMets = JAXB.unmarshal(amdSec, Mets.class);
+        String pid = null;
+        for (AmdSecType amdSecType : amdMets.getAmdSec()) {
+            for (MdSecType techMd : amdSecType.getTechMD()) {
+                if (techMd.getID().startsWith("OBJ")) {
+                    pid = findPidInAmdSec(techMd, ctx);
+                }
+                if (pid != null && !pid.isEmpty()) {
+                    return pid;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String findPidInAmdSec(MdSecType techMd, ImportOptions ctx) {
+        Node data = (Node) techMd.getMdWrap().getXmlData().getAny().get(0);
+        cz.cas.lib.proarc.premis.File premisFile = PremisUtils.unmarshal(new DOMSource(data), cz.cas.lib.proarc.premis.File.class);
+        for (ObjectIdentifierComplexType objectIdentifier : premisFile.getObjectIdentifier()) {
+            if (objectIdentifier.getObjectIdentifierValue() != null) {
+                String id = objectIdentifier.getObjectIdentifierValue();
+                if (objectIdentifier.getObjectIdentifierType() != null && "ProArc_URI".equals(objectIdentifier.getObjectIdentifierType())) {
+                    id = id.substring(id.indexOf("/") + 1, id.lastIndexOf("/"));
+                }
+                if (FoxmlUtils.isValidPid(id)) {
+                    return id;
+                }
+            }
+        }
+        return null;
     }
 
     private String identifierAsPid(IdentifierDefinition identifier) {
