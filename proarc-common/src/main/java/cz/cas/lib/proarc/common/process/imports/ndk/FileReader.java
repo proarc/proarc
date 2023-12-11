@@ -1217,14 +1217,27 @@ public class FileReader {
         public boolean equals(Object sourceDevice) {
             if (sourceDevice instanceof DeviceIdentification) {
                 DeviceIdentification device = (DeviceIdentification) sourceDevice;
-                return imageProducer.equals(device.getImageProducer()) &&
-                        captureDevice.equals(device.getCaptureDevice()) &&
-                        scannerManufacturer.equals(device.getScannerManufacturer()) &&
-                        scannerSensor.equals(device.getScannerSensor()) &&
-                        digitalCameraManufacturer.equals(device.getDigitalCameraManufacturer()) &&
-                        digitalCameraModelName.equals(device.getDigitalCameraModelName());
+                int compareVal = compare(imageProducer, device.getImageProducer()) +
+                        compare(captureDevice, device.getCaptureDevice()) +
+                        compare(scannerManufacturer, device.getScannerManufacturer()) +
+                        compare(scannerSensor, device.getScannerSensor()) +
+                        compare(digitalCameraManufacturer, device.getDigitalCameraManufacturer()) +
+                        compare(digitalCameraModelName, device.getDigitalCameraModelName());
+                return compareVal == 0;
             }
             return false;
+        }
+
+        private int compare(String value, String sourceValue) {
+            if (value == null && sourceValue == null) {
+                return 0;
+            } else if (value == null && sourceValue != null) {
+                return 1;
+            } else if (value != null && sourceValue == null) {
+                return 1;
+            } else {
+                return  value.equals(sourceValue) ? 0 : 1;
+            }
         }
     }
 }
