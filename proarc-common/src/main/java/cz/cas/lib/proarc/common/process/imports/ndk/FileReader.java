@@ -87,6 +87,7 @@ import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import cz.cas.lib.proarc.premis.PremisUtils;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
@@ -494,6 +495,9 @@ public class FileReader {
                 if (techMd.getID().startsWith("MIX")) {
                     processMix(techMd, localObject, ctx);
                 }
+                if (techMd.getID().startsWith("OBJ")) {
+                    processPremis(techMd, localObject, ctx);
+                }
             }
         }
     }
@@ -519,11 +523,26 @@ public class FileReader {
         }
     }
 
+    private void processPremis(MdSecType techMd, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DigitalObjectException, DeviceException {
+        Node data = (Node) techMd.getMdWrap().getXmlData().getAny().get(0);
+        cz.cas.lib.proarc.premis.File premisFile = PremisUtils.unmarshal(new DOMSource(data), cz.cas.lib.proarc.premis.File.class);
+        if (premisFile.getOriginalName() != null) {
+            String fileName = premisFile.getOriginalName().getValue();
+            if (fileName != null && !fileName.isEmpty()) {
+                RelationEditor relationEditor = new RelationEditor(localObject);
+                relationEditor.setImportFile(fileName);
+                relationEditor.write(relationEditor.getLastModified(), "set fileName");
+                localObject.flush();
+            }
+        }
+    }
+
     private void processDevice(Mix deviceMix, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DeviceException, DigitalObjectException {
-        String deviceId = getDevice(deviceMix);
+        DeviceIdentification newDevice = new DeviceIdentification(deviceMix);
+        String deviceId = getDevice(newDevice);
         if (deviceId == null || deviceId.isEmpty()) {
             DeviceRepository deviceRepository = iSession.getDeviceRepository();
-            Device device = deviceRepository.addDeviceWithMetadata(ctx.getUsername(), DeviceRepository.METAMODEL_ID, "Importer device", "Init metadata", deviceMix, null);
+            Device device = deviceRepository.addDeviceWithMetadata(ctx.getUsername(), DeviceRepository.METAMODEL_ID, (newDevice.getImageProducer() == null ? "Imported device" : newDevice.getScannerManufacturer() + " - imported device"), "Imported device", deviceMix, null);
             deviceId = device.getId();
         }
         if (deviceId != null && !deviceId.isEmpty()) {
@@ -536,18 +555,17 @@ public class FileReader {
         }
     }
 
-    private String getDevice(Mix deviceMix) throws DeviceException {
+    private String getDevice(DeviceIdentification newDevice) throws DeviceException {
         List<Device> devices  = iSession.findAllDevices();
         for (Device device : devices) {
-            if (isEqualDevice(deviceMix, device.getDescription())) {
+            if (isEqualDevice(newDevice, device.getDescription())) {
                 return device.getId();
             }
         }
         return null;
     }
 
-    private boolean isEqualDevice(Mix newMix, Mix sourceMix) {
-        DeviceIdentification newDevice = new DeviceIdentification(newMix);
+    private boolean isEqualDevice(DeviceIdentification newDevice, Mix sourceMix) {
         DeviceIdentification sourceDevice = new DeviceIdentification(sourceMix);
         return newDevice.equals(sourceDevice);
     }
