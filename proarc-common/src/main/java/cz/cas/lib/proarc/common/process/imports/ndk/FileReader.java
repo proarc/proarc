@@ -187,7 +187,8 @@ public class FileReader {
                 processDiv(null, null, structMap.getDiv(), ctx, true);
                 // eMonograph has only one structMap without TYPE
             } else if (structMap.getTYPE() == null) {
-//                processElectronicDiv(null, structMap.getDiv());
+                singleVolumeMonograph = true;
+                processElectronicDiv(null, null, structMap.getDiv(), ctx, true);
                 return;
             } else {
                 LOG.warning("Unsupported StructMap type: " + structMap.getTYPE()
@@ -195,6 +196,80 @@ public class FileReader {
             }
         }
         processStructLink(mets.getStructLink());
+    }
+
+    private LocalStorage.LocalObject processElectronicDiv(LocalStorage.LocalObject parentObj, String parentModel, DivType div, ImportOptions ctx, boolean rootObject) throws Exception {
+        String divType = div.getTYPE();
+
+        MdSecType modsIdObj = (MdSecType) firstItem(div.getDMDID());
+        if ("TITLE".equalsIgnoreCase(divType) && modsIdObj != null) {
+            singleVolumeMonograph = false;
+        }
+
+        if ("DOCUMENT".equalsIgnoreCase(divType)) {
+            processElectronicDiv(parentObj, parentModel, div.getDiv().get(0), ctx, false);
+            return null;
+        }
+
+        if ("FILE".equalsIgnoreCase(divType) && modsIdObj == null) {
+            createFiles(parentObj, div, ctx);
+            parentObj.flush();
+            return null;
+        }
+
+        String modsId = modsIdObj.getID();
+
+        ModsDefinition mods = modsMap.get(modsId);
+        if (mods == null) {
+            throw new IllegalStateException("Cannot find mods: " + modsId);
+        }
+
+        String model = mapModel(divType, parentModel, Genre.NONE, true);
+
+        String pid = identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
+        if (pid == null) {
+            pid = FoxmlUtils.createPid();
+        }
+
+        try {
+            iSession.exists(pid);
+        } catch (DigitalObjectExistException ex) {
+            if (!override(ctx)) {
+                throw ex;
+            }
+        }
+
+        BatchManager.BatchItemObject importItem = iSession.findItem(pid);
+        LocalStorage.LocalObject localObject = iSession.findLocalObject(importItem);
+        if (localObject == null) {
+            localObject = iSession.getLocals().create(pid, new File(targetFolder, FoxmlUtils.pidAsUuid(pid) + ".foxml"));
+            localObject.setOwner(ctx.getUsername());
+            localObject.setModel(model);
+            importItem = iSession.addObject(localObject, rootObject);
+        }
+        DigitalObjectHandler dobjHandler = DigitalObjectManager.getDefault().createHandler(localObject);
+        createMetadata(dobjHandler, mods, localObject, ctx);
+        createRelsExt(dobjHandler, localObject, ctx);
+        dobjHandler.commit();
+        objects.put(div.getID(), localObject);
+        importItem.setState(BatchItem.ObjectState.LOADED);
+        iSession.getImportManager().update(importItem);
+
+        if (parentObj != null) {
+            RelationEditor relationEditor = new RelationEditor(parentObj);
+            List<String> members = relationEditor.getMembers();
+            members.add(localObject.getPid());
+            relationEditor.setMembers(members);
+            relationEditor.write(relationEditor.getLastModified(), "set child");
+            parentObj.flush();
+        }
+        for (DivType partDiv : div.getDiv()) {
+            processElectronicDiv(localObject, model, partDiv, ctx, false);
+        }
+        return localObject;
+
+
+
     }
 
     private void processStructLink(StructLink structLink) throws DigitalObjectException {
@@ -537,6 +612,10 @@ public class FileReader {
                     break;
                 case AMD:
                     processTechnicalMetadata(localObject, file, ctx);
+                    break;
+                case PDF:
+                    BinaryEditor rawEditor = BinaryEditor.dissemination(localObject, BinaryEditor.RAW_ID, BinaryEditor.FILE_PDF);
+                    rawEditor.write(file.toURI(), 0, null);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported fileType: " + fileDesc.getFileType());
