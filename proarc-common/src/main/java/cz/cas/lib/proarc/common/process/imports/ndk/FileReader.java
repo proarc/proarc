@@ -16,7 +16,10 @@
  */
 package cz.cas.lib.proarc.common.process.imports.ndk;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+
+import cz.cas.lib.proarc.aes57.Aes57Utils;
+import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -26,7 +29,9 @@ import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
+import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
+import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -53,6 +58,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -65,8 +71,6 @@ import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.process.imports.InputUtils;
-import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
@@ -99,11 +103,13 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXB;
 import javax.xml.transform.dom.DOMSource;
+import org.aes.audioobject.AudioObject;
 import org.apache.commons.configuration.Configuration;
 import org.w3c.dom.Node;
 
@@ -126,15 +132,14 @@ public class FileReader {
     private Mets mets;
     private String pkgModelId;
     private boolean singleVolumeMonograph = false;
+    private boolean isElectronic = false;
+    private boolean isAudio = false;
 
     private Map<String, ModsDefinition> modsMap = new HashMap<>();
     private Map<String, OaiDcType> dcMap = new HashMap<>();
     private Map<String, FileDescriptor> fileMap = new HashMap<>();
 
     private Map<String, LocalStorage.LocalObject> objects = new HashMap<>();
-
-    public static final String STRUCTMAP_PHYSICAL_TYPE = "PHYSICAL";
-    public static final String STRUCTMAP_LOGICAL_TYPE = "LOGICAL";
 
     private Logger LOG = Logger.getLogger(FileReader.class.getName());
 
@@ -182,12 +187,14 @@ public class FileReader {
         for (StructMapType structMap : mets.getStructMap()) {
             if ("PHYSICAL".equalsIgnoreCase(structMap.getTYPE())) {
                 loadPages(structMap, ctx);
+                setDeviceToAudioPage(ctx);
             } else if ("LOGICAL".equalsIgnoreCase(structMap.getTYPE())) {
                 singleVolumeMonograph = false;
                 processDiv(null, null, structMap.getDiv(), ctx, true);
                 // eMonograph has only one structMap without TYPE
             } else if (structMap.getTYPE() == null) {
                 singleVolumeMonograph = true;
+                isElectronic = true;
                 processElectronicDiv(null, null, structMap.getDiv(), ctx, true);
                 return;
             } else {
@@ -196,6 +203,21 @@ public class FileReader {
             }
         }
         processStructLink(mets.getStructLink());
+    }
+
+    private void setDeviceToAudioPage(ImportOptions ctx) throws DigitalObjectException {
+        if (iSession.getDevicePid() != null) {
+            Set<String> keys = objects.keySet();
+            for (String key : keys) {
+                LocalStorage.LocalObject localObject = objects.get(key);
+                if (NdkAudioPlugin.MODEL_PAGE.equals(localObject.getModel())) {
+                    RelationEditor relationEditor = new RelationEditor(localObject);
+                    relationEditor.setDevice(iSession.getDevicePid());
+                    relationEditor.write(relationEditor.getLastModified(), "set child");
+                    localObject.flush();
+                }
+            }
+        }
     }
 
     private LocalStorage.LocalObject processElectronicDiv(LocalStorage.LocalObject parentObj, String parentModel, DivType div, ImportOptions ctx, boolean rootObject) throws Exception {
@@ -224,7 +246,7 @@ public class FileReader {
             throw new IllegalStateException("Cannot find mods: " + modsId);
         }
 
-        String model = mapModel(divType, parentModel, Genre.NONE, true);
+        String model = mapModel(divType, parentModel, Genre.NONE);
 
         String pid = identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
         if (pid == null) {
@@ -233,6 +255,9 @@ public class FileReader {
 
         try {
             iSession.exists(pid);
+            if (rootObject) {
+                iSession.setRootPid(pid);
+            }
         } catch (DigitalObjectExistException ex) {
             if (!override(ctx)) {
                 throw ex;
@@ -282,7 +307,7 @@ public class FileReader {
                     continue;
                 }
                 LocalStorage.LocalObject childObj = objects.get(child);
-                if (childObj == null && !(child.startsWith("DIV_STOPA") || child.startsWith("DIV_AUDIO"))) {
+                if (childObj == null) {
                     LOG.warning("Invalid structLink from: " + parent + " to: " + child);
                     continue;
                 }
@@ -334,7 +359,6 @@ public class FileReader {
         }
 
         if (modsIdObj == null) {
-//            collectAlto(parent, div);
             return null;//we consider only div with associated metadata (DMDID)
         }
 
@@ -346,7 +370,7 @@ public class FileReader {
         }
         Genre specialGenre = getSpecialGenre(mods);
 
-        String model = mapModel(divType, parentModel, specialGenre, false);
+        String model = mapModel(divType, parentModel, specialGenre);
 
         String pid = identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
         if (pid == null) {
@@ -355,6 +379,9 @@ public class FileReader {
 
         try {
             iSession.exists(pid);
+            if (rootObject) {
+                iSession.setRootPid(pid);
+            }
         } catch (DigitalObjectExistException ex) {
             if (!override(ctx)) {
                 throw ex;
@@ -370,8 +397,8 @@ public class FileReader {
             importItem = iSession.addObject(localObject, rootObject);
         }
         DigitalObjectHandler dobjHandler = DigitalObjectManager.getDefault().createHandler(localObject);
-        createMetadata(dobjHandler, mods, localObject, ctx);
         createRelsExt(dobjHandler, localObject, ctx);
+        createMetadata(dobjHandler, mods, localObject, ctx);
         dobjHandler.commit();
         objects.put(div.getID(), localObject);
         importItem.setState(BatchItem.ObjectState.LOADED);
@@ -408,7 +435,7 @@ public class FileReader {
         return Genre.NONE;
     }
 
-    private String mapModel(String divType, String parentModel, Genre specialGenre, boolean isElectronic) {
+    private String mapModel(String divType, String parentModel, Genre specialGenre) {
         if ("PERIODICAL_TITLE".equalsIgnoreCase(divType)) {
             return !isElectronic ? NdkPlugin.MODEL_PERIODICAL : NdkEbornPlugin.MODEL_EPERIODICAL;
         } else if ("PERIODICAL_VOLUME".equalsIgnoreCase(divType)) {
@@ -454,10 +481,13 @@ public class FileReader {
         } else if ("CHAPTER".equalsIgnoreCase(divType)) {
             return NdkPlugin.MODEL_CHAPTER;
         } else if ("SOUNDCOLLECTION".equalsIgnoreCase(divType)) {
+            isAudio = true;
             return NdkAudioPlugin.MODEL_MUSICDOCUMENT;
         } else if ("SOUNDRECORDING".equalsIgnoreCase(divType)) {
+            isAudio = true;
             return NdkAudioPlugin.MODEL_SONG;
         } else if ("SOUNDPART".equalsIgnoreCase(divType)) {
+            isAudio = true;
             return NdkAudioPlugin.MODEL_TRACK;
         }
         throw new IllegalArgumentException("Unsupported div type in logical structure: " + divType);
@@ -478,16 +508,19 @@ public class FileReader {
             throw new IllegalStateException("Missing children DIV for" + structMap.getID());
         }
         for (DivType pageDiv : object.getDiv()) {
-            String type = pageDiv.getTYPE();
-            if (type != null && (type.equalsIgnoreCase("sound") || type.equalsIgnoreCase("soundpart"))) {
-//                collectAudioFiles(pageDiv); //TODO
-                continue;
-            }
             BigInteger pageIndex = pageDiv.getORDER();
             String pageNumber = pageDiv.getORDERLABEL();
             String pageType = pageDiv.getTYPE();
-            ModsDefinition mods = modsMap.get(pageDiv.getID().replaceFirst("DIV_P", "MODSMD"));
-            OaiDcType dc = dcMap.get(pageDiv.getID().replaceFirst("DIV_P", "DCMD"));
+            ModsDefinition mods = null;
+            String model = null;
+            if (pageDiv.getID().startsWith("DIV_P")) {
+                mods = modsMap.get(pageDiv.getID().replaceFirst("DIV_P", "MODSMD"));
+                model = NdkPlugin.MODEL_NDK_PAGE;
+            } else if (pageDiv.getID().startsWith("DIV_STOPA_") || pageDiv.getID().startsWith("DIV_AUDIO_")) {
+                mods = null; // Zvukova nahravka je jen virtualni model, bez metadat
+                model = NdkAudioPlugin.MODEL_PAGE;
+            }
+
             String pid;
             if (mods == null) {
                 LOG.info("Creating new Mods for page " + pageNumber);
@@ -513,10 +546,11 @@ public class FileReader {
             if (localObject == null) {
                 localObject = iSession.getLocals().create(pid, new File(targetFolder, FoxmlUtils.pidAsUuid(pid) + ".foxml"));
                 localObject.setOwner(ctx.getUsername());
+                localObject.setModel(model);
                 importItem = iSession.addObject(localObject, false);
             }
             DigitalObjectHandler dobjHandler = DigitalObjectManager.getDefault().createHandler(localObject);
-            createPageRelsExt(dobjHandler, ctx);
+            createPageRelsExt(dobjHandler, model, ctx);
             createPageMetadata(dobjHandler, mods, pageIndex, pageNumber, pageType, localObject, ctx);
             createFiles(localObject, pageDiv, ctx);
             dobjHandler.commit();
@@ -594,33 +628,94 @@ public class FileReader {
             }
             switch (fileDesc.getFileType()) {
                 case OCR:
-                    XmlStreamEditor ocrEditor = localObject.getEditor(StringEditor.ocrProfile());
-                    ocrEditor.write(file.toURI(), 0, null);
+                    if (checkIfFileHasExtension(file.getName(), ".txt")) {
+                        XmlStreamEditor ocrEditor = localObject.getEditor(StringEditor.ocrProfile());
+                        ocrEditor.write(file.toURI(), 0, null);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
+                    }
                     break;
                 case ALTO:
-                    AltoDatastream altoEditor = new AltoDatastream(configuration.getImportConfiguration());
-                    altoEditor.importAlto(localObject, file.toURI(), null);
+                    if (checkIfFileHasExtension(file.getName(), ".xml")) {
+                        AltoDatastream altoEditor = new AltoDatastream(configuration.getImportConfiguration());
+                        altoEditor.importAlto(localObject, file.toURI(), null);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
+                    }
                     break;
                 case USER_IMAGE:
-                    BinaryEditor userEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_USER_ID, BinaryEditor.IMAGE_JP2);
-                    userEditor.write(file.toURI(), 0, null);
+                    if (checkIfFileHasExtension(file.getName(), ".jp2") && InputUtils.isJp2000(file)) {
+                        BinaryEditor userEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_USER_ID, BinaryEditor.IMAGE_JP2);
+                        userEditor.write(file.toURI(), 0, null);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
+                    }
                     break;
                 case MASTER_IMAGE:
-                    BinaryEditor archivalEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.IMAGE_JP2);
-                    archivalEditor.write(file.toURI(), 0, null);
-                    processImage(localObject, file, ctx);
+                    if (checkIfFileHasExtension(file.getName(), ".jp2") && InputUtils.isJp2000(file)) {
+                        BinaryEditor archivalEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.IMAGE_JP2);
+                        archivalEditor.write(file.toURI(), 0, null);
+                        processImage(localObject, file, ctx);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
+                    }
                     break;
                 case AMD:
-                    processTechnicalMetadata(localObject, file, ctx);
+                    if (checkIfFileHasExtension(file.getName(), ".xml")) {
+                        processTechnicalMetadata(localObject, file, ctx);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
+                    }
                     break;
                 case PDF:
-                    BinaryEditor rawEditor = BinaryEditor.dissemination(localObject, BinaryEditor.RAW_ID, BinaryEditor.FILE_PDF);
-                    rawEditor.write(file.toURI(), 0, null);
+                    if (checkIfFileHasExtension(file.getName(), ".pdf") && InputUtils.isPdf(file)) {
+                        BinaryEditor rawEditor = BinaryEditor.dissemination(localObject, BinaryEditor.RAW_ID, BinaryEditor.FILE_PDF);
+                        rawEditor.write(file.toURI(), 0, null);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
+                    }
+                    break;
+                case MASTER_AUDIO:
+                    BinaryEditor masterAudioEditor = null;
+                    if (checkIfFileHasExtension(file.getName(), ".wav") && InputUtils.isWave(file)) {
+                        masterAudioEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_AUDIO_ARCHIVAL_ID, BinaryEditor.AUDIO_WAVE);
+                    } else if (checkIfFileHasExtension(file.getName(), ".flac") && InputUtils.isFlac(file)) {
+                        masterAudioEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID, BinaryEditor.AUDIO_FLAC);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
+                    }
+                    masterAudioEditor.write(file.toURI(), 0, null);
+                    break;
+                case SOURCE_AUDIO:
+                    BinaryEditor sourceAudioEditor = null;
+                    if (checkIfFileHasExtension(file.getName(), ".wav") && InputUtils.isWave(file)) {
+                        sourceAudioEditor = BinaryEditor.dissemination(localObject, BinaryEditor.RAW_AUDIO_ID, BinaryEditor.AUDIO_WAVE);
+                    } else if (checkIfFileHasExtension(file.getName(), ".flac") && InputUtils.isFlac(file)) {
+                        sourceAudioEditor = BinaryEditor.dissemination(localObject, BinaryEditor.RAW_ID, BinaryEditor.AUDIO_FLAC);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
+                    }
+                    sourceAudioEditor.write(file.toURI(), 0, null);
+                    break;
+                case USER_AUDIO:
+                    BinaryEditor userAudioEditor = null;
+                    if (checkIfFileHasExtension(file.getName(), ".mp3") && InputUtils.isMp3(file)) {
+                        userAudioEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_AUDIO_USER_ID, BinaryEditor.AUDIO_MP3);
+                    } else if (checkIfFileHasExtension(file.getName(), ".ogg") && InputUtils.isOgg(file)) {
+                        userAudioEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_AUDIO_USER_OGG_ID, BinaryEditor.AUDIO_OGG);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
+                    }
+                    userAudioEditor.write(file.toURI(), 0, null);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported fileType: " + fileDesc.getFileType());
             }
         }
+    }
+
+    private boolean checkIfFileHasExtension(String filename, String extension) {
+        return filename.endsWith(extension);
     }
 
     private void processTechnicalMetadata(LocalStorage.LocalObject localObject, File amdSec, ImportOptions ctx) throws DigitalObjectException, DeviceException {
@@ -630,6 +725,12 @@ public class FileReader {
                 if (techMd.getID().startsWith("MIX")) {
                     processMix(techMd, localObject, ctx);
                 }
+                if (techMd.getID().startsWith("AES")) {
+                    processAes(techMd, localObject, ctx);
+                }
+                if (techMd.getID().startsWith("CODINGHISTORY")) {
+                    processCodingHistory(techMd, localObject, ctx);
+                }
                 if (techMd.getID().startsWith("OBJ")) {
                     processPremis(techMd, localObject, ctx);
                 }
@@ -638,7 +739,11 @@ public class FileReader {
     }
 
     private void processMix(MdSecType techMd, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DigitalObjectException, DeviceException {
-        Node data = (Node) techMd.getMdWrap().getXmlData().getAny().get(0);
+        List<Object> objectsData = techMd.getMdWrap().getXmlData().getAny();
+        if (objectsData.isEmpty()) {
+            return;
+        }
+        Node data = (Node) objectsData.get(0);
         Mix mix = MixUtils.unmarshalMix(new DOMSource(data));
         String type = getMixType(mix);
 
@@ -658,12 +763,69 @@ public class FileReader {
         }
     }
 
+    private void processAes(MdSecType techMd, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DigitalObjectException {
+        List<Object> objectsData = techMd.getMdWrap().getXmlData().getAny();
+        if (objectsData.isEmpty()) {
+            return;
+        }
+        Node data = (Node) objectsData.get(0);
+        AudioObject aes = Aes57Utils.unmarshalAes(new DOMSource(data));
+        String type = getType(techMd);
+
+        switch (type.toUpperCase()) {
+            case "NDK_ARCHIVAL":
+                AesEditor aesNdkArchivalEditor = AesEditor.ndkArchival(localObject);
+                aesNdkArchivalEditor.write(aes, 0, null);
+                break;
+            case "RAW":
+                AesEditor aesRawEditor = AesEditor.raw(localObject);
+                aesRawEditor.write(aes, 0, null);
+                break;
+            default:
+                LOG.info("Unsupported type: " + type);
+        }
+    }
+
+    private void processCodingHistory(MdSecType techMd, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DigitalObjectException {
+        List<Object> objectsData = techMd.getMdWrap().getXmlData().getAny();
+        if (objectsData.isEmpty()) {
+            return;
+        }
+        Node data = (Node) objectsData.get(0);
+        Property codingHistory = CodingHistoryUtils.unmarshalCodingHistory(new DOMSource(data));
+        String type = getType(techMd);
+
+        switch (type.toUpperCase()) {
+            case "NDK_ARCHIVAL":
+                CodingHistoryEditor codingHistoryNdkArchivalEditor = CodingHistoryEditor.ndkArchival(localObject);
+                codingHistoryNdkArchivalEditor.write(codingHistory, 0, null);
+                break;
+            case "RAW":
+                CodingHistoryEditor codingHistoryRawEditor = CodingHistoryEditor.raw(localObject);
+                codingHistoryRawEditor.write(codingHistory, 0, null);
+                break;
+            default:
+                LOG.info("Unsupported type: " + type);
+        }
+    }
+
+    private String getType(MdSecType tech) {
+        return tech.getID().endsWith("001") ? "RAW" : "NDK_ARCHIVAL";
+    }
+
     private void processPremis(MdSecType techMd, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DigitalObjectException, DeviceException {
-        Node data = (Node) techMd.getMdWrap().getXmlData().getAny().get(0);
+        List<Object> objectsData = techMd.getMdWrap().getXmlData().getAny();
+        if (objectsData.isEmpty()) {
+            return;
+        }
+        Node data = (Node) objectsData.get(0);
         cz.cas.lib.proarc.premis.File premisFile = PremisUtils.unmarshal(new DOMSource(data), cz.cas.lib.proarc.premis.File.class);
         if (premisFile.getOriginalName() != null) {
             String fileName = premisFile.getOriginalName().getValue();
             if (fileName != null && !fileName.isEmpty()) {
+                if (fileName.endsWith("null")) { //hack because audio files dont have
+                    fileName = fileName.substring(0, fileName.length() - 4) + ".wav";
+                }
                 RelationEditor relationEditor = new RelationEditor(localObject);
                 relationEditor.setImportFile(fileName);
                 relationEditor.write(relationEditor.getLastModified(), "set fileName");
@@ -677,10 +839,11 @@ public class FileReader {
         String deviceId = getDevice(newDevice);
         if (deviceId == null || deviceId.isEmpty()) {
             DeviceRepository deviceRepository = iSession.getDeviceRepository();
-            Device device = deviceRepository.addDeviceWithMetadata(ctx.getUsername(), DeviceRepository.METAMODEL_ID, (newDevice.getImageProducer() == null ? "Imported device" : newDevice.getScannerManufacturer() + " - imported device"), "Imported device", deviceMix, null);
+            Device device = deviceRepository.addDeviceWithMetadata(ctx.getUsername(), isAudio ? DeviceRepository.METAMODEL_AUDIODEVICE_ID : DeviceRepository.METAMODEL_ID, (newDevice.getImageProducer() == null ? "Imported device" : newDevice.getScannerManufacturer() + " - imported device"), "Imported device", deviceMix, null);
             deviceId = device.getId();
         }
         if (deviceId != null && !deviceId.isEmpty()) {
+            iSession.setDevicePid(deviceId);
             RelationEditor relationEditor = new RelationEditor(localObject);
             relationEditor.setDevice(deviceId);
             relationEditor.write(relationEditor.getLastModified(), "set child");
@@ -691,6 +854,9 @@ public class FileReader {
     }
 
     private String getDevice(DeviceIdentification newDevice) throws DeviceException {
+        if (iSession.getDevicePid() != null) {
+            return iSession.getDevicePid();
+        }
         List<Device> devices  = iSession.findAllDevices();
         for (Device device : devices) {
             if (isEqualDevice(newDevice, device.getDescription())) {
@@ -908,16 +1074,29 @@ public class FileReader {
     private void createPageMetadata(DigitalObjectHandler dobjHandler, ModsDefinition mods, BigInteger pageIndex, String pageNumber, String pageType, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DigitalObjectException {
         MetadataHandler<Object> mHandler = dobjHandler.metadata();
         NdkMapper.Context context = new NdkMapper.Context(dobjHandler);
-        NdkNewPageMapper mapper = new NdkNewPageMapper();
-        mapper.setModelId(localObject.getModel());
-        if (mHandler instanceof PageView.PageViewHandler) {
-            if (mods == null) {
-                mods = mapper.createPage(String.valueOf(pageIndex), pageNumber, pageType, context);
+        if (NdkPlugin.MODEL_NDK_PAGE.equals(localObject.getModel())) {
+            NdkNewPageMapper mapper = new NdkNewPageMapper();
+            mapper.setModelId(localObject.getModel());
+            if (mHandler instanceof PageView.PageViewHandler) {
+                if (mods == null) {
+                    mods = mapper.createPage(String.valueOf(pageIndex), pageNumber, pageType, context);
+                }
+            } else {
+                throw new IllegalStateException("Unsupported mHandler");
             }
-        } else {
-            throw new IllegalStateException("Unsupported mHandler");
+        } else if (NdkAudioPlugin.MODEL_PAGE.equals(localObject.getModel())) {
+            NdkAudioPageMapper mapper = new NdkAudioPageMapper();
+            mapper.setModelId(localObject.getModel());
+            if (mHandler instanceof PageView.PageViewHandler) {
+                if (mods == null) {
+                    mods = mapper.createPage(String.valueOf(pageIndex), pageNumber, "audio", context);
+                }
+            } else {
+                throw new IllegalStateException("Unsupported mHandler");
+            }
         }
 
+        NdkMapper mapper = NdkMapper.get(localObject.getModel());
         XmlStreamEditor xml = localObject.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
@@ -934,10 +1113,9 @@ public class FileReader {
         localObject.setLabel(mapper.toLabel(mods));
     }
 
-    private void createPageRelsExt(DigitalObjectHandler dobjHandler, ImportOptions ctx) throws DigitalObjectException {
-        String fedoraModel = ctx.getModel();
+    private void createPageRelsExt(DigitalObjectHandler dobjHandler, String model, ImportOptions ctx) throws DigitalObjectException {
         RelationEditor relEditor = dobjHandler.relations();
-        relEditor.setModel(fedoraModel);
+        relEditor.setModel(model);
         relEditor.setDevice(ctx.getDevice());
         relEditor.setOrganization(ctx.getOrganization());
         relEditor.setStatus(DigitalObjectStatusUtils.STATUS_NEW);
@@ -1053,14 +1231,11 @@ public class FileReader {
         private final SearchView search;
         private final DeviceRepository deviceRepository;
         private final Storage typeOfStorage;
+        private final AppConfiguration config;
         private RemoteStorage fedoraStorage;
         private AkubraStorage akubraStorage;
-        private final AppConfiguration config;
-
-        /**
-         * The user cache.
-         */
-        private final Map<String, String> external2internalUserMap = new HashMap<String, String>();
+        private String rootPid;
+        private String devicePid;
 
         public ImportSession(BatchManager batchManager, ImportProcess.ImportOptions options, AppConfiguration appConfig) throws IOException {
             try {
@@ -1139,11 +1314,6 @@ public class FileReader {
             return batchManager.findBatchObject(batch.getId(), pid);
         }
 
-        public LocalStorage.LocalObject findLocalObject(String pid) {
-            BatchManager.BatchItemObject item = findItem(pid);
-            return findLocalObject(item);
-        }
-
         public BatchManager.BatchItemObject addObject(LocalStorage.LocalObject lobj, boolean root) throws DigitalObjectException {
             BatchManager.BatchItemObject bio = batchManager.addLocalObject(options.getBatch(), lobj);
             if (root) {
@@ -1158,70 +1328,20 @@ public class FileReader {
             return bio;
         }
 
-        public void checkRemote(List<String> pids) throws DigitalObjectException {
-            List<SearchViewItem> items;
-            try {
-                items = search.find(false, pids);
-            } catch (Exception ex) {
-                throw new DigitalObjectException(null, batch.getId(), null, null, ex);
-            }
-            for (SearchViewItem item : items) {
-                // !!! RI states differ from FOXML 'fedora-system:def/model#Active' vs. StateType.A !!!
-                String state = item.getState();
-//                StateType state = StateType.valueOf(item.getState());
-//                if (state == StateType.D) {
-//                    // XXX schedule a purge
-//                } else {
-                String msg = String.format(
-                        "The repository already contains the archived object pid:%s, model:%s, state:%s, %s",
-                        item.getPid(), item.getModel(), state, item.getLabel());
-                throw new DigitalObjectException(item.getPid(), batch.getId(), null, msg, null);
-//                }
-            }
+        public String getRootPid() {
+            return rootPid;
         }
 
-        public void checkObjectParent(List<String> archiveRootLeafPath, String pid) throws DigitalObjectException {
-            String parentPid = archiveRootLeafPath.isEmpty() ?
-                    null : archiveRootLeafPath.get(archiveRootLeafPath.size() - 1);
-            try {
-                List<SearchViewItem> referrers = search.findReferrers(pid);
-                if (parentPid == null) {
-                    if (!referrers.isEmpty()) {
-                        String msg = String.format(
-                                "Different archive and repository parent of pid %s, null != %s:",
-                                pid, toItemString(referrers));
-                        throw new DigitalObjectException(pid, batch.getId(), null, msg, null);
-                    } else {
-                        return;
-                    }
-                }
-                for (SearchViewItem referrer : referrers) {
-                    if (!parentPid.equals(referrer.getPid())) {
-                        String msg = String.format(
-                                "Different archive and repository parent of pid %s, %s != %s:",
-                                pid, parentPid, toItemString(referrers));
-                        throw new DigitalObjectException(pid, batch.getId(), null, msg, null);
-                    }
-                }
-            } catch (IOException ex) {
-                throw new DigitalObjectException(pid, batch.getId(), null, null, ex);
-            } catch (FedoraClientException ex) {
-                throw new DigitalObjectException(pid, batch.getId(), null, null, ex);
-            }
+        public void setRootPid(String rootPid) {
+            this.rootPid = rootPid;
         }
 
-        public String resolveUsername(String externalName) {
-            String cache = external2internalUserMap.get(externalName);
-            if (cache == null) {
-                UserProfile up = externalName == null ? null : UserUtil.getDefaultManger().find(externalName);
-                if (up == null) {
-                    cache = options.getUsername();
-                } else {
-                    cache = up.getUserName();
-                }
-                external2internalUserMap.put(externalName, cache);
-            }
-            return cache;
+        public String getDevicePid() {
+            return devicePid;
+        }
+
+        public void setDevicePid(String devicePid) {
+            this.devicePid = devicePid;
         }
     }
 
