@@ -16,22 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
-import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.cas.lib.proarc.webapp.client.Editor;
-import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
-import cz.cas.lib.proarc.webapp.client.action.Action;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
-import cz.cas.lib.proarc.webapp.client.action.Actions;
-import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
-import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
-import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
-import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource.ImportRecord;
-import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.ProfileGroup;
 import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
@@ -59,6 +43,22 @@ import com.smartgwt.client.widgets.tree.TreeGridField;
 import com.smartgwt.client.widgets.tree.TreeNode;
 import com.smartgwt.client.widgets.tree.events.FolderClickEvent;
 import com.smartgwt.client.widgets.tree.events.FolderClickHandler;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.Action;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ImportBatchDataSource.BatchRecord;
+import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.ImportTreeDataSource.ImportRecord;
+import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi.ProfileGroup;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 
@@ -274,13 +274,14 @@ public final class ImportSourceChooser extends VLayout implements Refreshable {
                 }
                 treeGrid.setCriteria(criteria);
                 boolean isArchive= BatchRecord.isArchive(profile);
+                boolean isNdk = BatchRecord.isNdk(profile);
                 boolean isKramerius = BatchRecord.isKramerius(profile);
                 boolean isReplaceStream = BatchRecord.isReplaceStream(profile);
-                selectScanner.setRequired(!isArchive);
+                selectScanner.setRequired(!(isArchive || isNdk));
                 if (isKramerius) {
                     selectScanner.show();
                     cbiPageIndexes.hide();
-                } else if (isArchive || isReplaceStream) {
+                } else if (isArchive || isNdk || isReplaceStream) {
                     selectScanner.hide();
                     cbiPageIndexes.hide();
                 } else {

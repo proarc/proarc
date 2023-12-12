@@ -28,6 +28,10 @@ public class DigitalObjectNotFoundException extends DigitalObjectException {
         super(pid);
     }
 
+    public DigitalObjectNotFoundException(String pid, String message) {
+        super(pid, message);
+    }
+
     public DigitalObjectNotFoundException(String pid, Throwable cause) {
         super(pid, cause);
     }

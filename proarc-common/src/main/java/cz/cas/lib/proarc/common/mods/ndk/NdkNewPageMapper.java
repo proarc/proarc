@@ -152,7 +152,7 @@ public class NdkNewPageMapper extends NdkMapper {
     }
 
     @Override
-    protected String createObjectLabel(ModsDefinition mods) {
+    public String createObjectLabel(ModsDefinition mods) {
         StringBuilder sb = new StringBuilder();
         if (!mods.getPart().isEmpty()) {
             PartDefinition part = mods.getPart().get(0);
@@ -343,6 +343,15 @@ public class NdkNewPageMapper extends NdkMapper {
         page.setNumber(pageNumber);
         return toMods(page, ctx);
     }
+
+//    public ModsDefinition createPage(String pid, String pageIndex, String pageNumber, String pageType, Context ctx) {
+//        NdkPageMapper.Page page = new NdkPageMapper.Page();
+//        page.setType(pageType);
+//        page.setIndex(pageIndex);
+//        page.setNumber(pageNumber);
+//        page.getIdentifiers().add(new IdentifierMapper.IdentifierItem("uuid", pid));
+//        return toMods(page, ctx);
+//    }
 
     public ModsDefinition toMods(NdkPageMapper.Page page, Context ctx) {
         ModsDefinition mods = new ModsDefinition();

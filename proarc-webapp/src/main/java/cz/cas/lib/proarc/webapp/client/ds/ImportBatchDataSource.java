@@ -129,6 +129,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put(ConfigurationProfile.DEFAULT, i18n.ImportProfile_DEFAULT());
         profiles.put("profile.defaultocr", i18n.ImportProfile_DEFAULT_OCR());
         profiles.put(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, i18n.ImportProfile_ARCHIVE_IMPORT());
+        profiles.put(ConfigurationProfile.DEFAULT_NDK_IMPORT, i18n.ImportProfile_NDK_IMPORT());
         profiles.put(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_IMPORT());
         profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_STT_IMPORT());
         profiles.put(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_MONOGRAPH_IMPORT());
@@ -274,6 +275,10 @@ public final class ImportBatchDataSource extends ProarcDataSource {
             return ConfigurationProfileResourceApi.ARCHIVE_ID.equals(profileId);
         }
 
+        public static boolean isNdk(String profileId) {
+            return ConfigurationProfileResourceApi.NDK_ID.equals(profileId);
+        }
+
         public static boolean isReplaceStream(String profileId) {
             return ConfigurationProfileResourceApi.REPLACE_STREAM_ID.equals(profileId);
         }
@@ -287,6 +292,10 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 
         public boolean isArchive() {
             return isArchive(getProfileId());
+        }
+
+        public boolean isNdk() {
+            return isNdk(getProfileId());
         }
 
         public boolean isReplaceStream() {
@@ -310,8 +319,8 @@ public final class ImportBatchDataSource extends ProarcDataSource {
             return delegate;
         }
 
-        public boolean isArchiveOrKrameriusOrReplaceStream() {
-            return isKrameirus() || isArchive() || isReplaceStream();
+        public boolean isArchiveOrKrameriusOrReplaceOrNdkStream() {
+            return isKrameirus() || isArchive() || isReplaceStream() || isNdk();
         }
     }
 

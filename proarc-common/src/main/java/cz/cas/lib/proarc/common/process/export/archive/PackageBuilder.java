@@ -16,18 +16,22 @@
  */
 package cz.cas.lib.proarc.common.process.export.archive;
 
+import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
-import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
+import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
 import cz.cas.lib.proarc.mets.FileType;
@@ -64,10 +68,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.IOUtils;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+
 import static cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor.getTitle;
 import static cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor.getYear;
 
@@ -394,7 +395,7 @@ public class PackageBuilder {
         return dsFile;
     }
 
-    static String getFilename(String datastream, int index, String model, String name, String ext) {
+    public static String getFilename(String datastream, int index, String model, String name, String ext) {
         return String.format("%s_%s_%04d_%s.%s", datastream.toLowerCase(), model, index, name, ext);
     }
 
@@ -406,7 +407,7 @@ public class PackageBuilder {
         }
     }
 
-    static String getObjectId(String pid) {
+    public static String getObjectId(String pid) {
         return pid.substring(pid.indexOf(':') + 1);
     }
 

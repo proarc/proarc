@@ -69,6 +69,8 @@ public final class BinaryEditor {
     public static final MediaType AUDIO_FLAC = new MediaType("audio", "flac");
     public static final MediaType AUDIO_MP3 = new MediaType("audio", "mp3");
     public static final MediaType AUDIO_OGG = new MediaType("audio", "ogg");
+    public static final MediaType FILE_PDF = new MediaType("application", "pdf");
+
     /**
      * Data stream IDs with binary contents.
      */

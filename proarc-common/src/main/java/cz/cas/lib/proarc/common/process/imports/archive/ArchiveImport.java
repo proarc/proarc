@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.process.export.archive;
+package cz.cas.lib.proarc.common.process.imports.archive;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -61,7 +61,7 @@ public class ArchiveImport implements ImportHandler {
         isession = new PackageReader.ImportSession(BatchManager.getInstance(), importConfig, config);
         load(importConfig, config);
         storeArchivalCopies(importConfig);
-        ingest(importConfig);
+        ingest(importConfig, config);
 
     }
 
@@ -111,12 +111,11 @@ public class ArchiveImport implements ImportHandler {
         isession.getImportManager().update(batch);
     }
 
-    public void ingest(ImportOptions importConfig) throws Exception {
+    public void ingest(ImportOptions importConfig, AppConfiguration config) throws Exception {
         BatchManager ibm = BatchManager.getInstance();
         Batch batch = importConfig.getBatch();
-        AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
         if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(), ibm, null, importConfig);
+            FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(config), ibm, null, importConfig);
             ingest.importBatch(batch, importConfig.getUsername(), null);
         } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());

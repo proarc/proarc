@@ -199,6 +199,7 @@ public final class ImportFileScanner {
         private State statusDefault;
         private State statusArchive;
         private State statusKrameriusK4;
+        private State statusNdk;
         private State statusReplaceStream;
         private State statusKrameriusNdkMonograph;
         private State statusKrameriusNdkPeriodical;
@@ -235,6 +236,13 @@ public final class ImportFileScanner {
                 statusArchive = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT));
             }
             return statusArchive;
+        }
+
+        public State getStatusNdk(AppConfiguration appConfig) {
+            if (statusNdk == null) {
+                statusNdk = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.DEFAULT_NDK_IMPORT));
+            }
+            return statusNdk;
         }
 
         public State getStatusKrameriusK4(AppConfiguration appConfig) {

@@ -368,7 +368,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         @Override
         public boolean accept(ActionEvent event) {
             BatchRecord record = getSelectedBatch();
-            if (record != null && !record.isArchive() && !record.isKrameirus() && !record.isReplaceStream()) {
+            if (record != null && !record.isArchive() && !record.isKrameirus() && !record.isReplaceStream() && !record.isNdk()) {
                 return record.getState() == ImportBatchDataSource.State.LOADED;
             }
             return false;

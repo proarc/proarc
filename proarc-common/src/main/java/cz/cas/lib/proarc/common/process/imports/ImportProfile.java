@@ -19,13 +19,14 @@ package cz.cas.lib.proarc.common.process.imports;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
-import cz.cas.lib.proarc.common.process.export.archive.ArchiveImport;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.process.imports.archive.ArchiveImport;
 import cz.cas.lib.proarc.common.process.imports.audio.SoundRecordingImport;
 import cz.cas.lib.proarc.common.process.imports.kramerius.FileReader;
 import cz.cas.lib.proarc.common.process.imports.kramerius.KrameriusImport;
+import cz.cas.lib.proarc.common.process.imports.ndk.NdkImport;
 import cz.cas.lib.proarc.common.process.imports.replaceStream.ReplaceStreamImport;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
 import org.apache.commons.configuration.Configuration;
@@ -50,6 +51,7 @@ public final class ImportProfile {
     public static final String MODEL_AUDIO_ID="import.ndkaudiopage.modelId";
     public static final String PAGE_PATH="import.page.path";
     public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
+    public static final String JP2_TO_TIFF_PROCESSOR = "import.jp2ToTiff.processor";
     public static final String NDK_ARCHIVAL_SUFFIX = "import.ndk_archival.file.suffix";
     public static final String NDK_USER_PROCESSOR = "import.ndk_user.processor";
     public static final String NDK_USER_SUFFIX = "import.ndk_user.file.suffix";
@@ -114,6 +116,8 @@ public final class ImportProfile {
         switch(getProfileId()) {
             case ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT:
                 return new ArchiveImport();
+            case ConfigurationProfile.DEFAULT_NDK_IMPORT:
+                return new NdkImport();
             case ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT:
                 return new KrameriusImport(FileReader.K4_MAP);
             case ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT:
