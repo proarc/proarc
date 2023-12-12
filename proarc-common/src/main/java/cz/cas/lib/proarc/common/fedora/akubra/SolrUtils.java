@@ -1,6 +1,9 @@
 package cz.cas.lib.proarc.common.fedora.akubra;
 
+import cz.cas.lib.proarc.common.fedora.SearchView;
 import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -8,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import org.apache.solr.common.SolrDocument;
 
 public class SolrUtils {
@@ -148,7 +152,7 @@ public class SolrUtils {
         return queryBuilder.toString();
     }
 
-    public static SearchViewItem createItem(SolrDocument solrDocument) {
+    public static SearchViewItem createItem(SolrDocument solrDocument, Locale locale) {
         SearchViewItem item = new SearchViewItem();
 
         item.setPid(getString(solrDocument, FIELD_PID));
@@ -180,7 +184,20 @@ public class SolrUtils {
             item.setPageIndex(getString(solrDocument, FIELD_PAGE_INDEX));
         }
         item.setK5(getContainsBoolean(solrDocument, FIELD_LOCKED));
+        resolveObjectLabel(item, locale);
         return item;
+    }
+
+    private static void resolveObjectLabel(SearchViewItem item, Locale locale) {
+        MetaModel model = MetaModelRepository.getInstance().find(item.getModel());
+        if (model == null) {
+            return;
+        }
+        SearchView.HasSearchViewHandler hasHandler = model.getPlugin().getHandlerProvider(SearchView.HasSearchViewHandler.class);
+        if (hasHandler != null) {
+            String labelNew = hasHandler.createSearchViewHandler().getObjectLabel(item, locale);
+            item.setLabel(labelNew);
+        }
     }
 
     public static boolean isAudioPage(String model) {

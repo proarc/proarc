@@ -152,7 +152,7 @@ public class NdkNewPageMapper extends NdkMapper {
     }
 
     @Override
-    protected String createObjectLabel(ModsDefinition mods) {
+    public String createObjectLabel(ModsDefinition mods) {
         StringBuilder sb = new StringBuilder();
         if (!mods.getPart().isEmpty()) {
             PartDefinition part = mods.getPart().get(0);

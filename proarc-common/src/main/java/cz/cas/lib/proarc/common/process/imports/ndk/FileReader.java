@@ -62,6 +62,8 @@ import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPageMapper;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
@@ -102,6 +104,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -132,8 +135,7 @@ public class FileReader {
     private Mets mets;
     private String pkgModelId;
     private boolean singleVolumeMonograph = false;
-    private boolean isElectronic = false;
-    private boolean isAudio = false;
+    private PackageType packageType;
 
     private Map<String, ModsDefinition> modsMap = new HashMap<>();
     private Map<String, OaiDcType> dcMap = new HashMap<>();
@@ -159,6 +161,7 @@ public class FileReader {
 
     private void readImpl(File metsFile, ImportOptions ctx) {
         this.rootFolder = metsFile.getParentFile();
+        setPackageType();
         this.mets = JAXB.unmarshal(metsFile, Mets.class);
         pkgModelId = mets.getTYPE();
         if (pkgModelId == null) {
@@ -183,6 +186,26 @@ public class FileReader {
         }
     }
 
+    private void setPackageType() {
+        File pdf = new File(this.rootFolder, "original");
+        if (pdf.exists() && pdf.isDirectory()) {
+            this.packageType = PackageType.EBORN;
+        } else {
+            File masterCopyAudio = new File(this.rootFolder, "mastercopy_audio");
+            if (masterCopyAudio.exists() && masterCopyAudio.isDirectory()) {
+                this.packageType = PackageType.AUDIO;
+            } else {
+                File ocr = new File(this.rootFolder, "txt");
+                File alto = new File(this.rootFolder, "alto");
+                if (ocr.exists() && ocr.isDirectory() && alto.exists() && alto.isDirectory()) {
+                    this.packageType = PackageType.NDK;
+                } else {
+                    this.packageType = PackageType.STT;
+                }
+            }
+        }
+    }
+
     private void loadStructMaps(Mets mets, ImportOptions ctx) throws Exception {
         for (StructMapType structMap : mets.getStructMap()) {
             if ("PHYSICAL".equalsIgnoreCase(structMap.getTYPE())) {
@@ -194,7 +217,7 @@ public class FileReader {
                 // eMonograph has only one structMap without TYPE
             } else if (structMap.getTYPE() == null) {
                 singleVolumeMonograph = true;
-                isElectronic = true;
+                this.packageType = PackageType.EBORN;
                 processElectronicDiv(null, null, structMap.getDiv(), ctx, true);
                 return;
             } else {
@@ -437,13 +460,13 @@ public class FileReader {
 
     private String mapModel(String divType, String parentModel, Genre specialGenre) {
         if ("PERIODICAL_TITLE".equalsIgnoreCase(divType)) {
-            return !isElectronic ? NdkPlugin.MODEL_PERIODICAL : NdkEbornPlugin.MODEL_EPERIODICAL;
+            return PackageType.NDK.equals(this.packageType) ? NdkPlugin.MODEL_PERIODICAL : NdkEbornPlugin.MODEL_EPERIODICAL;
         } else if ("PERIODICAL_VOLUME".equalsIgnoreCase(divType)) {
-            return !isElectronic ? NdkPlugin.MODEL_PERIODICALVOLUME : NdkEbornPlugin.MODEL_EPERIODICALVOLUME;
+            return PackageType.NDK.equals(this.packageType) ? NdkPlugin.MODEL_PERIODICALVOLUME : NdkEbornPlugin.MODEL_EPERIODICALVOLUME;
         } else if ("ISSUE".equalsIgnoreCase(divType)) {
-            return !isElectronic ? NdkPlugin.MODEL_PERIODICALISSUE : NdkEbornPlugin.MODEL_EPERIODICALISSUE;
+            return PackageType.NDK.equals(this.packageType) ? NdkPlugin.MODEL_PERIODICALISSUE : NdkEbornPlugin.MODEL_EPERIODICALISSUE;
         } else if ("ARTICLE".equalsIgnoreCase(divType)) {
-            return !isElectronic ? NdkPlugin.MODEL_ARTICLE : NdkEbornPlugin.MODEL_EARTICLE;
+            return PackageType.NDK.equals(this.packageType) ? NdkPlugin.MODEL_ARTICLE : NdkEbornPlugin.MODEL_EARTICLE;
         } else if ("SUPPLEMENT".equalsIgnoreCase(divType) || "SUPPL".equalsIgnoreCase(divType)) {
             if (NdkPlugin.MODEL_PERIODICAL.equals(parentModel) || NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModel) || NdkPlugin.MODEL_PERIODICALISSUE.equals(parentModel)) {
                 return NdkPlugin.MODEL_PERIODICALSUPPLEMENT;
@@ -455,39 +478,58 @@ public class FileReader {
                 return NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT;
             } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel) || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)){
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
-            } else {
-                throw new IllegalArgumentException("Unsupported div type in logical structure: " + divType);
+            } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(parentModel) || OldPrintPlugin.MODEL_VOLUME.equals(parentModel)) {
+                return OldPrintPlugin.MODEL_SUPPLEMENT;
             }
         } else if ("PICTURE".equalsIgnoreCase(divType)) {
-            return NdkPlugin.MODEL_PICTURE;
+            switch (packageType) {
+                case NDK:
+                    return NdkPlugin.MODEL_PICTURE;
+                case STT:
+                    return OldPrintPlugin.MODEL_GRAPHICS;
+            }
         } else if ("TITLE".equalsIgnoreCase(divType) || "MONOGRAPH".equalsIgnoreCase(divType)) {
-            return !isElectronic ? NdkPlugin.MODEL_MONOGRAPHTITLE : NdkEbornPlugin.MODEL_EMONOGRAPHTITLE;
+            switch (packageType) {
+                case NDK:
+                    return NdkPlugin.MODEL_MONOGRAPHTITLE;
+                case STT:
+                    return OldPrintPlugin.MODEL_MONOGRAPHTITLE;
+                case EBORN:
+                    return NdkEbornPlugin.MODEL_EMONOGRAPHTITLE;
+            }
         } else if ("VOLUME".equalsIgnoreCase(divType)) {
             if (singleVolumeMonograph) {
-                if (isElectronic) {
+                if (PackageType.EBORN.equals(this.packageType)) {
                     return NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME;
                 } else {
                     if (specialGenre.equals(Genre.NONE)) {
-                        return NdkPlugin.MODEL_MONOGRAPHVOLUME;
+                        return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_MONOGRAPHVOLUME : OldPrintPlugin.MODEL_VOLUME;
                     } else if (specialGenre.equals(Genre.CARTOGRAPHIC)) {
-                        return NdkPlugin.MODEL_CARTOGRAPHIC;
+                        return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_CARTOGRAPHIC : OldPrintPlugin.MODEL_CARTOGRAPHIC;
                     } else if (specialGenre.equals(Genre.SHEETMUSIC)) {
-                        return NdkPlugin.MODEL_SHEETMUSIC;
+                        return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_SHEETMUSIC : OldPrintPlugin.MODEL_SHEETMUSIC;
                     }
                 }
             } else {
-                return !isElectronic ? NdkPlugin.MODEL_MONOGRAPHUNIT : NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME;
+                switch (packageType) {
+                    case NDK:
+                        return NdkPlugin.MODEL_MONOGRAPHUNIT;
+                    case STT:
+                        return OldPrintPlugin.MODEL_VOLUME;
+                    case EBORN:
+                        return NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME;
+                }
             }
         } else if ("CHAPTER".equalsIgnoreCase(divType)) {
-            return NdkPlugin.MODEL_CHAPTER;
+            return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_CHAPTER : OldPrintPlugin.MODEL_CHAPTER;
         } else if ("SOUNDCOLLECTION".equalsIgnoreCase(divType)) {
-            isAudio = true;
+            this.packageType = PackageType.AUDIO;
             return NdkAudioPlugin.MODEL_MUSICDOCUMENT;
         } else if ("SOUNDRECORDING".equalsIgnoreCase(divType)) {
-            isAudio = true;
+            this.packageType = PackageType.AUDIO;
             return NdkAudioPlugin.MODEL_SONG;
         } else if ("SOUNDPART".equalsIgnoreCase(divType)) {
-            isAudio = true;
+            this.packageType = PackageType.AUDIO;
             return NdkAudioPlugin.MODEL_TRACK;
         }
         throw new IllegalArgumentException("Unsupported div type in logical structure: " + divType);
@@ -515,7 +557,11 @@ public class FileReader {
             String model = null;
             if (pageDiv.getID().startsWith("DIV_P")) {
                 mods = modsMap.get(pageDiv.getID().replaceFirst("DIV_P", "MODSMD"));
-                model = NdkPlugin.MODEL_NDK_PAGE;
+                if (PackageType.NDK.equals(pageType)) {
+                    model = NdkPlugin.MODEL_NDK_PAGE;
+                } else {
+                    model = OldPrintPlugin.MODEL_PAGE;
+                }
             } else if (pageDiv.getID().startsWith("DIV_STOPA_") || pageDiv.getID().startsWith("DIV_AUDIO_")) {
                 mods = null; // Zvukova nahravka je jen virtualni model, bez metadat
                 model = NdkAudioPlugin.MODEL_PAGE;
@@ -839,7 +885,7 @@ public class FileReader {
         String deviceId = getDevice(newDevice);
         if (deviceId == null || deviceId.isEmpty()) {
             DeviceRepository deviceRepository = iSession.getDeviceRepository();
-            Device device = deviceRepository.addDeviceWithMetadata(ctx.getUsername(), isAudio ? DeviceRepository.METAMODEL_AUDIODEVICE_ID : DeviceRepository.METAMODEL_ID, (newDevice.getImageProducer() == null ? "Imported device" : newDevice.getScannerManufacturer() + " - imported device"), "Imported device", deviceMix, null);
+            Device device = deviceRepository.addDeviceWithMetadata(ctx.getUsername(), PackageType.NDK.equals(this.packageType) ? DeviceRepository.METAMODEL_ID : DeviceRepository.METAMODEL_AUDIODEVICE_ID, (newDevice.getImageProducer() == null ? "Imported device" : newDevice.getScannerManufacturer() + " - imported device"), "Imported device", deviceMix, null);
             deviceId = device.getId();
         }
         if (deviceId != null && !deviceId.isEmpty()) {
@@ -1074,12 +1120,14 @@ public class FileReader {
     private void createPageMetadata(DigitalObjectHandler dobjHandler, ModsDefinition mods, BigInteger pageIndex, String pageNumber, String pageType, LocalStorage.LocalObject localObject, ImportOptions ctx) throws DigitalObjectException {
         MetadataHandler<Object> mHandler = dobjHandler.metadata();
         NdkMapper.Context context = new NdkMapper.Context(dobjHandler);
+        String label = null;
         if (NdkPlugin.MODEL_NDK_PAGE.equals(localObject.getModel())) {
             NdkNewPageMapper mapper = new NdkNewPageMapper();
             mapper.setModelId(localObject.getModel());
             if (mHandler instanceof PageView.PageViewHandler) {
                 if (mods == null) {
                     mods = mapper.createPage(String.valueOf(pageIndex), pageNumber, pageType, context);
+                    label = mapper.createObjectLabel(mods);
                 }
             } else {
                 throw new IllegalStateException("Unsupported mHandler");
@@ -1090,6 +1138,17 @@ public class FileReader {
             if (mHandler instanceof PageView.PageViewHandler) {
                 if (mods == null) {
                     mods = mapper.createPage(String.valueOf(pageIndex), pageNumber, "audio", context);
+                }
+            } else {
+                throw new IllegalStateException("Unsupported mHandler");
+            }
+        } else if (OldPrintPlugin.MODEL_PAGE.equals(localObject.getModel())) {
+            OldPrintPageMapper mapper = new OldPrintPageMapper();
+            mapper.setModelId(localObject.getModel());
+            if (mHandler instanceof PageView.PageViewHandler) {
+                if (mods == null) {
+                    mods = mapper.createPage(String.valueOf(pageIndex), pageNumber, pageType, context);
+                    label = OldPrintPageMapper.getPageTypeLabel(pageType, new Locale("cs"));
                 }
             } else {
                 throw new IllegalStateException("Unsupported mHandler");
@@ -1110,7 +1169,7 @@ public class FileReader {
         dublinCoreRecord.setDc(dc);
         dcEditor.write(dobjHandler, dublinCoreRecord, null);
 
-        localObject.setLabel(mapper.toLabel(mods));
+        localObject.setLabel(label == null ? mapper.toLabel(mods) : label);
     }
 
     private void createPageRelsExt(DigitalObjectHandler dobjHandler, String model, ImportOptions ctx) throws DigitalObjectException {
@@ -1347,6 +1406,10 @@ public class FileReader {
 
     private static enum Genre {
         NONE, CARTOGRAPHIC, SHEETMUSIC
+    }
+
+    private static enum PackageType {
+        NDK, AUDIO, EBORN, STT
     }
 
     private class DeviceIdentification {

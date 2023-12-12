@@ -150,7 +150,7 @@ public class SolrSearchView extends SearchView {
             QueryResponse response = this.solrClient.query(solrQuery);
 
             for (SolrDocument solrDocument : response.getResults()) {
-                items.add(createItem(solrDocument));
+                items.add(createItem(solrDocument, locale));
             }
 
             return items;
@@ -345,7 +345,7 @@ public class SolrSearchView extends SearchView {
             QueryResponse response = this.solrClient.query(solrQuery);
 
             for (SolrDocument solrDocument : response.getResults()) {
-                items.add(createItem(solrDocument));
+                items.add(createItem(solrDocument, locale));
             }
 
             return items;
@@ -364,7 +364,7 @@ public class SolrSearchView extends SearchView {
             QueryResponse response = this.solrClient.query(solrQuery);
 
             for (SolrDocument solrDocument : response.getResults()) {
-                items.add(createItem(solrDocument));
+                items.add(createItem(solrDocument, locale));
             }
 
             return items;
