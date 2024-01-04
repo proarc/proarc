@@ -6,9 +6,11 @@ import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.IssuanceDefinition;
+import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
@@ -94,6 +96,7 @@ public class CatalogUtils {
         } else {
             mods = modsCollection.getMods().get(0);
         }
+        repairLocation(mods);
         List<String> couples = new ArrayList<>();
         int updateNode = 0;
         int nodesCount = 0;
@@ -122,6 +125,40 @@ public class CatalogUtils {
                 return modsBytes;
             }
         }
+    }
+
+    private static void repairLocation(ModsDefinition mods) {
+        String physicalLocationValue = getPhysicalLocationValue(mods);
+        if (physicalLocationValue != null) {
+            for (LocationDefinition locationDefinition : mods.getLocation()) {
+                if (locationDefinition.getPhysicalLocation().isEmpty()) {
+                    PhysicalLocationDefinition physicalLocationDefinition = new PhysicalLocationDefinition();
+                    physicalLocationDefinition.setAuthority("siglaADR");
+                    physicalLocationDefinition.setValue(physicalLocationValue);
+                    locationDefinition.getPhysicalLocation().add(physicalLocationDefinition);
+                }
+            }
+            ListIterator<LocationDefinition> iterator = mods.getLocation().listIterator();
+            while (iterator.hasNext()) {
+                LocationDefinition location = iterator.next();
+                if (location.getUrl().isEmpty() && location.getShelfLocator().isEmpty()) {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    private static String getPhysicalLocationValue(ModsDefinition mods) {
+        for (LocationDefinition location : mods.getLocation()) {
+            for (PhysicalLocationDefinition physicalLocation : location.getPhysicalLocation()) {
+                if (physicalLocation.getValue() != null && !physicalLocation.getValue().isEmpty()) {
+                    if ("siglaADR".equals(physicalLocation.getAuthority())) {
+                        return physicalLocation.getValue();
+                    }
+                }
+            }
+        }
+        return null;
     }
 
 
