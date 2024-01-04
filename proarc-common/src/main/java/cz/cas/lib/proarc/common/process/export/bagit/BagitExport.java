@@ -1,11 +1,17 @@
 package cz.cas.lib.proarc.common.process.export.bagit;
 
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
+
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
 import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
@@ -17,6 +23,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
@@ -29,12 +36,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.model.enums.CompressionLevel;
-import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 public class BagitExport {
 
@@ -250,13 +251,14 @@ public class BagitExport {
         }
     }
 
-    public void uploadToLtpCesnet(String ltpCesnetToken, String pid) throws IOException, DigitalObjectException {
+    public void uploadToLtpCesnet(String ltpCesnetToken, String pid) throws IOException, DigitalObjectException, InterruptedException {
         if (destinationFolder != null && destinationFolder.exists()) {
             String metadata = createMetadataJson(destinationFolder.getName(), pid);
             LtpCesnetProcess process = new LtpCesnetProcess(appConfiguration.getLtpCesnetExportPostProcessor(), ltpCesnetToken, appConfiguration.getLtpCesnetGroupToken(), appConfiguration.getLtpCesnetScriptPath(), destinationFolder, metadata);
 
             if (process != null) {
                 process.run();
+                Thread.sleep(60000);
 
 //                if (!process.isOk()) {
 //                    throw new IOException("Processing Ltp Cesnet upload failed. \n" + process.getFullOutput());
