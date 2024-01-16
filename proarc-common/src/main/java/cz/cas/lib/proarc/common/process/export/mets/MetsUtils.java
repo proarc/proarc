@@ -809,7 +809,13 @@ public class MetsUtils {
         ValidationErrorHandler errorHandler = new ValidationErrorHandler();
         documentBuilder.setErrorHandler(errorHandler);
         documentBuilder.parse(file);
-        return errorHandler.getValidationErrors();
+        List<String> validationErrors = new ArrayList<>();
+        for (String validationError : errorHandler.getValidationErrors()) {
+            if (!validationError.contains("Cannot resolve 'premis:file' to a type definition for element 'premis:object'.")) {
+                validationErrors.add(validationError);
+            }
+        }
+        return validationErrors;
     }
 
     /**

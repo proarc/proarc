@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.fedora;
 
 
 import edu.harvard.hul.ois.xml.ns.jhove.Property;
+
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
@@ -25,6 +26,9 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
@@ -32,12 +36,10 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.NdkExportOptions;
+import cz.cas.lib.proarc.common.process.export.mets.ObjectInfo;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -324,9 +326,9 @@ public class PremisEditor {
                 continue;
             }
             if ("OBJ_001".equals(obj)) {
-                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), mixDevice), amdSec, obj, false, amdSecFileGrpMap);
+                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), mixDevice, null), amdSec, obj, false, amdSecFileGrpMap);
             } else {
-                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), null), amdSec, obj, false, amdSecFileGrpMap);
+                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), null, null), amdSec, obj, false, amdSecFileGrpMap);
             }
         }
 
@@ -419,8 +421,8 @@ public class PremisEditor {
      * @return
      * @throws MetsExportException
      */
-    public static Node getPremisFile(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix) throws MetsExportException {
-        JAXBElement<PremisComplexType> jaxbPremix = PremisEditor.createPremisComplexType(metsElement, datastream, md5Info, mix);
+    public static Node getPremisFile(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix, ObjectInfo objectInfo) throws MetsExportException {
+        JAXBElement<PremisComplexType> jaxbPremix = PremisEditor.createPremisComplexType(metsElement, datastream, md5Info, mix, objectInfo);
 
         JAXBContext jc;
         try {
@@ -441,7 +443,7 @@ public class PremisEditor {
     }
 
 
-    public static JAXBElement<PremisComplexType> createPremisComplexType(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix) throws MetsExportException {
+    public static JAXBElement<PremisComplexType> createPremisComplexType(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix, ObjectInfo objectInfo) throws MetsExportException {
         PremisComplexType premis = new PremisComplexType();
         ObjectFactory factory = new ObjectFactory();
         JAXBElement<PremisComplexType> jaxbPremix = factory.createPremis(premis);
@@ -454,6 +456,9 @@ public class PremisEditor {
         PreservationLevelComplexType preservation = new PreservationLevelComplexType();
         if ("RAW".equals(datastream)) {
             preservation.setPreservationLevelValue("deleted");
+        } else if (Const.OC_GRP_ID_CREATION.equals(datastream)) {
+            preservation.setPreservationLevelValue("logical preservation");
+            preservation.setPreservationLevelDateAssigned(MetsUtils.getCurrentDate().toXMLFormat());
         } else {
             preservation.setPreservationLevelValue("preservation");
         }
@@ -486,12 +491,11 @@ public class PremisEditor {
 
         CreatingApplicationComplexType creatingApplication = new CreatingApplicationComplexType();
         characteristics.getCreatingApplication().add(creatingApplication);
-        creatingApplication.getContent().add(factory.createCreatingApplicationName("ProArc"));
-        creatingApplication.getContent().add(factory.createCreatingApplicationVersion
-                (metsElement.getMetsContext().getOptions().getVersion()));
+        creatingApplication.getContent().add(factory.createCreatingApplicationName((objectInfo != null && objectInfo.getApplicationName() != null) ? objectInfo.getApplicationName() : "ProArc"));
+        creatingApplication.getContent().add(factory.createCreatingApplicationVersion((objectInfo != null && objectInfo.getApplicationVersion() != null) ? objectInfo.getApplicationVersion() : metsElement.getMetsContext().getOptions().getVersion()));
 
         //creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
-        creatingApplication.getContent().add(factory.createDateCreatedByApplication(MetsUtils.getCurrentDate().toXMLFormat()));
+        creatingApplication.getContent().add(factory.createDateCreatedByApplication((objectInfo != null && objectInfo.getApplicationCreationDate() != null) ? objectInfo.getApplicationCreationDate() : MetsUtils.getCurrentDate().toXMLFormat()));
 
         RelationshipComplexType relationShip = new RelationshipComplexType();
 
@@ -523,6 +527,9 @@ public class PremisEditor {
         }
 
         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+        if (originalFile == null || originalFile.isEmpty()) {
+            originalFile = md5Info.getFileName();
+        }
         String extension = Const.mimeToExtensionMap.get(md5Info.getMimeType());
         int position = originalFile.indexOf(".");
         originalFile = originalFile.substring(0, position) + extension;

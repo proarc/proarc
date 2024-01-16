@@ -27,15 +27,6 @@ import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.process.export.ExportUtils;
-import cz.cas.lib.proarc.common.process.export.mets.Const;
-import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
-import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
-import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.process.export.mets.MimeType;
 import cz.cas.lib.proarc.common.fedora.AesEditor;
 import cz.cas.lib.proarc.common.fedora.BinaryEditor;
 import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
@@ -52,10 +43,20 @@ import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.process.export.ExportUtils;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
+import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.MimeType;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
 import cz.cas.lib.proarc.mets.DivType;
@@ -328,7 +329,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             addFileGrpToMets(fileGrpMap);
             addStructLink();
             try {
-                JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, OaiDcType.class, ModsDefinition.class);
+                JAXBContext jaxbContext = null;
+                if (NdkMapper.isNdkEModel(metsElement.getModel().replaceAll("info:fedora/", ""))) {
+                    jaxbContext = JAXBContext.newInstance(Mets.class, OaiDcType.class, ModsDefinition.class, PremisComplexType.class, NkComplexType.class);
+                } else {
+                    jaxbContext = JAXBContext.newInstance(Mets.class, OaiDcType.class, ModsDefinition.class);
+                }
                 Marshaller marshaller = jaxbContext.createMarshaller();
                 marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
                 marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");

@@ -117,4 +117,23 @@ public class JHoveOutput {
     public void setCodingHistory(Property codingHistory) {
         this.codingHistory = codingHistory;
     }
+
+    Node basicObjectNode;
+    Property basicObjectInfo;
+
+    public Node getBasicObjectNode() {
+        return basicObjectNode;
+    }
+
+    public void setBasicObjectNode(Node basicObjectNode) {
+        this.basicObjectNode = basicObjectNode;
+    }
+
+    public void setBasicObjectInfo(Property basicObjectInfo) {
+        this.basicObjectInfo = basicObjectInfo;
+    }
+
+    public Property getBasicObjectInfo() {
+        return basicObjectInfo;
+    }
 }
