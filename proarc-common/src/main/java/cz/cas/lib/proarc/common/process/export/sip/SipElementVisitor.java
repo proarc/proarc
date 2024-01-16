@@ -19,17 +19,20 @@ package cz.cas.lib.proarc.common.process.export.sip;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import cz.cas.lib.proarc.common.process.export.mets.Const;
-import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
-import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
-import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
 import cz.cas.lib.proarc.common.fedora.Storage;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
+import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.ObjectInfo;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.FileType;
@@ -62,6 +65,7 @@ import org.w3c.dom.Node;
 import static cz.cas.lib.proarc.common.fedora.PremisEditor.addPremisNodeToMets;
 import static cz.cas.lib.proarc.common.fedora.PremisEditor.getAgent;
 import static cz.cas.lib.proarc.common.fedora.PremisEditor.getPremisEvent;
+import static cz.cas.lib.proarc.common.fedora.PremisEditor.getPremisFile;
 
 class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisitor {
 
@@ -182,6 +186,15 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         AmdSecType amdSec = new AmdSecType();
         amdSec.setID("AMD_" + metsElement.getModsElementID());
         mets.getAmdSec().add(amdSec);
+        ObjectInfo objectInfo = new ObjectInfo();
+        for (FileMD5Info file : metsElement.getMetsContext().getFileList()) {
+            File originFile = new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator + file.getFileName());
+            if (originFile.exists()) {
+                JHoveOutput output = JhoveUtility.getObjectInfo(originFile, metsElement.getMetsContext(), null, file.getFileName());
+                objectInfo.createObjectInfoFromOutput(output);
+            }
+        }
+        addPremisNodeToMets(getPremisFile(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), null, objectInfo), amdSec, "OBJ_001", true, null);
         addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), "creation"), amdSec, "EVT_001", true, null);
         addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_VALIDATION, md5InfosMap.get(Const.OC_GRP_ID_VALIDATION), "validation"), amdSec, "EVT_002", true, null);
         addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true, null);
@@ -232,6 +245,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                 }
                 fileMD5Info.setFileName(fileName + extension);
                 fileMD5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
+                fileMD5Info.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
                 md5InfosMap.put(Const.OC_GRP_ID_CREATION, fileMD5Info);
 
                 FileMD5Info fileMD5InfoValidation = MetsUtils.getDigest(inputStream);
