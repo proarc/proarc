@@ -114,7 +114,9 @@ public final class FedoraImport {
             boolean itemFailed = importItems(batch, importer, ingestedPids, repair);
             addParentMembers(batch, parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
-            deleteImportFolder(batch);
+            if (Batch.State.INGESTED.equals(batch.getState())) {
+                deleteImportFolder(batch);
+            }
             DigitalObjectStatusUtils.setState(batch.getParentPid(), DigitalObjectStatusUtils.STATUS_CONNECTED);
             try {
                 setWorkflowMetadataDescription("task.metadataDescriptionInProArc", getRoot(batch.getParentPid(), null));
