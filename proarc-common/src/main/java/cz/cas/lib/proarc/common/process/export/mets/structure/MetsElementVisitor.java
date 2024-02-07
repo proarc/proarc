@@ -1067,69 +1067,68 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
             if (!Const.SOUND_PAGE.equals(metsElement.getElementType())) {
                 if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                    if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                        DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
-                        if (rawDS != null) {
-                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                            try {
-                                rawCreated = rawDS.getDatastreamVersion().get(0).getCREATED();
-                                InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                                String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                                rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);
-                                FileMD5Info rawinfo;
-                                try {
-                                    rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
-                                } catch (NoSuchAlgorithmException | IOException e) {
-                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
-                                }
-                                rawinfo.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                                rawinfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
-                                md5InfosMap.put("RAW", rawinfo);
-                                outputFileNames.put("RAW", rawFile.getAbsolutePath());
-                            } catch (FedoraClientException e) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                            }
-                        }
-                    } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                        DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
-                        if (rawDS != null) {
-                            AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
-                            AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
-                            try {
-                                DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
-                                for (DatastreamType datastreamType : digitalObject.getDatastream()) {
-                                    if ("RAW".equals(datastreamType.getID())) {
-                                        if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty()) {
-                                            DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
-                                            rawCreated = datastreamVersionType.getCREATED();
-                                            InputStream is = AkubraUtils.getStreamContent(datastreamVersionType, akubraObject.getManager());
-                                            String rawExtendsion = MimeType.getExtension(datastreamVersionType.getMIMETYPE());
-                                            rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);
-                                            FileMD5Info rawinfo;
-                                            try {
-                                                rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
-                                            } catch (NoSuchAlgorithmException e) {
-                                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
-                                            }
-                                            rawinfo.setMimeType(datastreamVersionType.getMIMETYPE());
-                                            rawinfo.setCreated(datastreamVersionType.getCREATED());
-                                            md5InfosMap.put("RAW", rawinfo);
-                                            outputFileNames.put("RAW", rawFile.getAbsolutePath());
-                                        }
-                                    }
-                                }
-                            } catch (JAXBException | IOException | TransformerException e) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                            }
-                        }
-                    }
-
                     toGenerate.put(Const.MIX001, "RAW");
 
-                    jHoveOutputRaw = JhoveUtility.getMix(metsElement, MixEditor.RAW_ID, rawFile.getAbsolutePath(), mixDevice, rawCreated, null);
+                    jHoveOutputRaw = JhoveUtility.getMix(metsElement, MixEditor.RAW_ID, null, null, null, null);
 
                     // If not present, then generate new
                     if (jHoveOutputRaw == null) {
+                        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                            DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
+                            if (rawDS != null) {
+                                GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
+                                try {
+                                    rawCreated = rawDS.getDatastreamVersion().get(0).getCREATED();
+                                    InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                                    String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                                    rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);
+                                    FileMD5Info rawinfo;
+                                    try {
+                                        rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
+                                    } catch (NoSuchAlgorithmException | IOException e) {
+                                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
+                                    }
+                                    rawinfo.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+                                    rawinfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
+                                    md5InfosMap.put("RAW", rawinfo);
+                                    outputFileNames.put("RAW", rawFile.getAbsolutePath());
+                                } catch (FedoraClientException e) {
+                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                                }
+                            }
+                        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                            DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
+                            if (rawDS != null) {
+                                AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
+                                AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
+                                try {
+                                    DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
+                                    for (DatastreamType datastreamType : digitalObject.getDatastream()) {
+                                        if ("RAW".equals(datastreamType.getID())) {
+                                            if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty()) {
+                                                DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
+                                                rawCreated = datastreamVersionType.getCREATED();
+                                                InputStream is = AkubraUtils.getStreamContent(datastreamVersionType, akubraObject.getManager());
+                                                String rawExtendsion = MimeType.getExtension(datastreamVersionType.getMIMETYPE());
+                                                rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);
+                                                FileMD5Info rawinfo;
+                                                try {
+                                                    rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
+                                                } catch (NoSuchAlgorithmException e) {
+                                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
+                                                }
+                                                rawinfo.setMimeType(datastreamVersionType.getMIMETYPE());
+                                                rawinfo.setCreated(datastreamVersionType.getCREATED());
+                                                md5InfosMap.put("RAW", rawinfo);
+                                                outputFileNames.put("RAW", rawFile.getAbsolutePath());
+                                            }
+                                        }
+                                    }
+                                } catch (JAXBException | IOException | TransformerException e) {
+                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                                }
+                            }
+                        }
                         jHoveOutputRaw = JhoveUtility.getMix(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), mixDevice, rawCreated, null);
                         if (jHoveOutputRaw.getMix() == null) {
                             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for RAW image", false, null);
@@ -1137,6 +1136,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     } else {
                         // Merges the information from the device mix
                         JhoveUtility.mergeMix(jHoveOutputRaw.getMix(), mixDevice);
+                        if (rawCreated == null && (jHoveOutputRaw != null && jHoveOutputRaw.getRawCreated() != null)) {
+                            rawCreated = jHoveOutputRaw.getRawCreated();
+                        }
                     }
                     if ((jHoveOutputRaw.getMix() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics() != null) && (jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation() != null)) {
                         photometricInterpretation = jHoveOutputRaw.getMix().getBasicImageInformation().getBasicImageCharacteristics().getPhotometricInterpretation();

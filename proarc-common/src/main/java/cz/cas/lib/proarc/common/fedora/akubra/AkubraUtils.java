@@ -319,7 +319,7 @@ public class AkubraUtils {
         return null;
     }
 
-    protected static XMLGregorianCalendar toXmlGregorian(Date date) throws DatatypeConfigurationException {
+    public static XMLGregorianCalendar toXmlGregorian(Date date) throws DatatypeConfigurationException {
         GregorianCalendar c = new GregorianCalendar();
         c.setTime(date);
         return DatatypeFactory.newInstance().newXMLGregorianCalendar(c);

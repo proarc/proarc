@@ -55,6 +55,9 @@ public class BatchParams {
     @XmlElement (name = "license")
     private String license;
 
+    @XmlElement (name = "extendedArchivePackage")
+    private Boolean extendedArchivePackage;
+
     public BatchParams() {}
 
     public BatchParams(List<String> pids) {
@@ -76,13 +79,14 @@ public class BatchParams {
         this.krameriusImportInstanceId = krameriusImportInstanceId;
     }
 
-    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, String noTifAvailableMessage, String additionalInfoMessage) {
+    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, String noTifAvailableMessage, String additionalInfoMessage, Boolean extendedArchivePackage) {
         this.pids = pids;
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
         this.bagit = bagit;
         this.noTifAvailableMessage = noTifAvailableMessage;
         this.additionalInfoMessage = additionalInfoMessage;
+        this.extendedArchivePackage = extendedArchivePackage;
     }
 
     public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, boolean ltpCesnet, String ltpCesnetToken, String krameriusInstanceId, String policy) {
@@ -181,5 +185,9 @@ public class BatchParams {
 
     public String getLicense() {
         return license;
+    }
+
+    public Boolean isExtendedArchivePackage() {
+        return extendedArchivePackage;
     }
 }

@@ -58,6 +58,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -391,9 +392,7 @@ public class JhoveUtility {
             if (mix == null) {
                 return null;
             }
-        } catch (DigitalObjectException ex) {
-            throw new MetsExportException(metsElement.getOriginalPid(), ex.getMessage(), false, ex);
-        }
+
 //        if (FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName) != null) {
 //            List<Element> streamContent = MetsUtils.getDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement.getOriginalPid(), streamName);
 //            if (streamContent == null) {
@@ -406,8 +405,12 @@ public class JhoveUtility {
 //        }
 //        DOMSource domSource = new DOMSource(document);
 //        MixType mix = MixUtils.unmarshal(domSource, MixType.class);
-        jhoveOutput.setMix(mix);
-        jhoveOutput.setFormatVersion(mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName().getValue());
+            jhoveOutput.setMix(mix);
+            jhoveOutput.setCreatedDate(mixEditor.getLastModified());
+            jhoveOutput.setFormatVersion(mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName().getValue());
+        } catch (DigitalObjectException | DatatypeConfigurationException ex) {
+            throw new MetsExportException(metsElement.getOriginalPid(), ex.getMessage(), false, ex);
+        }
         return jhoveOutput;
     }
 

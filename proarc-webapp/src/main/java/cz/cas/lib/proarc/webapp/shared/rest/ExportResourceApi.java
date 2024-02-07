@@ -38,6 +38,7 @@ public final class ExportResourceApi {
     public static final String ARCHIVE_PID_PARAM = "pid";
     public static final String ARCHIVE_NO_TIF_AVAILABLE_MESSAGE = "noTifMessage";
     public static final String ARCHIVE_ADDITIONAL_INFO_MESSAGE = "addInfoMessage";
+    public static final String ARCHIVE_EXTENDED_PACKAGE_PARAM = "extendedPackage";
 
     public static final String CEJSH_PATH = "cejsh";
     public static final String CEJSH_PID_PARAM = "pid";

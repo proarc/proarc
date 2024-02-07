@@ -315,7 +315,7 @@ public final class ExportProcess implements Runnable {
                 ArchiveProducer.fixPdfFile(targetFolder);
             }
             try {
-                if (config.getArchiveExportOptions().isExtendedPackage()) { // pokud neni tak normalne jedu dal
+                if (config.getArchiveExportOptions().isExtendedPackage() && params.isExtendedArchivePackage()) { // pokud neni tak normalne jedu dal
                     for (File folder : targetFolder.listFiles()) {
                         if (folder.isDirectory()) {
                             String pid = "uuid:" + folder.getName();
