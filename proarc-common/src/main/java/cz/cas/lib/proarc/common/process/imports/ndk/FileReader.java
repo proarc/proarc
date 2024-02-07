@@ -557,7 +557,7 @@ public class FileReader {
             String model = null;
             if (pageDiv.getID().startsWith("DIV_P")) {
                 mods = modsMap.get(pageDiv.getID().replaceFirst("DIV_P", "MODSMD"));
-                if (PackageType.NDK.equals(pageType)) {
+                if (PackageType.NDK.equals(packageType)) {
                     model = NdkPlugin.MODEL_NDK_PAGE;
                 } else {
                     model = OldPrintPlugin.MODEL_PAGE;
@@ -1064,7 +1064,10 @@ public class FileReader {
 
                 LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                         tiffFile.getName(), endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
+            } else {
+                throw new IllegalStateException("Convertor JP2 --> TIF not set.");
             }
+
         }
     }
 

@@ -52,7 +52,9 @@ public class NdkScanner {
             return metsFile;
         }
         for (File file : folder.listFiles()) {
-            metsFile.addAll(findMets(file));
+            if (file.isDirectory()) {
+                metsFile.addAll(findMets(file));
+            }
         }
 
         return metsFile;
@@ -85,13 +87,13 @@ public class NdkScanner {
     public static boolean isImportable(File folder) {
         if (isNdkFolder(folder)) {
             return true;
-//        } else {
-//            File[] listFiles = folder.listFiles();
-//            for (File f : listFiles) {
-//                if (isNdkFolder(f)) {
-//                    return true;
-//                }
-//            }
+        } else {
+            File[] listFiles = folder.listFiles();
+            for (File f : listFiles) {
+                if (isNdkFolder(f)) {
+                    return true;
+                }
+            }
         }
         return false;
     }
