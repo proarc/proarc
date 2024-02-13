@@ -1180,6 +1180,7 @@ public class FileReader {
         relEditor.setModel(model);
         relEditor.setDevice(ctx.getDevice());
         relEditor.setOrganization(ctx.getOrganization());
+        relEditor.setUser(ctx.getConfig().getDefaultProcessor());
         relEditor.setStatus(DigitalObjectStatusUtils.STATUS_NEW);
         relEditor.write(0, null);
     }
