@@ -613,6 +613,10 @@ public class ImportResourceV1 {
                 String message = ServerMessages.get(locale).ImportResource_BatchNotLoaded_Msg();
                 return SmartGwtResponse.asError(message);
             }
+            if (ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(batch.getProfileId()) || ConfigurationProfile.DEFAULT_NDK_IMPORT.equals(batch.getProfileId())) {
+                String message =ServerMessages.get(locale).ImportResource_Batch_WrongProfileId_Msg();
+                return SmartGwtResponse.asError(message);
+            }
             try {
                 imports = listLoadedItems
                         ? importManager.findLoadedObjects(batch)

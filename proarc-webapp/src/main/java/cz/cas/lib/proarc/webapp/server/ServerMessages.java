@@ -86,6 +86,10 @@ public final class ServerMessages {
         return getMessage(l, "ImportResource_BatchNotLoaded_Msg");
     }
 
+    public String ImportResource_Batch_WrongProfileId_Msg() {
+        return getMessage(l, "ImportResource_Batch_WrongProfileId_Msg");
+    }
+
     public String ImportResource_PathNotExisted_Msg() {
         return getMessage(l, "ImportResource_PathNotExisted_Msg");
     }

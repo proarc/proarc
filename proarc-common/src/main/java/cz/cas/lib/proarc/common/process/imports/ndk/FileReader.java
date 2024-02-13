@@ -540,6 +540,7 @@ public class FileReader {
         RelationEditor relEditor = dobjHandler.relations();
         relEditor.setModel(fedoraModel);
         relEditor.setOrganization(ctx.getOrganization());
+        relEditor.setUser(ctx.getConfig().getDefaultProcessor());
         relEditor.setStatus(DigitalObjectStatusUtils.STATUS_NEW);
         relEditor.write(0, null);
     }
