@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

@@ -21,11 +21,11 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +52,7 @@ public class MetsContext {
 
     private Storage typeOfStorage;
     private FedoraClient fedoraClient;
-    private RemoteStorage remoteStorage;
+    private FedoraStorage fedoraStorage;
     private AkubraStorage akubraStorage;
     private Map<String, Integer> elementIds = new HashMap<String, Integer>();
     private MetsElement rootElement;
@@ -323,17 +323,17 @@ public class MetsContext {
      *
      * @return
      */
-    public RemoteStorage getRemoteStorage() {
-        return remoteStorage;
+    public FedoraStorage getRemoteStorage() {
+        return fedoraStorage;
     }
 
     /**
      * Sets the remote storage (Fedora)
      *
-     * @param remoteStorage
+     * @param fedoraStorage
      */
-    public void setRemoteStorage(RemoteStorage remoteStorage) {
-        this.remoteStorage = remoteStorage;
+    public void setRemoteStorage(FedoraStorage fedoraStorage) {
+        this.fedoraStorage = fedoraStorage;
     }
 
     /**
@@ -384,21 +384,21 @@ public class MetsContext {
         this.akubraStorage = akubraStorage;
     }
 
-    public static MetsContext buildAkubraContext(FedoraObject object, String packageId, File targetFolder, AkubraStorage akubraStorage, NdkExportOptions exportOptions) {
+    public static MetsContext buildAkubraContext(ProArcObject object, String packageId, File targetFolder, AkubraStorage akubraStorage, NdkExportOptions exportOptions) {
         MetsContext metsContext = buildContext(object, packageId, targetFolder, exportOptions);
         metsContext.setTypeOfStorage(Storage.AKUBRA);
         metsContext.setAkubraStorage(akubraStorage);
         return metsContext;
     }
 
-    public static MetsContext buildFedoraContext(FedoraObject object, String packageId, File targetFolder, RemoteStorage rstorage, NdkExportOptions exportOptions) {
+    public static MetsContext buildFedoraContext(ProArcObject object, String packageId, File targetFolder, FedoraStorage rstorage, NdkExportOptions exportOptions) {
         MetsContext metsContext = buildContext(object, packageId, targetFolder, exportOptions);
         metsContext.setTypeOfStorage(Storage.FEDORA);
         metsContext.setRemoteStorage(rstorage);
         return metsContext;
     }
 
-    private static MetsContext buildContext(FedoraObject fo, String packageId, File targetFolder, NdkExportOptions exportOptions) {
+    private static MetsContext buildContext(ProArcObject fo, String packageId, File targetFolder, NdkExportOptions exportOptions) {
         MetsContext mc = new MetsContext();
         if (fo instanceof RemoteObject) {
             mc.setFedoraClient(((RemoteObject) fo).getClient());

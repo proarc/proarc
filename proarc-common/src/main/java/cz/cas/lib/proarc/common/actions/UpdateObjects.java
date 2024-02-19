@@ -9,17 +9,17 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -70,7 +70,7 @@ public class UpdateObjects {
     public List<SearchViewItem> findAllObjects() throws IOException, FedoraClientException {
         SearchView search = null;
         if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            RemoteStorage remote = RemoteStorage.getInstance(config);
+            FedoraStorage remote = FedoraStorage.getInstance(config);
             search = remote.getSearch(locale);
         } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
@@ -91,7 +91,7 @@ public class UpdateObjects {
     private void setOrganization(String pid, String defaultProcesor) throws DigitalObjectException {
         try {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            FedoraObject fo = dom.find(pid, null);
+            ProArcObject fo = dom.find(pid, null);
             DigitalObjectHandler doh = dom.createHandler(fo);
             RelationEditor relations = doh.relations();
             if (relations.getOrganization() != null && !relations.getOrganization().equals(".") && relations.getUser() != null && relations.getStatus() != null) {
@@ -152,9 +152,9 @@ public class UpdateObjects {
     public IMetsElement getElement(String pid) throws DigitalObjectException {
         try {
             MetsContext metsContext = null;
-            FedoraObject object = null;
+            ProArcObject object = null;
             if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-                RemoteStorage rstorage = RemoteStorage.getInstance(config);
+                FedoraStorage rstorage = FedoraStorage.getInstance(config);
                 object = rstorage.find(pid);
                 metsContext = buildFedoraContext(object, null, null, rstorage, config.getNdkExportOptions());
             } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
@@ -183,7 +183,7 @@ public class UpdateObjects {
 
     private void updateObject(String pid, String model) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fo = dom.find(pid, null);
+        ProArcObject fo = dom.find(pid, null);
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
         NdkMapper.Context context = new NdkMapper.Context(handler);
         NdkMapper mapper = NdkMapper.get(model);

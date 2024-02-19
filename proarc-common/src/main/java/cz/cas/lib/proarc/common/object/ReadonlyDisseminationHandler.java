@@ -16,9 +16,9 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.Storage;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
@@ -29,10 +29,10 @@ import javax.ws.rs.core.Response;
  */
 public class ReadonlyDisseminationHandler implements DisseminationHandler {
 
-    private final FedoraObject object;
+    private final ProArcObject object;
     private final String dsId;
 
-    public ReadonlyDisseminationHandler(FedoraObject object, String dsId) {
+    public ReadonlyDisseminationHandler(ProArcObject object, String dsId) {
         this.object = object;
         this.dsId = dsId;
     }

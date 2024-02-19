@@ -30,16 +30,16 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.imports.ImportUtils.Hierarchy;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
@@ -78,7 +78,7 @@ import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedo
 public final class FedoraImport {
 
     private static final Logger LOG = Logger.getLogger(FedoraImport.class.getName());
-    private final RemoteStorage fedora;
+    private final FedoraStorage fedora;
     private final LocalStorage localStorage;
     private final BatchManager ibm;
     private final SearchView search;
@@ -86,7 +86,7 @@ public final class FedoraImport {
     private final AppConfiguration config;
     private final ImportProcess.ImportOptions options;
 
-    public FedoraImport(AppConfiguration config, RemoteStorage fedora, BatchManager ibm, UserProfile user, ImportProcess.ImportOptions options) {
+    public FedoraImport(AppConfiguration config, FedoraStorage fedora, BatchManager ibm, UserProfile user, ImportProcess.ImportOptions options) {
         this.config = config;
         this.fedora = fedora;
         this.search = fedora.getSearch();
@@ -183,7 +183,7 @@ public final class FedoraImport {
 
     private IMetsElement getRoot(String pid, File file) throws MetsExportException {
         MetsContext metsContext = null;
-        FedoraObject object = null;
+        ProArcObject object = null;
 
         if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
             object = fedora.find(pid);
@@ -198,7 +198,7 @@ public final class FedoraImport {
         return element.getMetsContext().getRootElement();
     }
 
-    private MetsElement getMetsElement(FedoraObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
+    private MetsElement getMetsElement(ProArcObject fo, MetsContext dc, boolean hierarchy) throws MetsExportException {
         dc.resetContext();
         DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), dc);
         if (dobj == null) {

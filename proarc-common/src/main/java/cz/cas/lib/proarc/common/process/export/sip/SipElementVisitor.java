@@ -19,10 +19,10 @@ package cz.cas.lib.proarc.common.process.export.sip;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
@@ -62,10 +62,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.w3c.dom.Node;
 
-import static cz.cas.lib.proarc.common.fedora.PremisEditor.addPremisNodeToMets;
-import static cz.cas.lib.proarc.common.fedora.PremisEditor.getAgent;
-import static cz.cas.lib.proarc.common.fedora.PremisEditor.getPremisEvent;
-import static cz.cas.lib.proarc.common.fedora.PremisEditor.getPremisFile;
+import static cz.cas.lib.proarc.common.storage.PremisEditor.addPremisNodeToMets;
+import static cz.cas.lib.proarc.common.storage.PremisEditor.getAgent;
+import static cz.cas.lib.proarc.common.storage.PremisEditor.getPremisEvent;
+import static cz.cas.lib.proarc.common.storage.PremisEditor.getPremisFile;
 
 class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisitor {
 

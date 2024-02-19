@@ -29,27 +29,27 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder;
 import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder.MdType;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.Rdf;
-import cz.cas.lib.proarc.common.fedora.relation.RdfRelation;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.fedora.relation.Relations;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.Rdf;
+import cz.cas.lib.proarc.common.storage.relation.RdfRelation;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.relation.Relations;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
@@ -208,7 +208,7 @@ public class PackageReader {
             boolean isNewObject = lObj == null;
             if (lObj == null) {
                 File objFile = new File(targetFolder, getFoxmlFilename("DESCRIPTION", divIndex, pid, DeviceRepository.METAMODEL_ID));
-                FedoraObject object = null;
+                ProArcObject object = null;
                 if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
                     object = iSession.getRemotes().find(pid);
                 } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
@@ -290,7 +290,7 @@ public class PackageReader {
             File objFile = new File(targetFolder, getFoxmlFilename("FOXML", divIndex, pid, modelId));
             DigitalObject dObj = null;
             if (isParentObject) {
-                FedoraObject object = null;
+                ProArcObject object = null;
                 if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
                     object = iSession.getRemotes().find(pid);
                 } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
@@ -771,7 +771,7 @@ public class PackageReader {
         private final LocalStorage locals;
         private final SearchView search;
         private final Storage typeOfStorage;
-        private RemoteStorage remotes;
+        private FedoraStorage remotes;
         private AkubraStorage akubraStorage;
         /** The user cache. */
         private final Map<String, String> external2internalUserMap = new HashMap<String, String>();
@@ -780,7 +780,7 @@ public class PackageReader {
             try {
                 this.typeOfStorage = appConfig.getTypeOfStorage();
                 if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.remotes = RemoteStorage.getInstance();
+                    this.remotes = FedoraStorage.getInstance();
                     this.search = this.remotes.getSearch();
                 } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
@@ -806,7 +806,7 @@ public class PackageReader {
             return locals;
         }
 
-        public RemoteStorage getRemotes() {
+        public FedoraStorage getRemotes() {
             return remotes;
         }
 

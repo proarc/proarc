@@ -17,12 +17,12 @@
 package cz.cas.lib.proarc.common.actions;
 
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -115,7 +115,7 @@ public class UpdatePagesMetadata {
                 int index = 0;
                 for (String destinationPid : destinationPids) {
                     DigitalObjectManager dom = DigitalObjectManager.getDefault();
-                    FedoraObject fo = dom.find(destinationPid, null);
+                    ProArcObject fo = dom.find(destinationPid, null);
                     String model = new RelationEditor(fo).getModel();
                     DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
                     NdkMapper.Context context = new NdkMapper.Context(handler);
@@ -312,7 +312,7 @@ public class UpdatePagesMetadata {
 
     private SourceModsInfo getSourceObject(String pid) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fo = dom.find(pid, null);
+        ProArcObject fo = dom.find(pid, null);
         String model = new RelationEditor(fo).getModel();
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
         NdkMapper.Context context = new NdkMapper.Context(handler);

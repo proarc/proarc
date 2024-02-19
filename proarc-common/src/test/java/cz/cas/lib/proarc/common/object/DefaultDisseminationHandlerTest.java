@@ -17,15 +17,15 @@
 package cz.cas.lib.proarc.common.object;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.process.imports.TiffImporterTest;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
@@ -66,7 +66,7 @@ public class DefaultDisseminationHandlerTest {
         fedora.cleanUp();
         LocalObject object = new LocalStorage().create();
         object.setLabel(DefaultDisseminationHandlerTest.class.getSimpleName());
-        RemoteStorage rStorage = fedora.getRemoteStorage();
+        FedoraStorage rStorage = fedora.getRemoteStorage();
         rStorage.ingest(object, fedora.getTestUser());
         robject = rStorage.find(object.getPid());
         LOG.info(robject.getPid());

@@ -27,19 +27,19 @@ import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.fedora.AesEditor;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.PremisEditor;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.PremisEditor;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -124,7 +124,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import static cz.cas.lib.proarc.common.fedora.PremisEditor.addPremisToAmdSec;
+import static cz.cas.lib.proarc.common.storage.PremisEditor.addPremisToAmdSec;
 
 /**
  * Visitor class for creating mets document out of Mets objects
@@ -1371,7 +1371,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             Mets premisMets = null;
             try {
                 DigitalObjectManager dom = DigitalObjectManager.getDefault();
-                FedoraObject fObject = dom.find(metsElement.getOriginalPid(), null);
+                ProArcObject fObject = dom.find(metsElement.getOriginalPid(), null);
                 PremisEditor premisEditor = PremisEditor.ndkArchival(fObject);
                 premisMets = premisEditor.readMets();
             } catch (Exception e) {
@@ -1681,7 +1681,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     private ModsDefinition getMods(IMetsElement metsElement) throws MetsExportException {
         try {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            FedoraObject foNew = dom.find(metsElement.getOriginalPid(), null);
+            ProArcObject foNew = dom.find(metsElement.getOriginalPid(), null);
             XmlStreamEditor streamEditorNew = foNew.getEditor(FoxmlUtils.inlineProfile(
                     MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
             ModsStreamEditor modsStreamEditorNew = new ModsStreamEditor(streamEditorNew, foNew);

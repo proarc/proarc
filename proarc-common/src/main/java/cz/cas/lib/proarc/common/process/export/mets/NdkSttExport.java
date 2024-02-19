@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.common.process.export.mets;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.structure.SttElementVisitor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import java.io.File;
 
 /**

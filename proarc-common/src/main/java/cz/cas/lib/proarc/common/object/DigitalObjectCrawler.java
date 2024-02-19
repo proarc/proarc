@@ -17,11 +17,11 @@
 package cz.cas.lib.proarc.common.object;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement.Factory;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,7 +78,7 @@ public class DigitalObjectCrawler {
     }
 
     private DigitalObjectHandler createHandler(SearchViewItem item) throws DigitalObjectNotFoundException {
-        FedoraObject fo = dom.find(item.getPid(), null);
+        ProArcObject fo = dom.find(item.getPid(), null);
         DigitalObjectHandler doHandler = dom.createHandler(fo);
         return doHandler;
     }

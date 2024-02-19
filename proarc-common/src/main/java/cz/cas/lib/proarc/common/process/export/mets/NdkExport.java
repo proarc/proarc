@@ -27,13 +27,13 @@ import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.kramerius.KImporter;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
@@ -71,19 +71,19 @@ public class NdkExport {
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
-    private RemoteStorage remoteStorage;
+    private FedoraStorage fedoraStorage;
 
-    public NdkExport(RemoteStorage remoteStorage, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
+    public NdkExport(FedoraStorage fedoraStorage, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
         this.appConfig = appConfig;
         this.akubraConfiguration = akubraConfiguration;
-        this.remoteStorage = remoteStorage;
+        this.fedoraStorage = fedoraStorage;
     }
 
     public NdkExport(AppConfiguration config, AkubraConfiguration akubraConfiguration) {
         this.appConfig = config;
         this.akubraConfiguration = akubraConfiguration;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            this.remoteStorage = RemoteStorage.getInstance();
+            this.fedoraStorage = FedoraStorage.getInstance();
         }
     }
 
@@ -272,12 +272,12 @@ public class NdkExport {
         if (keepResult) {
             result.setTargetFolder(target);
         }
-        FedoraObject object = null;
+        ProArcObject object = null;
 
 
         try {
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = remoteStorage.find(pid);
+                object = fedoraStorage.find(pid);
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
@@ -328,11 +328,11 @@ public class NdkExport {
     }
 
     public MetsContext buildContext(String pid, File target) {
-        FedoraObject object = null;
+        ProArcObject object = null;
         try {
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = remoteStorage.find(pid);
-                return MetsContext.buildFedoraContext(object, null, target, remoteStorage, appConfig.getNdkExportOptions());
+                object = fedoraStorage.find(pid);
+                return MetsContext.buildFedoraContext(object, null, target, fedoraStorage, appConfig.getNdkExportOptions());
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
@@ -437,11 +437,11 @@ public class NdkExport {
             result.setTargetFolder(target);
         }
         MetsContext metsContext = null;
-        FedoraObject object = null;
+        ProArcObject object = null;
         try {
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = remoteStorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, target, remoteStorage, appConfig.getNdkExportOptions());
+                object = fedoraStorage.find(pid);
+                metsContext = MetsContext.buildFedoraContext(object, null, target, fedoraStorage, appConfig.getNdkExportOptions());
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
@@ -503,7 +503,7 @@ public class NdkExport {
         return new MetsElementVisitor();
     }
 
-    private MetsElement getMetsElement(FedoraObject fo, MetsContext metsContext, boolean hierarchy) throws MetsExportException {
+    private MetsElement getMetsElement(ProArcObject fo, MetsContext metsContext, boolean hierarchy) throws MetsExportException {
         metsContext.resetContext();
         DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), metsContext);
         return MetsElement.getElement(dobj, null, metsContext, hierarchy);

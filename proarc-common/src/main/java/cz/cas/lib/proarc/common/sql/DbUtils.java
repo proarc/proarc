@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.sql;
 
 import cz.cas.lib.proarc.common.dao.Transaction;
-import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

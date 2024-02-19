@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import cz.cas.lib.proarc.common.fedora.PageView.Item;
+import cz.cas.lib.proarc.common.storage.PageView.Item;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import javax.xml.bind.annotation.XmlAccessType;

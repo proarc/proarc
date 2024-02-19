@@ -16,15 +16,15 @@
  */
 package cz.cas.lib.proarc.common.process.imports.replaceStream;
 
-import cz.cas.lib.proarc.common.fedora.AesEditor;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import java.io.File;
@@ -58,7 +58,7 @@ public class FileIngest {
     private void ingestImp(File file, ImportProcess.ImportOptions context) throws DigitalObjectException, IOException {
         String pid = FileReader.getPid(file);
 
-        FedoraObject fo = null;
+        ProArcObject fo = null;
         if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
             fo = iSession.getRemotes().find(pid);
         } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
@@ -75,7 +75,7 @@ public class FileIngest {
         }
     }
 
-    private boolean updateDatastream(FedoraObject fo, File file, ImportProcess.ImportOptions context) throws DigitalObjectException, IOException {
+    private boolean updateDatastream(ProArcObject fo, File file, ImportProcess.ImportOptions context) throws DigitalObjectException, IOException {
         String dsId = FileReader.toValidDsId(file, context);
 
         if (AltoDatastream.ALTO_ID.equals(dsId)) {

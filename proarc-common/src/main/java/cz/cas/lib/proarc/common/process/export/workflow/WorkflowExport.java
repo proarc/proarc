@@ -26,12 +26,12 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
@@ -126,13 +126,13 @@ public class WorkflowExport {
 
     private IMetsElement getRoot(String pid, File exportFolder) throws MetsExportException {
         MetsContext metsContext = null;
-        FedoraObject object = null;
+        ProArcObject object = null;
 
         try {
             if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                RemoteStorage remoteStorage = RemoteStorage.getInstance();
-                object = remoteStorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, exportFolder, remoteStorage, appConfiguration.getNdkExportOptions());
+                FedoraStorage fedoraStorage = FedoraStorage.getInstance();
+                object = fedoraStorage.find(pid);
+                metsContext = MetsContext.buildFedoraContext(object, null, exportFolder, fedoraStorage, appConfiguration.getNdkExportOptions());
             } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
@@ -146,7 +146,7 @@ public class WorkflowExport {
         return getMetsElement(object, metsContext, true);
     }
 
-    private MetsElement getMetsElement(FedoraObject fo, MetsContext metsContext, boolean hierarchy) throws MetsExportException {
+    private MetsElement getMetsElement(ProArcObject fo, MetsContext metsContext, boolean hierarchy) throws MetsExportException {
         metsContext.resetContext();
         DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), metsContext);
         if (dobj == null) {

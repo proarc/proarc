@@ -32,11 +32,11 @@ import cz.cas.lib.proarc.common.process.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mockrepository.MockFedoraClient;
 import cz.cas.lib.proarc.common.process.export.mockrepository.MockSearchView;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mets.info.Info;
@@ -75,7 +75,7 @@ public class NdkSipExportTest {
     @Mocked
     private SearchView searchView;
 
-    private RemoteStorage remoteStorage;
+    private FedoraStorage fedoraStorage;
 
     private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
     private AkubraConfiguration akubraConfiguration = null;
@@ -93,7 +93,7 @@ public class NdkSipExportTest {
         new MockFedoraClient();
         new MockSearchView();
 
-        remoteStorage = new RemoteStorage(client);
+        fedoraStorage = new FedoraStorage(client);
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 appConfig, akubraConfiguration,
                 null,
@@ -116,7 +116,7 @@ public class NdkSipExportTest {
         MetsContext mc = new MetsContext();
         mc.setTypeOfStorage(Storage.FEDORA);
         mc.setFedoraClient(client);
-        mc.setRemoteStorage(remoteStorage);
+        mc.setRemoteStorage(fedoraStorage);
 
         MetsElement mElm = MetsElement.getElement(dobj, null, mc, true);
         assertNotNull("missing parent for " + mElm.getOriginalPid() + " (" + mElm.getElementType() + ")", mElm.getParent());
@@ -124,7 +124,7 @@ public class NdkSipExportTest {
 
     @Test
     public void exportPeriodical() throws Exception {
-        NdkExport export = new NdkSipExport(remoteStorage, appConfig, akubraConfiguration);
+        NdkExport export = new NdkSipExport(fedoraStorage, appConfig, akubraConfiguration);
         String pid = "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6";
 
         List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
@@ -152,7 +152,7 @@ public class NdkSipExportTest {
      */
     @Test
     public void exportMultipartMonograph() throws Exception {
-        NdkExport export = new NdkSipExport(remoteStorage, appConfig, akubraConfiguration);
+        NdkExport export = new NdkSipExport(fedoraStorage, appConfig, akubraConfiguration);
         String pid = "uuid:26342028-12c8-4446-9217-d3c9f249bd13";
 
         List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),

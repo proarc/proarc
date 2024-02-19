@@ -16,7 +16,7 @@
 
 package cz.cas.lib.proarc.common.mods;
 
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;

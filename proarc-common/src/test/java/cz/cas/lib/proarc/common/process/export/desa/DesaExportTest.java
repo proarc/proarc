@@ -18,12 +18,11 @@
 package cz.cas.lib.proarc.common.process.export.desa;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import cz.cas.lib.proarc.common.process.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.process.export.desa.structure.DesaElement;
 import cz.cas.lib.proarc.common.process.export.desa.structure.DesaElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.Mets;
 import java.io.File;

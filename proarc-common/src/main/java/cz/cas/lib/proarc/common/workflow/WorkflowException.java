@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -2,13 +2,13 @@
 
 GET https://ltp.cesnet.cz/api/auth/account/
 Content-Type: application/json
-Authorization: Token c009c808eb634e72297d27cc5f176bda0685c4783e554093abf3c04206a07d5b
+Authorization: Token 62f5841ceb26db4b991f3d740b0cd45cafbe92b7e13486ce84e57de390626ec6
 
 ### GET ALL TOKENS
 
 GET https://ltp.cesnet.cz/api/auth/token/
 Content-Type: application/json
-Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+Authorization: Token 62f5841ceb26db4b991f3d740b0cd45cafbe92b7e13486ce84e57de390626
 
 ### CREATE NEW TOKEN
 

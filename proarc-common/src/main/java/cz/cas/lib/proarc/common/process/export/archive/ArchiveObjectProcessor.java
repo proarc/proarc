@@ -26,20 +26,20 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
@@ -121,9 +121,9 @@ public class ArchiveObjectProcessor {
         } else {
             try {
                 MetsContext metsContext = null;
-                FedoraObject object = null;
+                ProArcObject object = null;
                 if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                    FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
                     object = rstorage.find(digitalObjectElement.getPid());
                     metsContext = MetsContext.buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
                 } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
@@ -222,7 +222,7 @@ public class ArchiveObjectProcessor {
     private void checkUrnNbn(LocalObject cache) throws MetsExportException, DigitalObjectException {
         String pid = cache.getPid();
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject foNew = dom.find(pid, null);
+        ProArcObject foNew = dom.find(pid, null);
         XmlStreamEditor streamEditorNew = foNew.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditorNew = new ModsStreamEditor(streamEditorNew, foNew);
@@ -258,9 +258,9 @@ public class ArchiveObjectProcessor {
         boolean contains = devicePids.contains(devicePid);
         if (!contains) {
             devicePids.add(devicePid);
-            FedoraObject object = null;
+            ProArcObject object = null;
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
                 object = rstorage.find(devicePid);
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
@@ -284,7 +284,7 @@ public class ArchiveObjectProcessor {
                     FoxmlUtils.findDatastream(dobj, DeviceRepository.DESCRIPTION_DS_ID),
                     devicePid, modelId, new ReadonlyDisseminationHandler(object, DeviceRepository.DESCRIPTION_DS_ID));
             // write audit
-            if (object instanceof RemoteStorage.RemoteObject) {
+            if (object instanceof FedoraStorage.RemoteObject) {
                 builder.addStreamAsFile(deviceIdx,
                         FoxmlUtils.findDatastream(dobj, FoxmlUtils.DS_AUDIT_ID),
                         devicePid, modelId, null);
@@ -310,7 +310,7 @@ public class ArchiveObjectProcessor {
         }
     }
 
-    private LocalObject getLocalObject(FedoraObject fo) throws DigitalObjectException {
+    private LocalObject getLocalObject(ProArcObject fo) throws DigitalObjectException {
         // get FOXML copy and query it locally
         if (fo instanceof LocalObject) {
             return (LocalObject) fo;

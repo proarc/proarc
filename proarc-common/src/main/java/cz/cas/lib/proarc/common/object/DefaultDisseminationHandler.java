@@ -21,20 +21,20 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.imports.FileSet;
 import cz.cas.lib.proarc.common.process.imports.TiffAsJp2Importer;
 import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
@@ -60,9 +60,9 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import static cz.cas.lib.proarc.common.device.DeviceRepository.getMixDescriptionEditor;
-import static cz.cas.lib.proarc.common.fedora.BinaryEditor.NDK_ARCHIVAL_ID;
-import static cz.cas.lib.proarc.common.fedora.BinaryEditor.NDK_USER_ID;
-import static cz.cas.lib.proarc.common.fedora.BinaryEditor.RAW_ID;
+import static cz.cas.lib.proarc.common.storage.BinaryEditor.NDK_ARCHIVAL_ID;
+import static cz.cas.lib.proarc.common.storage.BinaryEditor.NDK_USER_ID;
+import static cz.cas.lib.proarc.common.storage.BinaryEditor.RAW_ID;
 
 /**
  * Handles datastream contents in its raw form.
@@ -77,7 +77,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
 
     private final String dsId;
     private final DigitalObjectHandler handler;
-    private final FedoraObject fobject;
+    private final ProArcObject fobject;
 
     public DefaultDisseminationHandler(String dsId, DigitalObjectHandler handler) {
         this.dsId = dsId;
@@ -146,7 +146,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         throw new IllegalStateException("unsupported: " + fobject.getClass());
     }
 
-    public static Response getResponse(FedoraObject object, String dsId) throws DigitalObjectException {
+    public static Response getResponse(ProArcObject object, String dsId) throws DigitalObjectException {
         // This should limit fedora calls to 1.
         // XXX It works around FedoraClient.FedoraClient.getDatastreamDissemination that hides HTTP headers of the response.
         // Unfortunattely fedora does not return modification date as HTTP header
@@ -365,7 +365,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         try {
 
             if (Storage.FEDORA.equals(storageType)) {
-                RemoteObject object = RemoteStorage.getInstance().find(mime2iconPid(origMime));
+                RemoteObject object = FedoraStorage.getInstance().find(mime2iconPid(origMime));
                 iconStreams = object.getDatastreams();
             } else if (Storage.AKUBRA.equals(storageType)) {
                 AkubraObject object = AkubraStorage.getInstance().find(mime2iconPid(origMime));

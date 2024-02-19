@@ -20,16 +20,16 @@ package cz.cas.lib.proarc.common.process.imports.audio;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
-import cz.cas.lib.proarc.common.fedora.AesEditor;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.PageView.PageViewHandler;
-import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.imports.FileSet;
 import cz.cas.lib.proarc.common.process.imports.ImageImporter;
 import cz.cas.lib.proarc.common.process.BatchManager;
@@ -304,7 +304,7 @@ public class WaveImporter implements ImageImporter {
         return Arrays.stream(extensions).anyMatch(entry -> filename.endsWith((String) entry));
     }
 
-    private void importArchivalCopy(FileSet fileSet, File wave, FedoraObject fo, ImportProcess.ImportOptions options) throws DigitalObjectException, IOException {
+    private void importArchivalCopy(FileSet fileSet, File wave, ProArcObject fo, ImportProcess.ImportOptions options) throws DigitalObjectException, IOException {
         ImportProfile config = options.getConfig();
         List<Entry> entries = findSibling(fileSet, config.getNdkArchivalAudioFileSuffix());
         String dsId = BinaryEditor.NDK_AUDIO_ARCHIVAL_ID;
@@ -348,7 +348,7 @@ public class WaveImporter implements ImageImporter {
         }
     }
 
-    private void importUserCopy(FileSet fileSet, File wave, FedoraObject fo, ImportProcess.ImportOptions options) throws DigitalObjectException, IOException {
+    private void importUserCopy(FileSet fileSet, File wave, ProArcObject fo, ImportProcess.ImportOptions options) throws DigitalObjectException, IOException {
         ImportProfile config = options.getConfig();
         List<Entry> entries = findSibling(fileSet, config.getNdkUserAudioFileSuffix());
         if (entries.size() == 0) {

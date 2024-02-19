@@ -25,14 +25,14 @@ import cz.cas.lib.proarc.common.process.export.desa.structure.DesaElement;
 import cz.cas.lib.proarc.common.process.export.desa.structure.DesaElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationResource;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
@@ -138,12 +138,12 @@ public final class DesaExport {
             if (keepResult) {
                 result.setTargetFolder(target);
             }
-            FedoraObject object = null;
+            ProArcObject object = null;
             DesaContext context = null;
             if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                RemoteStorage remoteStorage = RemoteStorage.getInstance(appConfiguration);
-                object = remoteStorage.find(pid);
-                context = DesaContext.buildFedoraContext(object, null, null, remoteStorage);
+                FedoraStorage fedoraStorage = FedoraStorage.getInstance(appConfiguration);
+                object = fedoraStorage.find(pid);
+                context = DesaContext.buildFedoraContext(object, null, null, fedoraStorage);
             } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);

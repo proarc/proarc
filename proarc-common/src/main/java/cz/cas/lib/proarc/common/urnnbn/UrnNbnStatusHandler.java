@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.urnnbn;
 
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import java.io.PrintWriter;
 import java.io.StringWriter;

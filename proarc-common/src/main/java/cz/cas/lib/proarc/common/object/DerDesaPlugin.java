@@ -24,13 +24,13 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.process.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.process.export.desa.DesaServices.DesaConfiguration;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -185,7 +185,7 @@ public class DerDesaPlugin implements DigitalObjectPlugin,
 
         private final DigitalObjectHandler handler;
         private final XmlStreamEditor editor;
-        private final FedoraObject object;
+        private final ProArcObject object;
 
         DerMetadataHandler(DigitalObjectHandler handler) {
             this.handler = handler;

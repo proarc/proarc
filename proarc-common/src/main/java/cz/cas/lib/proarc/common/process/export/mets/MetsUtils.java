@@ -27,13 +27,13 @@ import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
@@ -701,7 +701,7 @@ public class MetsUtils {
         }
     }
 
-    public static DigitalObject readFoXML(MetsContext metsContext, FedoraObject object) throws MetsExportException {
+    public static DigitalObject readFoXML(MetsContext metsContext, ProArcObject object) throws MetsExportException {
         if (object.getPid() == null) {
             return null;
         }
@@ -718,7 +718,7 @@ public class MetsUtils {
         }
     }
 
-    public static DigitalObject readFoXML(DesaContext context, FedoraObject object) throws MetsExportException {
+    public static DigitalObject readFoXML(DesaContext context, ProArcObject object) throws MetsExportException {
         if (Storage.FEDORA.equals(context.getTypeOfStorage())) {
             return readFoXML(object.getPid(), context.getFedoraClient());
         } else if (Storage.AKUBRA.equals(context.getTypeOfStorage())) {

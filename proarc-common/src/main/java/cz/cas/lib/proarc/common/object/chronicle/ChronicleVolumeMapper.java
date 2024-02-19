@@ -1,7 +1,7 @@
 package cz.cas.lib.proarc.common.object.chronicle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;

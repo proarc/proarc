@@ -23,11 +23,11 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.process.export.mockrepository.MockSearchView;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.File;
 import java.util.Arrays;
@@ -68,10 +68,10 @@ public class NdkEbornArchivalTest {
 
         new MockSearchView();
 
-        new MockUp<RemoteStorage>() {
+        new MockUp<FedoraStorage>() {
             @Mock
-            RemoteStorage getInstance() {
-                return new RemoteStorage(client);
+            FedoraStorage getInstance() {
+                return new FedoraStorage(client);
             }
         };
 

@@ -22,15 +22,15 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraImport;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -124,7 +124,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
                         batch.setState(Batch.State.LOADED);
                         batchManager.update(batch);
                         if (Storage.FEDORA.equals(configuration.getTypeOfStorage())) {
-                            batch = new FedoraImport(configuration, RemoteStorage.getInstance(configuration), batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
+                            batch = new FedoraImport(configuration, FedoraStorage.getInstance(configuration), batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
                         } else if (Storage.AKUBRA.equals(configuration.getTypeOfStorage())) {
                             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(configuration.getConfigHome());
                             batch = new AkubraImport(configuration, akubraConfiguration, batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
@@ -169,7 +169,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
 
     private void fillMetadata(MetadataCatalog metadataCatalog, String pid) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fo = dom.find(pid, null);
+        ProArcObject fo = dom.find(pid, null);
         XmlStreamEditor streamEditor = fo.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());

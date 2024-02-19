@@ -21,20 +21,20 @@ import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.FedoraDao;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraDao;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.WorkflowStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
@@ -104,7 +104,7 @@ public class DigitalObjectManager {
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
     private final BatchManager ibm;
-    private RemoteStorage remotes;
+    private FedoraStorage remotes;
     private AkubraStorage akubraStorage;
     private final MetaModelRepository models;
     private final UserManager userManager;
@@ -124,14 +124,14 @@ public class DigitalObjectManager {
      * @param fobject digital object
      * @return the handler
      */
-    public DigitalObjectHandler createHandler(FedoraObject fobject) {
+    public DigitalObjectHandler createHandler(ProArcObject fobject) {
         if (fobject == null) {
             throw new NullPointerException("fobject");
         }
         return new DigitalObjectHandler(fobject, models);
     }
 
-    public FedoraObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
+    public ProArcObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
         Batch batch = null;
         if (batchId != null) {
             batch = ibm.get(batchId);
@@ -149,12 +149,12 @@ public class DigitalObjectManager {
      * @return WorkflowObject with BIBLIO MODS
      * @throws DigitalObjectNotFoundException
      */
-    public FedoraObject find(BigDecimal workflowJobId, String modelId, Locale locale) throws DigitalObjectNotFoundException {
+    public ProArcObject find(BigDecimal workflowJobId, String modelId, Locale locale) throws DigitalObjectNotFoundException {
         return new WorkflowStorage().load(workflowJobId, modelId, locale);
     }
 
-    public FedoraObject find2(String pid, Batch batch, String krameriusInstanceId) throws DigitalObjectNotFoundException {
-        FedoraObject fobject;
+    public ProArcObject find2(String pid, Batch batch, String krameriusInstanceId) throws DigitalObjectNotFoundException {
+        ProArcObject fobject;
         if (batch != null) {
             // XXX move to LocalObject.flush or stream.write
 //            if (!readonly) {
@@ -217,10 +217,10 @@ public class DigitalObjectManager {
         return new CreateHierarchyHandler(model, pid, parentPid, user, xml, message);
     }
 
-    private RemoteStorage getRemotes() {
+    private FedoraStorage getRemotes() {
         if (remotes == null) {
             try {
-                remotes = RemoteStorage.getInstance(appConfig);
+                remotes = FedoraStorage.getInstance(appConfig);
             } catch (IOException ex) {
                 throw new IllegalStateException(ex);
             }
@@ -552,7 +552,7 @@ public class DigitalObjectManager {
 
         public DigitalObjectHandler getParentHandler() throws DigitalObjectNotFoundException {
             if (parentHandler == null && parentPid != null) {
-                FedoraObject parentObject = find(parentPid, null);
+                ProArcObject parentObject = find(parentPid, null);
                 parentHandler = DigitalObjectManager.getDefault().createHandler(parentObject);
             }
             return parentHandler;

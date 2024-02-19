@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 
 /**
  * Indicates a digital object already exists in a storage.

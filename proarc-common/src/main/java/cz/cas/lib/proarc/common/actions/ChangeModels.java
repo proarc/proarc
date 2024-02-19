@@ -8,15 +8,15 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -134,7 +134,7 @@ public class ChangeModels {
     }
 
     private void repairMetadata(DigitalObjectManager dom, String pid, String parentPid) throws DigitalObjectException {
-        FedoraObject fo = dom.find(pid, null);
+        ProArcObject fo = dom.find(pid, null);
         DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
         NdkMapper.Context context = new NdkMapper.Context(handler);
 
@@ -667,7 +667,7 @@ public class ChangeModels {
 
     private ModsDefinition getParentMods(String parentPid) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fo = dom.find(parentPid, null);
+        ProArcObject fo = dom.find(parentPid, null);
         XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
@@ -677,8 +677,8 @@ public class ChangeModels {
 
 
     private void changeModel(DigitalObjectManager dom, String pid, String model) throws DigitalObjectException {
-        FedoraObject fedoraObject = dom.find(pid, null);
-        DigitalObjectHandler handler = dom.createHandler(fedoraObject);
+        ProArcObject proArcObject = dom.find(pid, null);
+        DigitalObjectHandler handler = dom.createHandler(proArcObject);
         RelationEditor editor = handler.relations();
         editor.setModel(model);
         editor.write(editor.getLastModified(), "Change model");
@@ -704,9 +704,9 @@ public class ChangeModels {
     public IMetsElement getElement() throws DigitalObjectException {
         try {
             MetsContext metsContext = null;
-            FedoraObject object = null;
+            ProArcObject object = null;
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
                 object = rstorage.find(pid);
                 metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {

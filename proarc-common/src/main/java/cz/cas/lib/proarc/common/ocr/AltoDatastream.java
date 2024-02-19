@@ -18,10 +18,10 @@ package cz.cas.lib.proarc.common.ocr;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.process.export.mets.MetsLSResolver;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ public final class AltoDatastream {
      * @param msg log message
      * @throws DigitalObjectException failure
      */
-    public static void importAlto(FedoraObject fo, URI altoUri, String msg) throws DigitalObjectException {
+    public static void importAlto(ProArcObject fo, URI altoUri, String msg) throws DigitalObjectException {
         try {
             if (!isAlto(altoUri)) {
                 throw new DigitalObjectException(fo.getPid(),

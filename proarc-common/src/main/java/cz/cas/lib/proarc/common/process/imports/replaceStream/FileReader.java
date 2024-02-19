@@ -22,19 +22,19 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.InputUtils;
@@ -360,14 +360,14 @@ public class FileReader {
         private final LocalStorage locals;
         private final SearchView search;
         private final Storage typeOfStorage;
-        private RemoteStorage remotes;
+        private FedoraStorage remotes;
         private AkubraStorage akubraStorage;
 
         public ImportSession(BatchManager ibm, ImportProcess.ImportOptions options, AppConfiguration config) {
             this.typeOfStorage = config.getTypeOfStorage();
             try {
                 if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.remotes = RemoteStorage.getInstance();
+                    this.remotes = FedoraStorage.getInstance();
                     this.search = this.remotes.getSearch();
                 } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
@@ -393,7 +393,7 @@ public class FileReader {
             return locals;
         }
 
-        public RemoteStorage getRemotes() {
+        public FedoraStorage getRemotes() {
             return remotes;
         }
 

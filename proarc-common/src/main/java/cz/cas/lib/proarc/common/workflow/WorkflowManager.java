@@ -28,13 +28,13 @@ import cz.cas.lib.proarc.common.dao.WorkflowParameterDao;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -179,7 +179,7 @@ public class WorkflowManager {
         Device retValDevice = null;
         try {
             if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                devRepo = new DeviceRepository(RemoteStorage.getInstance(appConfiguration));
+                devRepo = new DeviceRepository(FedoraStorage.getInstance(appConfiguration));
             } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfiguration.getConfigHome());
                 devRepo = new DeviceRepository(AkubraStorage.getInstance(akubraConfiguration));
@@ -240,8 +240,8 @@ public class WorkflowManager {
         try {
             // fedora
             if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                RemoteStorage remoteStorage = RemoteStorage.getInstance();
-                ftx = new FedoraTransaction(remoteStorage);
+                FedoraStorage fedoraStorage = FedoraStorage.getInstance();
+                ftx = new FedoraTransaction(fedoraStorage);
                 handler.setTransaction(ftx);
             }
 

@@ -31,17 +31,17 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.MimeType;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -67,7 +67,7 @@ public final class DataStreamExport {
 
     private static final Logger LOG = Logger.getLogger(DataStreamExport.class.getName());
 
-    private RemoteStorage rstorage;
+    private FedoraStorage rstorage;
     /**
      * already exported PIDs to prevent loops
      */
@@ -86,12 +86,12 @@ public final class DataStreamExport {
         this.appConfig = configuration;
         this.akubraConfiguration = akubraConfiguration;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            this.rstorage = RemoteStorage.getInstance(appConfig);
+            this.rstorage = FedoraStorage.getInstance(appConfig);
         }
     }
 
-    public DataStreamExport(RemoteStorage remoteStorage, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
-        this.rstorage = remoteStorage;
+    public DataStreamExport(FedoraStorage fedoraStorage, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
+        this.rstorage = fedoraStorage;
         this.appConfig = appConfig;
         this.akubraConfiguration = akubraConfiguration;
     }
@@ -119,7 +119,7 @@ public final class DataStreamExport {
         }
         exportedPids.add(pid);
 
-        FedoraObject object = null;
+        ProArcObject object = null;
         try {
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
                 object = rstorage.find(pid);
@@ -158,7 +158,7 @@ public final class DataStreamExport {
 
     }
 
-    private void exportPid(File target, FedoraObject object, String dsId, String extension) throws FedoraClientException, IOException, MetsExportException, DigitalObjectException, JAXBException, TransformerException {
+    private void exportPid(File target, ProArcObject object, String dsId, String extension) throws FedoraClientException, IOException, MetsExportException, DigitalObjectException, JAXBException, TransformerException {
         InputStream input = getDataStreamDissemination(object, dsId);
         String filename = filename(object.getPid(), MimeType.getExtension(extension));
         if (Const.RAW_GRP_ID.equals(dsId)) {
@@ -199,7 +199,7 @@ public final class DataStreamExport {
     private IMetsElement getElement(String pid) throws DigitalObjectException {
         try {
             MetsContext metsContext = null;
-            FedoraObject object = null;
+            ProArcObject object = null;
 
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
                 object = rstorage.find(pid);
@@ -221,7 +221,7 @@ public final class DataStreamExport {
         }
     }
 
-    private InputStream getDataStreamDissemination(FedoraObject fo, String dsId) throws FedoraClientException, JAXBException, IOException, TransformerException {
+    private InputStream getDataStreamDissemination(ProArcObject fo, String dsId) throws FedoraClientException, JAXBException, IOException, TransformerException {
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
             FedoraResponse response = FedoraClient.getDatastreamDissemination(fo.getPid(), dsId)
                     .execute(((RemoteObject) fo).getClient());

@@ -6,13 +6,13 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.SolrFeeder;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.SolrFeeder;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -126,32 +126,32 @@ public class IndexerResourceV1 {
                     File file = path.toFile();
                     FileInputStream inputStream = new FileInputStream(file);
                     DigitalObject digitalObject = createDigitalObject(inputStream);
-                    FedoraObject fedoraObject = new LocalStorage().load(digitalObject.getPID(), file);
+                    ProArcObject proArcObject = new LocalStorage().load(digitalObject.getPID(), file);
                     // indexovat jen objekty s proarcu - modely z pluginu a zarizeni
-                    if (fedoraObject.getPid().startsWith("uuid")) {
+                    if (proArcObject.getPid().startsWith("uuid")) {
                         if (rebuildIndex) {
                             try {
-                                feeder.feedDescriptionDocument(digitalObject, fedoraObject, false);
+                                feeder.feedDescriptionDocument(digitalObject, proArcObject, false);
                                 files.getAndIncrement();
                                 if (files.get() % 50 == 0) {
                                     LOG.info("Proccessed " + files.get() + " objects");
                                     feeder.commit();
                                 }
                             } catch (Exception exception) {
-                                errors.append(fedoraObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) fedoraObject).getFoxml().getPath()).append("\n");
+                                errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
                             }
                         }
-                    } else if (fedoraObject.getPid().startsWith("device")) {
+                    } else if (proArcObject.getPid().startsWith("device")) {
                         if (rebuildIndex) {
                             try {
-                                feeder.feedDescriptionDevice(digitalObject, fedoraObject, false);
+                                feeder.feedDescriptionDevice(digitalObject, proArcObject, false);
                                 files.getAndIncrement();
                                 if (files.get() % 50 == 0) {
                                     LOG.info("Proccessed " + files.get() + " objects");
                                     feeder.commit();
                                 }
                             } catch (Exception exception) {
-                                errors.append(fedoraObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) fedoraObject).getFoxml().getPath()).append("\n");
+                                errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
                             }
                         }
                     }

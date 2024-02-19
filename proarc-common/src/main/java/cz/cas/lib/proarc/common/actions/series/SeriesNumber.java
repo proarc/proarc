@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.actions.series;
 
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import java.util.TreeMap;
 
 /**

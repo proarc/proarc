@@ -18,12 +18,12 @@ package cz.cas.lib.proarc.common.actions;
 
 import cz.cas.lib.proarc.common.actions.series.SeriesNumber;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -178,7 +178,7 @@ public class UpdatePages {
 
         for (String pid : updatedPids) {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            FedoraObject fo = dom.find(pid, null);
+            ProArcObject fo = dom.find(pid, null);
             this.model = new RelationEditor(fo).getModel();
             String model = new RelationEditor(fo).getModel();
             DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
@@ -449,7 +449,7 @@ public class UpdatePages {
     public void editBrackets(List<String> pids, boolean addBrackets, boolean removeBrackets) throws DigitalObjectException {
         for (String pid : pids) {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            FedoraObject fo = dom.find(pid, null);
+            ProArcObject fo = dom.find(pid, null);
             this.model = new RelationEditor(fo).getModel();
             XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
                     MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,

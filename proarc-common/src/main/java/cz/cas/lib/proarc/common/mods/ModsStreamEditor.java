@@ -16,11 +16,11 @@
  */
 package cz.cas.lib.proarc.common.mods;
 
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper;
@@ -45,19 +45,19 @@ public final class ModsStreamEditor {
     public static final String DATASTREAM_LABEL = "MODS description";
 
     private final XmlStreamEditor editor;
-    private final FedoraObject object;
+    private final ProArcObject object;
 
-    private static XmlStreamEditor createEditor(FedoraObject object) {
+    private static XmlStreamEditor createEditor(ProArcObject object) {
         XmlStreamEditor editor = object.getEditor(
                 FoxmlUtils.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL));
         return editor;
     }
 
-    public ModsStreamEditor(FedoraObject object) {
+    public ModsStreamEditor(ProArcObject object) {
         this(createEditor(object), object);
     }
 
-    public ModsStreamEditor(XmlStreamEditor editor, FedoraObject object) {
+    public ModsStreamEditor(XmlStreamEditor editor, ProArcObject object) {
         this.editor = editor;
         this.object = object;
     }

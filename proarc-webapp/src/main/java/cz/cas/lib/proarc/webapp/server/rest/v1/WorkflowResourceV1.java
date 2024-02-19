@@ -20,11 +20,11 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -599,7 +599,7 @@ public class WorkflowResourceV1 {
 
     private static DigitalObjectHandler findHandler(BigDecimal jobId, String modelId, SessionContext session, HttpHeaders httpHeaders) throws DigitalObjectNotFoundException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fobject = dom.find(jobId, modelId, session.getLocale(httpHeaders));
+        ProArcObject fobject = dom.find(jobId, modelId, session.getLocale(httpHeaders));
         return dom.createHandler(fobject);
     }
 

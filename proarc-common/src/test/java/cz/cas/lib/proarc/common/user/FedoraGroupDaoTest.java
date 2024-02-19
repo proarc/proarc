@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.common.user;
 
-import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
-import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
+import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;

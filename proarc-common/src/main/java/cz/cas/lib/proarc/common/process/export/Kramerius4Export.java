@@ -30,26 +30,26 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.fedora.relation.RelationResource;
-import cz.cas.lib.proarc.common.fedora.relation.Relations;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.relation.RelationResource;
+import cz.cas.lib.proarc.common.storage.relation.Relations;
 import cz.cas.lib.proarc.common.kramerius.KImporter;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
@@ -125,7 +125,7 @@ public final class Kramerius4Export {
 
     public static final String[] ALLOWED_POLICY = {"policy:private", "policy:public"};
 
-    private RemoteStorage rstorage;
+    private FedoraStorage rstorage;
     private LocalStorage lstorage = new LocalStorage();
     private DigitalObjectCrawler crawler;
 
@@ -147,7 +147,7 @@ public final class Kramerius4Export {
 
     private String exportPageContext;
 
-    public Kramerius4Export(RemoteStorage rstorage, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
+    public Kramerius4Export(FedoraStorage rstorage, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
         this.appConfig = appConfiguration;
         this.rstorage = rstorage;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
@@ -170,7 +170,7 @@ public final class Kramerius4Export {
         this.isArchive = isArchive;
 
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            this.rstorage = RemoteStorage.getInstance(this.appConfig);
+            this.rstorage = FedoraStorage.getInstance(this.appConfig);
             this.search = this.rstorage.getSearch();
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
@@ -334,7 +334,7 @@ public final class Kramerius4Export {
     public IMetsElement getElement(String pid) throws DigitalObjectException {
         try {
             MetsContext metsContext = null;
-            FedoraObject object = null;
+            ProArcObject object = null;
 
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
                 object = rstorage.find(pid);
@@ -1224,9 +1224,9 @@ public final class Kramerius4Export {
 
     private String getParentPid(String pid) throws IOException, MetsExportException {
         MetsContext metsContext = null;
-        FedoraObject object = null;
+        ProArcObject object = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+            FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
             object = rstorage.find(pid);
             metsContext = MetsContext.buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
@@ -1241,7 +1241,7 @@ public final class Kramerius4Export {
 
     private ModsDefinition getMods(String pid) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fo = dom.find(pid, null);
+        ProArcObject fo = dom.find(pid, null);
         XmlStreamEditor streamEditorOld = fo.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditorOld = new ModsStreamEditor(streamEditorOld, fo);

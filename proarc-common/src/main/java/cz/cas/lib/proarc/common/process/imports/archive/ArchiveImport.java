@@ -21,11 +21,11 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraImport;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.process.imports.FedoraImport;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.imports.ImportHandler;
@@ -115,7 +115,7 @@ public class ArchiveImport implements ImportHandler {
         BatchManager ibm = BatchManager.getInstance();
         Batch batch = importConfig.getBatch();
         if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraImport ingest = new FedoraImport(config, RemoteStorage.getInstance(config), ibm, null, importConfig);
+            FedoraImport ingest = new FedoraImport(config, FedoraStorage.getInstance(config), ibm, null, importConfig);
             ingest.importBatch(batch, importConfig.getUsername(), null);
         } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());

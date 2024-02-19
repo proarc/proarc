@@ -22,23 +22,23 @@ import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
@@ -97,17 +97,17 @@ public final class DeviceRepository {
     public static final String METAMODEL_ID_LABEL = "Skener";
     public static final String METAMODEL_AUDIODEVICE_ID_LABEL = "Audio linka";
 
-    private RemoteStorage remoteStorage;
+    private FedoraStorage fedoraStorage;
     private final Storage typeOfStorage;
     private AkubraStorage akubraStorage;
 
     private final Logger LOG = Logger.getLogger(DeviceRepository.class.getName());
 
-    public DeviceRepository(RemoteStorage remoteStorage) {
-        if (remoteStorage == null) {
+    public DeviceRepository(FedoraStorage fedoraStorage) {
+        if (fedoraStorage == null) {
             throw new NullPointerException("remoteStorage");
         }
-        this.remoteStorage = remoteStorage;
+        this.fedoraStorage = fedoraStorage;
         this.typeOfStorage = Storage.FEDORA;
     }
 
@@ -166,8 +166,8 @@ public final class DeviceRepository {
             // check fedora usages
             // device may be still used by any import item
             if (Storage.FEDORA.equals(typeOfStorage)) {
-                RemoteObject object = remoteStorage.find(id);
-                if (remoteStorage.getSearch().isDeviceInUse(id)) {
+                RemoteObject object = fedoraStorage.find(id);
+                if (fedoraStorage.getSearch().isDeviceInUse(id)) {
                     return false;
                 } else {
                     object.purge(log);
@@ -261,9 +261,9 @@ public final class DeviceRepository {
         }
         String id = device.getId();
         try {
-            FedoraObject object = null;
+            ProArcObject object = null;
             if (Storage.FEDORA.equals(typeOfStorage)) {
-                object = remoteStorage.find(id);
+                object = fedoraStorage.find(id);
             } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(id);
             }
@@ -319,9 +319,9 @@ public final class DeviceRepository {
         String model = getModel(update.getModel());
         checkDeviceId(id);
         try {
-            FedoraObject object = null;
+            ProArcObject object = null;
             if (Storage.FEDORA.equals(typeOfStorage)) {
-                object = remoteStorage.find(id);
+                object = fedoraStorage.find(id);
             } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(id);
             }
@@ -403,7 +403,7 @@ public final class DeviceRepository {
         lobject.setModel(model);
 
         if (Storage.FEDORA.equals(typeOfStorage)) {
-            remoteStorage.ingest(lobject, owner);
+            fedoraStorage.ingest(lobject, owner);
         } else if (Storage.AKUBRA.equals(typeOfStorage)) {
             akubraStorage.ingest(lobject, owner);
         }
@@ -419,7 +419,7 @@ public final class DeviceRepository {
         try {
             SearchView searchView = null;
             if (Storage.FEDORA.equals(typeOfStorage)) {
-                searchView = remoteStorage.getSearch();
+                searchView = fedoraStorage.getSearch();
             } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                 searchView = akubraStorage.getSearch().setAllowDevices(true);
             }
@@ -433,7 +433,7 @@ public final class DeviceRepository {
     private List<Device> findDevice(AppConfiguration config, String... pids) throws IOException, FedoraClientException {
         SearchView searchView = null;
         if (Storage.FEDORA.equals(typeOfStorage)) {
-            searchView = remoteStorage.getSearch();
+            searchView = fedoraStorage.getSearch();
         } else if (Storage.AKUBRA.equals(typeOfStorage)) {
             searchView = akubraStorage.getSearch().setAllowDevices(true);
         }
@@ -497,7 +497,7 @@ public final class DeviceRepository {
         return null;
     }
 
-    private void updateDc(FedoraObject robj, String id, String model, String label, String log) throws DigitalObjectException {
+    private void updateDc(ProArcObject robj, String id, String model, String label, String log) throws DigitalObjectException {
         DcStreamEditor dcEditor = new DcStreamEditor(robj);
         DublinCoreRecord dcr = dcEditor.read();
         OaiDcType dc = new OaiDcType();
@@ -520,14 +520,14 @@ public final class DeviceRepository {
      * @param robj an object to edit
      * @return the editor
      */
-    public static XmlStreamEditor getMixDescriptionEditor(FedoraObject robj) {
+    public static XmlStreamEditor getMixDescriptionEditor(ProArcObject robj) {
         DatastreamProfile dProfile = FoxmlUtils.managedProfile(
                 DESCRIPTION_DS_ID, MixUtils.NS, DESCRIPTION_DS_LABEL);
         XmlStreamEditor editor = robj.getEditor(dProfile);
         return editor;
     }
 
-    public static XmlStreamEditor getPremisDescriptionEditor(FedoraObject robj) {
+    public static XmlStreamEditor getPremisDescriptionEditor(ProArcObject robj) {
         DatastreamProfile dProfile = FoxmlUtils.managedProfile(
                 AUDIODESCRIPTION_DS_ID, PremisUtils.NS, AUDIO_DESCRIPTION_DS_LABEL);
         XmlStreamEditor editor = robj.getEditor(dProfile);
@@ -544,9 +544,9 @@ public final class DeviceRepository {
      */
     public XmlStreamEditor getDescriptionEditor(String id) throws DeviceException {
         checkDeviceId(id);
-        FedoraObject object = null;
+        ProArcObject object = null;
         if (Storage.FEDORA.equals(typeOfStorage)) {
-            object = remoteStorage.find(id);
+            object = fedoraStorage.find(id);
         } else if (Storage.AKUBRA.equals(typeOfStorage)) {
             object = akubraStorage.find(id);
         }
