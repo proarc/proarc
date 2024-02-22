@@ -239,6 +239,7 @@ public final class ExportProcess implements Runnable {
             String typeOfPackage = getTypeOfPackage(params.getPids(), params.getTypeOfPackage());
             switch (typeOfPackage) {
                 case Const.EXPORT_NDK_BASIC:
+                case Const.EXPORT_NDK4SIP:
                     export = new ArchiveProducer(config, akubraConfiguration);
                     break;
                 case Const.EXPORT_NDK4STT:
