@@ -97,6 +97,7 @@ public class CatalogUtils {
             mods = modsCollection.getMods().get(0);
         }
         repairLocation(mods);
+        repairOriginInfo(mods);
         List<String> couples = new ArrayList<>();
         int updateNode = 0;
         int nodesCount = 0;
@@ -116,14 +117,43 @@ public class CatalogUtils {
             return modsAsString.getBytes(StandardCharsets.UTF_8);
         } else {
             if (260 == updateNode) { //knav monografie isbn 80-200-0953-1
-                modsAsString = repairMods(mods, couples);
-                return modsAsString.getBytes(StandardCharsets.UTF_8);
+                mods = repairMods(mods, couples);
             } else if (264 == updateNode) { // knav monografie - name: History of nanotechnology from pre-historic to modern times; isbn: 978-1-119-46008-4
-                modsAsString = repairMods_264(mods, couples);
-                return modsAsString.getBytes(StandardCharsets.UTF_8);
+                mods = repairMods_264(mods, couples);
             } else {
                 return modsBytes;
             }
+            modsAsString = ModsUtils.toXml(mods, true);
+            return modsAsString.getBytes(StandardCharsets.UTF_8);
+        }
+    }
+
+    private static void repairOriginInfo(ModsDefinition mods) {
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            String value = null;
+            Integer index = null;
+            if (originInfo.getDateIssued().isEmpty()) {
+                return;
+            }
+            for (int i = 0; i < originInfo.getDateIssued().size(); i++) {
+                DateDefinition date = originInfo.getDateIssued().get(i);
+                if (value != null && value.equals(getNormalizedDate(date.getValue()))) {
+                    index = i;
+                    break;
+                }
+                value = getNormalizedDate(date.getValue());
+            }
+            if (index != null) {
+                originInfo.getDateIssued().remove(index.intValue());
+            }
+        }
+    }
+
+    private static String getNormalizedDate(String value) {
+        if (value == null || value.isEmpty()) {
+            return null;
+        } else {
+            return value.replace("[", "").replace("]", "");
         }
     }
 
@@ -186,7 +216,7 @@ public class CatalogUtils {
 
     }
 
-    private static String repairMods_264(ModsDefinition mods, List<String> couples) {
+    private static ModsDefinition repairMods_264(ModsDefinition mods, List<String> couples) {
         List<OriginInfoDefinition> fixedOriginInfo = new ArrayList<>();
         for (String couple : couples) {
             OriginInfoDefinition newOriginInfo = null;
@@ -284,7 +314,7 @@ public class CatalogUtils {
         copyPlaceDatePublisher(mods);
         deleteDoubleDateIssued(mods);
         repairIssuance(mods);
-        return ModsUtils.toXml(mods, true);
+        return mods;
     }
 
     private static void cleanOriginInfo(ModsDefinition mods) {
@@ -325,7 +355,7 @@ public class CatalogUtils {
     }
 
 
-    private static String repairMods(ModsDefinition mods, List<String> couples) {
+    private static ModsDefinition repairMods(ModsDefinition mods, List<String> couples) {
         List<OriginInfoDefinition> fixedOriginInfo = new ArrayList<>();
         for (String couple : couples) {
             OriginInfoDefinition newOriginInfo = null;
@@ -399,7 +429,7 @@ public class CatalogUtils {
         copyPlaceDatePublisher(mods);
         deleteDoubleDateIssued(mods);
         repairIssuance(mods);
-        return ModsUtils.toXml(mods, true);
+        return mods;
     }
 
     private static void deleteDoubleDateIssued(ModsDefinition mods) {
