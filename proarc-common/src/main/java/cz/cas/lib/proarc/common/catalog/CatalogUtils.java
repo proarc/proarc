@@ -113,8 +113,7 @@ public class CatalogUtils {
         }
 
         if (couples.size() < 1  || nodesCount != 1 || (couples.size() == 1 && onlyOneOriginInfoValues(mods.getOriginInfo()))) { // knav monografie 001 000938836
-            modsAsString = repairIssuance(mods);
-            return modsAsString.getBytes(StandardCharsets.UTF_8);
+            mods = repairIssuance(mods);
         } else {
             if (260 == updateNode) { //knav monografie isbn 80-200-0953-1
                 mods = repairMods(mods, couples);
@@ -123,8 +122,20 @@ public class CatalogUtils {
             } else {
                 return modsBytes;
             }
-            modsAsString = ModsUtils.toXml(mods, true);
-            return modsAsString.getBytes(StandardCharsets.UTF_8);
+        }
+        fixOriginInfoDateIssued(mods);
+        modsAsString = ModsUtils.toXml(mods, true);
+        return modsAsString.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static void fixOriginInfoDateIssued(ModsDefinition mods) {
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            for (DateDefinition date : originInfo.getDateIssued()) {
+                if (date.getValue() != null && (date.getValue().contains("[") || date.getValue().contains("]"))) {
+                    date.setValue(date.getValue().replace("[", "").replace("]", ""));
+                    date.setQualifier("approximate");
+                }
+            }
         }
     }
 
@@ -333,7 +344,7 @@ public class CatalogUtils {
         }
     }
 
-    private static String repairIssuance(ModsDefinition mods) {
+    private static ModsDefinition repairIssuance(ModsDefinition mods) {
         IssuanceDefinition issuanceDefinition = null;
         for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
             for (IssuanceDefinition issuance : originInfo.getIssuance()) {
@@ -351,7 +362,7 @@ public class CatalogUtils {
                 }
             }
         }
-        return ModsUtils.toXml(mods, true);
+        return mods;
     }
 
 
