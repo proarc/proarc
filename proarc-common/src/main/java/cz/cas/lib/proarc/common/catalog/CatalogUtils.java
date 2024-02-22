@@ -152,9 +152,7 @@ public class CatalogUtils {
         for (LocationDefinition location : mods.getLocation()) {
             for (PhysicalLocationDefinition physicalLocation : location.getPhysicalLocation()) {
                 if (physicalLocation.getValue() != null && !physicalLocation.getValue().isEmpty()) {
-                    if ("siglaADR".equals(physicalLocation.getAuthority())) {
-                        return physicalLocation.getValue();
-                    }
+                    return physicalLocation.getValue();
                 }
             }
         }
