@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
@@ -62,6 +63,11 @@ public class ArchiveImport implements ImportHandler {
         load(importConfig, config);
         storeArchivalCopies(importConfig);
         ingest(importConfig, config);
+        Batch batch = importConfig.getBatch();
+        if (Batch.State.INGESTED.equals(batch.getState())) {
+            batch.setParentPid(isession.getRootPid());
+            isession.getImportManager().update(batch);
+        }
 
     }
 
@@ -105,7 +111,18 @@ public class ArchiveImport implements ImportHandler {
     public void load(ImportOptions importConfig, AppConfiguration config) throws Exception {
         File importFolder = importConfig.getImportFolder();
         List<File> metsFiles = ArchiveScanner.findMets(importFolder);
-        consume(metsFiles, importConfig, config);
+        try {
+            consume(metsFiles, importConfig, config);
+        } catch (DigitalObjectException ex) {
+            if (ex != null && ex.getPid() != null && ex.getPid().contains("The repository already contains pid:")) {
+                Batch batch = importConfig.getBatch();
+                batch.setState(Batch.State.LOADING_CONFLICT);
+                isession.getImportManager().update(batch);
+                throw new IllegalStateException(ex.getMessage(), ex);
+            } else {
+                throw new IllegalStateException(ex != null && ex.getMessage() != null ? ex.getMessage() : ex.getPid(), ex);
+            }
+        }
         Batch batch = importConfig.getBatch();
         batch.setState(State.LOADED);
         isession.getImportManager().update(batch);
@@ -126,7 +143,7 @@ public class ArchiveImport implements ImportHandler {
         }
     }
 
-    public void consume(List<File> metsFiles, ImportOptions ctx, AppConfiguration config) throws InterruptedException {
+    public void consume(List<File> metsFiles, ImportOptions ctx, AppConfiguration config) throws InterruptedException, DigitalObjectException {
         for (File metsFile : metsFiles) {
             if (Thread.interrupted()) {
                 throw new InterruptedException();
@@ -135,7 +152,7 @@ public class ArchiveImport implements ImportHandler {
         }
     }
 
-    public void consumeArchive(File metsFile, ImportOptions ctx, AppConfiguration config) {
+    public void consumeArchive(File metsFile, ImportOptions ctx, AppConfiguration config) throws DigitalObjectException {
         File targetFolder = ctx.getTargetFolder();
         PackageReader reader = new PackageReader(targetFolder, isession, config);
         reader.read(metsFile, ctx);

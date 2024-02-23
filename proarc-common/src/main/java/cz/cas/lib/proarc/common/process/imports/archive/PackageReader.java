@@ -27,32 +27,6 @@ import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
-import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder;
-import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder.MdType;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.LocalStorage;
-import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.storage.MixEditor;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.SearchView;
-import cz.cas.lib.proarc.common.storage.SearchViewItem;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.relation.Rdf;
-import cz.cas.lib.proarc.common.storage.relation.RdfRelation;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.storage.relation.Relations;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
@@ -61,6 +35,32 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder;
+import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder.MdType;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.relation.Rdf;
+import cz.cas.lib.proarc.common.storage.relation.RdfRelation;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.relation.Relations;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.mets.DivType;
@@ -90,6 +90,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Node;
 
+import static cz.cas.lib.proarc.common.process.imports.kramerius.FileReader.model2Override;
+
 /**
  * It reads the proarc archive package and generates digital objects for a batch import.
  *
@@ -106,6 +108,7 @@ public class PackageReader {
     private boolean isParentObject;
     private final List<String> physicalPath = new ArrayList<String>();
     private final AppConfiguration configuration;
+    private int lastIndex = 0;
 
     public PackageReader(File targetFolder, ImportSession session, AppConfiguration config) {
         this.targetFolder = targetFolder;
@@ -113,9 +116,16 @@ public class PackageReader {
         this.configuration = config;
     }
 
-    public void read(File metsFile, ImportOptions ctx) throws IllegalStateException {
+    public void read(File metsFile, ImportOptions ctx) throws IllegalStateException, DigitalObjectException {
         try {
             readImpl(metsFile, ctx);
+        } catch (DigitalObjectException ex) {
+            if (ex != null && ex.getPid() != null && ex.getPid().contains("The repository already contains pid:")) {
+                ex.setMessage(metsFile.getAbsolutePath());
+                throw ex;
+            } else {
+                throw new IllegalStateException(metsFile.getAbsolutePath(), ex);
+            }
         } catch (Exception ex) {
             throw new IllegalStateException(metsFile.getAbsolutePath(), ex);
         }
@@ -302,6 +312,10 @@ public class PackageReader {
                     String foxml = object.asText();
                     dObj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
                     isNewObject = false;
+                    if (!model2Override(object.getModel()) && !ctx.isUseNewMetadata() && !ctx.isUseOriginalMetadata()) {
+                        throw new DigitalObjectException("The repository already contains pid: " + pid);
+                    }
+                    iSession.setRootPid(dObj.getPID());
                 } catch (DigitalObjectNotFoundException ex) {
                     // no remote
                 }
@@ -418,17 +432,25 @@ public class PackageReader {
         if (ndkFolder != null) {
             String[] fileName = lObj.getFoxml().getName().split("_");
             String seq = null;
+            String model = null;
             if (fileName.length == 4) {
                 seq = fileName[2];
+                model = fileName[1];
             }
 
-            if (seq != null) {
-                if (ndkFolder.isDirectory()) {
-                    for (File folder : ndkFolder.listFiles()) {
-                        if (folder.isDirectory()) {
-                            for (File file : folder.listFiles()) {
-                                if (file.getName().contains(seq)) {
-                                    createDatastream(lObj, file);
+            if ("page".equals(model) || "ndkpage".equals(model) || "oldprintpage".equals(model) || "audiopage".equals(model)) {
+                if (seq != null) {
+                    if (lastIndex > Integer.valueOf(seq)) {
+                        seq = String.format("%04d", lastIndex + 1);
+                    }
+                    lastIndex++;
+                    if (ndkFolder.isDirectory()) {
+                        for (File folder : ndkFolder.listFiles()) {
+                            if (folder.isDirectory()) {
+                                for (File file : folder.listFiles()) {
+                                    if (file.getName().contains(seq)) {
+                                        createDatastream(lObj, file);
+                                    }
                                 }
                             }
                         }
@@ -773,6 +795,7 @@ public class PackageReader {
         private final Storage typeOfStorage;
         private FedoraStorage remotes;
         private AkubraStorage akubraStorage;
+        private String rootPid;
         /** The user cache. */
         private final Map<String, String> external2internalUserMap = new HashMap<String, String>();
 
@@ -910,6 +933,14 @@ public class PackageReader {
                 external2internalUserMap.put(externalName, cache);
             }
             return cache;
+        }
+
+        public String getRootPid() {
+            return rootPid;
+        }
+
+        public void setRootPid(String rootPid) {
+            this.rootPid = rootPid;
         }
     }
 

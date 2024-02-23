@@ -217,9 +217,11 @@ public final class FoxmlUtils {
 
     public static DatastreamType findDatastream(DigitalObject dobj, String dsId) {
         for (DatastreamType datastream : dobj.getDatastream()) {
-            String id = datastream.getID();
-            if (dsId.equals(id)) {
-                return datastream;
+            if (datastream != null) {
+                String id = datastream.getID();
+                if (dsId.equals(id)) {
+                    return datastream;
+                }
             }
         }
         return null;

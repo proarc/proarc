@@ -513,6 +513,13 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &state=LOADING_CONFLICT&profile=profile.default_ndk_import&id=194&useOriginalMetadata=true
 
+### UPDATE IMPORT BATCH WITH REWRITE
+PUT {{proarcLocalHostUrl}}/rest/v2/import/batch
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+&state=LOADING_CONFLICT&profile=profile.default_archive_import&id=80&useOriginalMetadata=true
+
 ### LOGIN
 POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json

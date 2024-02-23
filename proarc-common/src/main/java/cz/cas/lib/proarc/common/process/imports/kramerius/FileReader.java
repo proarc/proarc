@@ -283,7 +283,7 @@ public class FileReader {
         iSession.getImportManager().update(importItem);
     }
 
-    private boolean model2Override(String model) {
+    public static boolean model2Override(String model) {
         List<String> acceptableModels = Arrays.asList(
                 NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME,
                 OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_CONVOLUTTE,
@@ -291,7 +291,6 @@ public class FileReader {
                 NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH, NdkAudioPlugin.MODEL_SONG,
                 ChroniclePlugin.MODEL_CHRONICLETITLE);
         return acceptableModels.contains(model);
-
     }
 
     private void repairDatastreams(DigitalObject dObj) {
