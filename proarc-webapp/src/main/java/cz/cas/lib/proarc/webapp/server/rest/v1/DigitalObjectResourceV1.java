@@ -34,37 +34,6 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
-import cz.cas.lib.proarc.common.storage.AesEditor;
-import cz.cas.lib.proarc.common.storage.AtmEditor;
-import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.LocalStorage;
-import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.storage.MixEditor;
-import cz.cas.lib.proarc.common.storage.PremisEditor;
-import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
-import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject.PurgeException;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
-import cz.cas.lib.proarc.common.storage.SearchView;
-import cz.cas.lib.proarc.common.storage.SearchViewItem;
-import cz.cas.lib.proarc.common.storage.SearchViewQuery;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.storage.StringEditor.StringRecord;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.AuthorityMetadataInjector;
 import cz.cas.lib.proarc.common.mods.MetadataInjector;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
@@ -94,6 +63,37 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.internal.InternalDispatcher;
 import cz.cas.lib.proarc.common.process.internal.InternalProcess;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.AtmEditor;
+import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.PremisEditor;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.SearchViewQuery;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.StringEditor.StringRecord;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
+import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject.PurgeException;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration.ResolverConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnService;
@@ -131,6 +131,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -151,6 +152,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -1644,7 +1646,24 @@ public class DigitalObjectResourceV1 {
             // filter digital contents
             String profileDsId = profile.getDsID();
             if (BinaryEditor.isMediaStream(profileDsId)) {
-                result.add(DatastreamResult.from(profile));
+                BinaryEditor editor = BinaryEditor.dissemination(fo, profile.getDsID(), MediaType.valueOf(profile.getDsMIME()));
+                if (editor != null) {
+                    InputStream imageStream = editor.readStream();
+                    BufferedImage image = null;
+                    try {
+                        image = ImageIO.read(imageStream);
+                        imageStream.close();
+                    } catch (Exception ex) {
+                        image = null;
+                    }
+                    if (image != null) {
+                        result.add(DatastreamResult.from(profile, image));
+                    } else {
+                        result.add(DatastreamResult.from(profile));
+                    }
+                } else {
+                    result.add(DatastreamResult.from(profile));
+                }
             }
         }
         return new SmartGwtResponse<DatastreamResult>(result);
@@ -1728,11 +1747,26 @@ public class DigitalObjectResourceV1 {
         private String id;
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_MIME)
         private String mime;
+        @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_HEIGHT)
+        private String height;
+        @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_WIDTH)
+        private String width;
 
         public static DatastreamResult from(DatastreamProfile profile) {
             DatastreamResult d = new DatastreamResult();
             d.id = profile.getDsID();
             d.mime = profile.getDsMIME();
+            return d;
+        }
+
+        public static DatastreamResult from(DatastreamProfile profile, BufferedImage image) {
+            DatastreamResult d = new DatastreamResult();
+            d.id = profile.getDsID();
+            d.mime = profile.getDsMIME();
+            if (image != null) {
+                d.height = image.getHeight() > 0 ? String.valueOf(image.getHeight()) : null;
+                d.width = image.getWidth() > 0 ? String.valueOf(image.getWidth()) : null;
+            }
             return d;
         }
 

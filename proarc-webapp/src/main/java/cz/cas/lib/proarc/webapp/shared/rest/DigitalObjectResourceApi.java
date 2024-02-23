@@ -195,6 +195,9 @@ public final class DigitalObjectResourceApi {
     public static final String STREAMPROFILE_PATH = "streamprofile";
     public static final String STREAMPROFILE_ID = "dsid";
     public static final String STREAMPROFILE_MIME = "mime";
+    public static final String STREAMPROFILE_SIZE = "size";
+    public static final String STREAMPROFILE_HEIGHT = "height";
+    public static final String STREAMPROFILE_WIDTH = "width";
 
     /** Resource /object/dissemination */
     public static final String DISSEMINATION_PATH = "dissemination";
