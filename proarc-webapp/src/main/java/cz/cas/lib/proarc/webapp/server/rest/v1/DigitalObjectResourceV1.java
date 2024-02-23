@@ -4012,8 +4012,8 @@ public class DigitalObjectResourceV1 {
             BatchParams params = new BatchParams(Collections.singletonList(batchId.toString()));
             internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
         } else {
-            BatchParams params = new BatchParams(Collections.singletonList(pid));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+            BatchParams params = new BatchParams(Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid));
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
         }
         Locale locale = session.getLocale(httpHeaders);
         try {
