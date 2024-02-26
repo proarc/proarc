@@ -148,7 +148,7 @@ POST http://localhost:8081/proarc/rest/v2/import/batchStopped
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-{&id=943&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
+{&id=83&_operationType=add&_textMatchStyle=exact&_dataSource=ImportBatchDataSource&isc_metaDataPrefix=_&isc_dataFormat=json}
 
 ###
 

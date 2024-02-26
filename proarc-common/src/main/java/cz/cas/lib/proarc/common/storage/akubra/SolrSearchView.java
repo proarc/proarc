@@ -231,7 +231,12 @@ public class SolrSearchView extends SearchView {
             items = new ArrayList<>();
         }
         AkubraObject parent = storage.find(parentPid);
-        List<String> memberPids = new RelationEditor(parent).getMembers();
+        List<String> memberPids = null;
+        try {
+             memberPids = new RelationEditor(parent).getMembers();
+        } catch (Exception ex) {
+            memberPids = new ArrayList<>();
+        }
         if (memberPids.isEmpty()) {
             return items;
         } else {

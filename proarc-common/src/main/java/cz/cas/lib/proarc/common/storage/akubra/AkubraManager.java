@@ -109,6 +109,10 @@ public class AkubraManager {
 
     public void deleteObject(String pid, boolean includingManagedDatastreams) throws IOException, DigitalObjectException {
         DigitalObject object = readObjectFromStorage(pid);
+        if (object == null || object.getDatastream() == null) {
+            LOGGER.warning("Could not remove object from Akubra, because object is not dound in Low-Level storage (" + pid + ")");
+            return;
+        }
         if (includingManagedDatastreams) {
             for (DatastreamType datastreamType : object.getDatastream()) {
                 removeManagedStream(datastreamType);

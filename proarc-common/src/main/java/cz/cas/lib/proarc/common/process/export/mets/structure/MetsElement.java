@@ -19,15 +19,15 @@ package cz.cas.lib.proarc.common.process.export.mets.structure;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.process.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mods.DetailDefinition;
@@ -675,10 +675,19 @@ public class MetsElement implements IMetsElement {
                 Node rdfResourceNode = hasPageNodes.item(a).getAttributes().getNamedItem("rdf:resource");
                 String fileName = rdfResourceNode.getNodeValue();
 
-                DigitalObject object = MetsUtils.readRelatedFoXML(fileName, metsContext);
-                MetsElement child = new MetsElement(object, this, metsContext, true);
-                this.children.add(child);
-                LOG.log(Level.FINE, "Child found for:" + getOriginalPid() + "(" + getElementType() + ") - " + child.getOriginalPid() + "(" + child.getElementType() + ")");
+                try {
+                    DigitalObject object = MetsUtils.readRelatedFoXML(fileName, metsContext);
+                    MetsElement child = new MetsElement(object, this, metsContext, true);
+                    this.children.add(child);
+                    LOG.log(Level.FINE, "Child found for:" + getOriginalPid() + "(" + getElementType() + ") - " + child.getOriginalPid() + "(" + child.getElementType() + ")");
+                } catch (Exception ex) {
+                    if (ex.getMessage().contains("Object not found in low-level storage:")) {
+                        LOG.warning("Skipping object, because not found in Low-Level storage " + fileName);
+                    } else {
+                        throw ex;
+                    }
+                }
+
             }
         }
     }

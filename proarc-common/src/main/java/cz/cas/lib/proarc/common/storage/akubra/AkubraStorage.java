@@ -435,7 +435,10 @@ public class AkubraStorage {
                 object = updateState(object, SolrUtils.PROPERTY_STATE_DEACTIVE);
                 object = updateModifiedDate(object);
                 if (object == null) {
-                    throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
+                    LOG.warning("Removing object from index, because object not exists in Low-Level storage. (" + getPid() + ").");
+                    this.feeder.deleteByPid(getPid());
+                    this.feeder.commit();
+//                    throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
                 } else {
                     InputStream inputStream = this.manager.marshallObject(object);
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);

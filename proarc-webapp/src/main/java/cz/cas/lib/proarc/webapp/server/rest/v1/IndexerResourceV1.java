@@ -12,6 +12,7 @@ import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.SolrFeeder;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
@@ -121,6 +122,8 @@ public class IndexerResourceV1 {
             LOG.info("Indexing documents started.");
             java.nio.file.Path storeRoot = Paths.get(storePath);
             AtomicInteger files = new AtomicInteger();
+            final AkubraStorage storage = AkubraStorage.getInstance(akubraConfiguration);
+            long start = System.currentTimeMillis();
             Files.walk(storeRoot).parallel().filter(Files::isRegularFile).forEach(path -> {
                 try {
                     File file = path.toFile();
@@ -138,7 +141,21 @@ public class IndexerResourceV1 {
                                     feeder.commit();
                                 }
                             } catch (Exception exception) {
-                                errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
+                                if ("URI is not hierarchical".equals(exception.getMessage())) {
+                                    try {
+                                        proArcObject = storage.find(digitalObject.getPID());
+                                        files.getAndIncrement();
+                                        feeder.feedDescriptionDocument(digitalObject, proArcObject, false);
+                                        if (files.get() % 50 == 0) {
+                                            LOG.info("Proccessed " + files.get() + " objects");
+                                            feeder.commit();
+                                        }
+                                    } catch (Exception ex) {
+                                        errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
+                                    }
+                                } else {
+                                    errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
+                                }
                             }
                         }
                     } else if (proArcObject.getPid().startsWith("device")) {
@@ -151,7 +168,21 @@ public class IndexerResourceV1 {
                                     feeder.commit();
                                 }
                             } catch (Exception exception) {
-                                errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
+                                if ("URI is not hierarchical".equals(exception.getMessage())) {
+                                    try {
+                                        proArcObject = storage.find(digitalObject.getPID());
+                                        files.getAndIncrement();
+                                        feeder.feedDescriptionDevice(digitalObject, proArcObject, false);
+                                        if (files.get() % 50 == 0) {
+                                            LOG.info("Proccessed " + files.get() + " objects");
+                                            feeder.commit();
+                                        }
+                                    } catch (Exception ex) {
+                                        errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
+                                    }
+                                } else {
+                                    errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
+                                }
                             }
                         }
                     }
@@ -159,6 +190,7 @@ public class IndexerResourceV1 {
                     LOG.log(Level.SEVERE, "Error in proccesing file: ", e);
                 }
             });
+            LOG.log(Level.INFO, "Indexed time: {0} s", (System.currentTimeMillis() - start) / 1000);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Error in processing file: ", ex);
         } finally {
