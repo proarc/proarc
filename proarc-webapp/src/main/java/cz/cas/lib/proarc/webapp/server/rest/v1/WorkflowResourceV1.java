@@ -143,7 +143,7 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_FINANCED) String financed,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy,
             @QueryParam(WorkflowModelConsts.JOB_TASK_NAME) String taskName,
-            @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_DATE) Timestamp taskDate,
+            @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_DATE) List<String> taskDate,
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USER) String taskUser,
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME) String taskUserName,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID) String pid,

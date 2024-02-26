@@ -239,6 +239,7 @@ public class WorkflowJobDataSource extends ProarcDataSource {
                         criteria.asAdvancedCriteria(), record, new HashMap<String, String>(){{
                             put(FIELD_CREATED, WorkflowModelConsts.JOB_FILTER_CREATED);
                             put(FIELD_MODIFIED, WorkflowModelConsts.JOB_FILTER_MODIFIED);
+                            put(FIELD_TASK_CHANGE_DATE, WorkflowModelConsts.JOB_TASK_CHANGE_DATE);
                         }});
                 dsRequest.setData(record);
             }

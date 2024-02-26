@@ -35,7 +35,6 @@ import cz.cas.lib.proarc.webapp.server.rest.v1.WorkflowResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -97,7 +96,7 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_FINANCED) String financed,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy,
             @QueryParam(WorkflowModelConsts.JOB_TASK_NAME) String taskName,
-            @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_DATE) Timestamp taskDate,
+            @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_DATE) List<String> taskDate,
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USER) String taskUser,
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME) String taskUserName,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID) String pid,
