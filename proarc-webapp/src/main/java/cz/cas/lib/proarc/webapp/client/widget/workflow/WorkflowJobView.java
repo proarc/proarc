@@ -653,7 +653,7 @@ public class WorkflowJobView implements Refreshable {
         jobGrid.setSelectionType(SelectionStyle.SINGLE);
         jobGrid.setShowFilterEditor(true);
         jobGrid.setAllowFilterOperators(false);
-        jobGrid.setFilterOnKeypress(true);
+        jobGrid.setFilterOnKeypress(false);
         jobGrid.setFilterLocalData(false);
         jobGrid.setCanSort(true);
         jobGrid.setCanGroupBy(false);
