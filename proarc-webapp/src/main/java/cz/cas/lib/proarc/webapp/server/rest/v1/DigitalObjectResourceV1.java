@@ -1656,16 +1656,20 @@ public class DigitalObjectResourceV1 {
                         int height = 0;
                         int width = 0;
                         String extension = Const.mimeToExtensionMap.get(editor.getProfile().getDsMIME());
-                        extension = extension.replace(".", "");
-                        Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(extension);
-                        if (readers.hasNext()) {
-                            ImageReader reader = readers.next();
-                            ImageInputStream istream = ImageIO.createImageInputStream(imageStream);
-                            reader.setInput(istream);
-                            height = reader.getHeight(0);
-                            width = reader.getWidth(0);
+                        if (extension == null) {
+                            result.add(DatastreamResult.from(profile));
+                        } else {
+                            extension = extension.replace(".", "");
+                            Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(extension);
+                            if (readers.hasNext()) {
+                                ImageReader reader = readers.next();
+                                ImageInputStream istream = ImageIO.createImageInputStream(imageStream);
+                                reader.setInput(istream);
+                                height = reader.getHeight(0);
+                                width = reader.getWidth(0);
+                            }
+                            result.add(DatastreamResult.from(profile, height, width));
                         }
-                        result.add(DatastreamResult.from(profile, height, width));
                     } else {
                         result.add(DatastreamResult.from(profile));
                     }
