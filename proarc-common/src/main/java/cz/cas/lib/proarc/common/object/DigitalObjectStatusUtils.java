@@ -1,8 +1,8 @@
 package cz.cas.lib.proarc.common.object;
 
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -29,21 +29,21 @@ public class DigitalObjectStatusUtils {
             return;
         }
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fedoraObject = dom.find(pid, null);
-        setState(fedoraObject, status);
+        ProArcObject proArcObject = dom.find(pid, null);
+        setState(proArcObject, status);
     }
 
-    public static void setState(FedoraObject fedoraObject, String status) throws DigitalObjectException {
+    public static void setState(ProArcObject proArcObject, String status) throws DigitalObjectException {
         if (validValue(status)) {
-            RelationEditor relations = new RelationEditor(fedoraObject);
+            RelationEditor relations = new RelationEditor(proArcObject);
             relations.setStatus(status);
             relations.write(relations.getLastModified(), "Status update: " + status);
-            fedoraObject.flush();
+            proArcObject.flush();
             if (STATUS_EXPORTED.equals(status)) {
                 setChildrenStatus(relations.getMembers(), status);
             }
         } else {
-            throw new DigitalObjectException(fedoraObject.getPid(), "Wrong type of status " + status);
+            throw new DigitalObjectException(proArcObject.getPid(), "Wrong type of status " + status);
         }
     }
 

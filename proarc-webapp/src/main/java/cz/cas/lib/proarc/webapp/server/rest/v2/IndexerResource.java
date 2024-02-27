@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 import com.google.common.net.HttpHeaders;
 import com.google.gwt.http.client.Request;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.IndexerResourceV1;

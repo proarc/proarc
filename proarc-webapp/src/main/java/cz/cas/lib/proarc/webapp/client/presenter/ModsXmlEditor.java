@@ -30,12 +30,12 @@ import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.SaveAction;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionMetadata;
 import cz.cas.lib.proarc.webapp.client.ds.ModsCustomDataSource.DescriptionSaveHandler;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.TextDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.WorkflowMaterialDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.WorkflowModsCustomDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.CodeMirror;
 import cz.cas.lib.proarc.webapp.client.widget.DatastreamEditor;
@@ -115,10 +115,11 @@ final class ModsXmlEditor implements DatastreamEditor, Refreshable {
             if (digitalObject.getWorkflowJobId() != null) {
                 Criteria criteria = new Criteria(WorkflowModelConsts.MATERIALFILTER_JOBID, digitalObject.getWorkflowJobId().toString());
                 criteria.addCriteria(new Criteria(WorkflowModelConsts.MATERIAL_TYPE, MaterialType.PHYSICAL_DOCUMENT.name()));
-                WorkflowMaterialDataSource.getInstance().fetchData(criteria, new DSCallback() {
+                criteria.addCriteria(new Criteria(MetaModelDataSource.FIELD_MODELOBJECT, digitalObject.getModel().getId()));
+                TextDataSource.getWorkflowMods().fetchData(criteria, new DSCallback() {
                     @Override
                     public void execute(DSResponse response, Object rawData, DSRequest request) {
-                        handleFetchResponse(response, WorkflowModelConsts.MATERIAL_METADATA, cleanHistory);
+                        handleFetchResponse(response, TextDataSource.FIELD_CONTENT, cleanHistory);
                     }
                 });
             }

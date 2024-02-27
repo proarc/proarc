@@ -16,8 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import java.util.Arrays;
 import java.util.HashSet;
 import org.apache.commons.configuration.BaseConfiguration;

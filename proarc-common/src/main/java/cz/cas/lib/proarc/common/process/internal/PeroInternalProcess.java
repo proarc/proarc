@@ -4,17 +4,17 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.export.DataStreamExport;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -45,7 +45,7 @@ public class PeroInternalProcess {
         this.akubraConfiguration = akubraConfiguration;
 
         if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            this.search = RemoteStorage.getInstance(config).getSearch();
+            this.search = FedoraStorage.getInstance(config).getSearch();
         } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             this.search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
         } else {
@@ -84,14 +84,14 @@ public class PeroInternalProcess {
 
     private void generateSingleAlto(List<String> pids) throws JAXBException, IOException, TransformerException, FedoraClientException, InterruptedException, DigitalObjectException {
         for (String pid : pids) {
-            FedoraObject object = null;
+            ProArcObject object = null;
             InputStream inputStream = null;
             String dsId = "FULL";
             if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-                RemoteStorage remoteStorage = RemoteStorage.getInstance(config);
-                object = remoteStorage.find(pid);
+                FedoraStorage fedoraStorage = FedoraStorage.getInstance(config);
+                object = fedoraStorage.find(pid);
                 FedoraResponse response = FedoraClient.getDatastreamDissemination(object.getPid(), dsId)
-                        .execute(((RemoteStorage.RemoteObject) object).getClient());
+                        .execute(((FedoraStorage.RemoteObject) object).getClient());
                 inputStream = response.getEntityInputStream();
             } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);

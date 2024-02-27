@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.common.device;
 
-import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
 import cz.cas.lib.proarc.mix.ImageCaptureMetadataType.ScannerCapture;
@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
 public class DeviceRepositoryTest {
 
     private FedoraTestSupport fedora;
-    private RemoteStorage storage;
+    private FedoraStorage storage;
     private DeviceRepository repository;
 
     public DeviceRepositoryTest() {

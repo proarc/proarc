@@ -22,8 +22,8 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.DbUnitSupport;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireUserDaoTest;
-import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
+import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -58,7 +58,7 @@ public class UserManagerSqlTest {
     private AppConfiguration configuration;
     private DbUnitSupport db;
     private FedoraTestSupport fedora;
-    private RemoteStorage remoteStorage;
+    private FedoraStorage fedoraStorage;
     private UserManagerSql manager;
 
     public UserManagerSqlTest() {
@@ -77,7 +77,7 @@ public class UserManagerSqlTest {
         // fedora init
         fedora = new FedoraTestSupport();
         fedora.cleanUp();
-        remoteStorage = fedora.getRemoteStorage();
+        fedoraStorage = fedora.getRemoteStorage();
         configuration = AppConfigurationFactory.getInstance().defaultInstance();
 
         // rdbms init
@@ -108,7 +108,7 @@ public class UserManagerSqlTest {
         }
 
         EasyMock.replay(dataSource);
-        manager = new UserManagerSql(configuration, dataSource, temp.getRoot(), remoteStorage, daos);
+        manager = new UserManagerSql(configuration, dataSource, temp.getRoot(), fedoraStorage, daos);
     }
 
     @After

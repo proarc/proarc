@@ -18,10 +18,15 @@
 package cz.cas.lib.proarc.common.process.export.mets;
 
 import edu.harvard.hul.ois.xml.ns.jhove.Property;
+
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
+import java.util.Date;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.transform.dom.DOMResult;
 import org.aes.audioobject.AudioObject;
 import org.w3c.dom.Node;
@@ -29,6 +34,7 @@ import org.w3c.dom.Node;
 public class JHoveOutput {
     String formatVersion;
     boolean skip;
+    XMLGregorianCalendar rawCreated;
 
     public boolean isSkip() {
         return skip;
@@ -135,5 +141,13 @@ public class JHoveOutput {
 
     public Property getBasicObjectInfo() {
         return basicObjectInfo;
+    }
+
+    public void setCreatedDate(long lastModified) throws DatatypeConfigurationException {
+        this.rawCreated = AkubraUtils.toXmlGregorian(new Date(lastModified));
+    }
+
+    public XMLGregorianCalendar getRawCreated() {
+        return rawCreated;
     }
 }

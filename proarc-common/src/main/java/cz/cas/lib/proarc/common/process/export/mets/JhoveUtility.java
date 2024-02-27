@@ -26,12 +26,12 @@ import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.fedora.AesEditor;
-import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
@@ -58,6 +58,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -372,16 +373,16 @@ public class JhoveUtility {
         // hotfix of issue 250
         JHoveOutput jhoveOutput = new JHoveOutput();
         MixEditor mixEditor;
-        FedoraObject fedoraObject = null;
+        ProArcObject proArcObject = null;
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            fedoraObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
+            proArcObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
         } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
-            fedoraObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
+            proArcObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         }
         if (MixEditor.RAW_ID.equals(streamName)) {
-            mixEditor = MixEditor.raw(fedoraObject);
+            mixEditor = MixEditor.raw(proArcObject);
         } else if (MixEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
-            mixEditor = MixEditor.ndkArchival(fedoraObject);
+            mixEditor = MixEditor.ndkArchival(proArcObject);
         } else {
             return null;
         }
@@ -391,9 +392,7 @@ public class JhoveUtility {
             if (mix == null) {
                 return null;
             }
-        } catch (DigitalObjectException ex) {
-            throw new MetsExportException(metsElement.getOriginalPid(), ex.getMessage(), false, ex);
-        }
+
 //        if (FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName) != null) {
 //            List<Element> streamContent = MetsUtils.getDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement.getOriginalPid(), streamName);
 //            if (streamContent == null) {
@@ -406,8 +405,12 @@ public class JhoveUtility {
 //        }
 //        DOMSource domSource = new DOMSource(document);
 //        MixType mix = MixUtils.unmarshal(domSource, MixType.class);
-        jhoveOutput.setMix(mix);
-        jhoveOutput.setFormatVersion(mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName().getValue());
+            jhoveOutput.setMix(mix);
+            jhoveOutput.setCreatedDate(mixEditor.getLastModified());
+            jhoveOutput.setFormatVersion(mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName().getValue());
+        } catch (DigitalObjectException | DatatypeConfigurationException ex) {
+            throw new MetsExportException(metsElement.getOriginalPid(), ex.getMessage(), false, ex);
+        }
         return jhoveOutput;
     }
 
@@ -440,16 +443,16 @@ public class JhoveUtility {
         // hotfix of issue 250
         JHoveOutput jhoveOutput = new JHoveOutput();
         AesEditor aesEditor;
-        FedoraObject fedoraObject = null;
+        ProArcObject proArcObject = null;
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            fedoraObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
+            proArcObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
         } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
-            fedoraObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
+            proArcObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         }
         if (AesEditor.RAW_ID.equals(streamName)) {
-            aesEditor = AesEditor.raw(fedoraObject);
+            aesEditor = AesEditor.raw(proArcObject);
         } else if (AesEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
-            aesEditor = AesEditor.ndkArchival(fedoraObject);
+            aesEditor = AesEditor.ndkArchival(proArcObject);
         } else {
             return null;
         }
@@ -491,16 +494,16 @@ public class JhoveUtility {
         // hotfix of issue 250
         JHoveOutput jhoveOutput = new JHoveOutput();
         CodingHistoryEditor editor;
-        FedoraObject fedoraObject = null;
+        ProArcObject proArcObject = null;
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            fedoraObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
+            proArcObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
         } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
-            fedoraObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
+            proArcObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         }
         if (CodingHistoryEditor.RAW_ID.equals(streamName)) {
-            editor = CodingHistoryEditor.raw(fedoraObject);
+            editor = CodingHistoryEditor.raw(proArcObject);
         } else if (CodingHistoryEditor.NDK_ARCHIVAL_ID.equals(streamName)) {
-            editor = CodingHistoryEditor.ndkArchival(fedoraObject);
+            editor = CodingHistoryEditor.ndkArchival(proArcObject);
         } else {
             return null;
         }

@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.object.ndk;
 
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.DateDefinition;

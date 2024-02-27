@@ -26,14 +26,14 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.PageView;
-import cz.cas.lib.proarc.common.fedora.PageView.Item;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraImport;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.PageView;
+import cz.cas.lib.proarc.common.storage.PageView.Item;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -553,7 +553,7 @@ public class ImportResourceV1 {
                 }
             }
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                batch = new FedoraImport(appConfig, RemoteStorage.getInstance(appConfig), importManager, user, null)
+                batch = new FedoraImport(appConfig, FedoraStorage.getInstance(appConfig), importManager, user, null)
                         .importBatch(batch, user.getUserName(), session.asFedoraLog());
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 batch = new AkubraImport(appConfig, akubraConfiguration, importManager, user, null)
@@ -611,6 +611,10 @@ public class ImportResourceV1 {
             }
             if (!(batch.getState() == Batch.State.LOADED || batch.getState() == Batch.State.LOADING)) {
                 String message = ServerMessages.get(locale).ImportResource_BatchNotLoaded_Msg();
+                return SmartGwtResponse.asError(message);
+            }
+            if (ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(batch.getProfileId()) || ConfigurationProfile.DEFAULT_NDK_IMPORT.equals(batch.getProfileId())) {
+                String message =ServerMessages.get(locale).ImportResource_Batch_WrongProfileId_Msg();
                 return SmartGwtResponse.asError(message);
             }
             try {

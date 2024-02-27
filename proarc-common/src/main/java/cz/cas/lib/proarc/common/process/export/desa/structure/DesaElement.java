@@ -23,7 +23,7 @@ import cz.cas.lib.proarc.common.process.export.desa.Const;
 import cz.cas.lib.proarc.common.process.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

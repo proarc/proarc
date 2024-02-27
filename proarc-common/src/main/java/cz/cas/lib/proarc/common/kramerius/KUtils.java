@@ -18,8 +18,8 @@ package cz.cas.lib.proarc.common.kramerius;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.File;
@@ -51,8 +51,8 @@ public class KUtils {
     public static DigitalObjectHandler findHandler(String pid, String krameriusInstanceId)
             throws DigitalObjectNotFoundException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fedoraObject = dom.find2(pid, null, krameriusInstanceId);
-        return dom.createHandler(fedoraObject);
+        ProArcObject proArcObject = dom.find2(pid, null, krameriusInstanceId);
+        return dom.createHandler(proArcObject);
     }
 
     public static String getPidAsFile(String value) {

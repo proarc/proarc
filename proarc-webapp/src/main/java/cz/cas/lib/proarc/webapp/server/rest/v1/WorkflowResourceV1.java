@@ -20,17 +20,18 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
@@ -143,7 +144,7 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_FINANCED) String financed,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_SORTBY) String sortBy,
             @QueryParam(WorkflowModelConsts.JOB_TASK_NAME) String taskName,
-            @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_DATE) Timestamp taskDate,
+            @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_DATE) List<String> taskDate,
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USER) String taskUser,
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME) String taskUserName,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID) String pid,
@@ -530,6 +531,21 @@ public class WorkflowResourceV1 {
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
 
+    @GET
+    @Path(WorkflowResourceApi.MODS_PATH + '/' + WorkflowResourceApi.MODS_PLAIN_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public StringEditor.StringRecord getDescriptionMetadataTxt(
+            @QueryParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
+    ) throws DigitalObjectException {
+        DigitalObjectHandler handler = findHandler(jobId, modelId, session, httpHeaders);
+        MetadataHandler<?> metadataHandler = handler.metadata();
+        DescriptionMetadata<String> metadataAsXml = metadataHandler.getMetadataAsXml();
+        StringEditor.StringRecord result = new StringEditor.StringRecord(
+                metadataAsXml.getData(), metadataAsXml.getTimestamp(), String.valueOf(jobId));
+        return result;
+    }
+
     @PUT
     @Path(WorkflowResourceApi.MODS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
@@ -599,7 +615,7 @@ public class WorkflowResourceV1 {
 
     private static DigitalObjectHandler findHandler(BigDecimal jobId, String modelId, SessionContext session, HttpHeaders httpHeaders) throws DigitalObjectNotFoundException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fobject = dom.find(jobId, modelId, session.getLocale(httpHeaders));
+        ProArcObject fobject = dom.find(jobId, modelId, session.getLocale(httpHeaders));
         return dom.createHandler(fobject);
     }
 

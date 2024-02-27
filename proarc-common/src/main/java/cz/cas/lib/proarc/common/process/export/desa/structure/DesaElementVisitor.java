@@ -25,7 +25,7 @@ import cz.cas.lib.proarc.common.process.export.desa.Const;
 import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
 import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
 import cz.cas.lib.proarc.desa.pspsip.PSPSIP.SIP;

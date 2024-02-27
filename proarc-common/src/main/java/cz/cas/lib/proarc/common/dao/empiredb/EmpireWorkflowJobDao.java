@@ -203,11 +203,11 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         EmpireUtils.addWhereIs(cmd, tableJob.state, () -> filter.getState() == null ? null : filter.getState().name());
         EmpireUtils.addWhereIs(cmd, tableJob.ownerId, () -> filter.getUserId());
         EmpireUtils.addWhereIs(cmd, tableJob.priority, () -> filter.getPriority());
-        EmpireUtils.addWhereIs(cmd, taskName, () -> filter.getTaskName());
-        EmpireUtils.addWhereIs(cmd, taskDate, () -> filter.getTaskDate());
+        EmpireUtils.addWhereLike(cmd, taskName, () -> filter.getTaskName());
+        EmpireUtils.addWhereDate(cmd, db.tableWorkflowJob.timestamp, filter.getTaskDate());
         EmpireUtils.addWhereIs(cmd, taskUserId, () -> filter.getTaskUser());
-        EmpireUtils.addWhereIs(cmd, rawPath, () -> filter.getRawPath());
-        EmpireUtils.addWhereIs(cmd, tdo.pid, () -> filter.getPid());
+        EmpireUtils.addWhereLike(cmd, rawPath, () -> filter.getRawPath());
+        EmpireUtils.addWhereLike(cmd, tdo.pid, () -> filter.getPid());
 
         EmpireUtils.addWhereDate(cmd, tableJob.created, filter.getCreated());
         EmpireUtils.addWhereDate(cmd, tableJob.timestamp, filter.getModified());

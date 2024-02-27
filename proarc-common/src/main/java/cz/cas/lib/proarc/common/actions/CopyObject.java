@@ -20,16 +20,16 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -83,10 +83,10 @@ public class CopyObject {
         checkValues();
         try {
             MetsContext metsContext = null;
-            FedoraObject object = null;
+            ProArcObject object = null;
 
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
                 object = rstorage.find(pidOld);
                 metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
@@ -111,14 +111,14 @@ public class CopyObject {
     }
 
     public void copyMods(DigitalObjectManager dom) throws DigitalObjectException {
-        FedoraObject foOld = dom.find(pidOld, null);
+        ProArcObject foOld = dom.find(pidOld, null);
         XmlStreamEditor streamEditorOld = foOld.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditorOld = new ModsStreamEditor(streamEditorOld, foOld);
         ModsDefinition modsOld = modsStreamEditorOld.read();
 
 
-        FedoraObject foNew = dom.find(pidNew, null);
+        ProArcObject foNew = dom.find(pidNew, null);
         XmlStreamEditor streamEditorNew = foNew.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditorNew = new ModsStreamEditor(streamEditorNew, foNew);
@@ -129,7 +129,7 @@ public class CopyObject {
 
     private void repairStreams(DigitalObjectManager dom) throws DigitalObjectException {
         //repair ModsDatastream
-        FedoraObject foNew = dom.find(pidNew, null);
+        ProArcObject foNew = dom.find(pidNew, null);
         XmlStreamEditor streamEditorNew = foNew.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditorNew = new ModsStreamEditor(streamEditorNew, foNew);

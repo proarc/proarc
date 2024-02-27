@@ -265,7 +265,21 @@ Author Miroslav Pavelka
                                     </xsl:attribute>
                                 </xsl:if>
                                 <xsl:if test="./mods:nonSort!=''">
-                                    <xsl:value-of select="./mods:nonSort"/>
+                                    <xsl:variable name="nonSort" select="normalize-space(./mods:nonSort)"/>
+                                    <xsl:variable name="apos">'</xsl:variable>
+                                    <xsl:choose>
+                                        <xsl:when test="'´' = substring($nonSort, string-length($nonSort))">
+                                            <xsl:value-of select="$nonSort"/>
+                                        </xsl:when>
+                                        <xsl:when test="$apos = substring($nonSort, string-length($nonSort))">
+                                            <xsl:value-of select="$nonSort"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="$nonSort"/>
+<!--                                            <xsl:value-of select="concat(substring($nonSort, string-length($nonSort), 1), '’')"/>-->
+                                            <xsl:text>&#160;</xsl:text>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
 <!--                                    <xsl:if test="./mods:title!='' or ./mods:subTitle!=''">-->
 <!--                                        <xsl:text>&#160;</xsl:text>-->
 <!--                                    </xsl:if>-->

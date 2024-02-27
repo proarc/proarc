@@ -23,13 +23,13 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.kramerius.K7Authenticator;
 import cz.cas.lib.proarc.common.kramerius.K7Downloader;
@@ -258,8 +258,8 @@ public class KrameriusResourceV1 {
         KUtils.RedirectedResult result = new KUtils.RedirectedResult(pid);
         try {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            FedoraObject fedoraObject = dom.find2(pid, null, krameriusInstanceId);
-            RelationEditor relationEditor = new RelationEditor(fedoraObject);
+            ProArcObject proArcObject = dom.find2(pid, null, krameriusInstanceId);
+            RelationEditor relationEditor = new RelationEditor(proArcObject);
             if (relationEditor.getModel() == null || relationEditor.getModel().isEmpty()) {
                 result.setStatus("Failed");
                 result.setMessage(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImpossibleToFindModel", pid));

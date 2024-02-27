@@ -29,25 +29,25 @@ import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
-import cz.cas.lib.proarc.common.fedora.AesEditor;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.PageView;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.PageView;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -416,9 +416,9 @@ public class FileReader {
         if (localObject == null) {
             localObject = iSession.getLocals().create(pid, new File(targetFolder, FoxmlUtils.pidAsUuid(pid) + ".foxml"));
             localObject.setOwner(ctx.getUsername());
-            localObject.setModel(model);
             importItem = iSession.addObject(localObject, rootObject);
         }
+        localObject.setModel(model);
         DigitalObjectHandler dobjHandler = DigitalObjectManager.getDefault().createHandler(localObject);
         createRelsExt(dobjHandler, localObject, ctx);
         createMetadata(dobjHandler, mods, localObject, ctx);
@@ -540,8 +540,9 @@ public class FileReader {
         RelationEditor relEditor = dobjHandler.relations();
         relEditor.setModel(fedoraModel);
         relEditor.setOrganization(ctx.getOrganization());
+        relEditor.setUser(ctx.getConfig().getDefaultProcessor());
         relEditor.setStatus(DigitalObjectStatusUtils.STATUS_NEW);
-        relEditor.write(0, null);
+        relEditor.write(relEditor.getLastModified() < 0 ? 0 : relEditor.getLastModified(), null);
     }
 
     private void loadPages(StructMapType structMap, ImportOptions ctx) throws Exception {
@@ -557,7 +558,7 @@ public class FileReader {
             String model = null;
             if (pageDiv.getID().startsWith("DIV_P")) {
                 mods = modsMap.get(pageDiv.getID().replaceFirst("DIV_P", "MODSMD"));
-                if (PackageType.NDK.equals(pageType)) {
+                if (PackageType.NDK.equals(packageType)) {
                     model = NdkPlugin.MODEL_NDK_PAGE;
                 } else {
                     model = OldPrintPlugin.MODEL_PAGE;
@@ -676,7 +677,7 @@ public class FileReader {
                 case OCR:
                     if (checkIfFileHasExtension(file.getName(), ".txt")) {
                         XmlStreamEditor ocrEditor = localObject.getEditor(StringEditor.ocrProfile());
-                        ocrEditor.write(file.toURI(), 0, null);
+                        ocrEditor.write(file.toURI(), ocrEditor.getLastModified() < 0 ? 0 : ocrEditor.getLastModified(), null);
                     } else {
                         throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
                     }
@@ -692,7 +693,7 @@ public class FileReader {
                 case USER_IMAGE:
                     if (checkIfFileHasExtension(file.getName(), ".jp2") && InputUtils.isJp2000(file)) {
                         BinaryEditor userEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_USER_ID, BinaryEditor.IMAGE_JP2);
-                        userEditor.write(file.toURI(), 0, null);
+                        userEditor.write(file.toURI(), userEditor.getLastModified() < 0 ? 0 : userEditor.getLastModified(), null);
                     } else {
                         throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
                     }
@@ -700,7 +701,7 @@ public class FileReader {
                 case MASTER_IMAGE:
                     if (checkIfFileHasExtension(file.getName(), ".jp2") && InputUtils.isJp2000(file)) {
                         BinaryEditor archivalEditor = BinaryEditor.dissemination(localObject, BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.IMAGE_JP2);
-                        archivalEditor.write(file.toURI(), 0, null);
+                        archivalEditor.write(file.toURI(), archivalEditor.getLastModified() < 0 ? 0 : archivalEditor.getLastModified(), null);
                         processImage(localObject, file, ctx);
                     } else {
                         throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
@@ -716,7 +717,7 @@ public class FileReader {
                 case PDF:
                     if (checkIfFileHasExtension(file.getName(), ".pdf") && InputUtils.isPdf(file)) {
                         BinaryEditor rawEditor = BinaryEditor.dissemination(localObject, BinaryEditor.RAW_ID, BinaryEditor.FILE_PDF);
-                        rawEditor.write(file.toURI(), 0, null);
+                        rawEditor.write(file.toURI(), rawEditor.getLastModified() < 0 ? 0 : rawEditor.getLastModified(), null);
                     } else {
                         throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
                     }
@@ -730,7 +731,7 @@ public class FileReader {
                     } else {
                         throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
                     }
-                    masterAudioEditor.write(file.toURI(), 0, null);
+                    masterAudioEditor.write(file.toURI(), masterAudioEditor.getLastModified() < 0 ? 0 : masterAudioEditor.getLastModified(), null);
                     break;
                 case SOURCE_AUDIO:
                     BinaryEditor sourceAudioEditor = null;
@@ -741,7 +742,7 @@ public class FileReader {
                     } else {
                         throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
                     }
-                    sourceAudioEditor.write(file.toURI(), 0, null);
+                    sourceAudioEditor.write(file.toURI(), sourceAudioEditor.getLastModified() < 0 ? 0 : sourceAudioEditor.getLastModified(), null);
                     break;
                 case USER_AUDIO:
                     BinaryEditor userAudioEditor = null;
@@ -752,7 +753,7 @@ public class FileReader {
                     } else {
                         throw new IllegalArgumentException("Unsupported file: " + file.getAbsolutePath());
                     }
-                    userAudioEditor.write(file.toURI(), 0, null);
+                    userAudioEditor.write(file.toURI(), userAudioEditor.getLastModified() < 0 ? 0 : userAudioEditor.getLastModified(), null);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported fileType: " + fileDesc.getFileType());
@@ -796,11 +797,11 @@ public class FileReader {
         switch (type.toUpperCase()) {
             case "NDK_ARCHIVAL":
                 MixEditor mixNdkArchivalEditor = MixEditor.ndkArchival(localObject);
-                mixNdkArchivalEditor.write(mix, 0, null);
+                mixNdkArchivalEditor.write(mix, mixNdkArchivalEditor.getLastModified() < 0 ? 0 : mixNdkArchivalEditor.getLastModified(), null);
                 break;
             case "RAW":
                 MixEditor mixRawEditor = MixEditor.raw(localObject);
-                mixRawEditor.write(getFileMix(mix), 0, null);
+                mixRawEditor.write(getFileMix(mix), mixRawEditor.getLastModified() < 0 ? 0 : mixRawEditor.getLastModified(), null);
 
                 processDevice(getDeviceMix(mix), localObject, ctx);
                 break;
@@ -821,11 +822,11 @@ public class FileReader {
         switch (type.toUpperCase()) {
             case "NDK_ARCHIVAL":
                 AesEditor aesNdkArchivalEditor = AesEditor.ndkArchival(localObject);
-                aesNdkArchivalEditor.write(aes, 0, null);
+                aesNdkArchivalEditor.write(aes, aesNdkArchivalEditor.getLastModified() < 0 ? 0 : aesNdkArchivalEditor.getLastModified(), null);
                 break;
             case "RAW":
                 AesEditor aesRawEditor = AesEditor.raw(localObject);
-                aesRawEditor.write(aes, 0, null);
+                aesRawEditor.write(aes, aesRawEditor.getLastModified() < 0 ? 0 : aesRawEditor.getLastModified(), null);
                 break;
             default:
                 LOG.info("Unsupported type: " + type);
@@ -844,11 +845,11 @@ public class FileReader {
         switch (type.toUpperCase()) {
             case "NDK_ARCHIVAL":
                 CodingHistoryEditor codingHistoryNdkArchivalEditor = CodingHistoryEditor.ndkArchival(localObject);
-                codingHistoryNdkArchivalEditor.write(codingHistory, 0, null);
+                codingHistoryNdkArchivalEditor.write(codingHistory, codingHistoryNdkArchivalEditor.getLastModified() < 0 ? 0 : codingHistoryNdkArchivalEditor.getLastModified(), null);
                 break;
             case "RAW":
                 CodingHistoryEditor codingHistoryRawEditor = CodingHistoryEditor.raw(localObject);
-                codingHistoryRawEditor.write(codingHistory, 0, null);
+                codingHistoryRawEditor.write(codingHistory, codingHistoryRawEditor.getLastModified() < 0 ? 0 : codingHistoryRawEditor.getLastModified(), null);
                 break;
             default:
                 LOG.info("Unsupported type: " + type);
@@ -966,7 +967,7 @@ public class FileReader {
                     throw new IllegalStateException("Not a TIFF content: " + tiffFile);
                 }
                 BinaryEditor tiffEditor = BinaryEditor.dissemination(localObject, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF);
-                tiffEditor.write(tiffFile.toURI(), 0, null);
+                tiffEditor.write(tiffFile.toURI(), tiffEditor.getLastModified() < 0 ? 0 : tiffEditor.getLastModified(), null);
 
                 boolean runCustomConversion = config.isTiffToJpgDefined();
 
@@ -1002,7 +1003,7 @@ public class FileReader {
                 }
                 long endFull = System.nanoTime() - start;
                 BinaryEditor fullEditor = BinaryEditor.dissemination(localObject, BinaryEditor.FULL_ID, mediaType);
-                fullEditor.write(file, 0, null);
+                fullEditor.write(file, fullEditor.getLastModified() < 0 ? 0 : fullEditor.getLastModified(), null);
 
 
                 targetName = String.format("%s.preview.%s", getFileName(tiffFile), imageType.getDefaultFileExtension());
@@ -1033,7 +1034,7 @@ public class FileReader {
                 }
                 long endPreview = System.nanoTime() - start;
                 BinaryEditor previewEditor = BinaryEditor.dissemination(localObject, BinaryEditor.PREVIEW_ID, mediaType);
-                previewEditor.write(file, 0, null);
+                previewEditor.write(file, previewEditor.getLastModified() < 0 ? 0 : previewEditor.getLastModified(), null);
 
                 targetName = String.format("%s.thumb.%s", getFileName(tiffFile), imageType.getDefaultFileExtension());
                 Integer thumbMaxHeight = config.getThumbnailMaxHeight();
@@ -1060,11 +1061,14 @@ public class FileReader {
                 }
                 long endThumb = System.nanoTime() - start;
                 BinaryEditor thumbnailEditor = BinaryEditor.dissemination(localObject, BinaryEditor.THUMB_ID, mediaType);
-                thumbnailEditor.write(file, 0, null);
+                thumbnailEditor.write(file, thumbnailEditor.getLastModified() < 0 ? 0 : thumbnailEditor.getLastModified(), null);
 
                 LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                         tiffFile.getName(), endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
+            } else {
+                throw new IllegalStateException("Convertor JP2 --> TIF not set.");
             }
+
         }
     }
 
@@ -1106,7 +1110,7 @@ public class FileReader {
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, localObject);
         mapper.createMods(mods, context);
-        modsStreamEditor.write(mods, 0, null);
+        modsStreamEditor.write(mods, modsStreamEditor.getLastModified() < 0 ? 0 : modsStreamEditor.getLastModified(), null);
 
         OaiDcType dc = mapper.toDc(mods, context);
         DcStreamEditor dcEditor = dobjHandler.objectMetadata();
@@ -1161,7 +1165,7 @@ public class FileReader {
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, localObject);
         mapper.createMods(mods, context);
-        modsStreamEditor.write(mods, 0, null);
+        modsStreamEditor.write(mods, modsStreamEditor.getLastModified() < 0 ? 0 : modsStreamEditor.getLastModified(), null);
 
         OaiDcType dc = mapper.toDc(mods, context);
         DcStreamEditor dcEditor = dobjHandler.objectMetadata();
@@ -1177,8 +1181,9 @@ public class FileReader {
         relEditor.setModel(model);
         relEditor.setDevice(ctx.getDevice());
         relEditor.setOrganization(ctx.getOrganization());
+        relEditor.setUser(ctx.getConfig().getDefaultProcessor());
         relEditor.setStatus(DigitalObjectStatusUtils.STATUS_NEW);
-        relEditor.write(0, null);
+        relEditor.write(relEditor.getLastModified() < 0 ? 0 : relEditor.getLastModified(), null);
     }
 
     private void loadFileMap(Mets mets) {
@@ -1291,7 +1296,7 @@ public class FileReader {
         private final DeviceRepository deviceRepository;
         private final Storage typeOfStorage;
         private final AppConfiguration config;
-        private RemoteStorage fedoraStorage;
+        private FedoraStorage fedoraStorage;
         private AkubraStorage akubraStorage;
         private String rootPid;
         private String devicePid;
@@ -1300,7 +1305,7 @@ public class FileReader {
             try {
                 this.typeOfStorage = appConfig.getTypeOfStorage();
                 if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.fedoraStorage = RemoteStorage.getInstance(appConfig);
+                    this.fedoraStorage = FedoraStorage.getInstance(appConfig);
                     this.search = this.fedoraStorage.getSearch();
                     this.deviceRepository = new DeviceRepository(this.fedoraStorage);
                 } else if (Storage.AKUBRA.equals(typeOfStorage)) {
@@ -1348,7 +1353,7 @@ public class FileReader {
             return locals;
         }
 
-        public RemoteStorage getFedoraRemotes() {
+        public FedoraStorage getFedoraRemotes() {
             return fedoraStorage;
         }
 

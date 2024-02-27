@@ -24,14 +24,14 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.workflow.WorkflowExportFile;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -134,7 +134,7 @@ public final class ExportUtils {
      */
     public static void storeObjectExportResult(String pid, String target, String type, String log) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fo = dom.find(pid, null);
+        ProArcObject fo = dom.find(pid, null);
         DigitalObjectHandler doh = dom.createHandler(fo);
         RelationEditor relations = doh.relations();
         switch(type) {
@@ -300,11 +300,11 @@ public final class ExportUtils {
     public static void missingUrnNbn(List<String> pids, boolean ignoreMissingUrnNbn, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) throws IOException, MetsExportException {
         for (String pid: pids) {
             MetsContext metsContext = null;
-            FedoraObject object = null;
+            ProArcObject object = null;
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteStorage remoteStorage = RemoteStorage.getInstance();
-                object = remoteStorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, null, remoteStorage, appConfig.getNdkExportOptions());
+                FedoraStorage fedoraStorage = FedoraStorage.getInstance();
+                object = fedoraStorage.find(pid);
+                metsContext = MetsContext.buildFedoraContext(object, null, null, fedoraStorage, appConfig.getNdkExportOptions());
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
@@ -330,7 +330,7 @@ public final class ExportUtils {
         }
     }
 
-    private static MetsElement getMetsElement(FedoraObject fo, MetsContext metsContext, boolean hierarchy) throws MetsExportException {
+    private static MetsElement getMetsElement(ProArcObject fo, MetsContext metsContext, boolean hierarchy) throws MetsExportException {
         metsContext.resetContext();
         DigitalObject dobj = MetsUtils.readFoXML(fo.getPid(), metsContext);
         return MetsElement.getElement(dobj, null, metsContext, hierarchy);

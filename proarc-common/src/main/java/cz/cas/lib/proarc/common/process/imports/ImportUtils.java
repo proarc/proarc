@@ -1,6 +1,6 @@
 package cz.cas.lib.proarc.common.process.imports;
 
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import java.util.ArrayList;
 import java.util.Collection;

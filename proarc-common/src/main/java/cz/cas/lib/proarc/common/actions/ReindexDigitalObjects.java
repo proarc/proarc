@@ -27,18 +27,18 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -99,9 +99,9 @@ public class ReindexDigitalObjects {
 
     private IMetsElement getParentElement(String parentPid) throws IOException, MetsExportException {
         MetsContext metsContext = null;
-        FedoraObject object = null;
+        ProArcObject object = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+            FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
             object = rstorage.find(pid);
             metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())){
@@ -121,9 +121,9 @@ public class ReindexDigitalObjects {
 
     private String getParentPid(String pid) throws IOException, MetsExportException {
         MetsContext metsContext = null;
-        FedoraObject object = null;
+        ProArcObject object = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+            FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
             object = rstorage.find(pid);
             metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
@@ -228,11 +228,11 @@ public class ReindexDigitalObjects {
 
     public void reindex(String parentId, Locale locale) throws DigitalObjectException, IOException, FedoraClientException {
 
-        FedoraObject object = null;
+        ProArcObject object = null;
         SearchView search = null;
         try {
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
                 object = rstorage.find(parentId);
                 search = rstorage.getSearch(locale);
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())){
@@ -286,7 +286,7 @@ public class ReindexDigitalObjects {
 
     private void reindexStreams(int index, String pid, String model) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fo = dom.find(pid, null);
+        ProArcObject fo = dom.find(pid, null);
         XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
@@ -313,7 +313,7 @@ public class ReindexDigitalObjects {
     @Deprecated
     private void reindexMods(int index, String pid, String model) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fo = dom.find(pid, null);
+        ProArcObject fo = dom.find(pid, null);
         XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
@@ -328,7 +328,7 @@ public class ReindexDigitalObjects {
     @Deprecated
     private void reindexDc(String pid, String model) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fo = dom.find(pid, null);
+        ProArcObject fo = dom.find(pid, null);
         XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));

@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import cz.cas.lib.proarc.common.workflow.model.Job.State;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -87,7 +86,7 @@ public class JobFilter {
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_LABEL)
     private String taskLabel;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_DATE)
-    private Timestamp taskDate;
+    private List<String> taskDate;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USER)
     private String taskUser;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME)
@@ -301,12 +300,12 @@ public class JobFilter {
         this.rawPath = rawPath;
     }
 
-    public Timestamp getTaskDate() {
-        return taskDate;
+    public void setTaskDate(List<String> taskDate) {
+        this.taskDate = taskDate;
     }
 
-    public void setTaskDate(Timestamp taskDate) {
-        this.taskDate = taskDate;
+    public List<String> getTaskDate() {
+        return taskDate;
     }
 
     public String getTaskUser() {

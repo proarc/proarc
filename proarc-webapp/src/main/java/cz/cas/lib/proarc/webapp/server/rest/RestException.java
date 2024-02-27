@@ -17,8 +17,8 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectConcurrentModificationException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import java.io.IOException;
 import java.io.StringWriter;

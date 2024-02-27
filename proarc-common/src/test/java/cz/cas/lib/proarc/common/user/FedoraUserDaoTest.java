@@ -16,10 +16,10 @@
  */
 package cz.cas.lib.proarc.common.user;
 
-import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
-import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.util.Arrays;
 import java.util.Collection;
 import org.junit.After;

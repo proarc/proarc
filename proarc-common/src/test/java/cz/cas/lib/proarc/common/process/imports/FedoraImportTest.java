@@ -25,15 +25,14 @@ import cz.cas.lib.proarc.common.dao.empiredb.DbUnitSupport;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireBatchDaoTest;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.SqlTransaction;
-import cz.cas.lib.proarc.common.fedora.FedoraTestSupport;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.imports.FedoraImport;
+import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
@@ -78,7 +77,7 @@ public class FedoraImportTest {
     private static FedoraTestSupport fedoraSupport;
     private BatchManager ibm;
     private LocalStorage localStorage;
-    private RemoteStorage remoteStorage;
+    private FedoraStorage fedoraStorage;
     private SearchView search;
 
     public FedoraImportTest() {
@@ -101,8 +100,8 @@ public class FedoraImportTest {
         fedoraSupport.cleanUp();
         MetaModelRepository.setInstance(new String[0]);
         localStorage = new LocalStorage();
-        remoteStorage = RemoteStorage.getInstance();
-        search = remoteStorage.getSearch();
+        fedoraStorage = FedoraStorage.getInstance();
+        search = fedoraStorage.getSearch();
 
         File configHome = temp.newFolder(AppConfiguration.DEFAULT_APP_HOME_NAME);
         Map<String, String> env = new HashMap<String, String>();
@@ -110,7 +109,7 @@ public class FedoraImportTest {
         appConf = AppConfigurationFactory.getInstance().create(env);
 
         ibm = new BatchManager(appConf, daos);
-        fedoraImport = new FedoraImport(appConf, remoteStorage, ibm, null, null);
+        fedoraImport = new FedoraImport(appConf, fedoraStorage, ibm, null, null);
     }
 
     @After
@@ -271,7 +270,7 @@ public class FedoraImportTest {
         locRels.write(locRels.getLastModified(), "test");
         lobj.flush();
         // ingested but not linked by parent; caused by a blackout
-        remoteStorage.ingest(lobj, fedoraSupport.getTestUser(), "junit");
+        fedoraStorage.ingest(lobj, fedoraSupport.getTestUser(), "junit");
         // prepare remote parent
         RemoteObject parent = createParent(testName.getMethodName() + "_parent");
 
@@ -316,7 +315,7 @@ public class FedoraImportTest {
         locRels.write(locRels.getLastModified(), "test");
         lobj.flush();
         // ingested and linked by parent; caused by a following blackout
-        remoteStorage.ingest(lobj, fedoraSupport.getTestUser(), "junit");
+        fedoraStorage.ingest(lobj, fedoraSupport.getTestUser(), "junit");
         // prepare remote parent
         RemoteObject parent = createParent(testName.getMethodName() + "_parent", lobj.getPid());
 
@@ -358,8 +357,8 @@ public class FedoraImportTest {
         locRels.setMembers(Arrays.asList(childPid));
         locRels.write(locRels.getLastModified(), "test");
         lobj.flush();
-        remoteStorage.ingest(lobj, lobj.getOwner(), "junit test");
-        return remoteStorage.find(lobj.getPid());
+        fedoraStorage.ingest(lobj, lobj.getOwner(), "junit test");
+        return fedoraStorage.find(lobj.getPid());
     }
 
 }

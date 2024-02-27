@@ -17,12 +17,12 @@
 package cz.cas.lib.proarc.common.dublincore;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor.EditorResult;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -48,17 +48,17 @@ public final class DcStreamEditor {
     public static final String DATASTREAM_LABEL = "Dublin Core Record for this object";
 
     private final XmlStreamEditor editor;
-    private final FedoraObject object;
+    private final ProArcObject object;
 
     public static DatastreamProfile dcProfile() {
         return FoxmlUtils.inlineProfile(DATASTREAM_ID, DATASTREAM_FORMAT_URI, DATASTREAM_LABEL);
     }
 
-    public DcStreamEditor(FedoraObject object) {
+    public DcStreamEditor(ProArcObject object) {
         this(object.getEditor(dcProfile()), object);
     }
 
-    DcStreamEditor(XmlStreamEditor editor, FedoraObject object) {
+    DcStreamEditor(XmlStreamEditor editor, ProArcObject object) {
         this.editor = editor;
         this.object = object;
     }

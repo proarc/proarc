@@ -208,6 +208,9 @@ class EmpireUtils {
 
     static List<Entry<String, String>> parseDateFilter(List<String> dateFilter) {
         ArrayList<Entry<String, String>> dExpressions = new ArrayList<Map.Entry<String, String>>();
+        if (dateFilter == null) {
+            return dExpressions;
+        }
         for (Iterator<String> dfit = dateFilter.iterator(); dfit.hasNext();) {
             String dateOrOperand = dfit.next();
             if (dfit.hasNext()) {

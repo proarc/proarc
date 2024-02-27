@@ -23,9 +23,9 @@ import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.dao.UserDao;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.SqlTransaction;
-import cz.cas.lib.proarc.common.fedora.FedoraTransaction;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -54,7 +54,7 @@ final class UserManagerSql implements UserManager {
     private final File defaultHome;
     private final GroupSqlStorage groupStorage;
     private final PermissionSqlStorage permissionStorage;
-    private final RemoteStorage remoteStorage;
+    private final FedoraStorage fedoraStorage;
     private final DaoFactory daos;
 
     public UserManagerSql(DataSource source, AppConfiguration config, DaoFactory daos) throws IOException {
@@ -64,22 +64,22 @@ final class UserManagerSql implements UserManager {
         groupStorage = new GroupSqlStorage(source);
         permissionStorage = new PermissionSqlStorage(source);
         if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            this.remoteStorage = RemoteStorage.getInstance(config);
+            this.fedoraStorage = FedoraStorage.getInstance(config);
         } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
-            this.remoteStorage = null;
+            this.fedoraStorage = null;
         } else{
             throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
         }
         this.daos = daos;
     }
 
-    public UserManagerSql(AppConfiguration configuration, DataSource source, File defaultHome, RemoteStorage remoteStorage, EmpireDaoFactory daos) {
+    public UserManagerSql(AppConfiguration configuration, DataSource source, File defaultHome, FedoraStorage fedoraStorage, EmpireDaoFactory daos) {
         this.appConfig = configuration;
         this.source = source;
         this.defaultHome = defaultHome;
         this.groupStorage = new GroupSqlStorage(source);
         this.permissionStorage = new PermissionSqlStorage(source);
-        this.remoteStorage = remoteStorage;
+        this.fedoraStorage = fedoraStorage;
         this.daos = daos;
     }
 
@@ -191,7 +191,7 @@ final class UserManagerSql implements UserManager {
 
             // fedora
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                ftx = new FedoraTransaction(remoteStorage);
+                ftx = new FedoraTransaction(fedoraStorage);
                 FedoraUserDao fedoraUsers = new FedoraUserDao();
                 fedoraUsers.setTransaction(ftx);
                 fedoraUsers.add(profile, owner, log);
@@ -260,7 +260,7 @@ final class UserManagerSql implements UserManager {
         try {
             // fedora
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                ftx = new FedoraTransaction(remoteStorage);
+                ftx = new FedoraTransaction(fedoraStorage);
                 FedoraGroupDao fedoraGroups = new FedoraGroupDao();
                 fedoraGroups.setTransaction(ftx);
                 fedoraGroups.addGroup(group, owner, log);
@@ -330,7 +330,7 @@ final class UserManagerSql implements UserManager {
                     groupStorage.addMembership(c, user.getId(), groups);
                 }
                 if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    ftx = new FedoraTransaction(remoteStorage);
+                    ftx = new FedoraTransaction(fedoraStorage);
                     FedoraUserDao fedoraUsers = new FedoraUserDao();
                     fedoraUsers.setTransaction(ftx);
                     fedoraUsers.setMembership(user, groups, log);

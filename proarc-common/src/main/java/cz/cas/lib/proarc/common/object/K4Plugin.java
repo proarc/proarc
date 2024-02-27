@@ -19,14 +19,14 @@ package cz.cas.lib.proarc.common.object;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.PageView.PageViewHandler;
-import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
-import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
-import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.storage.SearchView.HasSearchViewHandler;
+import cz.cas.lib.proarc.common.storage.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -180,7 +180,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         private static final Logger LOG = Logger.getLogger(K4MetadataHandler.class.getName());
         private final DigitalObjectHandler handler;
         private final ModsStreamEditor editor;
-        private final FedoraObject fobject;
+        private final ProArcObject fobject;
 
         public K4MetadataHandler(DigitalObjectHandler handler) {
             this.handler = handler;

@@ -23,8 +23,8 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mockrepository.MockFedoraClient;
 import cz.cas.lib.proarc.common.process.export.mockrepository.MockSearchView;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -313,11 +313,11 @@ public class MetsUtilsTest {
         new MockSearchView();
 
         MetaModelRepository.setInstance("ndk", "ndkEborn");
-        RemoteStorage remoteStorage = new RemoteStorage(client);
+        FedoraStorage fedoraStorage = new FedoraStorage(client);
         MetsContext ctx = new MetsContext();
         ctx.setTypeOfStorage(Storage.FEDORA);
-        ctx.setRemoteStorage(remoteStorage);
-        ctx.setFedoraClient(remoteStorage.getClient());
+        ctx.setRemoteStorage(fedoraStorage);
+        ctx.setFedoraClient(fedoraStorage.getClient());
 
         List<String> pspIDs = MetsUtils.findPSPPIDs("uuid:26342028-12c8-4446-9217-d3c9f249bd13", ctx, true);
         Set<String> setPspIDs = new HashSet<>(pspIDs);

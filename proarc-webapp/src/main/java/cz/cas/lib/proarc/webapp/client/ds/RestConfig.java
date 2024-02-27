@@ -185,6 +185,7 @@ public final class RestConfig {
     public static final String URL_WORKFLOW_PROFILE = path(URL_WORKFLOW, WorkflowResourceApi.PROFILE_PATH);
     public static final String URL_WORKFLOW_TASK = path(URL_WORKFLOW, WorkflowResourceApi.TASK_PATH);
     public static final String URL_WORKFLOW_MODS = path(URL_WORKFLOW, WorkflowResourceApi.MODS_PATH);
+    public static final String URL_WORKFLOW_MODS_PLAIN = path(URL_WORKFLOW_MODS, WorkflowResourceApi.MODS_PLAIN_PATH);
     public static final String URL_NEW_CLIENT = path(URL_ROOT, NewClientResourceApi.PATH);
     public static final String URL_NEW_CLINT_URL = path(URL_NEW_CLIENT, NewClientResourceApi.URL_PATH);
 

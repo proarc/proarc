@@ -7,13 +7,13 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.IOException;
@@ -70,9 +70,9 @@ public class LockObject {
     public IMetsElement getElement() throws DigitalObjectException {
         try {
             MetsContext metsContext = null;
-            FedoraObject object = null;
+            ProArcObject object = null;
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
                 object = rstorage.find(pid);
                 metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
@@ -141,8 +141,8 @@ public class LockObject {
     }
 
     private void setLocked(DigitalObjectManager dom, String pid) throws DigitalObjectException {
-        FedoraObject fedoraObject = dom.find(pid,null);
-        DigitalObjectHandler handler = dom.createHandler(fedoraObject);
+        ProArcObject proArcObject = dom.find(pid,null);
+        DigitalObjectHandler handler = dom.createHandler(proArcObject);
         RelationEditor relationEditor = handler.relations();
         if (relationEditor.isLocked()) {
             throw new DigitalObjectException(pid, MSG_ALREADY_LOCKED);
@@ -153,8 +153,8 @@ public class LockObject {
     }
 
     private void setUnlocked(DigitalObjectManager dom, String pid) throws DigitalObjectException {
-        FedoraObject fedoraObject = dom.find(pid,null);
-        DigitalObjectHandler handler = dom.createHandler(fedoraObject);
+        ProArcObject proArcObject = dom.find(pid,null);
+        DigitalObjectHandler handler = dom.createHandler(proArcObject);
         RelationEditor relationEditor = handler.relations();
         if (!relationEditor.isLocked()) {
             throw new DigitalObjectException(pid, MSG_ALREADY_UNLOCKED);

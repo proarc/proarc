@@ -24,11 +24,11 @@ import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceNotFoundException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -92,7 +92,7 @@ public class DeviceResourceV1 {
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         this.session = SessionContext.from(httpRequest);
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            this.devRepo = new DeviceRepository(RemoteStorage.getInstance(appConfig));
+            this.devRepo = new DeviceRepository(FedoraStorage.getInstance(appConfig));
             this.akubraConfiguration = null;
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());

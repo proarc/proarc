@@ -24,22 +24,22 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.PageView.PageViewHandler;
-import cz.cas.lib.proarc.common.fedora.PageView.PageViewItem;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.SearchViewQuery;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.XmlStreamEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.SearchViewQuery;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -118,7 +118,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
     protected final DigitalObjectHandler handler;
     protected final ModsStreamEditor editor;
-    protected final FedoraObject fobject;
+    protected final ProArcObject fobject;
     protected DigitalObjectCrawler crawler;
     private final NdkMapperFactory mapperFactory;
     private static AppConfiguration appConfiguration;
@@ -805,7 +805,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         SearchView search = null;
         try {
             if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                search = RemoteStorage.getInstance().getSearch();
+                search = FedoraStorage.getInstance().getSearch();
             } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
             } else {
@@ -914,7 +914,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (crawler == null) {
             try {
                 if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                    crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), RemoteStorage.getInstance().getSearch());
+                    crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), FedoraStorage.getInstance().getSearch());
                 } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                     crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), AkubraStorage.getInstance(akubraConfiguration).getSearch());
                 } else {

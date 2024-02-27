@@ -17,10 +17,10 @@
 package cz.cas.lib.proarc.common.object.graphic;
 
 import cz.cas.lib.proarc.common.process.export.mets.Const;
-import cz.cas.lib.proarc.common.fedora.PageView;
-import cz.cas.lib.proarc.common.fedora.SearchView.HasSearchViewHandler;
-import cz.cas.lib.proarc.common.fedora.SearchView.SearchViewHandler;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.PageView;
+import cz.cas.lib.proarc.common.storage.SearchView.HasSearchViewHandler;
+import cz.cas.lib.proarc.common.storage.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;

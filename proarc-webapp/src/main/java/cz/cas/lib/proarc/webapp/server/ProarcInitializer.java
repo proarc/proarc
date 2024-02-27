@@ -26,11 +26,11 @@ import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
 import cz.cas.lib.proarc.common.process.export.ExportProcess;
-import cz.cas.lib.proarc.common.fedora.FedoraStorageInitializer;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorageInitializer;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
@@ -149,7 +149,7 @@ public final class ProarcInitializer {
     private void asyncInitialization(Storage storage) {
 
         if (Storage.FEDORA.equals(storage)) {
-            FedoraStorageInitializer rsi = new FedoraStorageInitializer(RemoteStorage.getInstance());
+            FedoraStorageInitializer rsi = new FedoraStorageInitializer(FedoraStorage.getInstance());
             rsi.init();
         }
         UserUtil.initDefaultAdmin();

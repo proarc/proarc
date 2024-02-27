@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.dublincore;
 
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.mods.ModsDefinition;

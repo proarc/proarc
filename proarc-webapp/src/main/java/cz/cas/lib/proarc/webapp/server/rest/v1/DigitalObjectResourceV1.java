@@ -34,37 +34,6 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
-import cz.cas.lib.proarc.common.fedora.AesEditor;
-import cz.cas.lib.proarc.common.fedora.AtmEditor;
-import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
-import cz.cas.lib.proarc.common.fedora.BinaryEditor;
-import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectValidationException.ValidationResult;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.FoxmlUtils;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.PremisEditor;
-import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject;
-import cz.cas.lib.proarc.common.fedora.PurgeFedoraObject.PurgeException;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage;
-import cz.cas.lib.proarc.common.fedora.RemoteStorage.RemoteObject;
-import cz.cas.lib.proarc.common.fedora.SearchView;
-import cz.cas.lib.proarc.common.fedora.SearchViewItem;
-import cz.cas.lib.proarc.common.fedora.SearchViewQuery;
-import cz.cas.lib.proarc.common.fedora.Storage;
-import cz.cas.lib.proarc.common.fedora.StringEditor;
-import cz.cas.lib.proarc.common.fedora.StringEditor.StringRecord;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.fedora.akubra.PurgeAkubraObject;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.AuthorityMetadataInjector;
 import cz.cas.lib.proarc.common.mods.MetadataInjector;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
@@ -94,6 +63,37 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.internal.InternalDispatcher;
 import cz.cas.lib.proarc.common.process.internal.InternalProcess;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.AtmEditor;
+import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.PremisEditor;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.SearchViewQuery;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.StringEditor.StringRecord;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
+import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject.PurgeException;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration.ResolverConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnService;
@@ -131,6 +131,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -151,6 +152,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -379,7 +381,7 @@ public class DigitalObjectResourceV1 {
         }
 
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage fedora = RemoteStorage.getInstance(appConfig);
+            FedoraStorage fedora = FedoraStorage.getInstance(appConfig);
             ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
             PurgeFedoraObject service = new PurgeFedoraObject(fedora);
             for (String pid : pids) {
@@ -504,7 +506,7 @@ public class DigitalObjectResourceV1 {
         Locale locale = session.getLocale(httpHeaders);
         SearchView search = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+            FedoraStorage remote = FedoraStorage.getInstance(appConfig);
             search = remote.getSearch(locale);
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
@@ -703,7 +705,7 @@ public class DigitalObjectResourceV1 {
 
         SearchView search = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            search = RemoteStorage.getInstance(appConfig).getSearch(session.getLocale(httpHeaders));
+            search = FedoraStorage.getInstance(appConfig).getSearch(session.getLocale(httpHeaders));
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             search = AkubraStorage.getInstance(akubraConfiguration).getSearch(session.getLocale(httpHeaders));
         } else {
@@ -827,7 +829,7 @@ public class DigitalObjectResourceV1 {
     private Map<String, SearchViewItem> loadSearchItems(Set<String> pids) throws IOException, FedoraClientException {
         SearchView search = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage storage = RemoteStorage.getInstance(appConfig);
+            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
             search = storage.getSearch(session.getLocale(httpHeaders));
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
@@ -1144,7 +1146,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID) Integer batchId
     ) throws IOException, DigitalObjectException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ProArcObject fobject = findFedoraObject(pid, batchId);
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
         try {
             DublinCoreRecord dc = dcEditor.read();
@@ -1174,7 +1176,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID) Integer batchId
     ) throws IOException, DigitalObjectException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ProArcObject fobject = findFedoraObject(pid, batchId);
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
         try {
             DublinCoreRecord dc = dcEditor.read();
@@ -1193,7 +1195,7 @@ public class DigitalObjectResourceV1 {
         if (update == null || update.getDc() == null) {
             throw new IllegalArgumentException();
         }
-        FedoraObject fobject = findFedoraObject(update.getPid(), update.getBatchId(), false);
+        ProArcObject fobject = findFedoraObject(update.getPid(), update.getBatchId(), false);
         DcStreamEditor dcEditor = new DcStreamEditor(fobject);
         dcEditor.write(update, session.asFedoraLog());
 
@@ -1280,7 +1282,7 @@ public class DigitalObjectResourceV1 {
         try {
             List<SearchViewItem> parents = new ArrayList<>();
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+                FedoraStorage remote = FedoraStorage.getInstance(appConfig);
                 parents = searchParent(batchId, pidToList(pid), remote.getSearch(session.getLocale(httpHeaders)));
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
@@ -1289,7 +1291,7 @@ public class DigitalObjectResourceV1 {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
             if (parents.size() > 0) {
-                FedoraObject parentObject = find(parents.get(0).getPid(), null);
+                ProArcObject parentObject = find(parents.get(0).getPid(), null);
                 DigitalObjectHandler parentHandler = DigitalObjectManager.getDefault().createHandler(parentObject);
                 doHandler.setParameterParent(parentHandler);
             }
@@ -1340,7 +1342,7 @@ public class DigitalObjectResourceV1 {
         try {
             List<SearchViewItem> parents = new ArrayList<>();
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+                FedoraStorage remote = FedoraStorage.getInstance(appConfig);
                 parents = searchParent(batchId, pidToList(pid), remote.getSearch(session.getLocale(httpHeaders)));
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
@@ -1349,7 +1351,7 @@ public class DigitalObjectResourceV1 {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
             if (parents.size() > 0) {
-                FedoraObject parentObject = find(parents.get(0).getPid(), null);
+                ProArcObject parentObject = find(parents.get(0).getPid(), null);
                 DigitalObjectHandler parentHandler = DigitalObjectManager.getDefault().createHandler(parentObject);
                 doHandler.setParameterParent(parentHandler);
             }
@@ -1368,7 +1370,7 @@ public class DigitalObjectResourceV1 {
         return new SmartGwtResponse<DescriptionMetadata<Object>>();
     }
 
-    private FedoraObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
+    private ProArcObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
         return DigitalObjectManager.getDefault().find(pid, batchId);
     }
 
@@ -1637,14 +1639,31 @@ public class DigitalObjectResourceV1 {
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
-        FedoraObject fo = findFedoraObject(pid, batchId, true);
+        ProArcObject fo = findFedoraObject(pid, batchId, true);
         List<DatastreamProfile> profiles = fo.getStreamProfile(dsId);
         ArrayList<DatastreamResult> result = new ArrayList<DatastreamResult>(profiles.size());
         for (DatastreamProfile profile : profiles) {
             // filter digital contents
             String profileDsId = profile.getDsID();
             if (BinaryEditor.isMediaStream(profileDsId)) {
-                result.add(DatastreamResult.from(profile));
+                BinaryEditor editor = BinaryEditor.dissemination(fo, profile.getDsID(), MediaType.valueOf(profile.getDsMIME()));
+                if (editor != null) {
+                    InputStream imageStream = editor.readStream();
+                    BufferedImage image = null;
+                    try {
+                        image = ImageIO.read(imageStream);
+                        imageStream.close();
+                    } catch (Exception ex) {
+                        image = null;
+                    }
+                    if (image != null) {
+                        result.add(DatastreamResult.from(profile, image));
+                    } else {
+                        result.add(DatastreamResult.from(profile));
+                    }
+                } else {
+                    result.add(DatastreamResult.from(profile));
+                }
             }
         }
         return new SmartGwtResponse<DatastreamResult>(result);
@@ -1696,9 +1715,9 @@ public class DigitalObjectResourceV1 {
 
     private IMetsElement getIMetsElement(String pid, boolean validation) throws MetsExportException, IOException {
         MetsContext metsContext = null;
-        FedoraObject object = null;
+        ProArcObject object = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage rstorage = RemoteStorage.getInstance(appConfig);
+            FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
             object = rstorage.find(pid);
             metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
@@ -1713,7 +1732,7 @@ public class DigitalObjectResourceV1 {
         return element == null ? null : element;
     }
 
-    private MetsElement getMetsElement(FedoraObject fo, MetsContext metsContext, boolean hierarchy, boolean validation) throws MetsExportException {
+    private MetsElement getMetsElement(ProArcObject fo, MetsContext metsContext, boolean hierarchy, boolean validation) throws MetsExportException {
         metsContext.resetContext();
         com.yourmediashelf.fedora.generated.foxml.DigitalObject dobj = MetsUtils.readFoXML(metsContext, fo);
         if (dobj == null) {
@@ -1728,11 +1747,26 @@ public class DigitalObjectResourceV1 {
         private String id;
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_MIME)
         private String mime;
+        @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_HEIGHT)
+        private String height;
+        @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_WIDTH)
+        private String width;
 
         public static DatastreamResult from(DatastreamProfile profile) {
             DatastreamResult d = new DatastreamResult();
             d.id = profile.getDsID();
             d.mime = profile.getDsMIME();
+            return d;
+        }
+
+        public static DatastreamResult from(DatastreamProfile profile, BufferedImage image) {
+            DatastreamResult d = new DatastreamResult();
+            d.id = profile.getDsID();
+            d.mime = profile.getDsMIME();
+            if (image != null) {
+                d.height = image.getHeight() > 0 ? String.valueOf(image.getHeight()) : null;
+                d.width = image.getWidth() > 0 ? String.valueOf(image.getWidth()) : null;
+            }
             return d;
         }
 
@@ -1970,7 +2004,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
     ) throws IOException, DigitalObjectException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ProArcObject fobject = findFedoraObject(pid, batchId);
         StringEditor ocrEditor = StringEditor.ocr(fobject);
         try {
             StringRecord ocr = ocrEditor.readRecord();
@@ -1998,7 +2032,7 @@ public class DigitalObjectResourceV1 {
         if (timestamp == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
-        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        ProArcObject fobject = findFedoraObject(pid, batchId, false);
         StringEditor ocrEditor = StringEditor.ocr(fobject);
         try {
             ocrEditor.write(content, timestamp, session.asFedoraLog());
@@ -2039,7 +2073,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
     ) throws IOException, DigitalObjectException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ProArcObject fobject = findFedoraObject(pid, batchId);
         RelationEditor relationEditor = new RelationEditor(fobject);
         if (relationEditor == null) {
             return null;
@@ -2090,7 +2124,7 @@ public class DigitalObjectResourceV1 {
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
         }
-        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        ProArcObject fobject = findFedoraObject(pid, batchId, false);
         RelationEditor relationEditor = new RelationEditor(fobject);
         if (relationEditor == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
@@ -2119,7 +2153,7 @@ public class DigitalObjectResourceV1 {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
 
-        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        ProArcObject fobject = findFedoraObject(pid, batchId, false);
         RelationEditor editor = new RelationEditor(fobject);
 
         if (editor == null) {
@@ -2139,7 +2173,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
     ) throws IOException, DigitalObjectException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ProArcObject fobject = findFedoraObject(pid, batchId);
         RelationEditor relationEditor = new RelationEditor(fobject);
         if (relationEditor == null) {
             return null;
@@ -2180,7 +2214,7 @@ public class DigitalObjectResourceV1 {
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
         }
-        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        ProArcObject fobject = findFedoraObject(pid, batchId, false);
         RelationEditor relationEditor = new RelationEditor(fobject);
         if (relationEditor == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
@@ -2207,7 +2241,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
     ) throws IOException, DigitalObjectException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ProArcObject fobject = findFedoraObject(pid, batchId);
         RelationEditor relationEditor = new RelationEditor(fobject);
         if (relationEditor == null) {
             return null;
@@ -2248,7 +2282,7 @@ public class DigitalObjectResourceV1 {
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing technical metadata!");
         }
-        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        ProArcObject fobject = findFedoraObject(pid, batchId, false);
         RelationEditor relationEditor = new RelationEditor(fobject);
         if (relationEditor == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
@@ -2277,7 +2311,7 @@ public class DigitalObjectResourceV1 {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
         }
 
-        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        ProArcObject fobject = findFedoraObject(pid, batchId, false);
         RelationEditor editor = new RelationEditor(fobject);
 
         if (editor == null) {
@@ -2296,7 +2330,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
     ) throws IOException, DigitalObjectException {
 
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ProArcObject fobject = findFedoraObject(pid, batchId);
         StringEditor editor = StringEditor.privateNote(fobject);
         try {
             StringRecord content = editor.readRecord();
@@ -2320,7 +2354,7 @@ public class DigitalObjectResourceV1 {
         if (timestamp == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp!");
         }
-        FedoraObject fobject = findFedoraObject(pid, batchId, false);
+        ProArcObject fobject = findFedoraObject(pid, batchId, false);
         StringEditor editor = StringEditor.privateNote(fobject);
         editor.write(content, timestamp, session.asFedoraLog());
         fobject.flush();
@@ -2348,10 +2382,10 @@ public class DigitalObjectResourceV1 {
         if (pid == null) {
             return new SmartGwtResponse<AtmItem>();
         }
-        FedoraObject fobject = findFedoraObject(pid, batchId);
+        ProArcObject fobject = findFedoraObject(pid, batchId);
         Locale locale = session.getLocale(httpHeaders);
         if (fobject instanceof RemoteObject) {
-            RemoteStorage storage = RemoteStorage.getInstance(appConfig);
+            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
             AtmEditor editor = new AtmEditor(fobject, storage.getSearch(locale));
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);
@@ -2391,7 +2425,7 @@ public class DigitalObjectResourceV1 {
         Locale locale = session.getLocale(httpHeaders);
         SearchView search = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            RemoteStorage storage = RemoteStorage.getInstance(appConfig);
+            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
             search = storage.getSearch(locale);
         } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
@@ -2408,7 +2442,7 @@ public class DigitalObjectResourceV1 {
         }
 
         for (String pid : pids) {
-            FedoraObject fobject = findFedoraObject(pid, batchId);
+            ProArcObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
             editor.write(deviceId, organization, userName, status, donator, archivalCopiesPath, session.asFedoraLog(), user.getRole());
             fobject.flush();
@@ -3978,8 +4012,8 @@ public class DigitalObjectResourceV1 {
             BatchParams params = new BatchParams(Collections.singletonList(batchId.toString()));
             internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
         } else {
-            BatchParams params = new BatchParams(Collections.singletonList(pid));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+            BatchParams params = new BatchParams(Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid));
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
         }
         Locale locale = session.getLocale(httpHeaders);
         try {
@@ -4219,7 +4253,7 @@ public class DigitalObjectResourceV1 {
             throws DigitalObjectNotFoundException {
 
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        FedoraObject fobject = dom.find2(pid, batch, null);
+        ProArcObject fobject = dom.find2(pid, batch, null);
         if (!readonly && fobject instanceof LocalObject) {
             ImportResourceV1.checkBatchState(batch);
         }
@@ -4227,13 +4261,13 @@ public class DigitalObjectResourceV1 {
     }
 
     @Deprecated
-    private FedoraObject findFedoraObject(String pid, Integer batchId) throws IOException {
+    private ProArcObject findFedoraObject(String pid, Integer batchId) throws IOException {
         return findFedoraObject(pid, batchId, true);
     }
 
     @Deprecated
-    private FedoraObject findFedoraObject(String pid, Integer batchId, boolean readonly) throws IOException {
-        FedoraObject fobject;
+    private ProArcObject findFedoraObject(String pid, Integer batchId, boolean readonly) throws IOException {
+        ProArcObject fobject;
         if (batchId != null) {
             Batch batch = importManager.get(batchId);
             if (batch == null) {
@@ -4256,7 +4290,7 @@ public class DigitalObjectResourceV1 {
                 throw new NullPointerException("pid");
             }
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                fobject = RemoteStorage.getInstance(appConfig).find(pid);
+                fobject = FedoraStorage.getInstance(appConfig).find(pid);
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 fobject = AkubraStorage.getInstance(akubraConfiguration).find(pid);
             } else {
@@ -4341,7 +4375,7 @@ public class DigitalObjectResourceV1 {
             Locale locale = session.getLocale(httpHeaders);
             SearchView search = null;
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteStorage remote = RemoteStorage.getInstance(appConfig);
+                FedoraStorage remote = FedoraStorage.getInstance(appConfig);
                 search = remote.getSearch(locale);
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);

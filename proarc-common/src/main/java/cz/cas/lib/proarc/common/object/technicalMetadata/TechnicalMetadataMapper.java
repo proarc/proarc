@@ -20,14 +20,14 @@ import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.fedora.AesEditor;
-import cz.cas.lib.proarc.common.fedora.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.LocalStorage;
-import cz.cas.lib.proarc.common.fedora.MixEditor;
-import cz.cas.lib.proarc.common.fedora.PremisEditor;
-import cz.cas.lib.proarc.common.fedora.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.PremisEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -62,7 +62,7 @@ public class TechnicalMetadataMapper {
         this.akubraConfiguration = akubraConfiguration;
     }
 
-    public DescriptionMetadata<Object> getMetadataAsJsonObject(FedoraObject fobject, String importName, String type) throws DigitalObjectException {
+    public DescriptionMetadata<Object> getMetadataAsJsonObject(ProArcObject fobject, String importName, String type) throws DigitalObjectException {
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
         }
@@ -95,7 +95,7 @@ public class TechnicalMetadataMapper {
         }
     }
 
-    public String getMetadataAsXml(FedoraObject fobject, AppConfiguration config, String importFile, String type) throws DigitalObjectException {
+    public String getMetadataAsXml(ProArcObject fobject, AppConfiguration config, String importFile, String type) throws DigitalObjectException {
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
         }
@@ -128,7 +128,7 @@ public class TechnicalMetadataMapper {
         }
     }
 
-    private DescriptionMetadata<Object> getMixMetadata(FedoraObject fobject) throws DigitalObjectException {
+    private DescriptionMetadata<Object> getMixMetadata(ProArcObject fobject) throws DigitalObjectException {
         MixEditor mixEditor = MixEditor.ndkArchival(fobject);
         DescriptionMetadata<Mix> dm = new DescriptionMetadata<>();
         dm.setPid(fobject.getPid());
@@ -143,7 +143,7 @@ public class TechnicalMetadataMapper {
         return json;
     }
 
-    private DescriptionMetadata<Object> getAesMetadata(FedoraObject fobject, String importName) throws DigitalObjectException {
+    private DescriptionMetadata<Object> getAesMetadata(ProArcObject fobject, String importName) throws DigitalObjectException {
         AesEditor aesEditor = AesEditor.ndkArchival(fobject);
         AesMapper mapper = new AesMapper();
 
@@ -163,7 +163,7 @@ public class TechnicalMetadataMapper {
         return json;
     }
 
-    private DescriptionMetadata<Object> getCodingHistoryMetadata(FedoraObject fobject, String importName) throws DigitalObjectException {
+    private DescriptionMetadata<Object> getCodingHistoryMetadata(ProArcObject fobject, String importName) throws DigitalObjectException {
         CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.ndkArchival(fobject);
         CodingHistoryMapper mapper = new CodingHistoryMapper();
 
@@ -183,7 +183,7 @@ public class TechnicalMetadataMapper {
         return json;
     }
 
-    public DescriptionMetadata<Object> getPremisMetadata(FedoraObject fobject, String importName) throws DigitalObjectException {
+    public DescriptionMetadata<Object> getPremisMetadata(ProArcObject fobject, String importName) throws DigitalObjectException {
         PremisEditor premisEditor = PremisEditor.ndkArchival(fobject);
         PremisMapper mapper = new PremisMapper();
 
@@ -202,7 +202,7 @@ public class TechnicalMetadataMapper {
         return json;
     }
 
-    private String getAesMetadataAsXml(FedoraObject fobject, String importFile) throws DigitalObjectException {
+    private String getAesMetadataAsXml(ProArcObject fobject, String importFile) throws DigitalObjectException {
         AesEditor aesEditor = AesEditor.ndkArchival(fobject);
 
         AudioObject aes = aesEditor.readAes();
@@ -217,7 +217,7 @@ public class TechnicalMetadataMapper {
         return null;
     }
 
-    private String getCodingHistoryAsXml(FedoraObject fobject, String importFile) throws DigitalObjectException {
+    private String getCodingHistoryAsXml(ProArcObject fobject, String importFile) throws DigitalObjectException {
         CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.ndkArchival(fobject);
 
         Property codingHistory = codingHistoryEditor.readCodingHistory();
@@ -230,7 +230,7 @@ public class TechnicalMetadataMapper {
         return null;
     }
 
-    private String getPremisAsXml(FedoraObject fobject, String importFile) throws DigitalObjectException {
+    private String getPremisAsXml(ProArcObject fobject, String importFile) throws DigitalObjectException {
         PremisEditor premisEditor = PremisEditor.ndkArchival(fobject);
 
         Mets mets = premisEditor.readMets();
@@ -243,7 +243,7 @@ public class TechnicalMetadataMapper {
         return null;
     }
 
-    public void updateMetadataAsJson(FedoraObject fobject, String data, Long timestamp, String message, String type) throws DigitalObjectException, IOException {
+    public void updateMetadataAsJson(ProArcObject fobject, String data, Long timestamp, String message, String type) throws DigitalObjectException, IOException {
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
         }
@@ -277,7 +277,7 @@ public class TechnicalMetadataMapper {
         }
     }
 
-    private void updateMixMetadataAsJson(FedoraObject fobject, String data, Long timestamp, String message) throws IOException, DigitalObjectException {
+    private void updateMixMetadataAsJson(ProArcObject fobject, String data, Long timestamp, String message) throws IOException, DigitalObjectException {
         MixEditor editor = MixEditor.ndkArchival(fobject);
         MixMapper mapper = new MixMapper();
 
@@ -288,7 +288,7 @@ public class TechnicalMetadataMapper {
         fobject.flush();
     }
 
-    private void updateAesMetadataAsJson(FedoraObject fobject, String data, Long timestamp, String message) throws IOException, DigitalObjectException {
+    private void updateAesMetadataAsJson(ProArcObject fobject, String data, Long timestamp, String message) throws IOException, DigitalObjectException {
         AesEditor editor = AesEditor.ndkArchival(fobject);
         AesMapper mapper = new AesMapper();
 
@@ -299,7 +299,7 @@ public class TechnicalMetadataMapper {
         fobject.flush();
     }
 
-    private void updateCodingHistoryMetadataAsJson(FedoraObject fobject, String data, Long timestamp, String message) throws IOException, DigitalObjectException {
+    private void updateCodingHistoryMetadataAsJson(ProArcObject fobject, String data, Long timestamp, String message) throws IOException, DigitalObjectException {
         CodingHistoryEditor editor = CodingHistoryEditor.ndkArchival(fobject);
         CodingHistoryMapper mapper = new CodingHistoryMapper();
 
@@ -310,7 +310,7 @@ public class TechnicalMetadataMapper {
         fobject.flush();
     }
 
-    public void updateMetadataAsXml(FedoraObject fobject, String data, Long timestamp, String message, String type) throws DigitalObjectException {
+    public void updateMetadataAsXml(ProArcObject fobject, String data, Long timestamp, String message, String type) throws DigitalObjectException {
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
         }
@@ -343,7 +343,7 @@ public class TechnicalMetadataMapper {
         }
     }
 
-    private void updateMixMetadataAsXml(FedoraObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
+    private void updateMixMetadataAsXml(ProArcObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
         MixEditor mixEditor = MixEditor.ndkArchival(fobject);
         Mix mix = MixUtils.unmarshalMix(new StreamSource(new StringReader(data)));
 
@@ -357,7 +357,7 @@ public class TechnicalMetadataMapper {
 
     }
 
-    private void updateAesMetadataAsXml(FedoraObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
+    private void updateAesMetadataAsXml(ProArcObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
         AesEditor aesEditor = AesEditor.ndkArchival(fobject);
         AudioObject aes = Aes57Utils.unmarshalAes(new StreamSource(new StringReader(data)));
 
@@ -368,7 +368,7 @@ public class TechnicalMetadataMapper {
         fobject.flush();
     }
 
-    private void updateCodingHistoryMetadataAsXml(FedoraObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
+    private void updateCodingHistoryMetadataAsXml(ProArcObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
         CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.ndkArchival(fobject);
         Property codingHistory = CodingHistoryUtils.unmarshalCodingHistory(new StreamSource(new StringReader(data)));
 
@@ -379,7 +379,7 @@ public class TechnicalMetadataMapper {
         fobject.flush();
     }
 
-    private void updatePremisAsXml(FedoraObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
+    private void updatePremisAsXml(ProArcObject fobject, String data, Long timestamp, String message) throws DigitalObjectException {
         PremisEditor premisEditor = PremisEditor.ndkArchival(fobject);
         Mets mets = MetsUtils.unmarshalMets(new StreamSource(new StringReader(data)));
 

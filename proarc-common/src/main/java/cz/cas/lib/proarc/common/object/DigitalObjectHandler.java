@@ -17,10 +17,10 @@
 package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.fedora.DigitalObjectException;
-import cz.cas.lib.proarc.common.fedora.FedoraObject;
-import cz.cas.lib.proarc.common.fedora.WorkflowStorage;
-import cz.cas.lib.proarc.common.fedora.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.WorkflowStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -53,12 +53,12 @@ public final class DigitalObjectHandler {
 
     private RelationEditor relationEditor;
     private DcStreamEditor dcMetadata;
-    private final FedoraObject fobject;
+    private final ProArcObject fobject;
     private DigitalObjectPlugin plugin;
     private final MetaModelRepository models;
     private final Map<String, Object> parameters = new HashMap<String, Object>();
 
-    public DigitalObjectHandler(FedoraObject fobject, MetaModelRepository models) {
+    public DigitalObjectHandler(ProArcObject fobject, MetaModelRepository models) {
         if (fobject == null) {
             throw new NullPointerException("fobject");
         }
@@ -66,7 +66,7 @@ public final class DigitalObjectHandler {
         this.models = models;
     }
 
-    public FedoraObject getFedoraObject() {
+    public ProArcObject getFedoraObject() {
         return fobject;
     }
 

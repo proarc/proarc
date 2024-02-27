@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
-import cz.cas.lib.proarc.common.fedora.AtmEditor.AtmItem;
+import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.Date;
 import javax.xml.bind.annotation.XmlAccessType;
