@@ -95,6 +95,10 @@ public final class TextDataSource extends DataSource {
         return getDS(ID_MODS, RestConfig.URL_DIGOBJECT_MODS_PLAIN);
     }
 
+    public static TextDataSource getWorkflowMods() {
+        return getDS(ID_MODS, RestConfig.URL_WORKFLOW_MODS_PLAIN);
+    }
+
     private static TextDataSource getDS(String dsId, String dsUrl) {
         TextDataSource ds = (TextDataSource) DataSource.get(dsId);
         ds = (ds != null) ? ds : new TextDataSource(dsId, dsUrl);

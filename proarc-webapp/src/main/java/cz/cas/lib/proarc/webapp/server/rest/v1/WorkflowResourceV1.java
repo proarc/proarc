@@ -20,17 +20,18 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
@@ -528,6 +529,21 @@ public class WorkflowResourceV1 {
         DigitalObjectHandler doHandler = findHandler(jobId, modelId, session, httpHeaders);
         DescriptionMetadata<Object> metadata = doHandler.metadata().getMetadataAsJsonObject(editorId);
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @GET
+    @Path(WorkflowResourceApi.MODS_PATH + '/' + WorkflowResourceApi.MODS_PLAIN_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public StringEditor.StringRecord getDescriptionMetadataTxt(
+            @QueryParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
+    ) throws DigitalObjectException {
+        DigitalObjectHandler handler = findHandler(jobId, modelId, session, httpHeaders);
+        MetadataHandler<?> metadataHandler = handler.metadata();
+        DescriptionMetadata<String> metadataAsXml = metadataHandler.getMetadataAsXml();
+        StringEditor.StringRecord result = new StringEditor.StringRecord(
+                metadataAsXml.getData(), metadataAsXml.getTimestamp(), String.valueOf(jobId));
+        return result;
     }
 
     @PUT

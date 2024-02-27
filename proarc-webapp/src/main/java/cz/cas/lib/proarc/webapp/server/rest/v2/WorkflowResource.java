@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
@@ -271,6 +272,21 @@ public class WorkflowResource extends WorkflowResourceV1 {
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @GET
+    @Path(WorkflowResourceApi.MODS_PATH + '/' + WorkflowResourceApi.MODS_PLAIN_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public StringEditor.StringRecord getDescriptionMetadataTxt(
+            @QueryParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
+            @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
+    ) {
+        try {
+            return super.getDescriptionMetadataTxt(jobId, modelId);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return new StringEditor.StringRecord(t);
         }
     }
 
