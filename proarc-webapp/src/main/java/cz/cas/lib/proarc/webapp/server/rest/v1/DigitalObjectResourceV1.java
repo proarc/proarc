@@ -56,6 +56,7 @@ import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.object.technicalMetadata.TechnicalMetadataMapper;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -131,7 +132,6 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -141,6 +141,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -153,6 +154,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -1634,7 +1637,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.STREAMPROFILE_ID) String dsId
-    ) throws IOException, DigitalObjectException {
+    ) throws IOException, DigitalObjectException, MetsExportException {
 
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
@@ -1646,18 +1649,23 @@ public class DigitalObjectResourceV1 {
             // filter digital contents
             String profileDsId = profile.getDsID();
             if (BinaryEditor.isMediaStream(profileDsId)) {
-                BinaryEditor editor = BinaryEditor.dissemination(fo, profile.getDsID(), MediaType.valueOf(profile.getDsMIME()));
-                if (editor != null) {
-                    InputStream imageStream = editor.readStream();
-                    BufferedImage image = null;
-                    try {
-                        image = ImageIO.read(imageStream);
-                        imageStream.close();
-                    } catch (Exception ex) {
-                        image = null;
-                    }
-                    if (image != null) {
-                        result.add(DatastreamResult.from(profile, image));
+                if (BinaryEditor.isImageStream(profile.getDsMIME())) {
+                    BinaryEditor editor = BinaryEditor.dissemination(fo, profile.getDsID(), MediaType.valueOf(profile.getDsMIME()));
+                    if (editor != null) {
+                        InputStream imageStream = editor.readStream();
+                        int height = 0;
+                        int width = 0;
+                        String extension = Const.mimeToExtensionMap.get(editor.getProfile().getDsMIME());
+                        extension = extension.replace(".", "");
+                        Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(extension);
+                        if (readers.hasNext()) {
+                            ImageReader reader = readers.next();
+                            ImageInputStream istream = ImageIO.createImageInputStream(imageStream);
+                            reader.setInput(istream);
+                            height = reader.getHeight(0);
+                            width = reader.getWidth(0);
+                        }
+                        result.add(DatastreamResult.from(profile, height, width));
                     } else {
                         result.add(DatastreamResult.from(profile));
                     }
@@ -1759,14 +1767,12 @@ public class DigitalObjectResourceV1 {
             return d;
         }
 
-        public static DatastreamResult from(DatastreamProfile profile, BufferedImage image) {
+        public static DatastreamResult from(DatastreamProfile profile, int height, int width) {
             DatastreamResult d = new DatastreamResult();
             d.id = profile.getDsID();
             d.mime = profile.getDsMIME();
-            if (image != null) {
-                d.height = image.getHeight() > 0 ? String.valueOf(image.getHeight()) : null;
-                d.width = image.getWidth() > 0 ? String.valueOf(image.getWidth()) : null;
-            }
+            d.height = height > 0 ? String.valueOf(height) : null;
+            d.width = width > 0 ? String.valueOf(width) : null;
             return d;
         }
 
