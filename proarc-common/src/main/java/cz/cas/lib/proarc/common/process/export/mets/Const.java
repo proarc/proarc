@@ -205,7 +205,7 @@ public class Const {
         mimeToExtensionMap.put("text/plain", ".txt");
         mimeToExtensionMap.put("application/pdf", ".pdf");
         mimeToExtensionMap.put("application/epub+zip", ".epub");
-        mimeToExtensionMap.put("image/jpeg", ".jpeq");
+        mimeToExtensionMap.put("image/jpeg", ".jpeg");
         mimeToExtensionMap.put("audio/wav", ".wav");
         mimeToExtensionMap.put("audio/flac", ".flac");
         mimeToExtensionMap.put("audio/mpeg", ".mp3");

@@ -128,6 +128,10 @@ public final class BinaryEditor {
         return MEDIA_DS_IDS.contains(dsId);
     }
 
+    public static boolean isImageStream(String dsMIME) {
+        return "image/jp2".equals(dsMIME) || "image/tiff".equals(dsMIME) || "image/jpeg".equals(dsMIME);
+    }
+
     public BinaryEditor(ProArcObject object, DatastreamProfile profile) {
         this.editor = object.getEditor(profile);
         this.object = object;
