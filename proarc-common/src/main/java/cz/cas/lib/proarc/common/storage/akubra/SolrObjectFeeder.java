@@ -50,9 +50,9 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATUS;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_USER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.PROPERTY_STATE_DEACTIVE;
 
-public class SolrFeeder extends ProcessingIndexFeeder {
+public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
-    public SolrFeeder(SolrClient solrClient) {
+    public SolrObjectFeeder(SolrClient solrClient) {
         super(solrClient);
     }
 

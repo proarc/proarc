@@ -43,6 +43,9 @@ public class SolrUtils {
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_POSITION = "pagePosition";
     public static final String FIELD_FULLTEXT = "fulltext";
+    public static final String FIELD_DATE = "date";
+    public static final String FIELD_STREAM = "stream";
+    public static final String FIELD_OPERATION = "operation";
 
     public static final String PROPERTY_STATE_ACTIVE = "Active";
     public static final String PROPERTY_STATE_DEACTIVE = "Deactive";
@@ -252,5 +255,8 @@ public class SolrUtils {
         return dateAsString;
     }
 
-
+    public static String now() {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.YYYY HH:mm");
+        return simpleDateFormat.format(new Date());
+    }
 }

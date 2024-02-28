@@ -134,20 +134,12 @@ public class AkubraConfiguration {
         }
     }
 
-    public String getSolrProcessingHost() {
-        return config.getString("solrProcessingHost");
-    }
-
     public String getSolrSearchHost() {
         return config.getString("solrSearchHost");
     }
 
-    public String getSolrSearchLogin() {
-        return config.getString("solrSearchLogin");
-    }
-
-    public String getSolrSearchPassword() {
-        return config.getString("solrSearchPassword");
+    public String getSolrLoggingHost() {
+        return config.getString("solrLogHost");
     }
 
     public String getObjectStorePath() {

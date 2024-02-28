@@ -13,7 +13,7 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.akubra.SolrFeeder;
+import cz.cas.lib.proarc.common.storage.akubra.SolrObjectFeeder;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -103,9 +103,9 @@ public class IndexerResourceV1 {
         String objectStorePath = this.akubraConfiguration.getObjectStorePath();
         String datastreamStorePath = this.akubraConfiguration.getDatastreamStorePath();
 
-        String processingSolrHost = this.akubraConfiguration.getSolrProcessingHost();
-        SolrClient solrClient = new ConcurrentUpdateSolrClient.Builder(processingSolrHost).withQueueSize(100).build();
-        SolrFeeder feeder = new SolrFeeder(solrClient);
+        String searchSolrHost = this.akubraConfiguration.getSolrSearchHost();
+        SolrClient solrClient = new ConcurrentUpdateSolrClient.Builder(searchSolrHost).withQueueSize(100).build();
+        SolrObjectFeeder feeder = new SolrObjectFeeder(solrClient);
 
         feeder.deleteProcessingIndex();
         feeder.commit();
@@ -116,7 +116,7 @@ public class IndexerResourceV1 {
         return new SmartGwtResponse<>();
     }
 
-    private void processRoot(SolrFeeder feeder, String storePath, boolean rebuildIndex) throws IOException, SolrServerException {
+    private void processRoot(SolrObjectFeeder feeder, String storePath, boolean rebuildIndex) throws IOException, SolrServerException {
         StringBuilder errors = new StringBuilder();
         try {
             LOG.info("Indexing documents started.");

@@ -17,7 +17,6 @@ import cz.cas.lib.proarc.common.storage.AbstractProArcObject;
 import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
@@ -83,10 +82,12 @@ public class AkubraStorage {
     private static final Logger LOG = Logger.getLogger(AkubraStorage.class.getName());
     private XPathFactory xPathFactory;
     private AkubraConfiguration configuration;
-    private static SolrClient solrClient;
     private static AkubraStorage INSTANCE;
     private AkubraManager manager;
-    private SolrFeeder feeder;
+    private SolrObjectFeeder solrObjectFeeder;
+    private static SolrClient solrObjectClient;
+    private SolrLogFeeder solrLoggingFeeder;
+    private static SolrClient solrLoggingClient;
 
     public static AkubraStorage getInstance() {
         if (INSTANCE == null) {
@@ -97,32 +98,38 @@ public class AkubraStorage {
 
     public static AkubraStorage getInstance(AkubraConfiguration conf) throws IOException {
         if (INSTANCE == null) {
-            String processingSolrHost = conf.getSolrProcessingHost();
-            SolrClient solrClient = new ConcurrentUpdateSolrClient.Builder(processingSolrHost).withQueueSize(100).build();
-            SolrFeeder feeder = new SolrFeeder(solrClient);
+            String searchSolrHost = conf.getSolrSearchHost();
+            SolrClient solrObjectClient = new ConcurrentUpdateSolrClient.Builder(searchSolrHost).withQueueSize(100).build();
+            SolrObjectFeeder solrObjectFeeder = new SolrObjectFeeder(solrObjectClient);
 
-            INSTANCE = new AkubraStorage(conf, feeder);
+            String solrLoggingHost = conf.getSolrLoggingHost();
+            SolrClient solrLogClient = new ConcurrentUpdateSolrClient.Builder(solrLoggingHost).withQueueSize(100).build();
+            SolrLogFeeder solrLogFeeder = new SolrLogFeeder(solrLogClient);
+            INSTANCE = new AkubraStorage(conf, solrObjectFeeder, solrLogFeeder);
         }
         return INSTANCE;
     }
 
     public AkubraStorage(AkubraConfiguration configuration,
-                         SolrFeeder feeder) throws IOException {
+                         SolrObjectFeeder solrObjectFeeder,
+                         SolrLogFeeder solrLogFeeder) throws IOException {
         this.configuration = configuration;
         this.xPathFactory = XPathFactory.newInstance();
         try {
-            String proccessingSolrHost = configuration.getSolrProcessingHost();
-            SolrClient solrClient = new HttpSolrClient.Builder(proccessingSolrHost).build();
-            this.solrClient = solrClient;
+            String searchSolrHost = configuration.getSolrSearchHost();
+            this.solrObjectClient = new HttpSolrClient.Builder(searchSolrHost).build();
+            String solrLoggingHost = configuration.getSolrLoggingHost();
+            this.solrLoggingClient = new HttpSolrClient.Builder(solrLoggingHost).build();
             this.manager = new AkubraManager(configuration);
-            this.feeder = feeder;
+            this.solrObjectFeeder = solrObjectFeeder;
+            this.solrLoggingFeeder = solrLogFeeder;
         } catch (Exception e) {
             throw new IOException(e);
         }
     }
 
     public AkubraObject find(String pid) {
-        return new AkubraObject(manager, feeder, pid);
+        return new AkubraObject(manager, solrObjectFeeder, solrLoggingFeeder, pid);
     }
 
     public boolean exist(String pid) throws DigitalObjectException {
@@ -131,7 +138,7 @@ public class AkubraStorage {
 
 
     public SolrSearchView getSearch(Locale locale) {
-        SolrSearchView sv = new SolrSearchView(this, this.solrClient);
+        SolrSearchView sv = new SolrSearchView(this, this.solrObjectClient);
         if (locale != null) {
             sv.setLocale(locale);
         }
@@ -161,7 +168,7 @@ public class AkubraStorage {
 
             InputStream inputStream = new FileInputStream(foxml);
             this.manager.addOrReplaceObject(pid, inputStream);
-            indexDocument(pid, null);
+            indexDocument(pid, null, ingestUser);
 
             LOG.log(Level.FINE, "Object with PID {0} added to repository.", pid);
         } catch (LowlevelStorageException | IOException e) {
@@ -289,26 +296,30 @@ public class AkubraStorage {
         properties.add(property);
     }
 
-    public void indexDocument(String pid, String modelId) throws IOException, DigitalObjectException {
+    public void indexDocument(String pid, String modelId, String owner) throws IOException, DigitalObjectException {
         AkubraObject aObject = find(pid);
         DigitalObject dObject = this.manager.readObjectFromStorage(pid);
         if (modelId == null || modelId.isEmpty()) {
             if (pid.startsWith("device:")) {
-                this.feeder.feedDescriptionDevice(dObject, aObject, true);
+                this.solrObjectFeeder.feedDescriptionDevice(dObject, aObject, true);
+                this.solrLoggingFeeder.feedIngestLog(pid, owner);
             } else {
-                this.feeder.feedDescriptionDocument(dObject, aObject, true);
+                this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
+                this.solrLoggingFeeder.feedIngestLog(pid, owner);
             }
         } else {
             if (DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId)) {
-                this.feeder.feedDescriptionDevice(dObject, aObject, true);
+                this.solrObjectFeeder.feedDescriptionDevice(dObject, aObject, true);
+                this.solrLoggingFeeder.feedIngestLog(pid, owner);
             } else {
-                this.feeder.feedDescriptionDocument(dObject, aObject, true);
+                this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
+                this.solrLoggingFeeder.feedIngestLog(pid, owner);
             }
         }
     }
 
-    public void indexDocument(ProArcObject object) throws IOException, DigitalObjectException {
-        indexDocument(object.getPid(), object.getModel());
+    public void indexDocument(LocalObject object) throws IOException, DigitalObjectException {
+        indexDocument(object.getPid(), object.getModel(), object.getOwner());
     }
 
     public static final class AkubraObject extends AbstractProArcObject {
@@ -316,13 +327,15 @@ public class AkubraStorage {
         private String label;
         private String modelId;
         private AkubraManager manager;
-        private SolrFeeder feeder;
+        private SolrObjectFeeder objectFeeder;
+        private SolrLogFeeder loggingFeeder;
 
 
-        public AkubraObject(AkubraManager manager, SolrFeeder feeder, String pid) {
+        public AkubraObject(AkubraManager manager, SolrObjectFeeder objectFeeder, SolrLogFeeder loggingFeeder, String pid) {
             super(pid);
             this.manager = manager;
-            this.feeder = feeder;
+            this.objectFeeder = objectFeeder;
+            this.loggingFeeder = loggingFeeder;
         }
 
         @Override
@@ -366,9 +379,9 @@ public class AkubraStorage {
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
                     if (DeviceRepository.METAMODEL_ID.equals(this.modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(this.modelId)) {
-                        this.feeder.feedDescriptionDevice(object, this, true);
+                        this.objectFeeder.feedDescriptionDevice(object, this, true);
                     } else {
-                        this.feeder.feedDescriptionDocument(object, this, true);
+                        this.objectFeeder.feedDescriptionDocument(object, this, true);
                     }
                 }
             } catch (
@@ -436,16 +449,17 @@ public class AkubraStorage {
                 object = updateModifiedDate(object);
                 if (object == null) {
                     LOG.warning("Removing object from index, because object not exists in Low-Level storage. (" + getPid() + ").");
-                    this.feeder.deleteByPid(getPid());
-                    this.feeder.commit();
+                    this.objectFeeder.deleteByPid(getPid());
+                    this.objectFeeder.commit();
+                    this.loggingFeeder.feedDeleteLog(getPid(), logMessage);
 //                    throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
                 } else {
                     InputStream inputStream = this.manager.marshallObject(object);
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
-                    this.feeder.feedDescriptionDocument(object, this, true);
-                    this.feeder.commit();
-
+                    this.objectFeeder.feedDescriptionDocument(object, this, true);
+                    this.objectFeeder.commit();
+                    this.loggingFeeder.feedDeleteLog(getPid(), logMessage);
                 }
             } catch (Exception ex) {
                 throw new DigitalObjectException(getPid(), ex);
@@ -463,8 +477,9 @@ public class AkubraStorage {
                     InputStream inputStream = this.manager.marshallObject(object);
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
-                    this.feeder.feedDescriptionDocument(object, this, true);
-                    this.feeder.commit();
+                    this.objectFeeder.feedDescriptionDocument(object, this, true);
+                    this.objectFeeder.commit();
+                    this.loggingFeeder.feedRestoreLog(getPid(), logMessage);
                 }
             } catch (Exception ex) {
                 throw new DigitalObjectException(getPid(), ex);
@@ -474,8 +489,9 @@ public class AkubraStorage {
         public void purge(String logMessage) throws DigitalObjectException {
             try {
                 this.manager.deleteObject(getPid(), true);
-                this.feeder.deleteByPid(getPid());
-                this.feeder.commit();
+                this.objectFeeder.deleteByPid(getPid());
+                this.objectFeeder.commit();
+                this.loggingFeeder.feedPurgeLog(getPid(), logMessage);
             } catch (IOException | SolrServerException ex) {
                 throw new DigitalObjectException(getPid(), ex);
             }
@@ -529,8 +545,12 @@ public class AkubraStorage {
             return manager;
         }
 
-        public SolrFeeder getFeeder() {
-            return feeder;
+        public SolrObjectFeeder getObjectFeeder() {
+            return objectFeeder;
+        }
+
+        public SolrLogFeeder getLoggingFeeder() {
+            return loggingFeeder;
         }
     }
 
@@ -538,7 +558,8 @@ public class AkubraStorage {
 
         private final AkubraObject object;
         private final AkubraManager manager;
-        private final SolrFeeder solrFeeder;
+        private final SolrObjectFeeder solrObjectFeeder;
+        private final SolrLogFeeder solrLoggingFeeder;
         private final String dsId;
         private long lastModified;
         private DatastreamProfile profile;
@@ -555,7 +576,8 @@ public class AkubraStorage {
             }
             this.object = object;
             this.manager = object.getManager();
-            this.solrFeeder = object.getFeeder();
+            this.solrObjectFeeder = object.getObjectFeeder();
+            this.solrLoggingFeeder = object.getLoggingFeeder();
             defaultProfile.setPid(object.getPid());
             if (defaultProfile.getDsCreateDate() == null) {
                 defaultProfile.setDsCreateDate(AkubraUtils.createDate());
@@ -567,7 +589,8 @@ public class AkubraStorage {
         public AkubraXmlStreamEditor(AkubraObject object, String dsId, DatastreamProfile defaultProfile) {
             this.object = object;
             this.manager = object.getManager();
-            this.solrFeeder = object.getFeeder();
+            this.solrObjectFeeder = object.getObjectFeeder();
+            this.solrLoggingFeeder = object.getLoggingFeeder();
             this.dsId = dsId;
             if (defaultProfile.getDsCreateDate() == null) {
                 defaultProfile.setDsCreateDate(AkubraUtils.createDate());
@@ -681,7 +704,6 @@ public class AkubraStorage {
                 return;
             }
             try {
-
                 if (newProfile != null && !newProfile.getDsControlGroup().equals(profile.getDsControlGroup())) {
                     purgeDatastream(profile);
                     missingDataStream = true;
@@ -693,14 +715,15 @@ public class AkubraStorage {
                 }
                 missingDataStream = false;
                 modified = false;
-                logMessage = null;
-                newProfile = null;
                 DigitalObject digitalObject = this.manager.readObjectFromStorage(this.object.getPid());
                 if (!(ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId) || DeviceRepository.DESCRIPTION_DS_ID.equals(dsId) || DeviceRepository.AUDIODESCRIPTION_DS_ID.equals(dsId))) {
-                    this.solrFeeder.feedDescriptionDocument(digitalObject, this.object, true);
+                    this.solrObjectFeeder.feedDescriptionDocument(digitalObject, this.object, true);
                 }
                 profile = AkubraUtils.createDatastremProfile(digitalObject, dsId);
                 lastModified = AkubraUtils.getLastModified(digitalObject, dsId);
+                this.solrLoggingFeeder.feedUpdateLog(logMessage, digitalObject.getPID(), dsId);
+                logMessage = null;
+                newProfile = null;
             } catch (Exception ex) {
                 throw new DigitalObjectException(object.getPid(), toLogString(), ex);
             }
@@ -833,7 +856,6 @@ public class AkubraStorage {
             }
             return datastreamType;
         }
-
 
         private void purgeDatastream(DatastreamProfile profile) throws IOException, DigitalObjectException {
             manager.deleteStream(this.object.getPid(), profile.getDsID());
