@@ -271,6 +271,9 @@ Author Miroslav Pavelka
                                         <xsl:when test="'´' = substring($nonSort, string-length($nonSort))">
                                             <xsl:value-of select="$nonSort"/>
                                         </xsl:when>
+                                        <xsl:when test="'’' = substring($nonSort, string-length($nonSort))">
+                                            <xsl:value-of select="$nonSort"/>
+                                        </xsl:when>
                                         <xsl:when test="$apos = substring($nonSort, string-length($nonSort))">
                                             <xsl:value-of select="$nonSort"/>
                                         </xsl:when>
