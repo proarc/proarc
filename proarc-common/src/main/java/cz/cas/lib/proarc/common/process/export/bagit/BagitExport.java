@@ -12,10 +12,6 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -24,6 +20,10 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
@@ -36,6 +36,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 public class BagitExport {
 
@@ -254,6 +256,9 @@ public class BagitExport {
     public void uploadToLtpCesnet(String ltpCesnetToken, String pid) throws IOException, DigitalObjectException, InterruptedException {
         if (destinationFolder != null && destinationFolder.exists()) {
             String metadata = createMetadataJson(destinationFolder.getName(), pid);
+            if (!isValid(metadata)) {
+                throw new IOException("Invalid json:" + metadata);
+            }
             LtpCesnetProcess process = new LtpCesnetProcess(appConfiguration.getLtpCesnetExportPostProcessor(), ltpCesnetToken, appConfiguration.getLtpCesnetGroupToken(), appConfiguration.getLtpCesnetScriptPath(), destinationFolder, metadata);
 
             if (process != null) {
@@ -267,6 +272,15 @@ public class BagitExport {
         } else {
             LOG.severe("Error in getting destination folder");
         }
+    }
+
+    private boolean isValid(String json) {
+        try {
+            new JSONObject(json);
+        } catch (JSONException ex) {
+            return false;
+        }
+        return true;
     }
 
     private String toPid(String folderName) {
@@ -324,7 +338,7 @@ public class BagitExport {
 
     private String createJson(String pid, String folderName, String urnNbn, String title) {
         StringWriter writer = new StringWriter();
-        writer.append("'{\"name\":\"").append(pid).append("\"");
+        writer.append("{\"name\":\"").append(pid).append("\"");
         if ((folderName != null && !folderName.isEmpty()) || (urnNbn != null && !urnNbn.isEmpty()) || (title != null && !title.isEmpty())) {
             writer.append(", \"user_metadata\":{");
             if (folderName != null && !folderName.isEmpty()) {
@@ -340,11 +354,11 @@ public class BagitExport {
                 }
             }
             if (title != null && !title.isEmpty()) {
-                writer.append("\"title\":\"").append(title).append("\"");
+                writer.append("\"title\":\"").append(title.replaceAll("\"", "\\\\\"")).append("\"");
             }
             writer.append("}");
         }
-        writer.append("}'");
+        writer.append("}");
         return writer.toString();
     }
 

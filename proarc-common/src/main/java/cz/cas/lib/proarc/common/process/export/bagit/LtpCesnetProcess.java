@@ -60,7 +60,7 @@ public class LtpCesnetProcess {
         ltpUploadCmd[8] = "archive";
         ltpUploadCmd[9] = "create";
         ltpUploadCmd[10] = "-d";
-        ltpUploadCmd[11] = metadata;
+        ltpUploadCmd[11] = "'" + metadata + "'";
         ltpUploadCmd[12] = "-p";
         ltpUploadCmd[13] = exportFolder.getAbsolutePath();
 
