@@ -182,19 +182,14 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         cmd.join(taskUserId, db.tableUser.id, DBJoinType.LEFT);
 
         EmpireUtils.addWhereIs(cmd, tableJob.id, () -> filter.getId());
-        if (filter.getLabel() != null) {
-            String pattern = filter.getLabel().toUpperCase().trim().replace("%", "\\%");
-            if (!pattern.isEmpty()) {
-                cmd.where(tableJob.label.upper().likeUpper('%' + pattern + '%'));
-            }
-        }
+        EmpireUtils.addWhereLikeIgnoreCase(cmd, tableJob.label, () -> filter.getLabel());
         EmpireUtils.addWhereLike(cmd, tableJob.financed, () -> filter.getFinanced());
         EmpireUtils.addWhereLike(cmd, tpd.barcode, () -> filter.getMaterialBarcode());
         EmpireUtils.addWhereLike(cmd, tpd.detail, () -> filter.getMaterialDetail());
         EmpireUtils.addWhereLike(cmd, tpd.field001, () -> filter.getMaterialField001());
         EmpireUtils.addWhereLike(cmd, tpd.issue, () -> filter.getMaterialIssue());
         EmpireUtils.addWhereLike(cmd, tpd.sigla, () -> filter.getMaterialSigla());
-        EmpireUtils.addWhereLike(cmd, tpd.signature, () -> filter.getMaterialSignature());
+        EmpireUtils.addWhereLikeIgnoreCase(cmd, tpd.signature, () -> filter.getMaterialSignature());
         EmpireUtils.addWhereLike(cmd, tpd.volume, () -> filter.getMaterialVolume());
         EmpireUtils.addWhereLike(cmd, tpd.year, () -> filter.getMaterialYear());
         EmpireUtils.addWhereLike(cmd, tpd.edition, () -> filter.getMaterialEdition());

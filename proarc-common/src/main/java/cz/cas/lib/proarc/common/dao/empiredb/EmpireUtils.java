@@ -161,6 +161,15 @@ class EmpireUtils {
         }
     }
 
+    public static void addWhereLikeIgnoreCase(DBCommand cmd, DBColumnExpr column, Supplier<String> likePattern) {
+        if (likePattern.get() != null) {
+            String pattern = likePattern.get().toUpperCase().trim().replace("%", "\\%");
+            if (!pattern.isEmpty()) {
+                cmd.where(column.upper().like('%' + pattern + '%'));
+            }
+        }
+    }
+
     /**
      * Adds an equals statement to the where clause.
      * @param cmd the SQL command
