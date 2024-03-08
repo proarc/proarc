@@ -97,6 +97,7 @@ public class CatalogUtils {
             mods = modsCollection.getMods().get(0);
         }
         repairLocation(mods);
+        addBrackets2OriginInfo(mods);
         repairOriginInfo(mods);
         List<String> couples = new ArrayList<>();
         int updateNode = 0;
@@ -126,6 +127,39 @@ public class CatalogUtils {
         fixOriginInfoDateIssued(mods);
         modsAsString = ModsUtils.toXml(mods, true);
         return modsAsString.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static void addBrackets2OriginInfo(ModsDefinition mods) {
+        boolean bracketsPlace = false;
+        boolean bracketsDateIssued = false;
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            for (PlaceDefinition place : originInfo.getPlace()) {
+                for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
+                    if (placeTerm.getValue().startsWith("[")) {
+                        // pokud placeTerm obsahuje ] odebere se a nasledne se prida
+                        // pokud placeTerm neobsahuje ] nic ne neodebere ale prida se
+                        placeTerm.setValue(placeTerm.getValue().replace("]", "") + "]");
+                        bracketsPlace = true;
+                    }
+                }
+            }
+            for (DateDefinition date : originInfo.getDateIssued()) {
+                if (date.getValue().endsWith("]")) {
+                    date.setValue("[" + date.getValue().replace("[", ""));
+                    bracketsDateIssued = true;
+                }
+            }
+            for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
+                if (publisher.getValue().startsWith("[")) {
+                    publisher.setValue(publisher.getValue().replace("]", "" + "]"));
+                } else if (publisher.getValue().endsWith("]")) {
+                    publisher.setValue("[" + publisher.getValue().replace("[", ""));
+                }
+                if (bracketsPlace && bracketsDateIssued) {
+                    publisher.setValue("[" + publisher.getValue().replace("[", "").replace("]", "") + "]");
+                }
+            }
+        }
     }
 
     private static void fixOriginInfoDateIssued(ModsDefinition mods) {

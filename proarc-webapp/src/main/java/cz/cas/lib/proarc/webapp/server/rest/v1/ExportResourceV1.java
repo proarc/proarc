@@ -302,6 +302,12 @@ public class ExportResourceV1 {
         if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
                 throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
         }
+        if (license == null || license.isEmpty() || "undefined".equals(license)) {
+            license = null;
+        }
+        if (policy == null || policy.isEmpty() || policy.contains("undefined")) {
+            policy = null;
+        }
         BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId, isBagit, license);
         Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS, params);
 
