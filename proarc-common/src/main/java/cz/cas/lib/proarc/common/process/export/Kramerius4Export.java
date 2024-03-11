@@ -1145,17 +1145,26 @@ public final class Kramerius4Export {
                         if (extent.getStart() != null) {
                             String value = extent.getStart().getValue();
                             value = value.replaceAll("\\D+","");
-                            pageNumberStart = Integer.parseInt(value);
+                            if (value != null && !value.isEmpty()) {
+                                pageNumberStart = Integer.parseInt(value);
+                            }
                         }
                     }
                     if (pageNumberEnd == Integer.MAX_VALUE - 1) {
                         if (extent.getEnd() != null) {
                             String value = extent.getEnd().getValue();
                             value = value.replaceAll("\\D+", "");
-                            pageNumberEnd = Integer.parseInt(value);
+                            if (value != null && !value.isEmpty()) {
+                                pageNumberEnd = Integer.parseInt(value);
+                            }
                         }
                     }
                 }
+            }
+            if (pageIndexStart != (Integer.MIN_VALUE + 1) && pageIndexEnd != (Integer.MAX_VALUE - 1)) {
+                break;
+            } else if (pageNumberStart != (Integer.MIN_VALUE + 1) && pageNumberEnd != (Integer.MAX_VALUE - 1)) {
+                break;
             }
         }
         if (pageIndexStart >= 0) {
