@@ -1858,8 +1858,19 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 pageCounter++;
             } else if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(divType, physicalDiv, element);
-            } else
+            } else if (Const.ARTICLE.equals(element.getElementType())) {
+                    continue;
+            } else {
                 throw new MetsExportException(element.getOriginalPid(), "Expected Page or Picture, got:" + element.getElementType(), false, null);
+            }
+        }
+
+        for (IMetsElement element : metsElement.getChildren()) {
+            if (Const.ARTICLE.equals(element.getElementType())) {
+                insertArticle(divType, physicalDiv, element, articleCounter);
+                articleCounter++;
+                continue;
+            }
         }
     }
 
