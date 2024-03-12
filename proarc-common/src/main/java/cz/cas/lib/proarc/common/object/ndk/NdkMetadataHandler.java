@@ -206,7 +206,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-                inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
+//                inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
@@ -216,7 +216,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-                inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
+//                inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
