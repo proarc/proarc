@@ -3,6 +3,7 @@ package cz.cas.lib.proarc.common.process.export.mets;
 import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
 import edu.harvard.hul.ois.xml.ns.jhove.ValuesType;
 
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,10 +13,10 @@ public class ObjectInfo {
     private String applicationVersion;
     private String applicationCreationDate;
     private String objectCount;
-    private String pageCount;
+    private BigInteger pageCount;
 //    private String tableCount;
 //    private String graphicCount;
-    private String imageCoint;
+    private BigInteger imageCount;
     private String language;
     private Set<String> fonts;
     private Set<String> filters;
@@ -49,7 +50,7 @@ public class ObjectInfo {
                         this.pageCount = getPropertyCount(rootProperty);
                     }
                     if ("Images".equals(rootProperty.getName())) {
-                        this.imageCoint = getPropertyCount(rootProperty);
+                        this.imageCount = getPropertyCount(rootProperty);
                     }
                     if ("DocumentCatalog".equals(rootProperty.getName())) {
                         if (!rootProperty.getValues().isEmpty()) {
@@ -101,10 +102,10 @@ public class ObjectInfo {
         }
     }
 
-    private String getPropertyCount(PropertyType property) {
+    private BigInteger getPropertyCount(PropertyType property) {
         try {
             int size = property.getValues().get(0).getProperty().size();
-            return String.valueOf(size);
+            return BigInteger.valueOf(size);
         } catch (Throwable t) {
             return null;
         }
@@ -122,23 +123,35 @@ public class ObjectInfo {
         return applicationName;
     }
 
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
     public String getApplicationVersion() {
         return applicationVersion;
-    }
-
-    public void setApplicationVersion(String applicationVersion) {
-        this.applicationVersion = applicationVersion;
     }
 
     public String getApplicationCreationDate() {
         return applicationCreationDate;
     }
 
-    public void setApplicationCreationDate(String applicationCreationDate) {
-        this.applicationCreationDate = applicationCreationDate;
+    public String getObjectCount() {
+        return objectCount;
+    }
+
+    public BigInteger getPageCount() {
+        return pageCount;
+    }
+
+    public BigInteger getImageCount() {
+        return imageCount;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public Set<String> getFonts() {
+        return fonts;
+    }
+
+    public Set<String> getFilters() {
+        return filters;
     }
 }

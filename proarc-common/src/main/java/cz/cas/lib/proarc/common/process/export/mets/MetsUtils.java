@@ -24,6 +24,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
+import cz.cas.lib.proarc.common.xml.docmd.DocumentMd;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
@@ -42,6 +43,7 @@ import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.xml.ProArcPrefixNamespaceMapper;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.info.Info;
@@ -1448,6 +1450,8 @@ public class MetsUtils {
         Unmarshaller m = defaultUnmarshaller.get();
         if (m == null) {
             m = defaultJaxbContext().createUnmarshaller();
+            m.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+            m.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
             defaultUnmarshaller.set(m);
         }
         return m;
@@ -1458,6 +1462,8 @@ public class MetsUtils {
         if (m == null) {
             // later we could use a pool to minimize Marshaller instances
             m = defaultJaxbContext().createMarshaller();
+            m.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+            m.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
             defaultMarshaller.set(m);
         }
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, indent);
@@ -1466,7 +1472,7 @@ public class MetsUtils {
 
     public static JAXBContext defaultJaxbContext() throws JAXBException {
         if (defaultJaxbContext == null) {
-            defaultJaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
+            defaultJaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class, DocumentMd.class);
         }
         return defaultJaxbContext;
     }

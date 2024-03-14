@@ -26,9 +26,7 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.xml.docmd.DocumentMd;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
@@ -40,7 +38,11 @@ import cz.cas.lib.proarc.common.process.export.mets.ObjectInfo;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.xml.ProArcPrefixNamespaceMapper;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -73,6 +75,7 @@ import cz.cas.lib.proarc.premis.RelationshipComplexType;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -427,13 +430,16 @@ public class PremisEditor {
 
         JAXBContext jc;
         try {
-            jc = JAXBContext.newInstance(PremisComplexType.class);
+            jc = JAXBContext.newInstance(PremisComplexType.class, DocumentMd.class);
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document document = db.newDocument();
 
             // Marshal the Object to a Document
             Marshaller marshaller = jc.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+            marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
             marshaller.marshal(jaxbPremix, document);
             XPath xpath = XPathFactory.newInstance().newXPath();
             Node premisNode = (Node) xpath.compile("*[local-name()='premis']/*[local-name()='object']").evaluate(document, XPathConstants.NODE);
@@ -497,6 +503,14 @@ public class PremisEditor {
 
         //creatingApplication.getContent().add(factory.createCreatingApplicationVersion(metsElement.getMetsContext().getProarcVersion()));
         creatingApplication.getContent().add(factory.createDateCreatedByApplication((objectInfo != null && objectInfo.getApplicationCreationDate() != null) ? objectInfo.getApplicationCreationDate() : MetsUtils.getCurrentDate().toXMLFormat()));
+        if (objectInfo != null) {
+            ExtensionComplexType extension = new ExtensionComplexType();
+            characteristics.getObjectCharacteristicsExtension().add(extension);
+            DocumentMd documentMd = getDocumentMd(objectInfo);
+            if (documentMd != null) {
+                extension.getAny().add(documentMd);
+            }
+        }
 
         RelationshipComplexType relationShip = new RelationshipComplexType();
 
@@ -538,6 +552,30 @@ public class PremisEditor {
         originalName.setValue(originalFile);
         file.setOriginalName(originalName);
         return jaxbPremix;
+    }
+
+    private static DocumentMd getDocumentMd(ObjectInfo objectInfo) {
+        if (!(objectInfo != null && objectInfo.getPageCount() != null && objectInfo.getLanguage() != null &&
+                objectInfo.getImageCount() != null && objectInfo.getFonts() != null && objectInfo.getFilters() != null)) {
+            DocumentMd documentMd = new DocumentMd();
+            if (objectInfo.getPageCount() != null) {
+                documentMd.setPageCount(objectInfo.getPageCount());
+            }
+            if (objectInfo.getLanguage() != null) {
+                documentMd.setLanguage(Collections.singletonList(objectInfo.getLanguage()));
+            }
+            if (objectInfo.getFonts() != null && !objectInfo.getFonts().isEmpty()) {
+                for (String font : objectInfo.getFonts()) {
+                    DocumentMd.FontType fontType = new DocumentMd.FontType();
+                    fontType.setFontName(font);
+                    fontType.setValue(font);
+                    fontType.setEmbedded(true);
+                    documentMd.getFont().add(fontType);
+                }
+            }
+            return documentMd;
+        }
+        return null;
     }
 
     private static String setFormatVersion(Mix mix) {
