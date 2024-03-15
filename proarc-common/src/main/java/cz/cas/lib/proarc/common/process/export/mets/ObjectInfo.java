@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2024 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.common.process.export.mets;
 
 import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
@@ -7,12 +23,17 @@ import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * The object that read values from JHoveOut of pdf, pdf/a and epub.
+ *
+ * @author Lukas Sykora
+ */
 public class ObjectInfo {
 
     private String applicationName;
     private String applicationVersion;
     private String applicationCreationDate;
-    private String objectCount;
+    private BigInteger objectCount;
     private BigInteger pageCount;
 //    private String tableCount;
 //    private String graphicCount;
@@ -44,7 +65,7 @@ public class ObjectInfo {
                         }
                     }
                     if ("Objects".equals(rootProperty.getName())) {
-                        this.objectCount = getPropertyValue(rootProperty);
+                        this.objectCount = BigInteger.valueOf(Integer.valueOf(getPropertyValue(rootProperty)));
                     }
                     if ("Pages".equals(rootProperty.getName())) {
                         this.pageCount = getPropertyCount(rootProperty);
@@ -131,7 +152,7 @@ public class ObjectInfo {
         return applicationCreationDate;
     }
 
-    public String getObjectCount() {
+    public BigInteger getObjectCount() {
         return objectCount;
     }
 

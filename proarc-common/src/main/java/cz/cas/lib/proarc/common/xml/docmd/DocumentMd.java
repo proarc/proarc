@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2024 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.common.xml.docmd;
 
 import java.math.BigInteger;
@@ -13,41 +29,47 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
 
+/**
+ * The object that has docmd schema
+ *
+ * @author Lukas Sykora
+ */
+
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "document", namespace = "http://www.fcla.edu/docmd")
+@XmlRootElement(name = "document", namespace = DocumentMdUtils.NS)
 public class DocumentMd {
 
-    @XmlElement(name = "PageCount", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "PageCount", namespace = DocumentMdUtils.NS)
     protected BigInteger pageCount;
 
-    @XmlElement(name = "WordCount", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "WordCount", namespace = DocumentMdUtils.NS)
     protected BigInteger wordCount;
 
-    @XmlElement(name = "CharacterCount", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "CharacterCount", namespace = DocumentMdUtils.NS)
     protected BigInteger characterCount;
 
-    @XmlElement(name = "ParagraphCount", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "ParagraphCount", namespace = DocumentMdUtils.NS)
     protected BigInteger paragraphCount;
 
-    @XmlElement(name = "LineCount", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "LineCount", namespace = DocumentMdUtils.NS)
     protected BigInteger lineCount;
 
-    @XmlElement(name = "TableCount", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "TableCount", namespace = DocumentMdUtils.NS)
     protected BigInteger tableCount;
 
-    @XmlElement(name = "GraphicsCount", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "GraphicsCount", namespace = DocumentMdUtils.NS)
     protected BigInteger graphicsCount;
 
-    @XmlElement(name = "Language", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "Language", namespace = DocumentMdUtils.NS)
     protected List<String> language;
 
-    @XmlElement(name = "Font", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "Font", namespace = DocumentMdUtils.NS)
     protected List<FontType> font;
 
-    @XmlElement(name = "Features", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "Features", namespace = DocumentMdUtils.NS)
     protected List<FeaturesType> features;
 
-    @XmlElement(name = "documentMetadataExtension", namespace = "http://www.fcla.edu/docmd")
+    @XmlElement(name = "documentMetadataExtension", namespace = DocumentMdUtils.NS)
     protected ExtensionType documentMetadataExtension;
 
     public BigInteger getPageCount() {

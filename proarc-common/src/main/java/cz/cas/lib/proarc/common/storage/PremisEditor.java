@@ -26,7 +26,6 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.xml.docmd.DocumentMd;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
@@ -43,6 +42,8 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.xml.ProArcPrefixNamespaceMapper;
+import cz.cas.lib.proarc.common.xml.docmd.DocumentMd;
+import cz.cas.lib.proarc.common.xml.ndktech.NdkTechnical;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -430,7 +431,7 @@ public class PremisEditor {
 
         JAXBContext jc;
         try {
-            jc = JAXBContext.newInstance(PremisComplexType.class, DocumentMd.class);
+            jc = JAXBContext.newInstance(PremisComplexType.class, DocumentMd.class, NdkTechnical.class);
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document document = db.newDocument();
@@ -571,6 +572,29 @@ public class PremisEditor {
                     fontType.setValue(font);
                     fontType.setEmbedded(true);
                     documentMd.getFont().add(fontType);
+                }
+            }
+            if (!(objectInfo.getFilters() != null && objectInfo.getImageCount() != null && objectInfo.getObjectCount() != null)) {
+                NdkTechnical ndkTechnical = new NdkTechnical();
+                DocumentMd.ExtensionType extensionType = new DocumentMd.ExtensionType();
+                documentMd.setDocumentMetadataExtension(extensionType);
+                extensionType.getAny().add(ndkTechnical);
+
+                if (objectInfo.getFilters() != null) {
+                    NdkTechnical.FiltersType filters = new NdkTechnical.FiltersType();
+                    ndkTechnical.setFilters(filters);
+
+                    for (String filterValue : objectInfo.getFilters()) {
+                        filters.getFilter().add(filterValue);
+                    }
+                }
+
+                if (objectInfo.getObjectCount() != null) {
+                    ndkTechnical.setIndirectObjectsNumber(objectInfo.getObjectCount());
+                }
+
+                if (objectInfo.getImageCount() != null) {
+                    ndkTechnical.setImagesCount(objectInfo.getImageCount());
                 }
             }
             return documentMd;
