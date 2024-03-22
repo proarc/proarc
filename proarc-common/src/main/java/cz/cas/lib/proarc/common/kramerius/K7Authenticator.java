@@ -47,7 +47,12 @@ public class K7Authenticator {
     }
 
     public String authenticate() throws IOException, JSONException {
-        String loginUrl = instance.getUrl() + instance.getUrlLogin();
+        String loginUrl;
+        if (instance.getUrlKeycloak() == null || instance.getUrlKeycloak().isEmpty()) {
+            loginUrl = instance.getUrl() + instance.getUrlLogin();
+        } else {
+            loginUrl = instance.getUrlKeycloak() + instance.getUrlLogin();
+        }
 
         LOG.info("Trying to authenticate " + loginUrl);
 
@@ -76,6 +81,7 @@ public class K7Authenticator {
                     JSONObject jsonObject = new JSONObject(result);
                     String token = jsonObject.optString("access_token");
                     if (token != null || !token.isEmpty()) {
+                        LOG.info("Connected to Kramerius and get token");
                         LOG.fine("Connected to Kramerius and get token " + token);
                         return token;
                     } else {

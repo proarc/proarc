@@ -203,6 +203,7 @@ public class KrameriusOptions {
         static final String PROPERTY_TITLE = "title";
         static final String PROPERTY_VERSION = "version";
         static final String PROPERTY_URL = "url";
+        static final String PROPERTY_URL_KEYCLOAK = "urlKeycloak";
         static final String PROPERTY_URL_LOGIN = "urlLogin";
         static final String PROPERTY_URL_PARAMETRIZED_IMPORT_QUERY = "urlParametrizedImportQuery";
         static final String PROPERTY_URL_CONVERT_IMPORT_QUERY = "urlConvertImportQuery";
@@ -265,6 +266,10 @@ public class KrameriusOptions {
 
         public String getUrl() {
             return config.getString(PROPERTY_URL);
+        }
+
+        public String getUrlKeycloak() {
+            return config.getString(PROPERTY_URL_KEYCLOAK);
         }
 
         public String getUsername() {

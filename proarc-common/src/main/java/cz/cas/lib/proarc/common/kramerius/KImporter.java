@@ -39,6 +39,18 @@ public class KImporter {
     }
 
     public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting, String exportType, String policy) throws JSONException, IOException, InterruptedException {
+        if (exportFolder != null && exportFolder.exists()) {
+            Process process;
+            try {
+                String cmd = "chmod 777 -R " + exportFolder.getAbsolutePath();
+                LOG.info("Volam " + cmd);
+                process = Runtime.getRuntime().exec(cmd);
+                LOG.info("Prava nastavena pomoci " + cmd);
+                process.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         String krameriusVersion = instance.getVersion();
         if (krameriusVersion == null || krameriusVersion.isEmpty()) {
             LOG.severe("Kramerius have to set field \"version\".");

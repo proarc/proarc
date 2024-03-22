@@ -427,12 +427,12 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 &device:1883a7de-2f01-40e4-91ee-c7b631c0353c
 
 
-### NDK Export s Bagit
+### NDK Export s kramerius IUmport
 POST {{proarcLocalHostUrl}}/rest/v1/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid={{uuid}}&krameriusInstance=kramerius7
+&pid=uuid:9b2d468e-0827-4a1a-a9b0-4483a7bdd937&krameriusInstance=kramerius7-idu
 
 
 ### NDK Export s Kramerius Importem
