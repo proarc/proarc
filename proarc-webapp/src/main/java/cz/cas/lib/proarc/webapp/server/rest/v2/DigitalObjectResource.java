@@ -16,11 +16,14 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v2;
 
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
@@ -33,6 +36,7 @@ import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
 import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -41,14 +45,19 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -747,7 +756,46 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
-            return super.getStreamProfile(pid, batchId, dsId);
+            if (pid == null || pid.isEmpty()) {
+                throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+            }
+            ProArcObject fo = findFedoraObject(pid, batchId, true);
+            List<DatastreamProfile> profiles = fo.getStreamProfile(dsId);
+            ArrayList<DatastreamResult> result = new ArrayList<DatastreamResult>(profiles.size());
+            for (DatastreamProfile profile : profiles) {
+                // filter digital contents
+                String profileDsId = profile.getDsID();
+                if (BinaryEditor.isMediaStream(profileDsId)) {
+                    if (BinaryEditor.isImageStream(profile.getDsMIME())) {
+                        BinaryEditor editor = BinaryEditor.dissemination(fo, profile.getDsID(), MediaType.valueOf(profile.getDsMIME()));
+                        if (editor != null) {
+                            InputStream imageStream = editor.readStream();
+                            int height = 0;
+                            int width = 0;
+                            String extension = Const.mimeToExtensionMap.get(editor.getProfile().getDsMIME());
+                            if (extension == null) {
+                                result.add(DatastreamResult.from(profile));
+                            } else {
+                                extension = extension.replace(".", "");
+                                Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(extension);
+                                if (readers.hasNext()) {
+                                    ImageReader reader = readers.next();
+                                    ImageInputStream istream = ImageIO.createImageInputStream(imageStream);
+                                    reader.setInput(istream);
+                                    height = reader.getHeight(0);
+                                    width = reader.getWidth(0);
+                                }
+                                result.add(DatastreamResult.from(profile, height, width));
+                            }
+                        } else {
+                            result.add(DatastreamResult.from(profile));
+                        }
+                    } else {
+                        result.add(DatastreamResult.from(profile));
+                    }
+                }
+            }
+            return new SmartGwtResponse<DatastreamResult>(result);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());

@@ -56,7 +56,6 @@ import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.object.technicalMetadata.TechnicalMetadataMapper;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -141,7 +140,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -153,9 +151,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -1646,36 +1641,9 @@ public class DigitalObjectResourceV1 {
         List<DatastreamProfile> profiles = fo.getStreamProfile(dsId);
         ArrayList<DatastreamResult> result = new ArrayList<DatastreamResult>(profiles.size());
         for (DatastreamProfile profile : profiles) {
-            // filter digital contents
             String profileDsId = profile.getDsID();
             if (BinaryEditor.isMediaStream(profileDsId)) {
-                if (BinaryEditor.isImageStream(profile.getDsMIME())) {
-                    BinaryEditor editor = BinaryEditor.dissemination(fo, profile.getDsID(), MediaType.valueOf(profile.getDsMIME()));
-                    if (editor != null) {
-                        InputStream imageStream = editor.readStream();
-                        int height = 0;
-                        int width = 0;
-                        String extension = Const.mimeToExtensionMap.get(editor.getProfile().getDsMIME());
-                        if (extension == null) {
-                            result.add(DatastreamResult.from(profile));
-                        } else {
-                            extension = extension.replace(".", "");
-                            Iterator<ImageReader> readers = ImageIO.getImageReadersBySuffix(extension);
-                            if (readers.hasNext()) {
-                                ImageReader reader = readers.next();
-                                ImageInputStream istream = ImageIO.createImageInputStream(imageStream);
-                                reader.setInput(istream);
-                                height = reader.getHeight(0);
-                                width = reader.getWidth(0);
-                            }
-                            result.add(DatastreamResult.from(profile, height, width));
-                        }
-                    } else {
-                        result.add(DatastreamResult.from(profile));
-                    }
-                } else {
-                    result.add(DatastreamResult.from(profile));
-                }
+                result.add(DatastreamResult.from(profile));
             }
         }
         return new SmartGwtResponse<DatastreamResult>(result);
@@ -1760,9 +1728,9 @@ public class DigitalObjectResourceV1 {
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_MIME)
         private String mime;
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_HEIGHT)
-        private String height;
+        private Integer height;
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_WIDTH)
-        private String width;
+        private Integer width;
 
         public static DatastreamResult from(DatastreamProfile profile) {
             DatastreamResult d = new DatastreamResult();
@@ -1775,8 +1743,8 @@ public class DigitalObjectResourceV1 {
             DatastreamResult d = new DatastreamResult();
             d.id = profile.getDsID();
             d.mime = profile.getDsMIME();
-            d.height = height > 0 ? String.valueOf(height) : null;
-            d.width = width > 0 ? String.valueOf(width) : null;
+            d.height = height;
+            d.width = width;
             return d;
         }
 
@@ -4276,7 +4244,7 @@ public class DigitalObjectResourceV1 {
     }
 
     @Deprecated
-    private ProArcObject findFedoraObject(String pid, Integer batchId, boolean readonly) throws IOException {
+    protected ProArcObject findFedoraObject(String pid, Integer batchId, boolean readonly) throws IOException {
         ProArcObject fobject;
         if (batchId != null) {
             Batch batch = importManager.get(batchId);
