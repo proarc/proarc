@@ -6,8 +6,8 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
@@ -26,9 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -62,6 +60,8 @@ public class IndexerResourceV1 {
     private final UserProfile user;
     private final SessionContext session;
     private static Unmarshaller unmarshaller;
+
+    int filesCount = 0;
 
     public IndexerResourceV1(
             @Context Request httpRequest,
@@ -121,76 +121,12 @@ public class IndexerResourceV1 {
         try {
             LOG.info("Indexing documents started.");
             java.nio.file.Path storeRoot = Paths.get(storePath);
-            AtomicInteger files = new AtomicInteger();
+            File rootFile = new File(storeRoot.toUri());
             final AkubraStorage storage = AkubraStorage.getInstance(akubraConfiguration);
             long start = System.currentTimeMillis();
-            Files.walk(storeRoot).parallel().filter(Files::isRegularFile).forEach(path -> {
-                try {
-                    File file = path.toFile();
-                    FileInputStream inputStream = new FileInputStream(file);
-                    DigitalObject digitalObject = createDigitalObject(inputStream);
-                    ProArcObject proArcObject = new LocalStorage().load(digitalObject.getPID(), file);
-                    // indexovat jen objekty s proarcu - modely z pluginu a zarizeni
-                    if (proArcObject.getPid().startsWith("uuid")) {
-                        if (rebuildIndex) {
-                            try {
-                                feeder.feedDescriptionDocument(digitalObject, proArcObject, false);
-                                files.getAndIncrement();
-                                if (files.get() % 50 == 0) {
-                                    LOG.info("Proccessed " + files.get() + " objects");
-                                    feeder.commit();
-                                }
-                            } catch (Exception exception) {
-                                if ("URI is not hierarchical".equals(exception.getMessage())) {
-                                    try {
-                                        proArcObject = storage.find(digitalObject.getPID());
-                                        files.getAndIncrement();
-                                        feeder.feedDescriptionDocument(digitalObject, proArcObject, false);
-                                        if (files.get() % 50 == 0) {
-                                            LOG.info("Proccessed " + files.get() + " objects");
-                                            feeder.commit();
-                                        }
-                                    } catch (Exception ex) {
-                                        errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
-                                    }
-                                } else {
-                                    errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
-                                }
-                            }
-                        }
-                    } else if (proArcObject.getPid().startsWith("device")) {
-                        if (rebuildIndex) {
-                            try {
-                                feeder.feedDescriptionDevice(digitalObject, proArcObject, false);
-                                files.getAndIncrement();
-                                if (files.get() % 50 == 0) {
-                                    LOG.info("Proccessed " + files.get() + " objects");
-                                    feeder.commit();
-                                }
-                            } catch (Exception exception) {
-                                if ("URI is not hierarchical".equals(exception.getMessage())) {
-                                    try {
-                                        proArcObject = storage.find(digitalObject.getPID());
-                                        files.getAndIncrement();
-                                        feeder.feedDescriptionDevice(digitalObject, proArcObject, false);
-                                        if (files.get() % 50 == 0) {
-                                            LOG.info("Proccessed " + files.get() + " objects");
-                                            feeder.commit();
-                                        }
-                                    } catch (Exception ex) {
-                                        errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
-                                    }
-                                } else {
-                                    errors.append(proArcObject.getPid()).append(" - ").append(((LocalStorage.LocalObject) proArcObject).getFoxml().getPath()).append("\n");
-                                }
-                            }
-                        }
-                    }
-                } catch (IOException e) {
-                    LOG.log(Level.SEVERE, "Error in proccesing file: ", e);
-                }
-            });
-            LOG.log(Level.INFO, "Indexed time: {0} s", (System.currentTimeMillis() - start) / 1000);
+            filesCount = 0;
+            processFile(feeder, storage, rootFile, rebuildIndex);
+            LOG.log(Level.INFO, "Indexed time: " + (System.currentTimeMillis() - start) / 1000 + " s, object count " + filesCount);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Error in processing file: ", ex);
         } finally {
@@ -200,6 +136,78 @@ public class IndexerResourceV1 {
             if (feeder != null) {
                 feeder.commit();
                 LOG.info("Feeder commited.");
+            }
+        }
+    }
+
+    private void processFile(SolrObjectFeeder feeder, AkubraStorage storage, File file, boolean rebuildIndex) {
+        if (file.isDirectory()) {
+            for (File childFile : file.listFiles()) {
+                processFile(feeder, storage, childFile, rebuildIndex);
+            }
+        } else {
+            try {
+                FileInputStream inputStream = new FileInputStream(file);
+                DigitalObject digitalObject = createDigitalObject(inputStream);
+                ProArcObject proArcObject = new LocalStorage().load(digitalObject.getPID(), file);
+                // indexovat jen objekty s proarcu - modely z pluginu a zarizeni
+                if (proArcObject.getPid().startsWith("uuid")) {
+                    if (rebuildIndex) {
+                        try {
+                            feeder.feedDescriptionDocument(digitalObject, proArcObject, false);
+                            this.filesCount++;
+                            if (filesCount % 50 == 0) {
+                                LOG.info("Proccessed " + filesCount + " objects");
+                                feeder.commit();
+                            }
+                        } catch (Exception exception) {
+                            if ("URI is not hierarchical".equals(exception.getMessage())) {
+                                try {
+                                    proArcObject = storage.find(digitalObject.getPID());
+                                    filesCount++;
+                                    feeder.feedDescriptionDocument(digitalObject, proArcObject, false);
+                                    if (filesCount % 50 == 0) {
+                                        LOG.info("Proccessed " + filesCount + " objects");
+                                        feeder.commit();
+                                    }
+                                } catch (Exception ex) {
+                                    LOG.warning(proArcObject.getPid() + " - " + ((LocalStorage.LocalObject) proArcObject).getFoxml().getPath());
+                                }
+                            } else {
+                                LOG.warning(proArcObject.getPid() + " - " + ((LocalStorage.LocalObject) proArcObject).getFoxml().getPath());
+                            }
+                        }
+                    }
+                } else if (proArcObject.getPid().startsWith("device")) {
+                    if (rebuildIndex) {
+                        try {
+                            feeder.feedDescriptionDevice(digitalObject, proArcObject, false);
+                            filesCount++;
+                            if (filesCount % 50 == 0) {
+                                LOG.info("Proccessed " + filesCount + " objects");
+                                feeder.commit();
+                            }
+                        } catch (Exception exception) {
+                            if ("URI is not hierarchical".equals(exception.getMessage())) {
+                                try {
+                                    proArcObject = storage.find(digitalObject.getPID());
+                                    filesCount++;
+                                    feeder.feedDescriptionDevice(digitalObject, proArcObject, false);
+                                    if (filesCount % 50 == 0) {
+                                        LOG.info("Proccessed " + filesCount + " objects");
+                                        feeder.commit();
+                                    }
+                                } catch (Exception ex) {
+                                    LOG.warning(proArcObject.getPid() + " - " + ((LocalStorage.LocalObject) proArcObject).getFoxml().getPath());
+                                }
+                            } else {
+                                LOG.warning(proArcObject.getPid() + " - " + ((LocalStorage.LocalObject) proArcObject).getFoxml().getPath());
+                            }
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                LOG.log(Level.SEVERE, "Error in proccesing file: " + file.getAbsolutePath(), e);
             }
         }
     }

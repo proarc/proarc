@@ -413,11 +413,14 @@ select id, "CREATE", state from proarc_batch where folder = 'uuid:ed2ae08a-2333-
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### STREAM PROFILE
+GET {{proarcUrl}}/rest/v1/object/streamprofile?pid={{uuid}}&batchId={{batchId}}
 
 ### Update device
 PUT {{proarcLocalHostUrl}}/rest/v2/device

@@ -98,7 +98,7 @@ public final class FoxmlUtils {
      */
     public static JAXBContext defaultJaxbContext() throws JAXBException {
         if (defaultJaxbContext == null) {
-            defaultJaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+            defaultJaxbContext = JAXBContext.newInstance(ObjectFactory.class, DigitalObject.class);
         }
         return defaultJaxbContext;
     }
