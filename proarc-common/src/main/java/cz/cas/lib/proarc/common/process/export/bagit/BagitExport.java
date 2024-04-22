@@ -354,7 +354,7 @@ public class BagitExport {
                 }
             }
             if (title != null && !title.isEmpty()) {
-                writer.append("\"title\":\"").append(title.replaceAll("\"", "\\\\\"")).append("\"");
+                writer.append("\"title\":\"").append(title.replaceAll("\"", "\\\\\"").replaceAll("\'", "\\\\\'")).append("\"");
             }
             writer.append("}");
         }
