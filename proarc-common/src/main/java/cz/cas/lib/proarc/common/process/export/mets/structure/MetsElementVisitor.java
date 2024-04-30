@@ -750,6 +750,12 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     private void processPageFiles(IMetsElement metsElement, int seq, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, HashMap<String, XMLGregorianCalendar> createDates, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
+        if (md5InfosMap.get("RAW") == null) {
+            FileMD5Info rawInfo = createRawInfo(metsElement, fileNames);
+            if (rawInfo != null) {
+                md5InfosMap.put("RAW", rawInfo);
+            }
+        }
         for (String streamName : Const.streamMapping.keySet()) {
             if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                 try {
@@ -877,6 +883,53 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 }
             }
         }
+    }
+
+    private FileMD5Info createRawInfo(IMetsElement metsElement, HashMap<String, Object> fileNames) throws MetsExportException {
+        FileMD5Info rawInfo = null;
+        InputStream is = null;
+        DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
+        if (rawDS != null) {
+            if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                try {
+                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
+                    try {
+                        is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
+                    } catch (FedoraClientException e) {
+                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                    }
+                } catch (Exception ex) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), false, ex);
+                }
+            } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
+                AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
+                try {
+                    DigitalObject object = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
+                    for (DatastreamType datastreamType : object.getDatastream()) {
+                        if (MetsUtils.equalDataStreams(datastreamType.getID(), "RAW")) {
+                            Iterator<DatastreamVersionType> dvIter = datastreamType.getDatastreamVersion().iterator();
+                            while (dvIter.hasNext()) {
+                                DatastreamVersionType dv = dvIter.next();
+                                is = AkubraUtils.getStreamContent(dv, akubraObject.getManager());
+                            }
+                            break;
+                        }
+                    }
+                } catch (JAXBException | IOException | TransformerException e) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                }
+            }
+
+            try {
+                rawInfo = MetsUtils.getDigest(is);
+            } catch (Exception e) {
+                throw new MetsExportException("Unable to process raw file for pid " + metsElement.getOriginalPid(), false, e);
+            }
+            rawInfo.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+            rawInfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
+        }
+        return rawInfo;
     }
 
 
