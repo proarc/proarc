@@ -300,6 +300,7 @@ public class PackageReader {
             File objFile = new File(targetFolder, getFoxmlFilename("FOXML", divIndex, pid, modelId));
             DigitalObject dObj = null;
             if (isParentObject) {
+                iSession.setRootPid(pid);
                 ProArcObject object = null;
                 if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
                     object = iSession.getRemotes().find(pid);
@@ -315,7 +316,6 @@ public class PackageReader {
                     if (!model2Override(object.getModel()) && !ctx.isUseNewMetadata() && !ctx.isUseOriginalMetadata()) {
                         throw new DigitalObjectException("The repository already contains pid: " + pid);
                     }
-                    iSession.setRootPid(dObj.getPID());
                 } catch (DigitalObjectNotFoundException ex) {
                     // no remote
                 }
@@ -571,7 +571,9 @@ public class PackageReader {
             DigitalObject foxml = FoxmlUtils.unmarshal(new StreamSource(dsFile), DigitalObject.class);
             if (foxml != null) {
                 DatastreamType ds = FoxmlUtils.findDatastream(foxml, FoxmlUtils.DS_AUDIT_ID);
-                lObj.getDigitalObject().getDatastream().add(0, ds);
+                if (ds != null) {
+                    lObj.getDigitalObject().getDatastream().add(0, ds);
+                }
                 // set object owner
                 PropertyType ownerProp = FoxmlUtils.findProperty(foxml, FoxmlUtils.PROPERTY_OWNER);
                 String foxmlOwner = ownerProp != null ? ownerProp.getVALUE() : null;
