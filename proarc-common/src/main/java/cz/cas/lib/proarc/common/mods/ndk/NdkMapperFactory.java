@@ -60,6 +60,7 @@ public class NdkMapperFactory {
         mappers.put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkMonographSupplementMapper::new);
         mappers.put(NdkPlugin.MODEL_CHAPTER, NdkChapterMapper::new);
         mappers.put(NdkPlugin.MODEL_CARTOGRAPHIC, NdkCartographicMapper::new);
+        mappers.put(NdkPlugin.MODEL_GRAPHIC, NdkGraphicMapper::new);
         mappers.put(NdkPlugin.MODEL_SHEETMUSIC, NdkSheetMusicMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkSoundCollectionMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_PHONOGRAPH, NdkSoundPhonographMapper::new);

@@ -506,6 +506,8 @@ public class FileReader {
                         return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_MONOGRAPHVOLUME : OldPrintPlugin.MODEL_VOLUME;
                     } else if (specialGenre.equals(Genre.CARTOGRAPHIC)) {
                         return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_CARTOGRAPHIC : OldPrintPlugin.MODEL_CARTOGRAPHIC;
+                    } else if (specialGenre.equals(Genre.GRAPHIC)) {
+                        return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_GRAPHIC : OldPrintPlugin.MODEL_GRAPHICS;
                     } else if (specialGenre.equals(Genre.SHEETMUSIC)) {
                         return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_SHEETMUSIC : OldPrintPlugin.MODEL_SHEETMUSIC;
                     }
@@ -1410,7 +1412,7 @@ public class FileReader {
     }
 
     private static enum Genre {
-        NONE, CARTOGRAPHIC, SHEETMUSIC
+        NONE, CARTOGRAPHIC, SHEETMUSIC, GRAPHIC
     }
 
     private static enum PackageType {

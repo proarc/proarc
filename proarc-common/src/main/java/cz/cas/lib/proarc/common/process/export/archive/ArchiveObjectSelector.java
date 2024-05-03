@@ -80,6 +80,7 @@ public class ArchiveObjectSelector {
         if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)
                 || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)
                 || NdkPlugin.MODEL_CARTOGRAPHIC.equals(modelId)
+                || NdkPlugin.MODEL_GRAPHIC.equals(modelId)
                 || NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
                 || NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)
                 || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)

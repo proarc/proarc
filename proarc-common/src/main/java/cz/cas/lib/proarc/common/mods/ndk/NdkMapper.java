@@ -264,6 +264,7 @@ public abstract class NdkMapper {
                 put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "model:supplement");
                 put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
                 put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
+                put(NdkPlugin.MODEL_GRAPHIC, "model:graphic");
                 put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
                 put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
                 put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");

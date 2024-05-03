@@ -90,6 +90,7 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_ARTICLE, "hasIntCompPart");
             put(NdkPlugin.MODEL_CHAPTER, "hasIntCompPart");
             put(NdkPlugin.MODEL_CARTOGRAPHIC, "hasUnit");
+            put(NdkPlugin.MODEL_GRAPHIC, "hasUnit");
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "hasIntCompPart");
             put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "hasUnit");
             put(NdkPlugin.MODEL_MONOGRAPHUNIT, "hasUnit");
@@ -125,6 +126,7 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_NDK_PAGE, "model:page");
             put(NdkPlugin.MODEL_ARTICLE, "model:article");
             put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
+            put(NdkPlugin.MODEL_GRAPHIC, "model:graphic");
             put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
             put(NdkPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
@@ -167,8 +169,8 @@ public final class Kramerius4ExportOptions {
             put("model:periodicalvolume", NdkPlugin.MODEL_PERIODICALVOLUME);
             put("model:picture", NdkPlugin.MODEL_PICTURE);
             put("model:sheetmusic", NdkPlugin.MODEL_SHEETMUSIC);
-            put("model:chapter", OldPrintPlugin.MODEL_CHAPTER);
-            put("model:graphic", OldPrintPlugin.MODEL_GRAPHICS);
+            put("model:chapter", NdkPlugin.MODEL_CHAPTER);
+            put("model:graphic", NdkPlugin.MODEL_GRAPHIC);
             put("model:convolute", OldPrintPlugin.MODEL_CONVOLUTTE);
             put("model:soundrecording", NdkAudioPlugin.MODEL_MUSICDOCUMENT);
             put("model:soundrecording", NdkAudioPlugin.MODEL_PHONOGRAPH);

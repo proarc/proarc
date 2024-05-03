@@ -122,6 +122,7 @@ public class FileReader {
         {
             put("model:article", NdkPlugin.MODEL_ARTICLE);
             put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
+            put("model:graphic", NdkPlugin.MODEL_GRAPHIC);
             // put("model:monograph", NdkPlugin.MODEL_MONOGRAPHTITLE);
             put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
             put("model:monograph", NdkPlugin.MODEL_MONOGRAPHVOLUME);
@@ -145,6 +146,7 @@ public class FileReader {
             put("model:sheetmusic", NdkPlugin.MODEL_SHEETMUSIC);
             put("model:article", NdkPlugin.MODEL_ARTICLE);
             put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
+            put("model:graphic", NdkPlugin.MODEL_GRAPHIC);
         }
     };
 

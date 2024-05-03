@@ -366,6 +366,11 @@ public class CejshExport {
         }
 
         @Override
+        public Void visitNdkGraphic(DigitalObjectElement elm, CejshContext p) throws VisitorException {
+            return null;
+        }
+
+        @Override
         public Void visitNdkChapter(DigitalObjectElement elm, CejshContext p) throws VisitorException {
             return null;
         }
