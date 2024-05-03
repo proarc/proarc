@@ -1,12 +1,12 @@
 package cz.cas.lib.proarc.common.storage.akubra;
 
-import cz.cas.lib.proarc.common.storage.SearchView;
-import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,6 +43,8 @@ public class SolrUtils {
     public static final String FIELD_PAGE_NUMBER = "pageNumber";
     public static final String FIELD_PAGE_TYPE = "pageType";
     public static final String FIELD_PAGE_POSITION = "pagePosition";
+    public static final String FIELD_URNNBN = "urnNbn";
+    public static final String FIELD_DESCRIPTION_STANDARD = "descriptionStandard";
     public static final String FIELD_FULLTEXT = "fulltext";
     public static final String FIELD_DATE = "date";
     public static final String FIELD_STREAM = "stream";
@@ -179,6 +181,8 @@ public class SolrUtils {
         item.setCrossrefExportPath(getString(solrDocument, FIELD_EXPORT_CROSSREF));;
         item.setK4(getContainsString(solrDocument, FIELD_EXPORT_CROSSREF));
         item.setIsLocked(getBoolean(solrDocument, FIELD_LOCKED));
+        item.setUrnNbn(getString(solrDocument, FIELD_URNNBN));
+        item.setDescriptionStandard(getString(solrDocument, FIELD_DESCRIPTION_STANDARD));
         if (isPage(item.getModel())) {
             item.setPageIndex(getString(solrDocument, FIELD_PAGE_INDEX));
             item.setPageNumber(getString(solrDocument, FIELD_PAGE_NUMBER));

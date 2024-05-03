@@ -12,7 +12,10 @@ import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.incad.kramerius.resourceindex.ProcessingIndexFeeder;
 import java.io.IOException;
 import java.util.List;
@@ -27,6 +30,7 @@ import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_LASTMODIFIED;
 import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_OWNER;
 import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_STATE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_CREATED;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_DESCRIPTION_STANDARD;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_DEVICE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_ARCHIVE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_CROSSREF;
@@ -47,6 +51,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PID;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOURCE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATUS;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_URNNBN;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_USER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.PROPERTY_STATE_DEACTIVE;
 
@@ -80,6 +85,8 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         String pageType = ExportUtils.getPageType(mods);
         String pageNumber = ExportUtils.getPageNumber(mods);
         String pagePosition = ExportUtils.getPagePosition(mods);
+        String urnNbn = getUrnNbn(mods);
+        String descriptionStandard = getDescriptionStandatd(mods);
 
         Boolean isLocked = relationEditor.isLocked();
 
@@ -88,7 +95,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         try {
             feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
                     ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members,
-                    pageIndex, pageType, pageNumber, pagePosition);
+                    pageIndex, pageType, pageNumber, pagePosition, urnNbn, descriptionStandard);
             if (commit) {
                 commit();
             }
@@ -105,7 +112,29 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         return modsStreamEditor.read();
     }
 
-    private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user, String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex, String pageType, String pageNumber, String pagePosition) throws SolrServerException, IOException {
+    private String getUrnNbn(ModsDefinition mods) {
+        for (IdentifierDefinition identifier : mods.getIdentifier()) {
+            if ("urnnbn".equals(identifier.getType()) && (identifier.getInvalid() == null || "".equals(identifier.getInvalid()) || "false".equals(identifier.getInvalid()))) {
+                return identifier.getValue();
+            }
+        }
+        return null;
+    }
+
+    public static String getDescriptionStandatd(ModsDefinition mods) {
+        for (RecordInfoDefinition recordInfo : mods.getRecordInfo()) {
+            for (StringPlusLanguagePlusAuthority description : recordInfo.getDescriptionStandard()) {
+                if (description != null && description.getValue() != null && !description.getValue().isEmpty()) {
+                    return description.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
+            String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex,
+            String pageType, String pageNumber, String pagePosition, String urnNbn, String descriptionStandatd) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -129,6 +158,8 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_PAGE_NUMBER, pageNumber);
         sdoc.addField(FIELD_PAGE_TYPE, pageType);
         sdoc.addField(FIELD_PAGE_POSITION, pagePosition);
+        sdoc.addField(FIELD_URNNBN, urnNbn);
+        sdoc.addField(FIELD_DESCRIPTION_STANDARD, descriptionStandatd);
 
         return feedDescriptionDocument(sdoc);
     }

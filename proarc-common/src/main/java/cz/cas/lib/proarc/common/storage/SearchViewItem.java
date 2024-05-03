@@ -45,6 +45,9 @@ public class SearchViewItem {
     private String pageType;
     private String pagePosition;
 
+    private String urnNbn;
+    private String descriptionStandard;
+
     public SearchViewItem() {
     }
 
@@ -344,5 +347,21 @@ public class SearchViewItem {
 
     public void setPagePosition(String pagePosition) {
         this.pagePosition = pagePosition;
+    }
+
+    public String getUrnNbn() {
+        return urnNbn;
+    }
+
+    public void setUrnNbn(String urnNbn) {
+        this.urnNbn = urnNbn;
+    }
+
+    public String getDescriptionStandard() {
+        return descriptionStandard;
+    }
+
+    public void setDescriptionStandard(String descriptionStandard) {
+        this.descriptionStandard = descriptionStandard;
     }
 }
