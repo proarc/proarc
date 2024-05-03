@@ -47,6 +47,8 @@ public interface NdkVisitor<R, P> extends DigitalObjectVisitor<R, P> {
 
     R visitNdkCartographic(DigitalObjectElement elm, P p) throws VisitorException;
 
+    R visitNdkGraphic(DigitalObjectElement elm, P p) throws VisitorException;
+
     R visitNdkSheetMusic(DigitalObjectElement elm, P p) throws VisitorException;
 
     R visitNdkChapter(DigitalObjectElement elm, P p) throws VisitorException;

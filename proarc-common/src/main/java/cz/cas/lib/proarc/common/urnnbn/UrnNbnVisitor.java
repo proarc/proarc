@@ -70,6 +70,7 @@ import org.xml.sax.SAXException;
  * {@link NdkPlugin#MODEL_MONOGRAPHVOLUME monograph volume},
  * {@link NdkPlugin#MODEL_MONOGRAPHUNIT monograph unit},
  * {@link NdkPlugin#MODEL_CARTOGRAPHIC},
+ * {@link NdkPlugin#MODEL_GRAPHIC},
  * {@link NdkPlugin#MODEL_SHEETMUSIC}.
  *
  * <p>Supplements {@link NdkPlugin#MODEL_PERIODICALSUPPLEMENT} and
@@ -90,6 +91,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
             NdkPlugin.MODEL_ARTICLE,
             NdkPlugin.MODEL_CARTOGRAPHIC,
+            NdkPlugin.MODEL_GRAPHIC,
             NdkPlugin.MODEL_SHEETMUSIC,
             NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME,
             NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
@@ -356,6 +358,24 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             registeringObject = elm;
             return processOtherEntity(elm, "cartographic", p, null);
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    @Override
+    public Void visitNdkGraphic(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The graphic under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            return processOtherEntity(elm, "graphic", p, null);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {

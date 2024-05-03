@@ -82,6 +82,7 @@ public class Const {
     public final static String GENRE_CHAPTER = "chapter";
     public final static String GENRE_ISSUE = "issue";
     public final static String GENRE_PICTURE = "picture";
+    public final static String GENRE_GRAPHIC = "graphic";
     public final static String GENRE_SUPPLEMENT = "supplement";
     public final static String GENRE_TITLE = "title";
     public final static String GENRE_VOLUME = "volume";
@@ -97,7 +98,6 @@ public class Const {
     public final static String GENRE_ESUPPLEMENT = "electronic_supplement";
 
     public final static String GENRE_CONVOLUTE = "convolute";       //konvolut
-    public final static String GENRE_GRAPHICS = "graphics";       //grafika
 
     public static final String VOLUME = "VOLUME";
     public static final String TITLE = "TITLE";
@@ -232,6 +232,7 @@ public class Const {
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, SUPPLEMENT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_PERIODICALSUPPLEMENT, SUPPLEMENT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_CARTOGRAPHIC, MONOGRAPH_UNIT);
+        typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_GRAPHIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + NdkPlugin.MODEL_SHEETMUSIC, MONOGRAPH_UNIT);
         typeMap.put(FEDORAPREFIX + SOUND_COLLECTION_MODEL, SOUND_COLLECTION);
         typeMap.put(FEDORAPREFIX + SOUND_FONOGRAPH_MODEL, SOUND_COLLECTION);

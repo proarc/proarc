@@ -62,6 +62,8 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkArticle(elm, p);
         } else if (NdkPlugin.MODEL_CARTOGRAPHIC.equals(model)) {
             return visitNdkCartographic(elm, p);
+        } else if (NdkPlugin.MODEL_GRAPHIC.equals(model)) {
+            return visitNdkGraphic(elm, p);
         } else if (NdkPlugin.MODEL_CHAPTER.equals(model)) {
             return visitNdkChapter(elm, p);
         } else if (NdkPlugin.MODEL_PICTURE.equals(model)) {
@@ -153,6 +155,11 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
 
     @Override
     public R visitNdkCartographic(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    @Override
+    public R visitNdkGraphic(DigitalObjectElement elm, P p) throws VisitorException {
         return visitChildren(elm, p);
     }
 

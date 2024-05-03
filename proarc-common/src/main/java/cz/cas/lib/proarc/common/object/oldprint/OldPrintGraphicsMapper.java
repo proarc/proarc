@@ -97,6 +97,6 @@ public class OldPrintGraphicsMapper extends RdaNdkMapper {
     }
 
     protected void addGenre(ModsDefinition mods) {
-        MapperUtils.addGenre(mods, Const.GENRE_GRAPHICS);
+        MapperUtils.addGenre(mods, Const.GENRE_GRAPHIC);
     }
 }
