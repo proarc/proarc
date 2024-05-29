@@ -128,7 +128,7 @@ public class IndexerResourceV1 {
             processFile(feeder, storage, rootFile, rebuildIndex);
             LOG.log(Level.INFO, "Indexed time: " + (System.currentTimeMillis() - start) / 1000 + " s, object count " + filesCount);
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Error in processing file: ", ex);
+            LOG.log(Level.SEVERE, "Error in files!", ex);
         } finally {
             if (!errors.toString().isEmpty()) {
                 LOG.severe("Nepodarilo se zaindexovat: \n" + errors.toString());
@@ -206,8 +206,8 @@ public class IndexerResourceV1 {
                         }
                     }
                 }
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Error in proccesing file: " + file.getAbsolutePath(), e);
+            } catch (Throwable throwable) {
+                LOG.log(Level.SEVERE, "Error in proccesing file: " + file.getAbsolutePath(), throwable);
             }
         }
     }

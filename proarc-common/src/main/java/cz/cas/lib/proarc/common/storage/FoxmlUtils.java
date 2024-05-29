@@ -25,6 +25,7 @@ import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.StateType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.Closeable;
 import java.io.IOException;
@@ -359,6 +360,10 @@ public final class FoxmlUtils {
             throw new IllegalArgumentException("Invalid PID format: '" + pid + "'!");
         }
         return pid.substring(PID_PREFIX.length());
+    }
+
+    public static String identifierAsPid(IdentifierDefinition identifier) {
+        return identifier == null ? null : (identifier.getType() + ":" + identifier.getValue());
     }
 
     /**

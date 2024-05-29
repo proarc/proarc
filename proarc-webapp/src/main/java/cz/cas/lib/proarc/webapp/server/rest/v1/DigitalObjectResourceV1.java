@@ -36,6 +36,7 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.mods.AuthorityMetadataInjector;
 import cz.cas.lib.proarc.common.mods.MetadataInjector;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -89,6 +90,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
@@ -116,6 +118,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
@@ -134,6 +137,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -174,6 +178,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -295,6 +300,8 @@ public class DigitalObjectResourceV1 {
         if (modelId == null || !models.contains(modelId)) {
             throw RestException.plainBadRequest(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
         }
+        xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
+
         if (pid != null) {
             boolean invalid = pid.length() < 5;
             try {
@@ -309,10 +316,11 @@ public class DigitalObjectResourceV1 {
                 return SmartGwtResponse.<SearchViewItem>asError().error(
                         DigitalObjectResourceApi.DIGITALOBJECT_PID, "Invalid PID!").build();
             }
+        } else {
+            if (xmlMetadata != null) {
+                pid = FoxmlUtils.identifierAsPid(ResolverUtils.getIdentifier("uuid", ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xmlMetadata)))));
+            }
         }
-
-        xmlMetadata = (xmlMetadata == null || xmlMetadata.isEmpty() || "null".equals(xmlMetadata)) ? null : xmlMetadata;
-
 
         LOG.log(Level.FINE, "model: {0}, pid: {3}, parent: {2}, XML: {1}",
                 new Object[]{modelId, xmlMetadata, parentPid, pid});
@@ -4270,7 +4278,13 @@ public class DigitalObjectResourceV1 {
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
                 fobject = FedoraStorage.getInstance(appConfig).find(pid);
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                fobject = AkubraStorage.getInstance(akubraConfiguration).find(pid);
+                AkubraStorage storage = AkubraStorage.getInstance(akubraConfiguration);
+                fobject = storage.find(pid);
+                SolrSearchView solrSearch = storage.getSearch();
+                List<SearchViewItem> items = solrSearch.find(Collections.singletonList(pid));
+                if (items != null && items.size() > 0) {
+                    fobject.setModel(items.get(0).getModel());
+                }
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }

@@ -1,0 +1,11 @@
+GET {{proarcUrl}}/rest/v2/workflow/mods/plain?jobId=34&MetaModelRecord=model%3Andkmonographtitle
+
+
+### LOGIN
+POST {{proarcUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+###

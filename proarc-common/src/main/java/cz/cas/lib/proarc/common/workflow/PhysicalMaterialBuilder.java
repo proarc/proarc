@@ -16,27 +16,36 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
-import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import java.io.IOException;
+import java.io.StringReader;
+import java.math.BigDecimal;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.IOException;
-import java.io.StringReader;
-import java.math.BigDecimal;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -72,6 +81,9 @@ class PhysicalMaterialBuilder {
 
     public PhysicalMaterialBuilder setMetadata(String modsXml, String model) {
         try {
+            if (modsXml == null || modsXml.isEmpty()) {
+                modsXml = createDefaultMods(model);
+            }
             return setMetadataImpl(modsXml, model);
         } catch (Exception ex) {
             StringBuilder sb = new StringBuilder("Cannot set metadata!");
@@ -80,6 +92,35 @@ class PhysicalMaterialBuilder {
             }
             throw new IllegalStateException(sb.toString(), ex);
         }
+    }
+
+    private String createDefaultMods(String modelId) {
+        String pid = FoxmlUtils.createPid();
+        ModsDefinition mods = ModsStreamEditor.defaultMods(pid);
+        mods = setRules(mods);
+
+        NdkMapper.Context context = new NdkMapper.Context(pid);
+
+        NdkMapper mapper = NdkMapper.get(modelId);
+        mapper.createMods(mods, context);
+
+        return ModsUtils.toXml(mods, true);
+
+    }
+
+    private ModsDefinition setRules(ModsDefinition mods) {
+        try {
+            AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
+            StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
+            String rules = config.getRules();
+            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+            RecordInfoDefinition recordInfo = new RecordInfoDefinition();
+            recordInfo.getDescriptionStandard().add(0, descriptionStandard);
+            mods.getRecordInfo().add(0, recordInfo);
+        } catch (AppConfigurationException ex) {
+            ex.printStackTrace();
+        }
+        return mods;
     }
 
     public PhysicalMaterialBuilder setRdczId(BigDecimal rdczId) {

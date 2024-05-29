@@ -29,25 +29,6 @@ import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
-import cz.cas.lib.proarc.common.storage.AesEditor;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.LocalStorage;
-import cz.cas.lib.proarc.common.storage.MixEditor;
-import cz.cas.lib.proarc.common.storage.PageView;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.SearchView;
-import cz.cas.lib.proarc.common.storage.SearchViewItem;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -73,6 +54,25 @@ import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.process.imports.InputUtils;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.PageView;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
@@ -90,7 +90,6 @@ import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
 import cz.cas.lib.proarc.mods.GenreDefinition;
-import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.premis.ObjectIdentifierComplexType;
@@ -271,7 +270,7 @@ public class FileReader {
 
         String model = mapModel(divType, parentModel, Genre.NONE);
 
-        String pid = identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
+        String pid = FoxmlUtils.identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
         if (pid == null) {
             pid = FoxmlUtils.createPid();
         }
@@ -395,7 +394,7 @@ public class FileReader {
 
         String model = mapModel(divType, parentModel, specialGenre);
 
-        String pid = identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
+        String pid = FoxmlUtils.identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
         if (pid == null) {
             pid = FoxmlUtils.createPid();
         }
@@ -577,7 +576,7 @@ public class FileReader {
                 }
             } else {
                 LOG.info("Using mods from mets for page " + pageNumber);
-                pid = identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
+                pid = FoxmlUtils.identifierAsPid(ResolverUtils.getIdentifier("uuid", mods));
             }
 
             try {
@@ -656,10 +655,6 @@ public class FileReader {
             }
         }
         return null;
-    }
-
-    private String identifierAsPid(IdentifierDefinition identifier) {
-        return identifier.getType() + ":" + identifier.getValue();
     }
 
     private void createFiles(LocalStorage.LocalObject localObject, DivType pageDiv, ImportOptions ctx) throws Exception {

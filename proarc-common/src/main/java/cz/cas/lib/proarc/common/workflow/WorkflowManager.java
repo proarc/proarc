@@ -28,6 +28,8 @@ import cz.cas.lib.proarc.common.dao.WorkflowParameterDao;
 import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
@@ -66,7 +68,9 @@ import cz.cas.lib.proarc.common.workflow.profile.TaskDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -77,6 +81,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.lang.StringUtils;
 
 import static cz.cas.lib.proarc.common.sql.DbUtils.close;
@@ -261,7 +266,13 @@ public class WorkflowManager {
                 throw new WorkflowException("Already connected digital material").addUnexpectedError();
             }
 
-            handler.setMetadataXml(view.getMetadata());
+            String mods = view.getMetadata();
+            handler.setMetadataXml(mods);
+
+            if (handler.getPid() == null && mods != null && !mods.isEmpty()) {
+                String pid = FoxmlUtils.identifierAsPid(ResolverUtils.getIdentifier("uuid", ModsUtils.unmarshalModsType(new StreamSource(new StringReader(mods)))));
+                handler.setPid(pid);
+            }
             SearchViewItem items = handler.createDigitalObject(createObject, validation);
             digitalMaterial.setPid(items.getPid());
             updateMaterial(digitalMaterial, tx);
