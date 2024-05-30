@@ -256,7 +256,7 @@ public class BatchManager {
             for (BatchView batchView : result) {
                 batchView.setPageCount(batchView.getEstimateItemNumber() != null ? batchView.getEstimateItemNumber() : 0);
                 batchView.setParentPid("SECRET");
-                batchView.setProfileId("SECRET");
+//                batchView.setProfileId("SECRET");
                 batchView.setLog("SECRET");
             }
             if (user.getRole() == null || user.getRole().length() == 0 || user.getRole().equals(roleUser)) {
