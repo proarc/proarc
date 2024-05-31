@@ -3,7 +3,11 @@ POST http://localhost:8081/proarc/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+###
+
+GET http://localhost:8081/proarc/rest/v2/object/streamprofile?pid=uuid%3A3aa95cfd-ec72-4f44-8e78-21edb336cb8f
 
 ###
 

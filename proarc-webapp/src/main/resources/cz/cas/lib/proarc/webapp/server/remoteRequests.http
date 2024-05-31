@@ -81,7 +81,7 @@ POST {{proarcRemoteUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### UPDATE VERBIS RECORD
 POST {{proarcRemoteUrl}}/rest/v2/object/updateCatalogRecord

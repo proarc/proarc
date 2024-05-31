@@ -18,9 +18,11 @@ package cz.cas.lib.proarc.common.object;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.process.external.GenericExternalProcess;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
@@ -58,6 +60,8 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.configuration.Configuration;
 
 import static cz.cas.lib.proarc.common.device.DeviceRepository.getMixDescriptionEditor;
 import static cz.cas.lib.proarc.common.storage.BinaryEditor.NDK_ARCHIVAL_ID;
@@ -216,6 +220,9 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                     //throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
                     InputStream inputStream = loader.readStream();
                     if (inputStream == null) {
+                        if ("PREVIEW".equals(dsId)) {
+                            return Response.noContent().build();
+                        }
                         throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
                     }
                     Date lastModification = new Date(loader.getLastModified());
@@ -302,8 +309,32 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
     public void setDissemination(DisseminationInput input, Storage storageType, String message) throws DigitalObjectException {
         if (RAW_ID.equals(dsId)) {
             setRawDissemination(input.getFile(), input.getFilename(), input.getMime(), storageType, message);
+            createThumbnail(input.getFile(), message);
         } else {
             throw new UnsupportedOperationException(dsId);
+        }
+    }
+
+    private void createThumbnail(File inputFile, String message) throws DigitalObjectException {
+        Configuration thumbConf = getConfig().getImportConfiguration().getThumbnailProcessor();
+        if (thumbConf != null && !thumbConf.isEmpty()) {
+            GenericExternalProcess thumbProc = new GenericExternalProcess(thumbConf)
+                    .addInputFile(inputFile)
+                    .addOutputFile(new File(inputFile.getAbsolutePath() + ".jpg"));
+            thumbProc.run();
+            if (thumbProc.isOk()) {
+                setDsDissemination(BinaryEditor.THUMB_ID, thumbProc.getOutputFile(),
+                        BinaryEditor.THUMB_LABEL, BinaryEditor.IMAGE_JPEG, message);
+            }
+        }
+    }
+
+    private AppConfiguration getConfig() throws DigitalObjectException {
+        try {
+            return AppConfigurationFactory.getInstance().defaultInstance();
+        } catch (AppConfigurationException ex) {
+            throw new DigitalObjectException(handler.getFedoraObject().getPid(), null, dsId,
+                    "Broken configuration! ", ex);
         }
     }
 

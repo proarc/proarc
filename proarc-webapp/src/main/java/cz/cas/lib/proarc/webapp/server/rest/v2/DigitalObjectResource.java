@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
@@ -762,6 +763,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             ProArcObject fo = findFedoraObject(pid, batchId, true);
             List<DatastreamProfile> profiles = fo.getStreamProfile(dsId);
             ArrayList<DatastreamResult> result = new ArrayList<DatastreamResult>(profiles.size());
+            if (fo.getModel() != null && BornDigitalModsPlugin.MODEL_ARTICLE.equals(fo.getModel())) {
+                profiles = fixProfiles(profiles);
+            }
             for (DatastreamProfile profile : profiles) {
                 // filter digital contents
                 String profileDsId = profile.getDsID();
@@ -803,6 +807,16 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
         }
+    }
+
+    private List<DatastreamProfile> fixProfiles(List<DatastreamProfile> profiles) {
+        List<DatastreamProfile> newList = new ArrayList<>();
+        for (DatastreamProfile profile : profiles) {
+            if (!"PREVIEW".equals(profile.getDsID())) {
+                newList.add(profile);
+            }
+        }
+        return newList;
     }
 
     @GET

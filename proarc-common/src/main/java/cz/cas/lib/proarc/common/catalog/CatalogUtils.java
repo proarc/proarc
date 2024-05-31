@@ -9,6 +9,8 @@ import cz.cas.lib.proarc.mods.IssuanceDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
+import cz.cas.lib.proarc.mods.NamePartDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
@@ -99,6 +101,7 @@ public class CatalogUtils {
         repairLocation(mods);
         addBrackets2OriginInfo(mods);
         repairOriginInfo(mods);
+        repairAuthors(mods);
         List<String> couples = new ArrayList<>();
         int updateNode = 0;
         int nodesCount = 0;
@@ -127,6 +130,20 @@ public class CatalogUtils {
         fixOriginInfoDateIssued(mods);
         modsAsString = ModsUtils.toXml(mods, true);
         return modsAsString.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static void repairAuthors(ModsDefinition mods) {
+        ListIterator<NameDefinition> nameIterator = mods.getName().listIterator();
+        while (nameIterator.hasNext()) {
+            NameDefinition name = nameIterator.next();
+            ListIterator<NamePartDefinition> namePartIterator = name.getNamePart().listIterator();
+            while (namePartIterator.hasNext()) {
+                NamePartDefinition namePart = namePartIterator.next();
+                if (namePart.getValue() == null || namePart.getValue().isEmpty()) {
+                    namePartIterator.remove();
+                }
+            }
+        }
     }
 
     private static void addBrackets2OriginInfo(ModsDefinition mods) {

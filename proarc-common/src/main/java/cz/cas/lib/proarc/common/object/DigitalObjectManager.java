@@ -295,6 +295,17 @@ public class DigitalObjectManager {
             this.message = message;
         }
 
+        public String getPid() {
+            return pid;
+        }
+
+        public void setPid(String pid) {
+            if (pid != null) {
+                checkPid(pid);
+                this.pid = pid;
+            }
+        }
+
         public void setMetadataXml(String xml) {
             this.xml = xml;
         }

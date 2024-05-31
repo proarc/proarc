@@ -935,13 +935,18 @@ public class AkubraStorage {
                                 ContentLocationType contentLocationType = datastreamVersionType.getContentLocation();
                                 if (contentLocationType != null) {
                                     String ref = contentLocationType.getREF();
-                                    if (ref != null) {
+                                    if ("URL".equals(contentLocationType.getTYPE())) { // bdmArticle has URL link to icons in Fedora, in Akubra we have to ignore it - http://local.fedora.server/fedora/get/icon:application_pdf/PREVIEW
+                                        this.data = null;
+                                        break;
+                                    } else {
+                                        if (ref != null) {
 
-                                        InputStream inputStream = this.manager.retrieveDatastream(ref);
-                                        if (inputStream != null) {
-                                            this.data = new AkubraXmlStreamEditor.DatastreamContent(IOUtils.toByteArray(inputStream));
-                                            inputStream.close();
-                                            break;
+                                            InputStream inputStream = this.manager.retrieveDatastream(ref);
+                                            if (inputStream != null) {
+                                                this.data = new AkubraXmlStreamEditor.DatastreamContent(IOUtils.toByteArray(inputStream));
+                                                inputStream.close();
+                                                break;
+                                            }
                                         }
                                     }
                                 }
