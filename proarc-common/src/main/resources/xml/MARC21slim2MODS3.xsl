@@ -4737,7 +4737,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     </xsl:attribute>
                 </xsl:if>
             <!--   <xsl:call-template name="createNameAuthorityIdFrom100_700"/>-->
-                <xsl:call-template name="nameABCDE"/>
+                <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
                 <xsl:call-template name="role"/>
                 <xsl:call-template name="nameIdentifier"/>
