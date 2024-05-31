@@ -4516,31 +4516,29 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
     <!-- 130 -->
     <xsl:template name="createTitleInfoFrom130">
-        <xsl:for-each select="marc:datafield[@tag='130'][@ind2!='2']">
-            <titleInfo type="uniform">
-                <title>
-                    <xsl:variable name="str">
-                        <xsl:for-each select="marc:subfield">
-                            <xsl:if test="(contains('s',@code))">
-                                <xsl:value-of select="text()"/>
-                                <xsl:text> </xsl:text>
-                            </xsl:if>
-                            <xsl:if
-                                test="(contains('adfklmors',@code) and (not(../marc:subfield[@code='n' or @code='p']) or (following-sibling::marc:subfield[@code='n' or @code='p'])))">
-                                <xsl:value-of select="text()"/>
-                                <xsl:text> </xsl:text>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </xsl:variable>
-                    <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString">
-                            <xsl:value-of select="substring($str,1,string-length($str)-1)"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-                </title>
-                <xsl:call-template name="part"/>
-            </titleInfo>
-        </xsl:for-each>
+        <titleInfo type="uniform">
+            <xsl:call-template name="xxx880"/>
+            <title>
+                <xsl:variable name="str">
+                    <xsl:for-each select="marc:subfield">
+                        <xsl:if test="(contains('s',@code))">
+                            <xsl:value-of select="text()"/>
+                            <xsl:text> </xsl:text>
+                        </xsl:if>
+                        <xsl:if test="(contains('adfklmors',@code) and (not(../marc:subfield[@code='n' or @code='p']) or (following-sibling::marc:subfield[@code='n' or @code='p'])))">
+                            <xsl:value-of select="text()"/>
+                            <xsl:text> </xsl:text>
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:variable>
+                <xsl:call-template name="chopPunctuation">
+                    <xsl:with-param name="chopString">
+                        <xsl:value-of select="substring($str,1,string-length($str)-1)"/>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </title>
+            <xsl:call-template name="part"/>
+        </titleInfo>
     </xsl:template>
     <xsl:template name="createTitleInfoFrom730">
         <titleInfo type="uniform">
