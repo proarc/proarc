@@ -560,9 +560,5 @@
     <copyField source="crossrefExport" dest="crossrefExport_str" maxChars="256"/>
     <copyField source="device" dest="device_str" maxChars="256"/>
     <copyField source="members" dest="members_str" maxChars="256"/>
-    <copyField source="page_index" dest="page_index_str" maxChars="256"/>
-    <copyField source="page_number" dest="page_number_str" maxChars="256"/>
-    <copyField source="page_type" dest="page_type_str" maxChars="256"/>
-    <copyField source="urn_nbn_number" dest="urn_nbn_number_str" maxChars="256"/>
     <copyField source="mods" dest="mods_str" maxChars="256"/>
 </schema>
