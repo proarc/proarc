@@ -95,7 +95,8 @@ public class UserResource extends UserResourceV1 {
             @FormParam(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION) Boolean lockObjectFuction,
             @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
-            @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction
+            @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
+            @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction
     ) {
         Locale locale = session.getLocale(httpHeaders);
         try {
@@ -112,7 +113,7 @@ public class UserResource extends UserResourceV1 {
         }
         try {
             return super.add(userName, passwd, surname, forename, email, organization, role, changeModelFunction,
-                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction);
+                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -134,7 +135,8 @@ public class UserResource extends UserResourceV1 {
             @FormParam(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION) Boolean lockObjectFuction,
             @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
-            @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction
+            @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
+            @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction
     ) {
         try {
             checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN));
@@ -143,7 +145,7 @@ public class UserResource extends UserResourceV1 {
         }
         try {
             return super.update(userId, passwd, surname, forename, email, organization, role, changeModelFunction,
-                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction);
+                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

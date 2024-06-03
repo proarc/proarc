@@ -52,6 +52,7 @@ public class UserProfile {
     private Boolean unlockObjectFunction;
     private Boolean importToProdFunction;
     private Boolean czidloFunction;
+    private Boolean wfDeleteJobFunction;
     private Date created;
     private Date lastLogin;
     private String status;
@@ -316,6 +317,14 @@ public class UserProfile {
 
     public void setCzidloFunction(Boolean czidloFunction) {
         this.czidloFunction = czidloFunction;
+    }
+
+    public Boolean getWfDeleteJobFunction() {
+        return wfDeleteJobFunction;
+    }
+
+    public void setWfDeleteJobFunction(Boolean wfDeleteJobFunction) {
+        this.wfDeleteJobFunction = wfDeleteJobFunction;
     }
 
     @Override

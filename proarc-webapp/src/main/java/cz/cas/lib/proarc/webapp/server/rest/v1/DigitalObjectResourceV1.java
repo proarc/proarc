@@ -4147,6 +4147,9 @@ public class DigitalObjectResourceV1 {
             if (UserRole.PERMISSION_CZIDLO_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasCzidloFunction())) {
                 return true;
             }
+            if (UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getWfDeleteJobFunction())) {
+                return true;
+            }
         }
         return false;
     }

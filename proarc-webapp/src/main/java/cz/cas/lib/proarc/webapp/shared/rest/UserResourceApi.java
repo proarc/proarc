@@ -53,6 +53,7 @@ public final class UserResourceApi {
     public static final String USER_RUN_UNLOCK_OBJECT_FUNCTION = "unlockObjectFunction";
     public static final String USER_IMPORT_TO_PROD_FUNCTION = "importToProdFunction";
     public static final String USER_CZIDLO_FUNCTION = "czidloFunction";
+    public static final String USER_WF_DELETE_JOB_FUNCTION = "wfDeleteJobFunction";
     public static final String USER_START_ROW_PARAM = "_startRow";
 
 }

@@ -124,6 +124,10 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract Boolean getCzidloFunction();
 
+    @XmlElement(name = UserResourceApi.USER_WF_DELETE_JOB_FUNCTION)
+    @Override
+    public abstract Boolean getWfDeleteJobFunction();
+
     @XmlTransient
     @Override
     public abstract URI getImportFolder();
