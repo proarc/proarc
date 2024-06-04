@@ -184,6 +184,13 @@ class EmpireUtils {
         return cmd;
     }
 
+    public static DBCommand addWhereIsIn(DBCommand cmd, DBColumnExpr column, List range) {
+        if (range != null && range.size() > 0) {
+            cmd.where(column.in(range));
+        }
+        return cmd;
+    }
+
     /**
      *
      * @param column a DB to filter
