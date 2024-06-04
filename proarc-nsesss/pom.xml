@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>4.1.4-SNAPSHOT+VISK24</version>
+        <version>4.1.4-SNAPSHOT+VISK24-beta</version>
     </parent>
 
     <artifactId>proarc-nsesss</artifactId>
