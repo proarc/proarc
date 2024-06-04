@@ -29,15 +29,15 @@ import cz.cas.lib.proarc.common.dao.WorkflowTaskDao;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
@@ -75,6 +75,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -853,4 +854,25 @@ public class WorkflowManager {
         return map;
     }
 
+    public List<BigDecimal> findMainJobId(List<JobView> jobs) {
+        LinkedHashSet<BigDecimal> ids = new LinkedHashSet<>();
+        for (JobView job : jobs) {
+            if (job.getParentId() == null) {
+                ids.add(job.getId());
+            } else {
+                ids.add(getParentJobId(getJob(job.getId())));
+            }
+        }
+        return new ArrayList<>(ids);
+
+    }
+
+    private BigDecimal getParentJobId(Job job) {
+        if (job.getParentId() == null) {
+            return job.getId();
+        }
+
+        return getParentJobId(getJob(job.getParentId()));
+
+    }
 }
