@@ -192,12 +192,30 @@ public class WorkflowResourceV1 {
         filter.setDeviceId(deviceId);
         filter.setPid(pid);
         try {
-            List<JobView> jobs = workflowManager.findJob(filter);
-            int resultSize = jobs.size();
-            int endRow = startRow + resultSize;
-            int total = (resultSize != pageSize) ? endRow : endRow + 1;
-            return new SmartGwtResponse<JobView>(
-                    SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
+            List<JobView> jobs;
+            jobs = workflowManager.findJob(filter);
+            if (filter.getParentId() != null) {
+                int resultSize = jobs.size();
+                int endRow = startRow + resultSize;
+                int total = (resultSize != pageSize) ? endRow : endRow + 1;
+                return new SmartGwtResponse<JobView>(
+                        SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
+            } else {
+                List<BigDecimal> jobsId = workflowManager.findMainJobId(jobs);
+                filter = new JobFilter();
+                filter.setLocale(session.getLocale(httpHeaders));
+                filter.setMaxCount(pageSize);
+                filter.setOffset(startRow);
+                filter.setSortBy(sortBy);
+
+                filter.setIds(jobsId);
+                jobs = workflowManager.findJob(filter);
+
+                int resultSize = jobs.size();
+                int endRow = startRow + resultSize;
+                int total = (resultSize != pageSize) ? endRow : endRow + 1;
+                return new SmartGwtResponse<JobView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
+            }
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
             return SmartGwtResponse.asError(ex);
