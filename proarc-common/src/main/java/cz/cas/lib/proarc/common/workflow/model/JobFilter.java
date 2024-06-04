@@ -98,6 +98,7 @@ public class JobFilter {
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_OFFSET)
     private int offset = 0;
 
+    private List<BigDecimal> ids;
 
     private int maxCount = 100;
     private Locale locale;
@@ -346,5 +347,16 @@ public class JobFilter {
 
     public void setDeviceId(String deviceId) {
         this.deviceId = deviceId;
+    }
+
+    public void setIds(List<BigDecimal> ids) {
+        this.ids = ids;
+        if (ids != null && !ids.isEmpty()) {
+            this.id = ids.get(0);
+        }
+    }
+
+    public List<BigDecimal> getIds() {
+        return ids;
     }
 }

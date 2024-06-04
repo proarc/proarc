@@ -19,6 +19,8 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.user.Permissions;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
@@ -31,6 +33,8 @@ import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.WorkflowResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -41,6 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -54,6 +59,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  * It allows to manage workflow remotely.
@@ -65,11 +72,16 @@ public class WorkflowResource extends WorkflowResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(WorkflowResource.class.getName());
 
+    private final UserProfile user;
+    private final SessionContext session;
+
     public WorkflowResource(
             @Context HttpHeaders httpHeaders,
             @Context HttpServletRequest httpRequest
     ) throws AppConfigurationException {
         super(httpHeaders, httpRequest);
+        session = SessionContext.from(httpRequest);
+        user = session.getUser();
     }
 
     @GET
@@ -149,6 +161,23 @@ public class WorkflowResource extends WorkflowResourceV1 {
         }
         try {
             return super.updateJob(id, label, note, financed, userId, parentId, priority, state, timestamp);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @DELETE
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<JobView> deleteObject(
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) List<BigDecimal> ids) {
+
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        try {
+            return super.deleteObject(ids);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

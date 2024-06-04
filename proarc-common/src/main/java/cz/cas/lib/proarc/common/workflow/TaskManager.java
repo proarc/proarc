@@ -108,6 +108,34 @@ public class TaskManager {
         }
     }
 
+    public void delete(BigDecimal jobId) {
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
+        WorkflowMaterialDao materialDao = daoFactory.createWorkflowMaterialDao();
+        WorkflowParameterDao parameterDao = daoFactory.createWorkflowParameterDao();
+        taskDao.setTransaction(tx);
+        materialDao.setTransaction(tx);
+        parameterDao.setTransaction(tx);
+
+        TaskFilter taskFilter = new TaskFilter();
+        taskFilter.setJobId(jobId);
+        List<TaskView> tasks = taskDao.view(taskFilter);
+        for (TaskView task : tasks) {
+
+            parameterDao.remove(task.getId());
+
+            MaterialFilter materialFilter = new MaterialFilter();
+            materialFilter.setTaskId(task.getId());
+            List<MaterialView> materials = materialDao.view(materialFilter);
+
+            for (MaterialView materialView : materials) {
+                materialDao.delete(materialView.getId());
+            }
+        }
+        taskDao.delete(jobId);
+        tx.commit();
+    }
+
     private <T extends Task> List<T> sortJobTaskByBlockers(JobDefinition job, List<T> tasks) {
         ArrayList<T> sorted = new ArrayList<T>(tasks.size());
         for (String sortTaskName : job.getTaskNamesSortedByBlockers()) {
@@ -417,5 +445,4 @@ public class TaskManager {
         taskDao.update(task);
         return task;
     }
-
 }

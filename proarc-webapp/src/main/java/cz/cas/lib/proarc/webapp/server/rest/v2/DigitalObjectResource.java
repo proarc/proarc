@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.common.storage.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.Permissions;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -38,6 +39,7 @@ import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
 import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -87,6 +89,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAME
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_SAME_PID_AND_PARENT;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  * Resource to manage digital objects.
@@ -110,6 +113,9 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectResource.class.getName());
 
+    private final UserProfile user;
+    private final SessionContext session;
+
     public DigitalObjectResource(
             @Context Request request,
             @Context SecurityContext securityCtx,
@@ -118,6 +124,8 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @Context HttpServletRequest httpRequest
     ) throws AppConfigurationException {
         super(request, securityCtx, httpHeaders, uriInfo, httpRequest);
+        session = SessionContext.from(httpRequest);
+        user = session.getUser();
     }
 
     @POST
@@ -1303,7 +1311,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
@@ -1326,7 +1334,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
@@ -1349,7 +1357,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
@@ -1368,7 +1376,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (isLocked(pids)) {
@@ -1392,7 +1400,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (isLocked(pids)) {
@@ -1419,7 +1427,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> lockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1442,7 +1450,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> unlockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1509,7 +1517,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changePageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1536,7 +1544,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1562,7 +1570,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changePageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1588,7 +1596,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeSttPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1614,7 +1622,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeSttPageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1640,7 +1648,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkPageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1666,7 +1674,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeClippingsVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1692,7 +1700,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToClippingsVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1718,7 +1726,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographTitleToClippingsTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1745,7 +1753,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeClippingsTitleToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1771,7 +1779,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4PeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1797,7 +1805,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1823,7 +1831,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4PeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1849,7 +1857,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1875,7 +1883,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4MonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1901,7 +1909,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeK4MonographUnitToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1927,7 +1935,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographTitleToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1953,7 +1961,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -1979,7 +1987,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2005,7 +2013,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2031,7 +2039,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMusicsheetToOldprintMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2057,7 +2065,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeSttMusicsheetToNdkMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2084,7 +2092,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkChapterToOldprintChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2110,7 +2118,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldprintChapterToNdkChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2136,7 +2144,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkPictureToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2162,7 +2170,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldprintGraphicToNdkPicture(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2188,7 +2196,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkCartographicToOldprintCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2214,7 +2222,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldprintCartographicToNdkCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2240,7 +2248,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2266,7 +2274,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2292,7 +2300,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeNdkMonographSupplementToOldPrintSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2318,7 +2326,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldPrintSupplementToNdkMonographSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2344,7 +2352,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2370,7 +2378,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldPrintGraphicToOldPrintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2396,7 +2404,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintMusicSheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
@@ -2444,7 +2452,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
@@ -2465,7 +2473,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pid == null || pid.isEmpty()) {
@@ -2489,7 +2497,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pid == null || pid.isEmpty()) {
@@ -2514,7 +2522,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
     ) {
 
-        if (!hasPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 

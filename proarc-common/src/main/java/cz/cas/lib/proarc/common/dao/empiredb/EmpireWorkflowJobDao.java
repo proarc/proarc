@@ -245,4 +245,14 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         }
     }
 
+    @Override
+    public void delete(BigDecimal jobId) {
+        if (jobId == null) {
+            throw new IllegalArgumentException("Unsupported missing jobId!");
+        }
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableWorkflowJob.id.is(jobId));
+        db.executeDelete(db.tableWorkflowJob, cmd, c);
+    }
 }

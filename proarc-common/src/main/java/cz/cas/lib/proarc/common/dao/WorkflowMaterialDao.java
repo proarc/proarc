@@ -44,4 +44,6 @@ public interface WorkflowMaterialDao extends Dao {
 
     Job findJob(Material m);
 
+    void delete(BigDecimal materialId);
+
 }

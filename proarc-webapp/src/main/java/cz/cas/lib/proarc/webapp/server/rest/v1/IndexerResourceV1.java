@@ -14,7 +14,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.SolrObjectFeeder;
-import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -34,10 +33,8 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBContext;
@@ -46,6 +43,8 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
+
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 
 @Deprecated
 @Path(RestConfig.URL_API_VERSION_1 + "/" + IndexerResourceApi.PATH)
@@ -94,7 +93,7 @@ public class IndexerResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> indexObjects () throws SolrServerException, IOException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
 
         if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
@@ -235,15 +234,9 @@ public class IndexerResourceV1 {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
         }
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
 
         LOG.info("Indexing document with pid started");
         return new SmartGwtResponse<>();
-    }
-
-    private void checkPermission(String role, Permission permission, String... attributes) {
-        if (!(session.checkPermission(permission) || session.checkRole(role))) {
-            throw new WebApplicationException(Response.Status.FORBIDDEN);
-        }
     }
 }

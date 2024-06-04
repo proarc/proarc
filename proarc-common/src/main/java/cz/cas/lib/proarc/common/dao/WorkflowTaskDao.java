@@ -36,4 +36,6 @@ public interface WorkflowTaskDao extends Dao {
 
     List<TaskView> view(TaskFilter filter);
 
+    void delete(BigDecimal jobId);
+
 }

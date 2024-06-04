@@ -103,7 +103,6 @@ import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.PidResult;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.StatusEntry;
 import cz.cas.lib.proarc.common.user.Group;
-import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -194,6 +193,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAME
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNLOCKING_OBJECT_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_DONT_BE_IGNORED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_LOCKED;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 
 /**
  * Resource to manage digital objects.
@@ -2499,7 +2499,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2534,7 +2534,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
 
 
         if (isLocked(pids)) {
@@ -2585,7 +2585,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
 
         List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
         if (urnNbnValue != null && !urnNbnValue.isEmpty()) {
@@ -2632,7 +2632,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2684,7 +2684,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
 
         if (isLocked(pids)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2747,7 +2747,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -2773,7 +2773,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -2839,7 +2839,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -2874,7 +2874,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -2906,7 +2906,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -2938,7 +2938,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -2970,7 +2970,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3002,7 +3002,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3034,7 +3034,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3067,7 +3067,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3100,7 +3100,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3133,7 +3133,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3165,7 +3165,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3197,7 +3197,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3230,7 +3230,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3263,7 +3263,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3296,7 +3296,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3329,7 +3329,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3362,7 +3362,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3395,7 +3395,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3428,7 +3428,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3461,7 +3461,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3494,7 +3494,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3527,7 +3527,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3561,7 +3561,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3594,7 +3594,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3627,7 +3627,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3660,7 +3660,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3693,7 +3693,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3726,7 +3726,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3759,7 +3759,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3792,7 +3792,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3825,7 +3825,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3858,7 +3858,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3891,7 +3891,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3924,7 +3924,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3957,7 +3957,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4046,7 +4046,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException, IOException, FedoraClientException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION);
 
 
         Locale locale = session.getLocale(httpHeaders);
@@ -4066,7 +4066,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
 
         Locale locale = session.getLocale(httpHeaders);
         UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
@@ -4088,7 +4088,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
 
         Locale locale = session.getLocale(httpHeaders);
         UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
@@ -4109,49 +4109,12 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
     ) throws DigitalObjectException, JSONException, IOException {
-        checkPermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
 
         CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration, user);
         catalogRecord.update(catalogId, pid);
 
         return returnFunctionSuccess();
-    }
-
-    private void checkPermission(String role, Permission permission, String... attributes) {
-        if (!hasPermission(role, permission, attributes)) {
-            throw new WebApplicationException(Status.FORBIDDEN);
-        }
-    }
-
-    public boolean hasPermission(String role, Permission permission, String... attributes) {
-        return session.checkPermission(permission) || session.checkRole(role) || hasAttribute(attributes);
-    }
-
-    private boolean hasAttribute(String[] attributes) {
-        for (String attribute : attributes) {
-            if (UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getLockObjectFunction())) {
-                return true;
-            }
-            if (UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getUnlockObjectFunction())) {
-                return true;
-            }
-            if (UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getUpdateModelFunction())) {
-                return true;
-            }
-            if (UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getChangeModelFunction())) {
-                return true;
-            }
-            if (UserRole.PERMISSION_IMPORT_TO_PROD_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasPermissionToImportToProdFunction())) {
-                return true;
-            }
-            if (UserRole.PERMISSION_CZIDLO_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasCzidloFunction())) {
-                return true;
-            }
-            if (UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getWfDeleteJobFunction())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)

@@ -32,6 +32,8 @@ import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.user.Permissions;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
@@ -55,6 +57,7 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
@@ -76,6 +79,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -90,6 +94,8 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 
 /**
  * It allows to manage workflow remotely.
@@ -107,6 +113,7 @@ public class WorkflowResourceV1 {
     private final WorkflowManager workflowManager;
     private final WorkflowProfiles workflowProfiles;
     private final AppConfiguration appConfig;
+    private final UserProfile user;
 
     public WorkflowResourceV1(
             @Context HttpHeaders httpHeaders,
@@ -117,6 +124,7 @@ public class WorkflowResourceV1 {
         this.workflowManager = WorkflowManager.getInstance();
         this.workflowProfiles = WorkflowProfiles.getInstance();
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        this.user = session.getUser();
     }
 
     @GET
@@ -317,6 +325,35 @@ public class WorkflowResourceV1 {
             return new SmartGwtResponse<JobView>(result);
         } catch (WorkflowException ex) {
             return toError(ex, null);
+        }
+    }
+
+    @DELETE
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<JobView> deleteObject(
+//            @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) BigDecimal id
+            @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) List<BigDecimal> ids
+            ) {
+
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION);
+
+        try {
+            int pageSize = 100;
+            JobFilter filter = new JobFilter();
+            filter.setLocale(session.getLocale(httpHeaders));
+            filter.setIds(ids);
+//            filter.setIds(Collections.singletonList(id));
+            workflowManager.deleteJob(filter);
+
+            List<JobView> jobs = workflowManager.findJob(filter);
+            int resultSize = jobs.size();
+            int endRow = resultSize;
+            int total = (resultSize != pageSize) ? endRow : endRow + 1;
+            return new SmartGwtResponse<JobView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, jobs);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
         }
     }
 

@@ -215,6 +215,62 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
     }
 
     @Override
+    public void delete(BigDecimal materialId) {
+        if (materialId == null) {
+            throw new IllegalArgumentException("Unsupported missing materialId!");
+        }
+        deleteMaterialFolder(materialId);
+        deleteMaterialDigitalObject(materialId);
+        deleteMaterialPhysicalDocument(materialId);
+        deleteConnectingTableTaskMaterial(materialId);
+
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableWorkflowMaterial.id.is(materialId));
+        db.executeDelete(db.tableWorkflowMaterial, cmd, c);
+    }
+
+    public void deleteMaterialFolder(BigDecimal materialId) {
+        if (materialId == null) {
+            throw new IllegalArgumentException("Unsupported missing materialId!");
+        }
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableWorkflowFolder.materialId.is(materialId));
+        db.executeDelete(db.tableWorkflowFolder, cmd, c);
+    }
+
+    public void deleteMaterialDigitalObject(BigDecimal materialId) {
+        if (materialId == null) {
+            throw new IllegalArgumentException("Unsupported missing materialId!");
+        }
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableWorkflowDigObj.materialId.is(materialId));
+        db.executeDelete(db.tableWorkflowDigObj, cmd, c);
+    }
+
+    public void deleteMaterialPhysicalDocument(BigDecimal materialId) {
+        if (materialId == null) {
+            throw new IllegalArgumentException("Unsupported missing materialId!");
+        }
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableWorkflowPhysicalDoc.materialId.is(materialId));
+        db.executeDelete(db.tableWorkflowPhysicalDoc, cmd, c);
+    }
+
+    public void deleteConnectingTableTaskMaterial(BigDecimal materialId) {
+        if (materialId == null) {
+            throw new IllegalArgumentException("Unsupported missing materialId!");
+        }
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableWorkflowMaterialInTask.materialId.is(materialId));
+        db.executeDelete(db.tableWorkflowMaterialInTask, cmd, c);
+    }
+
+    @Override
     public void addTaskReference(Material m, Task t, Way way) {
         DBRecord r = new DBRecord();
         r.create(db.tableWorkflowMaterialInTask);

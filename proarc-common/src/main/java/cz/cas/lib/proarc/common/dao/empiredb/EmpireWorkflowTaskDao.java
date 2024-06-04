@@ -22,6 +22,12 @@ import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowTaskTable;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBJoinType;
@@ -31,12 +37,6 @@ import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  *
@@ -73,6 +73,17 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
             throw new ConcurrentModificationException(ex);
         }
         r.getBeanProperties(task);
+    }
+
+    @Override
+    public void delete(BigDecimal jobId) {
+        if (jobId == null) {
+            throw new IllegalArgumentException("Unsupported missing jobId!");
+        }
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableWorkflowTask.jobId.is(jobId));
+        db.executeDelete(db.tableWorkflowTask, cmd, c);
     }
 
     @Override

@@ -89,7 +89,6 @@ import static cz.cas.lib.proarc.common.sql.DbUtils.commit;
 import static cz.cas.lib.proarc.common.sql.DbUtils.rollback;
 
 /**
- *
  * @author Jan Pokorsky
  */
 public class WorkflowManager {
@@ -107,6 +106,7 @@ public class WorkflowManager {
     public static void setInstance(WorkflowManager instance) {
         INSTANCE = instance;
     }
+
     private final WorkflowProfiles wp;
 
     public WorkflowManager(WorkflowProfiles wp, DaoFactory daoFactory, UserManager users, AppConfiguration appConfiguration) {
@@ -281,8 +281,7 @@ public class WorkflowManager {
         } catch (ConcurrentModificationException | WorkflowException e) {
             rollback(tx, ftx);
             throw e;
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             tx.rollback();
             throw new WorkflowException("Cannot update material: " + view.getId(), t).addUnexpectedError();
         } finally {
@@ -319,7 +318,7 @@ public class WorkflowManager {
             dao.setTransaction(tx);
             Material m = dao.find(id);
             return dao.findJob(m);
-        }  finally {
+        } finally {
             tx.close();
         }
 
@@ -432,6 +431,47 @@ public class WorkflowManager {
         }
     }
 
+    public void deleteJob(JobFilter filter) throws WorkflowException {
+        if (filter.getIds() == null && !filter.getIds().isEmpty()) {
+            throw new WorkflowException("Missing ID!");
+        }
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
+        jobDao.setTransaction(tx);
+        List<BigDecimal> todeleteJobIds = new ArrayList<>();
+        try {
+            for (BigDecimal id : filter.getIds()) {
+                Job job = jobDao.find(id);
+                if (job == null) {
+                    throw new WorkflowException("Not found " + job.getId()).addJobNotFound(id);
+                } else {
+                    todeleteJobIds.add(job.getId());
+                }
+                JobFilter subjobFilter = new JobFilter();
+                subjobFilter.setParentId(job.getId());
+                List<JobView> subjobs = jobDao.view(subjobFilter);
+                for (JobView subJob : subjobs) {
+                    todeleteJobIds.add(subJob.getId());
+                }
+
+                for (BigDecimal jobId : todeleteJobIds) {
+                    tasks().delete(jobId);
+                    jobDao.delete(jobId);
+                }
+            }
+            tx.commit();
+        } catch (ConcurrentModificationException | WorkflowException t) {
+            tx.rollback();
+            throw t;
+        } catch (Throwable t) {
+            tx.rollback();
+            throw new WorkflowException("Cannot delete jobs: " + filter.getIds().toString(), t).addUnexpectedError();
+        } finally {
+            tx.close();
+        }
+    }
+
+
     public Job updateJob(Job job) throws ConcurrentModificationException, WorkflowException {
         if (job.getId() == null) {
             throw new WorkflowException("Missing ID!");
@@ -459,7 +499,7 @@ public class WorkflowManager {
                             throw new WorkflowException(
                                     String.format("Job ID:%s, open subjob ID:%s",
                                             job.getId(), subjob.getId())
-                                ).addJobBlockedWithSubjob();
+                            ).addJobBlockedWithSubjob();
                         }
                     }
                     if (job.isFinished()) {
@@ -511,7 +551,7 @@ public class WorkflowManager {
     }
 
     public Job addJob(JobDefinition jobProfile, String xml,
-            CatalogConfiguration catalog, BigDecimal rdczId, UserProfile defaultUser, AppConfiguration appConfiguration
+                      CatalogConfiguration catalog, BigDecimal rdczId, UserProfile defaultUser, AppConfiguration appConfiguration
     ) throws WorkflowException {
         Map<String, UserProfile> users = createUserMap();
         List<ModelDefinition> models = jobProfile.getModel();
@@ -557,7 +597,7 @@ public class WorkflowManager {
     }
 
     public Job addSubjob(JobDefinition jobProfile, BigDecimal parentId,
-            UserProfile defaultUser, WorkflowDefinition profiles, AppConfiguration appConfiguration
+                         UserProfile defaultUser, WorkflowDefinition profiles, AppConfiguration appConfiguration
     ) throws WorkflowException {
         Objects.requireNonNull(jobProfile, "jobProfile");
         Objects.requireNonNull(parentId, "parentId");
@@ -635,7 +675,7 @@ public class WorkflowManager {
             Integer order = 1;
             for (StepDefinition step : jobProfile.getSteps()) {
                 if (!step.isOptional()) {
-                     Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser, order++);
+                    Task task = createTask(taskDao, now, job, jobProfile, step, users, defaultUser, order++);
                     createTaskParams(paramDao, step, task);
                     createMaterials(materialDao, step, task, materialCache, physicalMaterial, appConfiguration);
                 }
@@ -652,7 +692,7 @@ public class WorkflowManager {
     }
 
     private Job createJob(WorkflowJobDao jobDao, Timestamp now, String jobLabel,
-            JobDefinition jobProfile, BigDecimal parentId, Map<String, UserProfile> users, UserProfile defaultUser
+                          JobDefinition jobProfile, BigDecimal parentId, Map<String, UserProfile> users, UserProfile defaultUser
     ) throws ConcurrentModificationException {
 
         Job job = jobDao.create().addCreated(now)
@@ -668,9 +708,9 @@ public class WorkflowManager {
     }
 
     private Task createTask(WorkflowTaskDao taskDao, Timestamp now,
-            Job job, JobDefinition jobProfile,
-            StepDefinition step,
-            Map<String, UserProfile> users, UserProfile defaultUser, Integer order
+                            Job job, JobDefinition jobProfile,
+                            StepDefinition step,
+                            Map<String, UserProfile> users, UserProfile defaultUser, Integer order
     ) throws ConcurrentModificationException {
 
         Task task = taskDao.create().addCreated(now)
@@ -708,7 +748,7 @@ public class WorkflowManager {
     }
 
     List<TaskParameter> createTaskParams(WorkflowParameterDao paramDao,
-            StepDefinition step, Task task) throws WorkflowException {
+                                         StepDefinition step, Task task) throws WorkflowException {
 
         ArrayList<TaskParameter> params = new ArrayList<TaskParameter>();
         for (SetParamDefinition setter : step.getParamSetters()) {
@@ -782,20 +822,20 @@ public class WorkflowManager {
     }
 
     static BigDecimal resolveUserId(WorkerDefinition worker,
-            Map<String, UserProfile> users, UserProfile defaultUser,
-            boolean emptyUserAsDefault) {
+                                    Map<String, UserProfile> users, UserProfile defaultUser,
+                                    boolean emptyUserAsDefault) {
 
         UserProfile up = resolveUser(worker, users, defaultUser, emptyUserAsDefault);
         return up != null ? new BigDecimal(up.getId()) : null;
     }
 
     private static UserProfile resolveUser(WorkerDefinition worker,
-            Map<String, UserProfile> users, UserProfile defaultUser,
-            boolean emptyUserAsDefault) {
+                                           Map<String, UserProfile> users, UserProfile defaultUser,
+                                           boolean emptyUserAsDefault) {
 
         String username;
         if (worker != null && worker.getActual()) {
-            username = defaultUser == null ? null: defaultUser.getUserName();
+            username = defaultUser == null ? null : defaultUser.getUserName();
         } else {
             username = worker == null ? null : worker.getUsername();
         }

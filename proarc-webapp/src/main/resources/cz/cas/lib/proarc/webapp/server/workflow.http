@@ -2,10 +2,14 @@ GET {{proarcUrl}}/rest/v2/workflow/mods/plain?jobId=34&MetaModelRecord=model%3An
 
 
 ### LOGIN
-POST {{proarcUrl}}/proarclogin
+POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username= {{proarcUsername}}&j_password={{proarcPwd}}
 
-###
+### DELETE JOB
+DELETE {{proarcLocalHostUrl}}/rest/v2/workflow?id=16
+Content-Type: application/json
+
+
