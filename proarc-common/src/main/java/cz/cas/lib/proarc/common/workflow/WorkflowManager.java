@@ -143,7 +143,7 @@ public class WorkflowManager {
                 if (profile != null) {
                     job.setProfileLabel(profile.getTitle(lang, profile.getName()));
                     job.setProfileHint(profile.getHint(lang, null));
-                    if (profile.getModel() != null && profile.getModel().size() > 0) {
+                    if ((job.getModel() == null || job.getModel().isEmpty()) && (profile.getModel() != null && profile.getModel().size() > 0)) {
                         job.setModel(profile.getModel().get(0).getName());
                     }
                 } else {
@@ -558,14 +558,15 @@ public class WorkflowManager {
         return new TaskManager(daoFactory, wp, this);
     }
 
-    public Job addJob(JobDefinition jobProfile, String xml,
+    public Job addJob(JobDefinition jobProfile, String xml, String model,
                       CatalogConfiguration catalog, BigDecimal rdczId, UserProfile defaultUser, AppConfiguration appConfiguration
     ) throws WorkflowException {
         Map<String, UserProfile> users = createUserMap();
-        List<ModelDefinition> models = jobProfile.getModel();
-        String model = null;
-        if (models.size() > 0) {
-            model = models.get(0).getName();
+        if (model == null || model.isEmpty()) {
+            List<ModelDefinition> models = jobProfile.getModel();
+            if (models.size() > 0) {
+                model = models.get(0).getName();
+            }
         }
         PhysicalMaterial physicalMaterial = new PhysicalMaterialBuilder()
                 .setCatalog(catalog).setMetadata(xml, model).setRdczId(rdczId)
@@ -583,7 +584,7 @@ public class WorkflowManager {
         String jobLabel = StringUtils.defaultIfEmpty(physicalMaterial.getLabel(), "?");
 
         try {
-            Job job = createJob(jobDao, now, jobLabel, jobProfile, null, users, defaultUser);
+            Job job = createJob(jobDao, now, jobLabel, jobProfile, model,null, users, defaultUser);
             Map<String, Material> materialCache = new HashMap<>();
             Integer order = 1;
             for (StepDefinition step : jobProfile.getSteps()) {
@@ -604,14 +605,13 @@ public class WorkflowManager {
         }
     }
 
-    public Job addSubjob(JobDefinition jobProfile, BigDecimal parentId,
+    public Job addSubjob(JobDefinition jobProfile, BigDecimal parentId, String model,
                          UserProfile defaultUser, WorkflowDefinition profiles, AppConfiguration appConfiguration
     ) throws WorkflowException {
         Objects.requireNonNull(jobProfile, "jobProfile");
         Objects.requireNonNull(parentId, "parentId");
         Objects.requireNonNull(profiles, "profiles");
         Map<String, UserProfile> users = createUserMap();
-        PhysicalMaterial physicalMaterial = null;
         Transaction tx = daoFactory.createTransaction();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
         WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
@@ -622,6 +622,16 @@ public class WorkflowManager {
         paramDao.setTransaction(tx);
         materialDao.setTransaction(tx);
         Timestamp now = new Timestamp(System.currentTimeMillis());
+
+        if (model == null || model.isEmpty()) {
+            List<ModelDefinition> models = jobProfile.getModel();
+            if (models.size() > 0) {
+                model = models.get(0).getName();
+            }
+        }
+        PhysicalMaterial physicalMaterial = new PhysicalMaterialBuilder()
+                .setMetadata(null, model)
+                .build();
 
         try {
             Job parentJob = jobDao.find(parentId);
@@ -650,7 +660,6 @@ public class WorkflowManager {
                     .findFirst().orElse(null);
             String jobLabel = "?";
             if (mv != null) {
-                physicalMaterial = new PhysicalMaterial();
                 physicalMaterial.setLabel(mv.getLabel());
                 jobLabel = physicalMaterial.getLabel();
 
@@ -677,7 +686,7 @@ public class WorkflowManager {
                 */
             }
 
-            Job job = createJob(jobDao, now, jobLabel, jobProfile, parentId, users, defaultUser);
+            Job job = createJob(jobDao, now, jobLabel, jobProfile, model, parentId, users, defaultUser);
 
             Map<String, Material> materialCache = new HashMap<>();
             Integer order = 1;
@@ -700,7 +709,7 @@ public class WorkflowManager {
     }
 
     private Job createJob(WorkflowJobDao jobDao, Timestamp now, String jobLabel,
-                          JobDefinition jobProfile, BigDecimal parentId, Map<String, UserProfile> users, UserProfile defaultUser
+                          JobDefinition jobProfile, String model, BigDecimal parentId, Map<String, UserProfile> users, UserProfile defaultUser
     ) throws ConcurrentModificationException {
 
         Job job = jobDao.create().addCreated(now)
@@ -710,6 +719,7 @@ public class WorkflowManager {
                 .addPriority(jobProfile.getPriority())
                 .addProfileName(jobProfile.getName())
                 .setState(Job.State.OPEN)
+                .addModel(model)
                 .addTimestamp(now);
         jobDao.update(job);
         return job;

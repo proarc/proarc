@@ -23,6 +23,9 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Logger;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBCmdType;
@@ -37,9 +40,6 @@ import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
 import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.logging.Logger;
 
 /**
  * Database schema version 6. It adds element to table users.
@@ -100,7 +100,7 @@ public class ProarcDatabaseV6 extends DBDatabase {
             conn.commit();
             return schemaVersion;
         } finally {
-//            schema.close(conn);
+            schema.close(conn);
         }
     }
 

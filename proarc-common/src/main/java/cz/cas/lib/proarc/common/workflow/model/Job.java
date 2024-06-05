@@ -48,6 +48,8 @@ public class Job {
     private int priority;
     @XmlElement(name = WorkflowModelConsts.JOB_PROFILENAME)
     private String profileName;
+    @XmlElement(name = WorkflowModelConsts.JOB_MODEL)
+    private String model;
     @XmlElement(name = WorkflowModelConsts.JOB_STATE)
     private State state;
     @XmlElement(name = WorkflowModelConsts.JOB_MODIFIED)
@@ -163,6 +165,19 @@ public class Job {
 
     public Job addProfileName(String profileName) {
         setProfileName(profileName);
+        return this;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public Job addModel(String model) {
+        setModel(model);
         return this;
     }
 

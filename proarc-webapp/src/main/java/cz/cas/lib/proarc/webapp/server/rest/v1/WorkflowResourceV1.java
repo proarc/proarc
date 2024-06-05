@@ -235,6 +235,7 @@ public class WorkflowResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<JobView> addJob(
             @FormParam(WorkflowResourceApi.NEWJOB_PROFILE) String profileName,
+            @FormParam(WorkflowResourceApi.NEWJOB_MODEL) String model,
             @FormParam(WorkflowResourceApi.NEWJOB_METADATA) String metadata,
             @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId,
             @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId,
@@ -244,7 +245,7 @@ public class WorkflowResourceV1 {
         catalogId = "null".equals(catalogId) ? null : catalogId;
 
         if (parentId != null) {
-            return addSubjob(profileName, parentId);
+            return addSubjob(profileName, parentId, model);
         }
 
         CatalogConfiguration catalog = null;
@@ -261,7 +262,7 @@ public class WorkflowResourceV1 {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
         try {
-            Job job = workflowManager.addJob(profile, metadata, catalog, rdczId, session.getUser(), appConfig);
+            Job job = workflowManager.addJob(profile, metadata, model, catalog, rdczId, session.getUser(), appConfig);
             JobFilter filter = new JobFilter();
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(job.getId());
@@ -274,7 +275,7 @@ public class WorkflowResourceV1 {
         }
     }
 
-    private SmartGwtResponse<JobView> addSubjob(String profileName, BigDecimal parentId) {
+    private SmartGwtResponse<JobView> addSubjob(String profileName, BigDecimal parentId, String model) {
         WorkflowDefinition profiles = workflowProfiles.getProfiles();
         if (profiles == null) {
             return profileError();
@@ -284,7 +285,7 @@ public class WorkflowResourceV1 {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
         try {
-            Job subjob = workflowManager.addSubjob(profile, parentId, session.getUser(), profiles, appConfig);
+            Job subjob = workflowManager.addSubjob(profile, parentId, model, session.getUser(), profiles, appConfig);
             JobFilter filter = new JobFilter();
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(subjob.getId());

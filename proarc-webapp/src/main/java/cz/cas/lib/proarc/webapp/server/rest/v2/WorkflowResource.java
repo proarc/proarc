@@ -130,13 +130,14 @@ public class WorkflowResource extends WorkflowResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<JobView> addJob(
             @FormParam(WorkflowResourceApi.NEWJOB_PROFILE) String profileName,
+            @FormParam(WorkflowResourceApi.NEWJOB_MODEL) String model,
             @FormParam(WorkflowResourceApi.NEWJOB_METADATA) String metadata,
             @FormParam(WorkflowResourceApi.NEWJOB_CATALOGID) String catalogId,
             @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId,
             @FormParam(WorkflowResourceApi.NEWJOB_RDCZID) BigDecimal rdczId
     ) {
         try {
-            return super.addJob(profileName, metadata, catalogId, parentId, rdczId);
+            return super.addJob(profileName, model, metadata, catalogId, parentId, rdczId);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

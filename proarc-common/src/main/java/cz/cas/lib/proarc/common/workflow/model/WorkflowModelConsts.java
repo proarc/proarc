@@ -34,6 +34,7 @@ public final class WorkflowModelConsts {
     public static final String JOB_PROFILEHINT = "profileHint";
     public static final String JOB_PROFILELABEL = "profileLabel";
     public static final String JOB_PROFILENAME = "profileName";
+    public static final String JOB_MODEL = "model";
     public static final String JOB_STATE = "state";
     public static final String JOB_MODIFIED = "modified";
     public static final String JOB_TASK_NAME = "taskName";

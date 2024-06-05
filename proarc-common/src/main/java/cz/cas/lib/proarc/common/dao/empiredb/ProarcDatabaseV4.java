@@ -32,7 +32,6 @@ import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
-import static org.apache.empire.db.DBDatabase.SYSDATE;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBSQLScript;
@@ -95,7 +94,7 @@ public class ProarcDatabaseV4 extends DBDatabase {
             conn.commit();
             return schemaVersion;
         } finally {
-//            schema.close(conn);
+            schema.close(conn);
         }
     }
 

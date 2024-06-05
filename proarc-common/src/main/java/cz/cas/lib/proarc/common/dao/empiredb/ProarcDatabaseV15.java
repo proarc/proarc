@@ -112,6 +112,7 @@ public class ProarcDatabaseV15 extends DBDatabase {
             DBSQLScript script = new DBSQLScript();
 
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.wfDeleteJobFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowJob.model, script);
 
             LOG.fine(script.toString());
             script.run(driver, conn);

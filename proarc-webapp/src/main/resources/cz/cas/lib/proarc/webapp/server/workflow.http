@@ -8,6 +8,13 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
+### CREATE JOB
+POST {{proarcLocalHostUrl}}/rest/v2/workflow
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+profileName=job.monografienewmore&model=model:oldprintmonographtitle
+
 ### CRETE DIGITAL OBJECT FROM JOB
 POST {{proarcLocalHostUrl}}/rest/v2/object
 Accept: application/json

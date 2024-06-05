@@ -322,6 +322,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn priority;
         public final DBTableColumn profileName;
         public final DBTableColumn state;
+        public final DBTableColumn model;
         public final DBTableColumn timestamp;
 
         public WorkflowJobTable(DBDatabase db) {
@@ -330,6 +331,7 @@ public class ProarcDatabase extends DBDatabase {
             parentId = addColumn("PARENT_ID", DataType.INTEGER, 0, false);
             ownerId = addColumn("OWNER_ID", DataType.INTEGER, 0, false);
             profileName = addColumn("PROFILE_NAME", DataType.TEXT, 500, true);
+            model = addColumn("MODEL", DataType.TEXT, 500, false);
             state = addColumn("STATE", DataType.TEXT, 100, true);
             state.setOptions(toOptions(Job.State.values()));
             state.setBeanPropertyName("stateAsString");

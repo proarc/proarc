@@ -96,7 +96,7 @@ public class ProarcDatabaseV8 extends DBDatabase {
             conn.commit();
             return schemaVersion;
         } finally {
-//            schema.close(conn);
+            schema.close(conn);
         }
     }
 

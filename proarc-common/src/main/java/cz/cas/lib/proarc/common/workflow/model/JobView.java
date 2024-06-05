@@ -54,8 +54,6 @@ public class JobView extends Job {
     private String year;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID)
     private String pid;
-    @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MODEL)
-    private String model;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
     private String edition;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_RAW_PATH)
@@ -83,14 +81,6 @@ public class JobView extends Job {
 
     public void setRawPath(String rawPath) {
         this.rawPath = rawPath;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
     }
 
     public String getEdition() {
