@@ -477,6 +477,7 @@
     <field name="pagePosition" type="string"/>
     <field name="urnNbn" type="string"/>
     <field name="descriptionStandard" type="string"/>
+    <field name="genre" type="string"/>
     <dynamicField name="*_txt_en_split_tight" type="text_en_splitting_tight" indexed="true" stored="true"/>
     <dynamicField name="*_descendent_path" type="descendent_path" indexed="true" stored="true"/>
     <dynamicField name="*_ancestor_path" type="ancestor_path" indexed="true" stored="true"/>
@@ -561,8 +562,5 @@
     <copyField source="crossrefExport" dest="crossrefExport_str" maxChars="256"/>
     <copyField source="device" dest="device_str" maxChars="256"/>
     <copyField source="members" dest="members_str" maxChars="256"/>
-    <copyField source="page_index" dest="page_index_str" maxChars="256"/>
-    <copyField source="page_number" dest="page_number_str" maxChars="256"/>
-    <copyField source="page_type" dest="page_type_str" maxChars="256"/>
     <copyField source="mods" dest="mods_str" maxChars="256"/>
 </schema>

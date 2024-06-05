@@ -44,6 +44,7 @@ public class SearchViewItem {
     private String pageIndex;
     private String pageType;
     private String pagePosition;
+    private String pageRepre;
 
     private String urnNbn;
     private String descriptionStandard;
@@ -363,5 +364,13 @@ public class SearchViewItem {
 
     public void setDescriptionStandard(String descriptionStandard) {
         this.descriptionStandard = descriptionStandard;
+    }
+
+    public String getPageRepre() {
+        return pageRepre;
+    }
+
+    public void setPageRepre(String pageRepre) {
+        this.pageRepre = pageRepre;
     }
 }
