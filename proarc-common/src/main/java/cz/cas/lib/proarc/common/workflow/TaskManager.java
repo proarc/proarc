@@ -116,24 +116,28 @@ public class TaskManager {
         taskDao.setTransaction(tx);
         materialDao.setTransaction(tx);
         parameterDao.setTransaction(tx);
+        try {
 
-        TaskFilter taskFilter = new TaskFilter();
-        taskFilter.setJobId(jobId);
-        List<TaskView> tasks = taskDao.view(taskFilter);
-        for (TaskView task : tasks) {
+            TaskFilter taskFilter = new TaskFilter();
+            taskFilter.setJobId(jobId);
+            List<TaskView> tasks = taskDao.view(taskFilter);
+            for (TaskView task : tasks) {
 
-            parameterDao.remove(task.getId());
+                parameterDao.remove(task.getId());
 
-            MaterialFilter materialFilter = new MaterialFilter();
-            materialFilter.setTaskId(task.getId());
-            List<MaterialView> materials = materialDao.view(materialFilter);
+                MaterialFilter materialFilter = new MaterialFilter();
+                materialFilter.setTaskId(task.getId());
+                List<MaterialView> materials = materialDao.view(materialFilter);
 
-            for (MaterialView materialView : materials) {
-                materialDao.delete(materialView.getId());
+                for (MaterialView materialView : materials) {
+                    materialDao.delete(materialView.getId());
+                }
             }
+            taskDao.delete(jobId);
+            tx.commit();
+        } finally {
+            tx.close();
         }
-        taskDao.delete(jobId);
-        tx.commit();
     }
 
     private <T extends Task> List<T> sortJobTaskByBlockers(JobDefinition job, List<T> tasks) {

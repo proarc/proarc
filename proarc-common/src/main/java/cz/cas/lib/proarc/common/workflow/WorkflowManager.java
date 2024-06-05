@@ -40,6 +40,7 @@ import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.FolderMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -137,6 +138,7 @@ public class WorkflowManager {
             String lang = filter.getLocale().getLanguage();
             List<JobView> jobs = jobDao.view(filter);
             for (JobView job : jobs) {
+                job.setUserName(getUser(job.getOwnerId()));
                 JobDefinition profile = wp.getProfile(wd, job.getProfileName());
                 if (profile != null) {
                     job.setProfileLabel(profile.getTitle(lang, profile.getName()));
@@ -165,6 +167,12 @@ public class WorkflowManager {
         } finally {
             tx.close();
         }
+    }
+
+    private String getUser(BigDecimal ownerId) {
+        UserManager manager = UserUtil.getDefaultManger();
+        UserProfile profile = manager.find(ownerId.intValue());
+        return profile.getUserName();
     }
 
     private List<JobView> filterDeviceJobs(List<JobView> jobs, String deviceId) {
@@ -445,8 +453,6 @@ public class WorkflowManager {
                 Job job = jobDao.find(id);
                 if (job == null) {
                     throw new WorkflowException("Not found " + job.getId()).addJobNotFound(id);
-                } else {
-                    todeleteJobIds.add(job.getId());
                 }
                 JobFilter subjobFilter = new JobFilter();
                 subjobFilter.setParentId(job.getId());
@@ -454,6 +460,7 @@ public class WorkflowManager {
                 for (JobView subJob : subjobs) {
                     todeleteJobIds.add(subJob.getId());
                 }
+                todeleteJobIds.add(job.getId());
 
                 for (BigDecimal jobId : todeleteJobIds) {
                     tasks().delete(jobId);
