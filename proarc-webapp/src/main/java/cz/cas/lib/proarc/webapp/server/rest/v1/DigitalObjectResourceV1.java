@@ -111,6 +111,9 @@ import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
+import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
@@ -337,6 +340,25 @@ public class DigitalObjectResourceV1 {
             List<SearchViewItem> items;
             if (workflowJobId != null) {
                 Locale locale = session.getLocale(httpHeaders);
+                WorkflowManager workflowManager = WorkflowManager.getInstance();
+                Job job = workflowManager.getJob(workflowJobId);
+                if (job != null) {
+                    BigDecimal parentJobId = job.getParentId();
+                    if (parentJobId != null) {
+                        MaterialFilter filter = new MaterialFilter();
+                        filter.setLocale(session.getLocale(httpHeaders));
+                        filter.setJobId(parentJobId);
+                        filter.setType(MaterialType.DIGITAL_OBJECT);
+                        List<MaterialView> materialViews = workflowManager.findMaterial(filter);
+                        for (MaterialView material : materialViews) {
+                            if (material.getPid() != null) {
+                                parentPid = material.getPid();
+                                break;
+                            }
+                        }
+                    }
+                }
+                handler.setParentPid(parentPid);
                 items = handler.createAndConnectToWorkflowJob(workflowJobId, locale, createObject, validation);
             } else {
                 items = handler.create(createObject, validation);

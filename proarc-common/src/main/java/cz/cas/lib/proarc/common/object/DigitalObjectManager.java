@@ -306,6 +306,14 @@ public class DigitalObjectManager {
             }
         }
 
+        public String getParentPid() {
+            return parentPid;
+        }
+
+        public void setParentPid(String parentPid) {
+            this.parentPid = parentPid;
+        }
+
         public void setMetadataXml(String xml) {
             this.xml = xml;
         }
