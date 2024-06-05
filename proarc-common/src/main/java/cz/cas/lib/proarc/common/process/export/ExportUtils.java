@@ -18,6 +18,10 @@ package cz.cas.lib.proarc.common.process.export;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.process.export.desa.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
@@ -25,18 +29,15 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.workflow.WorkflowExportFile;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
@@ -291,6 +292,15 @@ public final class ExportUtils {
         for (NoteDefinition note : mods.getNote()) {
             if (ModsConstants.VALUE_PAGE_NOTE_LEFT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_RIGHT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_SINGLE_PAGE.equals(note.getValue())) {
                 return note.getValue();
+            }
+        }
+        return null;
+    }
+
+    public static String getGenre(ModsDefinition mods) {
+        for (GenreDefinition genre : mods.getGenre()) {
+            if (genre.getValue() != null && !genre.getValue().isEmpty()) {
+                return genre.getValue();
             }
         }
         return null;

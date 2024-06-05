@@ -3,15 +3,15 @@ package cz.cas.lib.proarc.common.storage.akubra;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import cz.cas.lib.proarc.common.process.export.ExportUtils;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.process.export.ExportUtils;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
@@ -36,6 +36,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_ARC
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_CROSSREF;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_KRAMERIUS;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_NDK;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_GENRE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_LABEL;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_LOCKED;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MEMBERS;
@@ -85,6 +86,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         String pageType = ExportUtils.getPageType(mods);
         String pageNumber = ExportUtils.getPageNumber(mods);
         String pagePosition = ExportUtils.getPagePosition(mods);
+        String genre = ExportUtils.getGenre(mods);
         String urnNbn = getUrnNbn(mods);
         String descriptionStandard = getDescriptionStandatd(mods);
 
@@ -95,7 +97,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         try {
             feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
                     ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members,
-                    pageIndex, pageType, pageNumber, pagePosition, urnNbn, descriptionStandard);
+                    pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard);
             if (commit) {
                 commit();
             }
@@ -134,7 +136,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
     private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
             String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex,
-            String pageType, String pageNumber, String pagePosition, String urnNbn, String descriptionStandatd) throws SolrServerException, IOException {
+            String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -158,6 +160,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_PAGE_NUMBER, pageNumber);
         sdoc.addField(FIELD_PAGE_TYPE, pageType);
         sdoc.addField(FIELD_PAGE_POSITION, pagePosition);
+        sdoc.addField(FIELD_GENRE, genre);
         sdoc.addField(FIELD_URNNBN, urnNbn);
         sdoc.addField(FIELD_DESCRIPTION_STANDARD, descriptionStandatd);
 
