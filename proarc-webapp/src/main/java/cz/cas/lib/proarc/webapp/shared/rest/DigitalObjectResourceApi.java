@@ -329,7 +329,18 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_STT_GRAPHIC_TO_STT_MONOGRAPH_VOLUME = "changeOldPrintGraphicToOldprintMonographVolume";
     public static final String CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC = "changeOldPrintMonographVolumeToOldPrintGraphic";
     public static final String CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET = "changeOldPrintMonographVolumeToOldPrintMusicSheet";
-
+    public static final String CHANGE_NDK_PERIODICAL_TO_NDK_EPERIODICAL = "changeNdkPeriodicalToNdkEPeriodical";
+    public static final String CHANGE_NDK_PERIODICAL_VOLUME_TO_NDK_EPERIODICAL_VOLUME = "changeNdkPeriodicalVolumeToNdkEPeriodicalVolume";
+    public static final String CHANGE_NDK_PERIODICAL_ISSUE_TO_NDK_EPERIODICAL_ISSUE = "changeNdkPeriodicalIssueToNdkEPeriodicalIssue";
+    public static final String CHANGE_NDK_PERIODICAL_SUPPLEMENT_TO_NDK_EPERIODICAL_SUPPLEMENT = "changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement";
+    public static final String CHANGE_NDK_ARTICLE_TO_NDK_EARTICLE = "changeNdkArticleToNdkEArticle";
+    public static final String CHANGE_BDM_ARTICLE_TO_NDK_EARTICLE = "changeBdmArticleToNdkEArticle";
+    public static final String CHANGE_NDK_EPERIODICAL_TO_NDK_PERIODICAL = "changeNdkEPeriodicalToNdkPeriodical";
+    public static final String CHANGE_NDK_EPERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME = "changeNdkEPeriodicalVolumeToNdkPeriodicalVolume";
+    public static final String CHANGE_NDK_EPERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE = "changeNdkEPeriodicalIssueToNdkPeriodicalIssue";
+    public static final String CHANGE_NDK_EPERIODICAL_SUPPLEMENT_TO_NDK_PERIODICAL_SUPPLEMENT = "changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement";
+    public static final String CHANGE_NDK_EARTICLE_TO_NDK_ARTICLE = "changeNdkEArticleToNdkArticle";
+    public static final String CHANGE_NDK_EARTICLE_TO_BDM_ARTICLE = "changeNdkEArticleToBdmArticle";
 
     public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
     public static final String UPDATE_NDK_PAGE = "updateNdkPage";

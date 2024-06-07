@@ -108,7 +108,8 @@ public class NdkPeriodicalIssueMapper extends RdaNdkMapper {
 
     protected GenreDefinition addGenre(ModsDefinition mods) {
         //  mods/genre="issue"
-       return MapperUtils.addGenre(mods, Const.GENRE_ISSUE);
+        MapperUtils.removeGenre(mods, Const.GENRE_EISSUE);
+        return MapperUtils.addGenre(mods, Const.GENRE_ISSUE);
     }
 
     @Override

@@ -53,6 +53,7 @@ public class NdkEPeriodicalIssueMapper extends NdkPeriodicalIssueMapper {
     protected GenreDefinition addGenre(ModsDefinition mods) {
         //  mods/genre="electronic_issue"
         MapperUtils.removeGenre(mods, "electronic issue");
+        MapperUtils.removeGenre(mods, Const.GENRE_ISSUE);
         return MapperUtils.addGenre(mods, Const.GENRE_EISSUE);
     }
 

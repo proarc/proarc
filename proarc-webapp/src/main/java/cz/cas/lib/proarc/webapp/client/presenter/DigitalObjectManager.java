@@ -44,25 +44,6 @@ import cz.cas.lib.proarc.webapp.client.action.CopyObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.DeleteAction;
 import cz.cas.lib.proarc.webapp.client.action.DigitalObjectEditAction;
 import cz.cas.lib.proarc.webapp.client.action.FoxmlViewAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkCartographicToOldprintCartographicAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkChapterToOldprintChapterAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographSupplementToOldprintMonographSupplementAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographVolumeToOldprintMonographVolumeAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMusicsheetToOldprintMusicsheetAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkPictureToOldprintGraphicAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintChapterToNdkChapterAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintGraphicToNdkPictureAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintCartographicToNdkCartographicAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintGraphicToOldPrintMonographVolumeAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToNdkMonographVolumeAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToOldPrintGraphicAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToOldPrintMusicSheetAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMusicsheetToNdkMusicsheetAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographSupplementToNdkMonographSupplementAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangePageToSttPageAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeSttPageToPageAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.indexObjects.IndexAllObjectsAction;
-import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.LockObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction;
 import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
 import cz.cas.lib.proarc.webapp.client.action.TreeExpandAction;
@@ -70,6 +51,7 @@ import cz.cas.lib.proarc.webapp.client.action.UrnNbnAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.GenerateMasterCopyAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.RestoreAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.UpdateAllObjectsAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.bdm.ChangeBdmArticleToNdkEArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.clippings.ChangeClippingsTitleToNdkMonographTitleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.clippings.ChangeClippingsVolumeToNdkMonographVolumeAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.ChangeK4MonographToNdkMonographVolumeAction;
@@ -78,6 +60,7 @@ import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.Cha
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.ChangeK4PeriodicalIssueToNdkPeriodicalIssueAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.ChangeK4PeriodicalToNdkPeriodicalAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.k4.ChangeK4PeriodicalVolumeToNdkPeriodicalVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkArticleToNdkEArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkCartographicToOldprintCartographicAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkChapterToOldprintChapterAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographSupplementToOldprintMonographSupplementAction;
@@ -89,10 +72,21 @@ import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.Ch
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographVolumeToNdkMonographUnitAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMonographVolumeToOldprintMonographVolumeAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkMusicsheetToOldprintMusicsheetAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkPeriodicalIssueToNdkEPeriodicalIssueAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkPeriodicalSupplementToNdkEPeriodicalSupplementAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkPeriodicalToNdkEPeriodicalAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkPeriodicalVolumeToNdkEPeriodicalVolumeAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkPictureToOldprintGraphicAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEArticleToBdmArticleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEArticleToNdkArticleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalIssueToNdkPeriodicalIssueAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalToNdkPeriodicalAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalVolumeToNdkPeriodicalVolumeAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintCartographicToNdkCartographicAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintChapterToNdkChapterAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintGraphicToNdkPictureAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintGraphicToOldPrintMonographVolumeAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographSupplementToNdkMonographSupplementAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToNdkMonographVolumeAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldprint.ChangeOldprintMonographVolumeToOldPrintGraphicAction;
@@ -101,7 +95,9 @@ import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.oldpri
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeNdkPageToPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeNdkPageToSttPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangePageToNdkPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangePageToSttPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeSttPageToNdkPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.page.ChangeSttPageToPageAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.indexObjects.IndexAllObjectsAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.LockObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.UnlockObjectAction;
@@ -210,6 +206,18 @@ public final class DigitalObjectManager {
     private ChangeOldprintGraphicToOldPrintMonographVolumeAction changeOldprintGraphicToOldprintMonographVolumeAction;
     private ChangeOldprintMusicsheetToNdkMusicsheetAction changeOldprintMusicsheetToNdkMusicsheetAction;
     private ChangeOldprintMonographSupplementToNdkMonographSupplementAction changeOldprintSupplementToNdkSupplementAction;
+    private ChangeNdkPeriodicalToNdkEPeriodicalAction changeNdkPeriodicalToNdkEPeriodicalAction;
+    private ChangeNdkPeriodicalVolumeToNdkEPeriodicalVolumeAction changeNdkPeriodicalVolumeToNdkEPeriodicalVolumeAction;
+    private ChangeNdkPeriodicalIssueToNdkEPeriodicalIssueAction changeNdkPeriodicalIssueToNdkEPeriodicalIssueAction;
+    private ChangeNdkPeriodicalSupplementToNdkEPeriodicalSupplementAction changeNdkPeriodicalSupplementToNdkEPeriodicalSupplementAction;
+    private ChangeNdkArticleToNdkEArticleAction changeNdkArticleToNdkEArticleAction;
+    private ChangeBdmArticleToNdkEArticleAction changeBdmArticleToNdkEArticleAction;
+    private ChangeNdkEPeriodicalToNdkPeriodicalAction changeNdkEPeriodicalToNdkPeriodicalAction;
+    private ChangeNdkEPeriodicalVolumeToNdkPeriodicalVolumeAction changeNdkEPeriodicalVolumeToNdkPeriodicalVolumeAction;
+    private ChangeNdkEPeriodicalIssueToNdkPeriodicalIssueAction changeNdkEPeriodicalIssueToNdkPeriodicalIssueAction;
+    private ChangeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction changeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction;
+    private ChangeNdkEArticleToNdkArticleAction changeNdkEArticleToNdkArticleAction;
+    private ChangeNdkEArticleToBdmArticleAction changeNdkEArticleToBdmArticleAction;
     private UpdateNdkArticleAction updateNdkArticleAction;
     private UpdateNdkPageAction updateNdkPageAction;
     private TreeExpandAction expandTreeAction;
@@ -417,6 +425,19 @@ public final class DigitalObjectManager {
         changeOldprintSupplementToNdkSupplementAction = new ChangeOldprintMonographSupplementToNdkMonographSupplementAction(i18n);
         changeOldprintMonographVolumeToOldPrintGraphicAction = new ChangeOldprintMonographVolumeToOldPrintGraphicAction(i18n);
         changeOldprintMonographVolumeToOldPrintMusicSheetAction = new ChangeOldprintMonographVolumeToOldPrintMusicSheetAction(i18n);
+        changeNdkPeriodicalToNdkEPeriodicalAction = new ChangeNdkPeriodicalToNdkEPeriodicalAction(i18n);
+        changeNdkPeriodicalVolumeToNdkEPeriodicalVolumeAction = new ChangeNdkPeriodicalVolumeToNdkEPeriodicalVolumeAction(i18n);
+        changeNdkPeriodicalIssueToNdkEPeriodicalIssueAction = new ChangeNdkPeriodicalIssueToNdkEPeriodicalIssueAction(i18n);
+        changeNdkPeriodicalSupplementToNdkEPeriodicalSupplementAction = new ChangeNdkPeriodicalSupplementToNdkEPeriodicalSupplementAction(i18n);
+        changeNdkArticleToNdkEArticleAction = new ChangeNdkArticleToNdkEArticleAction(i18n);
+        changeBdmArticleToNdkEArticleAction = new ChangeBdmArticleToNdkEArticleAction(i18n);
+        changeNdkEPeriodicalToNdkPeriodicalAction = new ChangeNdkEPeriodicalToNdkPeriodicalAction(i18n);
+        changeNdkEPeriodicalVolumeToNdkPeriodicalVolumeAction = new ChangeNdkEPeriodicalVolumeToNdkPeriodicalVolumeAction(i18n);
+        changeNdkEPeriodicalIssueToNdkPeriodicalIssueAction = new ChangeNdkEPeriodicalIssueToNdkPeriodicalIssueAction(i18n);
+        changeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction = new ChangeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction(i18n);
+        changeNdkEArticleToNdkArticleAction = new ChangeNdkEArticleToNdkArticleAction(i18n);
+        changeNdkEArticleToBdmArticleAction = new ChangeNdkEArticleToBdmArticleAction(i18n);
+
         updateNdkArticleAction = new UpdateNdkArticleAction(i18n);
         updateNdkPageAction = new UpdateNdkPageAction(i18n);
         expandTreeAction = new TreeExpandAction(
@@ -497,8 +518,10 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(initChangePageMenu(actionSource));
         menuAdministration.addItem(initChangeNdkModelsMenu(actionSource));
+        menuAdministration.addItem(initChangeNdkEModelsMenu(actionSource));
         menuAdministration.addItem(initChangeK4ModelsMenu(actionSource));
         menuAdministration.addItem(initChangeOldprintModelsMenu(actionSource));
+        menuAdministration.addItem(initChangeBdmModelsMenu(actionSource));
         //menuAdministration.addItem(Actions.asMenuItem(changeClippingsVolumeToNdkMonographVolumeAction, actionSource, false));
         //menuAdministration.addItem(Actions.asMenuItem(changeClippingsTitleToNdkMonographTitleAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
@@ -577,8 +600,34 @@ public final class DigitalObjectManager {
         changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMonographVolumeToOldprintMonographVolumeAction, actionSource, false));
         changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkMusicsheetToOldprintMusicsheetAction, actionSource, false));
         changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkPictureToOldprintGraphicAction, actionSource, false));
+        changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkPeriodicalToNdkEPeriodicalAction, actionSource, false));
+        changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkPeriodicalVolumeToNdkEPeriodicalVolumeAction, actionSource, false));
+        changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkPeriodicalIssueToNdkEPeriodicalIssueAction, actionSource, false));
+        changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkPeriodicalSupplementToNdkEPeriodicalSupplementAction, actionSource, false));
+        changeNdkModelsMenu.addItem(Actions.asMenuItem(changeNdkArticleToNdkEArticleAction, actionSource, false));
         changeNdkModels.setSubmenu(changeNdkModelsMenu);
         return changeNdkModels;
+    }
+
+    private MenuItem initChangeNdkEModelsMenu(ActionSource actionSource) {
+        MenuItem changeNdkEModels = new MenuItem(i18n.ChangeNdkEModels());
+        Menu changeNdkEModelsMenu = Actions.createMenu();
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEPeriodicalToNdkPeriodicalAction, actionSource, false));
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEPeriodicalVolumeToNdkPeriodicalVolumeAction, actionSource, false));
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEPeriodicalIssueToNdkPeriodicalIssueAction, actionSource, false));
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction, actionSource, false));
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEArticleToNdkArticleAction, actionSource, false));
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEArticleToBdmArticleAction, actionSource, false));
+        changeNdkEModels.setSubmenu(changeNdkEModelsMenu);
+        return changeNdkEModels;
+    }
+
+    private MenuItem initChangeBdmModelsMenu(ActionSource actionSource) {
+        MenuItem changeBdmModels = new MenuItem(i18n.ChangeBdmModels());
+        Menu changeBdmModelsMenu = Actions.createMenu();
+        changeBdmModelsMenu.addItem(Actions.asMenuItem(changeBdmArticleToNdkEArticleAction, actionSource, false));
+        changeBdmModels.setSubmenu(changeBdmModelsMenu);
+        return changeBdmModels;
     }
 
     private MenuItem initChangeK4ModelsMenu(ActionSource actionSource) {
