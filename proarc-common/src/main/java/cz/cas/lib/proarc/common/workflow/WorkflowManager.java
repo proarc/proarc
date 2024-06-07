@@ -639,8 +639,6 @@ public class WorkflowManager {
                 throw new WorkflowException("The parent job not found! parent ID=" + parentId);
             } else if (parentJob.isClosed()) {
                 throw new WorkflowException("The parent job not open! parent ID=" + parentId);
-            } else if (parentJob.getParentId() != null) {
-                throw new WorkflowException("The parent job is a subjob! parent ID=" + parentId);
             }
             JobDefinition parentProfile = wp.getProfile(profiles, parentJob.getProfileName());
             if (parentProfile == null) {
