@@ -112,7 +112,7 @@ public abstract class NdkMapper {
         return mapper;
     }
 
-    private static boolean isBornDigitalModel(String modelId) {
+    public static boolean isBornDigitalModel(String modelId) {
         return modelId != null && modelId.contains("bdmarticle");
     }
 

@@ -53,6 +53,7 @@ public class NdkEPeriodicalSupplementMapper extends NdkPeriodicalSupplementMappe
 
     @Override
     protected void fixAndAddGenre(ModsDefinition mods, Context ctx) {
+        MapperUtils.removeGenre(mods, Const.GENRE_SUPPLEMENT);
         if (mods.getGenre().size() == 0) {
             //  mods/genre="supplement"
             MapperUtils.addGenre(mods, Const.GENRE_ESUPPLEMENT);

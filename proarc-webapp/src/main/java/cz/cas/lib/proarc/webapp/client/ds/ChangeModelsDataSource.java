@@ -175,4 +175,50 @@ public class ChangeModelsDataSource extends ProarcDataSource {
     public static ChangeModelsDataSource changeOldPrintMonographVolumeToOldPrintGraphic() {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC);
     }
+
+    public static ChangeModelsDataSource changeNdkPeriodicalToNdkEPeriodical() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_PERIODICAL_TO_NDK_EPERIODICAL);
+    }
+    public static ChangeModelsDataSource changeNdkPeriodicalVolumeToNdkEPeriodicalVolume() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_PERIODICAL_VOLUME_TO_NDK_EPERIODICAL_VOLUME);
+    }
+
+    public static ChangeModelsDataSource changeNdkPeriodicalIssueToNdkEPeriodicalIssue() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_PERIODICAL_ISSUE_TO_NDK_EPERIODICAL_ISSUE);
+    }
+
+    public static ChangeModelsDataSource changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_PERIODICAL_SUPPLEMENT_TO_NDK_EPERIODICAL_SUPPLEMENT);
+    }
+
+    public static ChangeModelsDataSource changeNdkArticleToNdkEArticle() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_ARTICLE_TO_NDK_EARTICLE);
+    }
+
+    public static ChangeModelsDataSource changeBdmArticleToNdkEArticle() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_BDM_ARTICLE_TO_NDK_EARTICLE);
+    }
+
+    public static ChangeModelsDataSource changeNdkEPeriodicalToNdkPeriodical() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_EPERIODICAL_TO_NDK_PERIODICAL);
+    }
+    public static ChangeModelsDataSource changeNdkEPeriodicalVolumeToNdkPeriodicalVolume() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_EPERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME);
+    }
+
+    public static ChangeModelsDataSource changeNdkEPeriodicalIssueToNdkPeriodicalIssue() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_EPERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE);
+    }
+
+    public static ChangeModelsDataSource changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_EPERIODICAL_SUPPLEMENT_TO_NDK_PERIODICAL_SUPPLEMENT);
+    }
+
+    public static ChangeModelsDataSource changeNdkEArticleToNdkArticle() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_EARTICLE_TO_NDK_ARTICLE);
+    }
+
+    public static ChangeModelsDataSource changeNdkEArticleToBdmArticle() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_EARTICLE_TO_BDM_ARTICLE);
+    }
 }

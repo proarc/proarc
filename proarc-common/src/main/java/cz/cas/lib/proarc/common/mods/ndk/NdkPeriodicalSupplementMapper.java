@@ -101,6 +101,7 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
     }
 
     protected void fixAndAddGenre(ModsDefinition mods, Context ctx) {
+        MapperUtils.removeGenre(mods, Const.GENRE_ESUPPLEMENT);
         if (mods.getGenre().size() == 0) {
             //  mods/genre="supplement"
             MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);

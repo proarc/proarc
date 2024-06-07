@@ -43,6 +43,7 @@ public class NdkEPeriodicalMapper extends NdkPeriodicalMapper {
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="electronic_title"
         MapperUtils.removeGenre(mods, Const.GENRE_ETITLE_MONOGRAPH);
+        MapperUtils.removeGenre(mods, Const.GENRE_TITLE);
         MapperUtils.addGenre(mods, Const.GENRE_ETITLE_PERIODICAL);
     }
 

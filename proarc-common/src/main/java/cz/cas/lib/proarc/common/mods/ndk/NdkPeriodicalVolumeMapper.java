@@ -50,6 +50,7 @@ public class NdkPeriodicalVolumeMapper extends RdaNdkMapper {
 
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="volume"
+        MapperUtils.removeGenre(mods, Const.GENRE_EVOLUME_PERIODICAL);
         MapperUtils.addGenre(mods, Const.GENRE_VOLUME);
     }
 

@@ -3,20 +3,6 @@ package cz.cas.lib.proarc.common.actions;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -26,9 +12,25 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -165,10 +167,14 @@ public class ChangeModels {
     private void fixMods(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
         if (NdkMapper.isK4Model(oldModel)) {
             fixModsFromK4(pid, mods, parentPid);
+        } else if (NdkMapper.isNdkEModel(oldModel)) {
+            fixModsFromNdkE(pid, mods, parentPid);
         } else if (NdkMapper.isNdkModel(oldModel)) {
             fixModsFromNdk(pid, mods, parentPid);
         } else if (NdkMapper.isOldprintModel(oldModel)) {
             fixModsFromOldPrint(pid, mods, parentPid);
+        } else if (NdkMapper.isBornDigitalModel(oldModel)) {
+            fixModsFromBDM(pid, mods, parentPid);
         } else {
             switch (newModel) {
                 case NdkPlugin.MODEL_NDK_PAGE:
@@ -203,6 +209,15 @@ public class ChangeModels {
             case OldPrintPlugin.MODEL_VOLUME:
                 // no metadata change needed
                 break;
+            default:
+                throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
+        }
+    }
+
+    private void fixModsFromBDM(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
+        switch (newModel) {
+            case NdkEbornPlugin.MODEL_EARTICLE:
+                // no metadata change needed
             default:
                 throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
         }
@@ -267,6 +282,26 @@ public class ChangeModels {
             case OldPrintPlugin.MODEL_VOLUME:
             case OldPrintPlugin.MODEL_GRAPHICS:
             case OldPrintPlugin.MODEL_SHEETMUSIC:
+            case NdkEbornPlugin.MODEL_EPERIODICAL:
+            case NdkEbornPlugin.MODEL_EPERIODICALVOLUME:
+            case NdkEbornPlugin.MODEL_EPERIODICALISSUE:
+            case NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT:
+            case NdkEbornPlugin.MODEL_EARTICLE:
+                // no metadata change needed
+                break;
+            default:
+                throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
+        }
+    }
+
+    private void fixModsFromNdkE(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
+        switch (newModel) {
+            case NdkPlugin.MODEL_PERIODICAL:
+            case NdkPlugin.MODEL_PERIODICALVOLUME:
+            case NdkPlugin.MODEL_PERIODICALISSUE:
+            case NdkPlugin.MODEL_PERIODICALSUPPLEMENT:
+            case NdkPlugin.MODEL_ARTICLE:
+            case BornDigitalModsPlugin.MODEL_ARTICLE:
                 // no metadata change needed
                 break;
             default:
