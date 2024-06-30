@@ -22,7 +22,9 @@ import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics
 import cz.cas.lib.proarc.mix.ImageAssessmentMetadataType.SpatialMetrics;
 import cz.cas.lib.proarc.urnnbn.model.registration.*;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.List;
 
 /**
@@ -123,8 +125,8 @@ public class DigitalDocumentBuilder {
         if (imageAssessmentMetadata != null) {
             SpatialMetrics spatialMetrics = imageAssessmentMetadata.getSpatialMetrics();
             if (spatialMetrics != null) {
-                BigInteger xRatio = ratio(spatialMetrics.getXSamplingFrequency());
-                BigInteger yRatio = ratio(spatialMetrics.getYSamplingFrequency());
+                BigInteger xRatio = ratio(spatialMetrics.getXSamplingFrequency(), spatialMetrics.getSamplingFrequencyUnit());
+                BigInteger yRatio = ratio(spatialMetrics.getYSamplingFrequency(), spatialMetrics.getSamplingFrequencyUnit());
                 if (xRatio != null || yRatio != null) {
                     Resolution resolution = new Resolution();
                     resolution.setHorizontal(xRatio);
@@ -182,5 +184,24 @@ public class DigitalDocumentBuilder {
             return ratio(rationalType.getNumerator(), rationalType.getDenominator());
         }
         return null;
+    }
+
+    private static BigInteger ratio(RationalType rationalType, TypeOfSamplingFrequencyUnitType type) {
+        if (rationalType != null) {
+            BigInteger numerator = rationalType.getNumerator();
+            if (SamplingFrequencyUnitType.CM.equals(type.getValue())) {
+                numerator = multiply(numerator, new BigDecimal(2.54));
+            }
+            return ratio(numerator, rationalType.getDenominator());
+        }
+        return null;
+    }
+
+    private static BigInteger multiply(BigInteger value, BigDecimal multiplicator) {
+        if (value == null) {
+            return null;
+        }
+        BigDecimal result = multiplicator.multiply(new BigDecimal(value)).setScale(0, RoundingMode.HALF_UP);
+        return result.toBigInteger();
     }
 }
