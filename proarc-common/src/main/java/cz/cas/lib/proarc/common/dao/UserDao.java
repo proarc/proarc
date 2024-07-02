@@ -34,4 +34,5 @@ public interface UserDao extends Dao {
 
     void update(UserProfile user) throws ConcurrentModificationException;
 
+    void delete(Integer userId);
 }

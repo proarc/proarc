@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v2;
 
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -29,6 +30,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -60,8 +62,21 @@ public class UserResource extends UserResourceV1 {
             @Context HttpServletRequest httpRequest,
             @Context HttpHeaders httpHeaders,
             @Context SecurityContext securityCtx
-            ) {
+            ) throws AppConfigurationException {
         super(httpRequest, httpHeaders, securityCtx);
+    }
+
+    @DELETE
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<UserProfile> deleteUser(
+            @QueryParam(UserResourceApi.USER_ID) Integer userId
+    ) {
+        try {
+            return super.deleteUser(userId);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
     }
 
     @GET

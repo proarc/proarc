@@ -51,16 +51,17 @@ public class SmartGwtResponse<T>{
 
     private static final Logger LOG = Logger.getLogger(SmartGwtResponse.class.getName());
 
-    public static final int STATUS_FAILURE = -1;
-    public static final int STATUS_LOGIN_INCORRECT = -5;
-    public static final int STATUS_LOGIN_REQUIRED = -7;
-    public static final int STATUS_LOGIN_SUCCESS = -8;
-    public static final int STATUS_MAX_LOGIN_ATTEMPTS_EXCEEDED = -6;
     public static final int STATUS_SERVER_TIMEOUT = -100;
-    public static final int STATUS_SUCCESS = 0;
     public static final int STATUS_TRANSPORT_ERROR = -90;
-    public static final int STATUS_VALIDATION_ERROR = -4;
     public static final int STATUS_OBJECT_LOCKED = -41;
+    public static final int STATUS_LOGIN_SUCCESS = -8;
+    public static final int STATUS_LOGIN_REQUIRED = -7;
+    public static final int STATUS_LOGIN_INCORRECT = -5;
+    public static final int STATUS_MAX_LOGIN_ATTEMPTS_EXCEEDED = -6;
+    public static final int STATUS_VALIDATION_ERROR = -4;
+    public static final int STATUS_FAILURE = -1;
+    public static final int STATUS_SUCCESS = 0;
+    public static final int STATUS_OBJECT_SUCCESFULLY_DELETED = 1;
 
 
     private int status;

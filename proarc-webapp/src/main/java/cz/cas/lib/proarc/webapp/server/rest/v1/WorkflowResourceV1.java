@@ -369,7 +369,7 @@ public class WorkflowResourceV1 {
             int resultSize = jobs.size();
             int endRow = resultSize;
             int total = (resultSize != pageSize) ? endRow : endRow + 1;
-            return new SmartGwtResponse<JobView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, jobs);
+            return new SmartGwtResponse<JobView>(SmartGwtResponse.STATUS_OBJECT_SUCCESFULLY_DELETED, 0, endRow, total, jobs);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

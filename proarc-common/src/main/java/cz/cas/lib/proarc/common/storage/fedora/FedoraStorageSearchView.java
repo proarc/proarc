@@ -508,6 +508,12 @@ public final class FedoraStorageSearchView extends SearchView {
         return findAdvancedCountObjects(pids, status, organization, processor, model, allowAllForProcessor, filterWithoutExtension);
     }
 
+    @Override
+    public int countByOwner(String owner) throws IOException, FedoraClientException {
+        List<String> pids = findAdvancedPids(new SearchViewQuery().setOwner(owner));
+        return pids.size();
+    }
+
     private List<String> findAdvancedPids(SearchViewQuery q) throws FedoraClientException {
         List<String> objectsPid = new ArrayList<>();
         if (q.getIdentifier() == null) {

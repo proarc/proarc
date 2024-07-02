@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.UserDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserTable;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collection;
@@ -49,6 +50,31 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
     @Override
     public UserProfile create() {
         return new UserProfile();
+    }
+
+    @Override
+    public void delete(Integer userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("Unsupported missing userId!");
+        }
+
+        deleteConnectiogTableGroupUser(userId);
+
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableUser.id.is(userId));
+        db.executeDelete(db.tableUser, cmd, c);
+    }
+
+    private void deleteConnectiogTableGroupUser(Integer userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("Unsupported missing userId!");
+        }
+
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableGroupMember.userid.is(userId));
+        db.executeDelete(db.tableGroupMember, cmd, c);
     }
 
     @Override

@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.GroupDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserGroupTable;
 import cz.cas.lib.proarc.common.user.Group;
+import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +47,31 @@ public final class EmpireGroupDao extends EmpireDao implements GroupDao {
     @Override
     public Group create() {
         return new Group();
+    }
+
+    @Override
+    public void delete(Integer groupId) {
+        if (groupId == null) {
+            throw new IllegalArgumentException("Unsupported missing groupId!");
+        }
+
+        deleteConnectiogTableGroupUser(groupId);
+
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableUserGroup.id.is(groupId));
+        db.executeDelete(db.tableUserGroup, cmd, c);
+    }
+
+    private void deleteConnectiogTableGroupUser(Integer groupId) {
+        if (groupId == null) {
+            throw new IllegalArgumentException("Unsupported missing groupId!");
+        }
+
+        Connection c = getConnection();
+        DBCommand cmd = db.createCommand();
+        cmd.where(db.tableGroupMember.groupid.is(groupId));
+        db.executeDelete(db.tableGroupMember, cmd, c);
     }
 
     @Override

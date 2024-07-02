@@ -311,6 +311,11 @@ public class SolrSearchView extends SearchView {
         return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), Collections.singletonList(identifier), owner, organization, processor, label, status, allowAllForProcessor);
     }
 
+    @Override
+    public int countByOwner(String owner) throws IOException {
+        return searchCountImplementation(0, this.maxLimit, null, null, null, owner, null, null, null, null, null);
+    }
+
     private List<SearchViewItem> findLastImp(int offset, String model, String user, String organization, String username, Boolean filterWithoutExtension, int limit, String sortField, String sortOperation) throws IOException {
         return searchImplementation(offset, limit, sortField, transfromSort(sortOperation), true,  Collections.singletonList(model), null, user, organization, username, null, null, true);
     }

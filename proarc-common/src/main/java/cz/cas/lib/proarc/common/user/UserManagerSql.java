@@ -23,9 +23,9 @@ import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.dao.UserDao;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.SqlTransaction;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -163,6 +163,37 @@ final class UserManagerSql implements UserManager {
         users.setTransaction(tx);
         try {
             return filter(users.find(null, null, null, null, organization));
+        } finally {
+            tx.close();
+        }
+    }
+
+    @Override
+    public void deleteUser(Integer userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("Missing userId!");
+        }
+
+        UserProfile user = find(userId);
+
+        Transaction tx = daos.createTransaction();
+        UserDao userDao = daos.createUser();
+        GroupDao groupDao = daos.createUserGroup();
+        userDao.setTransaction(tx);
+        groupDao.setTransaction(tx);
+        try {
+            List<Group> userGroups = findUserGroups(userId);
+            for (Group userGroup : userGroups) {
+                if (userGroup.getName().contains(user.getUserName())) {
+                    groupDao.delete(userGroup.getId());
+                }
+            }
+
+            userDao.delete(userId);
+            tx.commit();
+        } catch (Throwable ex) {
+            tx.rollback();
+            throw ex;
         } finally {
             tx.close();
         }

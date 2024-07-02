@@ -585,3 +585,17 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 &folderPath=altoToTest
+
+
+### LOGIN
+POST {{proarcUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### DELETE USER
+DELETE {{proarcUrl}}/rest/v2/user?userId=4
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+

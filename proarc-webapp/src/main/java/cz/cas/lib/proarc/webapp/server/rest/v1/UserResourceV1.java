@@ -16,6 +16,15 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
@@ -25,6 +34,7 @@ import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
@@ -34,8 +44,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -51,6 +63,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
+
 /**
  *
  * @author Jan Pokorsky
@@ -63,15 +77,83 @@ public class UserResourceV1 {
     protected final UserManager userManager;
     protected final SessionContext session;
     protected final HttpHeaders httpHeaders;
+    private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
+    private final UserProfile user;
 
     public UserResourceV1(
             @Context HttpServletRequest httpRequest,
             @Context HttpHeaders httpHeaders,
             @Context SecurityContext securityCtx
-            ) {
+            ) throws AppConfigurationException {
         this.httpHeaders = httpHeaders;
         this.session = SessionContext.from(httpRequest);
         this.userManager = UserUtil.getDefaultManger();
+        this.user = session.getUser();
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+        } else {
+            this.akubraConfiguration = null;
+        }
+    }
+
+    @DELETE
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<UserProfile> deleteUser(
+            @QueryParam(UserResourceApi.USER_ID) Integer userId
+    ) {
+
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        Locale locale = session.getLocale(httpHeaders);
+
+        if (userId == null) {
+            throw RestException.plainBadRequest(UserResourceApi.USER_ID, String.valueOf(userId));
+        }
+
+        try {
+            UserProfile user = userManager.find(userId);
+
+            if (user == null) {
+                return SmartGwtResponse.<UserProfile>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_UserId_NotFound"))
+                        .build();
+            }
+
+            SearchView search = null;
+
+            if (UserUtil.DEFAULT_ADMIN_USER.equals(user.getUserName())) {
+                return SmartGwtResponse.<UserProfile>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_cant_be_deleted", user.getUserName()))
+                        .build();
+            }
+
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                FedoraStorage remote = FedoraStorage.getInstance(appConfig);
+                search = remote.getSearch(locale);
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
+                search = akubra.getSearch(locale);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+
+            int count = search.countByOwner(user.getUserName());
+            if (count != 0) {
+                return SmartGwtResponse.<UserProfile>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user.getUserName(), count))
+                        .build();
+            } else {
+                userManager.deleteUser(userId);
+                UserProfile found = userManager.find(userId);
+                return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_OBJECT_SUCCESFULLY_DELETED, 0, 0, 1,
+                        found != null ? Collections.singletonList(found) : Collections.emptyList());
+            }
+
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
     }
 
     @GET
