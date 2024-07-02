@@ -125,16 +125,24 @@ public final class Kramerius4ExportOptions {
         {
             put(NdkPlugin.MODEL_NDK_PAGE, "model:page");
             put(NdkPlugin.MODEL_ARTICLE, "model:article");
+            put(NdkEbornPlugin.MODEL_EARTICLE, "model:article");
             put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
             put(NdkPlugin.MODEL_GRAPHIC, "model:graphic");
             put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "model:monograph");
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "model:supplement");
             put(NdkPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
             put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "model:monograph");
             put(NdkPlugin.MODEL_PERIODICAL, "model:periodical");
+            put(NdkEbornPlugin.MODEL_EPERIODICAL, "model:periodical");
             put(NdkPlugin.MODEL_PERIODICALISSUE, "model:periodicalitem");
+            put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "model:periodicalitem");
             put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "model:supplement");
+            put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, "model:supplement");
             put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
+            put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "model:periodicalvolume");
             put(NdkPlugin.MODEL_PICTURE, "model:picture");
             put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
             put(BornDigitalModsPlugin.MODEL_ARTICLE, "model:article");
