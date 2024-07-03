@@ -112,9 +112,9 @@ public class UserResourceV1 {
         }
 
         try {
-            UserProfile user = userManager.find(userId);
+            UserProfile user2Delete = userManager.find(userId);
 
-            if (user == null) {
+            if (user2Delete == null) {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_UserId_NotFound"))
                         .build();
@@ -122,9 +122,16 @@ public class UserResourceV1 {
 
             SearchView search = null;
 
-            if (UserUtil.DEFAULT_ADMIN_USER.equals(user.getUserName())) {
+            if (UserUtil.DEFAULT_ADMIN_USER.equals(user2Delete.getUserName())) {
                 return SmartGwtResponse.<UserProfile>asError()
-                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_cant_be_deleted", user.getUserName()))
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_cant_be_deleted", user2Delete.getUserName()))
+                        .build();
+            }
+
+
+            if (user.getUserName().equals(user2Delete.getUserName())) {
+                return SmartGwtResponse.<UserProfile>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_cant_be_deleted", user2Delete.getUserName()))
                         .build();
             }
 
@@ -138,10 +145,10 @@ public class UserResourceV1 {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
 
-            int count = search.countByOwner(user.getUserName());
+            int count = search.countByOwner(user2Delete.getUserName());
             if (count != 0) {
                 return SmartGwtResponse.<UserProfile>asError()
-                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user.getUserName(), count))
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
                         .build();
             } else {
                 userManager.deleteUser(userId);

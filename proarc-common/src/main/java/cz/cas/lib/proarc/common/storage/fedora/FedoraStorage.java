@@ -263,6 +263,7 @@ public final class FedoraStorage {
         private final FedoraClient client;
         private String label;
         private String modelId;
+        private String owner;
 
         public RemoteObject(String pid, FedoraClient client) {
             super(pid);
@@ -295,6 +296,11 @@ public final class FedoraStorage {
         }
 
         @Override
+        public void setOwner(String owner) {
+            this.owner = owner;
+        }
+
+        @Override
         public String getModel() {
             return this.modelId;
         }
@@ -305,6 +311,9 @@ public final class FedoraStorage {
             try {
                 if (label != null) {
                     FedoraClient.modifyObject(getPid()).label(qpEncode(label)).execute(client);
+                }
+                if (owner != null) {
+                    FedoraClient.modifyObject(getPid()).ownerId(qpEncode(owner)).execute(client);
                 }
             } catch (FedoraClientException ex) {
                 throw new IllegalStateException(getPid(), ex);

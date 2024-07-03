@@ -109,6 +109,10 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
+    public List<SearchViewItem> findByOwner(String owner) throws FedoraClientException, IOException {
+        return findAdvancedSearchItems(null, null, owner, null, null, null, null, null, null, null, "label", "desc", 0, Integer.MAX_VALUE);
+    }
+
     public int countByOwner(String owner) throws FedoraClientException, IOException {
         throw new IOException("Methid is not implemented");
     }

@@ -65,6 +65,7 @@ public class WorkflowStorage {
         private final BigDecimal workflowJobId;
         private final Locale locale;
         private String label;
+        private String owner;
 
         private final Set<XmlStreamEditor> editors = new LinkedHashSet<>();
 
@@ -106,6 +107,11 @@ public class WorkflowStorage {
         @Override
         public void setModel(String modelId) {
             this.modelId = modelId;
+        }
+
+        @Override
+        public void setOwner(String owner) {
+            this.owner = owner;
         }
 
         @Override

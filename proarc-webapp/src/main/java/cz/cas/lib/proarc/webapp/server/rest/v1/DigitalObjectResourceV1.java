@@ -138,6 +138,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -4534,6 +4535,78 @@ public class DigitalObjectResourceV1 {
         CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration, user);
         catalogRecord.update(catalogId, pid);
 
+        return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_OWNER_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeObjectOwner (
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_OLD) String oldOwner,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner
+    ) throws IOException, FedoraClientException, DigitalObjectException {
+        Locale locale = session.getLocale(httpHeaders);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+
+        UserProfile oldUser = null;
+        UserProfile newUser = null;
+
+        if (oldOwner == null || oldOwner.isEmpty()) {
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_OLD);
+        } else {
+            oldUser = UserUtil.getDefaultManger().find(oldOwner);
+            if (oldUser == null) {
+                return SmartGwtResponse.<SearchViewItem>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_NotFound", oldOwner))
+                        .build();
+            }
+        }
+
+        if (newOwner == null || newOwner.isEmpty()) {
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW);
+        } else {
+            newUser = UserUtil.getDefaultManger().find(newOwner);
+            if (newUser == null) {
+                return SmartGwtResponse.<SearchViewItem>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_NotFound", newOwner))
+                        .build();
+            }
+        }
+        if (newOwner.equals(oldOwner)) {
+            return SmartGwtResponse.<SearchViewItem>asError()
+                    .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResource_Both_username_are_same", newOwner))
+                    .build();
+        }
+
+        BatchParams params = new BatchParams(Collections.singletonList(oldOwner + " --> " + newOwner));
+        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("Change object owner (" + oldOwner + " --> " + newOwner + ")."), user, Batch.INTERNAL_CHANGE_OBJECTS_OWNERS, Batch.State.CHANGING_OWNERS, Batch.State.CHANGE_OWNERS_FAILED, params);
+
+        SearchView search = null;
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            FedoraStorage remote = FedoraStorage.getInstance(appConfig);
+            search = remote.getSearch(locale);
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
+            search = akubra.getSearch(locale);
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
+
+        List<SearchViewItem> items = search.findByOwner(oldOwner);
+        int updated = 0;
+
+        for (SearchViewItem item : items) {
+            ProArcObject object = findFedoraObject(item.getPid(), null);
+            object.setOwner(newOwner);
+            object.flush();
+            updated++;
+            if (updated % 50 == 0) {
+                LOG.info("Owners change for " + updated + " / " + items.size() + ".");
+            }
+        }
+        LOG.info("Owners change for all objects (" + items.size() + ").");
+
+        BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), null, Batch.State.CHANGE_OWNERS_DONE);
         return returnFunctionSuccess();
     }
 

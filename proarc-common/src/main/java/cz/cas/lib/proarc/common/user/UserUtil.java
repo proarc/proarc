@@ -184,7 +184,7 @@ public final class UserUtil {
         UserProfile admin = mgr.find(proarcName);
         if (admin == null) {
             admin = UserProfile.create(proarcName, "proarcAdmin", "Administrátor");
-            admin.setRole("superAdmin");
+            admin.setRole(UserManager.ROLE_SUPERADMIN);
             mgr.add(admin, Arrays.asList(gadmin), admin.getUserName(), logMsg);
         }
         Set<Permission> adminPermissions = mgr.findUserPermissions(admin.getId());

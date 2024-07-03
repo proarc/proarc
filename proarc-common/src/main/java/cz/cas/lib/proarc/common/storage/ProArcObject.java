@@ -43,6 +43,8 @@ public interface ProArcObject {
 
     void setModel(String modelId);
 
+    void setOwner(String owner);
+
     String getModel();
 
     void flush() throws DigitalObjectException;

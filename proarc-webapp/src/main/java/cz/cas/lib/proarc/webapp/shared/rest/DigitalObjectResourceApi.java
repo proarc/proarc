@@ -48,6 +48,10 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_COPY_PAGE_TYPE = "copyPageType";
     public static final String DIGITALOBJECT_COPY_PAGE_POSITION = "copyPagePosition";
 
+    public static final String CHANGE_OWNER_PATH = "changeOwner";
+    public static final String DIGITALOBJECT_CHANGE_OWNER_OLD = "oldOwner";
+    public static final String DIGITALOBJECT_CHANGE_OWNER_NEW = "newOwner";
+
     public static final String NEWOBJECT_XML_PARAM = "xml";
 
     public static final String DELETE_HIERARCHY_PARAM = "hierarchy";

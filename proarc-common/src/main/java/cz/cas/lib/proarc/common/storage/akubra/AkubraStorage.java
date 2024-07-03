@@ -71,6 +71,7 @@ import org.xml.sax.SAXException;
 import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_CREATEDATE;
 import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_LABEL;
 import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_LASTMODIFIED;
+import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_OWNER;
 import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_STATE;
 import static cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject.getActualDateAsString;
 import static cz.cas.lib.proarc.common.storage.akubra.AkubraUtils.getDatastream;
@@ -326,6 +327,7 @@ public class AkubraStorage {
 
         private String label;
         private String modelId;
+        private String owner;
         private AkubraManager manager;
         private SolrObjectFeeder objectFeeder;
         private SolrLogFeeder loggingFeeder;
@@ -364,12 +366,20 @@ public class AkubraStorage {
         }
 
         @Override
+        public void setOwner(String owner) {
+            this.owner = owner;
+        }
+
+        @Override
         public void flush() throws DigitalObjectException {
             super.flush();
             try {
                 DigitalObject object = this.manager.readObjectFromStorage(getPid());
                 if (label != null) {
                     object = updateLabel(object, label);
+                }
+                if (owner != null) {
+                    object = updateOwner(object, owner);
                 }
                 object = updateModifiedDate(object);
                 if (object == null) {
@@ -427,6 +437,21 @@ public class AkubraStorage {
                     for (PropertyType property : propertiesType.getProperty()) {
                         if (PROPERTY_LABEL.equals(property.getNAME())) {
                             property.setVALUE(label);
+                        }
+                    }
+                }
+                return object;
+            }
+            return null;
+        }
+
+        private DigitalObject updateOwner(DigitalObject object, String owner) {
+            if (object != null) {
+                ObjectPropertiesType propertiesType = object.getObjectProperties();
+                if (propertiesType != null) {
+                    for (PropertyType property : propertiesType.getProperty()) {
+                        if (PROPERTY_OWNER.equals(property.getNAME())) {
+                            property.setVALUE(owner);
                         }
                     }
                 }

@@ -26,6 +26,10 @@ import java.util.Set;
  */
 public interface UserManager {
 
+    public static final String ROLE_SUPERADMIN = "superAdmin";
+    public static final String ROLE_ADMIN = "admin";
+    public static final String ROLE_USER = "user";
+
     /**
      * Authenticates a local user.
      * @return {@code null} or the authenticated user

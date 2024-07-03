@@ -144,6 +144,7 @@ public final class LocalStorage {
             return this.modelId;
         }
 
+        @Override
         public void setOwner(String owner) {
             FoxmlUtils.setProperty(dobj, FoxmlUtils.PROPERTY_OWNER, owner);
         }
