@@ -4595,19 +4595,26 @@ public class DigitalObjectResourceV1 {
         List<SearchViewItem> items = search.findByOwner(oldOwner);
         int updated = 0;
 
-        for (SearchViewItem item : items) {
-            ProArcObject object = findFedoraObject(item.getPid(), null);
-            object.setOwner(newOwner);
-            object.flush();
-            updated++;
-            if (updated % 50 == 0) {
-                LOG.info("Owners change for " + updated + " / " + items.size() + ".");
+        try {
+            for (SearchViewItem item : items) {
+                ProArcObject object = findFedoraObject(item.getPid(), null);
+                object.setOwner(newOwner);
+                object.flush();
+                updated++;
+                if (updated % 50 == 0) {
+                    LOG.info("Owners change for " + updated + " / " + items.size() + ".");
+                }
             }
+            LOG.info("Owners change for all objects (" + items.size() + ").");
+            BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), null, Batch.State.CHANGE_OWNERS_DONE);
+            return returnFunctionSuccess();
+        } catch (Throwable t) {
+            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), t.getMessage(), Batch.State.CHANGE_OWNERS_FAILED);
+            throw t;
         }
-        LOG.info("Owners change for all objects (" + items.size() + ").");
 
-        BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), null, Batch.State.CHANGE_OWNERS_DONE);
-        return returnFunctionSuccess();
+
+
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
