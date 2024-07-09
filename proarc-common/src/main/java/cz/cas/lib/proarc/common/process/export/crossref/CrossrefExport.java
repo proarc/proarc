@@ -17,20 +17,23 @@
 package cz.cas.lib.proarc.common.process.export.crossref;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
+import cz.cas.lib.proarc.common.object.DigitalObjectElement;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.ExportException;
 import cz.cas.lib.proarc.common.process.export.ExportParams;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.cejsh.CejshStatusHandler;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
-import cz.cas.lib.proarc.common.object.DigitalObjectElement;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,9 +59,9 @@ public class CrossrefExport {
         this.pids = new ArrayList<>();
     }
 
-    public void export(File output, List<String> pids, CejshStatusHandler status) throws IOException {
+    public void export(File output, List<String> pids, CejshStatusHandler status, Batch batch) throws IOException {
         try {
-            exportImpl(output, pids, status);
+            exportImpl(output, pids, status, batch);
             storeExportResult(output, "Export succesfull");
         } catch (ExportException ex) {
             status.error(ex);
@@ -80,8 +83,11 @@ public class CrossrefExport {
         }
     }
 
-    private void exportImpl(File output, List<String> pids, CejshStatusHandler status) throws ExportException, IOException {
+    private void exportImpl(File output, List<String> pids, CejshStatusHandler status, Batch batch) throws ExportException, IOException {
         output = prepareExportFolder(output, pids, "crossref_" + FoxmlUtils.pidAsUuid(pids.get(0)));
+        if (batch != null) {
+            BatchUtils.updateExportingBatch(BatchManager.getInstance(), batch, output);
+        }
         status.setTargetFolder(output);
         SearchView search = null;
         if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {

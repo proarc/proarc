@@ -12,6 +12,9 @@ public class RestConsts {
     public static final String ERR_NO_PERMISSION = "Err_no_permission"; // 0 parameters
     public static final String ERR_IN_GETTING_CHILDREN = "Err_in_getting_children";
     public static final String ERR_UNSUPPORTED_VALUE = "Err_unsupported_value"; // 1 parameter
+    public static final String ERR_BATCH_CANNOT_BE_STOPED = "Err_batch_cannot_be_stoped"; // 0 parameters
     public static final String STATUS_LOCKED = "locked";
     public static final String STATUS_DONT_BE_IGNORED = "dontIgnored";
+    public static final String ERR_USER_WITHOUT_ORGANIZATION = "UserResource_User_without_organization";
+
 }

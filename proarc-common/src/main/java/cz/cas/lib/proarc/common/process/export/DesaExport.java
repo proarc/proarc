@@ -18,6 +18,10 @@ package cz.cas.lib.proarc.common.process.export;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.desa.Const;
 import cz.cas.lib.proarc.common.process.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.process.export.desa.DesaServices;
@@ -26,14 +30,13 @@ import cz.cas.lib.proarc.common.process.export.desa.structure.DesaElementVisitor
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationResource;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.desa.SIP2DESATransporter;
 import java.io.File;
@@ -71,9 +74,9 @@ public final class DesaExport {
      * @throws ExportException unexpected failure
      */
     public List<MetsExportException.MetsExportExceptionElement> validate(File exportsFolder, String pid,
-                                                                         boolean hierarchy) throws ExportException {
+                                                                         boolean hierarchy, Batch batch) throws ExportException {
 
-        Result export = export(exportsFolder, pid, null, true, hierarchy, false, null, null);
+        Result export = export(exportsFolder, pid, null, true, hierarchy, false, null, null, batch);
         if (export.getValidationError() != null) {
             return export.getValidationError().getExceptions();
         } else {
@@ -88,8 +91,8 @@ public final class DesaExport {
      * @return the result with token or validation errors
      * @throws ExportException unexpected failure
      */
-    public Result exportDownload(File exportsFolder, String pid) throws ExportException {
-        return export(exportsFolder, pid, null, true, false, true, null, null);
+    public Result exportDownload(File exportsFolder, String pid, Batch batch) throws ExportException {
+        return export(exportsFolder, pid, null, true, false, true, null, null, batch);
     }
 
     /**
@@ -129,10 +132,13 @@ public final class DesaExport {
      */
     public Result export(File exportsFolder, String pid, String packageId,
             boolean dryRun, boolean hierarchy, boolean keepResult, String log,
-            UserProfile user
+            UserProfile user, Batch batch
             ) throws ExportException {
 
         File target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pid), this.appConfiguration.getExportParams().isOverwritePackage());
+        if (batch != null) {
+            BatchUtils.updateExportingBatch(BatchManager.getInstance(), batch, target);
+        }
         Result result = new Result();
         try {
             if (keepResult) {

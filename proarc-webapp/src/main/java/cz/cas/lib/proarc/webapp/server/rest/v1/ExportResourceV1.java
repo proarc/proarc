@@ -240,7 +240,7 @@ public class ExportResourceV1 {
             ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("Resource_Unsupported_Value", batchId)));
             return new SmartGwtResponse<>(result);
         } else {
-            if (!Batch.State.EXPORT_FAILED.equals(batch.getState())) {
+            if (!(Batch.State.EXPORT_FAILED.equals(batch.getState()) || Batch.State.STOPPED.equals(batch.getState()))) {
                 ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_WrongState", batch.getState())));
                 return new SmartGwtResponse<>(result);
             } else {
@@ -250,6 +250,10 @@ public class ExportResourceV1 {
                     ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_MissingParams")));
                     return new SmartGwtResponse<>(result);
                 }
+
+                batch.setState(Batch.State.EXPORT_PLANNED);
+                batch = batchManager.update(batch);
+
                 ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
                 ExportDispatcher.getDefault().addExport(process);
                 ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");

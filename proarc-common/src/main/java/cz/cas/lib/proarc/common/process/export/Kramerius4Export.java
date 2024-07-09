@@ -24,32 +24,9 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.LocalStorage;
-import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
-import cz.cas.lib.proarc.common.storage.SearchView;
-import cz.cas.lib.proarc.common.storage.SearchViewItem;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.storage.relation.RelationResource;
-import cz.cas.lib.proarc.common.storage.relation.Relations;
 import cz.cas.lib.proarc.common.kramerius.KImporter;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
@@ -64,6 +41,32 @@ import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.common.storage.relation.RelationResource;
+import cz.cas.lib.proarc.common.storage.relation.Relations;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -192,7 +195,7 @@ public final class Kramerius4Export {
         }
     }
 
-    public Result export(File output, boolean hierarchy, String log, String krameriusInstanceId, String... pids) {
+    public Result export(File output, boolean hierarchy, String log, String krameriusInstanceId, Batch batch, String... pids) {
         if (!output.exists() || !output.isDirectory()) {
             throw new IllegalStateException(String.valueOf(output));
         }
@@ -207,6 +210,9 @@ public final class Kramerius4Export {
         reslog.getExports().add(result);
 
         File target = ExportUtils.createFolder(output, "k4_" + FoxmlUtils.pidAsUuid(pids[0]), exportParams.isOverwritePackage());
+        if (batch != null) {
+            BatchUtils.updateExportingBatch(BatchManager.getInstance(), batch, target);
+        }
         krameriusResult.setFile(target);
         HashSet<String> selectedPids = new HashSet<String>(Arrays.asList(pids));
         toExport.addAll(createPair(null, selectedPids));

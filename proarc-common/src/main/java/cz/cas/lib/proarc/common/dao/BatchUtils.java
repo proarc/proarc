@@ -1,10 +1,11 @@
 package cz.cas.lib.proarc.common.dao;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import java.io.File;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +57,14 @@ public class BatchUtils {
         batch.setState(state);
         batch.setFolder(path);
         batch.setLog(exception);
+        return batchManager.update(batch);
+    }
+
+    public static Batch updateExportingBatch(BatchManager batchManager, Batch batch, File file) {
+        if (batch == null) {
+            return null;
+        }
+        batch.setFolder(file.getAbsolutePath());
         return batchManager.update(batch);
     }
 

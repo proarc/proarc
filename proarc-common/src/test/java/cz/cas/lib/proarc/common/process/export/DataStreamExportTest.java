@@ -85,7 +85,7 @@ public class DataStreamExportTest {
         List<String> pids = Arrays.asList("uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2");
         List<String> dsIds = Arrays.asList(StringEditor.OCR_ID, "PREVIEW");
         DataStreamExport instance = new DataStreamExport(fedora.getRemoteStorage(), appConfig, akubraConfiguration);
-        File target = instance.export(output, hierarchy, pids, dsIds);
+        File target = instance.export(output, hierarchy, pids, dsIds, null);
         assertNotNull(target);
 
         File ocr = new File(target, DataStreamExport.filename(pids.get(0), dsIds.get(0)));

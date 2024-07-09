@@ -81,10 +81,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
+import static cz.cas.lib.proarc.common.dao.BatchUtils.updateExportingBatch;
 import static cz.cas.lib.proarc.common.process.export.bagit.BagitExport.findNdkExportFolder;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
@@ -136,9 +138,12 @@ public final class ExportProcess implements Runnable {
      * @return the import batch
      */
     public Batch start() {
-        Batch batch = exportOptions.getBatch();
+        Batch batch = BatchManager.getInstance().get(exportOptions.getBatch().getId());
         if (batch == null) {
             throw new IllegalStateException("Batch is null!");
+        }
+        if (Batch.State.STOPPED.equals(batch.getState())) {
+            return batch;
         }
         String profileId = batch.getProfileId();
         BatchParams params = batch.getParamsAsObject();
@@ -171,7 +176,12 @@ public final class ExportProcess implements Runnable {
             // rollback files on batch resume
             return null;
         } catch (Throwable t) {
-            return BatchUtils.finishedExportWithError(batchManager, batch, batch.getFolder(), t);
+            batch = batchManager.get(batch.getId());
+            if (Batch.State.STOPPED.equals(batch.getState())) {
+                return batch;
+            } else {
+                return BatchUtils.finishedExportWithError(batchManager, batch, batch.getFolder(), t);
+            }
         }
     }
 
@@ -195,6 +205,34 @@ public final class ExportProcess implements Runnable {
         return process;
     }
 
+    public static void stopExportingBatch(Batch batch, BatchManager importManager, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
+        ExportDispatcher exportDispatcher = ExportDispatcher.getDefault();
+        try {
+            exportDispatcher.stopNow();
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, ex.getMessage());
+        }
+
+        LOG.log(Level.INFO, batch.toString(), "has been stopped!");
+        String targetPath = batch.getFolder();
+        if (targetPath != null && !targetPath.startsWith("uuid")) {
+            File targetFolder = new File(targetPath);
+            if (targetFolder.exists()) {
+                MetsUtils.deleteFolder(targetFolder);
+            }
+        }
+        batch.setState(Batch.State.STOPPED);
+        importManager.update(batch);
+
+        exportDispatcher.restart();
+        resumeAll(importManager, exportDispatcher, appConfig, akubraConfiguration);
+    }
+
+    public static void cancelPlannedBatch(Batch batch, BatchManager importManager, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
+        batch.setState(Batch.State.STOPPED);
+        importManager.update(batch);
+    }
+
     private Batch kwisExport(Batch batch, BatchParams params) {
         try {
             String outputPath = config.getKwisExportOptions().getKwisPath();
@@ -205,13 +243,16 @@ public final class ExportProcess implements Runnable {
                 outputPath = outputPath + File.separator;
             }
 
-            URI imagesPath = runDatastreamExport(outputPath, params, Collections.singletonList("NDK_USER"));
-            URI k4Path = runK4Export(outputPath, params, "public");
+            URI imagesPath = runDatastreamExport(outputPath, params, Collections.singletonList("NDK_USER"), batch);
+            URI k4Path = runK4Export(outputPath, params, "public", batch);
 
             String imp = imagesPath.getPath();
             String k4p = k4Path.getPath();
             String exportPackPath = outputPath + params.getPids().get(0).substring(5) + "_KWIS";
             File exportFolder = new File(exportPackPath);
+            if (batch != null) {
+                updateExportingBatch(batchManager, batch, exportFolder);
+            }
             exportFolder.mkdir();
 
             KwisExport export = new KwisExport(config, imp, k4p, exportPackPath);
@@ -250,6 +291,9 @@ public final class ExportProcess implements Runnable {
             }
 
             File targetFolder = ExportUtils.createFolder(exportFolder, "archive_" + FoxmlUtils.pidAsUuid(params.getPids().get(0)), config.getExportParams().isOverwritePackage());
+            if (batch != null) {
+                BatchUtils.updateExportingBatch(batchManager, batch, targetFolder);
+            }
             try {
                 //File archiveRootFolder = ExportUtils.createFolder(targetFolder, "archive_" + FoxmlUtils.pidAsUuid(pids.get(0)));
                 targetFolder = export.archive(params.getPids(), targetFolder, params.isIgnoreMissingUrnNbn());
@@ -518,7 +562,7 @@ public final class ExportProcess implements Runnable {
             CrossrefExport export = new CrossrefExport(
                     DigitalObjectManager.getDefault(), config, akubraConfiguration);
             CejshStatusHandler status = new CejshStatusHandler();
-            export.export(exportFolder, params.getPids(), status);
+            export.export(exportFolder, params.getPids(), status, batch);
             File targetFolder = status.getTargetFolder();
 //            ExportResult result = new ExportResult();
 //            if (targetFolder != null) {
@@ -549,7 +593,7 @@ public final class ExportProcess implements Runnable {
             CejshConfig cejshConfig = CejshConfig.from(config.getAuthenticators());
             CejshExport export = new CejshExport(
                     DigitalObjectManager.getDefault(), config, akubraConfiguration);
-            CejshStatusHandler status = export.export(exportFolder, params.getPids());
+            CejshStatusHandler status = export.export(exportFolder, params.getPids(), batch);
             File targetFolder = status.getTargetFolder();
 //            ExportResult result = new ExportResult();
 //            if (targetFolder != null) {
@@ -600,7 +644,7 @@ public final class ExportProcess implements Runnable {
             }
 
             File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_NDK);
-            List<NdkExport.Result> ndkResults = export.export(exportFolder, params.getPids(), true, true, null, params.isIgnoreMissingUrnNbn(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPolicy());
+            List<NdkExport.Result> ndkResults = export.export(exportFolder, params.getPids(), true, true, null, params.isIgnoreMissingUrnNbn(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPolicy(), batch);
             for (NdkExport.Result r : ndkResults) {
                 if (r.getError() != null) {
                     String exportPath = MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
@@ -682,7 +726,7 @@ public final class ExportProcess implements Runnable {
             File exportFolder = new File(exportUri);
             List<MetsExportException.MetsExportExceptionElement> exceptions = new ArrayList<>();
             if (params.isForDownload()) {
-                DesaExport.Result r = export.exportDownload(exportFolder, params.getPids().get(0));
+                DesaExport.Result r = export.exportDownload(exportFolder, params.getPids().get(0), batch);
                 if (r.getValidationError() != null) {
                     return finishedExportWithError(this.batchManager, batch, r.getValidationError().getExceptions());
                 } else {
@@ -691,7 +735,7 @@ public final class ExportProcess implements Runnable {
             } else {
                 if (params.isDryRun()) {
                     for (String pid : params.getPids()) {
-                        List<MetsExportException.MetsExportExceptionElement> errors = export.validate(exportFolder, pid, params.isHierarchy());
+                        List<MetsExportException.MetsExportExceptionElement> errors = export.validate(exportFolder, pid, params.isHierarchy(), batch);
                         exceptions.addAll(errors);
                     }
                     if (exceptions.isEmpty()) {
@@ -701,7 +745,7 @@ public final class ExportProcess implements Runnable {
                     }
                 } else {
                     for (String pid : params.getPids()) {
-                        DesaExport.Result r = export.export(exportFolder, pid, null, false, params.isHierarchy(), false, exportOptions.getLog(), user);
+                        DesaExport.Result r = export.export(exportFolder, pid, null, false, params.isHierarchy(), false, exportOptions.getLog(), user, batch);
                         if (r.getValidationError() != null) {
                             exceptions.addAll(r.getValidationError().getExceptions());
                         }
@@ -724,7 +768,7 @@ public final class ExportProcess implements Runnable {
             DataStreamExport export = new DataStreamExport(config, akubraConfiguration);
             URI exportUri = user.getExportFolder();
             File exportFolder = new File(exportUri);
-            File target = export.export(exportFolder, params.isHierarchy(), params.getPids(), params.getDsIds());
+            File target = export.export(exportFolder, params.isHierarchy(), params.getPids(), params.getDsIds(), batch);
 //            URI targetPath = user.getUserHomeUri().relativize(target.toURI());
             return BatchUtils.finishedExportSuccessfully(batchManager, batch, target.getAbsolutePath());
         } catch (Exception e) {
@@ -736,7 +780,7 @@ public final class ExportProcess implements Runnable {
         try {
             Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.getLicense(), params.isArchive());
             File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_KRAMERIUS);
-            Kramerius4Export.Result k4Result = export.export(exportFolder, params.isHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPids().toArray(new String[params.getPids().size()]));
+            Kramerius4Export.Result k4Result = export.export(exportFolder, params.isHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), batch, params.getPids().toArray(new String[params.getPids().size()]));
             if (k4Result.getException() != null) {
                 String exportPath = MetsUtils.renameFolder(exportFolder, k4Result.getFile(), null);
                 finishedExportWithError(this.batchManager, batch, exportPath, k4Result.getException());
@@ -788,13 +832,13 @@ public final class ExportProcess implements Runnable {
         }
     }
 
-    private URI runK4Export(String path, BatchParams params, String exportPageContext) throws Exception {
+    private URI runK4Export(String path, BatchParams params, String exportPageContext, Batch batch) throws Exception {
         Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.getLicense(), params.isArchive());
         if (path == null || path.isEmpty()) {
             path = user.getExportFolder().getPath();
         }
         File exportFolder = new File(path);
-        Kramerius4Export.Result target = export.export(exportFolder, params.isHierarchy(), exportOptions.getLog(), null, params.getPids().toArray(new String[params.getPids().size()]));
+        Kramerius4Export.Result target = export.export(exportFolder, params.isHierarchy(), exportOptions.getLog(), null, batch, params.getPids().toArray(new String[params.getPids().size()]));
         if (target.getException() != null) {
             MetsUtils.renameFolder(exportFolder, target.getFile(), null);
             throw target.getException();
@@ -802,13 +846,13 @@ public final class ExportProcess implements Runnable {
         return user.getUserHomeUri().relativize(target.getFile().toURI());
     }
 
-    private URI runDatastreamExport(String path, BatchParams params, List<String> dsIds) throws IOException, ExportException {
+    private URI runDatastreamExport(String path, BatchParams params, List<String> dsIds, Batch batch) throws IOException, ExportException {
         DataStreamExport export = new DataStreamExport(config, akubraConfiguration);
         if (path == null || path.isEmpty()) {
             path = user.getExportFolder().getPath();
         }
         File exportFolder = new File(path);
-        File target = export.export(exportFolder, params.isHierarchy(), params.getPids(), dsIds);
+        File target = export.export(exportFolder, params.isHierarchy(), params.getPids(), dsIds, batch);
         return user.getUserHomeUri().relativize(target.toURI());
     }
 

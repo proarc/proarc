@@ -17,17 +17,8 @@
 package cz.cas.lib.proarc.common.process.export.cejsh;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.process.export.ExportParams;
-import cz.cas.lib.proarc.common.process.export.ExportUtils;
-import cz.cas.lib.proarc.common.process.export.cejsh.CejshBuilder.Article;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.SearchView;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -35,6 +26,18 @@ import cz.cas.lib.proarc.common.object.VisitorException;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.ndk.DefaultNdkVisitor;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.export.ExportParams;
+import cz.cas.lib.proarc.common.process.export.ExportUtils;
+import cz.cas.lib.proarc.common.process.export.cejsh.CejshBuilder.Article;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -69,8 +72,8 @@ public class CejshExport {
         this.options = appConfiguration.getExportParams();
     }
 
-    public CejshStatusHandler export(File outputFolder, List<String> pids) throws IOException {
-        return export(outputFolder, pids, new CejshStatusHandler(cejshConfig.getLogLevel()));
+    public CejshStatusHandler export(File outputFolder, List<String> pids, Batch batch) throws IOException {
+        return export(outputFolder, pids, new CejshStatusHandler(cejshConfig.getLogLevel()), batch);
     }
 
     /**
@@ -81,9 +84,9 @@ public class CejshExport {
      * @param status an export status
      * @return the export status including the target folder and errors
      */
-    public CejshStatusHandler export(File outputFolder, List<String> pids, CejshStatusHandler status) throws IOException {
+    public CejshStatusHandler export(File outputFolder, List<String> pids, CejshStatusHandler status, Batch batch) throws IOException {
         try {
-            return exportImpl(outputFolder, pids, status);
+            return exportImpl(outputFolder, pids, status, batch);
         } finally {
             File targetFolder = status.getTargetFolder();
             if (targetFolder != null) {
@@ -92,7 +95,7 @@ public class CejshExport {
         }
     }
 
-    private CejshStatusHandler exportImpl(File output, List<String> pids, CejshStatusHandler status) throws IOException {
+    private CejshStatusHandler exportImpl(File output, List<String> pids, CejshStatusHandler status, Batch batch) throws IOException {
         // XXX write export to RELS-EXT
         if (!output.exists() || !output.isDirectory()) {
             status.error((String) null, "Invalid output: " + output, null);
@@ -103,6 +106,9 @@ public class CejshExport {
             return status;
         }
         output = ExportUtils.createFolder(output, "cejsh_" + FoxmlUtils.pidAsUuid(pids.get(0)), options.isOverwritePackage());
+        if (batch != null) {
+            BatchUtils.updateExportingBatch(BatchManager.getInstance(), batch, output);
+        }
         status.setTargetFolder(output);
         SearchView search = null;
         if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {

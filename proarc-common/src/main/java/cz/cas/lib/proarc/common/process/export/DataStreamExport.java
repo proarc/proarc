@@ -24,6 +24,9 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
@@ -32,15 +35,15 @@ import cz.cas.lib.proarc.common.process.export.mets.MimeType;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -96,7 +99,7 @@ public final class DataStreamExport {
         this.akubraConfiguration = akubraConfiguration;
     }
 
-    public File export(File output, boolean hierarchy, List<String> pids, List<String> dsIds) throws ExportException {
+    public File export(File output, boolean hierarchy, List<String> pids, List<String> dsIds, Batch batch) throws ExportException {
         if (!output.exists() || !output.isDirectory()) {
             throw new IllegalStateException(String.valueOf(output));
         }
@@ -105,6 +108,11 @@ public final class DataStreamExport {
         }
 
         File target = ExportUtils.createFolder(output, (dsIds.get(0) + "_" + FoxmlUtils.pidAsUuid(pids.get(0))).toLowerCase(), appConfig.getExportParams().isOverwritePackage());
+
+        if (batch != null) {
+            BatchUtils.updateExportingBatch(BatchManager.getInstance(), batch, target);
+        }
+
         toExport.addAll(pids);
         for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
             exportPid(target, hierarchy, pid, dsIds);

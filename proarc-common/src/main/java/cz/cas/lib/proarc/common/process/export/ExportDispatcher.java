@@ -82,7 +82,7 @@ public final class ExportDispatcher {
                 pool.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
                 if (!pool.awaitTermination(timeout, unit)) {
-                    LOG.severe("ImportDispatcher thread pool did not terminate");
+                    LOG.severe("ExportDispatcher thread pool did not terminate");
                 }
             }
         } catch (InterruptedException ie) {

@@ -18,6 +18,12 @@ package cz.cas.lib.proarc.common.process.export.mets;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.kramerius.KImporter;
+import cz.cas.lib.proarc.common.kramerius.KUtils;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.ExportException;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog.ItemList;
@@ -28,15 +34,12 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisito
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.kramerius.KImporter;
-import cz.cas.lib.proarc.common.kramerius.KUtils;
-import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mets.info.Info;
 import java.io.File;
 import java.util.ArrayList;
@@ -101,7 +104,7 @@ public class NdkExport {
     public List<Result> export(File exportsFolder, List<String> pids,
                                boolean hierarchy, boolean keepResult, Boolean overwrite,
                                boolean ignoreMissingUrnNbn, String log, String krameriusInstanceId,
-                               String policy) throws ExportException {
+                               String policy, Batch batch) throws ExportException {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
@@ -110,6 +113,9 @@ public class NdkExport {
             target = exportsFolder;
         } else {
             target = ExportUtils.createFolder(exportsFolder, FoxmlUtils.pidAsUuid(pids.get(0)), overwrite(overwrite, this.appConfig.getExportParams().isOverwritePackage()));
+        }
+        if (batch != null) {
+            BatchUtils.updateExportingBatch(BatchManager.getInstance(), batch, target);
         }
         List<Result> results = new ArrayList<>(pids.size());
         KUtils.ImportState state = null;

@@ -26,16 +26,9 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.PageView;
-import cz.cas.lib.proarc.common.storage.PageView.Item;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.export.ExportProcess;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.imports.FedoraImport;
 import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
@@ -45,8 +38,17 @@ import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.process.internal.InternalDispatcher;
 import cz.cas.lib.proarc.common.process.internal.InternalProcess;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.PageView;
+import cz.cas.lib.proarc.common.storage.PageView.Item;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
@@ -96,7 +98,9 @@ import org.apache.commons.io.IOUtils;
 
 import static cz.cas.lib.proarc.common.process.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.TMP_DIR_NAME;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_BATCH_CANNOT_BE_STOPED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_USER_WITHOUT_ORGANIZATION;
 
 /**
  * Resource to handle imports.
@@ -482,13 +486,48 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        if (!(session.checkPermission(Permissions.ADMIN) || session.checkRole(UserRole.ROLE_SUPERADMIN) || isBatchOwner(batch))) {
-            LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (user.getOrganization() == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_USER_WITHOUT_ORGANIZATION, user.getUserName()));
         }
-        ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
-        BatchView batchView = importManager.viewBatch(batch.getId());
-        return new SmartGwtResponse<BatchView>(batchView);
+        if (Batch.State.LOADING.equals(batch.getState())) {
+            if (!(session.checkPermission(Permissions.ADMIN) || session.checkRole(UserRole.ROLE_SUPERADMIN) || isBatchOwner(batch))) {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
+                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+            }
+            ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
+            BatchView batchView = importManager.viewBatch(batch.getId());
+            return new SmartGwtResponse<BatchView>(batchView);
+        } else if (Batch.State.EXPORTING.equals(batch.getState())) {
+            if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
+                // role superadmin is allowed to stop all batches
+            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) {
+                // role admin is allowed to stop all batches og their organization
+            } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
+                // role user is only allowed to stop their own batches
+            } else {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
+                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+            }
+            ExportProcess.stopExportingBatch(batch, importManager, appConfig, akubraConfiguration);
+            BatchView batchView = importManager.viewBatch(batch.getId());
+            return new SmartGwtResponse<BatchView>(batchView);
+        } else if (Batch.State.EXPORT_PLANNED.equals(batch.getState())) {
+            if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
+                // role superadmin is allowed to stop all batches
+            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) {
+                // role admin is allowed to stop all batches og their organization
+            } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
+                // role user is only allowed to stop their own batches
+            } else {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
+                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+            }
+            ExportProcess.cancelPlannedBatch(batch, importManager, appConfig, akubraConfiguration);
+            BatchView batchView = importManager.viewBatch(batch.getId());
+            return new SmartGwtResponse<BatchView>(batchView);
+        } else {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_BATCH_CANNOT_BE_STOPED));
+        }
     }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {
@@ -499,6 +538,11 @@ public class ImportResourceV1 {
 
     private boolean isBatchOwner(Batch batch) {
         return user.getId().equals(batch.getUserId());
+    }
+
+    private boolean isBatchOrganization(Batch batch) {
+        UserProfile owner = UserUtil.getDefaultManger().find(batch.getUserId());
+        return user.getOrganization().equals(owner.getOrganization());
     }
 
     @PUT
