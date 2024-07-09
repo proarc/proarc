@@ -373,7 +373,7 @@ public class PremisEditor {
             addPremisNodeToMets(getPremisEvent(metsElement, Const.TXT_GRP_ID, md5InfosMap.get(Const.TXT_GRP_ID), "capture/TXT_creation"), amdSec, "EVT_005", true, amdSecFileGrpMap);
         }*/
         if (md5InfosMap.get(Const.RAW_GRP_ID) != null && options.getPremisEventTypeDeletion()) {
-            addPremisNodeToMets(getPremisEvent(metsElement, Const.RAW_GRP_ID, md5InfosMap.get(Const.RAW_GRP_ID), "deletetion/PS_deletion"), amdSec, "EVT_004", true, null);
+            addPremisNodeToMets(getPremisEvent(metsElement, Const.RAW_GRP_ID, md5InfosMap.get(Const.RAW_GRP_ID), "deletion/PS_deletion"), amdSec, "EVT_004", true, null);
         }
 
         if (mets != null && mets.getAmdSec().size() != 0) {
