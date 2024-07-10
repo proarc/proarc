@@ -625,4 +625,4 @@ POST {{proarcUrl}}/rest/v2/import/batchStopped
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-id=191
+id={{batchId}}

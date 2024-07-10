@@ -293,6 +293,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
                 defaultMods.getNote().addAll(titleMods.getNote());
                 defaultMods.getSubject().addAll(titleMods.getSubject());
+                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
@@ -302,11 +303,13 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                     ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                     modsCopyMusicDocument(title, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+                    inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
                 } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parent.relations().getModel())){
                     DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_PHONOGRAPH);
                     ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                     modsCopyMusicDocument(title, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+                    inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
                 } else if (NdkAudioPlugin.MODEL_SONG.equals(parent.relations().getModel())) {
                     DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_SONG);
                     ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
