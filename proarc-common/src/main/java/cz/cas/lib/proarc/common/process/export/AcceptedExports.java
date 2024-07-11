@@ -78,7 +78,8 @@ public class AcceptedExports {
     private final Set<String> EXPORT_ARCHIVE_MODELS = new HashSet<>(Arrays.asList(
             NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
             NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_CARTOGRAPHIC,
-            NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE));
+            NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
+            NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH));
 
     private final String EXPORT_ARCHIVE_STT = "archive_stt";
     private final Set<String> EXPORT_ARCHIVE_STT_MODELS = new HashSet<>(Arrays.asList(
@@ -95,7 +96,8 @@ public class AcceptedExports {
     private final Set<String> EXPORT_NDK_PSP_MODELS = new HashSet<>(Arrays.asList(
             NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
             NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_CARTOGRAPHIC,
-            NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE, NdkAudioPlugin.MODEL_MUSICDOCUMENT
+            NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
+            NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH
     ));
 
     private final String EXPORT_NDK_OLDPRINT = "ndk_oldprint";
@@ -105,7 +107,8 @@ public class AcceptedExports {
 
     private final Set<String> LTP_UPLOAD_MODELS = new HashSet<>(Arrays.asList(
             NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
-            NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_PICTURE, NdkAudioPlugin.MODEL_MUSICDOCUMENT,
+            NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_PICTURE,
+            NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
             OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT
     ));
 
