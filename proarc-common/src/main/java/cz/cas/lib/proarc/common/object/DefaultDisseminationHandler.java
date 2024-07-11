@@ -23,7 +23,9 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.process.external.GenericExternalProcess;
+import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -208,6 +210,42 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                     throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
                 }
                 InputStream inputStream = new ByteArrayInputStream(mix.getBytes());
+                Date lastModification = new Date(editor.getLastModified());
+                return Response.ok(inputStream, "text/xml").lastModified(lastModification).build();
+            } else if (AesEditor.RAW_ID.equals(dsId)) {
+                AesEditor editor = AesEditor.raw(object);
+                String aes = editor.readAsString();
+                if (aes == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                }
+                InputStream inputStream = new ByteArrayInputStream(aes.getBytes());
+                Date lastModification = new Date(editor.getLastModified());
+                return Response.ok(inputStream, "text/xml").lastModified(lastModification).build();
+            } else if (AesEditor.NDK_ARCHIVAL_ID.equals(dsId)) {
+                AesEditor editor = AesEditor.ndkArchival(object);
+                String aes = editor.readAsString();
+                if (aes == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                }
+                InputStream inputStream = new ByteArrayInputStream(aes.getBytes());
+                Date lastModification = new Date(editor.getLastModified());
+                return Response.ok(inputStream, "text/xml").lastModified(lastModification).build();
+            } else if (CodingHistoryEditor.RAW_ID.equals(dsId)) {
+                CodingHistoryEditor editor = CodingHistoryEditor.raw(object);
+                String codingHistory = editor.readAsString();
+                if (codingHistory == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                }
+                InputStream inputStream = new ByteArrayInputStream(codingHistory.getBytes());
+                Date lastModification = new Date(editor.getLastModified());
+                return Response.ok(inputStream, "text/xml").lastModified(lastModification).build();
+            } else if (CodingHistoryEditor.NDK_ARCHIVAL_ID.equals(dsId)) {
+                CodingHistoryEditor editor = CodingHistoryEditor.ndkArchival(object);
+                String codingHistory = editor.readAsString();
+                if (codingHistory == null) {
+                    throw new DigitalObjectNotFoundException(pid, null, dsId, "no content", null);
+                }
+                InputStream inputStream = new ByteArrayInputStream(codingHistory.getBytes());
                 Date lastModification = new Date(editor.getLastModified());
                 return Response.ok(inputStream, "text/xml").lastModified(lastModification).build();
             } else {

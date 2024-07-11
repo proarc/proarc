@@ -26,7 +26,9 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
@@ -208,9 +210,11 @@ public class ArchiveObjectProcessor {
                 builder.addStreamAsFile(siblingIdx, dt, cache.getPid(), elm.getModelId(), null);
             } else if (FoxmlUtils.DS_AUDIT_ID.equals(dsId)) {
                 builder.addStreamAsFile(siblingIdx, dt, cache.getPid(), elm.getModelId(), null);
-            } else if (AltoDatastream.ALTO_ID.equals(dsId) || BinaryEditor.NDK_ARCHIVAL_ID.equals(dsId)
-                    || MixEditor.NDK_ARCHIVAL_ID.equals(dsId) || BinaryEditor.NDK_USER_ID.equals(dsId)
-                    || StringEditor.OCR_ID.equals(dsId)){
+            } else if (AltoDatastream.ALTO_ID.equals(dsId) || StringEditor.OCR_ID.equals(dsId)
+                    || BinaryEditor.NDK_ARCHIVAL_ID.equals(dsId) || BinaryEditor.NDK_USER_ID.equals(dsId)
+                    || BinaryEditor.NDK_AUDIO_ARCHIVAL_ID.equals(dsId) || BinaryEditor.NDK_AUDIO_USER_ID.equals(dsId)
+                    || BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID.equals(dsId) || BinaryEditor.NDK_AUDIO_USER_OGG_ID.equals(dsId)
+                    || MixEditor.NDK_ARCHIVAL_ID.equals(dsId) || AesEditor.NDK_ARCHIVAL_ID.equals(dsId) || CodingHistoryEditor.NDK_ARCHIVAL_ID.equals(dsId)){
                 //DO NOTHING - contains NDK folder
             } else {
                 builder.addStreamAsFile(siblingIdx, dt, cache.getPid(), elm.getModelId(), handler.dissemination(dsId));

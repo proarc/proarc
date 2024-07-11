@@ -149,5 +149,7 @@
 <entry key="text/csv">csv</entry>
 <entry key="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">xlsx</entry>
 <entry key="application/dbase">dbf</entry>
+<entry key="audio/mp3">mp3</entry>
+<entry key="audio/wave">wav</entry>
 <entry key="empty">tmp</entry>
 </properties>

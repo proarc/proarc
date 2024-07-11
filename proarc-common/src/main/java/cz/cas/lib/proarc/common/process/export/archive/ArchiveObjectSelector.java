@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export.archive;
 
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
@@ -85,6 +86,8 @@ public class ArchiveObjectSelector {
                 || NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)
                 || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)
                 || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)
+                || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId)
+                || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(modelId)
                 ) {
             if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) && entryPath.size() > 1 && entryPath.get(1) != null &&
                     NdkPlugin.MODEL_MONOGRAPHTITLE.equals(entryPath.get(1).getModelId())) {
@@ -114,6 +117,10 @@ public class ArchiveObjectSelector {
             } else {
                 addSelection(entryPath);
             }
+        } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
+            searchPath(entryPath.subList(1, entryPath.size()));
+        } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
+            searchPath(entryPath.subList(1, entryPath.size()));
         } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId)
                 || NdkPlugin.MODEL_CHAPTER.equals(modelId)
                 || NdkPlugin.MODEL_PAGE.equals(modelId)

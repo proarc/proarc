@@ -294,8 +294,15 @@ public class NdkExport {
             File targetFolder = null;
             MetsElement metsElement = getMetsElement(object, metsContext, hierarchy);
             if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
-                metsElement.setIgnoreValidation(ignoreMissingUrnNbn);
-                metsElement.accept(new MetsElementVisitor());
+                metsContext.resetContext();
+                String outputPath = metsContext.getOutputPath() + File.separator + getUuidName(pid) + File.separator + "NDK";
+                targetFolder = new File(outputPath);
+                metsContext.setOutputPath(outputPath);
+                result.setTargetFolder(targetFolder);
+                DigitalObject dobj = MetsUtils.readFoXML(pid, metsContext);
+                MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
+                mElm.setIgnoreValidation(ignoreMissingUrnNbn);
+                mElm.accept(createMetsVisitor());
             } else {
                 List<String> PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, hierarchy);
                 if (PSPs.size() == 0) {
