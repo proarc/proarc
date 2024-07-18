@@ -21,6 +21,7 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
@@ -304,13 +305,23 @@ public class ArchiveObjectProcessor {
             List<DigitalObjectElement> objectPath,
             List<DigitalObjectElement> children
     ) throws DigitalObjectException, MetsExportException, IOException {
-        int i = 1;
+        int indexObject = 1;
+        int indexPage = 1;
+        int indexAudio = 1;
         for (DigitalObjectElement child : children) {
             LocalObject lObj = getLocalObject(child.getHandler().getFedoraObject());
             ArrayList<DigitalObjectElement> childPath = new ArrayList<DigitalObjectElement>(objectPath.size() + 1);
             childPath.add(child);
             childPath.addAll(objectPath);
-            processObject(i++, childPath, lObj);
+            int index = 1;
+            if (NdkPlugin.MODEL_PAGE.equals(child.getItem().getModel()) || NdkPlugin.MODEL_NDK_PAGE.equals(child.getItem().getModel()) || OldPrintPlugin.MODEL_PAGE.equals(child.getItem().getModel())) {
+                index = indexPage++;
+            } else if (NdkAudioPlugin.MODEL_PAGE.equals(child.getItem().getModel())) {
+                index = indexAudio++;
+            } else {
+                index = indexObject++;
+            }
+            processObject(index, childPath, lObj);
         }
     }
 
