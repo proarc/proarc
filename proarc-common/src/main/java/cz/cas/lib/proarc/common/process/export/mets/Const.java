@@ -179,6 +179,15 @@ public class Const {
     public static final String EXPORT_NDK4SIP = "SIP";
     public static final String EXPORT_NDK4CHRONICLE = "CHRONICLE";
 
+    public static final String EXPORT_PATH_ALTO = "alto";
+    public static final String EXPORT_PATH_TXT = "txt";
+    public static final String EXPORT_PATH_AMDSEC = "amdsec";
+    public static final String EXPORT_PATH_MASTERCOPY = "mastercopy";
+    public static final String EXPORT_PATH_MASTERCOPY_AUDIO = "mastercopy_audio";
+    public static final String EXPORT_PATH_USERCOPY = "usercopy";
+    public static final String EXPORT_PATH_USERCOPY_AUDIO = "usercopy_audio";
+    public static final String EXPORT_PATH_SOURCE_AUDIO = "source_audio";
+
     private Const() {
     }
 
@@ -314,16 +323,16 @@ public class Const {
         streamMappingPrefix.put(AUDIO_RAW_GRP_ID, "sa");
 
 
-        streamMappingFile.put(MC_GRP_ID, "mastercopy");
-        streamMappingFile.put(UC_GRP_ID, "usercopy");
-        streamMappingFile.put(ALTO_GRP_ID, "alto");
-        streamMappingFile.put(TXT_GRP_ID, "txt");
-        streamMappingFile.put(TECHMDGRP, "amdsec");
-        streamMappingFile.put(AUDIO_MC_GRP_ID, "mastercopy_audio");
-        streamMappingFile.put(AUDIO_MC_GRP_ID_FLAC, "mastercopy_audio");
-        streamMappingFile.put(AUDIO_UC_GRP_ID, "usercopy_audio");
-        streamMappingFile.put(AUDIO_UC_GRP_ID_OGG, "usercopy_audio");
-        streamMappingFile.put(AUDIO_RAW_GRP_ID, "source_audio");
+        streamMappingFile.put(MC_GRP_ID, EXPORT_PATH_MASTERCOPY);
+        streamMappingFile.put(UC_GRP_ID, EXPORT_PATH_USERCOPY);
+        streamMappingFile.put(ALTO_GRP_ID, EXPORT_PATH_ALTO);
+        streamMappingFile.put(TXT_GRP_ID, EXPORT_PATH_TXT);
+        streamMappingFile.put(TECHMDGRP, EXPORT_PATH_AMDSEC);
+        streamMappingFile.put(AUDIO_MC_GRP_ID, EXPORT_PATH_MASTERCOPY_AUDIO);
+        streamMappingFile.put(AUDIO_MC_GRP_ID_FLAC, EXPORT_PATH_MASTERCOPY_AUDIO);
+        streamMappingFile.put(AUDIO_UC_GRP_ID, EXPORT_PATH_USERCOPY_AUDIO);
+        streamMappingFile.put(AUDIO_UC_GRP_ID_OGG, EXPORT_PATH_USERCOPY_AUDIO);
+        streamMappingFile.put(AUDIO_RAW_GRP_ID, EXPORT_PATH_SOURCE_AUDIO);
 
         canContainPage.add(Const.ISSUE);
         canContainPage.add(Const.MONOGRAPH_MULTIPART);

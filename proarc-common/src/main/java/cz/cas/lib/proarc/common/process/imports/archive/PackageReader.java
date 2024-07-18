@@ -34,11 +34,13 @@ import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder;
 import cz.cas.lib.proarc.common.process.export.archive.PackageBuilder.MdType;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -90,6 +92,12 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Node;
 
+import static cz.cas.lib.proarc.common.process.export.mets.Const.EXPORT_PATH_ALTO;
+import static cz.cas.lib.proarc.common.process.export.mets.Const.EXPORT_PATH_MASTERCOPY;
+import static cz.cas.lib.proarc.common.process.export.mets.Const.EXPORT_PATH_MASTERCOPY_AUDIO;
+import static cz.cas.lib.proarc.common.process.export.mets.Const.EXPORT_PATH_TXT;
+import static cz.cas.lib.proarc.common.process.export.mets.Const.EXPORT_PATH_USERCOPY;
+import static cz.cas.lib.proarc.common.process.export.mets.Const.EXPORT_PATH_USERCOPY_AUDIO;
 import static cz.cas.lib.proarc.common.process.imports.kramerius.FileReader.model2Override;
 
 /**
@@ -108,7 +116,8 @@ public class PackageReader {
     private boolean isParentObject;
     private final List<String> physicalPath = new ArrayList<String>();
     private final AppConfiguration configuration;
-    private int lastIndex = 0;
+    private int lastPageIndex = 0;
+    private int lastAudioIndex = 1;
 
     public PackageReader(File targetFolder, ImportSession session, AppConfiguration config) {
         this.targetFolder = targetFolder;
@@ -163,9 +172,19 @@ public class PackageReader {
         if (containsNdkFolder(metsFile.getParentFile())) {
             newArchive = getNdkFolder(metsFile.getParentFile());
         }
+        int childIndexPage = 1;
+        int childIndexAudio = 1;
         int childIndex = 1;
         for (DivType div : divs) {
-            processObject(childIndex++, div, newArchive, devices, ctx);
+            int index = 0;
+            if (NdkAudioPlugin.MODEL_PAGE.equals(div.getTYPE())) {
+                index = childIndexAudio++;
+            } else if (NdkPlugin.MODEL_PAGE.equals(div.getTYPE()) || NdkPlugin.MODEL_NDK_PAGE.equals(div.getTYPE()) || OldPrintPlugin.MODEL_PAGE.equals(div.getTYPE())){
+                index = childIndexPage++;
+            } else {
+                index = childIndex++;
+            }
+            processObject(index, div, newArchive, devices, ctx);
         }
         return pids;
     }
@@ -438,18 +457,42 @@ public class PackageReader {
                 model = fileName[1];
             }
 
-            if ("page".equals(model) || "ndkpage".equals(model) || "oldprintpage".equals(model) || "audiopage".equals(model)) {
+            if ("page".equals(model) || "ndkpage".equals(model) || "oldprintpage".equals(model)) {
                 if (seq != null) {
-                    if (lastIndex > Integer.valueOf(seq)) {
-                        seq = String.format("%04d", lastIndex + 1);
+                    if (lastPageIndex > Integer.valueOf(seq)) {
+                        seq = String.format("%04d", lastPageIndex + 1);
                     }
-                    lastIndex++;
+                    lastPageIndex++;
                     if (ndkFolder.isDirectory()) {
                         for (File folder : ndkFolder.listFiles()) {
                             if (folder.isDirectory()) {
-                                for (File file : folder.listFiles()) {
-                                    if (file.getName().contains(seq)) {
-                                        createDatastream(lObj, file);
+                                if (EXPORT_PATH_MASTERCOPY.equals(folder.getName()) || Const.EXPORT_PATH_USERCOPY.equals(folder.getName()) || Const.EXPORT_PATH_TXT.equals(folder.getName()) || EXPORT_PATH_ALTO.equals(folder.getName())) {
+                                    for (File file : folder.listFiles()) {
+                                        String[] fileNames = file.getName().split("\\.");
+                                        if (fileNames[0].endsWith(seq)) {
+                                            createDatastream(lObj, file);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (NdkAudioPlugin.MODEL_PAGE.contains(model)) {
+                if (seq != null) {
+                    if (lastAudioIndex > Integer.valueOf(seq)) {
+                        seq = String.format("%04d", lastAudioIndex);
+                    }
+                    lastAudioIndex++;
+                    if (ndkFolder.isDirectory()) {
+                        for (File folder : ndkFolder.listFiles()) {
+                            if (folder.isDirectory()) {
+                                if (EXPORT_PATH_MASTERCOPY_AUDIO.equals(folder.getName()) || Const.EXPORT_PATH_USERCOPY_AUDIO.equals(folder.getName()) || Const.EXPORT_PATH_SOURCE_AUDIO.equals(folder.getName())) {
+                                    for (File file : folder.listFiles()) {
+                                        String[] fileNames = file.getName().split("\\.");
+                                        if (fileNames[0].endsWith(seq)) {
+                                            createDatastream(lObj, file);
+                                        }
                                     }
                                 }
                             }
@@ -484,6 +527,34 @@ public class PackageReader {
                 BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
                 if (editor == null) {
                     editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_ARCHIVAL_ID, mime, BinaryEditor.NDK_ARCHIVAL_LABEL));
+                }
+                editor.write(file, editor.getLastModified(), null);
+            } else if (BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf("audio/flac");
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_ID, mime, BinaryEditor.NDK_AUDIO_ARCHIVAL_FLAC_LABEL));
+                }
+                editor.write(file, editor.getLastModified(), null);
+            } else if (BinaryEditor.NDK_AUDIO_ARCHIVAL_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf("audio/wave");
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID, mime, BinaryEditor.NDK_AUDIO_ARCHIVAL_LABEL));
+                }
+                editor.write(file, editor.getLastModified(), null);
+            } else if (BinaryEditor.NDK_AUDIO_USER_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf("audio/mp3");
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_AUDIO_USER_ID, mime, BinaryEditor.NDK_AUDIO_USER_LABEL));
+                }
+                editor.write(file, editor.getLastModified(), null);
+            }else if (BinaryEditor.NDK_AUDIO_USER_OGG_ID.equals(dsId)) {
+                MediaType mime = MediaType.valueOf("audio/ogg");
+                BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
+                if (editor == null) {
+                    editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_AUDIO_USER_OGG_ID, mime, BinaryEditor.NDK_AUDIO_USER_OGG_LABEL));
                 }
                 editor.write(file, editor.getLastModified(), null);
             }
@@ -700,14 +771,18 @@ public class PackageReader {
     }
 
     private String toValidDsId(String name) {
-        if ("alto".equals(name)) {
+        if (EXPORT_PATH_ALTO.equals(name)) {
             return AltoDatastream.ALTO_ID;
-        } else if ("txt".equals(name)) {
+        } else if (EXPORT_PATH_TXT.equals(name)) {
             return StringEditor.OCR_ID;
-        } else if ("usercopy".equals(name)) {
+        } else if (EXPORT_PATH_USERCOPY.equals(name)) {
             return BinaryEditor.NDK_USER_ID;
-        } else if ("mastercopy".equals(name)) {
+        } else if (EXPORT_PATH_MASTERCOPY.equals(name)) {
             return BinaryEditor.NDK_ARCHIVAL_ID;
+        } else if (EXPORT_PATH_MASTERCOPY_AUDIO.equals(name)) {
+            return BinaryEditor.NDK_AUDIO_ARCHIVAL_ID;
+        } else if (EXPORT_PATH_USERCOPY_AUDIO.equals(name)) {
+            return BinaryEditor.NDK_AUDIO_USER_ID;
         } else {
             return name;
         }
