@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
@@ -2257,19 +2258,19 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @implNote When the pages not exist the exception is thrown later by @link{ {@link #addStructLink()} }
      */
     private void addStructLinkFromMods(IMetsElement metsElement) throws MetsExportException {
-        if ((metsElement.getModsStart() != null) && (metsElement.getModsEnd() != null)) {
-            if (metsElement.getModsEnd().longValue() < metsElement.getModsStart().longValue()) {
-                throw new MetsExportException(metsElement.getOriginalPid(), "Mods start is bigger than mods end", false, null);
-            }
-            for (long i = metsElement.getModsStart().longValue(); i <= metsElement.getModsEnd().longValue(); i++) {
-                StructLinkMapping structLinkMapping = new StructLinkMapping();
-                structLinkMapping.pageDiv = findFirstParentWithPage(metsElement).getModsElementID();
-                structLinkMapping.pageOrder = BigInteger.valueOf(i);
-                addMappingPageStruct(structLinkMapping, metsElement.getModsElementID());
+        if (!(NdkEbornPlugin.MODEL_EARTICLE.equals(metsElement.getModel()) || NdkEbornPlugin.MODEL_ECHAPTER.equals(metsElement.getModel()))) {
+            if ((metsElement.getModsStart() != null) && (metsElement.getModsEnd() != null)) {
+                if (metsElement.getModsEnd().longValue() < metsElement.getModsStart().longValue()) {
+                    throw new MetsExportException(metsElement.getOriginalPid(), "Mods start is bigger than mods end", false, null);
+                }
+                for (long i = metsElement.getModsStart().longValue(); i <= metsElement.getModsEnd().longValue(); i++) {
+                    StructLinkMapping structLinkMapping = new StructLinkMapping();
+                    structLinkMapping.pageDiv = findFirstParentWithPage(metsElement).getModsElementID();
+                    structLinkMapping.pageOrder = BigInteger.valueOf(i);
+                    addMappingPageStruct(structLinkMapping, metsElement.getModsElementID());
+                }
             }
         }
-
-
     }
 
     /**
@@ -2330,6 +2331,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         logicalDiv.getDiv().add(elementDivType);
         addInternalElements(elementDivType, metsElement);
         addStructLinkFromMods(metsElement);
+
         for (IMetsElement element : metsElement.getChildren()) {
             if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(elementDivType, physicalDiv, element);
@@ -2733,5 +2735,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else
                 throw new MetsExportException(element.getOriginalPid(), "Expected Page, got:" + element.getElementType(), false, null);
         }
+    }
+
+    protected void addNdkEObjectPidToExport(IMetsElement element) {
+        // do nothing, method is used in class @sipElementVisitor
     }
 }

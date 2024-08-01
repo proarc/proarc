@@ -19,10 +19,6 @@ package cz.cas.lib.proarc.common.process.export.sip;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
@@ -33,6 +29,10 @@ import cz.cas.lib.proarc.common.process.export.mets.ObjectInfo;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.FileType;
@@ -77,6 +77,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     private int articleCounter = 0;
     HashMap<String, FileMD5Info> md5InfosMap = new HashMap<>();
     private boolean ignoreMissingUrnNbn = false;
+    private List<IMetsElement> pidsToExport = new ArrayList<>();
 
     @Override
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
@@ -108,9 +109,14 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                     metsElement.getMetsContext().setPackageDir(packageDirFile);
                 }
                 saveMets = true;
-                packageFiles.addAll(saveStreams(metsElement, packageRoot));
-                for (IMetsElement childElement : metsElement.getChildren()) {
-                    packageFiles.addAll(saveStreams(childElement, packageRoot));
+                if (metsElement.getChildren().isEmpty()) {
+                    packageFiles.addAll(saveStreams(metsElement, packageRoot));
+                    pidsToExport.add(metsElement);
+                } else {
+                    for (IMetsElement childElement : metsElement.getChildren()) {
+                        packageFiles.addAll(saveStreams(childElement, packageRoot));
+                        pidsToExport.add(childElement);
+                    }
                 }
                 break;
             case Const.MONOGRAPH_MULTIPART:
@@ -123,10 +129,12 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                 saveMets = true;
                 for (IMetsElement childElement : metsElement.getChildren()) {
                     packageFiles.addAll(saveStreams(childElement, packageRoot));
+                    pidsToExport.add(childElement);
                 }
 
                 if (metsElement.getParent() != null) {
                     packageFiles.addAll(saveStreams(metsElement.getParent(), packageRoot));
+                    pidsToExport.add(metsElement.getParent());
                 }
 
                 break;
@@ -139,16 +147,22 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                     metsElement.getMetsContext().setPackageDir(packageDirFile);
                 }
 
-                packageFiles.addAll(saveStreams(metsElement, packageRoot));
-                for (IMetsElement childElement : metsElement.getChildren()) {
-                    packageFiles.addAll(saveStreams(childElement, packageRoot));
+
+                if (metsElement.getChildren().isEmpty()) {
+                    packageFiles.addAll(saveStreams(metsElement, packageRoot));
+                    pidsToExport.add(metsElement);
+                } else {
+                    for (IMetsElement childElement : metsElement.getChildren()) {
+                        packageFiles.addAll(saveStreams(childElement, packageRoot));
+                        pidsToExport.add(childElement);
+                    }
                 }
 
-                IMetsElement parent = metsElement.getParent();
-                while (parent != null) {
-                    packageFiles.addAll(saveStreams(parent, packageRoot));
-                    parent = parent.getParent();
-                }
+//                IMetsElement parent = metsElement.getParent();
+//                while (parent != null) {
+//                    packageFiles.addAll(saveStreams(parent, packageRoot));
+//                    parent = parent.getParent();
+//                }
 
                 break;
             default:
@@ -170,9 +184,14 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
 
         repairPath(metsElement);
 
-        prepareFileType(metsElement);
+        int index = 1;
+        for (IMetsElement element : pidsToExport) {
+            prepareFileType(element);
+            generateTechMetadata(element, index);
+            index++;
+        }
 
-        generateTechMetadata(metsElement);
+//        generateTechMetadata(metsElement);
         if (saveMets) {
             saveMets(mets, new File(metsElement.getMetsContext().getPackageDir().getAbsolutePath() + File.separator + "mets_" + MetsUtils.removeNonAlpabetChars(metsElement.getMetsContext().getPackageID()) + ".xml"), metsElement);
         }
@@ -182,7 +201,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
 
     }
 
-    private void generateTechMetadata(IMetsElement metsElement) throws MetsExportException {
+    private void generateTechMetadata(IMetsElement metsElement, Integer index) throws MetsExportException {
         AmdSecType amdSec = new AmdSecType();
         amdSec.setID("AMD_" + metsElement.getModsElementID());
         mets.getAmdSec().add(amdSec);
@@ -194,10 +213,12 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                 objectInfo.createObjectInfoFromOutput(output);
             }
         }
-        addPremisNodeToMets(getPremisFile(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), null, objectInfo), amdSec, "OBJ_001", true, null);
-        addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), "creation"), amdSec, "EVT_001", true, null);
-        addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_VALIDATION, md5InfosMap.get(Const.OC_GRP_ID_VALIDATION), "validation"), amdSec, "EVT_002", true, null);
-        addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_001", true, null);
+        String indexToFirstValue = String.format("%03d", (2 * index) - 1);
+        String indexToSecondValue = String.format("%03d", 2 * index);
+        addPremisNodeToMets(getPremisFile(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), null, objectInfo, indexToFirstValue), amdSec, "OBJ_" + indexToFirstValue, true, null);
+        addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), "creation", indexToFirstValue), amdSec, "EVT_" + indexToFirstValue, true, null);
+        addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_VALIDATION, md5InfosMap.get(Const.OC_GRP_ID_VALIDATION), "validation", indexToSecondValue), amdSec, "EVT_" + indexToSecondValue, true, null);
+        addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_" + indexToFirstValue, true, null);
     }
 
     private void prepareFileType(IMetsElement metsElement) throws MetsExportException {
@@ -566,6 +587,15 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                     divTitle.getDiv().add(divVolume);
                     if (divOriginalVolume.getDiv().isEmpty()) {
                         createDivDocument(docId++, divVolume, childElement);
+                    } else {
+                        for (int j = 0; j < divOriginalVolume.getDiv().size(); j++) {
+                            DivType divOriginalChapter = divOriginalVolume.getDiv().get(j);
+                            IMetsElement childChapterElement = childElement.getChildren().get(j);
+                            DivType divChapter = new DivType();
+                            copyDiv(divChapter, divOriginalChapter, true, false);
+                            divVolume.getDiv().add(divChapter);
+                            createDivDocument(docId++, divChapter, childChapterElement);
+                        }
                     }
                 }
             }
@@ -578,6 +608,15 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
                     copyDiv(divVolume, divOriginalVolume, true, true);
                     if (divOriginalVolume.getDiv().isEmpty()) {
                         createDivDocument(docId++, divVolume, metsElement);
+                    } else {
+                        for (int j = 0; j < divOriginalVolume.getDiv().size(); j++) {
+                            DivType divOriginalChapter = divOriginalVolume.getDiv().get(j);
+                            IMetsElement childChapterElement = metsElement.getChildren().get(j);
+                            DivType divChapter = new DivType();
+                            copyDiv(divChapter, divOriginalChapter, true, false);
+                            divVolume.getDiv().add(divChapter);
+                            createDivDocument(docId++, divChapter, childChapterElement);
+                        }
                     }
                 }
             }
@@ -665,5 +704,10 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         URI uri = URI.create(fileName);
         fLocat.setHref(uri.toASCIIString());
         fileType.getFLocat().add(fLocat);
+    }
+
+    @Override
+    protected void addNdkEObjectPidToExport(IMetsElement element) {
+        pidsToExport.add(element);
     }
 }

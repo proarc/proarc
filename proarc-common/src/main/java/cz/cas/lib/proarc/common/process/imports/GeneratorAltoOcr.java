@@ -6,6 +6,7 @@ import cz.cas.lib.proarc.common.process.external.ExternalProcess;
 import cz.cas.lib.proarc.common.process.external.OcrGenerator;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import static cz.cas.lib.proarc.common.process.external.OcrGenerator.getOcrFiles;
@@ -44,7 +45,9 @@ public class GeneratorAltoOcr implements ImportHandler {
         } else if (!sourceFile.exists()) {
             throw new IOException("Source file doesnt exists: " + sourceFile.getAbsolutePath());
         } else if (sourceFile.isDirectory()) {
-            for (File childFile : sourceFile.listFiles()) {
+            File[] sourceFiles = sourceFile.listFiles();
+            Arrays.sort(sourceFiles);
+            for (File childFile : sourceFiles) {
                 if (childFile.isDirectory()) {
                     LOG.info("Doing file: " + childFile.getAbsolutePath());
                 }

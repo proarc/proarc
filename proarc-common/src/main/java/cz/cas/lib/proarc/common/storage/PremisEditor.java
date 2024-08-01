@@ -331,9 +331,9 @@ public class PremisEditor {
                 continue;
             }
             if ("OBJ_001".equals(obj)) {
-                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), mixDevice, null), amdSec, obj, false, amdSecFileGrpMap);
+                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), mixDevice, null, null), amdSec, obj, false, amdSecFileGrpMap);
             } else {
-                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), null, null), amdSec, obj, false, amdSecFileGrpMap);
+                addPremisNodeToMets(getPremisFile(metsElement, stream, md5InfosMap.get(stream), null, null, null), amdSec, obj, false, amdSecFileGrpMap);
             }
         }
 
@@ -341,7 +341,7 @@ public class PremisEditor {
             if (md5InfosMap.get(Const.AUDIO_RAW_GRP_ID) != null) {
                 for (AmdSecType amd : mets.getAmdSec()) {
                     try {
-                        addPremisNodeToMets(getPremisEvent(amd, metsElement, Const.AUDIO_RAW_GRP_ID, md5InfosMap.get(Const.AUDIO_RAW_GRP_ID), "capture/digitization"), amdSec, "EVT_" + String.format("%03d", seqEvent), true, null);
+                        addPremisNodeToMets(getPremisEvent(amd, metsElement, Const.AUDIO_RAW_GRP_ID, md5InfosMap.get(Const.AUDIO_RAW_GRP_ID), "capture/digitization", null), amdSec, "EVT_" + String.format("%03d", seqEvent), true, null);
                         seqEvent++;
                     } catch (Exception e) {
                         throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
@@ -426,8 +426,8 @@ public class PremisEditor {
      * @return
      * @throws MetsExportException
      */
-    public static Node getPremisFile(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix, ObjectInfo objectInfo) throws MetsExportException {
-        JAXBElement<PremisComplexType> jaxbPremix = PremisEditor.createPremisComplexType(metsElement, datastream, md5Info, mix, objectInfo);
+    public static Node getPremisFile(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix, ObjectInfo objectInfo, String newId) throws MetsExportException {
+        JAXBElement<PremisComplexType> jaxbPremix = PremisEditor.createPremisComplexType(metsElement, datastream, md5Info, mix, objectInfo, newId);
 
         JAXBContext jc;
         try {
@@ -450,8 +450,7 @@ public class PremisEditor {
         }
     }
 
-
-    public static JAXBElement<PremisComplexType> createPremisComplexType(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix, ObjectInfo objectInfo) throws MetsExportException {
+    public static JAXBElement<PremisComplexType> createPremisComplexType(IMetsElement metsElement, String datastream, FileMD5Info md5Info, Mix mix, ObjectInfo objectInfo, String newId) throws MetsExportException {
         PremisComplexType premis = new PremisComplexType();
         ObjectFactory factory = new ObjectFactory();
         JAXBElement<PremisComplexType> jaxbPremix = factory.createPremis(premis);
@@ -515,6 +514,11 @@ public class PremisEditor {
 
         RelationshipComplexType relationShip = new RelationshipComplexType();
 
+        String relatedEventIdentifierValue = Const.dataStreamToEvent.get(datastream);
+        if (newId != null) {
+            relatedEventIdentifierValue.replace("001", newId);
+        }
+
         if (!(Const.RAW_GRP_ID).equals(datastream)) {
             relationShip.setRelationshipType("derivation");
             relationShip.setRelationshipSubType("created from");
@@ -530,7 +534,7 @@ public class PremisEditor {
             RelatedEventIdentificationComplexType eventObject = new RelatedEventIdentificationComplexType();
             relationShip.getRelatedEventIdentification().add(eventObject);
             eventObject.setRelatedEventIdentifierType("ProArc_EventID");
-            eventObject.setRelatedEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
+            eventObject.setRelatedEventIdentifierValue(relatedEventIdentifierValue);
             eventObject.setRelatedEventSequence(BigInteger.ONE);
             file.getRelationship().add(relationShip);
         } else {
@@ -539,7 +543,7 @@ public class PremisEditor {
             LinkingEventIdentifierComplexType eventIdentifier = new LinkingEventIdentifierComplexType();
             file.getLinkingEventIdentifier().add(eventIdentifier);
             eventIdentifier.setLinkingEventIdentifierType("ProArc_EventID");
-            eventIdentifier.setLinkingEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
+            eventIdentifier.setLinkingEventIdentifierValue(relatedEventIdentifierValue);
         }
 
         String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
@@ -613,13 +617,26 @@ public class PremisEditor {
 
     public static Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws MetsExportException {
         try {
-            return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail);
+            return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail, null);
         } catch (Exception e) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
         }
     }
 
-    private static Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail) throws Exception {
+    public static Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId) throws MetsExportException {
+        try {
+            return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail, newId);
+        } catch (Exception e) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
+        }
+    }
+
+    private static Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId) throws Exception {
+
+        String relatedEventIdentifierValue = Const.dataStreamToEvent.get(datastream);
+        if (newId != null) {
+            relatedEventIdentifierValue.replace("001", newId);
+        }
         PremisComplexType premis = new PremisComplexType();
         ObjectFactory factory = new ObjectFactory();
         JAXBElement<PremisComplexType> jaxbPremix = factory.createPremis(premis);
@@ -631,7 +648,7 @@ public class PremisEditor {
         event.setEventIdentifier(eventIdentifier);
         event.setEventType(StringUtils.substringBefore(eventDetail, "/"));
         eventIdentifier.setEventIdentifierType("ProArc_EventID");
-        eventIdentifier.setEventIdentifierValue(Const.dataStreamToEvent.get(datastream));
+        eventIdentifier.setEventIdentifierValue(relatedEventIdentifierValue);
         EventOutcomeInformationComplexType eventInformation = new EventOutcomeInformationComplexType();
         event.getEventOutcomeInformation().add(eventInformation);
         eventInformation.getContent().add(factory.createEventOutcome("successful"));
