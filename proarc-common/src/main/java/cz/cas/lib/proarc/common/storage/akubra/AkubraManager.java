@@ -152,7 +152,11 @@ public class AkubraManager {
     private void removeManagedStream(DatastreamType datastreamType) {
         if ("M".equals(datastreamType.getCONTROLGROUP())) {
             for (DatastreamVersionType datastreamVersionType : datastreamType.getDatastreamVersion()) {
-                if ("INTERNAL_ID".equals(datastreamVersionType.getContentLocation().getTYPE())) {
+                ContentLocationType contentLocation = datastreamVersionType.getContentLocation();
+                if (contentLocation == null) {
+                    return;
+                }
+                if ("INTERNAL_ID".equals(contentLocation.getTYPE())) {
                     try {
                         storage.removeDatastream(datastreamVersionType.getContentLocation().getREF());
                     } catch (LowlevelStorageException e) {

@@ -234,8 +234,7 @@ public class AkubraStorage {
                             }
                         }
                     }
-                }
-                for (com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+
                     if (datastreamVersion.getXmlContent() != null && datastreamVersion.getXmlContent().getAny() != null && !datastreamVersion.getXmlContent().getAny().isEmpty()) {
                         Element element = datastreamVersion.getXmlContent().getAny().get(0);
                         StringWriter output = new StringWriter();
@@ -257,6 +256,17 @@ public class AkubraStorage {
                         contentLocationType.setREF(ref);
                         datastreamVersion.setContentLocation(contentLocationType);
                         datastreamVersion.setXmlContent(null);
+                    }
+
+                    if (datastreamVersion.getBinaryContent() != null) {
+                        InputStream inputStream = new ByteArrayInputStream(datastreamVersion.getBinaryContent());
+                        String ref = digitalObject.getPID() + "+" + datastream.getID() + "+" + datastreamVersion.getID();
+                        this.manager.addOrReplaceDatastream(ref, inputStream);
+                        com.yourmediashelf.fedora.generated.foxml.ContentLocationType contentLocationType = new com.yourmediashelf.fedora.generated.foxml.ContentLocationType();
+                        contentLocationType.setTYPE("INTERNAL_ID");
+                        contentLocationType.setREF(ref);
+                        datastreamVersion.setContentLocation(contentLocationType);
+                        datastreamVersion.setBinaryContent(null);
                     }
                 }
             }

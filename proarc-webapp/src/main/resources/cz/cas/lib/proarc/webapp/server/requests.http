@@ -268,19 +268,19 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 &pid={{nmUuid}}&isBagit=true
 
 ### Archive Export s Bagit
-POST {{proarcLocalHostUrl}}/rest/v1/export/archive
+POST {{proarcUrl}}/rest/v1/export/archive
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid={{localUuid}}&isBagit=true
+pid={{uuid}}&extendedPackage=true
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### Archive Export s Bagit
 POST {{proarcLocalHostUrl}}/rest/v1/export/archive
@@ -507,18 +507,18 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 &pid=uuid:5d3fba10-2f81-4262-8a24-7c1e38eeba55&resolverId=inovatika&identifier=ccnb&operation=update
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### IMPORT WITH REWRITE WITH NEW
-PUT {{proarcLocalHostUrl}}/rest/v2/import/batch
+PUT {{proarcUrl}}/rest/v2/import/batch
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&state=LOADING_CONFLICT&profile=profile.default_ndk_import&id=194&useOriginalMetadata=true
+state=LOADING_CONFLICT&profile=profile.ndk_periodical_kramerius_import&id=275&useOriginalMetadata=true
 
 ### UPDATE IMPORT BATCH WITH REWRITE
 PUT {{proarcLocalHostUrl}}/rest/v2/import/batch

@@ -104,7 +104,7 @@ public class ChangeNdkPeriodicalSupplementToNdkEPeriodicalSupplementAction exten
     private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkPeriodicalVolumeToNdkEPeriodicalVolume();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {

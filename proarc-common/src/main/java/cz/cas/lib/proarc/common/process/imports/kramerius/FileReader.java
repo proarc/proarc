@@ -99,6 +99,8 @@ public class FileReader {
 
     public static final String NDK_MONOGRAPH_MAP = "ndk_monograph";
     public static final String NDK_PERIODICAL_MAP = "ndk_periodical";
+    public static final String NDK_EMONOGRAPH_MAP = "ndk_emonograph";
+    public static final String NDK_EPERIODICAL_MAP = "ndk_eperiodical";
     public static final String STT_MAP = "stt";
     public static final String K4_MAP = "default";
 
@@ -108,6 +110,9 @@ public class FileReader {
 
     private final Set<String> KRAMERIUS_DATASTREAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "RELS-EXT", "IMG_FULL", "IMG_PREVIEW", "IMG_THUMB", "TEXT_OCR", "ALTO", "BIBLIO_MODS", "DC", "NDK_ARCHIVAL", "NDK_USER", "FULL", "PREVIEW", "THUMBNAIL")));
+
+    private final Set<String> KRAMERIUS_MANAGED_DATASTREAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "IMG_FULL", "IMG_PREVIEW", "IMG_THUMB", "TEXT_OCR", "ALTO", "NDK_ARCHIVAL", "NDK_USER", "FULL", "PREVIEW", "THUMBNAIL")));
 
     private final Map<String, String> datastreamVersionId = new HashMap<String, String>() {
         {
@@ -123,6 +128,7 @@ public class FileReader {
             put("model:article", NdkPlugin.MODEL_ARTICLE);
             put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
             put("model:graphic", NdkPlugin.MODEL_GRAPHIC);
+            put("model:chapter", NdkPlugin.MODEL_CHAPTER);
             // put("model:monograph", NdkPlugin.MODEL_MONOGRAPHTITLE);
             put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
             put("model:monograph", NdkPlugin.MODEL_MONOGRAPHVOLUME);
@@ -147,6 +153,26 @@ public class FileReader {
             put("model:article", NdkPlugin.MODEL_ARTICLE);
             put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
             put("model:graphic", NdkPlugin.MODEL_GRAPHIC);
+            put("model:chapter", NdkPlugin.MODEL_CHAPTER);
+        }
+    };
+
+    private final Map<String, String> modelEMonographMap = new HashMap<String, String>() {
+        {
+            put("model:chapter", NdkEbornPlugin.MODEL_ECHAPTER);
+            put("model:supplement", NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT);
+            put("model:monograph", NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME);
+            put("model:monographunit", NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME);
+        }
+    };
+
+    private final Map<String, String> modelEPeriodicalMap = new HashMap<String, String>() {
+        {
+            put("model:periodical", NdkEbornPlugin.MODEL_EPERIODICAL);
+            put("model:periodicalitem", NdkEbornPlugin.MODEL_EPERIODICALISSUE);
+            put("model:supplement", NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT);
+            put("model:periodicalvolume", NdkEbornPlugin.MODEL_EPERIODICALVOLUME);
+            put("model:article", NdkEbornPlugin.MODEL_EARTICLE);
         }
     };
 
@@ -162,6 +188,14 @@ public class FileReader {
 
     public Map<String, String> getModelPeriodicalMap() {
         return modelPeriodicalMap;
+    }
+
+    public Map<String, String> getModelEMonographMap() {
+        return modelEMonographMap;
+    }
+
+    public Map<String, String> getModelEPeriodicalMap() {
+        return modelEPeriodicalMap;
     }
 
     public Map<String, String> getModelSTTMap() {
@@ -252,11 +286,15 @@ public class FileReader {
 
                     // pote z foxml v importni davce vytrahnu pouze potomky, ktere se maji pripadne doplnit
                     LocalObject localObject = new LocalStorage().load(pid, file);
+                    updateLocalObject(localObject, ctx);
                     RelationEditor relationEditor = new RelationEditor(localObject);
                     List<String> members = relationEditor.getMembers();
                     if (members != null && !members.isEmpty()) {
                         RelationEditor editorLObj = new RelationEditor(lObj);
-                        members.addAll(0, editorLObj.getMembers());
+                        Set<String> membersSet = new HashSet<>(editorLObj.getMembers());
+                        membersSet.addAll(members);
+                        members.clear();
+                        members.addAll(0, membersSet);
                         editorLObj.setMembers(members);
                         editorLObj.write(editorLObj.getLastModified(), "doplneni novych potomku");
                         lObj.flush();
@@ -298,7 +336,9 @@ public class FileReader {
     private void repairDatastreams(DigitalObject dObj) {
         List<DatastreamType> datastreams = dObj.getDatastream();
         for (DatastreamType datastream : datastreams) {
-            datastream.setCONTROLGROUP("M");
+            if (KRAMERIUS_MANAGED_DATASTREAMS.contains(datastream.getID())) {
+                datastream.setCONTROLGROUP("M");
+            }
             if (datastreamVersionId.containsKey(datastream.getID())) {
                 String newId = datastreamVersionId.get(datastream.getID());
                 datastream.setID(newId);
@@ -774,6 +814,12 @@ public class FileReader {
                     break;
                 case NDK_PERIODICAL_MAP:
                     newModelId = getModelPeriodicalMap().get(oldModelId);
+                    break;
+                case NDK_EMONOGRAPH_MAP:
+                    newModelId = getModelEMonographMap().get(oldModelId);
+                    break;
+                case NDK_EPERIODICAL_MAP:
+                    newModelId = getModelEPeriodicalMap().get(oldModelId);
                     break;
                 /* not supported yet
                 case STT_MAP:

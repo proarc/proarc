@@ -100,7 +100,7 @@ public class ChangeNdkEPeriodicalToNdkPeriodicalAction extends AbstractAction {
     private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkPeriodicalToNdkEPeriodical();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkEPeriodicalToNdkPeriodical();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {

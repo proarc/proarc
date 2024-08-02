@@ -137,6 +137,8 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_STT_IMPORT());
         profiles.put(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_MONOGRAPH_IMPORT());
         profiles.put(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_PERIODIKA_IMPORT());
+        profiles.put(ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_EMONOGRAPH_IMPORT());
+        profiles.put(ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_EPERIODIKA_IMPORT());
         profiles.put(ConfigurationProfile.REPLACE_STREAM_IMPORT, i18n.ImportProfile_REPLACE_STREAM_IMPORT());
         profiles.put("profile.chronicle", i18n.ImportProfile_CHRONICLE_IMPORT());
         profiles.put("profile.oldprint", i18n.ImportProfile_OLDPRINT_IMPORT());
@@ -291,6 +293,8 @@ public final class ImportBatchDataSource extends ProarcDataSource {
             return ConfigurationProfileResourceApi.KRAMERIUS_DEFAULT_ID.equals(profileID)
                     || ConfigurationProfileResourceApi.KRAMERIUS_NDK_MONOGRAPH_ID.equals(profileID)
                     || ConfigurationProfileResourceApi.KRAMERIUS_NDK_PERIODICAL_ID.equals(profileID)
+                    || ConfigurationProfileResourceApi.KRAMERIUS_NDK_EMONOGRAPH_ID.equals(profileID)
+                    || ConfigurationProfileResourceApi.KRAMERIUS_NDK_EPERIODICAL_ID.equals(profileID)
                     || ConfigurationProfileResourceApi.KRAMERIUS_STT_ID.equals(profileID);
         }
 

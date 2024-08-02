@@ -47,6 +47,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.Permissions;
+import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -227,6 +228,8 @@ public class ImportResourceV1 {
             states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.STT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusStt(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEMonograph(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEPeriodical(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.REPLACE_STREAM_IMPORT, subfolder.getStatusReplaceStream(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, subfolder.getStatusSoundrecording(appConfig).name()));
             result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath, states));
@@ -596,17 +599,27 @@ public class ImportResourceV1 {
                     IOUtils.write(fileContents, new FileOutputStream(batchFile), Charset.defaultCharset());
                 }
             }
+            UserManager users = UserUtil.getDefaultManger();
+            UserProfile user = users.find(batch.getUserId());
+            File importFolder = importManager.resolveBatchFile(batch.getFolder());
+            ConfigurationProfile profile = findImportProfile(batchId, batch.getProfileId());
+            ImportProcess.ImportOptions options = ImportProcess.ImportOptions.fromBatch(
+                    batch, importFolder, true, false, user, appConfig.getImportConfiguration(profile));
+            options.setOriginalBatchState(batch.getState());
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                batch = new FedoraImport(appConfig, FedoraStorage.getInstance(appConfig), importManager, user, null)
+                batch = new FedoraImport(appConfig, FedoraStorage.getInstance(appConfig), importManager, user, options)
                         .importBatch(batch, user.getUserName(), session.asFedoraLog());
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                batch = new AkubraImport(appConfig, akubraConfiguration, importManager, user, null)
+                batch = new AkubraImport(appConfig, akubraConfiguration, importManager, user, options)
                         .importBatch(batch, user.getUserName(), session.asFedoraLog());
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
         } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED || state == Batch.State.LOADING_CONFLICT) {
             Batch.State realState = batch.getState();
+            batch.setProfileId(profileId);
+            importManager.update(batch);
+            batch = importManager.get(batch.getId());
             // try to reset import
             if (realState != Batch.State.LOADING_FAILED && realState != Batch.State.LOADED && realState != Batch.State.STOPPED && realState != Batch.State.LOADING_CONFLICT) {
                 throw new UnsupportedOperationException("Cannot reset: " + batch);

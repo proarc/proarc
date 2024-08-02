@@ -24,6 +24,9 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -58,6 +61,7 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -397,11 +401,17 @@ public final class AkubraImport {
                     ModsStreamEditor remoteModsEditor = new ModsStreamEditor(aObj);
                     remoteModsEditor.write(mods, remoteModsEditor.getLastModified(), "The override MODS object from " + foxml);
 
+
                     // dc
-                    DcStreamEditor localDcEditor = new DcStreamEditor(lobj);
-                    DcStreamEditor.DublinCoreRecord dc = localDcEditor.read();
-                    DcStreamEditor remoteDcEditor = new DcStreamEditor(aObj);
-                    remoteDcEditor.write(dc, "The override DC object from " + foxml);
+                    DigitalObjectHandler handler = new DigitalObjectHandler(aObj, MetaModelRepository.getInstance());
+                    NdkMapper mapper = NdkMapper.get(localRelEditor.getModel());
+                    mapper.setModelId(localRelEditor.getModel());
+                    NdkMapper.Context context = new NdkMapper.Context(handler);
+                    OaiDcType dc = mapper.toDc(mods, context);
+                    DcStreamEditor dcEditor = handler.objectMetadata();
+                    DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+                    dcr.setDc(dc);
+                    dcEditor.write(handler, dcr, "The override DC object from " + foxml);
 
                     aObj.setLabel(lobj.getLabel());
                 }

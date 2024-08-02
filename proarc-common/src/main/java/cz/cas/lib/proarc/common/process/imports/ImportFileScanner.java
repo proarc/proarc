@@ -203,6 +203,8 @@ public final class ImportFileScanner {
         private State statusReplaceStream;
         private State statusKrameriusNdkMonograph;
         private State statusKrameriusNdkPeriodical;
+        private State statusKrameriusNdkEMonograph;
+        private State statusKrameriusNdkEPeriodical;
         private State statusKrameriusStt;
         private State statusSoundrecording;
         private transient ImportHandler importer;
@@ -271,6 +273,20 @@ public final class ImportFileScanner {
                 statusKrameriusNdkPeriodical = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT));
             }
             return statusKrameriusNdkPeriodical;
+        }
+
+        public State getStatusKrameriusNdkEMonograph(AppConfiguration appConfig) {
+            if (statusKrameriusNdkEMonograph == null) {
+                statusKrameriusNdkEMonograph = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT));
+            }
+            return statusKrameriusNdkEMonograph;
+        }
+
+        public State getStatusKrameriusNdkEPeriodical(AppConfiguration appConfig) {
+            if (statusKrameriusNdkEPeriodical == null) {
+                statusKrameriusNdkEPeriodical = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT));
+            }
+            return statusKrameriusNdkEPeriodical;
         }
 
         public State getStatusKrameriusStt(AppConfiguration appConfig) {
