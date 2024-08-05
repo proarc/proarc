@@ -274,8 +274,9 @@ public class FileReader {
                     List<String> members = editor.getMembers();
                     if (members != null && !members.isEmpty()) {
                         RelationEditor editorLObj = new RelationEditor(lObj);
-                        members.addAll(editorLObj.getMembers());
-                        editorLObj.setMembers(members);
+                        Set<String> membersSet = new HashSet<>(members);
+                        membersSet.addAll(editorLObj.getMembers());
+                        editorLObj.setMembers(new ArrayList<>(members));
                         editorLObj.write(editorLObj.getLastModified(), "doplneni starych potomku");
                         lObj.flush();
                     }
@@ -293,9 +294,7 @@ public class FileReader {
                         RelationEditor editorLObj = new RelationEditor(lObj);
                         Set<String> membersSet = new HashSet<>(editorLObj.getMembers());
                         membersSet.addAll(members);
-                        members.clear();
-                        members.addAll(0, membersSet);
-                        editorLObj.setMembers(members);
+                        editorLObj.setMembers(new ArrayList<>(membersSet));
                         editorLObj.write(editorLObj.getLastModified(), "doplneni novych potomku");
                         lObj.flush();
                     }

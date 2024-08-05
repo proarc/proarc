@@ -518,7 +518,7 @@ PUT {{proarcUrl}}/rest/v2/import/batch
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-state=LOADING_CONFLICT&profile=profile.ndk_periodical_kramerius_import&id=275&useOriginalMetadata=true
+state=LOADING_CONFLICT&profile=profile.ndk_periodical_kramerius_import&id=284&useOriginalMetadata=true
 
 ### UPDATE IMPORT BATCH WITH REWRITE
 PUT {{proarcLocalHostUrl}}/rest/v2/import/batch

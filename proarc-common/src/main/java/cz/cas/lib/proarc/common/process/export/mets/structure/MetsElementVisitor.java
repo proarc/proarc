@@ -1151,6 +1151,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                 } catch (FedoraClientException e) {
                                     throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                                 }
+                            } else {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Missing RAW datastream for PID " + metsElement.getOriginalPid() + ".", false, null);
                             }
                         } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                             DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
@@ -1183,9 +1185,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                 } catch (JAXBException | IOException | TransformerException e) {
                                     throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                                 }
+                            } else {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Missing RAW datastream for PID " + metsElement.getOriginalPid() + ".", false, null);
                             }
                         }
-                        jHoveOutputRaw = JhoveUtility.getMix(new File(rawFile.getAbsolutePath()), metsElement.getMetsContext(), mixDevice, rawCreated, null);
+                        jHoveOutputRaw = JhoveUtility.getMix(rawFile, metsElement.getMetsContext(), mixDevice, rawCreated, null);
                         if (jHoveOutputRaw.getMix() == null) {
                             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for RAW image", false, null);
                         }
