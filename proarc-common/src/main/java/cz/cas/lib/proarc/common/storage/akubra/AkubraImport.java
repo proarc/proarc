@@ -67,7 +67,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -391,7 +391,7 @@ public final class AkubraImport {
             if (!DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(localRelEditor.getModel()) || !DeviceRepository.METAMODEL_ID.equals(localRelEditor.getModel())) {
                 // rels-ext
                 RelationEditor remoteRelEditor = new RelationEditor(aObj);
-                Set<String> members = new HashSet<>(remoteRelEditor.getMembers());
+                Set<String> members = new LinkedHashSet<>(remoteRelEditor.getMembers());
                 members.addAll(localRelEditor.getMembers());
                 remoteRelEditor.setMembers(new ArrayList<>(members));
                 remoteRelEditor.write(remoteRelEditor.getLastModified(), "The override RELS-EXT object from " + foxml);

@@ -76,6 +76,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -274,9 +275,9 @@ public class FileReader {
                     List<String> members = editor.getMembers();
                     if (members != null && !members.isEmpty()) {
                         RelationEditor editorLObj = new RelationEditor(lObj);
-                        Set<String> membersSet = new HashSet<>(members);
+                        Set<String> membersSet = new LinkedHashSet<>(members);
                         membersSet.addAll(editorLObj.getMembers());
-                        editorLObj.setMembers(new ArrayList<>(members));
+                        editorLObj.setMembers(new ArrayList<>(membersSet));
                         editorLObj.write(editorLObj.getLastModified(), "doplneni starych potomku");
                         lObj.flush();
                     }
@@ -292,8 +293,8 @@ public class FileReader {
                     List<String> members = relationEditor.getMembers();
                     if (members != null && !members.isEmpty()) {
                         RelationEditor editorLObj = new RelationEditor(lObj);
-                        Set<String> membersSet = new HashSet<>(editorLObj.getMembers());
-                        membersSet.addAll(members);
+                        Set<String> membersSet = new LinkedHashSet<>(members);
+                        membersSet.addAll(editorLObj.getMembers());
                         editorLObj.setMembers(new ArrayList<>(membersSet));
                         editorLObj.write(editorLObj.getLastModified(), "doplneni novych potomku");
                         lObj.flush();
