@@ -53,9 +53,9 @@ public class CrossrefBuilderTest {
     public void testCreateCrossrefXml() throws Exception {
         File targetFolder = temp.getRoot();
         CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportParams());
-        builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
+        builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print", "10.1000/1", null, "uuid:123-123-123");
         builder.addVolume("1", null, null);
-        builder.addIssue("10", "2010", "uuid");
+        builder.addIssue("10", "2010", "uuid", "10.1000/1", null, "uuid:123-123-123");
         Document article = builder.getDocumentBuilder().parse(
                 CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
         builder.addArticle(article);
@@ -73,8 +73,8 @@ public class CrossrefBuilderTest {
     public void testCreateCrossrefXml_SkippedVolume() throws Exception {
         File targetFolder = temp.getRoot();
         CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportParams());
-        builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
-        builder.addIssue("10", "2010", "uuid");
+        builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print", "10.1000/1", null, "uuid:123-123-123");
+        builder.addIssue("10", "2010", "uuid", "10.1000/1", null, "uuid:123-123-123");
         Document article = builder.getDocumentBuilder().parse(
                 CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
         builder.addArticle(article);
@@ -92,7 +92,7 @@ public class CrossrefBuilderTest {
     public void testCreateCrossrefXml_SkippedIssue() throws Exception {
         File targetFolder = temp.getRoot();
         CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportParams());
-        builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print");
+        builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print", "10.1000/1", null, "uuid:123-123-123");
         builder.addVolume("1", "20.12.2012", "uuid");
         Document article = builder.getDocumentBuilder().parse(
                 CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());

@@ -16,24 +16,36 @@
  */
 package cz.cas.lib.proarc.common.process.export.crossref;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectElement;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.process.export.ExportException;
 import cz.cas.lib.proarc.common.process.export.ExportParams;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.object.DescriptionMetadata;
-import cz.cas.lib.proarc.common.object.DigitalObjectElement;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleLSResourceResolver;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
 import cz.cas.lib.proarc.common.xml.TransformErrorListener;
+import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
+import cz.cas.lib.proarc.mods.NamePartDefinition;
+import cz.cas.lib.proarc.mods.RoleTermDefinition;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,9 +53,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -84,6 +98,8 @@ class CrossrefBuilder {
     private final XPathExpression dateIssuedPath;
     private final XPathExpression physicalFormPath;
     private final XPathExpression abbrevTitlePath;
+    private final XPathExpression doiIdentifierPath;
+    private final XPathExpression doiUrlPath;
     private final DocumentBuilder db;
     private final Transformer crosssrefXsl;
     private final TransformErrorListener tranformationErrorHandler;
@@ -95,6 +111,8 @@ class CrossrefBuilder {
     private Validator crossrefValidator;
     private int pkgIndex;
     private ExportParams options;
+
+    private static final Logger LOG = Logger.getLogger(CrossrefBuilder.class.getName());
 
     public CrossrefBuilder(File outputFolder, ExportParams options)
             throws Exception {
@@ -108,6 +126,8 @@ class CrossrefBuilder {
         issnPath = xpath.compile("m:mods/m:identifier[@type='issn' and not(@invalid)]");
         partNumberPath = xpath.compile("m:mods/m:titleInfo/m:partNumber");
         abbrevTitlePath = xpath.compile("m:mods/m:titleInfo/m:title[@type='abbreviated']");
+        doiIdentifierPath = xpath.compile("m:mods/m:identifier[@type='doi']");
+        doiUrlPath = xpath.compile("m:mods/m:identifier[@type='doi']/@typeURI");
         titlePath = xpath.compile("m:mods/m:titleInfo/m:title");
         dateIssuedPath = xpath.compile("m:mods/m:originInfo/m:dateIssued");
         physicalFormPath = xpath.compile("m:mods/m:physicalDescription/m:form");
@@ -158,6 +178,8 @@ class CrossrefBuilder {
                         errors.getErrors().toString(), null);
             }
 
+            updatePackageFile(packageFile);
+
             List<String> validationErrors = validateCrossref(new StreamSource(packageFile));
             if (!validationErrors.isEmpty()) {
                 throw new ExportException(pkgElm, "Validation errors!",
@@ -169,6 +191,26 @@ class CrossrefBuilder {
             throw new ExportException(pkgElm, "Unexpected error!", null, ex);
         }
         return packageFile;
+    }
+
+    private void updatePackageFile(File packageFile) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(packageFile), StandardCharsets.UTF_8));
+            StringBuffer buffer = new StringBuffer();
+            String line = reader.readLine();
+            while(line != null) {
+                line = line.replaceAll("&lt;", "<");
+                line = line.replaceAll("&gt;", ">");
+                buffer.append(line);
+                line = reader.readLine();
+            }
+            reader.close();
+            Writer writer = new OutputStreamWriter(new FileOutputStream(packageFile), StandardCharsets.UTF_8);
+            writer.append(buffer.toString());
+            writer.close();
+        } catch (Exception ex) {
+            LOG.log(java.util.logging.Level.SEVERE, "Error with updating file", ex);
+        }
     }
 
     /**
@@ -190,7 +232,7 @@ class CrossrefBuilder {
         return tranformationErrorHandler;
     }
 
-    private void processPath(CrossrefPackage pkg) throws XPathExpressionException, ExportException {
+    private void processPath(CrossrefPackage pkg) throws XPathExpressionException, ExportException, ParserConfigurationException, IOException, SAXException {
         List<DigitalObjectElement> path = pkg.getPath();
         Iterator<DigitalObjectElement> it = path.iterator();
         if (!it.hasNext()) {
@@ -210,21 +252,21 @@ class CrossrefBuilder {
 
     private void processIssue(
             Iterator<DigitalObjectElement> path, CrossrefPackage pkg
-    ) throws XPathExpressionException, ExportException {
+    ) throws XPathExpressionException, ExportException, ParserConfigurationException, IOException, SAXException {
         DigitalObjectElement elm = path.next();
         if (NdkPlugin.MODEL_PERIODICALISSUE.equals(elm.getModelId())) {
-            addIssue(getModsDom(elm), elm.getPid());
+            addIssue(elm);
             DigitalObjectElement parent = readNext(path, elm);
             if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(parent.getModelId())) {
                 addVolume(getModsDom(parent));
                 parent = readNext(path, parent);
                 if (NdkPlugin.MODEL_PERIODICAL.equals(parent.getModelId())) {
-                    addPeriodicalTitle(getModsDom(parent));
+                    addPeriodicalTitle(getModsDom(parent), parent.getPid());
                 } else {
                     throw new ExportException(parent, "Expected a periodical title!", null, null);
                 }
             } else if (NdkPlugin.MODEL_PERIODICAL.equals(parent.getModelId())) {
-                addPeriodicalTitle(getModsDom(parent));
+                addPeriodicalTitle(getModsDom(parent), parent.getPid());
             } else {
                 throw new ExportException(parent, "Expected a periodical volume!", null, null);
             }
@@ -232,7 +274,7 @@ class CrossrefBuilder {
             addVolumeWithoutIssue(getModsDom(elm), elm.getPid());
             DigitalObjectElement parent = readNext(path, elm);
             if (NdkPlugin.MODEL_PERIODICAL.equals(parent.getModelId())) {
-                addPeriodicalTitle(getModsDom(parent));
+                addPeriodicalTitle(getModsDom(parent), parent.getPid());
             } else {
                 throw new ExportException(parent, "Expected a periodical title!", null, null);
             }
@@ -241,15 +283,20 @@ class CrossrefBuilder {
         }
     }
 
-    boolean addPeriodicalTitle(String issn, String title, String abbrevTitle, String media) throws XPathExpressionException {
+    boolean addPeriodicalTitle(String issn, String title, String abbrevTitle, String media, String doi, String doiUrl, String titlePid) throws XPathExpressionException {
         crosssrefXsl.setParameter("issn", issn);
         crosssrefXsl.setParameter("abbrev_title", abbrevTitle);
         crosssrefXsl.setParameter("full_title", title);
         crosssrefXsl.setParameter("media_type", media);
+        crosssrefXsl.setParameter("uuid_title", titlePid.substring(5));
+        crosssrefXsl.setParameter("doi_title", doi);
+        if (doiUrl != null) {
+            crosssrefXsl.setParameter("doi_title_url", doiUrl);
+        }
         return true;
     }
 
-    private boolean addPeriodicalTitle(Document d) throws XPathExpressionException {
+    private boolean addPeriodicalTitle(Document d, String titlePid) throws XPathExpressionException {
         // title issn - mods/identifier[type="issn"][0]
         // title - mods/titleInfo/title
         // abbreviated title - mods/titleInfo/title/@type="abbreviated"
@@ -258,7 +305,9 @@ class CrossrefBuilder {
         String abbrevTitle = abbrevTitlePath.evaluate(d);
         String title = titlePath.evaluate(d);
         String form = physicalFormPath.evaluate(d);
-        return addPeriodicalTitle(issn, title, abbrevTitle, form);
+        String doi = doiIdentifierPath.evaluate(d);
+        String doiUrl = doiUrlPath.evaluate(d);
+        return addPeriodicalTitle(issn, title, abbrevTitle, form, doi, doiUrl, titlePid);
     }
 
     boolean addVolume(String partNumber, String dateIssued, String uuid) throws XPathExpressionException {
@@ -286,19 +335,132 @@ class CrossrefBuilder {
         addVolume(partNumber, dateIssued, FoxmlUtils.pidAsUuid(pid));
     }
 
-    boolean addIssue(String partNumber, String dateIssued, String issueUuid) throws XPathExpressionException {
+    boolean addIssue(String partNumber, String dateIssued, String issueUuid, String doi, String doiUrl, String contibutors) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
         crosssrefXsl.setParameter("issue", partNumber);
         crosssrefXsl.setParameter("publication_date", dateIssued);
         crosssrefXsl.setParameter("export_uuid", issueUuid);
+        crosssrefXsl.setParameter("doi_issue", doi);
+        crosssrefXsl.setParameter("uuid_issue", issueUuid.substring(5));
+        if (doiUrl != null) {
+            crosssrefXsl.setParameter("doi_issue_url", doiUrl);
+        }
+        if (contibutors != null) {
+            crosssrefXsl.setParameter("contributors", contibutors);
+        }
         return true;
     }
 
-    private void addIssue(Document d, String pid) throws XPathExpressionException {
+    private void addIssue(DigitalObjectElement elm) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException, ExportException {
         // issue number - mods/titleInfo/partNumber
         // issue date - mods/originInfo/dateIssued
+        Document d = getModsDom(elm);
         String partNumber = partNumberPath.evaluate(d);
         String dateIssued = dateIssuedPath.evaluate(d);
-        addIssue(partNumber, dateIssued, FoxmlUtils.pidAsUuid(pid));
+        String doi = doiIdentifierPath.evaluate(d);
+        String doiUrl = doiUrlPath.evaluate(d);
+        String contributors = createContributors(getMods(elm));
+        addIssue(partNumber, dateIssued, FoxmlUtils.pidAsUuid(elm.getPid()), doi, doiUrl, contributors);
+    }
+
+    private String createContributors(ModsDefinition mods) {
+        StringBuilder builder = new StringBuilder();
+        int count = 1;
+        for (NameDefinition name : mods.getName()) {
+            if (name.getRole() != null && !name.getRole().isEmpty()
+                    && name.getRole().get(0).getRoleTerm() != null && !name.getRole().get(0).getRoleTerm().isEmpty()
+                    && hasAcceptedRoleTerm(name.getRole().get(0).getRoleTerm().get(0))
+                    && name.getNamePart() != null && !name.getNamePart().isEmpty()) {
+                if ("corporate".equals(name.getType())) {
+                    builder.append("<organization");
+                    if (count == 1) {
+                        builder.append(" sequence=\"first\"");
+                    } else {
+                        builder.append(" sequence=\"additional\"");
+                    }
+
+                    if ("aut".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())
+                            || "rev".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                        builder.append(" contributor_role=\"author\"");
+                    } else if ("edt".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                        builder.append(" contributor_role=\"editor\"");
+                    } else if ("trl".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                        builder.append(" contributor_role=\"translator\"");
+                    }
+                    builder.append(">");
+
+                    for (NamePartDefinition namePart : name.getNamePart()) {
+                        builder.append(namePart.getValue());
+                        break;
+                    }
+                    builder.append("</organization>");
+                    count++;
+                }
+            }
+        }
+
+        for (NameDefinition name : mods.getName()) {
+            if (name.getRole() != null && !name.getRole().isEmpty()
+                    && name.getRole().get(0).getRoleTerm() != null && !name.getRole().get(0).getRoleTerm().isEmpty()
+                    && hasAcceptedRoleTerm(name.getRole().get(0).getRoleTerm().get(0))
+                    && name.getNamePart() != null && !name.getNamePart().isEmpty()) {
+                if ("personal".equals(name.getType())) {
+                    builder.append("<person_name");
+                    if (count == 1) {
+                        builder.append(" sequence=\"first\"");
+                    } else {
+                        builder.append(" sequence=\"additional\"");
+                    }
+
+                    if ("aut".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())
+                            || "rev".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                        builder.append(" contributor_role=\"author\"");
+                    } else if ("edt".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                        builder.append(" contributor_role=\"editor\"");
+                    } else if ("trl".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                        builder.append(" contributor_role=\"translator\"");
+                    }
+                    builder.append(">");
+
+                    for (NamePartDefinition namePart : name.getNamePart()) {
+                        if (namePart.getType() != null && "given".equals(namePart.getType())) {
+                            builder.append("<given_name>").append(namePart.getValue()).append("</given_name>");
+                        }
+                    }
+
+                    for (NamePartDefinition namePart : name.getNamePart()) {
+                        if (namePart.getType() == null || "family".equals(namePart.getType())) {
+                            builder.append("<surname>").append(namePart.getValue()).append("</surname>");
+                        }
+                    }
+
+                    if (name.getAffiliation() != null && !name.getAffiliation().isEmpty()
+                            && name.getAffiliation().get(0).getValue() != null && !name.getAffiliation().get(0).getValue().isEmpty()) {
+                        builder.append("<affiliations>").append("<institution>").append("<institution_id type=\"ror\">")
+                                .append("https://ror.org/").append(name.getAffiliation().get(0).getValue())
+                                .append("</institution_id>").append("</institution>").append("</affiliations>");
+                    }
+                    if (name.getNameIdentifier() != null && !name.getNameIdentifier().isEmpty()
+                            && name.getNameIdentifier().get(0).getValue() != null && !name.getNameIdentifier().get(0).getValue().isEmpty()
+                            && "orcid".equals(name.getNameIdentifier().get(0).getType())) {
+                        builder.append("<ORCID authenticated=\"true\">")
+                                .append("https://orcid.org/").append(name.getNameIdentifier().get(0).getValue())
+                                .append("</ORCID>");
+                    }
+
+                    builder.append("</person_name>");
+                    count++;
+                }
+            }
+        }
+        return builder.toString().isEmpty() ? null : builder.toString();
+    }
+
+    private boolean hasAcceptedRoleTerm(RoleTermDefinition roleTerm) {
+        if (CodeOrText.CODE.equals(roleTerm.getType())) {
+            return "aut".equals(roleTerm.getValue()) || "rev".equals(roleTerm.getValue()) || "edt".equals(roleTerm.getValue()) || "trl".equals(roleTerm.getValue());
+        } else {
+            return false;
+        }
     }
 
     void addArticle(Document d) {
@@ -346,6 +508,16 @@ class CrossrefBuilder {
             throw new ExportException(elm, "Invalid MODS!", null, ex);
         } catch (IOException ex) {
             throw new ExportException(elm, "IO error!", null, ex);
+        }
+    }
+
+    private ModsDefinition getMods(DigitalObjectElement elm) {
+        try {
+            DescriptionMetadata<ModsDefinition> dm = elm.getHandler().<ModsDefinition>metadata().getMetadata();
+            ModsDefinition mods = dm.getData();
+            return mods;
+        } catch (DigitalObjectException e) {
+            throw new RuntimeException(e);
         }
     }
 
