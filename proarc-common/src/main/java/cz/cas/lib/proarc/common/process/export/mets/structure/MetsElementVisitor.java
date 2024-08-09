@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
@@ -1656,7 +1657,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      */
     private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, IMetsElement sourceElement, int pageIndex) throws MetsExportException {
         List<IMetsElement> sourceElements = new ArrayList<IMetsElement>();
-        if (metsElement.getModel().contains(NdkPlugin.MODEL_NDK_PAGE)) {
+        if (metsElement.getModel().contains(NdkPlugin.MODEL_NDK_PAGE) || metsElement.getModel().contains(OldPrintPlugin.MODEL_PAGE)) {
             addDmdSec(metsElement);
         }
         sourceElements.add(sourceElement);

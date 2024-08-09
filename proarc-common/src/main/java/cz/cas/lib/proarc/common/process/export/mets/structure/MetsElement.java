@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.Kramerius4Export;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
@@ -363,7 +364,7 @@ public class MetsElement implements IMetsElement {
             DcUtils.marshal(dcDOMResult, dcType, true);
             this.descriptor = new ArrayList<Element>();
             this.descriptor.add((Element) dcDOMResult.getNode().getFirstChild());
-        } else if (model.contains(NdkPlugin.MODEL_NDK_PAGE) || model.contains(NdkPlugin.MODEL_PAGE)) {
+        } else if (model.contains(NdkPlugin.MODEL_NDK_PAGE) || model.contains(NdkPlugin.MODEL_PAGE) || model.contains(OldPrintPlugin.MODEL_PAGE)) {
             NdkMapper mapper = NdkMapper.get(model.replaceAll("info:fedora/", ""));
             Document modsDocument = MetsUtils.getDocumentFromList(modsStream);
             DOMSource modsDOMSource = new DOMSource(modsDocument);
