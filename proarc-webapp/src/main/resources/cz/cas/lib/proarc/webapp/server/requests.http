@@ -626,3 +626,11 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 id={{batchId}}
+
+
+### hromadna editace zameru
+PUT {{proarcUrl}}/rest/v2/workflow/editorJobs
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+ids=23&ids=24&ids=25&financed=InovatikaDonator

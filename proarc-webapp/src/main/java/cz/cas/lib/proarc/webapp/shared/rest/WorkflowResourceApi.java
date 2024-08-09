@@ -46,4 +46,5 @@ public class WorkflowResourceApi {
     public static final String MODS_PLAIN_PATH = "plain";
 
     public static final String NEWJOB_RDCZID = "rdczId";
+    public static final String EDITOR_JOBS = "editorJobs";
 }

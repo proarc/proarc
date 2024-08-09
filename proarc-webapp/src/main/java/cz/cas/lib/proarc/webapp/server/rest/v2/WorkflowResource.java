@@ -168,6 +168,27 @@ public class WorkflowResource extends WorkflowResourceV1 {
         }
     }
 
+    @PUT
+    @Path(WorkflowResourceApi.EDITOR_JOBS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<JobView> updateJobs(
+            @FormParam(WorkflowModelConsts.JOB_IDS) List<BigDecimal> ids,
+            @FormParam(WorkflowModelConsts.JOB_FINANCED) String financed,
+            @FormParam(WorkflowModelConsts.JOB_PRIORITY) Integer priority,
+            @FormParam(WorkflowModelConsts.JOB_STATE) Job.State state,
+            @FormParam(WorkflowModelConsts.JOB_NOTE) String note
+    ) {
+        if (ids == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_IDS));
+        }
+        try {
+            return super.updateJobs(ids, financed, priority, state, note);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
     @DELETE
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})

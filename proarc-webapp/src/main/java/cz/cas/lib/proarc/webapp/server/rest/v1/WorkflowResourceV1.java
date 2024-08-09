@@ -224,11 +224,12 @@ public class WorkflowResourceV1 {
 
     /**
      * Creates a new workflow job.
+     *
      * @param profileName profile name of the new job
-     * @param metadata MODS
-     * @param catalogId catalog ID
-     * @param parentId ID of the parent job. If used the parameters metadata
-     *      and catalogId are ignored. The new job is a subjob.
+     * @param metadata    MODS
+     * @param catalogId   catalog ID
+     * @param parentId    ID of the parent job. If used the parameters metadata
+     *                    and catalogId are ignored. The new job is a subjob.
      * @return the job
      */
     @POST
@@ -294,7 +295,7 @@ public class WorkflowResourceV1 {
         } catch (WorkflowException ex) {
             return toError(ex, WorkflowResourceApi.NEWJOB_PROFILE + ":" + profileName
                     + ", " + WorkflowResourceApi.NEWJOB_PARENTID + ":" + parentId
-                    );
+            );
         }
     }
 
@@ -325,7 +326,7 @@ public class WorkflowResourceV1 {
         job.setNote(note);
 
 
-        if (userId==null) {
+        if (userId == null) {
             job.setOwnerId(new BigDecimal(getUserId()));
         } else {
             job.setOwnerId(userId);
@@ -347,13 +348,68 @@ public class WorkflowResourceV1 {
         }
     }
 
+    @PUT
+    @Path(WorkflowResourceApi.EDITOR_JOBS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<JobView> updateJobs(
+            @FormParam(WorkflowModelConsts.JOB_IDS) List<BigDecimal> ids,
+            @FormParam(WorkflowModelConsts.JOB_FINANCED) String financed,
+            @FormParam(WorkflowModelConsts.JOB_PRIORITY) Integer priority,
+            @FormParam(WorkflowModelConsts.JOB_STATE) Job.State state,
+            @FormParam(WorkflowModelConsts.JOB_NOTE) String note
+    ) throws WorkflowException {
+        if (ids == null) {
+            return SmartGwtResponse.asError("Missing job ID!");
+        }
+
+        if (ids.isEmpty()) {
+            return SmartGwtResponse.asError("Jobs ID is empty!");
+        }
+
+        WorkflowDefinition profiles = workflowProfiles.getProfiles();
+        if (profiles == null) {
+            return profileError();
+        }
+
+        for (BigDecimal id : ids) {
+            try {
+                Job job = workflowManager.getJob(id);
+                if (job == null) {
+                    throw new WorkflowException("Not found " + id)
+                            .addJobNotFound(id);
+                }
+                if (financed != null) {
+                    job.setFinanced(financed);
+                }
+                if (note != null) {
+                    job.setNote(note);
+                }
+                if (priority != null) {
+                    job.setPriority(priority != null ? priority : 2);
+                }
+                if (state != null) {
+                    job.setState(state);
+                }
+                workflowManager.updateJob(job);
+            } catch (WorkflowException ex) {
+                return toError(ex, null);
+            }
+        }
+
+        JobFilter jobFilter = new JobFilter();
+        jobFilter.setIds(ids);
+        jobFilter.setLocale(session.getLocale(httpHeaders));
+        List<JobView> result = workflowManager.findJob(jobFilter);
+        return new SmartGwtResponse<JobView>(result);
+    }
+
     @DELETE
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<JobView> deleteObject(
 //            @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) BigDecimal id
             @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) List<BigDecimal> ids
-            ) {
+    ) {
 
         checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION);
 
@@ -491,7 +547,7 @@ public class WorkflowResourceV1 {
             return new SmartGwtResponse<TaskView>(result);
         } /*catch (WorkflowException ex) {
             return toError(ex, null);
-        } */catch (IOException e) {
+        } */ catch (IOException e) {
             return toError(new WorkflowException(e.getMessage()), null);
         }
     }
@@ -567,7 +623,7 @@ public class WorkflowResourceV1 {
     /**
      * Gets subset of MODS properties in JSON.
      *
-     * @param jobId workflow job id of requested digital object
+     * @param jobId    workflow job id of requested digital object
      * @param editorId view defining subset of MODS properties
      */
     @Path(WorkflowResourceApi.MODS_PATH)
@@ -702,7 +758,8 @@ public class WorkflowResourceV1 {
 
     /**
      * Gets workflow profiles defined with {@link WorkflowProfiles}
-     * @param name a profile name filter
+     *
+     * @param name     a profile name filter
      * @param disabled an availability filter
      * @return the list of profiles
      */

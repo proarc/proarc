@@ -25,6 +25,7 @@ public final class WorkflowModelConsts {
     public static final String JOB_CREATED = "created";
     public static final String JOB_FINANCED = "financed";
     public static final String JOB_ID = "id";
+    public static final String JOB_IDS = "ids";
     public static final String JOB_LABEL = "label";
     public static final String JOB_NOTE = "note";
     public static final String JOB_OWNERID = "ownerId";
