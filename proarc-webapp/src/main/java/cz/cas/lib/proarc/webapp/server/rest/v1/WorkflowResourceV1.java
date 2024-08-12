@@ -69,6 +69,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -556,6 +557,110 @@ public class WorkflowResourceV1 {
     public static class TaskUpdate extends Task {
         @XmlElement(name = WorkflowModelConsts.TASK_PARAMETERS)
         public Map<String, Object> params;
+    }
+
+    @PUT
+    @Path(WorkflowResourceApi.EDITOR_TASKS)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<TaskView> updateTasks(TasksUpdate tasks) throws WorkflowException {
+        if (tasks == null) {
+            return SmartGwtResponse.asError("No tasks to update!");
+        }
+        WorkflowDefinition workflow = workflowProfiles.getProfiles();
+        if (workflow == null) {
+            return profileError();
+        }
+        try {
+            for (BigDecimal id : tasks.ids) {
+                Task task = workflowManager.tasks().getTask(id);
+                Task.State originalState = null;
+                Map<String, Object> mapOfParameters = null;
+                if (task == null) {
+                    throw new WorkflowException("Not found " + id)
+                            .addTaskNotFound(id);
+                }
+                if (tasks.getState() != null) {
+                    originalState = task.getState();
+                    task.setState(tasks.getState());
+                }
+                if (tasks.getOwnerId() != null) {
+                    task.setOwnerId(tasks.getOwnerId());
+                }
+                if (tasks.getPriority() != null) {
+                    task.setPriority(tasks.getPriority() != null ? tasks.getPriority() : 2);
+                }
+
+                if (tasks.getParams() != null) {
+                    TaskParameterFilter filter = new TaskParameterFilter();
+                    filter.setLocale(session.getLocale(httpHeaders));
+                    filter.setMaxCount(1000);
+                    filter.setOffset(0);
+                    filter.setTaskId(task.getId());
+
+                    List<TaskParameterView> params = workflowManager.findParameter(filter);
+
+                    mapOfParameters = new HashMap<String, Object>();
+                    mapOfParameters.putAll(tasks.params);
+                    for (TaskParameterView parameter : params) {
+                        if (mapOfParameters.get(parameter.getParamRef()) == null) {
+                            mapOfParameters.put(parameter.getParamRef(), parameter.getValue());
+                        }
+                    }
+                }
+                Task updatedTask = workflowManager.tasks().updateTask(task, mapOfParameters, workflow);
+                if (tasks.getState() != null && tasks.getState() != originalState) {
+                    WorkflowActionHandler workflowActionHandler = new WorkflowActionHandler(workflow, session.getLocale(httpHeaders));
+                    workflowActionHandler.runAction(updatedTask);
+                }
+            }
+
+            TaskFilter taskFilter = new TaskFilter();
+            taskFilter.setIds(tasks.getIds());
+            taskFilter.setLocale(session.getLocale(httpHeaders));
+            List<TaskView> result = workflowManager.tasks().findTask(taskFilter, workflow);
+
+            return new SmartGwtResponse<TaskView>(result);
+        } /*catch (WorkflowException ex) {
+            return toError(ex, null);
+        } */ catch (IOException e) {
+            return toError(new WorkflowException(e.getMessage()), null);
+        }
+    }
+
+
+    @XmlAccessorType(XmlAccessType.NONE)
+    public static class TasksUpdate {
+        @XmlElement(name = WorkflowModelConsts.TASK_IDS)
+        public List<BigDecimal> ids;
+        @XmlElement(name = WorkflowModelConsts.TASK_STATE)
+        public Task.State state;
+        @XmlElement(name = WorkflowModelConsts.TASK_OWNERID)
+        public BigDecimal ownerId;
+        @XmlElement(name = WorkflowModelConsts.TASK_PRIORITY)
+        public Integer priority;
+        @XmlElement(name = WorkflowModelConsts.TASK_PARAMETERS)
+        public Map<String, Object> params;
+
+        public List<BigDecimal> getIds() {
+            return ids;
+        }
+
+        public Task.State getState() {
+            return state;
+        }
+
+        public BigDecimal getOwnerId() {
+            return ownerId;
+        }
+
+        public Integer getPriority() {
+            return priority;
+        }
+
+        public Map<String, Object> getParams() {
+            return params;
+        }
     }
 
     @Path(WorkflowResourceApi.MATERIAL_PATH)

@@ -108,6 +108,17 @@ public class TaskManager {
         }
     }
 
+    public Task getTask(BigDecimal id) {
+        Transaction tx = daoFactory.createTransaction();
+        try {
+            WorkflowTaskDao dao = daoFactory.createWorkflowTaskDao();
+            dao.setTransaction(tx);
+            return dao.find(id);
+        } finally {
+            tx.close();
+        }
+    }
+
     public void delete(BigDecimal jobId) {
         Transaction tx = daoFactory.createTransaction();
         WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();

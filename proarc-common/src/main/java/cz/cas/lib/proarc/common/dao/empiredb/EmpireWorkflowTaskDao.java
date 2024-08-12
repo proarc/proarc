@@ -128,7 +128,9 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         // empire db reverse the joint type so that is why RIGHT instead of LEFT
         cmd.join(db.tableWorkflowPhysicalDoc.materialId, wmId, DBJoinType.RIGHT);
 
-        if (filter.getId() != null) {
+        if (filter.getIds() != null) {
+            cmd.where(tableTask.id.in(filter.getIds()));
+        } else if (filter.getId() != null) {
             cmd.where(tableTask.id.is(filter.getId()));
         }
         if (filter.getJobId() != null) {

@@ -17,9 +17,6 @@
 package cz.cas.lib.proarc.common.workflow.model;
 
 import cz.cas.lib.proarc.common.workflow.model.Task.State;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +24,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
@@ -64,6 +64,8 @@ public class TaskFilter {
     private Locale locale;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_BARCODE)
     private String barcode;
+
+    private List<BigDecimal> ids;
 
     public BigDecimal getId() {
         return id;
@@ -193,5 +195,13 @@ public class TaskFilter {
 
     public void setBarcode(String barcode) {
         this.barcode = barcode;
+    }
+
+    public List<BigDecimal> getIds() {
+        return ids;
+    }
+
+    public void setIds(List<BigDecimal> ids) {
+        this.ids = ids;
     }
 }

@@ -79,6 +79,7 @@ public final class WorkflowModelConsts {
 
     public static final String TASK_CREATED = "created";
     public static final String TASK_ID = "id";
+    public static final String TASK_IDS = "ids";
     public static final String TASK_JOBID = "jobId";
     public static final String TASK_JOBLABEL = "jobLabel";
     public static final String TASK_NOTE = "note";

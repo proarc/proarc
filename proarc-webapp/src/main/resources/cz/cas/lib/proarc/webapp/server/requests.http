@@ -634,3 +634,12 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ids=23&ids=24&ids=25&financed=InovatikaDonator
+
+### hromadna editace ukolu
+PUT {{proarcUrl}}/rest/v2/workflow/editorTasks
+Accept: application/json
+Content-Type: application/json; charset=UTF-8
+
+{"ids":["101", "95"], "state": "FINISHED"}
+###{"ids":["101", "95"], "state": "CANCELED", "params":{"param.scan.numberOfScans":"5"}}
+###{"ids":["101", "95"], "state": "CANCELED", "params":{"param.scan.scannerNew": "Suprascan A1", "param.scan.imageColor": "4 bit", "param.scan.dpi": "1200", "param.scan.numberOfScans":"100"}}

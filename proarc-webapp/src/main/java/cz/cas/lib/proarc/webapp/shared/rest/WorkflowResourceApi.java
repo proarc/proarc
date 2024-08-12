@@ -46,5 +46,10 @@ public class WorkflowResourceApi {
     public static final String MODS_PLAIN_PATH = "plain";
 
     public static final String NEWJOB_RDCZID = "rdczId";
+
+    // hromadna editace zameru
     public static final String EDITOR_JOBS = "editorJobs";
+
+    // hromadna editace ukolu
+    public static final String EDITOR_TASKS = "editorTasks";
 }

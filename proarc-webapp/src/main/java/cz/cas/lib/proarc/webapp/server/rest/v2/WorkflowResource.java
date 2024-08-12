@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
@@ -264,6 +265,22 @@ public class WorkflowResource extends WorkflowResourceV1 {
         }
         try {
             return super.updateTask(task);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @PUT
+    @Path(WorkflowResourceApi.EDITOR_TASKS)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<TaskView> updateTasks(TasksUpdate tasks) throws WorkflowException {
+        if (tasks == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, "task"));
+        }
+        try {
+            return super.updateTasks(tasks);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
