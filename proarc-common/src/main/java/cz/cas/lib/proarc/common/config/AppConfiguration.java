@@ -16,20 +16,21 @@
  */
 package cz.cas.lib.proarc.common.config;
 
+import cz.cas.lib.proarc.common.client.ClientOptions;
+import cz.cas.lib.proarc.common.jobs.JobHandler;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.object.ndk.ModsRules;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.common.process.export.ExportParams;
 import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.process.export.KwisExportOptions;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveExportOptions;
 import cz.cas.lib.proarc.common.process.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.process.export.mets.NdkExportOptions;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.storage.SearchOptions;
 import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.process.imports.ImportProfile;
-import cz.cas.lib.proarc.common.jobs.JobHandler;
-import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
-import cz.cas.lib.proarc.common.object.ndk.ModsRules;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.object.ndk.RdaRules;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.workflow.WorkflowOptions;
 import java.io.BufferedReader;
@@ -95,7 +96,7 @@ public final class AppConfiguration {
     public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
     public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
     public static final String EXPORT_BAGIT_SCRIPT_PATH = "export.bagit.scriptPath";
-    public static final String PROPERTY_NEW_CLIENT_URL = "proarc.client.url";
+//    public static final String PROPERTY_NEW_CLIENT_URL = "proarc.client.url";
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
     private static final String DEFAULT_PROPERTIES_RESOURCE = "cz/cas/lib/proarc/common/config/proarc.properties";
@@ -283,9 +284,13 @@ public final class AppConfiguration {
         return new UrnNbnConfiguration(config);
     }
 
-    public String getNewClientUrl() {
-        return config.getString(PROPERTY_NEW_CLIENT_URL);
+    public ClientOptions getClientOptions() {
+        return ClientOptions.getOptions(config);
     }
+
+//    public String getNewClientUrl() {
+//        return config.getString(PROPERTY_NEW_CLIENT_URL);
+//    }
 
     public String[] getPlugins() {
         String[] plugins = config.getStringArray(PROPERTY_DIGOBJECT_PLUGINS);

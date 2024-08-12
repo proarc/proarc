@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -58,9 +59,25 @@ public class ApplicationResource extends ApplicationResourceV1 {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ApplicationInfo> getVersion() {
+    public SmartGwtResponse<ApplicationInfo> getVersion(
+            @QueryParam(ApplicationResourceApi.QUERY_FULL_LOAD) Boolean fullLoad
+    ) {
         try {
-            return super.getVersion();
+            return super.getVersion(fullLoad);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @GET
+    @Path(ApplicationResourceApi.FILE_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ApplicationInfo> getFile(
+            @QueryParam(ApplicationResourceApi.QUERY_FILE_TYPE) String fileType
+    ) {
+        try {
+            return super.getFile(fileType);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

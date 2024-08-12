@@ -27,9 +27,11 @@ import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
 import java.io.IOException;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -67,9 +69,22 @@ public class ApplicationResourceV1 {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ApplicationInfo> getVersion() {
+    public SmartGwtResponse<ApplicationInfo> getVersion(
+            @DefaultValue ("false") @QueryParam(ApplicationResourceApi.QUERY_FULL_LOAD) Boolean fullLoad
+    ) throws IOException {
         ApplicationInfo version = new ApplicationInfo();
-        version.initValues(appConfig);
+        version.initValues(appConfig, fullLoad);
         return new SmartGwtResponse<ApplicationInfo>(version);
+    }
+
+    @GET
+    @Path(ApplicationResourceApi.FILE_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ApplicationInfo> getFile(
+            @QueryParam(ApplicationResourceApi.QUERY_FILE_TYPE) String fileType
+    ) throws IOException {
+        ApplicationInfo appInfo = new ApplicationInfo();
+        appInfo.loadFile(appConfig, fileType);
+        return new SmartGwtResponse<ApplicationInfo>(appInfo);
     }
 }

@@ -65,4 +65,40 @@ public abstract class AnnotatedApplicationInfo extends ApplicationInfo {
     public String getDatabase() {
         return super.getDatabase();
     }
+
+    @XmlElement(name = ApplicationResourceApi.STABLE_CONFIG_FILE)
+    @Override
+    public String getStableConfigFile() {return super.getStableConfigFile();}
+
+    @XmlElement(name = ApplicationResourceApi.STABLE_CONFIG)
+    @Override
+    public Boolean getStableConfig() {return super.getStableConfig();}
+
+    @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CS_FILE)
+    @Override
+    public String getStableLanguageCsFile() {return super.getStableLanguageCsFile();}
+
+    @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CS)
+    @Override
+    public Boolean getStableLanguageCs() {return super.getStableLanguageCs();}
+
+    @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CSEN_FILE)
+    @Override
+    public String getStableLanguageCsEnFile() {return super.getStableLanguageCsEnFile();}
+
+    @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CSEN)
+    @Override
+    public Boolean getStableLanguageCsEn() {return super.getStableLanguageCsEn();}
+
+    @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_EN_FILE)
+    @Override
+    public String getStableLanguageEnFile() {return super.getStableLanguageEnFile();}
+
+    @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_EN)
+    @Override
+    public Boolean getStableLanguageEn() {return super.getStableLanguageEn();}
+
+    @XmlElement(name = ApplicationResourceApi.ERROR)
+    @Override
+    public String getError() {return super.getError();}
 }

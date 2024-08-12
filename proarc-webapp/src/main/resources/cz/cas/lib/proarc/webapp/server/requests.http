@@ -643,3 +643,33 @@ Content-Type: application/json; charset=UTF-8
 {"ids":["101", "95"], "state": "FINISHED"}
 ###{"ids":["101", "95"], "state": "CANCELED", "params":{"param.scan.numberOfScans":"5"}}
 ###{"ids":["101", "95"], "state": "CANCELED", "params":{"param.scan.scannerNew": "Suprascan A1", "param.scan.imageColor": "4 bit", "param.scan.dpi": "1200", "param.scan.numberOfScans":"100"}}
+
+### get aplikace info
+GET {{proarcUrl}}/rest/v2/info
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+### get externe referencovane konfigu / lokalizacni soubory
+GET {{proarcUrl}}/rest/v2/info/file?type=config
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+### get externe referencovane konfigu / lokalizacni soubory
+GET {{proarcUrl}}/rest/v2/info/file?type=cs
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+### get externe referencovane konfigu / lokalizacni soubory
+GET {{proarcUrl}}/rest/v2/info/file?type=en
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+### get externe referencovane konfigu / lokalizacni soubory
+GET {{proarcUrl}}/rest/v2/info/file?type=csen
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+### get externe referencovane konfigu / lokalizacni soubory
+GET {{proarcUrl}}/rest/v2/info/file?type=fr
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8

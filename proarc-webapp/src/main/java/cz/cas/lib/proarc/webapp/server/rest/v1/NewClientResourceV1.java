@@ -30,6 +30,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
@@ -72,9 +73,17 @@ public class NewClientResourceV1 {
     @Path(NewClientResourceApi.URL_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public HttpServletResponse redirectToNewClient() throws IOException {
-        String url = appConfig.getNewClientUrl();
+        String url = appConfig.getClientOptions().getClientUrl();
         LOG.info("Redirected to " + url);
         this.httpResponse.sendRedirect(url);
+        setCookies();
         return httpResponse;
+    }
+
+    private void setCookies() {
+        for (String cookieKey: this.httpHeaders.getCookies().keySet()) {
+            Cookie cookie = this.httpHeaders.getCookies().get(cookieKey);
+            this.httpResponse.addCookie(new javax.servlet.http.Cookie(cookieKey, cookie.getValue()));
+        }
     }
 }
