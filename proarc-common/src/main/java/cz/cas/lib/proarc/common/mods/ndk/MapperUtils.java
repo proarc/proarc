@@ -456,6 +456,12 @@ public final class MapperUtils {
                     addElementType(dc.getDates(), date.getValue());
                 //}
             }
+            if (originInfo.getDateIssued().isEmpty()) {
+                for (DateDefinition date : originInfo.getDateOther()) {
+                    //issue #1705 - write dc:data of dateOther
+                    addElementType(dc.getDates(), date.getValue());
+                }
+            }
             /*for (DateDefinition date : originInfo.getDateOther()) {
                 addElementType(dc.getDates(), date.getValue());
             }*/
