@@ -40,13 +40,15 @@ public class ModsRules {
     private DigitalObjectValidationException exception;
     private NdkMapper.Context context;
     private AppConfiguration config;
+    private String parentModel;
 
     private static final String PROP_MODS_PHYSICAL_LOCATION_SIGLA = "metadata.mods.location.physicalLocation.sigla";
     private List<String> acceptableSiglaId;
 
-    private static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE ="Err_Ndk_Supplement_Genre_Type";
-    private static final String ERR_NDK_PHYSICALLOCATION_SIGLA ="Err_Ndk_PhysicalLocation_Sigla";
-    private static final String ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA ="Err_Ndk_RelatedItem_PhysicalLocation_Sigla";
+    public static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE ="Err_Ndk_Supplement_Genre_Type";
+    public static final String ERR_NDK_PHYSICALLOCATION_MULTIPLE ="Err_Ndk_PhysicalLocation_Multiple";
+    public static final String ERR_NDK_PHYSICALLOCATION_SIGLA ="Err_Ndk_PhysicalLocation_Sigla";
+    public static final String ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA ="Err_Ndk_RelatedItem_PhysicalLocation_Sigla";
 
     private ModsRules() {}
 
@@ -56,6 +58,16 @@ public class ModsRules {
         this.exception = ex;
         this.context = context;
         this.config = appConfiguration;
+        this.parentModel = null;
+    }
+
+    public ModsRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex, String parentModel, AppConfiguration appConfiguration) {
+        this.modelId = modelId;
+        this.mods = mods;
+        this.exception = ex;
+        this.context = null;
+        this.config = appConfiguration;
+        this.parentModel = parentModel;
     }
 
     public void check() throws DigitalObjectValidationException{
@@ -72,6 +84,11 @@ public class ModsRules {
 
     public void checkPhysicalLocation(List<LocationDefinition> locations) {
         checkPhysicalLocation(locations, ERR_NDK_PHYSICALLOCATION_SIGLA);
+        if (locations.size() > 1) {
+            if (!NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
+                exception.addValidation("MODS rules", ERR_NDK_PHYSICALLOCATION_MULTIPLE, true);
+            }
+        }
     }
 
     public void checkRelatedItemPhysicalLocation(List<RelatedItemDefinition> relatedItems) {
@@ -107,7 +124,9 @@ public class ModsRules {
     }
 
     private String getExpectedType() {
-        String parentModel = context.getParentModel();
+        if ((parentModel == null || parentModel.isEmpty()) && context != null) {
+            parentModel = context.getParentModel();
+        }
         if (parentModel == null) {
             return null;
         } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(parentModel)) {

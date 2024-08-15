@@ -172,8 +172,12 @@ public class BatchUtils {
         return finishedWithError(batchManager, batch, path, BatchManager.toString(exception), state);
     }
 
-    public static Batch finishedInternalWithError(BatchManager batchManager, Batch batch, String path, Exception exception) {
+    public static Batch finishedInternalWithError(BatchManager batchManager, Batch batch, String path, Throwable exception) {
         return finishedWithError(batchManager, batch, path, BatchManager.toString(exception), Batch.State.INTERNAL_FAILED);
+    }
+
+    public static Batch finishedInternalWithError(BatchManager batchManager, Batch batch, String path, String message) {
+        return finishedWithError(batchManager, batch, path, message, Batch.State.INTERNAL_FAILED);
     }
 
     public static Batch finishedInternalSuccessfully(BatchManager batchManager, Batch batch, String path) {
@@ -182,6 +186,31 @@ public class BatchUtils {
 
     public static Batch startWaitingInternalBatch(BatchManager batchManager, Batch batch) {
         batch.setState(Batch.State.INTERNAL_RUNNING);
+        return batchManager.update(batch);
+    }
+
+    public static Batch addNewExternalBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, BatchParams params) {
+        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.EXTERNAL_PLANNED, Batch.State.EXTERNAL_FAILED, params);
+    }
+
+    public static Batch finishedExternalWithError(BatchManager batchManager, Batch batch, String path, Batch.State state, Exception exception) {
+        return finishedWithError(batchManager, batch, path, BatchManager.toString(exception), state);
+    }
+
+    public static Batch finishedExternalWithError(BatchManager batchManager, Batch batch, String path, Exception exception) {
+        return finishedWithError(batchManager, batch, path, BatchManager.toString(exception), Batch.State.EXTERNAL_FAILED);
+    }
+
+    public static Batch finishedExternalWithError(BatchManager batchManager, Batch batch, String path, String message) {
+        return finishedWithError(batchManager, batch, path, message, Batch.State.EXTERNAL_FAILED);
+    }
+
+    public static Batch finishedExternalSuccessfully(BatchManager batchManager, Batch batch, String path) {
+        return finishedSuccessfully(batchManager, batch, path, null, Batch.State.EXTERNAL_DONE);
+    }
+
+    public static Batch startWaitingExternalBatch(BatchManager batchManager, Batch batch) {
+        batch.setState(Batch.State.EXTERNAL_RUNNING);
         return batchManager.update(batch);
     }
 
@@ -209,13 +238,7 @@ public class BatchUtils {
     public static void finishedInternalRunningBatch(BatchManager ibm, AppConfiguration config) {
         List<Batch> batches2finished = ibm.findInternalRunningBatches();
         for (Batch batch : batches2finished) {
-            if (Batch.State.INTERNAL_RUNNING.equals(batch.getState())) {
-                finishedInternalWithError(ibm, batch, batch.getFolder(), Batch.State.INTERNAL_FAILED, new Exception("Application has been stopped."));
-            } else if (Batch.State.REINDEXING.equals(batch.getState())) {
-                finishedInternalWithError(ibm, batch, batch.getFolder(), Batch.State.REINDEX_FAILED, new Exception("Application has been stopped."));
-            } else if (Batch.State.CHANGING_OWNERS.equals(batch.getState())) {
-                finishedInternalWithError(ibm, batch, batch.getFolder(), Batch.State.CHANGE_OWNERS_FAILED, new Exception("Application has been stopped."));
-            }
+            finishedInternalWithError(ibm, batch, batch.getFolder(), Batch.State.INTERNAL_FAILED, new Exception("Application has been stopped."));
         }
     }
 }

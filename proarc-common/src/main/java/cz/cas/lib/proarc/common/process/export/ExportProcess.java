@@ -21,10 +21,18 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.actions.Validation;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.kramerius.KUtils;
+import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.process.export.bagit.BagitExport;
@@ -43,20 +51,13 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.sip.NdkSipExport;
 import cz.cas.lib.proarc.common.process.export.workflow.WorkflowExport;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.kramerius.KUtils;
-import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -87,11 +88,11 @@ import org.apache.commons.io.FileUtils;
 
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.updateExportingBatch;
-import static cz.cas.lib.proarc.common.process.export.bagit.BagitExport.findNdkExportFolder;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.process.export.bagit.BagitExport.findNdkExportFolder;
 
 /**
  * Export process
@@ -274,6 +275,13 @@ public final class ExportProcess implements Runnable {
 
     private Batch archiveExport(Batch batch, BatchParams params) {
         try {
+            Validation validation = new Validation(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
+            Validation.Result result = validation.validate(Validation.Type.EXPORT_ARCHIVE);
+            if (!result.isStatusOk(true)) {
+                batch = finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
+                return batch;
+            }
+
             URI exportUri = user.getExportFolder();
             File exportFolder = new File(exportUri);
             ArchiveProducer export = null;
@@ -622,6 +630,13 @@ public final class ExportProcess implements Runnable {
 //            URI exportUri = user.getExportFolder();
 //            File exportFolder = new File(exportUri);
 //            List<ExportResult> result = new ArrayList<>(params.getPids().size());
+            Validation validation = new Validation(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
+            Validation.Result result = validation.validate(Validation.Type.EXPORT_NDK);
+            if (!result.isStatusOk(true)) {
+                batch = finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
+                return batch;
+            }
+
             NdkExport export;
 
             String typeOfPackage = getTypeOfPackage(params.getPids(), params.getTypeOfPackage());

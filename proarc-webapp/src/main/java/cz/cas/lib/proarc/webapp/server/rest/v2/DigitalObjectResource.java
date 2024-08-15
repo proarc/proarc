@@ -1004,10 +1004,24 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalProcessResult> generateAlto(
-            @FormParam(DigitalObjectResourceApi.ATM_ITEM_PID) String pid
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
     ) {
         try {
             return super.generateAlto(pid);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.VALIDATE_OBJECT_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<InternalProcessResult> validate(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) {
+        try {
+            return super.validate(pids);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

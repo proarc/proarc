@@ -16,11 +16,10 @@
  */
 package cz.cas.lib.proarc.common.storage.akubra;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.io.IOException;
 import java.util.Collections;
@@ -139,8 +138,6 @@ public final class PurgeAkubraObject {
         try {
             pids = akubraStorage.getSearch().findReferrers(pid);
         } catch (IOException ex) {
-            throw new PurgeException(pid, ex);
-        } catch (FedoraClientException ex) {
             throw new PurgeException(pid, ex);
         }
         return pids;

@@ -163,7 +163,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     @Override
     public List<Batch> findIntenalRunningBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
-        result.getCommand().where(table.state.is(State.INTERNAL_RUNNING).or(table.state.is(State.REINDEXING)).or(table.state.is(State.CHANGING_OWNERS)));
+        result.getCommand().where(table.state.is(State.INTERNAL_RUNNING));
         result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }

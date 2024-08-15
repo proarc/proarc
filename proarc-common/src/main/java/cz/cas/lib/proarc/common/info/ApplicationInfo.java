@@ -109,6 +109,7 @@ public class ApplicationInfo {
                     break;
                 case "languageCsEn":
                 case "csen":
+                case "cs-en":
                     if (isExistingFile(config.getClientOptions().getPathLanguageCsEn())) {
                         this.stableLanguageCsEnFile = loadFileContent(new File(config.getClientOptions().getPathLanguageCsEn()));
                     } else {

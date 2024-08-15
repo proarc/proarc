@@ -53,15 +53,15 @@ public class RdaRules {
                     NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
                     OldPrintPlugin.MODEL_VOLUME)));
 
-    private static final String ERR_NDK_RDA_EMPTYEVENTTYPE ="Err_Ndk_Rda_EmptyEventType";
-    private static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
-    private static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
-    private static final String ERR_NDK_DESCRIPTIONSTANDARD = "Err_Ndk_DescriptionStandard";
-    private static final String ERR_NDK_AACR_EMPTYVALUE = "Err_Ndk_Aacr_EmptyValue";
-    private static final String ERR_NDK_AACR_INVALIDVALUE = "Err_Ndk_Aacr_InvalidValue";
-    private static final String ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE ="Err_Ndk_OriginInfo_EventType_WrongValue";
+    public static final String ERR_NDK_RDA_EMPTYEVENTTYPE ="Err_Ndk_Rda_EmptyEventType";
+    public static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
+    public static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
+    public static final String ERR_NDK_DESCRIPTIONSTANDARD = "Err_Ndk_DescriptionStandard";
+    public static final String ERR_NDK_AACR_EMPTYVALUE = "Err_Ndk_Aacr_EmptyValue";
+    public static final String ERR_NDK_AACR_INVALIDVALUE = "Err_Ndk_Aacr_InvalidValue";
+    public static final String ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE ="Err_Ndk_OriginInfo_EventType_WrongValue";
 
-    RdaRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex) {
+    public RdaRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex) {
         this.modelId = modelId;
         this.mods = mods;
         this.exception = ex;

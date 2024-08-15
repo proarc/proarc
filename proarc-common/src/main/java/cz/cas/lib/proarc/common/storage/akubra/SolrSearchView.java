@@ -139,7 +139,7 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
-    public List<SearchViewItem> findReferrers(String pid) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findReferrers(String pid) throws IOException {
         try {
             StringBuilder queryBuilder = new StringBuilder();
             queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");

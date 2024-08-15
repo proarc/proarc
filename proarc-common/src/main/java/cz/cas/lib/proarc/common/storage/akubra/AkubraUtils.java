@@ -292,6 +292,16 @@ public class AkubraUtils {
         return null;
     }
 
+    public static boolean containsDatastream(AkubraObject object, String streamName) throws JAXBException {
+        DigitalObject digitalObject = AkubraUtils.getDigitalObject(object.getManager(), object.getPid());
+        for (DatastreamType datastreamType : digitalObject.getDatastream()) {
+            if (streamName.equals(datastreamType.getID())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static InputStream readFromURL(String url) throws IOException {
         URL searchURL = new URL(url);
         URLConnection conn = searchURL.openConnection();

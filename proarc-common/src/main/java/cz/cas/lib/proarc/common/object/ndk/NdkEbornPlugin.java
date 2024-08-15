@@ -150,7 +150,8 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICAL, RelationCriteria.Type.PID)}
+                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICAL, RelationCriteria.Type.PID),
+                                        new RelationCriteria(NdkPlugin.MODEL_PERIODICAL, RelationCriteria.Type.PID)}
         ));
         // eIssue volume should contain some media (e.g. PDF)
         models.add(new MetaModel(
@@ -162,7 +163,8 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM, DatastreamEditorType.MEDIA),
-                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)}
+                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID),
+                                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
                 MODEL_EPERIODICALSUPPLEMENT, null, null,

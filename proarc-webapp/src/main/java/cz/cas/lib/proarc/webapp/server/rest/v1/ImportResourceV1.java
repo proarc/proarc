@@ -848,7 +848,7 @@ public class ImportResourceV1 {
         File folder = new File(folderUri);
 
         BatchParams params = new BatchParams(Collections.singletonList(folderPath));
-        Batch batch = BatchUtils.addNewInternalBatch(this.importManager, folderPath, user, Batch.INTERNAL_PERO, params);
+        Batch batch = BatchUtils.addNewExternalBatch(this.importManager, folderPath, user, Batch.EXTERNAL_PERO, params);
 
         InternalProcess process = InternalProcess.prepare(appConfig, akubraConfiguration, batch, importManager, user, session.asFedoraLog(), session.getLocale(httpHeaders), folder);
         InternalDispatcher.getDefault().addInternalProcess(process);

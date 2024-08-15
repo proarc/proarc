@@ -119,7 +119,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICAL, RelationCriteria.Type.PID)}
+                new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICAL, RelationCriteria.Type.PID),
+                                        new RelationCriteria(NdkEbornPlugin.MODEL_EPERIODICAL, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_PERIODICALISSUE, null, null,
@@ -130,7 +131,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)}
+                new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID),
+                                        new RelationCriteria(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_PERIODICALSUPPLEMENT, null, null,

@@ -221,6 +221,7 @@ public final class DigitalObjectResourceApi {
     public static final String OCR_PATH = "ocr";
 
     public static final String GENERATE_ALTO_PATH = "generateAlto";
+    public static final String VALIDATE_OBJECT_PATH = "validate";
 
     /** Resource /object/technicalMetadata */
     public static final String TECHNICALMETADATA_AES_PATH = "technicalMetadataAes";

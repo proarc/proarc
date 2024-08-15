@@ -59,6 +59,7 @@ import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.object.technicalMetadata.TechnicalMetadataMapper;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -149,6 +150,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -2060,19 +2062,73 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalProcessResult> generateAlto(
-            @FormParam(DigitalObjectResourceApi.ATM_ITEM_PID) String pid
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
     ) throws IOException {
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + DigitalObjectResourceApi.ATM_ITEM_PID);
         }
         BatchParams params = new BatchParams(Collections.singletonList(pid));
-        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, pid, user, Batch.INTERNAL_PERO, params);
+        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PERO, params);
 
         InternalProcess process = InternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalDispatcher.getDefault().addInternalProcess(process);
         InternalProcessResult result = new InternalProcessResult(batch.getId(), "Proces naplánován.");
         return new SmartGwtResponse<InternalProcessResult>(result);
 
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.VALIDATE_OBJECT_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<InternalProcessResult> validate(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws IOException, MetsExportException {
+        if (pids == null || pids.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + DigitalObjectResourceApi.DIGITALOBJECT_PID);
+        }
+
+        ProArcObject object = null;
+        MetsContext metsContext = null;
+        Set<String> pidsToValidate = new LinkedHashSet<>();
+        try {
+            for (String pid : pids) {
+                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                    FedoraStorage fedoraStorage = FedoraStorage.getInstance();
+                    object = fedoraStorage.find(pid);
+                    metsContext = MetsContext.buildFedoraContext(object, null, null, fedoraStorage, appConfig.getNdkExportOptions());
+                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                    AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                    object = akubraStorage.find(pid);
+                    metsContext = MetsContext.buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
+                } else {
+                    throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+                }
+
+                MetsElement metsElement = getMetsElement(object, metsContext, true, false);
+                List<String> PSPs = new ArrayList<>();
+                if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(ExportUtils.getModel(metsElement.getModel())) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(ExportUtils.getModel(metsElement.getModel()))) {
+                    PSPs = Collections.singletonList(metsElement.getOriginalPid());
+                } else {
+                    PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, true);
+                }
+
+                pidsToValidate.addAll(PSPs);
+            }
+        } catch (MetsExportException e) {
+            throw new MetsExportException("Proces se nepodařilo vytvořit.", false, e);
+        }
+
+        int batchId = 0;
+        for (String pid : pidsToValidate) {
+            BatchParams params = new BatchParams(Collections.singletonList(pid));
+            Batch batch = new BatchUtils().addNewInternalBatch(this.batchManager, pid, user, Batch.INTERNAL_VALIDATION, params);
+            batchId = batch.getId();
+
+            InternalProcess process = InternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            InternalDispatcher.getDefault().addInternalProcess(process);
+        }
+        InternalProcessResult result = new InternalProcessResult(batchId, "Proces(y) naplánován(y).");
+        return new SmartGwtResponse<InternalProcessResult>(result);
     }
 
     @GET
@@ -4417,10 +4473,10 @@ public class DigitalObjectResourceV1 {
         Batch internalBatch;
         if (batchId != null && batchId > 0) {
             BatchParams params = new BatchParams(Collections.singletonList(batchId.toString()));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
         } else {
             BatchParams params = new BatchParams(Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid), user, Batch.INTERNAL_REINDEX, Batch.State.REINDEXING, Batch.State.REINDEX_FAILED, params);
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
         }
         Locale locale = session.getLocale(httpHeaders);
         try {
@@ -4435,26 +4491,26 @@ public class DigitalObjectResourceV1 {
                     if (parentElement != null) {
 
                         if (isLocked(reindexObjects.getPids(parentElement))) {
-                            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IS_LOCKED), Batch.State.REINDEX_FAILED);
+                            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IS_LOCKED), Batch.State.INTERNAL_FAILED);
                             return returnValidationError(ERR_IS_LOCKED);
                         }
                         reindexObjects.reindex(parentElement);
                     } else {
-                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IN_GETTING_CHILDREN), Batch.State.REINDEX_FAILED);
+                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IN_GETTING_CHILDREN), Batch.State.INTERNAL_FAILED);
                         return returnValidationError(ERR_IN_GETTING_CHILDREN);
                     }
                 } else {
                     if (isLocked(parentPid)) {
-                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IS_LOCKED), Batch.State.REINDEX_FAILED);
+                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IS_LOCKED), Batch.State.INTERNAL_FAILED);
                         return returnValidationError(ERR_IS_LOCKED);
                     }
                     reindexObjects.reindex(parentPid, locale);
                 }
             }
-            BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), null, Batch.State.REINDEX_DONE);
+            BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), null, Batch.State.INTERNAL_DONE);
             return returnFunctionSuccess();
         } catch (Exception ex) {
-            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), BatchManager.toString(ex), Batch.State.REINDEX_FAILED);
+            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), BatchManager.toString(ex), Batch.State.INTERNAL_FAILED);
             throw ex;
         }
     }
@@ -4579,7 +4635,7 @@ public class DigitalObjectResourceV1 {
         }
 
         BatchParams params = new BatchParams(Collections.singletonList(oldOwner + " --> " + newOwner));
-        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("Change object owner (" + oldOwner + " --> " + newOwner + ")."), user, Batch.INTERNAL_CHANGE_OBJECTS_OWNERS, Batch.State.CHANGING_OWNERS, Batch.State.CHANGE_OWNERS_FAILED, params);
+        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("Change object owner (" + oldOwner + " --> " + newOwner + ")."), user, Batch.INTERNAL_CHANGE_OBJECTS_OWNERS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
 
         SearchView search = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
@@ -4606,10 +4662,10 @@ public class DigitalObjectResourceV1 {
                 }
             }
             LOG.info("Owners change for all objects (" + items.size() + ").");
-            BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), null, Batch.State.CHANGE_OWNERS_DONE);
+            BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), null, Batch.State.INTERNAL_DONE);
             return returnFunctionSuccess();
         } catch (Throwable t) {
-            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), t.getMessage(), Batch.State.CHANGE_OWNERS_FAILED);
+            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), t.getMessage(), Batch.State.INTERNAL_FAILED);
             throw t;
         }
 

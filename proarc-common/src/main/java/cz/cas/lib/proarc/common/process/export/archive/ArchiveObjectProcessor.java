@@ -245,7 +245,7 @@ public class ArchiveObjectProcessor {
         return element != null && element.contains("oldprint");
     }
 
-    private boolean containUrnNbn(List<IdentifierDefinition> identifiers) {
+    public static boolean containUrnNbn(List<IdentifierDefinition> identifiers) {
         for (IdentifierDefinition identifier : identifiers) {
             if (Const.URNNBN.equals(identifier.getType())) {
                 if (identifier.getInvalid() == null || "false".equals(identifier.getInvalid())) {
