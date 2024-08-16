@@ -150,6 +150,7 @@ public final class InternalProcess implements Runnable {
             } else {
                 batch = finishedInternalWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
             }
+            validation.indexResult(batch);
             return batch;
         } catch (Exception ex) {
             return finishedInternalWithError(this.batchManager, batch, batch.getFolder(), ex);

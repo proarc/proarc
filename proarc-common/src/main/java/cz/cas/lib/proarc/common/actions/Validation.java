@@ -1,6 +1,7 @@
 package cz.cas.lib.proarc.common.actions;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -28,6 +29,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
+import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -99,6 +101,7 @@ public class Validation {
         Result result = new Result();
 
         if (!Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            storage = null;
             result.getValidationResults().add(new ValidationResult("Úložiště", "Validace je podporována jen s AKUBROU!", Level.SEVERE));
             return result;
         } else {
@@ -321,6 +324,13 @@ public class Validation {
             } else {
                 positionPageValue = item.getPagePosition();
             }
+        }
+    }
+
+    public void indexResult(Batch batch) throws DigitalObjectException, IOException {
+        if (storage != null) {
+            storage.indexValidationResult(batch);
+            SolrUtils.indexParentResult(storage.getSearch(), storage.getSolrObjectFeeder(), batch.getFolder());
         }
     }
 

@@ -18,7 +18,9 @@ import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.incad.kramerius.resourceindex.ProcessingIndexFeeder;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -54,7 +56,10 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATUS;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_URNNBN;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_USER;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_VALIDATION_PROCES;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_VALIDATION_STATUS;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.PROPERTY_STATE_DEACTIVE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_UNKNOWN;
 
 public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
@@ -163,8 +168,31 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_GENRE, genre);
         sdoc.addField(FIELD_URNNBN, urnNbn);
         sdoc.addField(FIELD_DESCRIPTION_STANDARD, descriptionStandatd);
+        sdoc.addField(FIELD_VALIDATION_STATUS, VALIDATION_STATUS_UNKNOWN);
+        sdoc.addField(FIELD_VALIDATION_PROCES, 0);
 
         return feedDescriptionDocument(sdoc);
+    }
+
+    public void feedValidationResult(String pid, Integer procesId, String status) throws DigitalObjectException {
+        SolrInputDocument sdoc = new SolrInputDocument();
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+
+        Map<String, Object> updateStatus = new HashMap<>();
+        updateStatus.put("set", status);
+        sdoc.addField(FIELD_VALIDATION_STATUS, updateStatus);
+
+        Map<String, Object> updateProces = new HashMap<>();
+        updateProces.put("set", procesId == null ? 0 : procesId);
+        sdoc.addField(FIELD_VALIDATION_PROCES, updateProces);
+
+        try {
+            UpdateResponse response = feedDescriptionDocument(sdoc);
+            commit();
+        } catch (SolrServerException | IOException ex) {
+            throw new DigitalObjectException(pid, "Nepodarilo se zapsat stav validace pro pid " + pid + " do SOLRu.");
+        }
     }
 
     private String getProperties(DigitalObject object, String key) {

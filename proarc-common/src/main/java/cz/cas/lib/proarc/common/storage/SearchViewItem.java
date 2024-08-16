@@ -49,6 +49,9 @@ public class SearchViewItem {
     private String urnNbn;
     private String descriptionStandard;
 
+    private String validationStatus;
+    private Integer validationProcess;
+
     public SearchViewItem() {
     }
 
@@ -372,5 +375,21 @@ public class SearchViewItem {
 
     public void setPageRepre(String pageRepre) {
         this.pageRepre = pageRepre;
+    }
+
+    public String getValidationStatus() {
+        return validationStatus;
+    }
+
+    public void setValidationStatus(String validationStatus) {
+        this.validationStatus = validationStatus;
+    }
+
+    public Integer getValidationProcess() {
+        return validationProcess;
+    }
+
+    public void setValidationProcess(Integer validationProcess) {
+        this.validationProcess = validationProcess;
     }
 }

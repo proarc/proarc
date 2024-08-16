@@ -11,8 +11,11 @@ import com.yourmediashelf.fedora.generated.foxml.StateType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
+import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.storage.AbstractProArcObject;
 import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -21,8 +24,6 @@ import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -76,6 +77,9 @@ import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_STATE;
 import static cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject.getActualDateAsString;
 import static cz.cas.lib.proarc.common.storage.akubra.AkubraUtils.getDatastream;
 import static cz.cas.lib.proarc.common.storage.akubra.AkubraUtils.toXmlGregorian;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_ERROR;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_OK;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_UNKNOWN;
 
 
 public class AkubraStorage {
@@ -130,7 +134,7 @@ public class AkubraStorage {
     }
 
     public AkubraObject find(String pid) {
-        return new AkubraObject(manager, solrObjectFeeder, solrLoggingFeeder, pid);
+        return new AkubraObject(manager, solrObjectFeeder, solrLoggingFeeder, getSearch(), pid);
     }
 
     public boolean exist(String pid) throws DigitalObjectException {
@@ -148,6 +152,10 @@ public class AkubraStorage {
 
     public SolrSearchView getSearch() {
         return getSearch(null);
+    }
+
+    public SolrObjectFeeder getSolrObjectFeeder() {
+        return solrObjectFeeder;
     }
 
 
@@ -317,6 +325,7 @@ public class AkubraStorage {
             } else {
                 this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
+                SolrUtils.indexParentResult(this.getSearch(), this.getSolrObjectFeeder(), pid);
             }
         } else {
             if (DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId)) {
@@ -325,12 +334,32 @@ public class AkubraStorage {
             } else {
                 this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
+                SolrUtils.indexParentResult(this.getSearch(), this.getSolrObjectFeeder(), pid);
             }
         }
     }
 
     public void indexDocument(LocalObject object) throws IOException, DigitalObjectException {
         indexDocument(object.getPid(), object.getModel(), object.getOwner());
+    }
+
+    public void indexValidationResult(Batch batch) throws DigitalObjectException {
+        indexValidationResult(batch.getFolder(), batch.getId(), batch.getState());
+    }
+
+    public void indexValidationResult(String pid, Integer batchId, Batch.State state) throws DigitalObjectException {
+        String batchState = VALIDATION_STATUS_UNKNOWN;
+        switch (state) {
+            case INTERNAL_DONE:
+                batchState = VALIDATION_STATUS_OK;
+                break;
+            case INTERNAL_FAILED:
+                batchState = VALIDATION_STATUS_ERROR;
+                break;
+            default:
+                batchState = VALIDATION_STATUS_UNKNOWN;
+        }
+        this.solrObjectFeeder.feedValidationResult(pid, batchId, batchState);
     }
 
     public static final class AkubraObject extends AbstractProArcObject {
@@ -341,13 +370,15 @@ public class AkubraStorage {
         private AkubraManager manager;
         private SolrObjectFeeder objectFeeder;
         private SolrLogFeeder loggingFeeder;
+        private SolrSearchView solrSearchView;
 
 
-        public AkubraObject(AkubraManager manager, SolrObjectFeeder objectFeeder, SolrLogFeeder loggingFeeder, String pid) {
+        public AkubraObject(AkubraManager manager, SolrObjectFeeder objectFeeder, SolrLogFeeder loggingFeeder, SolrSearchView solrSearchView, String pid) {
             super(pid);
             this.manager = manager;
             this.objectFeeder = objectFeeder;
             this.loggingFeeder = loggingFeeder;
+            this.solrSearchView = solrSearchView;
         }
 
         @Override
@@ -402,6 +433,7 @@ public class AkubraStorage {
                         this.objectFeeder.feedDescriptionDevice(object, this, true);
                     } else {
                         this.objectFeeder.feedDescriptionDocument(object, this, true);
+                        SolrUtils.indexParentResult(solrSearchView, objectFeeder, object.getPID());
                     }
                 }
             } catch (

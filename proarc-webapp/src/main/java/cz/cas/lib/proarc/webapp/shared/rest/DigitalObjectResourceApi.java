@@ -135,6 +135,8 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_ITEM_DESCRIPTION_STANDARD = "descriptionStandard";
 
     public static final String ITEM_VALIDATION = "validation";
+    public static final String ITEM_VALIDATION_STATUS = "validationStatus";
+    public static final String ITEM_VALIDATION_PROCESS = "validationProcess";
 
     // resource /object/member/move
     public static final String MEMBERS_MOVE_PATH = "move";

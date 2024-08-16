@@ -686,5 +686,5 @@ POST {{proarcUrl}}/rest/v2/object/validate
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid=uuid:4daadca5-696c-4561-ba9d-3c40e53a1227
+pid=uuid:97a10e9f-148f-4e42-bdda-de17df46b3f7
 ###pid=uuid:1d9fbfe0-a861-4404-aa4a-156581c81998

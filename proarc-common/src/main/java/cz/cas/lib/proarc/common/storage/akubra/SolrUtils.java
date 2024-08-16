@@ -5,8 +5,10 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -50,9 +52,15 @@ public class SolrUtils {
     public static final String FIELD_DATE = "date";
     public static final String FIELD_STREAM = "stream";
     public static final String FIELD_OPERATION = "operation";
+    public static final String FIELD_VALIDATION_STATUS = "validationStatus";
+    public static final String FIELD_VALIDATION_PROCES = "validationProcessId";
 
     public static final String PROPERTY_STATE_ACTIVE = "Active";
     public static final String PROPERTY_STATE_DEACTIVE = "Deactive";
+
+    public static final String VALIDATION_STATUS_OK = "OK";
+    public static final String VALIDATION_STATUS_ERROR = "ERROR";
+    public static final String VALIDATION_STATUS_UNKNOWN = "UNKNOWN";
 
     public static StringBuilder appendAndValue(StringBuilder queryBuilder, String value) {
         return appendValue(queryBuilder, value, QueryOperator.AND.name());
@@ -184,6 +192,8 @@ public class SolrUtils {
         item.setIsLocked(getBoolean(solrDocument, FIELD_LOCKED));
         item.setUrnNbn(getString(solrDocument, FIELD_URNNBN));
         item.setDescriptionStandard(getString(solrDocument, FIELD_DESCRIPTION_STANDARD));
+        item.setValidationStatus(getString(solrDocument, FIELD_VALIDATION_STATUS));
+        item.setValidationProcess(getInteger(solrDocument, FIELD_VALIDATION_PROCES));
         if (isPage(item.getModel())) {
             item.setPageIndex(getString(solrDocument, FIELD_PAGE_INDEX));
             item.setPageNumber(getString(solrDocument, FIELD_PAGE_NUMBER));
@@ -252,6 +262,11 @@ public class SolrUtils {
         return (String) solrDocument.get(key);
     }
 
+    private static Integer getInteger(SolrDocument solrDocument, String key) {
+        Integer value = (Integer) solrDocument.get(key);
+        return (value == null || value < 1) ? null : value;
+    }
+
     private static String getDate(SolrDocument solrDocument, String key) {
         Date date = (Date) solrDocument.get(key);
         if (date == null) {
@@ -265,5 +280,36 @@ public class SolrUtils {
     public static String now() {
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         return formatter.format(new Date());
+    }
+
+    public static void indexParentResult(SolrSearchView solrSearchView, SolrObjectFeeder solrObjectFeeder, String pid) throws DigitalObjectException, IOException {
+        if (solrSearchView == null || solrObjectFeeder == null) {
+            return;
+        }
+        List<SearchViewItem> parents = solrSearchView.findReferrers(pid);
+        if (parents == null || parents.isEmpty() || parents.size() > 1) {
+            return;
+        }
+        List<SearchViewItem> children = solrSearchView.findChildren(parents.get(0).getPid());
+        if (children == null || children.isEmpty()) {
+            return;
+        }
+
+        String status = VALIDATION_STATUS_OK;
+
+        for (SearchViewItem child : children) {
+            if (VALIDATION_STATUS_OK.equals(child.getValidationStatus())) {
+                if (!status.equals(VALIDATION_STATUS_UNKNOWN)) {
+                    status = VALIDATION_STATUS_OK;
+                }
+            } else if (VALIDATION_STATUS_ERROR.equals(child.getValidationStatus())) {
+                status = VALIDATION_STATUS_ERROR;
+                break;
+            } else if (VALIDATION_STATUS_UNKNOWN.equals(child.getValidationStatus())) {
+                status = VALIDATION_STATUS_UNKNOWN;
+            }
+        }
+        solrObjectFeeder.feedValidationResult(parents.get(0).getPid(), null, status);
+        indexParentResult(solrSearchView, solrObjectFeeder, parents.get(0).getPid());
     }
 }

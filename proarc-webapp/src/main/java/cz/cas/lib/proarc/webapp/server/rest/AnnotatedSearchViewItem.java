@@ -144,4 +144,13 @@ public abstract class AnnotatedSearchViewItem extends SearchViewItem {
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_DESCRIPTION_STANDARD)
     @Override
     public abstract String getDescriptionStandard();
+
+    @XmlElement(name = DigitalObjectResourceApi.ITEM_VALIDATION_STATUS)
+    @Override
+    public abstract String getValidationStatus();
+
+    @XmlElement(name = DigitalObjectResourceApi.ITEM_VALIDATION_PROCESS)
+    @Override
+    public abstract Integer getValidationProcess();
+
 }
