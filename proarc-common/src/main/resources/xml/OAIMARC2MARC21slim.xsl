@@ -28,7 +28,8 @@
     <xsl:template match="oai:fixfield">
         <xsl:element name="controlfield">
             <xsl:call-template name="id2tag"/>
-            <xsl:value-of select="substring(text(),1,string-length(text())-1)"/>
+<!--            <xsl:value-of select="substring(text(),1,string-length(text())-1)"/>-->
+            <xsl:value-of select="text()"/>
         </xsl:element>
     </xsl:template>
 

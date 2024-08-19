@@ -114,7 +114,7 @@ public abstract class SearchView {
     }
 
     public int countByOwner(String owner) throws FedoraClientException, IOException {
-        throw new IOException("Methid is not implemented");
+        throw new IOException("Method is not implemented");
     }
 
     public interface HasSearchViewHandler extends HasDataHandler {

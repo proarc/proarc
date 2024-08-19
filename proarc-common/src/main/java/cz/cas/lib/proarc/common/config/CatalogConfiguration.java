@@ -49,6 +49,7 @@ public final class CatalogConfiguration {
     public static final String PROPERTY_DEFAULT_SEARCH_FIELD = "defaultSearchField";
 
     /* konfigurace jen pro editaci zaznamu v katalogu */
+    public static final String PROPERTY_UPDATE_TYPE = "updateType"; // mozne hodnoty @link VerbisUpdateCatalog:ID
     public static final String PROPERTY_AUTHORIZATION_CATALOG_URL = "authorizationUrl";
     public static final String PROPERTY_UPDATE_CATALOG_URL = "updateRecordUrl";
     public static final String PROPERTY_LOGIN_USERNAME = "username";
@@ -70,6 +71,10 @@ public final class CatalogConfiguration {
 
     public String getId() {
         return id;
+    }
+
+    public String getPrefix() {
+        return prefix;
     }
 
     public boolean getDebug() {
@@ -105,42 +110,8 @@ public final class CatalogConfiguration {
         return properties.getString(PROPERTY_DEFAULT_SEARCH_FIELD);
     }
 
-    public Boolean allowCatalogUpdateRecord() {
-        boolean ok = true;
-        if (getCatalogAuthorizationUrl() == null || getCatalogAuthorizationUrl().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_AUTHORIZATION_CATALOG_URL));
-            ok = false;
-        }
-        if (getCatalogUpdateUrl() == null || getCatalogUpdateUrl().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_CATALOG_URL));
-            ok = false;
-        }
-        if (getCatalogUsername() == null || getCatalogUsername().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_LOGIN_USERNAME));
-            ok = false;
-        }
-        if (getCatalogPassword() == null || getCatalogPassword().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_LOGIN_PASSWORD));
-            ok = false;
-        }
-        if (getUpdateField() == null || getUpdateField().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_FIELD));
-            ok = false;
-        }
-        if (getUpdateSubfieldApp() == null || getUpdateSubfieldApp().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_SUBFIELD_APP));
-            ok = false;
-        }
-        if (getUpdateSubfieldObject() == null || getUpdateSubfieldObject().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_SUBFIELD_OBJECT));
-            ok = false;
-        }
-        if (getUpdateSubfieldDigitalized() == null || getUpdateSubfieldDigitalized().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  prefix, PROPERTY_UPDATE_SUBFIELD_DIGITALIZED));
-            ok = false;
-        }
-
-        return ok;
+    public String getCatalogUpdateType() {
+        return properties.getString(PROPERTY_UPDATE_TYPE);
     }
 
     public String getCatalogAuthorizationUrl() {
