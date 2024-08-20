@@ -17,13 +17,13 @@
 
 package cz.cas.lib.proarc.common.actions;
 
+import cz.cas.lib.proarc.common.catalog.updateCatalog.AlephXmlUpdateCatalog;
 import cz.cas.lib.proarc.common.catalog.updateCatalog.UpdateCatalog;
 import cz.cas.lib.proarc.common.catalog.updateCatalog.VerbisUpdateCatalog;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.IOException;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
@@ -40,12 +40,10 @@ public class CatalogRecord {
 
     private AppConfiguration appConfig;
     private AkubraConfiguration akubraConfiguration;
-    private UserProfile user;
 
-    public CatalogRecord(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, UserProfile user) {
+    public CatalogRecord(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
         this.appConfig = appConfig;
         this.akubraConfiguration = akubraConfiguration;
-        this.user = user;
     }
 
 
@@ -59,13 +57,16 @@ public class CatalogRecord {
         CatalogConfiguration bCatalog = appConfig.getCatalogs().findConfiguration(catalogId);
 
         if (bCatalog != null) {
+            UpdateCatalog updateCatalog = null;
             if (VerbisUpdateCatalog.ID.equals(bCatalog.getCatalogUpdateType())) {
-                UpdateCatalog updateCatalog = new VerbisUpdateCatalog(appConfig, akubraConfiguration, user);
-                return updateCatalog.process(bCatalog, field001, pid);
+                updateCatalog = new VerbisUpdateCatalog(appConfig, akubraConfiguration);
+            } else if (AlephXmlUpdateCatalog.ID.equals(bCatalog.getCatalogUpdateType())) {
+                updateCatalog = new AlephXmlUpdateCatalog(appConfig, akubraConfiguration);
             } else {
                 LOG.severe("Unsupported updateType for catalog configuration id " + catalogId);
                 throw new IOException("Unsupported updateType for catalog configuration id " + catalogId);
             }
+            return updateCatalog.process(bCatalog, field001, pid);
         } else {
             LOG.severe("No catalog configuration for id " + catalogId);
             throw new IOException("No catalog configuration for id " + catalogId);

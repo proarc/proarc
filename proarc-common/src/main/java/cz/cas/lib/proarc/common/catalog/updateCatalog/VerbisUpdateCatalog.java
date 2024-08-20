@@ -21,7 +21,6 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -64,8 +63,8 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
     private static final Logger LOG = Logger.getLogger(VerbisUpdateCatalog.class.getName());
     public static final String ID = "VERBIS";
 
-    public VerbisUpdateCatalog(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, UserProfile user) {
-        super(appConfiguration, akubraConfiguration, user);
+    public VerbisUpdateCatalog(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
+        super(appConfiguration, akubraConfiguration);
     }
 
     @Override

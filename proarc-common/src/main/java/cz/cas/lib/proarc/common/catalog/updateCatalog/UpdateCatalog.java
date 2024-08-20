@@ -50,10 +50,9 @@ public class UpdateCatalog {
     protected AkubraConfiguration akubraConfiguration;
     protected UserProfile user;
 
-    public UpdateCatalog(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, UserProfile user) {
+    public UpdateCatalog(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
         this.appConfiguration = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
-        this.user = user;
     }
 
     protected boolean allowUpdateRecord(CatalogConfiguration catalog) {

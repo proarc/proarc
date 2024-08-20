@@ -366,7 +366,7 @@ public class DigitalObjectResourceV1 {
                 handler.setParentPid(parentPid);
                 items = handler.createAndConnectToWorkflowJob(workflowJobId, locale, createObject, validation);
             } else {
-                items = handler.create(createObject, validation);
+                items = handler.create(createObject, validation, catalogId);
             }
 
             if (OldPrintPlugin.MODEL_CONVOLUTTE.equals(modelId) && createObject) {
@@ -4588,7 +4588,7 @@ public class DigitalObjectResourceV1 {
     ) throws DigitalObjectException, JSONException, IOException {
         checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
 
-        CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration, user);
+        CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
         catalogRecord.update(catalogId, pid);
 
         return returnFunctionSuccess();

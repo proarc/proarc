@@ -23,6 +23,7 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
@@ -88,6 +89,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
+import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -121,6 +123,8 @@ import static cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin.isNdkAudioModel
  * @author Jan Pokorsky
  */
 public final class Kramerius4Export {
+
+    private static final Logger LOG = Logger.getLogger(Kramerius4Export.class.getName());
 
     public static final String KRAMERIUS_RELATION_NS = "http://www.nsdl.org/ontologies/relationships#";
     public static final String KRAMERIUS_RELATION_PREFIX = "kramerius";
@@ -243,6 +247,14 @@ public final class Kramerius4Export {
                     case KRAMERIUS_BATCH_FINISHED_V7:
                         krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
                         krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FINISHED);
+
+                        if (instance.uploadToCatalog() != null && !instance.uploadToCatalog().isEmpty()) {
+                            LOG.info("Nahravam informace do katalogu.");
+                            CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
+                            catalogRecord.update(instance.uploadToCatalog(), FoxmlUtils.pidAsUuid(pids[0]));
+                        } else {
+                            LOG.info("Neni zapnuta volba nahrani informaci do katalogu.");
+                        }
                         break;
                     case KRAMERIUS_BATCH_FAILED_V5:
                     case KRAMERIUS_BATCH_FAILED_V7:

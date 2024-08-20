@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.process.export.mets;
 
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
@@ -149,6 +150,13 @@ public class NdkExport {
                         case KRAMERIUS_BATCH_FINISHED_V7:
                             result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
                             result.setKrameriusImportState(KRAMERIUS_PROCESS_FINISHED);
+                            if (instance.uploadToCatalog() != null && !instance.uploadToCatalog().isEmpty()) {
+                                LOG.info("Nahravam informace do katalogu.");
+                                CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
+                                catalogRecord.update(instance.uploadToCatalog(), FoxmlUtils.pidAsUuid(pid));
+                            } else {
+                                LOG.info("Neni zapnuta volba nahrani informaci do katalogu.");
+                            }
                             break;
                         case KRAMERIUS_BATCH_FAILED_V5:
                         case KRAMERIUS_BATCH_FAILED_V7:

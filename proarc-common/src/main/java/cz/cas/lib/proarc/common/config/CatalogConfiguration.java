@@ -18,6 +18,8 @@ package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.catalog.AlephXServer;
 import cz.cas.lib.proarc.common.catalog.DigitizationRegistryCatalog;
+import cz.cas.lib.proarc.common.catalog.updateCatalog.AlephXmlUpdateCatalog;
+import cz.cas.lib.proarc.common.catalog.updateCatalog.VerbisUpdateCatalog;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -49,7 +51,9 @@ public final class CatalogConfiguration {
     public static final String PROPERTY_DEFAULT_SEARCH_FIELD = "defaultSearchField";
 
     /* konfigurace jen pro editaci zaznamu v katalogu */
-    public static final String PROPERTY_UPDATE_TYPE = "updateType"; // mozne hodnoty @link VerbisUpdateCatalog:ID
+    public static final String PROPERTY_UPDATE_TYPE = "updateType";
+
+    /* parametry pro upravu verbisu */
     public static final String PROPERTY_AUTHORIZATION_CATALOG_URL = "authorizationUrl";
     public static final String PROPERTY_UPDATE_CATALOG_URL = "updateRecordUrl";
     public static final String PROPERTY_LOGIN_USERNAME = "username";
@@ -58,6 +62,12 @@ public final class CatalogConfiguration {
     public static final String PROPERTY_UPDATE_SUBFIELD_APP = "recordSubfieldAppIdentifier";
     public static final String PROPERTY_UPDATE_SUBFIELD_OBJECT = "recordSubfieldObjectIdentifier";
     public static final String PROPERTY_UPDATE_SUBFIELD_DIGITALIZED = "recordSubfieldDigitalizated";
+
+    /* parametry pro upravu aleph xml */
+    public static final String PROPERTY_CATALOG_DIRECTORY = "catalogDirectory";
+    public static final String PROPERTY_CATALOG_URL_LINK = "catalogUrlLink";
+    public static final String PROPERTY_FIELD001_BASE_LENGHT = "baseLenght";
+    public static final String PROPERTY_FIELD001_SYSNO_LENGHT = "sysnoLenght";
 
     private final String id;
     private final String prefix;
@@ -112,6 +122,22 @@ public final class CatalogConfiguration {
 
     public String getCatalogUpdateType() {
         return properties.getString(PROPERTY_UPDATE_TYPE);
+    }
+
+    public String getCatalogDirectory() {
+        return properties.getString(PROPERTY_CATALOG_DIRECTORY);
+    }
+
+    public String getCatalogUrlLink() {
+        return properties.getString(PROPERTY_CATALOG_URL_LINK);
+    }
+
+    public Integer getField001BaseLenght() {
+        return properties.getInteger(PROPERTY_FIELD001_BASE_LENGHT, 5);
+    }
+
+    public Integer getField001SysnoLenght() {
+        return properties.getInteger(PROPERTY_FIELD001_SYSNO_LENGHT, 9);
     }
 
     public String getCatalogAuthorizationUrl() {
@@ -188,7 +214,9 @@ public final class CatalogConfiguration {
         return properties.getString(name, defaultValue);
     }
 
-
+    public boolean allowCatalogUpdateRecord() {
+        return AlephXmlUpdateCatalog.ID.equals(getCatalogUpdateType()) || VerbisUpdateCatalog.ID.equals(getCatalogUpdateType());
+    }
 
     @Override
     public String toString() {
@@ -210,5 +238,4 @@ public final class CatalogConfiguration {
             return "http://" + url;
         }
     }
-
 }

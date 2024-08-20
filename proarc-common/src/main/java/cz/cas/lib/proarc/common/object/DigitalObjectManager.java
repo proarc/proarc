@@ -579,15 +579,15 @@ public class DigitalObjectManager {
 
 
         public List<SearchViewItem> create() throws DigitalObjectException {
-            return create(true, false);
+            return create(true, false, null);
         }
 
-        public List<SearchViewItem> create(boolean createObject, boolean validation) throws DigitalObjectException {
+        public List<SearchViewItem> create(boolean createObject, boolean validation, String catalogId) throws DigitalObjectException {
             boolean isBatch = isBatch();
             if (isBatch) {
-                return createBatch(createObject, validation);
+                return createBatch(createObject, validation, catalogId);
             } else {
-                return Collections.singletonList(createDigitalObject(createObject, validation));
+                return Collections.singletonList(createDigitalObject(createObject, validation, catalogId));
             }
         }
 
@@ -669,17 +669,22 @@ public class DigitalObjectManager {
             return materials;
         }
 
-        private List<SearchViewItem> createBatch(boolean createObject, boolean validation) throws DigitalObjectException {
+        private List<SearchViewItem> createBatch(boolean createObject, boolean validation, String catalogId) throws DigitalObjectException {
             ArrayList<SearchViewItem> items = new ArrayList<>();
             while (hasNext()) {
                 // adjust series params
                 next();
-                items.add(createDigitalObject(createObject, validation));
+                items.add(createDigitalObject(createObject, validation, catalogId));
             }
             return items;
         }
 
         public SearchViewItem createDigitalObject(boolean createObject, boolean validation) throws DigitalObjectException, DigitalObjectExistException {
+            return createDigitalObject(createObject, validation, null);
+        }
+
+
+        public SearchViewItem createDigitalObject(boolean createObject, boolean validation, String catalogId) throws DigitalObjectException, DigitalObjectExistException {
             DigitalObjectHandler parentHandler = getParentHandler();
 
             LocalObject localObject = new LocalStorage().create(pid);
@@ -714,10 +719,14 @@ public class DigitalObjectManager {
 
             DescriptionMetadata<String> descMetadata = new DescriptionMetadata<>();
             descMetadata.setData(xml);
-            if (validation) {
-                doHandler.metadata().setMetadataAsXml(descMetadata, message, NdkMetadataHandler.OPERATION_VALIDATE);
-            } else {
+            if (catalogId != null) {
                 doHandler.metadata().setMetadataAsXml(descMetadata, message, NdkMetadataHandler.OPERATION_NEW);
+            } else {
+                if (validation) {
+                    doHandler.metadata().setMetadataAsXml(descMetadata, message, NdkMetadataHandler.OPERATION_VALIDATE);
+                } else {
+                    doHandler.metadata().setMetadataAsXml(descMetadata, message, NdkMetadataHandler.OPERATION_NEW);
+                }
             }
 
             if (parentHandler != null) {

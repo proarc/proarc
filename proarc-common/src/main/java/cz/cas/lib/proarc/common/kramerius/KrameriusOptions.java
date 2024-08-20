@@ -223,6 +223,7 @@ public class KrameriusOptions {
         static final String PROPERTY_KRAMERIUS_CONVERT_NDK_FOLDER = "krameriusConvertNdkFolder";
         static final String PROPERTY_KRAMERIUS_TARGET_CONVERTED_FOLDER = "krameriusTargetConvertedFolder";
         static final String PROPERTY_DELETE_AFTER_IMPORT = "deleteAfterImport";
+        static final String PROPERTY_UPLOAD_TO_CATALOG = "uploadToCatalog";
 
         private final String id;
         private final Configuration config;
@@ -326,6 +327,10 @@ public class KrameriusOptions {
 
         public boolean deleteAfterImport() {
             return config.getBoolean(PROPERTY_DELETE_AFTER_IMPORT);
+        }
+
+        public String uploadToCatalog() {
+            return config.getString(PROPERTY_UPLOAD_TO_CATALOG);
         }
 
         public boolean isTestType() {
