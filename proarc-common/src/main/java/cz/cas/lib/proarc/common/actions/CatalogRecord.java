@@ -49,7 +49,7 @@ public class CatalogRecord {
 
     public boolean update(String catalogId, String pid) throws DigitalObjectException, JSONException, IOException {
 
-        String field001 = VerbisUpdateCatalog.getObjectField001(pid);
+        String field001 = UpdateCatalog.getObjectField001(pid);
         if (field001 == null || field001.isEmpty()) {
             throw new DigitalObjectException(pid, "Missing field 001");
         }

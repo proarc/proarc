@@ -43,9 +43,11 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mets.info.Info;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -150,12 +152,18 @@ public class NdkExport {
                         case KRAMERIUS_BATCH_FINISHED_V7:
                             result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
                             result.setKrameriusImportState(KRAMERIUS_PROCESS_FINISHED);
-                            if (instance.uploadToCatalog() != null && !instance.uploadToCatalog().isEmpty()) {
-                                LOG.info("Nahravam informace do katalogu.");
-                                CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
-                                catalogRecord.update(instance.uploadToCatalog(), FoxmlUtils.pidAsUuid(pid));
-                            } else {
-                                LOG.info("Neni zapnuta volba nahrani informaci do katalogu.");
+                            try {
+                                if (instance.uploadToCatalog() != null && !instance.uploadToCatalog().isEmpty()) {
+                                    LOG.info("Nahravam informace do katalogu.");
+                                    CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
+                                    catalogRecord.update(instance.uploadToCatalog(), pid);
+                                } else {
+                                    LOG.info("Neni zapnuta volba nahrani informaci do katalogu.");
+                                }
+                            } catch (DigitalObjectException | IOException e) {
+                                LOG.log(Level.SEVERE, e.getMessage(), e);
+                                result.setMessage("Import do Krameria proběhl, ale nepodařilo se upravit záznam v katalogu." + e.getMessage());
+                                result.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
                             }
                             break;
                         case KRAMERIUS_BATCH_FAILED_V5:

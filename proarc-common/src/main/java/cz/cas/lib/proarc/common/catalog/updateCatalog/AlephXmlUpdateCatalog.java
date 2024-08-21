@@ -74,9 +74,15 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
     public boolean process(CatalogConfiguration catalogConfiguration, String field001, String pid) throws DigitalObjectException, JSONException, IOException {
         if (allowUpdateRecord(catalogConfiguration)) {
             try {
-                String base = getBase(field001, catalogConfiguration);
-                String sysno = getSysno(field001, catalogConfiguration);
-                return updateRecord(base, sysno, catalogConfiguration.getCatalogUrlLink(), pid, catalogConfiguration.getCatalogDirectory());
+                int expectedLength = getExpectedLength(catalogConfiguration);
+                if (expectedLength == field001.length()) {
+                    String base = getBase(field001, catalogConfiguration);
+                    String sysno = getSysno(field001, catalogConfiguration);
+                    return updateRecord(base, sysno, catalogConfiguration.getCatalogUrlLink(), pid, catalogConfiguration.getCatalogDirectory());
+                } else {
+                    LOG.log(Level.SEVERE, "Špatná délka SYSNa. Očekávaná délka je " + expectedLength + " ale délka pole 001 (" + field001 + ") je " + field001.length());
+                    throw new IOException("Špatná délka SYSNa. Očekávaná délka je " + expectedLength + " ale délka pole 001 (" + field001 + ") je " + field001.length());
+                }
             } catch (StringIndexOutOfBoundsException ex) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException("Wrong value in proarc.cfg for base or sysno lenght.", ex);
@@ -87,14 +93,31 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
         }
     }
 
+    private int getExpectedLength(CatalogConfiguration catalogConfiguration) {
+        int lenght = 0;
+        Integer configLength = catalogConfiguration.getField001BaseLenght();
+        if (configLength != null && configLength < 1) {
+            lenght = lenght + 0;
+        } else {
+            lenght += configLength;
+        }
+        configLength = catalogConfiguration.getField001SysnoLenght();
+        if (configLength != null && configLength < 1) {
+            lenght = lenght + 0;
+        } else {
+            lenght += configLength;
+        }
+        return lenght;
+    }
+
     private String getSysno(String field001, CatalogConfiguration catalogConfiguration) {
-            Integer baseLenght = catalogConfiguration.getField001BaseLenght();
-            Integer sysnoLenght = catalogConfiguration.getField001SysnoLenght();
-            if (baseLenght == null || baseLenght < 1) {
-                return field001.substring(0, sysnoLenght);
-            } else {
-                return field001.substring(baseLenght, baseLenght + sysnoLenght);
-            }
+        Integer baseLenght = catalogConfiguration.getField001BaseLenght();
+        Integer sysnoLenght = catalogConfiguration.getField001SysnoLenght();
+        if (baseLenght == null || baseLenght < 1) {
+            return field001.substring(0, sysnoLenght);
+        } else {
+            return field001.substring(baseLenght, baseLenght + sysnoLenght);
+        }
     }
 
     private String getBase(String field001, CatalogConfiguration catalogConfiguration) {

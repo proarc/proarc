@@ -89,6 +89,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
@@ -248,12 +249,18 @@ public final class Kramerius4Export {
                         krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
                         krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FINISHED);
 
-                        if (instance.uploadToCatalog() != null && !instance.uploadToCatalog().isEmpty()) {
-                            LOG.info("Nahravam informace do katalogu.");
-                            CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
-                            catalogRecord.update(instance.uploadToCatalog(), FoxmlUtils.pidAsUuid(pids[0]));
-                        } else {
-                            LOG.info("Neni zapnuta volba nahrani informaci do katalogu.");
+                        try {
+                            if (instance.uploadToCatalog() != null && !instance.uploadToCatalog().isEmpty()) {
+                                LOG.info("Nahravam informace do katalogu.");
+                                CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
+                                catalogRecord.update(instance.uploadToCatalog(), pids[0]);
+                            } else {
+                                LOG.info("Neni zapnuta volba nahrani informaci do katalogu.");
+                            }
+                        } catch (DigitalObjectException | IOException e) {
+                            LOG.log(Level.SEVERE, e.getMessage(), e);
+                            krameriusResult.setMessage("Import do Krameria proběhl, ale nepodařilo se upravit záznam v katalogu." + e.getMessage());
+                            krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
                         }
                         break;
                     case KRAMERIUS_BATCH_FAILED_V5:
