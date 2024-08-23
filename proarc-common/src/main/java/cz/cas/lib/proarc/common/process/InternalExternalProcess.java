@@ -14,15 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.process.internal;
+package cz.cas.lib.proarc.common.process;
 
-import cz.cas.lib.proarc.common.actions.Validation;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
-import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
+import cz.cas.lib.proarc.common.process.external.PdfaProcess;
+import cz.cas.lib.proarc.common.process.external.PeroProcess;
+import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -44,17 +45,17 @@ import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalWithError;
  *
  * @author Lukas Sykora
  */
-public final class InternalProcess implements Runnable {
+public final class InternalExternalProcess implements Runnable {
 
-    private static final Logger LOG = Logger.getLogger(InternalProcess.class.getName());
+    private static final Logger LOG = Logger.getLogger(InternalExternalProcess.class.getName());
 
     private final BatchManager batchManager;
     private final AppConfiguration config;
     private final AkubraConfiguration akubraConfiguration;
     private final UserProfile user;
-    private final InternalOptions options;
+    private final InternalExternalOptions options;
 
-    InternalProcess(InternalOptions options, BatchManager batchManager, AppConfiguration config, AkubraConfiguration akubraConfiguration, UserProfile user) {
+    InternalExternalProcess(InternalExternalOptions options, BatchManager batchManager, AppConfiguration config, AkubraConfiguration akubraConfiguration, UserProfile user) {
         this.batchManager = batchManager;
         this.config = config;
         this.akubraConfiguration = akubraConfiguration;
@@ -66,9 +67,9 @@ public final class InternalProcess implements Runnable {
      * Prepares a new other process.
      * to run with {@link #start} immediately or later with {@link ExportDispatcher}.
      */
-    public static InternalProcess prepare(AppConfiguration config, AkubraConfiguration akubraConfig, Batch batch, BatchManager batchManager, UserProfile user, String log, Locale locale) throws IOException {
-        InternalOptions options = new InternalOptions(config, batch, log, locale);
-        InternalProcess process = new InternalProcess(options, batchManager, config, akubraConfig, user);
+    public static InternalExternalProcess prepare(AppConfiguration config, AkubraConfiguration akubraConfig, Batch batch, BatchManager batchManager, UserProfile user, String log, Locale locale) throws IOException {
+        InternalExternalOptions options = new InternalExternalOptions(config, batch, log, locale);
+        InternalExternalProcess process = new InternalExternalProcess(options, batchManager, config, akubraConfig, user);
         return process;
     }
 
@@ -76,9 +77,9 @@ public final class InternalProcess implements Runnable {
      * Prepares a new other process.
      * to run with {@link #start} immediately or later with {@link ExportDispatcher}.
      */
-    public static InternalProcess prepare(AppConfiguration config, AkubraConfiguration akubraConfig, Batch batch, BatchManager batchManager, UserProfile user, String log, Locale locale, File folder) throws IOException {
-        InternalOptions options = new InternalOptions(config, batch, log, locale, folder);
-        InternalProcess process = new InternalProcess(options, batchManager, config, akubraConfig, user);
+    public static InternalExternalProcess prepare(AppConfiguration config, AkubraConfiguration akubraConfig, Batch batch, BatchManager batchManager, UserProfile user, String log, Locale locale, File folder) throws IOException {
+        InternalExternalOptions options = new InternalExternalOptions(config, batch, log, locale, folder);
+        InternalExternalProcess process = new InternalExternalProcess(options, batchManager, config, akubraConfig, user);
         return process;
     }
 
@@ -102,6 +103,7 @@ public final class InternalProcess implements Runnable {
         if (params == null) {
             switch (profileId) {
                 case Batch.EXTERNAL_PERO:
+                case Batch.EXTERNAL_PDFA:
                     return finishedExternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
                 case Batch.INTERNAL_VALIDATION:
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
@@ -114,6 +116,9 @@ public final class InternalProcess implements Runnable {
                 case Batch.EXTERNAL_PERO:
                     batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
                     return peroProcess(batch, params);
+                case Batch.EXTERNAL_PDFA:
+                    batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
+                    return pdfaProcess(batch, params);
                 case Batch.INTERNAL_VALIDATION:
                     batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
                     return validationProcess(batch, params);
@@ -127,8 +132,24 @@ public final class InternalProcess implements Runnable {
 
     private Batch peroProcess(Batch batch, BatchParams params) {
         try {
-            PeroInternalProcess internalProcess = new PeroInternalProcess(config, akubraConfiguration);
-            PeroInternalProcess.Result result = internalProcess.generateAlto(params.getPids(), options.getFolder());
+            PeroProcess peroProcess = new PeroProcess(config, akubraConfiguration);
+            PeroProcess.Result result = peroProcess.generateAlto(params.getPids(), options.getFolder());
+            if (result.getException() != null) {
+                batch = finishedExternalWithError(this.batchManager, batch, batch.getFolder(), result.getException());
+                throw result.getException();
+            } else {
+                batch = finishedExternalSuccessfully(this.batchManager, batch, batch.getFolder());
+            }
+            return batch;
+        } catch (Exception ex) {
+            return finishedExternalWithError(this.batchManager, batch, batch.getFolder(), ex);
+        }
+    }
+
+    private Batch pdfaProcess(Batch batch, BatchParams params) {
+        try {
+            PdfaProcess pdfaProcess = new PdfaProcess(config, akubraConfiguration);
+            PdfaProcess.Result result = pdfaProcess.generatePdfA(params.getPids(), options.getFolder());
             if (result.getException() != null) {
                 batch = finishedExternalWithError(this.batchManager, batch, batch.getFolder(), result.getException());
                 throw result.getException();
@@ -143,41 +164,41 @@ public final class InternalProcess implements Runnable {
 
     private Batch validationProcess(Batch batch, BatchParams params) {
         try {
-            Validation validation = new Validation(config, akubraConfiguration, params.getPids(), options.getLocale());
-            Validation.Result result = validation.validate(Validation.Type.VALIDATION);
+            ValidationProcess validationProcess = new ValidationProcess(config, akubraConfiguration, params.getPids(), options.getLocale());
+            ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.VALIDATION);
             if (result.isStatusOk(false)) {
                 batch = finishedInternalSuccessfully(this.batchManager, batch, batch.getFolder());
             } else {
                 batch = finishedInternalWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
             }
-            validation.indexResult(batch);
+            validationProcess.indexResult(batch);
             return batch;
         } catch (Exception ex) {
             return finishedInternalWithError(this.batchManager, batch, batch.getFolder(), ex);
         }
     }
 
-    public static void resumeAll(BatchManager ibm, InternalDispatcher dispatcher, AppConfiguration config, AkubraConfiguration akubraConfiguration) {
+    public static void resumeAll(BatchManager ibm, InternalExternalDispatcher dispatcher, AppConfiguration config, AkubraConfiguration akubraConfiguration) {
         List<Batch> batches2schedule = ibm.findWaitingInternalBatches();
         for (Batch batch : batches2schedule) {
             try {
-                InternalProcess resume = InternalProcess.resume(batch, ibm, config, akubraConfiguration);
-                dispatcher.addInternalProcess(resume);
+                InternalExternalProcess resume = InternalExternalProcess.resume(batch, ibm, config, akubraConfiguration);
+                dispatcher.addInternalExternalProcess(resume);
             } catch (Exception ex) {
                 BatchUtils.finishedExportWithError(ibm, batch, batch.getFolder(), ex);
             }
         }
     }
 
-    public static InternalProcess resume(Batch batch, BatchManager ibm, AppConfiguration config, AkubraConfiguration akubraConfiguration) throws IOException {
+    public static InternalExternalProcess resume(Batch batch, BatchManager ibm, AppConfiguration config, AkubraConfiguration akubraConfiguration) throws IOException {
         UserManager users = UserUtil.getDefaultManger();
         UserProfile user = users.find(batch.getUserId());
         // if necessary reset old computed batch items
-        InternalProcess process = InternalProcess.prepare(config, akubraConfiguration, batch, ibm, user, "Resume internal process", new Locale("cs", "CZ"));
+        InternalExternalProcess process = InternalExternalProcess.prepare(config, akubraConfiguration, batch, ibm, user, "Resume internal process", new Locale("cs", "CZ"));
         return process;
     }
 
-    public static final class InternalOptions {
+    public static final class InternalExternalOptions {
 
         private AppConfiguration configuration;
         private Batch batch;
@@ -185,14 +206,14 @@ public final class InternalProcess implements Runnable {
         private Locale locale;
         private File folder;
 
-        public InternalOptions(AppConfiguration config, Batch batch, String log, Locale locale) {
+        public InternalExternalOptions(AppConfiguration config, Batch batch, String log, Locale locale) {
             this.configuration = config;
             this.batch = batch;
             this.log = log;
             this.locale = locale;
         }
 
-        public InternalOptions(AppConfiguration config, Batch batch, String log, Locale locale, File folder) {
+        public InternalExternalOptions(AppConfiguration config, Batch batch, String log, Locale locale, File folder) {
             this.configuration = config;
             this.batch = batch;
             this.log = log;

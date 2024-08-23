@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.process.internal;
+package cz.cas.lib.proarc.common.process;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.ExecutorService;
@@ -26,36 +26,36 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Dispatcher controls scheduling of {@link InternalProcess}.
+ * Dispatcher controls scheduling of {@link InternalExternalProcess}.
  *
  * For now it runs processes in single thread to preserve memory resources.
  *
  * @author Lukas Sykora
  */
-public final class InternalDispatcher {
+public final class InternalExternalDispatcher {
 
-    private static final Logger LOG = Logger.getLogger(InternalDispatcher.class.getName());
-    private static InternalDispatcher INSTANCE = new InternalDispatcher();
+    private static final Logger LOG = Logger.getLogger(InternalExternalDispatcher.class.getName());
+    private static InternalExternalDispatcher INSTANCE = new InternalExternalDispatcher();
 
     private ExecutorService pool;
     private final int threadCount;
 
-    public InternalDispatcher() {
+    public InternalExternalDispatcher() {
         this(1);
     }
 
-    InternalDispatcher(int threadCount) {
+    InternalExternalDispatcher(int threadCount) {
         if (threadCount < 1) {
             throw new IllegalArgumentException("threadCount: " + threadCount);
         }
         this.threadCount = threadCount;
     }
 
-    public static InternalDispatcher getDefault() {
+    public static InternalExternalDispatcher getDefault() {
         return INSTANCE;
     }
 
-    public static void setDefault(InternalDispatcher dispatcher) {
+    public static void setDefault(InternalExternalDispatcher dispatcher) {
         INSTANCE = dispatcher;
     }
 
@@ -93,7 +93,7 @@ public final class InternalDispatcher {
         }
     }
 
-    public Future<InternalProcess> addInternalProcess(InternalProcess task) {
+    public Future<InternalExternalProcess> addInternalExternalProcess(InternalExternalProcess task) {
         return addTask(task);
     }
 
@@ -152,20 +152,20 @@ public final class InternalDispatcher {
         @Override
         public Thread newThread(Runnable r) {
             Thread thread = factory.newThread(r);
-            String name = InternalDispatcher.class.getSimpleName() + '-' + thread.getName();
+            String name = InternalExternalDispatcher.class.getSimpleName() + '-' + thread.getName();
             thread.setName(name);
             UncaughtExceptionHandler uncaughtExceptionHandler = thread.getUncaughtExceptionHandler();
-            thread.setUncaughtExceptionHandler(new InternalDispatcherExceptionHandler(uncaughtExceptionHandler));
+            thread.setUncaughtExceptionHandler(new InternalExternalDispatcherExceptionHandler(uncaughtExceptionHandler));
             return thread;
         }
 
     }
 
-    private static final class InternalDispatcherExceptionHandler implements UncaughtExceptionHandler {
+    private static final class InternalExternalDispatcherExceptionHandler implements UncaughtExceptionHandler {
 
         private final UncaughtExceptionHandler delegate;
 
-        public InternalDispatcherExceptionHandler(UncaughtExceptionHandler delegate) {
+        public InternalExternalDispatcherExceptionHandler(UncaughtExceptionHandler delegate) {
             this.delegate = delegate;
         }
 

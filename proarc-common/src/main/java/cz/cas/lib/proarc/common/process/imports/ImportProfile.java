@@ -92,6 +92,7 @@ public final class ImportProfile {
     public static final String IMPORT_FOLDER_PATH = "import.folder.path";
     public static final String IMPORT_FOXML_IMAGE_SERVER_PATH = "import.foxml.imageServer.path";
     public static final String IMPORT_FOXML_FOLDER_PATH = "import.foxml.folder.path";
+    public static final String GENERATE_PDFA_PROCESSOR = "generate.pdfA.processor";
 
 
     public static final String[] FILE_EXTENSIONS = new String[]{".xml", ".jp2", ".txt", ".jpg", ".jpeg", ".mp3", ".ogg", ".wav", ".flac", ".tif"};

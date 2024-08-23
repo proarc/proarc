@@ -1003,7 +1003,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalProcessResult> generateAlto(
+    public SmartGwtResponse<InternalExternalProcessResult> generateAlto(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
     ) {
         try {
@@ -1015,9 +1015,23 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.GENERATE_PDFA)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<InternalExternalProcessResult> generatePdfA(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+    ) {
+        try {
+            return super.generatePdfA(pid);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.VALIDATE_OBJECT_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalProcessResult> validate(
+    public SmartGwtResponse<InternalExternalProcessResult> validate(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         try {

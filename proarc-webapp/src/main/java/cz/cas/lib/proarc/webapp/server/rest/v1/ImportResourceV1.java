@@ -36,8 +36,8 @@ import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
-import cz.cas.lib.proarc.common.process.internal.InternalDispatcher;
-import cz.cas.lib.proarc.common.process.internal.InternalProcess;
+import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
+import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.PageView;
 import cz.cas.lib.proarc.common.storage.PageView.Item;
@@ -833,7 +833,7 @@ public class ImportResourceV1 {
     @POST
     @Path(ImportResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObjectResourceV1.InternalProcessResult> generateAlto(
+    public SmartGwtResponse<DigitalObjectResourceV1.InternalExternalProcessResult> generateAlto(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
     ) throws IOException, URISyntaxException {
         if (path == null || path.isEmpty()) {
@@ -850,10 +850,10 @@ public class ImportResourceV1 {
         BatchParams params = new BatchParams(Collections.singletonList(folderPath));
         Batch batch = BatchUtils.addNewExternalBatch(this.importManager, folderPath, user, Batch.EXTERNAL_PERO, params);
 
-        InternalProcess process = InternalProcess.prepare(appConfig, akubraConfiguration, batch, importManager, user, session.asFedoraLog(), session.getLocale(httpHeaders), folder);
-        InternalDispatcher.getDefault().addInternalProcess(process);
-        DigitalObjectResourceV1.InternalProcessResult result = new DigitalObjectResourceV1.InternalProcessResult(batch.getId(), "Proces naplánován.");
-        return new SmartGwtResponse<DigitalObjectResourceV1.InternalProcessResult>(result);
+        InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, importManager, user, session.asFedoraLog(), session.getLocale(httpHeaders), folder);
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        DigitalObjectResourceV1.InternalExternalProcessResult result = new DigitalObjectResourceV1.InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<DigitalObjectResourceV1.InternalExternalProcessResult>(result);
     }
 
 }

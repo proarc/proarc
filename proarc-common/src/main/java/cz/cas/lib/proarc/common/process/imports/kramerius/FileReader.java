@@ -633,7 +633,7 @@ public class FileReader {
                 }
         } else {
             datastreamVersionType.setMIMETYPE(full.getDatastreamVersion().get(0).getMIMETYPE());
-            datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
+//            datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
 
             if (full.getDatastreamVersion().get(0).getBinaryContent() != null) {
                 datastreamVersionType.setBinaryContent(full.getDatastreamVersion().get(0).getBinaryContent());
@@ -697,7 +697,7 @@ public class FileReader {
             }
         } else {
             datastreamVersionType.setMIMETYPE(full.getDatastreamVersion().get(0).getMIMETYPE());
-            datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
+//            datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
 
             if (full.getDatastreamVersion().get(0).getBinaryContent() != null) {
                 datastreamVersionType.setBinaryContent(full.getDatastreamVersion().get(0).getBinaryContent());

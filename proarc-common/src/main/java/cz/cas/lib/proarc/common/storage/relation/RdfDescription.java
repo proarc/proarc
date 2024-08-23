@@ -61,6 +61,9 @@ public class RdfDescription {
     @XmlElement (namespace = Relations.PROARC_RELS_NS)
     private String archivalCopiesPath;
 
+    @XmlElement (namespace = Relations.PROARC_RELS_NS)
+    private String pdfValidationStatus;
+
     /**
      * RDF relation defines model of the digital object. E.g.:
      *
@@ -379,5 +382,13 @@ public class RdfDescription {
 
     public void setArchivalCopiesPath(String archivalCopiesPath) {
         this.archivalCopiesPath = archivalCopiesPath;
+    }
+
+    public String getPdfValidationStatus() {
+        return pdfValidationStatus;
+    }
+
+    public void setPdfValidationStatus(String pdfValidationStatus) {
+        this.pdfValidationStatus = pdfValidationStatus;
     }
 }

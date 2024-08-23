@@ -65,8 +65,8 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.process.internal.InternalDispatcher;
-import cz.cas.lib.proarc.common.process.internal.InternalProcess;
+import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
+import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.AtmEditor;
 import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
@@ -2061,7 +2061,7 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalProcessResult> generateAlto(
+    public SmartGwtResponse<InternalExternalProcessResult> generateAlto(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
     ) throws IOException {
         if (pid == null || pid.isEmpty()) {
@@ -2070,17 +2070,34 @@ public class DigitalObjectResourceV1 {
         BatchParams params = new BatchParams(Collections.singletonList(pid));
         Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PERO, params);
 
-        InternalProcess process = InternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-        InternalDispatcher.getDefault().addInternalProcess(process);
-        InternalProcessResult result = new InternalProcessResult(batch.getId(), "Proces naplánován.");
-        return new SmartGwtResponse<InternalProcessResult>(result);
+        InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<InternalExternalProcessResult>(result);
+    }
 
+    @POST
+    @Path(DigitalObjectResourceApi.GENERATE_PDFA)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<InternalExternalProcessResult> generatePdfA(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+    ) throws IOException {
+        if (pid == null || pid.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + DigitalObjectResourceApi.DIGITALOBJECT_PID);
+        }
+        BatchParams params = new BatchParams(Collections.singletonList(pid));
+        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PDFA, params);
+
+        InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<InternalExternalProcessResult>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.VALIDATE_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<InternalProcessResult> validate(
+    public SmartGwtResponse<InternalExternalProcessResult> validate(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws IOException, MetsExportException {
         if (pids == null || pids.isEmpty()) {
@@ -2124,11 +2141,11 @@ public class DigitalObjectResourceV1 {
             Batch batch = new BatchUtils().addNewInternalBatch(this.batchManager, pid, user, Batch.INTERNAL_VALIDATION, params);
             batchId = batch.getId();
 
-            InternalProcess process = InternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-            InternalDispatcher.getDefault().addInternalProcess(process);
+            InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
         }
-        InternalProcessResult result = new InternalProcessResult(batchId, "Proces(y) naplánován(y).");
-        return new SmartGwtResponse<InternalProcessResult>(result);
+        InternalExternalProcessResult result = new InternalExternalProcessResult(batchId, "Proces(y) naplánován(y).");
+        return new SmartGwtResponse<InternalExternalProcessResult>(result);
     }
 
     @GET
@@ -4922,7 +4939,7 @@ public class DigitalObjectResourceV1 {
      * The export result.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class InternalProcessResult {
+    public static class InternalExternalProcessResult {
 
         @XmlElement(name = DigitalObjectResourceApi.RESULT_ID)
         private Integer processId;
@@ -4930,10 +4947,10 @@ public class DigitalObjectResourceV1 {
         @XmlElement(name = DigitalObjectResourceApi.RESULT_MSG)
         private String msg;
 
-        public InternalProcessResult() {
+        public InternalExternalProcessResult() {
         }
 
-        public InternalProcessResult(Integer processId, String msg) {
+        public InternalExternalProcessResult(Integer processId, String msg) {
             this.processId = processId;
             this.msg = msg;
         }

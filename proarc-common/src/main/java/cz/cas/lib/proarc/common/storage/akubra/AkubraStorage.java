@@ -898,6 +898,7 @@ public class AkubraStorage {
             datastreamVersionType.setCREATED(profile.getDsCreateDate());
             datastreamVersionType.setMIMETYPE(profile.getDsMIME());
             datastreamVersionType.setFORMATURI(profile.getDsFormatURI());
+            datastreamVersionType.setSIZE(null);
 
             if (this.data != null) {
                 FoxmlUtils.ControlGroup controlGroup = FoxmlUtils.ControlGroup.fromExternal(profile.getDsControlGroup());
