@@ -16,8 +16,6 @@
 
 package cz.cas.lib.proarc.common.object.ndk;
 
-import cz.cas.lib.proarc.common.process.export.mets.Const;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.JsonValueMap;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -27,12 +25,13 @@ import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import cz.cas.lib.proarc.common.object.HasDisseminationHandler;
-import cz.cas.lib.proarc.common.object.HasMetadataHandler;
 import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalDisseminationHandler;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +46,7 @@ import static cz.cas.lib.proarc.common.process.export.mets.Const.FEDORAPREFIX;
 
 
 @SuppressWarnings("MethodParameterOfConcreteClass")
-public class NdkEbornPlugin implements DigitalObjectPlugin {
+public class NdkEbornPlugin implements DigitalObjectPlugin, HasDisseminationHandler {
 
     private static final String ID = "ndkEborn";
 
@@ -198,22 +197,23 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
 
     @Override
     public <T extends HasDataHandler> T getHandlerProvider(Class<T> type) {
-        if (!type.equals(HasMetadataHandler.class)) {
-            return null;
-        } else if (type.equals(HasDisseminationHandler.class)) {
-            //noinspection unchecked
-            return (T) new HasDisseminationHandler() {
-
-                @Override
-                public DisseminationHandler createDisseminationHandler(String dsId, DigitalObjectHandler handler) {
-                    DefaultDisseminationHandler ddh = new DefaultDisseminationHandler(dsId, handler);
-                    return (BinaryEditor.RAW_ID.equals(dsId)) ? new BornDigitalDisseminationHandler(ddh) : ddh;
-                }
-            };
-        }
-
-        //noinspection unchecked
-        return (T) (HasMetadataHandler) NdkMetadataHandler::new;
+        return type.isInstance(this) ? type.cast(this): null;
+//        if (!type.equals(HasMetadataHandler.class)) {
+//            return null;
+//        } else if (type.equals(HasDisseminationHandler.class)) {
+//            //noinspection unchecked
+//            return (T) new HasDisseminationHandler() {
+//
+//                @Override
+//                public DisseminationHandler createDisseminationHandler(String dsId, DigitalObjectHandler handler) {
+//                    DefaultDisseminationHandler ddh = new DefaultDisseminationHandler(dsId, handler);
+//                    return (BinaryEditor.RAW_ID.equals(dsId)) ? new BornDigitalDisseminationHandler(ddh) : ddh;
+//                }
+//            };
+//        }
+//
+//        //noinspection unchecked
+//        return (T) (HasMetadataHandler) NdkMetadataHandler::new;
     }
 
     @Override
@@ -221,5 +221,15 @@ public class NdkEbornPlugin implements DigitalObjectPlugin {
         final List<ValueMap> maps = new ArrayList<>();
         maps.add(JsonValueMap.fromBundle(BundleName.MODS_ROLES, context.getLocale()));
         return maps;
+    }
+
+    @Override
+    public DisseminationHandler createDisseminationHandler(String dsId, DigitalObjectHandler handler) {
+        final DefaultDisseminationHandler ddh = new DefaultDisseminationHandler(dsId, handler);
+        if (BinaryEditor.RAW_ID.equals(dsId) || BinaryEditor.NDK_ARCHIVAL_ID.equals(dsId)) {
+            return new BornDigitalDisseminationHandler(ddh);
+        } else {
+            return ddh;
+        }
     }
 }
