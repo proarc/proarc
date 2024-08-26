@@ -631,7 +631,19 @@ public class PremisEditor {
         }
     }
 
+    public static Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId, String eventDetailOutcome) throws MetsExportException {
+        try {
+            return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail, newId, eventDetailOutcome);
+        } catch (Exception e) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
+        }
+    }
+
     private static Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId) throws Exception {
+        return getPremisEvent(amd, metsElement, datastream, md5Info, eventDetail, newId, "successful");
+    }
+
+    private static Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId, String eventDetailOutcome) throws Exception {
 
         String relatedEventIdentifierValue = Const.dataStreamToEvent.get(datastream);
         if (newId != null) {
@@ -651,7 +663,12 @@ public class PremisEditor {
         eventIdentifier.setEventIdentifierValue(relatedEventIdentifierValue);
         EventOutcomeInformationComplexType eventInformation = new EventOutcomeInformationComplexType();
         event.getEventOutcomeInformation().add(eventInformation);
-        eventInformation.getContent().add(factory.createEventOutcome("successful"));
+        if (eventDetailOutcome != null && !eventDetailOutcome.isEmpty()) {
+            eventInformation.getContent().add(factory.createEventOutcome(eventDetailOutcome));
+        } else {
+            eventInformation.getContent().add(factory.createEventOutcome("successful"));
+        }
+
         LinkingAgentIdentifierComplexType linkingAgentIdentifier = fillLinkingAgentIdentifier(amd);
         LinkingObjectIdentifierComplexType linkingObject = new LinkingObjectIdentifierComplexType();
         linkingObject.setLinkingObjectIdentifierType("ProArc_URI");

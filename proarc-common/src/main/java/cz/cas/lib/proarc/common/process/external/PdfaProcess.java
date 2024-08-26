@@ -123,8 +123,12 @@ public class PdfaProcess {
                 if (!(generatedPdfFile.exists())) {
                     throw new IOException("Impossible to generate file with convertor");
                 }
+
+                BinaryEditor sourceEditor = BinaryEditor.dissemination(object, BinaryEditor.SOURCE_ID, BinaryEditor.FILE_PDF);
+                sourceEditor.write(pdfFile, sourceEditor == null ? 0 : sourceEditor.getLastModified(), null);
+
                 // import pdfa
-                BinaryEditor binaryEditor = BinaryEditor.dissemination(object, BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.FILE_PDF);
+                BinaryEditor binaryEditor = BinaryEditor.dissemination(object, BinaryEditor.RAW_ID, BinaryEditor.FILE_PDF);
                 binaryEditor.write(generatedPdfFile, binaryEditor == null ? 0 : binaryEditor.getLastModified(), null);
 
                 String pdfValidationStatus = "";

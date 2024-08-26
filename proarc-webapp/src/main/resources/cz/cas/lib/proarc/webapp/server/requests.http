@@ -599,7 +599,7 @@ POST {{proarcUrl}}/rest/v2/object/generatePdfA
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid=uuid:eb63acdd-5a4a-45b9-a8d2-244a9d780b3e
+pid=uuid:4461fb23-64fa-45de-9017-996282c9f9a1
 
 ### LOGIN
 POST {{proarcUrl}}/proarclogin
