@@ -24,6 +24,7 @@ import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -120,6 +121,15 @@ public class FileReader {
             put("IMG_FULL", "FULL");
             put("IMG_THUMB", "THUMBNAIL");
             put("IMG_PREVIEW", "PREVIEW");
+        }
+    };
+
+    private final Set<String> EMODELS_KRAMERIUS_DATASTREAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "RAW", "RELS-EXT", "IMG_FULL", "IMG_PREVIEW", "IMG_THUMB", "TEXT_OCR", "ALTO", "BIBLIO_MODS", "DC", "NDK_ARCHIVAL", "NDK_USER", "FULL", "PREVIEW", "THUMBNAIL")));
+
+    private final Map<String, String> eModelsDatastreamVersionId = new HashMap<String, String>() {
+        {
+            put("IMG_FULL", "RAW");
         }
     };
 
@@ -265,8 +275,8 @@ public class FileReader {
                     // vytvoreni noveho foxml z noveho pidu v importni davce
                     dObj = FoxmlUtils.unmarshal(new StreamSource(file), DigitalObject.class);
                     setDateAndUser(dObj);
-                    repairDatastreams(dObj);
-                    removeDataStreams(dObj);
+                    repairDatastreams(dObj, ctx);
+                    removeDataStreams(dObj, ctx);
                     createDataStreams(dObj, ctx);
                     lObj = iSession.getLocals().create(objFile, dObj);
                     updateLocalObject(lObj, ctx);
@@ -306,8 +316,8 @@ public class FileReader {
                     dObj = FoxmlUtils.unmarshal(new StreamSource(file), DigitalObject.class);
                 }
                 setDateAndUser(dObj);
-                repairDatastreams(dObj);
-                removeDataStreams(dObj);
+                repairDatastreams(dObj, ctx);
+                removeDataStreams(dObj, ctx);
                 createDataStreams(dObj, ctx);
                 lObj = iSession.getLocals().create(objFile, dObj);
                 updateLocalObject(lObj, ctx);
@@ -333,16 +343,26 @@ public class FileReader {
         return acceptableModels.contains(model);
     }
 
-    private void repairDatastreams(DigitalObject dObj) {
+    private void repairDatastreams(DigitalObject dObj, ImportProcess.ImportOptions ctx) {
         List<DatastreamType> datastreams = dObj.getDatastream();
         for (DatastreamType datastream : datastreams) {
             if (KRAMERIUS_MANAGED_DATASTREAMS.contains(datastream.getID())) {
                 datastream.setCONTROLGROUP("M");
             }
-            if (datastreamVersionId.containsKey(datastream.getID())) {
-                String newId = datastreamVersionId.get(datastream.getID());
-                datastream.setID(newId);
-                datastream.getDatastreamVersion().get(0).setID(newId + ".0");
+
+            if (ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())
+                    || ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())) {
+                if (eModelsDatastreamVersionId.containsKey(datastream.getID())) {
+                    String newId = eModelsDatastreamVersionId.get(datastream.getID());
+                    datastream.setID(newId);
+                    datastream.getDatastreamVersion().get(0).setID(newId + ".0");
+                }
+            } else {
+                if (datastreamVersionId.containsKey(datastream.getID())) {
+                    String newId = datastreamVersionId.get(datastream.getID());
+                    datastream.setID(newId);
+                    datastream.getDatastreamVersion().get(0).setID(newId + ".0");
+                }
             }
         }
     }
@@ -444,22 +464,37 @@ public class FileReader {
         return;
     }
 
-    private void removeDataStreams(DigitalObject dObj) {
+    private void removeDataStreams(DigitalObject dObj, ImportProcess.ImportOptions ctx) {
         List<DatastreamType> datastreams = copyDatastreams(dObj.getDatastream());
         dObj.getDatastream().clear();
-        fillDatastreams(datastreams, dObj);
+        fillDatastreams(datastreams, dObj, ctx);
     }
 
-    private void fillDatastreams(List<DatastreamType> datastreams, DigitalObject dObj) {
+    private void fillDatastreams(List<DatastreamType> datastreams, DigitalObject dObj, ImportProcess.ImportOptions ctx) {
         for (int i = 0; i < datastreams.size(); i++) {
-            if (KRAMERIUS_DATASTREAMS.contains(datastreams.get(i).getID())) {
-                dObj.getDatastream().add(datastreams.get(i));
-                if ("DC".equals(datastreams.get(i).getID())) {
-                    XmlContentType xml = datastreams.get(i).getDatastreamVersion().get(0).getXmlContent();
-                    Attr attribute =  xml.getAny().get(0).getAttributeNode("xsi:schemaLocation");
+            if (ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())
+                    || ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())) {
+                if (EMODELS_KRAMERIUS_DATASTREAMS.contains(datastreams.get(i).getID())) {
+                    dObj.getDatastream().add(datastreams.get(i));
+                    if ("DC".equals(datastreams.get(i).getID())) {
+                        XmlContentType xml = datastreams.get(i).getDatastreamVersion().get(0).getXmlContent();
+                        Attr attribute = xml.getAny().get(0).getAttributeNode("xsi:schemaLocation");
 
-                    if (attribute != null) {
-                       xml.getAny().get(0).getAttributes().removeNamedItem(attribute.getName());
+                        if (attribute != null) {
+                            xml.getAny().get(0).getAttributes().removeNamedItem(attribute.getName());
+                        }
+                    }
+                }
+            } else {
+                if (KRAMERIUS_DATASTREAMS.contains(datastreams.get(i).getID())) {
+                    dObj.getDatastream().add(datastreams.get(i));
+                    if ("DC".equals(datastreams.get(i).getID())) {
+                        XmlContentType xml = datastreams.get(i).getDatastreamVersion().get(0).getXmlContent();
+                        Attr attribute = xml.getAny().get(0).getAttributeNode("xsi:schemaLocation");
+
+                        if (attribute != null) {
+                            xml.getAny().get(0).getAttributes().removeNamedItem(attribute.getName());
+                        }
                     }
                 }
             }

@@ -25,6 +25,8 @@ import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import cz.cas.lib.proarc.common.object.HasDisseminationHandler;
+import cz.cas.lib.proarc.common.object.HasMetadataHandler;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.RelationCriteria;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalDisseminationHandler;
@@ -32,6 +34,7 @@ import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +49,7 @@ import static cz.cas.lib.proarc.common.process.export.mets.Const.FEDORAPREFIX;
 
 
 @SuppressWarnings("MethodParameterOfConcreteClass")
-public class NdkEbornPlugin implements DigitalObjectPlugin, HasDisseminationHandler {
+public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDefinition>, HasDisseminationHandler {
 
     private static final String ID = "ndkEborn";
 
@@ -231,5 +234,10 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasDisseminationHand
         } else {
             return ddh;
         }
+    }
+
+    @Override
+    public MetadataHandler<ModsDefinition> createMetadataHandler(DigitalObjectHandler handler) {
+        return new NdkMetadataHandler(handler);
     }
 }
