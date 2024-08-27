@@ -67,6 +67,7 @@ import org.w3c.dom.Node;
 
 import static cz.cas.lib.proarc.common.storage.PremisEditor.addPremisNodeToMets;
 import static cz.cas.lib.proarc.common.storage.PremisEditor.getAgent;
+import static cz.cas.lib.proarc.common.storage.PremisEditor.getCustomAgent;
 import static cz.cas.lib.proarc.common.storage.PremisEditor.getPremisEvent;
 import static cz.cas.lib.proarc.common.storage.PremisEditor.getPremisFile;
 
@@ -221,8 +222,12 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         addPremisNodeToMets(getPremisFile(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), null, objectInfo, indexToFirstValue), amdSec, "OBJ_" + indexToFirstValue, true, null);
         addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), "creation", indexToFirstValue), amdSec, "EVT_" + indexToFirstValue, true, null);
         String validationStatus = getValidationStatus(metsElement);
-        addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_VALIDATION, md5InfosMap.get(Const.OC_GRP_ID_VALIDATION), "validation", indexToSecondValue, validationStatus), amdSec, "EVT_" + indexToSecondValue, true, null);
+        String validatorName = validationStatus == null || validationStatus.isEmpty() ? "ProArc" : "veraPDF";
+        addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_VALIDATION, md5InfosMap.get(Const.OC_GRP_ID_VALIDATION), "validation", indexToSecondValue, validatorName, validationStatus), amdSec, "EVT_" + indexToSecondValue, true, null);
         addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_" + indexToFirstValue, true, null);
+        if (validationStatus != null) {
+            addPremisNodeToMets(getCustomAgent(metsElement, validatorName), amdSec, "AGENT_" + indexToSecondValue, true, null);
+        }
     }
 
     private String getValidationStatus(IMetsElement metsElement) throws MetsExportException {
@@ -739,5 +744,11 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     @Override
     protected void addNdkEObjectPidToExport(IMetsElement element) {
         pidsToExport.add(element);
+    }
+
+    // u ndk EModelu se nepridava zadny structLink
+    @Override
+    protected void addStructLink() throws MetsExportException {
+        return;
     }
 }

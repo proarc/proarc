@@ -631,19 +631,19 @@ public class PremisEditor {
         }
     }
 
-    public static Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId, String eventDetailOutcome) throws MetsExportException {
+    public static Node getPremisEvent(IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId, String agentName, String eventDetailOutcome) throws MetsExportException {
         try {
-            return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail, newId, eventDetailOutcome);
+            return getPremisEvent(null, metsElement, datastream, md5Info, eventDetail, newId, agentName, eventDetailOutcome);
         } catch (Exception e) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
         }
     }
 
     private static Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId) throws Exception {
-        return getPremisEvent(amd, metsElement, datastream, md5Info, eventDetail, newId, "successful");
+        return getPremisEvent(amd, metsElement, datastream, md5Info, eventDetail, newId, "ProArc", "successful");
     }
 
-    private static Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId, String eventDetailOutcome) throws Exception {
+    private static Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId, String agentName, String eventDetailOutcome) throws Exception {
 
         String relatedEventIdentifierValue = Const.dataStreamToEvent.get(datastream);
         if (newId != null) {
@@ -669,7 +669,7 @@ public class PremisEditor {
             eventInformation.getContent().add(factory.createEventOutcome("successful"));
         }
 
-        LinkingAgentIdentifierComplexType linkingAgentIdentifier = fillLinkingAgentIdentifier(amd);
+        LinkingAgentIdentifierComplexType linkingAgentIdentifier = fillLinkingAgentIdentifier(amd, agentName);
         LinkingObjectIdentifierComplexType linkingObject = new LinkingObjectIdentifierComplexType();
         linkingObject.setLinkingObjectIdentifierType("ProArc_URI");
         linkingObject.setLinkingObjectIdentifierValue(Const.FEDORAPREFIX + metsElement.getOriginalPid() + "/" + Const.dataStreamToModel.get(datastream));
@@ -679,7 +679,7 @@ public class PremisEditor {
         return createNode(jaxbPremix, jc, "*[local-name()='premis']/*[local-name()='event']");
     }
 
-    private static LinkingAgentIdentifierComplexType fillLinkingAgentIdentifier(AmdSecType amd) {
+    private static LinkingAgentIdentifierComplexType fillLinkingAgentIdentifier(AmdSecType amd, String agentName) {
         String identifierType;
         String identifierValue;
         String role;
@@ -690,7 +690,11 @@ public class PremisEditor {
             role = event.getLinkingAgentIdentifier().get(0).getLinkingAgentRole().get(0);
         } catch (Exception ex) {
             identifierType = "ProArc_AgentID";
-            identifierValue = "ProArc";
+            if (agentName != null && !agentName.isEmpty()) {
+                identifierValue = agentName;
+            } else {
+                identifierValue = "ProArc";
+            }
             role = "software";
         }
         LinkingAgentIdentifierComplexType linkingAgent = new LinkingAgentIdentifierComplexType();
@@ -720,7 +724,31 @@ public class PremisEditor {
         return createNode(jaxbPremix, jc, "*[local-name()='agent']");
     }
 
+    public static Node getCustomAgent(IMetsElement metsElement, String agentValue) throws MetsExportException {
+        try {
+            return getCustomAgent(null, metsElement, agentValue);
+        } catch (Exception e) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Error while generating premis data", false, e);
+        }
+    }
+
+    private static Node getCustomAgent(AmdSecType amd, IMetsElement metsElement, String agentValue) throws Exception {
+        ObjectFactory factory = new ObjectFactory();
+        AgentComplexType agent = fillAgent(amd, factory, agentValue);
+        JAXBElement<AgentComplexType> jaxbPremix = factory.createAgent(agent);
+        AgentIdentifierComplexType agentIdentifier = new AgentIdentifierComplexType();
+        agent.getAgentIdentifier().add(agentIdentifier);
+        agentIdentifier.setAgentIdentifierType("ProArc_AgentID");
+        agentIdentifier.setAgentIdentifierValue(agentValue);
+        JAXBContext jc = JAXBContext.newInstance(AgentComplexType.class);
+        return createNode(jaxbPremix, jc, "*[local-name()='agent']");
+    }
+
     private static AgentComplexType fillAgent(AmdSecType amd, ObjectFactory factory) {
+        return fillAgent(amd, factory, null);
+    }
+
+    private static AgentComplexType fillAgent(AmdSecType amd, ObjectFactory factory, String agentNameValue) {
         String agentType;
         String agentName;
         AgentComplexType agentComplexType = new AgentComplexType();
@@ -733,7 +761,11 @@ public class PremisEditor {
             extension.getAny().add(addNkNode(agent));
         } catch (Exception ex) {
             LOG.log(Level.FINE, "Can not get value from Premis, set defualt values");
-            agentName = "ProArc";
+            if (agentNameValue != null && !agentNameValue.isEmpty()) {
+                agentName = agentNameValue;
+            } else {
+                agentName = "ProArc";
+            }
             agentType = "software";
         }
         agentComplexType.getAgentName().add(agentName);
