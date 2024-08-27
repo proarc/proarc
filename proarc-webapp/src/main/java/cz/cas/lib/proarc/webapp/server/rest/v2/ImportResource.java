@@ -290,7 +290,7 @@ public class ImportResource extends ImportResourceV1 {
     @POST
     @Path(ImportResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObjectResourceV1.InternalProcessResult> generateAlto(
+    public SmartGwtResponse<DigitalObjectResourceV1.InternalExternalProcessResult> generateAlto(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
     ) {
         try {

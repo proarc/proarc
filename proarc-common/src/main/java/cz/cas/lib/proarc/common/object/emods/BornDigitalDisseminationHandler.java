@@ -86,6 +86,10 @@ public class BornDigitalDisseminationHandler implements DisseminationHandler {
         objHandler.getFedoraObject().purgeDatastream(BinaryEditor.RAW_ID, message);
         objHandler.getFedoraObject().purgeDatastream(BinaryEditor.PREVIEW_ID, message);
         objHandler.getFedoraObject().purgeDatastream(BinaryEditor.THUMB_ID, message);
+        objHandler.getFedoraObject().purgeDatastream(BinaryEditor.FULL_ID, message);
+        objHandler.getFedoraObject().purgeDatastream(BinaryEditor.NDK_ARCHIVAL_ID, message);
+        objHandler.getFedoraObject().purgeDatastream(BinaryEditor.NDK_USER_ID, message);
+        objHandler.getFedoraObject().purgeDatastream(BinaryEditor.SOURCE_ID, message);
     }
 
     private void createThumbnail(File inputFile, String message) throws DigitalObjectException {

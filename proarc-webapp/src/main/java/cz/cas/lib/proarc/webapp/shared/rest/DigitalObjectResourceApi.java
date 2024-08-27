@@ -222,6 +222,7 @@ public final class DigitalObjectResourceApi {
     /** Resource /object/ocr */
     public static final String OCR_PATH = "ocr";
 
+    public static final String GENERATE_PDFA = "generatePdfA";
     public static final String GENERATE_ALTO_PATH = "generateAlto";
     public static final String VALIDATE_OBJECT_PATH = "validate";
 

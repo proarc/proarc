@@ -422,6 +422,10 @@ public final class ImportProcess implements Runnable {
             return importer;
         }
 
+        public ImportProfile getProfile() {
+            return profile;
+        }
+
         public File getImportFolder() {
             return importFolder;
         }

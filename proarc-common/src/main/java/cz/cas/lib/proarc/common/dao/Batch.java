@@ -58,6 +58,7 @@ public class Batch {
     public static final String INTERNAL_DELETION = "internalProfile.deletion";
 
     public static final String EXTERNAL_PERO = "externalProfile.pero";
+    public static final String EXTERNAL_PDFA = "externalProfile.pdfa";
 
     public enum State {
 

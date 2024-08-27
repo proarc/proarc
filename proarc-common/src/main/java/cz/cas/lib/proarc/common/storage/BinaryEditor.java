@@ -48,6 +48,10 @@ public final class BinaryEditor {
     public static final String NDK_USER_ID = "NDK_USER";
     public static final String NDK_USER_LABEL = "NDK user copy of RAW";
 
+    /* source slouzi k ulozeni nezeditovanych streamu */
+    public static final String SOURCE_ID = "SOURCE";
+    public static final String SOURCE_LABEL = "Source digital content of this object";
+
     public static final String RAW_AUDIO_ID = "RAW_AUDIO";
     public static final String RAW_AUDIO_LABEL = "Original digital content of audio object";
     /** ID of the optional data stream to hold a NDK audio archive copy of RAW. E.g. lossless WAV. */
@@ -75,8 +79,9 @@ public final class BinaryEditor {
      * Data stream IDs with binary contents.
      */
     private static final List<String> MEDIA_DS_IDS = Arrays.asList(
-            BinaryEditor.FULL_ID, BinaryEditor.PREVIEW_ID, BinaryEditor.RAW_ID,
-            BinaryEditor.THUMB_ID, BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.NDK_USER_ID);
+            BinaryEditor.FULL_ID, BinaryEditor.PREVIEW_ID, BinaryEditor.THUMB_ID,
+            BinaryEditor.RAW_ID, BinaryEditor.SOURCE_ID,
+            BinaryEditor.NDK_ARCHIVAL_ID, BinaryEditor.NDK_USER_ID);
 
     private final XmlStreamEditor editor;
     private final ProArcObject object;
@@ -115,6 +120,8 @@ public final class BinaryEditor {
             dp = FoxmlUtils.managedProfile(dsId, mime, NDK_AUDIO_ARCHIVAL_FLAC_LABEL);
         } else if (NDK_AUDIO_USER_OGG_ID.equals(dsId)) {
             dp = FoxmlUtils.managedProfile(dsId, mime, NDK_AUDIO_USER_OGG_LABEL);
+        } else if (SOURCE_ID.equals(dsId)) {
+            dp = FoxmlUtils.managedProfile(dsId, mime, SOURCE_LABEL);
         } else {
             return null;
         }

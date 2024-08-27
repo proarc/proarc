@@ -188,6 +188,17 @@ public class Const {
     public static final String EXPORT_PATH_USERCOPY_AUDIO = "usercopy_audio";
     public static final String EXPORT_PATH_SOURCE_AUDIO = "source_audio";
 
+
+    public static final String PREMIS_EVENT_IDENTIFIER_DIGITALIZATION = "digitization_001";
+    public static final String PREMIS_EVENT_IDENTIFIER_MC_CREATION = "MC_creation_001";
+    public static final String PREMIS_EVENT_IDENTIFIER_UC_CREATION = "UC_creation_001";
+    public static final String PREMIS_EVENT_IDENTIFIER_XML_CREATION = "XML_creation_001";
+    public static final String PREMIS_EVENT_IDENTIFIER_TXT_CREATION = "TXT_creation_001";
+    public static final String PREMIS_EVENT_IDENTIFIER_PDF_CREATION = "PDF_creation_001";
+    public static final String PREMIS_EVENT_IDENTIFIER_PDF_VALIDATION = "PDF_validation_001";
+    public static final String PREMIS_EVENT_IDENTIFIER_DELETION = "deletion_001";
+
+
     private Const() {
     }
 
@@ -348,13 +359,13 @@ public class Const {
         dataStreamToModel.put(OC_GRP_ID_CREATION, "PDF");
         dataStreamToModel.put(OC_GRP_ID_VALIDATION, "PDF");
 
-        dataStreamToEvent.put(RAW_GRP_ID, "digitization_001");
-        dataStreamToEvent.put(MC_GRP_ID, "MC_creation_001");
-        dataStreamToEvent.put(ALTO_GRP_ID, "XML_creation_001");
-        dataStreamToEvent.put(UC_GRP_ID, "UC_creation_001");
-        dataStreamToEvent.put(TXT_GRP_ID, "TXT_creation_001");
-        dataStreamToEvent.put(OC_GRP_ID_VALIDATION, "PDF_validation_001");
-        dataStreamToEvent.put(OC_GRP_ID_CREATION, "PDF_Creation_001");
+        dataStreamToEvent.put(RAW_GRP_ID, PREMIS_EVENT_IDENTIFIER_DIGITALIZATION);
+        dataStreamToEvent.put(MC_GRP_ID, PREMIS_EVENT_IDENTIFIER_MC_CREATION);
+        dataStreamToEvent.put(ALTO_GRP_ID, PREMIS_EVENT_IDENTIFIER_XML_CREATION);
+        dataStreamToEvent.put(UC_GRP_ID, PREMIS_EVENT_IDENTIFIER_UC_CREATION);
+        dataStreamToEvent.put(TXT_GRP_ID, PREMIS_EVENT_IDENTIFIER_TXT_CREATION);
+        dataStreamToEvent.put(OC_GRP_ID_VALIDATION, PREMIS_EVENT_IDENTIFIER_PDF_VALIDATION);
+        dataStreamToEvent.put(OC_GRP_ID_CREATION, PREMIS_EVENT_IDENTIFIER_PDF_CREATION);
 
     }
 }

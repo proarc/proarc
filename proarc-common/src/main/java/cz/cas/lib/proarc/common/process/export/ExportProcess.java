@@ -21,7 +21,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import cz.cas.lib.proarc.common.actions.Validation;
+import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
@@ -275,8 +275,8 @@ public final class ExportProcess implements Runnable {
 
     private Batch archiveExport(Batch batch, BatchParams params) {
         try {
-            Validation validation = new Validation(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
-            Validation.Result result = validation.validate(Validation.Type.EXPORT_ARCHIVE);
+            ValidationProcess validationProcess = new ValidationProcess(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
+            ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.EXPORT_ARCHIVE);
             if (!result.isStatusOk(true)) {
                 batch = finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
                 return batch;
@@ -630,8 +630,8 @@ public final class ExportProcess implements Runnable {
 //            URI exportUri = user.getExportFolder();
 //            File exportFolder = new File(exportUri);
 //            List<ExportResult> result = new ArrayList<>(params.getPids().size());
-            Validation validation = new Validation(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
-            Validation.Result result = validation.validate(Validation.Type.EXPORT_NDK);
+            ValidationProcess validationProcess = new ValidationProcess(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
+            ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.EXPORT_NDK);
             if (!result.isStatusOk(true)) {
                 batch = finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
                 return batch;

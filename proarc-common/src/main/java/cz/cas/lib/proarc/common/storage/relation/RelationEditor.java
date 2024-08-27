@@ -16,14 +16,14 @@
  */
 package cz.cas.lib.proarc.common.storage.relation;
 
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.WorkflowStorage;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -349,6 +349,14 @@ public final class RelationEditor {
 
     public void setArchivalCopiesPath(String archivalCopiesPath) throws DigitalObjectException {
         getRdf().getDescription().setArchivalCopiesPath(archivalCopiesPath);
+    }
+
+    public String getPdfValidationStatus() throws DigitalObjectException {
+        return getRdf().getDescription().getPdfValidationStatus();
+    }
+
+    public void setPdfValidationStatus(String status) throws DigitalObjectException {
+        getRdf().getDescription().setPdfValidationStatus(status);
     }
 
     /**

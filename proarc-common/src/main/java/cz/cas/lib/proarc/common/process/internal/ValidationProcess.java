@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.actions;
+package cz.cas.lib.proarc.common.process.internal;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -42,9 +42,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 
-public class Validation {
+public class ValidationProcess {
 
-    private static final Logger LOG = Logger.getLogger(Validation.class.getName());
+    private static final Logger LOG = Logger.getLogger(ValidationProcess.class.getName());
 
     private static AppConfiguration appConfig;
     private static AkubraConfiguration akubraConfiguration;
@@ -82,7 +82,7 @@ public class Validation {
             OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC
     ));
 
-    public Validation(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, List<String> pids, Locale locale) {
+    public ValidationProcess(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, List<String> pids, Locale locale) {
         this.appConfig = appConfig;
         this.akubraConfiguration = akubraConfiguration;
         this.pids = pids;

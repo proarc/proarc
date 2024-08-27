@@ -37,8 +37,8 @@ import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.process.internal.InternalDispatcher;
-import cz.cas.lib.proarc.common.process.internal.InternalProcess;
+import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
+import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.sql.DbUtils;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -237,10 +237,10 @@ public final class ProarcInitializer {
     private void initInternal(AppConfiguration config, AkubraConfiguration akubraConfiguration, DaoFactory daoFactory) {
         BatchManager.setInstance(config, daoFactory);
         BatchManager ibm = BatchManager.getInstance();
-        InternalDispatcher internalDispatcher = new InternalDispatcher();
-        InternalDispatcher.setDefault(internalDispatcher);
-        internalDispatcher.init();
-        InternalProcess.resumeAll(ibm, internalDispatcher, config, akubraConfiguration);
+        InternalExternalDispatcher internalExternalDispatcher = new InternalExternalDispatcher();
+        InternalExternalDispatcher.setDefault(internalExternalDispatcher);
+        internalExternalDispatcher.init();
+        InternalExternalProcess.resumeAll(ibm, internalExternalDispatcher, config, akubraConfiguration);
     }
 
     private void finishedExportingBatch(AppConfiguration config, DaoFactory daoFactory) {

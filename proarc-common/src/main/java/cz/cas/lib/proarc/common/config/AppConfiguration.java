@@ -52,6 +52,8 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 
+import static cz.cas.lib.proarc.common.process.imports.ImportProfile.GENERATE_PDFA_PROCESSOR;
+
 /**
  * Server side configurations.
  *
@@ -139,6 +141,11 @@ public final class AppConfiguration {
 
     public Configuration getExportPostProcessor() {
         String processor = config.getString(EXPORT_KWIS_POST_PROCESSOR, "-");
+        return config.subset(ImportProfile.PROCESSOR + "." + processor);
+    }
+
+    public Configuration getPdfAGeneratorProcessor() {
+        String processor = config.getString(GENERATE_PDFA_PROCESSOR, "-");
         return config.subset(ImportProfile.PROCESSOR + "." + processor);
     }
 

@@ -1798,7 +1798,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      *
      * @throws MetsExportException
      */
-    private void addStructLink() throws MetsExportException {
+    protected void addStructLink() throws MetsExportException {
         if (structToPageMap.keySet().size() > 0) {
             StructLink structLink = mets.getStructLink();
             if (structLink == null) {

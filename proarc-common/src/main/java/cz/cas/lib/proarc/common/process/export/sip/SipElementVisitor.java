@@ -29,10 +29,13 @@ import cz.cas.lib.proarc.common.process.export.mets.ObjectInfo;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.FileType;
@@ -64,6 +67,7 @@ import org.w3c.dom.Node;
 
 import static cz.cas.lib.proarc.common.storage.PremisEditor.addPremisNodeToMets;
 import static cz.cas.lib.proarc.common.storage.PremisEditor.getAgent;
+import static cz.cas.lib.proarc.common.storage.PremisEditor.getCustomAgent;
 import static cz.cas.lib.proarc.common.storage.PremisEditor.getPremisEvent;
 import static cz.cas.lib.proarc.common.storage.PremisEditor.getPremisFile;
 
@@ -217,8 +221,39 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         String indexToSecondValue = String.format("%03d", 2 * index);
         addPremisNodeToMets(getPremisFile(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), null, objectInfo, indexToFirstValue), amdSec, "OBJ_" + indexToFirstValue, true, null);
         addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_CREATION, md5InfosMap.get(Const.OC_GRP_ID_CREATION), "creation", indexToFirstValue), amdSec, "EVT_" + indexToFirstValue, true, null);
-        addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_VALIDATION, md5InfosMap.get(Const.OC_GRP_ID_VALIDATION), "validation", indexToSecondValue), amdSec, "EVT_" + indexToSecondValue, true, null);
+        String validationStatus = getValidationStatus(metsElement);
+        String validatorName = validationStatus == null || validationStatus.isEmpty() ? "ProArc" : "veraPDF";
+        addPremisNodeToMets(getPremisEvent(metsElement, Const.OC_GRP_ID_VALIDATION, md5InfosMap.get(Const.OC_GRP_ID_VALIDATION), "validation", indexToSecondValue, validatorName, validationStatus), amdSec, "EVT_" + indexToSecondValue, true, null);
         addPremisNodeToMets(getAgent(metsElement), amdSec, "AGENT_" + indexToFirstValue, true, null);
+        if (validationStatus != null) {
+            addPremisNodeToMets(getCustomAgent(metsElement, validatorName), amdSec, "AGENT_" + indexToSecondValue, true, null);
+        }
+    }
+
+    private String getValidationStatus(IMetsElement metsElement) throws MetsExportException {
+        ProArcObject object = null;
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            object = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            object = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
+        } else {
+            throw new IllegalStateException("Unsupported type of Storage: " + metsElement.getMetsContext().getTypeOfStorage());
+        }
+
+        RelationEditor relationEditor = new RelationEditor(object);
+        try {
+            String value = relationEditor.getPdfValidationStatus();
+            if (value == null || value.isEmpty()) {
+                return null;
+            } else if ("OK".equals(value)) {
+                return "successful";
+            } else {
+                return "failed";
+            }
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            throw new MetsExportException(ex.getMessage(), false, ex);
+        }
     }
 
     private void prepareFileType(IMetsElement metsElement) throws MetsExportException {
@@ -709,5 +744,11 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
     @Override
     protected void addNdkEObjectPidToExport(IMetsElement element) {
         pidsToExport.add(element);
+    }
+
+    // u ndk EModelu se nepridava zadny structLink
+    @Override
+    protected void addStructLink() throws MetsExportException {
+        return;
     }
 }
