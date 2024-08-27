@@ -646,6 +646,9 @@ public class PremisEditor {
     private static Node getPremisEvent(AmdSecType amd, IMetsElement metsElement, String datastream, FileMD5Info md5Info, String eventDetail, String newId, String agentName, String eventDetailOutcome) throws Exception {
 
         String relatedEventIdentifierValue = Const.dataStreamToEvent.get(datastream);
+        if (Const.PREMIS_EVENT_IDENTIFIER_DIGITALIZATION.equals(relatedEventIdentifierValue) && eventDetail.contains("deletion")) {
+            relatedEventIdentifierValue = Const.PREMIS_EVENT_IDENTIFIER_DELETION;
+        }
         if (newId != null) {
             relatedEventIdentifierValue.replace("001", newId);
         }
