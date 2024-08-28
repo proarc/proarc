@@ -162,7 +162,7 @@ public class ValidationProcess {
         if (mods != null) {
             ModsRules modsRules = new ModsRules(item.getModel(), mods, ex, parentModel, appConfig);
             try {
-                modsRules.check();
+                modsRules.checkExtended();
             } catch (DigitalObjectValidationException e) {
                 processValidationException(item.getPid(), e, result);
             }

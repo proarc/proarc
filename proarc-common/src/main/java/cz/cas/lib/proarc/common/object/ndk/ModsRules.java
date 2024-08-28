@@ -82,8 +82,24 @@ public class ModsRules {
         }
     }
 
+    public void checkExtended() throws DigitalObjectValidationException{
+        if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
+            checkGenreType(mods);
+        }
+        checkPhysicalLocation(mods.getLocation());
+        checkPhysicalLocationCount(mods.getLocation());
+        checkRelatedItemPhysicalLocation(mods.getRelatedItem());
+
+        if (!exception.getValidations().isEmpty()){
+            throw exception;
+        }
+    }
+
     public void checkPhysicalLocation(List<LocationDefinition> locations) {
         checkPhysicalLocation(locations, ERR_NDK_PHYSICALLOCATION_SIGLA);
+    }
+
+    public void checkPhysicalLocationCount(List<LocationDefinition> locations) {
         if (locations.size() > 1) {
             if (!NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId)) {
                 exception.addValidation("MODS rules", ERR_NDK_PHYSICALLOCATION_MULTIPLE, true);
