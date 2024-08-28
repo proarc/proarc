@@ -67,6 +67,7 @@ public final class CatalogConfiguration {
     public static final String PROPERTY_CATALOG_DIRECTORY = "catalogDirectory";
     public static final String PROPERTY_CATALOG_URL_LINK = "catalogUrlLink";
     public static final String PROPERTY_FIELD001_BASE_LENGHT = "baseLenght";
+    public static final String PROPERTY_FIELD001_BASE_DEFAULT = "baseDefault";
     public static final String PROPERTY_FIELD001_SYSNO_LENGHT = "sysnoLenght";
 
     private final String id;
@@ -133,7 +134,11 @@ public final class CatalogConfiguration {
     }
 
     public Integer getField001BaseLenght() {
-        return properties.getInteger(PROPERTY_FIELD001_BASE_LENGHT, 5);
+        return properties.getInteger(PROPERTY_FIELD001_BASE_LENGHT, 0);
+    }
+
+    public String getField001BaseDefault() {
+        return properties.getString(PROPERTY_FIELD001_BASE_DEFAULT);
     }
 
     public Integer getField001SysnoLenght() {

@@ -31,6 +31,7 @@ import org.codehaus.jettison.json.JSONException;
 
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_CATALOG_DIRECTORY;
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_CATALOG_URL_LINK;
+import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_FIELD001_BASE_DEFAULT;
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_FIELD001_BASE_LENGHT;
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_FIELD001_SYSNO_LENGHT;
 
@@ -63,7 +64,12 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
         if (catalog.getField001BaseLenght() == null || catalog.getField001BaseLenght() < 0) {
             LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_BASE_LENGHT));
             ok = false;
-        }if (catalog.getField001SysnoLenght() == null || catalog.getField001SysnoLenght() < 0) {
+        }
+        if (catalog.getField001BaseDefault() == null || catalog.getField001BaseDefault().isEmpty()) {
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_BASE_DEFAULT));
+            ok = false;
+        }
+        if (catalog.getField001SysnoLenght() == null || catalog.getField001SysnoLenght() < 0) {
             LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_SYSNO_LENGHT));
             ok = false;
         }
@@ -75,7 +81,7 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
         if (allowUpdateRecord(catalogConfiguration)) {
             try {
                 int expectedLength = getExpectedLength(catalogConfiguration);
-                if (expectedLength == field001.length()) {
+                if (expectedLength == field001.length() || expectedLength == field001.length() + catalogConfiguration.getField001BaseDefault().length()) {
                     String base = getBase(field001, catalogConfiguration);
                     String sysno = getSysno(field001, catalogConfiguration);
                     return updateRecord(base, sysno, catalogConfiguration.getCatalogUrlLink(), pid, catalogConfiguration.getCatalogDirectory());
@@ -116,6 +122,9 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
         if (baseLenght == null || baseLenght < 1) {
             return field001.substring(0, sysnoLenght);
         } else {
+            if (sysnoLenght == field001.length()) {
+                return field001;
+            }
             return field001.substring(baseLenght, baseLenght + sysnoLenght);
         }
     }
@@ -125,7 +134,11 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
         if (lenght == null || lenght < 1) {
             return "";
         } else {
-            return field001.substring(0, lenght).toLowerCase();
+            if (field001.length() == catalogConfiguration.getField001SysnoLenght()) {
+                return catalogConfiguration.getField001BaseDefault();
+            } else {
+                return field001.substring(0, lenght).toLowerCase();
+            }
         }
     }
 
@@ -172,7 +185,7 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
         try {
             FileUtils.writeStringToFile(
                     csvFile,
-                    base + " @ " + sysno + " @ " + catalogLink + pid,
+                    base + " @ " + sysno + " @ " + catalogLink,
                     Charset.defaultCharset());
 
             csvFile.setReadable(true, false);
