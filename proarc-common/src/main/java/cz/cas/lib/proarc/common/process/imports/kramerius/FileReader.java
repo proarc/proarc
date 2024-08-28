@@ -788,7 +788,7 @@ public class FileReader {
             ModsStreamEditor modsStream = new ModsStreamEditor(localObject);
             ModsDefinition mods = modsStream.read();
             repairModsIdentifier(mods.getIdentifier());
-            setDefualtTitle(mods);
+//            setDefualtTitle(mods);
             setOriginDate(mods);
             setRdaRules(mods, modelId);
             removePart(mods, modelId);
