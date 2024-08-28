@@ -275,11 +275,13 @@ public final class ExportProcess implements Runnable {
 
     private Batch archiveExport(Batch batch, BatchParams params) {
         try {
-            ValidationProcess validationProcess = new ValidationProcess(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
-            ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.EXPORT_ARCHIVE);
-            if (!result.isStatusOk(true)) {
-                batch = finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
-                return batch;
+            if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+                ValidationProcess validationProcess = new ValidationProcess(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
+                ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.EXPORT_ARCHIVE);
+                if (!result.isStatusOk(true)) {
+                    batch = finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
+                    return batch;
+                }
             }
 
             URI exportUri = user.getExportFolder();
@@ -630,11 +632,13 @@ public final class ExportProcess implements Runnable {
 //            URI exportUri = user.getExportFolder();
 //            File exportFolder = new File(exportUri);
 //            List<ExportResult> result = new ArrayList<>(params.getPids().size());
-            ValidationProcess validationProcess = new ValidationProcess(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
-            ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.EXPORT_NDK);
-            if (!result.isStatusOk(true)) {
-                batch = finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
-                return batch;
+            if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+                ValidationProcess validationProcess = new ValidationProcess(config, akubraConfiguration, params.getPids(), exportOptions.getLocale());
+                ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.EXPORT_NDK);
+                if (!result.isStatusOk(true)) {
+                    batch = finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
+                    return batch;
+                }
             }
 
             NdkExport export;

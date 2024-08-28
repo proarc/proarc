@@ -304,9 +304,12 @@ public class ValidationProcess {
         if (item.getPageNumber() == null || item.getPageNumber().isEmpty()) {
             result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný číslo strany.", Level.SEVERE));
         }
-        if (item.getPageType() == null || item.getPageType().isEmpty()) {
-            result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný typ strany.", Level.SEVERE));
-        }
+
+        /* normalPage pageType vyplněný nemá. Nutné zrušit kontrolu  @link https://github.com/proarc/proarc-client/issues/592 */
+//        if (item.getPageType() == null || item.getPageType().isEmpty()) {
+//            result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný typ strany.", Level.SEVERE));
+//        }
+
         if (item.getPageRepre() != null && !item.getPageRepre().isEmpty()) {
             if ("reprePage".equals(item.getPageRepre())) {
                 if (reprePageValue) {
