@@ -111,6 +111,11 @@ public class ValidationProcess {
 
         List<SearchViewItem> items = search.find(pids);
         for (SearchViewItem item : items) {
+
+            this.indexPageValue = 1;
+            this.reprePageValue = false;
+            this.positionPageValue = null;
+
             List<SearchViewItem> parentsList = search.findReferrers(item.getPid());
             if (parentsList.size() > 1) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt má více nadřazených objektů!", Level.SEVERE));

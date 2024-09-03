@@ -239,6 +239,7 @@ public class NdkNewPageForm {
                 .addMapValue("index", "Rejst\u0159\u00edk (Index)")
                 .addMapValue("advertisement", "Reklama (Advertisement)")
                 .addMapValue("interview", "Rozhovor (Interview)")
+                .addMapValue("manuscriptNotes", "Rukopisn\u00e1 pozn\u00e1mka (Manuscript note)")
                 .addMapValue("listOfIllustrations", "Seznam ilustrac\u00ed (ListOfIllustrations)")
                 .addMapValue("listOfMaps", "Seznam map (ListOfMaps)")
                 .addMapValue("listOfSupplements","Seznam p\u0159\u00edloh (ListOfSupplements)")
