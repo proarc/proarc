@@ -285,8 +285,8 @@ public final class DeviceRepository {
                 try {
                     JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
                     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-                    unmarshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-                    unmarshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
+//                    unmarshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+//                    unmarshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
                     audiodesc = (Mets) unmarshaller.unmarshal(audiosrc);
                     audiodesc = repairNkComplexType(audiodesc);
                 } catch (JAXBException e) {
@@ -360,7 +360,7 @@ public final class DeviceRepository {
                         EditorResult result = audiodescriptionEditor.createResult();
                         JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
                         Marshaller marshaller = jaxbContext.createMarshaller();
-                        marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+                        marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
                         marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
                         marshaller.marshal(update.getAudioDescription(), result);
                         audiodescriptionEditor.write(result, update.getAudioTimestamp(), log);
