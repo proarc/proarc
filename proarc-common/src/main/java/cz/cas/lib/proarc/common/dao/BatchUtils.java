@@ -68,8 +68,8 @@ public class BatchUtils {
         return batchManager.update(batch);
     }
 
-    public static Batch addNewExportBatch(BatchManager batchManager, List<String> pids, UserProfile user, String exportProfile, BatchParams params) {
-        return addNewBatch(batchManager, pids, user, exportProfile, Batch.State.EXPORT_PLANNED, Batch.State.EXPORT_FAILED, params);
+    public static Batch addNewExportBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, BatchParams params) {
+        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.EXPORT_PLANNED, Batch.State.EXPORT_FAILED, params);
     }
 
     public static Batch startWaitingExportBatch(BatchManager batchManager, Batch batch) {

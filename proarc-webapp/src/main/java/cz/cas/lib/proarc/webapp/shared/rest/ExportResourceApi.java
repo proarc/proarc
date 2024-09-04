@@ -91,6 +91,7 @@ public final class ExportResourceApi {
     public enum Package {SIP, PSP, STT, CHRONICLE};
     public static final String RESULT_TARGET = "target";
     public static final String RESULT_ID = "exportId";
+    public static final String RESULT_IDS = "exportIds";
     public static final String RESULT_TOKEN = "token";
     public static final String RESULT_ERRORS = "errors";
 

@@ -278,12 +278,16 @@ public class ExportResourceV1 {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DATASTREAM_DSID_PARAM);
         }
 
-        BatchParams params = new BatchParams(pids, hierarchy, dsIds);
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_DATASTREAM, params);
+        List<Integer> batchIds = new ArrayList<>();
+        for (String pid : pids) {
+            BatchParams params = new BatchParams(Collections.singletonList(pid), hierarchy, dsIds);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_DATASTREAM, params);
 
-        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-        ExportDispatcher.getDefault().addExport(process);
-        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+            ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            ExportDispatcher.getDefault().addExport(process);
+            batchIds.add(batch.getId());
+        }
+        ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new SmartGwtResponse<ExportResult>(result);
     }
 
@@ -312,12 +316,16 @@ public class ExportResourceV1 {
         if (policy == null || policy.isEmpty() || policy.contains("undefined")) {
             policy = null;
         }
-        BatchParams params = new BatchParams(pids, policy, hierarchy, krameriusInstanceId, isBagit, license);
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KRAMERIUS, params);
+        List<Integer> batchIds = new ArrayList<>();
+        for (String pid : pids) {
+            BatchParams params = new BatchParams(Collections.singletonList(pid), policy, hierarchy, krameriusInstanceId, isBagit, license);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KRAMERIUS, params);
 
-        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-        ExportDispatcher.getDefault().addExport(process);
-        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+            ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            ExportDispatcher.getDefault().addExport(process);
+            batchIds.add(batch.getId());
+        }
+        ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new SmartGwtResponse<ExportResult>(result);
     }
 
@@ -346,12 +354,17 @@ public class ExportResourceV1 {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
-        BatchParams params = new BatchParams(pids, hierarchy, forDownload, dryRun);
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_DESA, params);
 
-        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-        ExportDispatcher.getDefault().addExport(process);
-        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        List<Integer> batchIds = new ArrayList<>();
+        for (String pid : pids) {
+            BatchParams params = new BatchParams(Collections.singletonList(pid), hierarchy, forDownload, dryRun);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_DESA, params);
+
+            ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            ExportDispatcher.getDefault().addExport(process);
+            batchIds.add(batch.getId());
+        }
+        ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new SmartGwtResponse<ExportResult>(result);
     }
 
@@ -419,12 +432,16 @@ public class ExportResourceV1 {
             result.setIgnoreMissingUrnNbn(true);
             return new SmartGwtResponse<ExportResult>(result);
         }
-        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy);
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_NDK, params);
+        List<Integer> batchIds = new ArrayList<>();
+        for (String pid : pids) {
+            BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, Collections.singletonList(pid), user, Batch.EXPORT_NDK, params);
 
-        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-        ExportDispatcher.getDefault().addExport(process);
-        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+            ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            ExportDispatcher.getDefault().addExport(process);
+            batchIds.add(batch.getId());
+        }
+        ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new SmartGwtResponse<ExportResult>(result);
     }
 
@@ -444,12 +461,16 @@ public class ExportResourceV1 {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CEJSH_PID_PARAM);
         }
 
-        BatchParams params = new BatchParams(pids);
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_CEJSH, params);
+        List<Integer> batchIds = new ArrayList<>();
+        for (String pid : pids) {
+            BatchParams params = new BatchParams(Collections.singletonList(pid));
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CEJSH, params);
 
-        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-        ExportDispatcher.getDefault().addExport(process);
-        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+            ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            ExportDispatcher.getDefault().addExport(process);
+            batchIds.add(batch.getId());
+        }
+        ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new SmartGwtResponse<ExportResult>(result);
     }
 
@@ -468,12 +489,17 @@ public class ExportResourceV1 {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.CROSSREF_PID_PARAM);
         }
-        BatchParams params = new BatchParams(pids);
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_CROSSREF, params);
 
-        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-        ExportDispatcher.getDefault().addExport(process);
-        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        List<Integer> batchIds = new ArrayList<>();
+        for (String pid : pids) {
+            BatchParams params = new BatchParams(Collections.singletonList(pid));
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CROSSREF, params);
+
+            ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            ExportDispatcher.getDefault().addExport(process);
+            batchIds.add(batch.getId());
+        }
+        ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new SmartGwtResponse<ExportResult>(result);
     }
 
@@ -506,12 +532,17 @@ public class ExportResourceV1 {
             result.setIgnoreMissingUrnNbn(true);
             return new SmartGwtResponse<ExportResult>(result);
         }
-        BatchParams params = new BatchParams(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage);
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_ARCHIVE, params);
 
-        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-        ExportDispatcher.getDefault().addExport(process);
-        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        List<Integer> batchIds = new ArrayList<>();
+        for (String pid : pids) {
+            BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_ARCHIVE, params);
+
+            ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            ExportDispatcher.getDefault().addExport(process);
+            batchIds.add(batch.getId());
+        }
+        ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new SmartGwtResponse<ExportResult>(result);
     }
 
@@ -528,12 +559,17 @@ public class ExportResourceV1 {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
-        BatchParams params = new BatchParams(pids, policy, hierarchy, null, false, license);
-        Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pids, user, Batch.EXPORT_KWIS, params);
 
-        ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-        ExportDispatcher.getDefault().addExport(process);
-        ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
+        List<Integer> batchIds = new ArrayList<>();
+        for (String pid : pids) {
+            BatchParams params = new BatchParams(Collections.singletonList(pid), policy, hierarchy, null, false, license);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KWIS, params);
+
+            ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            ExportDispatcher.getDefault().addExport(process);
+            batchIds.add(batch.getId());
+        }
+        ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new SmartGwtResponse<ExportResult>(result);
     }
 
@@ -620,6 +656,9 @@ public class ExportResourceV1 {
         @XmlElement(name = ExportResourceApi.RESULT_ID)
         private Integer exportId;
 
+        @XmlElement(name = ExportResourceApi.RESULT_IDS)
+        private List<Integer> exportIds;
+
         @XmlElement(name = ExportResourceApi.RESULT_TOKEN)
         private String token;
 
@@ -646,6 +685,11 @@ public class ExportResourceV1 {
             this.token = token;
         }
 
+        public ExportResult(List<Integer> exportIds, String target) {
+            this.exportIds = exportIds;
+            this.target = target;
+        }
+
         public ExportResult(Integer exportId, String target) {
             this.exportId = exportId;
             this.target = target;
@@ -669,6 +713,10 @@ public class ExportResourceV1 {
             return exportId;
         }
 
+        public List<Integer> getExportIds() {
+            return exportIds;
+        }
+
         public String getTarget() {
             return target;
         }
@@ -683,6 +731,10 @@ public class ExportResourceV1 {
 
         public void setExportId(Integer exportId) {
             this.exportId = exportId;
+        }
+
+        public void setExportIds(List<Integer> exportIds) {
+            this.exportIds = exportIds;
         }
 
         public void setTarget(String target) {
