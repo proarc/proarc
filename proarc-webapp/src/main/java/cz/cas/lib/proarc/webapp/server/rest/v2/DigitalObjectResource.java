@@ -685,10 +685,11 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_TYPE) Boolean copyPageType,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_INDEX) Boolean copyPageIndex,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_POSITION) Boolean copyPagePosition,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_REPRE) Boolean copyPageRepre,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
         try {
-            return super.copyDescriptionMetadataToPages(sourcePids, destinationPids, copyPageNumber, copyPageType, copyPageIndex, copyPagePosition, batchId);
+            return super.copyDescriptionMetadataToPages(sourcePids, destinationPids, copyPageNumber, copyPageType, copyPageIndex, copyPagePosition, copyPageRepre, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());

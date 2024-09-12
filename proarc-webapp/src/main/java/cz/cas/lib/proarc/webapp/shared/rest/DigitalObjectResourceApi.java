@@ -47,6 +47,7 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_COPY_PAGE_INDEX = "copyPageIndex";
     public static final String DIGITALOBJECT_COPY_PAGE_TYPE = "copyPageType";
     public static final String DIGITALOBJECT_COPY_PAGE_POSITION = "copyPagePosition";
+    public static final String DIGITALOBJECT_COPY_PAGE_REPRE = "copyReprePage";
 
     public static final String CHANGE_OWNER_PATH = "changeOwner";
     public static final String DIGITALOBJECT_CHANGE_OWNER_OLD = "oldOwner";

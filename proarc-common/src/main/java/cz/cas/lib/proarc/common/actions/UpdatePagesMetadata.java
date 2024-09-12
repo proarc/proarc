@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.actions;
 
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
@@ -57,14 +58,16 @@ public class UpdatePagesMetadata {
     private Boolean copyPageNumber;
     private Boolean copyPageType;
     private Boolean copyPagePosition;
+    private Boolean copyPageRepre;
 
-    public UpdatePagesMetadata(List<String> sourcePids, List<String> destinationPids, Boolean copyPageIndex, Boolean copyPageNumber, Boolean copyPageType, Boolean copyPagePosition) {
+    public UpdatePagesMetadata(List<String> sourcePids, List<String> destinationPids, Boolean copyPageIndex, Boolean copyPageNumber, Boolean copyPageType, Boolean copyPagePosition, Boolean copyPageRepre) {
         this.sourcePids = sourcePids;
         this.destinationPids = destinationPids;
         this.copyPageIndex = copyPageIndex;
         this.copyPageNumber = copyPageNumber;
         this.copyPageType = copyPageType;
         this.copyPagePosition = copyPagePosition;
+        this.copyPageRepre = copyPageRepre;
     }
 
     public void updatePagesLocal(List<BatchManager.BatchItemObject> objects) throws DigitalObjectException {
@@ -161,6 +164,9 @@ public class UpdatePagesMetadata {
                 if (copyPagePosition) {
                     setPagePosition(mods, sourceModsInfo, model);
                 }
+                if (copyPageRepre) {
+                    setPageRepre(mods, sourceModsInfo, model);
+                }
             }
         } else {
             throw new DigitalObjectException("Unsupported model: " + model);
@@ -181,6 +187,21 @@ public class UpdatePagesMetadata {
                 mods.getNote().add(noteDefinition);
             }
             noteDefinition.setValue(sourceModsInfo.getPagePosition());
+        }
+    }
+
+    private void setPageRepre(ModsDefinition mods, SourceModsInfo sourceModsInfo, String model) {
+        if (sourceModsInfo.getPageRepre() != null && !sourceModsInfo.getPageRepre().isEmpty()) {
+            GenreDefinition genreDefinition = null;
+            for (GenreDefinition genre : mods.getGenre()) {
+                genreDefinition = genre;
+                break;
+            }
+            if (genreDefinition == null) {
+                genreDefinition = new GenreDefinition();
+                mods.getGenre().add(genreDefinition);
+            }
+            genreDefinition.setValue(sourceModsInfo.getPageRepre());
         }
     }
 
@@ -335,7 +356,8 @@ public class UpdatePagesMetadata {
                 String pageNumber = getPageNumber(mods, model);
                 String pageType = getPageType(mods);
                 String pagePosition = getPagePosition(mods);
-                SourceModsInfo sourceModsInfo = new SourceModsInfo(pageIndex, pageNumber, pageType, pagePosition);
+                String pageRepre = getPageRepre(mods);
+                SourceModsInfo sourceModsInfo = new SourceModsInfo(pageIndex, pageNumber, pageType, pagePosition, pageRepre);
                 return sourceModsInfo;
             } else {
                 throw new DigitalObjectException("Missing element mods for: " + pid);
@@ -343,6 +365,10 @@ public class UpdatePagesMetadata {
         } else {
             throw new DigitalObjectException("Unsupported model: " + model);
         }
+    }
+
+    private String getPageRepre(ModsDefinition mods) {
+        return ExportUtils.getGenre(mods);
     }
 
     private String getPagePosition(ModsDefinition mods) {
@@ -394,12 +420,14 @@ public class UpdatePagesMetadata {
         public String pageNumber;
         public String pageType;
         public String pagePosition;
+        public String pageRepre;
 
-        public SourceModsInfo(String pageIndex, String pageNumber, String pageType, String pagePosition) {
+        public SourceModsInfo(String pageIndex, String pageNumber, String pageType, String pagePosition, String pageRepre) {
             this.pageIndex = pageIndex;
             this.pageNumber = pageNumber;
             this.pageType = pageType;
             this.pagePosition = pagePosition;
+            this.pageRepre = pageRepre;
         }
 
         public String getPageIndex() {
@@ -416,6 +444,10 @@ public class UpdatePagesMetadata {
 
         public String getPagePosition() {
             return pagePosition;
+        }
+
+        public String getPageRepre() {
+            return pageRepre;
         }
     }
 }
