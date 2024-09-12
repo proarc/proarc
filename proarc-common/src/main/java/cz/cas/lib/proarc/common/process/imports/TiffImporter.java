@@ -262,6 +262,11 @@ public class TiffImporter implements ImageImporter {
         if (process != null) {
             process.run();
 
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                throw new IOException("Interupted process generating OCR for " + tiff.getName() + " failed.");
+            }
             if (!process.isOk()) {
                 throw new IOException("Generating OCR for " + tiff.getName() + " failed. \n " + process.getFullOutput());
             }

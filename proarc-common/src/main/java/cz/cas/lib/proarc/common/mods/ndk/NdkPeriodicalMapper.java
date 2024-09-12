@@ -187,7 +187,8 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
 
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="title"
-        MapperUtils.removeGenre(mods, Const.GENRE_ETITLE_PERIODICAL);
+        MapperUtils.removeGenre(mods, Const.GENRE_ETITLE_WRONG_SYNTAX);
+        MapperUtils.removeGenre(mods, Const.GENRE_ETITLE);
         MapperUtils.addGenre(mods, Const.GENRE_TITLE);
     }
 

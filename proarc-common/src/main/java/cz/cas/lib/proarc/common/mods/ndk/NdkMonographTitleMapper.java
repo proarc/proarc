@@ -54,6 +54,7 @@ public class NdkMonographTitleMapper extends RdaNdkMapper {
 
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="title"
+        MapperUtils.removeGenre(mods, Const.GENRE_VOLUME);
         MapperUtils.addGenre(mods, Const.GENRE_TITLE);
     }
 
