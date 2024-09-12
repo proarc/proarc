@@ -246,13 +246,13 @@ public class WorkflowResourceV1 {
         metadata = "null".equals(metadata) ? null : metadata;
         catalogId = "null".equals(catalogId) ? null : catalogId;
 
-        if (parentId != null) {
-            return addSubjob(profileName, parentId, model);
-        }
-
         CatalogConfiguration catalog = null;
         if (catalogId != null) {
             catalog = appConfig.getCatalogs().findConfiguration(catalogId);
+        }
+
+        if (parentId != null) {
+            return addSubjob(profileName, parentId, model, metadata, catalog, rdczId);
         }
 
         WorkflowDefinition profiles = workflowProfiles.getProfiles();
@@ -277,7 +277,7 @@ public class WorkflowResourceV1 {
         }
     }
 
-    private SmartGwtResponse<JobView> addSubjob(String profileName, BigDecimal parentId, String model) {
+    private SmartGwtResponse<JobView> addSubjob(String profileName, BigDecimal parentId, String model, String xml, CatalogConfiguration catalog, BigDecimal rdczId) {
         WorkflowDefinition profiles = workflowProfiles.getProfiles();
         if (profiles == null) {
             return profileError();
@@ -287,7 +287,7 @@ public class WorkflowResourceV1 {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
         try {
-            Job subjob = workflowManager.addSubjob(profile, parentId, model, session.getUser(), profiles, appConfig);
+            Job subjob = workflowManager.addSubjob(profile, parentId, model, session.getUser(), profiles, appConfig, xml, catalog, rdczId);
             JobFilter filter = new JobFilter();
             filter.setLocale(session.getLocale(httpHeaders));
             filter.setId(subjob.getId());

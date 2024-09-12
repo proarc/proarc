@@ -701,6 +701,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             item.setPageNumber(mapper.getNumber(mods));
             item.setPageType(mapper.getType(mods));
             item.setPagePosition(mapper.getPosition(mods));
+            item.setPageRepre(mapper.getPageRepre(mods));
             item.setPageTypeLabel(NdkPageMapper.getPageTypeLabel(item.getPageType(), locale));
             return item;
         } else {

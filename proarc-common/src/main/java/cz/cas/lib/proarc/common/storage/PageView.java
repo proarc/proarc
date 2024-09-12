@@ -51,8 +51,7 @@ public final class PageView {
             if (objectState == ObjectState.LOADING || objectState == ObjectState.LOADING_FAILED) {
                 // issue 245: it is unsafe to touch FOXML file if the object
                 // has not been loaded yet or it is broken
-                result.add(new Item(batchId, imp.getItem().getFile(), imp.getPid(),
-                        null, null, null, null, null, -1, null, null));
+                result.add(new Item(batchId, imp.getItem().getFile(), imp.getPid()));
                 continue;
             }
             result.add(createItem(imp, locale));
@@ -72,8 +71,7 @@ public final class PageView {
         String model = relsExt.getModel();
         String filename = relsExt.getImportFile();
         Item item = new Item(batchId, filename, imp.getPid(),
-                model, null, null, null, null,
-                metadata.getTimestamp(), local.getOwner(), local.getLabel());
+                model, metadata.getTimestamp(), local.getOwner(), local.getLabel());
 
         if (metadataHandler instanceof PageViewHandler) {
             PageViewHandler pvh = (PageViewHandler) metadataHandler;
@@ -91,6 +89,7 @@ public final class PageView {
         item.pageType = pvItem.getPageType();
         item.pageTypeLabel = pvItem.getPageTypeLabel();
         item.pagePosition = pvItem.getPagePosition();
+        item.pageRepre = pvItem.getPageRepre();
         return item;
     }
     /**
@@ -135,6 +134,7 @@ public final class PageView {
         private String pageType;
         private String pagePosition;
         private String pageTypeLabel;
+        private String pageRepre;
 
         public String getPageIndex() {
             return pageIndex;
@@ -175,6 +175,14 @@ public final class PageView {
         public void setPagePosition(String pagePosition) {
             this.pagePosition = pagePosition;
         }
+
+        public String getPageRepre() {
+            return pageRepre;
+        }
+
+        public void setPageRepre(String pageRepre) {
+            this.pageRepre = pageRepre;
+        }
     }
 
     public static class Item {
@@ -188,12 +196,25 @@ public final class PageView {
         private String pageType;
         private String pageTypeLabel;
         private String pagePosition;
+        private String pageRepre;
         private long timestamp;
         private String user;
         private String label;
 
+        public Item(Integer batchId, String pid) {
+            this(batchId, null, pid);
+        }
+
+        public Item(Integer batchId, String filename, String pid) {
+            this(batchId, filename, pid, null, -1, null, null);
+        }
+
+        public Item(Integer batchId, String filename, String pid, String model, long timestamp, String user, String label) {
+            this(batchId, filename, pid, model, null, null, null, null, null, timestamp, user, label);
+        }
+
         public Item(Integer batchId, String filename, String pid, String model,
-                String pageIndex, String pageNumber, String pageType, String pagePosition,
+                String pageIndex, String pageNumber, String pageType, String pagePosition, String pageRepre,
                 long timestamp, String user, String label) {
             this.batchId = batchId;
             this.filename = filename;
@@ -203,6 +224,7 @@ public final class PageView {
             this.pageNumber = pageNumber;
             this.pageType = pageType;
             this.pagePosition = pagePosition;
+            this.pageRepre = pageRepre;
             this.timestamp = timestamp;
             this.user = user;
             this.label = label;
@@ -257,6 +279,10 @@ public final class PageView {
 
         public String getPagePosition() {
             return pagePosition;
+        }
+
+        public String getPageRepre() {
+            return pageRepre;
         }
     }
 

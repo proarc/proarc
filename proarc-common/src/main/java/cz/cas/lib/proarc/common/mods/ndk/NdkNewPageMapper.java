@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
+import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -425,5 +426,9 @@ public class NdkNewPageMapper extends NdkMapper {
             }
         }
         return null;
+    }
+
+    public String getPageRepre(ModsDefinition mods) {
+        return ExportUtils.getGenre(mods);
     }
 }

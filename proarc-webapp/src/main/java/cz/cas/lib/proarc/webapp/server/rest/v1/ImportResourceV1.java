@@ -746,7 +746,7 @@ public class ImportResourceV1 {
         if (changed) {
             ArrayList<Item> deletedItems = new ArrayList<PageView.Item>(pids.size());
             for (String pid : pids) {
-                deletedItems.add(new PageView.Item(batchId, null, pid, null, null, null, null, null, 0, null, null));
+                deletedItems.add(new PageView.Item(batchId, pid));
             }
             return new SmartGwtResponse<Item>(deletedItems);
         } else {

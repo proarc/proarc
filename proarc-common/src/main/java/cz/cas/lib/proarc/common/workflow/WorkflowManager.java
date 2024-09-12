@@ -606,7 +606,8 @@ public class WorkflowManager {
     }
 
     public Job addSubjob(JobDefinition jobProfile, BigDecimal parentId, String model,
-                         UserProfile defaultUser, WorkflowDefinition profiles, AppConfiguration appConfiguration
+                         UserProfile defaultUser, WorkflowDefinition profiles, AppConfiguration appConfiguration,
+                         String xml, CatalogConfiguration catalog, BigDecimal rdeczId
     ) throws WorkflowException {
         Objects.requireNonNull(jobProfile, "jobProfile");
         Objects.requireNonNull(parentId, "parentId");
@@ -630,7 +631,7 @@ public class WorkflowManager {
             }
         }
         PhysicalMaterial physicalMaterial = new PhysicalMaterialBuilder()
-                .setMetadata(null, model)
+                .setCatalog(catalog).setMetadata(xml, model).setRdczId(rdeczId)
                 .build();
 
         try {
@@ -656,10 +657,10 @@ public class WorkflowManager {
             MaterialView mv = materialDao.view(materialFilter)
                     .stream().filter(m -> m.getType() == MaterialType.PHYSICAL_DOCUMENT)
                     .findFirst().orElse(null);
-            String jobLabel = "?";
-            if (mv != null) {
-                physicalMaterial.setLabel(mv.getLabel());
-                jobLabel = physicalMaterial.getLabel();
+            String jobLabel = StringUtils.defaultIfEmpty(physicalMaterial.getLabel(), "?");
+//            if (mv != null) {
+//                physicalMaterial.setLabel(mv.getLabel());
+//                jobLabel = physicalMaterial.getLabel();
 
 
                 /* Issue #1254: bylo rozhodnotu, ze se nebudou kopirovat metadata do podzameru, schvaleno M. Nezbedovou dne 2020.12.11 */
@@ -682,7 +683,7 @@ public class WorkflowManager {
                 physicalMaterial.setYear(mv.getYear());
 //                physicalMaterial.setState(mv.getState());
                 */
-            }
+//            }
 
             Job job = createJob(jobDao, now, jobLabel, jobProfile, model, parentId, users, defaultUser);
 
