@@ -688,6 +688,11 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
+### SESSION TIMEOUT
+GET {{proarcUrl}}/isLogged
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
 ### UPDATE ALEPH XML RECORD
 POST {{proarcUrl}}/rest/v2/object/updateCatalogRecord
 Accept: application/json
