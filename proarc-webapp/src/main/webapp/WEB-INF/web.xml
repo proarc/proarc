@@ -34,13 +34,23 @@
 
     <!--  login servlet -->
     <servlet>
-        <servlet-name>proarcservlet</servlet-name>
-        <servlet-class>cz.cas.lib.proarc.authentication.ProarcHTTPServlet</servlet-class>
+        <servlet-name>proarcLoginServlet</servlet-name>
+        <servlet-class>cz.cas.lib.proarc.authentication.ProarcLoginServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>proarcIsLoggedServlet</servlet-name>
+        <servlet-class>cz.cas.lib.proarc.authentication.ProArcIsLoggedServlet</servlet-class>
     </servlet>
     
     <servlet-mapping>
-        <servlet-name>proarcservlet</servlet-name>
+        <servlet-name>proarcLoginServlet</servlet-name>
         <url-pattern>/proarclogin</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>proarcIsLoggedServlet</servlet-name>
+        <url-pattern>/isLogged</url-pattern>
     </servlet-mapping>
 
     <!--REST-->

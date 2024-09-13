@@ -33,7 +33,7 @@ import javax.servlet.http.HttpSession;
  *
  * @author pavels
  */
-public class ProarcHTTPServlet extends HttpServlet {
+public class ProarcLoginServlet extends HttpServlet {
 
     /**
      * The login post method.
