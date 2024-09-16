@@ -706,4 +706,27 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid:97a10e9f-148f-4e42-bdda-de17df46b3f7
-###pid=uuid:1d9fbfe0-a861-4404-aa4a-156581c81998
+
+### Pridani citace nestrukturovane
+POST {{proarcUrl}}/rest/v2/object/mods/addRefenrence
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:3e483d8d-0702-47ba-a338-d9741684b537&structured=false&reference="MOCNÁ, Dagmar. 2018. „Čapkovy novinové povídky“; in Tomáš Kubíček, Jan Wiendl (edd.): Obrazy kultury a společnosti v období první republiky (Brno: Moravská zemská knihovna), s. 152–168"
+
+
+### Pridani citace strukturovane
+POST {{proarcUrl}}/rest/v2/object/mods/addRefenrence
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:3e483d8d-0702-47ba-a338-d9741684b537&structured=true&reference=<citation key="ref3">
+	<journal_title>Česká literatura</journal_title>
+	<volume>XLIII</volume>
+	<issue>5</issue>
+	<first_page>487</first_page>
+	<cYear>1995</cYear>
+	<article_title>Populární romány Vlasty Javořické</article_title>
+    <author>MOCNÁ, Dagmar</author>
+</citation>
+

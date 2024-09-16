@@ -543,9 +543,9 @@ Author Miroslav Pavelka
                                                     <xsl:value-of select="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='title']/mods:title"/>
                                                 </xsl:element>
                                             </xsl:if>
-                                            <xsl:if test="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='volume']/mods:subTitle">
+                                            <xsl:if test="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='volume']/mods:title">
                                                 <xsl:element name="volume_title">
-                                                    <xsl:value-of select="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='volume']/mods:subTitle"/>
+                                                    <xsl:value-of select="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='volume']/mods:title"/>
                                                 </xsl:element>
                                             </xsl:if>
                                             <xsl:if test="./mods:relatedItem[@type='host']/mods:originInfo/mods:dateIssued">
