@@ -238,6 +238,11 @@ public class ValidationProcess {
     }
 
     private void validatePages(SearchViewItem item, List<SearchViewItem> children, Result result, Type type) {
+
+        this.indexPageValue = 1;
+        this.reprePageValue = false;
+        this.positionPageValue = null;
+
         int pageCount = 0;
         int bdmArticleCount = 0;
         for (SearchViewItem child : children) {

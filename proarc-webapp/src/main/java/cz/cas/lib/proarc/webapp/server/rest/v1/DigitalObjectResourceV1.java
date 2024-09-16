@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.actions.AddReference;
 import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
@@ -194,6 +195,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_ADDING_REFERENCE_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_CHANGING_MODEL_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IN_GETTING_CHILDREN;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IS_LOCKED;
@@ -1610,6 +1612,39 @@ public class DigitalObjectResourceV1 {
             updatePages.editBrackets(pids, false, true);
             return returnFunctionSuccess();
         }
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_REFERENCE)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<SearchViewItem> addReferencesToMods(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_REFERENCE_STRUCTURED) Boolean structured,
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_REFERENCE_VALUE) String reference
+    ) throws DigitalObjectException {
+
+        LOG.fine(String.format("pid: %s, structured: %s, reference: %s", pid, structured, reference));
+
+        if (pid == null || pid.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+        }
+
+        if (reference == null || reference.isEmpty()) {
+            throw RestException.plainNotFound(DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_REFERENCE_VALUE, reference);
+        }
+
+        if (isLocked(pid)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pid, null, null, "Locked", null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED, false);
+            return toValidationError(validationException, STATUS_LOCKED, session.getLocale(httpHeaders));
+        }
+
+        AddReference addReference = new AddReference(structured, reference);
+        AddReference.Result result = addReference.toPid(pid);
+        if (result == null || !"ok".equalsIgnoreCase(result.getStatus())) {
+            return returnFunctionError(ERR_ADDING_REFERENCE_FAILED, result.getEx());
+        }
+        return returnFunctionSuccess();
     }
 
     public static <T> SmartGwtResponse<T> toValidationError(DigitalObjectValidationException ex, Locale locale) {

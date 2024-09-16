@@ -192,6 +192,10 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_CUSTOM_FUNCTION_ADD_BRACKETS = "addBrackets";
     public static final String MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS = "removeBrackets";
 
+    public static final String MODS_CUSTOM_FUNCTION_ADD_REFERENCE = "addRefenrence";
+    public static final String MODS_CUSTOM_FUNCTION_ADD_REFERENCE_STRUCTURED = "structured";
+    public static final String MODS_CUSTOM_FUNCTION_ADD_REFERENCE_VALUE = "reference";
+
     // CustomMods
     public static final String CUSTOMMODS_ELEMENT = "mods";
 
