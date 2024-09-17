@@ -218,6 +218,8 @@ public class ValidationProcess {
                 } else if (validationResult.getBundleKey().equals(ModsRules.ERR_NDK_PHYSICALLOCATION_MULTIPLE)) {
                     message = String.format("Vícenásobný výskyt elementu \"Location\".");
                     level = Level.WARNING;
+                } else if (validationResult.getBundleKey().equals(ModsRules.ERR_NDK_ORIGININFO_DATEISSSUED)) {
+                    message = String.format("Špatná hodnota v elementu \"OriginInfo/DateIssued\": \"{0}\"!", validationResult.getValues());
                 }
                 if (message != null) {
                     result.getValidationResults().add(new ValidationResult(pid, message, level));
