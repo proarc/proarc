@@ -17,15 +17,22 @@
 package cz.cas.lib.proarc.common.object.ndk;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.RelatedItemDefinition;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.apache.commons.configuration.Configuration;
 
 /**
@@ -46,6 +53,7 @@ public class ModsRules {
     private List<String> acceptableSiglaId;
 
     public static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE ="Err_Ndk_Supplement_Genre_Type";
+    public static final String ERR_NDK_ORIGININFO_DATEISSSUED ="Err_Ndk_OriginInfo_DateIssued";
     public static final String ERR_NDK_PHYSICALLOCATION_MULTIPLE ="Err_Ndk_PhysicalLocation_Multiple";
     public static final String ERR_NDK_PHYSICALLOCATION_SIGLA ="Err_Ndk_PhysicalLocation_Sigla";
     public static final String ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA ="Err_Ndk_RelatedItem_PhysicalLocation_Sigla";
@@ -74,6 +82,7 @@ public class ModsRules {
         if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             checkGenreType(mods);
         }
+        checkDateIssued(mods, modelId);
         checkPhysicalLocation(mods.getLocation());
         checkRelatedItemPhysicalLocation(mods.getRelatedItem());
 
@@ -86,6 +95,7 @@ public class ModsRules {
         if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             checkGenreType(mods);
         }
+        checkDateIssued(mods, modelId);
         checkPhysicalLocation(mods.getLocation());
         checkPhysicalLocationCount(mods.getLocation());
         checkRelatedItemPhysicalLocation(mods.getRelatedItem());
@@ -139,6 +149,26 @@ public class ModsRules {
         }
     }
 
+    public void checkDateIssued(ModsDefinition mods, String modelId) {
+        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
+            if (mods != null) {
+                for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+                    for (DateDefinition date : originInfo.getDateIssued()) {
+                        checkDateFormat(date.getValue());
+                    }
+                }
+            }
+        }
+    }
+
+    private void checkDateFormat(String value) {
+        if (value != null && !value.isEmpty()) {
+            if (!DatumValidator.isValid(value)) {
+                exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, false, value);
+            }
+        }
+    }
+
     private String getExpectedType() {
         if ((parentModel == null || parentModel.isEmpty()) && context != null) {
             parentModel = context.getParentModel();
@@ -167,5 +197,138 @@ public class ModsRules {
 
     public void setAcceptableSiglaId(List<String> acceptableSiglaId) {
         this.acceptableSiglaId = acceptableSiglaId;
+    }
+
+    public static class DatumValidator {
+        private static String[] regexPatterns = {
+                "^\\d{2}\\.\\d{2}\\.\\d{4}$",                           // DD.MM.RRRR
+                "^\\d{2}\\.\\d{4}$",                                    // MM.RRRR
+                "^\\d{4}$",                                             // RRRR
+                "^\\d{2}\\.\\-\\d{2}\\.\\d{4}$",                        // MM.-MM.RRRR
+                "^\\d{2}\\.\\d{4}-\\d{2}\\.\\d{4}$",                    // MM.RRRR-MM.RRRR
+                "^\\d{2}\\.\\d{2}\\.\\-\\d{2}\\.\\d{2}\\.\\d{4}$",      // DD.MM.-DD.MM.RRRR
+                "^\\d{2}\\.\\d{2}\\.\\d{4}-\\d{2}\\.\\d{2}\\.\\d{4}$",  // DD.MM.RRRR-DD.MM.RRRR
+                "^\\d{2}\\.\\-\\d{2}\\.\\d{2}\\.\\d{4}$"                // DD.-DD.MM.RRRR
+        };
+
+        private static boolean isBefore(String first, String last) {
+            if (isValidFullDate(first) && isValidFullDate(last)) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                LocalDate firstDate = LocalDate.parse(first, formatter);
+                LocalDate lastDate = LocalDate.parse(last, formatter);
+                return firstDate.isBefore(lastDate);
+            } else if (isValidMonthYear(first) && isValidMonthYear(last)) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM.yyyy");
+                YearMonth firstMonth = YearMonth.parse(first, formatter);
+                YearMonth lastMonth = YearMonth.parse(last, formatter);
+                return firstMonth.isBefore(lastMonth);
+            }
+            return false;
+        }
+
+        // Kontrola formátu DD.MM.RRRR
+        public static boolean isValidFullDate(String datum) {
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                LocalDate.parse(datum, formatter); // Zde kontrolujeme, zda datum existuje (tj. např. 31.02. selže)
+                return true;
+            } catch (DateTimeParseException e) {
+                return false;
+            }
+        }
+
+        // Kontrola formátu MM.RRRR
+        public static boolean isValidMonthYear(String datum) {
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM.yyyy");
+                YearMonth.parse(datum, formatter);
+                return true;
+            } catch (DateTimeParseException e) {
+                return false;
+            }
+        }
+
+        // Kontrola formátu RRRR (jen rok)
+        public static boolean isValidYear(String datum) {
+            try {
+                int year = Integer.parseInt(datum);
+                return year >= 0;  // Základní kontrola roku
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+
+        // Kontrola formátu MM.-MM.RRRR
+        public static boolean isValidMultiMonthYear(String datum) {
+            String[] parts = datum.split("\\.-");
+            if (parts.length == 2) {
+                String value1 = parts[0] + "." + parts[1].split("\\.")[1];
+                return isValidMonthYear(value1) && isValidMonthYear(parts[1]) && isBefore(value1, parts[1]);
+            }
+            return false;
+        }
+
+        // Kontrola formátu MM.RRRR-MM.RRRR
+        public static boolean isValidMonthYearRange(String datum) {
+            String[] parts = datum.split("-");
+            if (parts.length == 2) {
+                return isValidMonthYear(parts[0]) && isValidMonthYear(parts[1]) && isBefore(parts[0], parts[1]);
+            }
+            return false;
+        }
+
+        // Kontrola formátu DD.MM.RRRR-DD.MM.RRRR
+        public static boolean isValidFullDateRange(String datum) {
+            String[] parts = datum.split("-");
+            if (parts.length == 2) {
+                return isValidFullDate(parts[0]) && isValidFullDate(parts[1]) && isBefore(parts[0], parts[1]);
+            }
+            return false;
+        }
+
+        // Kontrola formátu DD.MM.-DD.MM.RRRR
+        public static boolean isValidMultiDayRange(String datum) {
+            String[] parts = datum.split("\\.-");
+            if (parts.length == 2) {
+                String value1 = parts[0] + "." + parts[1].split("\\.")[2];
+                return isValidFullDate(value1) && isValidFullDate(parts[1]) && isBefore(value1, parts[1]);
+            }
+            return false;
+        }
+
+        // Kontrola formátu DD.-DD.MM.RRRR
+        public static boolean isValidMultiDaySameMonth(String datum) {
+            String[] parts = datum.split("\\.-");
+            if (parts.length == 2) {
+                String value1 = parts[0] + "." + parts[1].split("\\.")[1] + "." + parts[1].split("\\.")[2];
+                return isValidFullDate(value1) && isValidFullDate(parts[1]) && isBefore(value1, parts[1]);
+            }
+            return false;
+        }
+
+        private static boolean isValidFormat(String datum) {
+            // Procházíme seznam regulárních výrazů a kontrolujeme shodu
+            for (String pattern : regexPatterns) {
+                if (Pattern.matches(pattern, datum)) {
+                    return true;
+                }
+            }
+            return false;  // Pokud datum neodpovídá žádnému formátu
+        }
+
+        public static boolean isValidValue(String datum) {
+            return isValidFullDate(datum) ||
+                    isValidMonthYear(datum) ||
+                    isValidYear(datum) ||
+                    isValidMultiMonthYear(datum) ||
+                    isValidMonthYearRange(datum) ||
+                    isValidMultiDayRange(datum) ||
+                    isValidFullDateRange(datum) ||
+                    isValidMultiDaySameMonth(datum);
+        }
+
+        public static boolean isValid(String datum) {
+            return isValidFormat(datum) && isValidValue(datum);
+        }
     }
 }
