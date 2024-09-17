@@ -1,6 +1,8 @@
 package cz.cas.lib.proarc.authentication;
 
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Instant;
@@ -18,6 +20,8 @@ import org.codehaus.jettison.json.JSONObject;
  * @author Lukas Sykora
  */
 public class ProArcIsLoggedServlet extends HttpServlet {
+
+    public static int MAX_SESSION_INTERVAL = -1;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -41,6 +45,7 @@ public class ProArcIsLoggedServlet extends HttpServlet {
                 }
                 json.put("state", "logged");
                 json.put("remaining", left);
+                json.put("maximum", getMaxInterval());
             }
         } catch (JSONException e) {
             try {
@@ -54,5 +59,23 @@ public class ProArcIsLoggedServlet extends HttpServlet {
         PrintWriter out = resp.getWriter();
         out.print(json);
         out.flush();
+    }
+
+    public static void resetSession(HttpServletRequest request) {
+        request.getSession().setMaxInactiveInterval(getMaxInterval());
+    }
+
+    private static int getMaxInterval() {
+        if (MAX_SESSION_INTERVAL < 0) {
+            int value = AppConfiguration.MAX_SESSION_INTERVAL;
+            try {
+                AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
+                value = config.getMaxSessionTime();
+            } catch (Exception ex) {
+                // do nothing
+            }
+            MAX_SESSION_INTERVAL = value;
+        }
+        return MAX_SESSION_INTERVAL;
     }
 }

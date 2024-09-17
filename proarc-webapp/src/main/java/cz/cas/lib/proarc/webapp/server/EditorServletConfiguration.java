@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server;
 
+import cz.cas.lib.proarc.authentication.ProArcIsLoggedServlet;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import java.io.IOException;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -84,6 +86,9 @@ public final class EditorServletConfiguration implements ServletContextListener,
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         // do not share fields with the servlet listener as it is another instance
         try {
+            if (!"/proarc/isLogged".equalsIgnoreCase(((HttpServletRequest) request).getRequestURI())) {
+                ProArcIsLoggedServlet.resetSession((HttpServletRequest) request);
+            }
             ProarcInitializer.getInstance().isReady();
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);

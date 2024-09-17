@@ -78,6 +78,8 @@ public final class AppConfiguration {
      */
     public static final String VERSION;
 
+    public static final int MAX_SESSION_INTERVAL = 60 * 15; // 60 sekund * 15 minut
+
     /**
      * Path to configuration folder.
      * Internal configuration property interpolated on init.
@@ -90,6 +92,7 @@ public final class AppConfiguration {
     private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
     private static final String PROPERTY_STORAGE = "proarc.storage";
+    private static final String PROPERTY_SESSION_TIMEOUT = "proarc.sessionTimeout";
     public static final String EXPORT_KWIS_POST_PROCESSOR = "export.export_post_processor.processor";
     public static final String EXPORT_BAGIT_POST_PROCESSOR = "export.bagit_post_processor.processor";
     public static final String EXPORT_BAGIT_PATH = "export.bagit.path";
@@ -129,6 +132,11 @@ public final class AppConfiguration {
             users.mkdirs();
         }
         return users;
+    }
+
+    public int getMaxSessionTime() {
+        int value = config.getInt(PROPERTY_SESSION_TIMEOUT, MAX_SESSION_INTERVAL);
+        return value;
     }
 
     public Storage getTypeOfStorage() {
