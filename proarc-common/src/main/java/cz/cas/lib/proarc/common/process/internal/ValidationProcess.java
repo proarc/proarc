@@ -30,7 +30,9 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
 import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
+import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,13 +122,13 @@ public class ValidationProcess {
             if (parentsList.size() > 1) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt má více nadřazených objektů!", Level.SEVERE));
             }
-            validatePid(item, result, parentsList.isEmpty() ? null : parentsList.get(0).getModel(), type);
+            validatePid(item, result, parentsList.isEmpty() ? null : parentsList.get(0), type);
         }
 
         return result;
     }
 
-    private void validatePid(SearchViewItem item, Result result, String parentModel, Type type) {
+    private void validatePid(SearchViewItem item, Result result, SearchViewItem parentItem, Type type) {
         if (item == null) {
             result.getValidationResults().add(new ValidationResult("PID", "Objekt nenalezen v SOLRu", Level.SEVERE));
             return;
@@ -165,7 +167,7 @@ public class ValidationProcess {
         DigitalObjectValidationException ex = new DigitalObjectValidationException(akubraObject.getPid(), null,
                 ModsStreamEditor.DATASTREAM_ID, "MODS validation", null);
         if (mods != null) {
-            ModsRules modsRules = new ModsRules(item.getModel(), mods, ex, parentModel, appConfig);
+            ModsRules modsRules = new ModsRules(item.getModel(), mods, ex, parentItem == null ? null : parentItem.getModel(), appConfig);
             try {
                 modsRules.checkExtended();
             } catch (DigitalObjectValidationException e) {
@@ -179,15 +181,51 @@ public class ValidationProcess {
             }
         }
 
+        if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model) || NdkPlugin.MODEL_PERIODICALISSUE.equals(model)) {
+            validateDateIssued(item, mods, parentItem == null ? null : parentItem, result);
+        }
+
         // validace potomku
         for (SearchViewItem child : children) {
-            validatePid(child, result, item.getModel(), type);
+            validatePid(child, result, item, type);
         }
 
         // urnnbn validace jako posledni
         if (REQUIRED_URNNBN_MODELS.contains(model) && !ArchiveObjectProcessor.containUrnNbn(mods.getIdentifier())) {
             result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní identifikátor URN:NBN.", Level.SEVERE));
         }
+    }
+
+    private void validateDateIssued(SearchViewItem item, ModsDefinition mods, SearchViewItem parentItem, Result result) {
+        String dateIssued = getDateIssued(mods);
+        if (parentItem != null && NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentItem.getModel())) {
+            try {
+                ModsDefinition parentMods = getMods(parentItem.getPid());
+                String parentDateIssued = getDateIssued(parentMods);
+                if (dateIssued.contains(".")) {
+                    dateIssued = dateIssued.substring(dateIssued.lastIndexOf(".") + 1);
+                }
+                if (parentDateIssued == null || parentDateIssued.isEmpty()) {
+                    result.getValidationResults().add(new ValidationResult(parentItem.getPid(), "Nadřazený objekt neobsahuje date Issued (" + parentDateIssued + ").", Level.WARNING));
+                }
+                if (parentDateIssued != null && !parentDateIssued.equals(dateIssued)) {
+                    result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní dateIssued vůči svému nadřazenému objektu (" + parentDateIssued + ":" + dateIssued + ").", Level.WARNING));
+                }
+            } catch (DigitalObjectException ex) {
+                result.getValidationResults().add(new ValidationResult(item.getPid(), "Nepodařilo se načíst MODS.", Level.SEVERE, ex));
+            }
+        }
+    }
+
+    private String getDateIssued(ModsDefinition mods) {
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            for (DateDefinition date : originInfo.getDateIssued()) {
+                if (date.getValue() != null && !date.getValue().isEmpty()) {
+                    return date.getValue();
+                }
+            }
+        }
+        return null;
     }
 
     private void processValidationException(String pid, DigitalObjectValidationException exeption, Result result) {
