@@ -264,10 +264,12 @@ public final class FedoraStorage {
         private String label;
         private String modelId;
         private String owner;
+        private boolean indexHierarchical;
 
         public RemoteObject(String pid, FedoraClient client) {
             super(pid);
             this.client = client;
+            this.indexHierarchical =true;
         }
 
         public FedoraClient getClient() {
@@ -303,6 +305,11 @@ public final class FedoraStorage {
         @Override
         public String getModel() {
             return this.modelId;
+        }
+
+        @Override
+        public void indexHierarchical(boolean indexHierarchical) {
+            this.indexHierarchical = indexHierarchical;
         }
 
         @Override

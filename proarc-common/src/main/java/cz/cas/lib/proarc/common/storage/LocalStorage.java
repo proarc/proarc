@@ -103,6 +103,7 @@ public final class LocalStorage {
         /** {@code null} for in memory object. */
         private File foxml;
         private String modelId;
+        private boolean indexHierarchical;
 
         LocalObject(String pid, File foxml, DigitalObject dobj) {
             super(pid);
@@ -111,6 +112,7 @@ public final class LocalStorage {
                 throw new NullPointerException("dobj");
             }
             this.dobj = dobj;
+            indexHierarchical = true;
         }
 
         public String getOwner() {
@@ -147,6 +149,11 @@ public final class LocalStorage {
         @Override
         public void setOwner(String owner) {
             FoxmlUtils.setProperty(dobj, FoxmlUtils.PROPERTY_OWNER, owner);
+        }
+
+        @Override
+        public void indexHierarchical(boolean indexHierarchical) {
+            this.indexHierarchical = indexHierarchical;
         }
 
         /** The helper property to mark a local FOXML as a copy of the remote object. */

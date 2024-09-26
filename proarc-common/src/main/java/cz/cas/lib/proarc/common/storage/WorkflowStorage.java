@@ -66,6 +66,7 @@ public class WorkflowStorage {
         private final Locale locale;
         private String label;
         private String owner;
+        private boolean indexHierarchical;
 
         private final Set<XmlStreamEditor> editors = new LinkedHashSet<>();
 
@@ -73,6 +74,7 @@ public class WorkflowStorage {
             this.modelId = modelId;
             this.workflowJobId = workflowJobId;
             this.locale = locale;
+            this.indexHierarchical = true;
         }
 
         @Override
@@ -119,6 +121,11 @@ public class WorkflowStorage {
             for (XmlStreamEditor editor : editors) {
                 editor.flush();
             }
+        }
+
+        @Override
+        public void indexHierarchical(boolean indexHierarchical) {
+            this.indexHierarchical = indexHierarchical;
         }
 
         @Override

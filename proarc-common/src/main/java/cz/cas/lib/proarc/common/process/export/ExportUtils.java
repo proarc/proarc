@@ -136,6 +136,7 @@ public final class ExportUtils {
     public static void storeObjectExportResult(String pid, String target, String type, String log) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         ProArcObject fo = dom.find(pid, null);
+        fo.indexHierarchical(false);
         DigitalObjectHandler doh = dom.createHandler(fo);
         RelationEditor relations = doh.relations();
         switch(type) {

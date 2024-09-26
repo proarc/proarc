@@ -367,6 +367,7 @@ public class AkubraStorage {
         private String label;
         private String modelId;
         private String owner;
+        private boolean indexHierarchical;
         private AkubraManager manager;
         private SolrObjectFeeder objectFeeder;
         private SolrLogFeeder loggingFeeder;
@@ -379,6 +380,7 @@ public class AkubraStorage {
             this.objectFeeder = objectFeeder;
             this.loggingFeeder = loggingFeeder;
             this.solrSearchView = solrSearchView;
+            indexHierarchical = true;
         }
 
         @Override
@@ -412,6 +414,11 @@ public class AkubraStorage {
         }
 
         @Override
+        public void indexHierarchical(boolean indexHierarchical) {
+            this.indexHierarchical = indexHierarchical;
+        }
+
+        @Override
         public void flush() throws DigitalObjectException {
             super.flush();
             try {
@@ -433,7 +440,9 @@ public class AkubraStorage {
                         this.objectFeeder.feedDescriptionDevice(object, this, true);
                     } else {
                         this.objectFeeder.feedDescriptionDocument(object, this, true);
-                        SolrUtils.indexParentResult(solrSearchView, objectFeeder, object.getPID());
+                        if (indexHierarchical) {
+                            SolrUtils.indexParentResult(solrSearchView, objectFeeder, object.getPID());
+                        }
                     }
                 }
             } catch (

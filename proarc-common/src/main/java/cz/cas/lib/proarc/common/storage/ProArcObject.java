@@ -45,6 +45,8 @@ public interface ProArcObject {
 
     void setOwner(String owner);
 
+    void indexHierarchical(boolean indexHierarchical);
+
     String getModel();
 
     void flush() throws DigitalObjectException;
