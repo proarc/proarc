@@ -457,7 +457,7 @@ public class SolrSearchView extends SearchView {
         if (organization != null && !organization.isEmpty()) {
             queryBuilder = appendAndValue(queryBuilder, FIELD_ORGANIZATION + ":\"" + organization + "\"");
         }
-        if (user != null && !user.isEmpty() && (hasValues(Collections.singletonList(user)) || allowAllForUser)) {
+        if (user != null && !user.isEmpty() && (hasValues(Collections.singletonList(user)) && allowAllForUser)) {
             queryBuilder = appendAndValue(queryBuilder, getUserQuery(Collections.singletonList(user), allowAllForUser));
         }
         if (label != null && !label.isEmpty()) {
