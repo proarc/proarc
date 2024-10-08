@@ -43,7 +43,8 @@ public class ArchiveOldPrintObjectSelector extends ArchiveObjectSelector {
         }
         processedPids.add(entry.getPid());
         String modelId = entry.getModelId();
-        if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)
+        if (OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)
+                || OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)
                 || OldPrintPlugin.MODEL_CARTOGRAPHIC.equals(modelId)
                 || OldPrintPlugin.MODEL_SHEETMUSIC.equals(modelId)
                 || OldPrintPlugin.MODEL_GRAPHICS.equals(modelId)

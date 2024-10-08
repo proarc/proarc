@@ -102,7 +102,8 @@ public final class Kramerius4ExportOptions {
             put(BornDigitalModsPlugin.MODEL_ARTICLE, "hasIntCompPart");
             put(OldPrintPlugin.MODEL_PAGE, "hasPage");
             put(OldPrintPlugin.MODEL_SUPPLEMENT, "hasIntCompPart");
-            put(OldPrintPlugin.MODEL_VOLUME, "hasUnit");
+            put(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, "hasUnit");
+            put(OldPrintPlugin.MODEL_MONOGRAPHUNIT, "hasUnit");
             put(OldPrintPlugin.MODEL_CHAPTER, "hasIntCompPart");
             put(OldPrintPlugin.MODEL_GRAPHICS, "hasUnit");
             put(OldPrintPlugin.MODEL_CARTOGRAPHIC, "hasUnit");
@@ -146,10 +147,11 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_PICTURE, "model:picture");
             put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
             put(BornDigitalModsPlugin.MODEL_ARTICLE, "model:article");
-            put(OldPrintPlugin.MODEL_VOLUME, "model:monograph");
+            put(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
             put(OldPrintPlugin.MODEL_SUPPLEMENT, "model:supplement");
             put(OldPrintPlugin.MODEL_PAGE, "model:page");
             put(OldPrintPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
+            put(OldPrintPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
             put(OldPrintPlugin.MODEL_CHAPTER, "model:chapter");
             put(OldPrintPlugin.MODEL_GRAPHICS, "model:graphic");
             put(OldPrintPlugin.MODEL_CARTOGRAPHIC, "model:map");

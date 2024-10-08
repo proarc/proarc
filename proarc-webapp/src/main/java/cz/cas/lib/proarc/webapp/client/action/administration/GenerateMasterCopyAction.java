@@ -51,7 +51,7 @@ public class GenerateMasterCopyAction extends AbstractAction {
             Arrays.asList(NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_MONOGRAPHVOLUME,
                     NdkPlugin.MODEL_MONOGRAPHTITLE, NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
                     K4Plugin.MODEL_PERIODICAL, K4Plugin.MODEL_MONOGRAPH, K4Plugin.MODEL_MONOGRAPHUNIT,
-                    OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_VOLUME,
+                    OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT,
                     ChroniclePlugin.MODEL_CHRONICLETITLE, ChroniclePlugin.MODEL_CHRONICLEVOLUME
             )));
 

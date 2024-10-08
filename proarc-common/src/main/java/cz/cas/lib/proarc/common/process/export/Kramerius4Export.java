@@ -909,7 +909,7 @@ public final class Kramerius4Export {
             Element typeElm = (Element) typeNodes.item(i);
             String type = typeElm.getTextContent();
             String k4ModelId;
-            if (hasParent && (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type) || K4Plugin.MODEL_MONOGRAPH.equals(type))) {
+            if (hasParent && (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(type) || OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(type) || K4Plugin.MODEL_MONOGRAPH.equals(type))) {
                 k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
             } else {
                 k4ModelId = kramerius4ExportOptions.getModelMap().get(type);
@@ -1068,11 +1068,11 @@ public final class Kramerius4Export {
 
             String modelId = editor.getModel();
             String k4ModelId;
-            if (hasParent && (OldPrintPlugin.MODEL_VOLUME.equals(modelId))) {
-                k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
-            } else {
+//            if (hasParent && (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(modelId))) {
+//                k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
+//            } else {
                 k4ModelId = kramerius4ExportOptions.getModelMap().get(modelId);
-            }
+//            }
             k4ModelId = k4ModelId == null ? modelId : k4ModelId;
             editor.setModel(k4ModelId);
 

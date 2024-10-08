@@ -81,7 +81,7 @@ public class UrnNbnAction extends AbstractAction {
                     NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
                     NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, NdkEbornPlugin.MODEL_ECHAPTER,
                     NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
-                    OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
+                    OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
                     OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC, OldPrintPlugin.MODEL_CHAPTER, OldPrintPlugin.MODEL_GRAPHICS,
                     OldPrintPlugin.MODEL_CONVOLUTTE
                     )));

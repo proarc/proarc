@@ -102,7 +102,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT,
             NdkAudioPlugin.MODEL_PHONOGRAPH,
-            OldPrintPlugin.MODEL_VOLUME,
+            OldPrintPlugin.MODEL_MONOGRAPHVOLUME,
+            OldPrintPlugin.MODEL_MONOGRAPHUNIT,
             OldPrintPlugin.MODEL_SUPPLEMENT,
             OldPrintPlugin.MODEL_CARTOGRAPHIC,
             OldPrintPlugin.MODEL_SHEETMUSIC,
@@ -568,7 +569,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     @Override
     public Void visitOldPrintMonographSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
         if (registeringObject != null) {
-            if (!OldPrintPlugin.MODEL_VOLUME.equals(registeringObject.getModelId())) {
+            if (!(OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(registeringObject.getModelId()) || OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(registeringObject.getModelId()))) {
                 // supplement under monograph volume - ignore
                 // invalid hierarchy
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -581,7 +582,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             if (parent == DigitalObjectElement.NULL || OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(parent.getModelId())) {
                 try {
                     registeringObject = elm;
-                    return processOldPrintMonographVolumeOrSupplement(elm, p);
+                    return processOldPrintMonographVolumeOrUnitOrSupplement(elm, p);
                 } finally {
                     registeringObject = null;
                 }
@@ -604,7 +605,25 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            return processOldPrintMonographVolumeOrSupplement(elm, p);
+            return processOldPrintMonographVolumeOrUnitOrSupplement(elm, p);
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    @Override
+    public Void visitOldPrintMonographUnit(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The oldprint volume under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            return processOldPrintMonographVolumeOrUnitOrSupplement(elm, p);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {
@@ -1288,7 +1307,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         return null;
     }
 
-    private Void processOldPrintMonographVolumeOrSupplement(DigitalObjectElement elm, UrnNbnContext p)
+    private Void processOldPrintMonographVolumeOrUnitOrSupplement(DigitalObjectElement elm, UrnNbnContext p)
             throws DigitalObjectException, VisitorException {
 
         final String pid = elm.getPid();

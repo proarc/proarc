@@ -16,13 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object.oldprint;
 
-import cz.cas.lib.proarc.common.process.export.mets.Const;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.PageView;
-import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
-import cz.cas.lib.proarc.common.storage.SearchView.HasSearchViewHandler;
-import cz.cas.lib.proarc.common.storage.SearchView.SearchViewHandler;
-import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
@@ -39,6 +32,13 @@ import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.PageView;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.storage.SearchView.HasSearchViewHandler;
+import cz.cas.lib.proarc.common.storage.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import java.util.ArrayList;
@@ -69,7 +69,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     /**
      * The volume of old prints.
      */
-    public static final String MODEL_VOLUME = "model:oldprintvolume";
+    public static final String MODEL_MONOGRAPHVOLUME = "model:oldprintvolume";
 
     /**
      * The supplement of old prints.
@@ -85,6 +85,11 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
      * The multipart volume of old prints.
      */
     public static final String MODEL_MONOGRAPHTITLE = "model:oldprintmonographtitle";
+
+    /**
+     * The multipart unit of old prints.
+     */
+    public static final String MODEL_MONOGRAPHUNIT = "model:oldprintmonographunit";
 
     /**
      * The chapter of old prints.
@@ -115,9 +120,10 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     private OldPrintSearchViewHandler searchViewHandler;
 
     public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
-        put(FEDORAPREFIX + OldPrintPlugin.MODEL_VOLUME, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHVOLUME, Const.MONOGRAPH_UNIT);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_SUPPLEMENT, Const.SUPPLEMENT);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHTITLE, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHUNIT, Const.MONOGRAPH_UNIT);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_CHAPTER, Const.CHAPTER);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_PAGE, Const.PAGE);
         put(FEDORAPREFIX + OldPrintPlugin.MODEL_CONVOLUTTE, Const.MONOGRAPH_MULTIPART);
@@ -146,16 +152,25 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 new RelationCriteria[]{}
                 ));
         models.add(new MetaModel(
-                MODEL_VOLUME, true, null,
+                MODEL_MONOGRAPHUNIT, null, null,
+                Arrays.asList(new ElementType("Old Print Monograph Unit", "en"), new ElementType("STT Svazek Vícedílné monografie", "cs")),
+                ModsConstants.NS,
+                MODEL_MONOGRAPHUNIT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.CHILDREN, DatastreamEditorType.PARENT, DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_MONOGRAPHVOLUME, true, null,
                 Arrays.asList(new ElementType("Old Print Volume", "en"), new ElementType("STT Svazek monografie", "cs")),
                 ModsConstants.NS,
-                MODEL_VOLUME,
+                MODEL_MONOGRAPHVOLUME,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
                 new RelationCriteria[]{
-                        new RelationCriteria(MODEL_MONOGRAPHTITLE, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
@@ -167,7 +182,9 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID)}
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_CHAPTER, null, null,
@@ -178,7 +195,9 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID)}
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID)}
                 ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
@@ -188,7 +207,8 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
                 new RelationCriteria[]{
-                        new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_SUPPLEMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
@@ -215,7 +235,9 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
@@ -227,7 +249,9 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
@@ -239,7 +263,9 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[]{new RelationCriteria(MODEL_VOLUME, RelationCriteria.Type.PID),
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
         ));
         return models;
@@ -273,7 +299,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 DigitalObjectHandler parent = handler.getParameterParent();
                 if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
                     // issue 329
-                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_VOLUME);
+                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
                     if (title != null) {
                         ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                         inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
@@ -283,7 +309,17 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                         inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                     }
-                } else if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
+                    title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHUNIT);
+                    if (title != null) {
+                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                        inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
+                        defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                        inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+//                        inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
+                        inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+                    }
+                } else if (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
                     //issue 540
                     DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHTITLE);
                     if (title != null) {
@@ -294,7 +330,15 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                     }
                 } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
                     // issue 241
-                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_VOLUME);
+                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
+                    if (title != null) {
+                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                        defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                        inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
+                        inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
+                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+                    }
+                    title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHUNIT);
                     if (title != null) {
                         ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
                         defaultMods.getLanguage().addAll(titleMods.getLanguage());

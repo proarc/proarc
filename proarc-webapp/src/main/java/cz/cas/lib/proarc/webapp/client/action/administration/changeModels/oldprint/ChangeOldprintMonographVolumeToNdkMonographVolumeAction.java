@@ -86,7 +86,7 @@ public class ChangeOldprintMonographVolumeToNdkMonographVolumeAction extends Abs
             DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (modelId != null && OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
+                if (modelId != null && OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
                     accept = true;
                     continue;
                 }

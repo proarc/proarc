@@ -477,7 +477,7 @@ public class FileReader {
                 return NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT;
             } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel) || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)){
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
-            } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(parentModel) || OldPrintPlugin.MODEL_VOLUME.equals(parentModel)) {
+            } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(parentModel)) {
                 return OldPrintPlugin.MODEL_SUPPLEMENT;
             }
         } else if ("PICTURE".equalsIgnoreCase(divType)) {
@@ -502,7 +502,7 @@ public class FileReader {
                     return NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME;
                 } else {
                     if (specialGenre.equals(Genre.NONE)) {
-                        return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_MONOGRAPHVOLUME : OldPrintPlugin.MODEL_VOLUME;
+                        return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_MONOGRAPHVOLUME : OldPrintPlugin.MODEL_MONOGRAPHVOLUME;
                     } else if (specialGenre.equals(Genre.CARTOGRAPHIC)) {
                         return PackageType.NDK.equals(packageType) ? NdkPlugin.MODEL_CARTOGRAPHIC : OldPrintPlugin.MODEL_CARTOGRAPHIC;
                     } else if (specialGenre.equals(Genre.GRAPHIC)) {
@@ -516,7 +516,7 @@ public class FileReader {
                     case NDK:
                         return NdkPlugin.MODEL_MONOGRAPHUNIT;
                     case STT:
-                        return OldPrintPlugin.MODEL_VOLUME;
+                        return OldPrintPlugin.MODEL_MONOGRAPHUNIT;
                     case EBORN:
                         return NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME;
                 }

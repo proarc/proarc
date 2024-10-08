@@ -51,7 +51,7 @@ public class RdaRules {
             Arrays.asList(NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
                     NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
                     NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
-                    OldPrintPlugin.MODEL_VOLUME)));
+                    OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT)));
 
     public static final String ERR_NDK_RDA_EMPTYEVENTTYPE ="Err_Ndk_Rda_EmptyEventType";
     public static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";

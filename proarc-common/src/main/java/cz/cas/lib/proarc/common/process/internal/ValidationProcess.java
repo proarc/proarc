@@ -66,7 +66,7 @@ public class ValidationProcess {
             NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
             NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
             NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
-            OldPrintPlugin.MODEL_CONVOLUTTE, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
+            OldPrintPlugin.MODEL_CONVOLUTTE, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_SUPPLEMENT,
             OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_SHEETMUSIC,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH, NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK,
             CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, GraphicPlugin.MODEL_GRAPHIC,

@@ -92,8 +92,10 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitOldPrintConvolutte(elm, p);
         } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(model)) {
             return visitOldPrintMonographtTitle(elm, p);
-        } else if (OldPrintPlugin.MODEL_VOLUME.equals(model)) {
+        } else if (OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(model)) {
             return visitOldPrintMonographVolume(elm, p);
+        } else if (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(model)) {
+            return visitOldPrintMonographUnit(elm, p);
         } else if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(model)) {
             return visitOldPrintMonographSupplement(elm, p);
         } else if (OldPrintPlugin.MODEL_CARTOGRAPHIC.equals(model)) {
@@ -239,6 +241,10 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
     }
 
     public R visitOldPrintMonographVolume(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    public R visitOldPrintMonographUnit(DigitalObjectElement elm, P p) throws VisitorException {
         return visitChildren(elm, p);
     }
 

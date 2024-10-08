@@ -38,7 +38,8 @@ public class OldPrintMapperFactory extends NdkMapperFactory {
 
     static {
         mappers.put(OldPrintPlugin.MODEL_PAGE, OldPrintPageMapper::new);
-        mappers.put(OldPrintPlugin.MODEL_VOLUME, OldPrintVolumeMapper::new);
+        mappers.put(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintVolumeMapper::new);
+        mappers.put(OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintMonographUnitMapper::new);
         mappers.put(OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintSupplementMapper::new);
         mappers.put(OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintMonographTitleMapper::new);
         mappers.put(OldPrintPlugin.MODEL_CHAPTER, OldPrintChapterMapper::new);

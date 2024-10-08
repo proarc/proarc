@@ -206,7 +206,8 @@ public class ChangeModels {
             case NdkPlugin.MODEL_SHEETMUSIC:
             case OldPrintPlugin.MODEL_GRAPHICS:
             case OldPrintPlugin.MODEL_SHEETMUSIC:
-            case OldPrintPlugin.MODEL_VOLUME:
+            case OldPrintPlugin.MODEL_MONOGRAPHVOLUME:
+            case OldPrintPlugin.MODEL_MONOGRAPHUNIT:
                 // no metadata change needed
                 break;
             default:
@@ -279,7 +280,8 @@ public class ChangeModels {
             case OldPrintPlugin.MODEL_CARTOGRAPHIC:
             case OldPrintPlugin.MODEL_CHAPTER:
             case OldPrintPlugin.MODEL_SUPPLEMENT:
-            case OldPrintPlugin.MODEL_VOLUME:
+            case OldPrintPlugin.MODEL_MONOGRAPHVOLUME:
+            case OldPrintPlugin.MODEL_MONOGRAPHUNIT:
             case OldPrintPlugin.MODEL_GRAPHICS:
             case OldPrintPlugin.MODEL_SHEETMUSIC:
             case NdkEbornPlugin.MODEL_EPERIODICAL:

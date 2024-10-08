@@ -92,7 +92,7 @@ public class ArchiveObjectProcessor {
 
     public static final Set<String> ARCHIVE_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT,
-                    NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_PERIODICALISSUE, OldPrintPlugin.MODEL_VOLUME)));
+                    NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_PERIODICALISSUE, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT)));
 
     public ArchiveObjectProcessor(DigitalObjectCrawler crawler, File targetFolder, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration,  boolean ignoreMissingUrnNbn) {
         this.crawler = crawler;
@@ -189,7 +189,8 @@ public class ArchiveObjectProcessor {
                         || (NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))
                         || (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))
                         || (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))))
-                        || (OldPrintPlugin.MODEL_VOLUME.equals(elm.getModelId()))) {
+                        || (OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(elm.getModelId()))
+                        || (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(elm.getModelId()))) {
                     checkUrnNbn(cache);
                 }
 
@@ -201,7 +202,7 @@ public class ArchiveObjectProcessor {
                 for (int i = 0; i < typeNodes.getLength(); i++) {
                     Element typeElm = (Element) typeNodes.item(i);
                     String type = typeElm.getTextContent();
-                    if (parentElm != null && NdkPlugin.MODEL_MONOGRAPHTITLE.equals(parentElm.getModelId()) && (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(type) || OldPrintPlugin.MODEL_VOLUME.equals(type) || K4Plugin.MODEL_MONOGRAPH.equals(type))) {
+                    if (parentElm != null && NdkPlugin.MODEL_MONOGRAPHTITLE.equals(parentElm.getModelId()) && (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(type) || OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(type)|| OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(type) || K4Plugin.MODEL_MONOGRAPH.equals(type))) {
                         typeElm.setTextContent(K4Plugin.MODEL_MONOGRAPHUNIT);
                     }
                 }

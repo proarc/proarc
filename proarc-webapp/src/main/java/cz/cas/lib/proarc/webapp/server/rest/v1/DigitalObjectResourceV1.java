@@ -372,9 +372,9 @@ public class DigitalObjectResourceV1 {
             }
 
             if (OldPrintPlugin.MODEL_CONVOLUTTE.equals(modelId) && createObject) {
-                CreateHandler hierarchyModelsHandler = dom.create(OldPrintPlugin.MODEL_VOLUME, null, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
+                CreateHandler hierarchyModelsHandler = dom.create(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, null, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
                 hierarchyModelsHandler.create();
-                CreateHierarchyHandler hierarchyHandler = dom.createHierarchyHandler(OldPrintPlugin.MODEL_VOLUME, pid, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
+                CreateHierarchyHandler hierarchyHandler = dom.createHierarchyHandler(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, pid, items.get(0).getPid(), user, xmlMetadata, session.asFedoraLog());
                 if (catalogId != null && !catalogId.equals("")) {
                     hierarchyHandler.prepareCatalog(catalogId);
                     hierarchyHandler.prepareChildList(xmlMetadata);
@@ -3902,7 +3902,7 @@ public class DigitalObjectResourceV1 {
             return returnValidationError(ERR_IS_LOCKED);
         }
         for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_VOLUME);
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
             changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
@@ -3935,7 +3935,7 @@ public class DigitalObjectResourceV1 {
             return returnValidationError(ERR_IS_LOCKED);
         }
         for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
             changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
@@ -3945,7 +3945,7 @@ public class DigitalObjectResourceV1 {
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_VOLUME);
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
                 return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
@@ -4034,7 +4034,7 @@ public class DigitalObjectResourceV1 {
             return returnValidationError(ERR_IS_LOCKED);
         }
         for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_GRAPHICS);
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_GRAPHICS);
             changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
@@ -4044,7 +4044,7 @@ public class DigitalObjectResourceV1 {
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_VOLUME);
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
                 return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }
@@ -4067,7 +4067,7 @@ public class DigitalObjectResourceV1 {
             return returnValidationError(ERR_IS_LOCKED);
         }
         for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_VOLUME);
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
             changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
@@ -4100,7 +4100,7 @@ public class DigitalObjectResourceV1 {
             return returnValidationError(ERR_IS_LOCKED);
         }
         for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SHEETMUSIC);
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_SHEETMUSIC);
             changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
@@ -4110,7 +4110,7 @@ public class DigitalObjectResourceV1 {
             String parentPid = changeModels.findRootObject();
             ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_VOLUME);
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
                 return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
             }
         }

@@ -45,9 +45,11 @@ public class OldPrintForms {
     public DynamicForm getForm(MetaModelRecord model) {
         String modelId = model.getId();
         Form f;
-        if (OldPrintPlugin.MODEL_VOLUME.equals(modelId)) {
+        if (OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
             f = new OldPrintVolumeForm().build();
             f.setItemWidth("800");
+        } else if (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
+            f = new OldPrintMonographUnitForm().build();
         } else if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
             f = new OldPrintSupplementForm().build();
         } else if (OldPrintPlugin.MODEL_PAGE.equals(modelId)) {

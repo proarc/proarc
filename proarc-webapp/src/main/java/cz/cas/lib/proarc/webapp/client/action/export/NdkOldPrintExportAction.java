@@ -40,7 +40,8 @@ public class NdkOldPrintExportAction extends NdkExportAction {
 
     protected boolean isOldPrintModel(String modelId) {
         if (modelId.equals(OldPrintPlugin.MODEL_MONOGRAPHTITLE) ||
-                modelId.equals(OldPrintPlugin.MODEL_VOLUME) ||
+                modelId.equals(OldPrintPlugin.MODEL_MONOGRAPHUNIT) ||
+                modelId.equals(OldPrintPlugin.MODEL_MONOGRAPHVOLUME) ||
                 modelId.equals(OldPrintPlugin.MODEL_SUPPLEMENT) ||
                 modelId.equals(OldPrintPlugin.MODEL_CHAPTER)) {
             return true;

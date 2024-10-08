@@ -60,7 +60,7 @@ public class AcceptedExports {
             // chronicle //
             ChroniclePlugin.MODEL_CHRONICLETITLE, ChroniclePlugin.MODEL_CHRONICLEVOLUME, ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT,
             // oldPrint //
-            OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintPlugin.MODEL_PAGE, OldPrintPlugin.MODEL_MONOGRAPHTITLE,
+            OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintPlugin.MODEL_PAGE, OldPrintPlugin.MODEL_MONOGRAPHTITLE,
             OldPrintPlugin.MODEL_CHAPTER, OldPrintPlugin.MODEL_CONVOLUTTE, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_CARTOGRAPHIC,
             OldPrintPlugin.MODEL_SHEETMUSIC,
             // CollectionOfClippings //
@@ -86,7 +86,7 @@ public class AcceptedExports {
 
     private final String EXPORT_ARCHIVE_STT = "archive_stt";
     private final Set<String> EXPORT_ARCHIVE_STT_MODELS = new HashSet<>(Arrays.asList(
-            OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintPlugin.MODEL_CHAPTER,
+            OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintPlugin.MODEL_CHAPTER,
             OldPrintPlugin.MODEL_SHEETMUSIC, OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_GRAPHICS));
 
     private final String EXPORT_KRAMERIUS = "kramerius";
@@ -105,14 +105,15 @@ public class AcceptedExports {
 
     private final String EXPORT_NDK_OLDPRINT = "ndk_oldprint";
     private final Set<String> EXPORT_NDK_OLDPRINT_MODELS = new HashSet<>(Arrays.asList(
-            OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintPlugin.MODEL_CHAPTER
+            OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintPlugin.MODEL_CHAPTER,
+            OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC
     ));
 
     private final Set<String> LTP_UPLOAD_MODELS = new HashSet<>(Arrays.asList(
             NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
             NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_PICTURE,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
-            OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT
+            OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_SUPPLEMENT
     ));
 
     private final String EXPORT_NDK_SIP = "ndk_sip";
