@@ -334,6 +334,8 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_NDK_CARTOGRAPHIC_TO_STT_CARTOGRAPHIC = "changeNdkCartographicToOldPrintCartographic";
     public static final String CHANGE_STT_CARTOGRAPHIC_TO_NDK_CARTOGRAPHIC = "changeOldPrintCartographicToNdkCartographic";
     public static final String CHANGE_NDK_MONOGRAPH_TO_STT_MONOGRAPH = "changeNdkMonographVolumeToOldPrintMonographVolume";
+    public static final String CHANGE_STT_MONOGRAPH_VOLUME_TO_STT_MONOGRAPH_UNIT = "changeOldPrintMonographVolumeToOldPrintMonographUnit";
+    public static final String CHANGE_STT_MONOGRAPH_UNIT_TO_STT_MONOGRAPH_VOLUME = "changeOldPrintMonographUnitToOldPrintMonographVolume";
     public static final String CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH = "changeOldPrintMonographVolumeToNdkMonographVolume";
     public static final String CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET = "changeNdkMusicSheetToOldPrintMusicSheet";
     public static final String CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET = "changeOldPrintMusicSheetToNdkMusicSheet";

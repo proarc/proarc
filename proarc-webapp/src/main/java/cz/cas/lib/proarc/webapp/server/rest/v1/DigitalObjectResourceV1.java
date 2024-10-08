@@ -3920,6 +3920,72 @@ public class DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_VOLUME_TO_STT_MONOGRAPH_UNIT)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeOldprintMonographVolumeToOldprintMonographUnit(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
+        if (pids == null || pids.isEmpty()) {
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT);
+            changeModels.findObjects(false);
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
+            }
+        }
+        return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_UNIT_TO_STT_MONOGRAPH_VOLUME)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeOldprintMonographUnitToOldprintMonographVolume(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+
+        if (pids == null || pids.isEmpty()) {
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
+            changeModels.findObjects(false);
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHUNIT);
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
+            }
+        }
+        return returnFunctionSuccess();
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToNdkMonographVolume(
