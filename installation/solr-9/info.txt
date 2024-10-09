@@ -1,0 +1,5 @@
+File searchCore/conf/managed-schema is a copy of proarc-common/src/main/resources/cz/cas/lib/proarc/common/solr/schema/object_schema.xml.
+If those differ, that means that installation directory is not up-to-date and proarc-common/src/main/resources/cz/cas/lib/proarc/common/solr/schema/object_schema.xml has precedence.
+
+File loggingCore/conf/managed-schem is a copy of proarc-common/src/main/resources/cz/cas/lib/proarc/common/solr/schema/log_schema.xml.
+If those differ, that means that installation directory is not up-to-date and proarc-common/src/main/resources/cz/cas/lib/proarc/common/solr/schema/log_schema.xml has precedence.

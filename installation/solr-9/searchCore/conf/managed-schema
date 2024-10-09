@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema name="searchCore" version="4.0">
+    <!-- log: odebrani nepotrebnych fieldType, podpora solr 9.7 -->
+
+
+    <uniqueKey>pid</uniqueKey>
+
+
+    <fieldType name="_nest_path_" class="solr.NestPathField" maxCharsForDocValues="-1" omitNorms="true" omitTermFreqAndPositions="true" stored="false" multiValued="false"/>
+    <fieldType name="ancestor_path" class="solr.TextField">
+        <analyzer type="index">
+            <tokenizer class="solr.KeywordTokenizerFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/"/>
+        </analyzer>
+    </fieldType>
+    <fieldType name="descendent_path" class="solr.TextField">
+        <analyzer type="index">
+            <tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.KeywordTokenizerFactory"/>
+        </analyzer>
+    </fieldType>
+    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+    <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
+    <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
+    <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
+    <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
+    <fieldType name="pdoubles" class="solr.DoublePointField" docValues="true" multiValued="true"/>
+    <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
+    <fieldType name="pints" class="solr.IntPointField" docValues="true" multiValued="true"/>
+    <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
+    <fieldType name="plongs" class="solr.LongPointField" docValues="true" multiValued="true"/>
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
+    <fieldType name="strings" class="solr.StrField" sortMissingLast="true" docValues="true" multiValued="true"/>
+    <fieldType name="text_cz" class="solr.TextField" positionIncrementGap="100">
+        <analyzer>
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.StopFilterFactory" words="lang/stopwords_cz.txt" ignoreCase="true"/>
+            <filter class="solr.CzechStemFilterFactory"/>
+        </analyzer>
+    </fieldType>
+    <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+        <analyzer type="index">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.StopFilterFactory" words="lang/stopwords.txt" ignoreCase="true"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.StopFilterFactory" words="lang/stopwords.txt" ignoreCase="true"/>
+            <filter class="solr.SynonymGraphFilterFactory" expand="true" ignoreCase="true" synonyms="lang/synonyms.txt"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+    </fieldType>
+
+
+    <field name="_nest_path_" type="_nest_path_"/>
+    <field name="_root_" type="string" docValues="false" indexed="true" stored="false"/>
+    <field name="_text_" type="text_cz" multiValued="true" indexed="true" stored="false" docValues="false"/>
+    <field name="_version_" type="plong" indexed="false" stored="false"/>
+    <field name="archiveExport" type="string"/>
+    <field name="created" type="pdate"/>
+    <field name="crossrefExport" type="string"/>
+    <field name="device" type="text_general" docValues="false"/>
+    <field name="fulltext" type="text_cz" multiValued="true" docValues="false"/>
+    <field name="isLocked" type="boolean" docValues="false"/>
+    <field name="krameriusExport" type="string"/>
+    <field name="label" type="text_general" multiValued="false" docValues="false"/>
+    <field name="members" type="text_general" docValues="false"/>
+    <field name="model" type="string"/>
+    <field name="modified" type="pdate"/>
+    <field name="ndkExport" type="string"/>
+    <field name="organization" type="text_cz" docValues="false"/>
+    <field name="owner" type="text_cz" docValues="false"/>
+    <field name="pid" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
+    <field name="source" type="string"/>
+    <field name="state" type="string"/>
+    <field name="status" type="string"/>
+    <field name="user" type="text_cz" docValues="false"/>
+    <field name="mods" type="string"/>
+    <field name="pageNumber" type="string"/>
+    <field name="pageType" type="string"/>
+    <field name="pageIndex" type="string"/>
+    <field name="pagePosition" type="string"/>
+    <field name="urnNbn" type="string"/>
+    <field name="descriptionStandard" type="string"/>
+    <field name="genre" type="string"/>
+    <field name="validationStatus" type="string"/>
+    <field name="validationProcessId" type="pint"/>
+
+
+    <copyField source="*" dest="fulltext"/>
+</schema>
