@@ -108,6 +108,10 @@ public final class Catalogs {
                 return null;
             }
         }
+        return getCatalog(props, customTemplatePath);
+    }
+
+    public static BibliographicCatalog getCatalog(CatalogConfiguration props, String customTemplatePath) {
         BibliographicCatalog catalog = DigitizationRegistryCatalog.get(props, customTemplatePath);
         if (catalog != null) {
             return catalog;

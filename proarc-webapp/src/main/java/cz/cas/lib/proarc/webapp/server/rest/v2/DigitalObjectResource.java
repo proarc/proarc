@@ -2923,7 +2923,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.UPDATE_CATALOG_RECORD)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> updateCatalogRecord(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
     ) {
 
@@ -2931,7 +2931,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
-        if (pid == null || pid.isEmpty()) {
+        if (pids == null || pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (catalogId == null || catalogId.isEmpty()) {
@@ -2940,7 +2940,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
 
 
         try {
-            return super.updateCatalogRecord(pid, catalogId);
+            return super.updateCatalogRecord(pids, catalogId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());

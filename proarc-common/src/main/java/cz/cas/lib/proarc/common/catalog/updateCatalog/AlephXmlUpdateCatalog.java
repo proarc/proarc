@@ -17,15 +17,26 @@
 
 package cz.cas.lib.proarc.common.catalog.updateCatalog;
 
+import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
+import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.config.Catalogs;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.mods.LocationDefinition;
+import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.UrlDefinition;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.transform.TransformerException;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONException;
 
@@ -65,11 +76,11 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
             LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_BASE_LENGHT));
             ok = false;
         }
-        if (catalog.getField001BaseDefault() == null || catalog.getField001BaseDefault().isEmpty()) {
+        if (catalog.getField001BaseDefault() != null && catalog.getField001BaseDefault().isEmpty()) {
             LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_BASE_DEFAULT));
             ok = false;
         }
-        if (catalog.getField001SysnoLenght() == null || catalog.getField001SysnoLenght() < 0) {
+        if (catalog.getField001SysnoLenght() == null) {
             LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_SYSNO_LENGHT));
             ok = false;
         }
@@ -80,15 +91,32 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
     public boolean process(CatalogConfiguration catalogConfiguration, String field001, String pid) throws DigitalObjectException, JSONException, IOException {
         if (allowUpdateRecord(catalogConfiguration)) {
             try {
-                int expectedLength = getExpectedLength(catalogConfiguration);
-                if (expectedLength == field001.length() || expectedLength == field001.length() + catalogConfiguration.getField001BaseDefault().length()) {
-                    String base = getBase(field001, catalogConfiguration);
-                    String sysno = getSysno(field001, catalogConfiguration);
-                    return updateRecord(base, sysno, catalogConfiguration.getCatalogUrlLink(), pid, catalogConfiguration.getCatalogDirectory());
+                Integer expectedLength = getExpectedLength(catalogConfiguration);
+                String base = null;
+                String sysno = null;
+                boolean containsDigitalizationInfo = false;
+                if (expectedLength == null) {
+                    sysno = field001;
+                } else if (expectedLength == field001.length() || expectedLength == field001.length() + catalogConfiguration.getField001BaseDefault().length()) {
+                    base = getBase(field001, catalogConfiguration);
+                    sysno = getSysno(field001, catalogConfiguration);
                 } else {
                     LOG.log(Level.SEVERE, "Špatná délka SYSNa. Očekávaná délka je " + expectedLength + " ale délka pole 001 (" + field001 + ") je " + field001.length());
                     throw new IOException("Špatná délka SYSNa. Očekávaná délka je " + expectedLength + " ale délka pole 001 (" + field001 + ") je " + field001.length());
                 }
+                if (catalogConfiguration.checkValidSysnoBeforeUpdate()) {
+                    try {
+                        containsDigitalizationInfo = checkValidSysnoInCatalog(catalogConfiguration, sysno, pid);
+                    } catch (UpdateCatalogException ex) {
+                        throw new IOException(ex.getMessage(), ex);
+                    } catch (Exception ex) {
+                        throw new IOException("Nepodařilo se zvalidovat sysno proti katalogu.", ex);
+                    }
+                }
+                if (containsDigitalizationInfo) {
+                    throw new IOException("Záznam v katalogu (" + catalogConfiguration.getId() + ", sysno: " + sysno + ") již obsahuje info o digitalizaci.");
+                }
+                return updateRecord(base, sysno, catalogConfiguration.getCatalogUrlLink(), pid, catalogConfiguration.getCatalogDirectory());
             } catch (StringIndexOutOfBoundsException ex) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException("Wrong value in proarc.cfg for base or sysno lenght.", ex);
@@ -99,7 +127,40 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
         }
     }
 
-    private int getExpectedLength(CatalogConfiguration catalogConfiguration) {
+    private boolean checkValidSysnoInCatalog(CatalogConfiguration catalogConfiguration, String sysno, String pid) throws IOException, TransformerException, UpdateCatalogException {
+        BibliographicCatalog catalog = Catalogs.getCatalog(catalogConfiguration, null);
+        List<MetadataItem> data = catalog.find(catalogConfiguration.getId(), catalogConfiguration.getDefaultSearchField(), sysno, new Locale("cs"));
+        if (data == null || data.isEmpty()) {
+            throw new UpdateCatalogException("Nenalezena žádná data v katalogu " + catalogConfiguration.getId() + " pro identifikator " + sysno + ".");
+        }
+        MetadataItem item = data.get(0);
+        return checkDigitalizationInfo(item.getMods(), catalogConfiguration, pid);
+    }
+
+    private boolean checkDigitalizationInfo(String modsAsString, CatalogConfiguration catalogConfiguration, String pid) {
+        ModsCollectionDefinition modsCollection = ModsUtils.unmarshal(modsAsString, ModsCollectionDefinition.class);
+        ModsDefinition mods = null;
+        if (modsCollection == null || modsCollection.getMods().isEmpty()) {
+            mods = ModsUtils.unmarshal(modsAsString, ModsDefinition.class);
+        } else {
+            mods = modsCollection.getMods().get(0);
+        }
+
+        if (mods.getLocation() == null || mods.getLocation().isEmpty()) {
+            return false;
+        }
+        String expectedLinkValue = createCatalogLink(catalogConfiguration.getCatalogUrlLink(), pid);
+        for (LocationDefinition location : mods.getLocation()) {
+            for (UrlDefinition url : location.getUrl()) {
+                if (url.getValue() != null && (url.getValue().equalsIgnoreCase(expectedLinkValue) || url.getValue().equalsIgnoreCase(expectedLinkValue.replaceAll("/view/", "/uuid/")))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private Integer getExpectedLength(CatalogConfiguration catalogConfiguration) {
         int lenght = 0;
         Integer configLength = catalogConfiguration.getField001BaseLenght();
         if (configLength != null && configLength < 1) {
@@ -108,6 +169,9 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
             lenght += configLength;
         }
         configLength = catalogConfiguration.getField001SysnoLenght();
+        if (catalogConfiguration.getField001SysnoLenght() < 0) {
+            return null;
+        }
         if (configLength != null && configLength < 1) {
             lenght = lenght + 0;
         } else {
@@ -120,8 +184,15 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
         Integer baseLenght = catalogConfiguration.getField001BaseLenght();
         Integer sysnoLenght = catalogConfiguration.getField001SysnoLenght();
         if (baseLenght == null || baseLenght < 1) {
-            return field001.substring(0, sysnoLenght);
+            if (sysnoLenght == null) {
+                return field001;
+            } else {
+                return field001.substring(0, sysnoLenght);
+            }
         } else {
+            if (sysnoLenght == null) {
+                return field001;
+            }
             if (sysnoLenght == field001.length()) {
                 return field001;
             }
@@ -132,7 +203,7 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
     private String getBase(String field001, CatalogConfiguration catalogConfiguration) {
         Integer lenght = catalogConfiguration.getField001BaseLenght();
         if (lenght == null || lenght < 1) {
-            return "";
+            return null;
         } else {
             if (field001.length() == catalogConfiguration.getField001SysnoLenght()) {
                 return catalogConfiguration.getField001BaseDefault();
@@ -143,8 +214,8 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
     }
 
     protected void validateValues(String base, String sysno, String catalogLink, String pid, String catalogPathValue) throws IOException {
-        if (base == null || base.isEmpty()) {
-            throw new IOException("Base is null or empty");
+        if (base != null && base.isEmpty()) {
+            throw new IOException("Base is empty");
         }
         if (sysno == null || sysno.isEmpty()) {
             throw new IOException("Base is null or empty");
@@ -173,19 +244,16 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
             throw e;
         }
 
-        if (catalogLink.endsWith("/")) {
-            catalogLink = catalogLink + pid;
-        } else {
-            catalogLink = catalogLink + "/" + pid;
-        }
+        catalogLink = createCatalogLink(catalogLink, pid);
 
         File alephDirectory = new File(catalogPath);
         File csvFile = alephDirectory.toPath().resolve(pid.substring(5) + ".csv").toFile();
 
         try {
+            String preparedLink = prepareString(base, sysno, catalogLink);
             FileUtils.writeStringToFile(
                     csvFile,
-                    base + " @ " + sysno + " @ " + catalogLink,
+                    preparedLink,
                     Charset.defaultCharset());
 
             csvFile.setReadable(true, false);
@@ -196,5 +264,28 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
         }
 
         return true;
+    }
+
+    private String createCatalogLink(String catalogLink, String pid) {
+        if (catalogLink.endsWith("/")) {
+            catalogLink = catalogLink + pid;
+        } else {
+            catalogLink = catalogLink + "/" + pid;
+        }
+        return catalogLink;
+    }
+
+    private String prepareString(String base, String sysno, String catalogLink) {
+        StringBuilder builder = new StringBuilder();
+        if (base != null && !base.isEmpty()) {
+            builder.append(base).append(" @ ");
+        }
+        if (sysno != null && !sysno.isEmpty()) {
+            builder.append(sysno).append(" @ ");
+        }
+        if (catalogLink != null && !catalogLink.isEmpty()) {
+            builder.append(catalogLink);
+        }
+        return builder.toString();
     }
 }

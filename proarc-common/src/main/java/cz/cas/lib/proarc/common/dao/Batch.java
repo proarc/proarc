@@ -53,6 +53,7 @@ public class Batch {
 
     public static final String INTERNAL_REINDEX = "internalProfile.reindex";
     public static final String INTERNAL_CHANGE_OBJECTS_OWNERS = "internalProfile.changeOwners";
+    public static final String INTERNAL_UPDATE_CATALOG_RECORDS = "internalProfile.updateCatalogRecords";
     public static final String INTERNAL_VALIDATION = "internalProfile.validation";
     public static final String INTERNAL_URNNBN = "internalProfile.urnnbn";
     public static final String INTERNAL_DELETION = "internalProfile.deletion";

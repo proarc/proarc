@@ -363,6 +363,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                     item.setPageNumber(mapper.getNumber(mods));
                     item.setPageType(mapper.getType(mods));
                     item.setPagePosition(mapper.getPosition(mods));
+                    item.setPageRepre(mapper.getPageRepre(mods));
                     item.setPageTypeLabel(OldPrintPageMapper.getPageTypeLabel(item.getPageType(), locale));
                     return item;
                 } else {

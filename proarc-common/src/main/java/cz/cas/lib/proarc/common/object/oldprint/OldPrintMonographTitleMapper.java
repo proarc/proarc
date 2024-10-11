@@ -19,12 +19,6 @@ package cz.cas.lib.proarc.common.object.oldprint;
 
 import cz.cas.lib.proarc.common.mods.ndk.NdkMonographTitleMapper;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.TitleInfoDefinition;
-import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 
 /**
  * @author Jakub Kremlacek
@@ -40,15 +34,15 @@ public class OldPrintMonographTitleMapper extends NdkMonographTitleMapper {
         return OldPrintMapperFactory.createObjectLabel(mods);
     }
 
-    @Override
-    protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
-        OaiDcType dc = super.createDc(mods, ctx);
-        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            addElementType(dc.getTitles(), createTitleString(titleInfo));
-        }
-        addElementType(dc.getTypes(), getDcType());
-        addLanguage(mods.getLanguage(), dc);
-        addName(mods.getName(), dc.getCreators());
-        return dc;
-    }
+//    @Override
+//    protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
+//        OaiDcType dc = super.createDc(mods, ctx);
+//        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+//            addElementType(dc.getTitles(), createTitleString(titleInfo));
+//        }
+//        addElementType(dc.getTypes(), getDcType());
+//        addLanguage(mods.getLanguage(), dc);
+//        addName(mods.getName(), dc.getCreators());
+//        return dc;
+//    }
 }

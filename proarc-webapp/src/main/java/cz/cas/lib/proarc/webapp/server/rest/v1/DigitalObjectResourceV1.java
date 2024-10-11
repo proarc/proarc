@@ -4702,15 +4702,36 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.UPDATE_CATALOG_RECORD)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> updateCatalogRecord(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
     ) throws DigitalObjectException, JSONException, IOException {
         checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
 
         CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
-        catalogRecord.update(catalogId, pid);
 
-        return returnFunctionSuccess();
+        BatchParams params = new BatchParams(pids);
+        Batch batch = BatchUtils.addNewBatch(this.importManager, pids, user, Batch.INTERNAL_UPDATE_CATALOG_RECORDS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+
+        StringBuilder builder = new StringBuilder();
+        int count = 0;
+        for (String pid : pids) {
+            try {
+                catalogRecord.update(catalogId, pid);
+                count++;
+            } catch (Throwable t) {
+                builder.append(pid).append(" ").append(t.getMessage()).append("\n");
+                t.printStackTrace();
+            }
+        }
+
+        if (count == pids.size()) {
+            BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), "Updatovano " + count + " z " + pids.size(), Batch.State.INTERNAL_DONE);
+            return returnFunctionSuccess();
+        } else {
+            String message = "Updatovano " + count + " z " + pids.size() + "\n" + builder.toString();
+            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), message, Batch.State.INTERNAL_FAILED);
+            throw new IOException(message);
+        }
     }
 
     @POST

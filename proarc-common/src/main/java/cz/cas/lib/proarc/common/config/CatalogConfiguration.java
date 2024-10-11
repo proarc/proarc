@@ -69,6 +69,8 @@ public final class CatalogConfiguration {
     public static final String PROPERTY_FIELD001_BASE_LENGHT = "baseLenght";
     public static final String PROPERTY_FIELD001_BASE_DEFAULT = "baseDefault";
     public static final String PROPERTY_FIELD001_SYSNO_LENGHT = "sysnoLenght";
+    /* kontroluje validitu identifikatoru sysno v katalogu */
+    private static final String PROPERTY_CHECK_VALID_SYSNO_BEFORE_UPDATE = "checkSysnoBeforeUpdate";
 
     private final String id;
     private final String prefix;
@@ -138,7 +140,7 @@ public final class CatalogConfiguration {
     }
 
     public String getField001BaseDefault() {
-        return properties.getString(PROPERTY_FIELD001_BASE_DEFAULT);
+        return properties.getString(PROPERTY_FIELD001_BASE_DEFAULT, null);
     }
 
     public Integer getField001SysnoLenght() {
@@ -175,6 +177,10 @@ public final class CatalogConfiguration {
 
     public String getUpdateSubfieldDigitalized() {
         return properties.getString(PROPERTY_UPDATE_SUBFIELD_DIGITALIZED);
+    }
+
+    public boolean checkValidSysnoBeforeUpdate() {
+        return properties.getBoolean(PROPERTY_CHECK_VALID_SYSNO_BEFORE_UPDATE, false);
     }
 
     /**

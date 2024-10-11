@@ -170,6 +170,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put("internalProfile.pero", i18n.InternalProfile_Pero());
         profiles.put("internalProfile.changeOwners", i18n.InternalProfile_Change_Owners());
         profiles.put("internalProfile.validation", i18n.InternalProfile_Validation());
+        profiles.put("internalProfile.updateCatalogRecords", i18n.InternalProfile_UpdateCatalogRecords());
         profileId.setValueMap(profiles);
         profileId.setHidden(true);
 

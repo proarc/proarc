@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema name="searchCore" version="4.0">
-    <!-- log: odebrani nepotrebnych fieldType, podpora solr 9.7 -->
+    <!-- log: odebrani nepotrebnych fieldType, podpora solr 9.7-->
 
 
     <uniqueKey>pid</uniqueKey>
@@ -69,18 +69,18 @@
     <field name="fulltext" type="text_cz" multiValued="true" docValues="false"/>
     <field name="isLocked" type="boolean" docValues="false"/>
     <field name="krameriusExport" type="string"/>
-    <field name="label" type="text_general" multiValued="false" docValues="false"/>
+    <field name="label" type="string"/>
     <field name="members" type="text_general" docValues="false"/>
     <field name="model" type="string"/>
     <field name="modified" type="pdate"/>
     <field name="ndkExport" type="string"/>
-    <field name="organization" type="text_cz" docValues="false"/>
-    <field name="owner" type="text_cz" docValues="false"/>
+    <field name="organization" type="string"/>
+    <field name="owner" type="string"/>
     <field name="pid" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
     <field name="source" type="string"/>
     <field name="state" type="string"/>
     <field name="status" type="string"/>
-    <field name="user" type="text_cz" docValues="false"/>
+    <field name="user" type="string"/>
     <field name="mods" type="string"/>
     <field name="pageNumber" type="string"/>
     <field name="pageType" type="string"/>
