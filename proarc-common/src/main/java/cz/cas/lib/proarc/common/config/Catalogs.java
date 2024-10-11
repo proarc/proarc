@@ -38,6 +38,7 @@ public final class Catalogs {
     private static final Logger LOG = Logger.getLogger(Catalogs.class.getName());
     static final String CATALOG_PREFIX = "catalog";
     static final String PROPERTY_CATALOGS = "catalogs";
+    static final String PROPERTY_VALIDATION_CATALOGS = "validationCatalogs";
     static final String PROPERTY_AUTHORITY_CATALOGS = "authorityCatalogs";
     static final String AUTHORITY_CATALOG_PREFIX = "authorityCatalog";
 
@@ -66,10 +67,10 @@ public final class Catalogs {
 
     public List<CatalogConfiguration> getAllowEditingRecordConfiguration() {
         ArrayList<CatalogConfiguration> catalogs = new ArrayList<CatalogConfiguration>();
-        for (String catalogId : config.getStringArray(PROPERTY_CATALOGS)) {
+        for (String catalogId : config.getStringArray(PROPERTY_VALIDATION_CATALOGS)) {
             CatalogConfiguration catalog = readConfiguration(catalogId);
             if (catalog != null) {
-                if (catalog.getCatalogUpdateUrl() != null && !catalog.getCatalogUpdateUrl().isEmpty() && catalog.allowCatalogUpdateRecord()) {
+                if (catalog.getCatalogUpdateType() != null) {
                     catalogs.add(catalog);
                 }
             }
@@ -139,6 +140,11 @@ public final class Catalogs {
      */
     public CatalogConfiguration findConfiguration(String id) {
         for (CatalogConfiguration catalog : getConfigurations()) {
+            if (catalog.getId().equals(id)) {
+                return catalog;
+            }
+        }
+        for (CatalogConfiguration catalog : getAllowEditingRecordConfiguration()) {
             if (catalog.getId().equals(id)) {
                 return catalog;
             }
