@@ -16,18 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
-import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ClientUtils;
-import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
-import cz.cas.lib.proarc.webapp.client.action.Actions;
-import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
-import cz.cas.lib.proarc.webapp.client.action.SaveAction;
-import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectAdministrationDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
-import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
@@ -40,6 +28,18 @@ import com.smartgwt.client.widgets.form.fields.DateItem;
 import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.layout.VLayout;
+import cz.cas.lib.proarc.webapp.client.ClientMessages;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.action.RefreshAction.Refreshable;
+import cz.cas.lib.proarc.webapp.client.action.SaveAction;
+import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectAdministrationDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.LinkedHashMap;
 
 /**
@@ -304,6 +304,7 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             valueMap.put("ilnorway", "Norské fondy (nové logo)");
             valueMap.put("norway", "Norské fondy (staré logo)");
             valueMap.put("dkrvo19-23", "DKRVO 2019 - 2023");
+            valueMap.put("dkrvo24-28", "DKRVO 2024 - 2028");
             donator.setValueMap(valueMap);
             donator.setAllowEmptyValue(true);
             donator.setEmptyDisplayValue(ClientUtils.format("<i>&lt;%s&gt;</i>",
