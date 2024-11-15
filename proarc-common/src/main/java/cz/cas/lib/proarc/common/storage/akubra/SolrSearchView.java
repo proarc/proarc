@@ -349,6 +349,7 @@ public class SolrSearchView extends SearchView {
     private List<SearchViewItem> searchImpl(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) throws IOException {
         try {
             StringBuilder queryBuilder = createQuery(onlyActive, models, pids, owner, organization, user, label, status, allowAllForUser);
+            limit = updateLimit(limit, pids);
             SolrQuery solrQuery = createQueryWithParams(queryBuilder, offset, limit, sortOperation, sortField);
 
             List<SearchViewItem> items = new ArrayList<>();
@@ -362,6 +363,18 @@ public class SolrSearchView extends SearchView {
         } catch (SolrServerException ex) {
             ex.printStackTrace();
             throw new IOException(ex);
+        }
+    }
+
+    private Integer updateLimit(Integer limit, List<String> pids) {
+        if (limit != null && limit >= 1) {
+            return limit;
+        } else {
+            if (pids != null && !pids.isEmpty()) {
+                return pids.size();
+            } else {
+                return ROWS_DEFAULT_VALUE;
+            }
         }
     }
 

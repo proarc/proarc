@@ -307,6 +307,7 @@ public class ReindexDigitalObjects {
         dcEditor.write(handler, dcr, null);
 
         fo.setLabel(mapper.toLabel(mods));
+        fo.indexHierarchical(false);
         fo.flush();
     }
 

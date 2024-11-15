@@ -75,7 +75,7 @@ public class SolrUtils {
     }
 
     private static StringBuilder appendPidListValue(StringBuilder queryBuilder, String value) {
-        return appendValue(queryBuilder, "*" + value.replaceAll(":", "\\\\:") + "*", QueryOperator.OR.name());
+        return appendValue(queryBuilder, value.replaceAll(":", "\\\\:"), QueryOperator.OR.name());
     }
 
     private static StringBuilder appendValue(StringBuilder queryBuilder, String value, String operator) {
@@ -158,7 +158,7 @@ public class SolrUtils {
             }
             if (isFirst) {
                 isFirst = false;
-                queryBuilder.append("*" + value.replaceAll(":", "\\\\:") + "*");
+                queryBuilder.append(value.replaceAll(":", "\\\\:"));
             } else {
                 queryBuilder = appendPidListValue(queryBuilder, value);
             }
