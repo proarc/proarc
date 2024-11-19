@@ -62,7 +62,7 @@ public class ImportUtils {
                     pids.add(batchItem.getPid());
                     continue;
                 }
-            } catch (NumberFormatException ex) {
+            } catch (Exception ex) {
                 pids.add(batchItem.getPid());
                 continue;
             }
@@ -90,7 +90,7 @@ public class ImportUtils {
                 } else {
                     sortedList.put(name, batchItem);
                 }
-            } catch (NumberFormatException ex) {
+            } catch (Exception ex) {
                 sortedList.put(name, batchItem);
             }
         }

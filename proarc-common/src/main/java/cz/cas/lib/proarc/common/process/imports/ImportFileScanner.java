@@ -49,7 +49,8 @@ public final class ImportFileScanner {
     /** system filenames to exclude from digital content list */
     private static final Set<String> EXCLUDE_FILENAMES = new HashSet<String>(Arrays.asList(
             IMPORT_STATE_FILENAME,
-            ImportProcess.TMP_DIR_NAME
+            ImportProcess.TMP_DIR_NAME,
+            "Thumbs.db"
             ));
 
     private static final FileFilter FOLDER_FILTER = new FileFilter() {
