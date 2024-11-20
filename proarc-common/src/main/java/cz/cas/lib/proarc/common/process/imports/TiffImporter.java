@@ -18,33 +18,34 @@ package cz.cas.lib.proarc.common.process.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.process.external.ExternalProcess;
+import cz.cas.lib.proarc.common.process.external.KakaduCompress;
+import cz.cas.lib.proarc.common.process.external.OcrGenerator;
+import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
+import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.MixEditor;
 import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
 import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
-import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.ocr.AltoDatastream;
-import cz.cas.lib.proarc.common.process.external.ExternalProcess;
-import cz.cas.lib.proarc.common.process.external.KakaduCompress;
-import cz.cas.lib.proarc.common.process.external.OcrGenerator;
-import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -451,7 +452,7 @@ public class TiffImporter implements ImageImporter {
             } else {
                 if (tiff == null) {
                     start = System.nanoTime();
-                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    tiff = removeAlphaChannel(ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF));
                     endRead = System.nanoTime() - start;
                 }
                 f = writeImage(tiff, tempBatchFolder, targetName, imageType);
@@ -491,7 +492,7 @@ public class TiffImporter implements ImageImporter {
             } else {
                 if (tiff == null) {
                     start = System.nanoTime();
-                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    tiff = removeAlphaChannel(ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF));
                     endRead = System.nanoTime() - start;
                 }
                 f = writeImage(
@@ -535,7 +536,7 @@ public class TiffImporter implements ImageImporter {
             } else {
                 if (tiff == null) {
                     start = System.nanoTime();
-                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    tiff = removeAlphaChannel(ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF));
                     endRead = System.nanoTime() - start;
                 }
                 f = createThumbnail(tempBatchFolder, originalFilename, original, tiff, config);
@@ -547,6 +548,21 @@ public class TiffImporter implements ImageImporter {
 
         LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                 originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
+    }
+
+    private BufferedImage removeAlphaChannel(BufferedImage bufferedImage) {
+        if (bufferedImage == null) {
+            return null;
+        }
+        if (!bufferedImage.getColorModel().hasAlpha()) {
+            return bufferedImage;
+        }
+        BufferedImage imageWithoutAlpha = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = imageWithoutAlpha.createGraphics();
+        graphics.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+        graphics.drawImage(bufferedImage, 0, 0, null);
+        graphics.dispose();
+        return imageWithoutAlpha;
     }
 
     private File createThumbnail(File tempBatchFolder, String originalFilename, File original, BufferedImage tiff, ImportProfile config)
