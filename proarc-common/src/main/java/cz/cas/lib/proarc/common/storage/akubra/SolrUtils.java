@@ -6,6 +6,7 @@ import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import java.io.IOException;
@@ -27,6 +28,7 @@ public class SolrUtils {
     public static final String FIELD_MODEL = "model";
     public static final String FIELD_OWNER = "owner";
     public static final String FIELD_LABEL = "label";
+    public static final String FIELD_LABEL_SORT = "labelSort";
     public static final String FIELD_STATE = "state";
     public static final String FIELD_CREATED = "created";
     public static final String FIELD_MODIFIED = "modified";
@@ -155,6 +157,9 @@ public class SolrUtils {
         for (String value : list) {
             if (value == null || value.isEmpty()) {
                 continue;
+            }
+            if (!FoxmlUtils.validPid(value)) {
+                value += "*";
             }
             if (isFirst) {
                 isFirst = false;

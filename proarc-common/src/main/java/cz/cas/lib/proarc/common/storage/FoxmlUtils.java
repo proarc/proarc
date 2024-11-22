@@ -92,6 +92,8 @@ public final class FoxmlUtils {
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
     private static final Pattern PID_PATTERN = Pattern.compile(
             "^([A-Za-z0-9]|-|\\.)+:(([A-Za-z0-9])|-|\\.|~|_|(%[0-9A-F]{2}))+$");
+    private static final Pattern PID_NEW_PATTERN = Pattern.compile(
+            "^uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     /**
      * Default FOXML context. Oracle JAXB RI's context should be thread safe.
@@ -372,6 +374,14 @@ public final class FoxmlUtils {
      */
     public static boolean isValidPid(String pid) {
         return pid != null && pid.length() <= 64 && PID_PATTERN.matcher(pid).matches();
+    }
+
+    public static boolean validPid(String pid) {
+        if (pid == null || pid.length() != 41) {
+            return false;
+        }
+        return PID_NEW_PATTERN.matcher(pid).matches();
+
     }
 
     /**

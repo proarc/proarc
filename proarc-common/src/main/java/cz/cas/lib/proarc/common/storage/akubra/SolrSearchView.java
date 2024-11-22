@@ -28,6 +28,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_CREATED;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_DEVICE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_FULLTEXT;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_LABEL;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_LABEL_SORT;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MEMBERS;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MODEL;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MODIFIED;
@@ -303,12 +304,24 @@ public class SolrSearchView extends SearchView {
 
     @Override
     public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
-        return searchImplementation(offset, limit, sortField, transfromSort(sort), true, Collections.singletonList(model), Collections.singletonList(identifier), owner, organization, processor, label, status, allowAllForProcessor);
+        List<String> queryPids = new ArrayList<>();
+        if (identifier != null && identifier.contains(",")) {
+            queryPids.addAll(Arrays.asList(identifier.split("\\s*,\\s*")));
+        } else {
+            queryPids.add(identifier);
+        }
+        return searchImplementation(offset, limit, sortField, transfromSort(sort), true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, allowAllForProcessor);
     }
 
     @Override
     public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension) throws IOException {
-        return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), Collections.singletonList(identifier), owner, organization, processor, label, status, allowAllForProcessor);
+        List<String> queryPids = new ArrayList<>();
+        if (identifier != null && identifier.contains(",")) {
+            queryPids.addAll(Arrays.asList(identifier.split("\\s*,\\s*")));
+        } else {
+            queryPids.add(identifier);
+        }
+        return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, allowAllForProcessor);
     }
 
     @Override
@@ -435,6 +448,7 @@ public class SolrSearchView extends SearchView {
         } else {
             solrQuery.setRows(ROWS_DEFAULT_VALUE);
         }
+        sortField = fixLabelSortField(sortField);
         if (sortOperation != null && validField(sortField)) {
             SolrQuery.SortClause sortClause = new SolrQuery.SortClause(sortField, sortOperation.name().toLowerCase());
             solrQuery.setSort(sortClause);
@@ -442,11 +456,18 @@ public class SolrSearchView extends SearchView {
         return solrQuery;
     }
 
+    private String fixLabelSortField(String sortField) {
+        if (FIELD_LABEL.equals(sortField)) {
+            return FIELD_LABEL_SORT;
+        }
+        return sortField;
+    }
+
     private boolean validField(String sortField) {
         if (sortField == null || sortField.isEmpty()) {
             return false;
         } else {
-            List<String> validFields = new ArrayList<>(Arrays.asList(FIELD_PID, FIELD_MODEL, FIELD_OWNER, FIELD_LABEL, FIELD_STATE, FIELD_CREATED, FIELD_MODIFIED, FIELD_ORGANIZATION, FIELD_USER, FIELD_STATUS));
+            List<String> validFields = new ArrayList<>(Arrays.asList(FIELD_PID, FIELD_MODEL, FIELD_OWNER, FIELD_LABEL_SORT, FIELD_STATE, FIELD_CREATED, FIELD_MODIFIED, FIELD_ORGANIZATION, FIELD_USER, FIELD_STATUS));
             return validFields.contains(sortField);
         }
     }
@@ -474,7 +495,7 @@ public class SolrSearchView extends SearchView {
             queryBuilder = appendAndValue(queryBuilder, getUserQuery(Collections.singletonList(user), allowAllForUser));
         }
         if (label != null && !label.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_LABEL + ":*" + label.replaceAll(":", "\\\\:") + "*");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_LABEL + ":\"" + label.replaceAll(":", "\\\\:") + "\"");
         }
         if (status != null && !status.isEmpty()) {
             queryBuilder = appendAndValue(queryBuilder, FIELD_STATUS + ":\"" + status + "\"");
