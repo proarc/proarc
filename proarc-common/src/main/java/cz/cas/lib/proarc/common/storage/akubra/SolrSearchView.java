@@ -2,14 +2,14 @@ package cz.cas.lib.proarc.common.storage.akubra;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.SearchViewQuery;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +22,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_CREATED;
@@ -82,7 +83,7 @@ public class SolrSearchView extends SearchView {
     @Override
     public boolean isDeviceInUse(String deviceId) throws IOException, FedoraClientException {
         try {
-            String query = FIELD_DEVICE + ":\"" + deviceId + "\"";
+            String query = FIELD_DEVICE + ":\"" + ClientUtils.escapeQueryChars(deviceId) + "\"";
             SolrQuery solrQuery = new SolrQuery(query);
             QueryResponse response = this.solrClient.query(solrQuery);
             int total = response.getResults().size();
@@ -144,7 +145,7 @@ public class SolrSearchView extends SearchView {
         try {
             StringBuilder queryBuilder = new StringBuilder();
             queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");
-            queryBuilder = appendAndValue(queryBuilder, FIELD_MEMBERS + ":\"" + pid + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_MEMBERS + ":\"" + ClientUtils.escapeQueryChars(pid) + "\"");
             SolrQuery solrQuery = new SolrQuery(queryBuilder.toString());
 
             List<SearchViewItem> items = new ArrayList<>();
@@ -361,9 +362,10 @@ public class SolrSearchView extends SearchView {
 
     private List<SearchViewItem> searchImpl(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) throws IOException {
         try {
-            StringBuilder queryBuilder = createQuery(onlyActive, models, pids, owner, organization, user, label, status, allowAllForUser);
+            String query = createQuery(label);
+            List<String> filterQueryList = createFilterQuery(onlyActive, models, pids, owner, organization, user, status, allowAllForUser);
             limit = updateLimit(limit, pids);
-            SolrQuery solrQuery = createQueryWithParams(queryBuilder, offset, limit, sortOperation, sortField);
+            SolrQuery solrQuery = createQueryWithParams(query, FIELD_LABEL, filterQueryList, offset, limit, sortOperation, sortField);
 
             List<SearchViewItem> items = new ArrayList<>();
             QueryResponse response = this.solrClient.query(solrQuery);
@@ -377,6 +379,34 @@ public class SolrSearchView extends SearchView {
             ex.printStackTrace();
             throw new IOException(ex);
         }
+    }
+
+    private List<String> createFilterQuery(Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String status, Boolean allowAllForUser) {
+        List<String> filterQueryList = defaultFilterQuery();
+        if (onlyActive != null && onlyActive) {
+            filterQueryList.add(FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");
+        } else if (onlyActive != null && !onlyActive){
+            filterQueryList.add(FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_DEACTIVE + "\"");
+        }
+        if (models != null && !models.isEmpty() && hasValues(models)) {
+            filterQueryList.add(getModelQuery(models));
+        }
+        if (pids != null && !pids.isEmpty() && hasValues(pids)) {
+            filterQueryList.add(getPidsQuery(pids));
+        }
+        if (owner != null && !owner.isEmpty()) {
+            filterQueryList.add(FIELD_OWNER + ":\"" + owner + "\"");
+        }
+        if (organization != null && !organization.isEmpty()) {
+            filterQueryList.add(FIELD_ORGANIZATION + ":\"" + organization + "\"");
+        }
+        if (user != null && !user.isEmpty() && (hasValues(Collections.singletonList(user)) && allowAllForUser)) {
+            filterQueryList.add(getUserQuery(Collections.singletonList(user), allowAllForUser));
+        }
+        if (status != null && !status.isEmpty()) {
+            filterQueryList.add(FIELD_STATUS + ":\"" + status + "\"");
+        }
+        return filterQueryList;
     }
 
     private Integer updateLimit(Integer limit, List<String> pids) {
@@ -393,8 +423,13 @@ public class SolrSearchView extends SearchView {
 
     private List<SearchViewItem> searchPhraseImplementation(String phrase, String status, String organization, String username, String model, Boolean allowAllForUser, Boolean filterWithoutExtension, String sortField, String sort, int offset, int limit) throws IOException {
         try {
-            StringBuilder queryBuilder = createPhaseQueryWithParams(phrase, status, organization, username, model, allowAllForUser);
-            SolrQuery solrQuery = createQueryWithParams(queryBuilder, offset, limit, transfromSort(sort), sortField);
+            String query = createQuery(phrase);
+            List<String> models = null;
+            if (model != null && !model.isEmpty()) {
+                models = Collections.singletonList(model);
+            }
+            List<String> filterQueryList = createFilterQuery(true, models, null, null, organization, username, status, allowAllForUser);
+            SolrQuery solrQuery = createQueryWithParams(query, FIELD_FULLTEXT, filterQueryList, offset, limit, transfromSort(sort), sortField);
 
             List<SearchViewItem> items = new ArrayList<>();
             QueryResponse response = this.solrClient.query(solrQuery);
@@ -410,23 +445,11 @@ public class SolrSearchView extends SearchView {
         }
     }
 
-    private StringBuilder createPhaseQueryWithParams(String phrase, String status, String organization, String username, String model, Boolean allowAllForUser) {
-        List<String> models = null;
-        if (model != null && !model.isEmpty()) {
-            models = Collections.singletonList(model);
-        }
-
-        StringBuilder queryBuilder = createQuery(true, models, null, null, organization, username, null, status, allowAllForUser);
-        if (phrase != null && !phrase.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_FULLTEXT + ":\"" + phrase + "\"");
-        }
-        return queryBuilder;
-    }
-
     private int searchCountImplementation(Integer offset, Integer limit, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String username, String label, String status, Boolean allowAllForUser) throws IOException {
         try {
-            StringBuilder queryBuilder = createQuery(onlyActive, models, pids, owner, organization, username, label, status, allowAllForUser);
-            SolrQuery solrQuery = createQueryWithParams(queryBuilder, offset, limit, null, null);
+            String query = createQuery(label);
+            List<String> filterQueryList = createFilterQuery(onlyActive, models, pids, owner, organization, username, status, allowAllForUser);
+            SolrQuery solrQuery = createQueryWithParams(query, FIELD_LABEL, filterQueryList, offset, limit, null, null);
 
             QueryResponse response = this.solrClient.query(solrQuery);
 
@@ -438,8 +461,15 @@ public class SolrSearchView extends SearchView {
         }
     }
 
-    private SolrQuery createQueryWithParams(StringBuilder queryBuilder, Integer offset, Integer limit, SolrUtils.SortOperation sortOperation, String sortField) {
-        SolrQuery solrQuery = new SolrQuery(queryBuilder.toString());
+    private SolrQuery createQueryWithParams(String query, String field, List<String> filterQueryList, Integer offset, Integer limit, SolrUtils.SortOperation sortOperation, String sortField) {
+        SolrQuery solrQuery = new SolrQuery(query);
+        solrQuery.set("q.op", "AND");
+        if (query != null && !query.isEmpty() && !"*".equals(query)) {
+            solrQuery.set("df", field);
+        }
+        for (String filterQuery : filterQueryList) {
+            solrQuery.addFilterQuery(filterQuery);
+        }
         if (offset != null && offset >= 0) {
             solrQuery.setStart(offset);
         }
@@ -472,44 +502,21 @@ public class SolrSearchView extends SearchView {
         }
     }
 
-    private StringBuilder createQuery(Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) {
-        StringBuilder queryBuilder = defaultQuery();
-        if (onlyActive != null && onlyActive) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");
-        } else if (onlyActive != null && !onlyActive){
-            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_DEACTIVE + "\"");
-        }
-        if (models != null && !models.isEmpty() && hasValues(models)) {
-            queryBuilder = appendAndValue(queryBuilder, getModelQuery(models));
-        }
-        if (pids != null && !pids.isEmpty() && hasValues(pids)) {
-            queryBuilder = appendAndValue(queryBuilder, getPidsQuery(pids));
-        }
-        if (owner != null && !owner.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_OWNER + ":\"" + owner + "\"");
-        }
-        if (organization != null && !organization.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_ORGANIZATION + ":\"" + organization + "\"");
-        }
-        if (user != null && !user.isEmpty() && (hasValues(Collections.singletonList(user)) && allowAllForUser)) {
-            queryBuilder = appendAndValue(queryBuilder, getUserQuery(Collections.singletonList(user), allowAllForUser));
-        }
+    private String createQuery(String label) {
         if (label != null && !label.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_LABEL + ":\"" + label.replaceAll(":", "\\\\:") + "\"");
+            label = ClientUtils.escapeQueryChars(label);
+            return label;
         }
-        if (status != null && !status.isEmpty()) {
-            queryBuilder = appendAndValue(queryBuilder, FIELD_STATUS + ":\"" + status + "\"");
-        }
-        return queryBuilder;
+        return "*";
     }
 
-    private StringBuilder defaultQuery() {
-        StringBuilder queryBuilder = new StringBuilder();
+    private List<String> defaultFilterQuery() {
+        List<String> defaultFilterQuery = new ArrayList<>();
         if (!allowDevices) {
-            queryBuilder = appendAndValue(queryBuilder, "-" + FIELD_MODEL + ":\"" + DeviceRepository.METAMODEL_ID + "\"");
-            queryBuilder = appendAndValue(queryBuilder, "-" + FIELD_MODEL + ":\"" + DeviceRepository.METAMODEL_AUDIODEVICE_ID + "\"");
+            defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(DeviceRepository.METAMODEL_ID) + "\"");
+            defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(DeviceRepository.METAMODEL_AUDIODEVICE_ID) + "\"");
         }
-        return queryBuilder;
+        return defaultFilterQuery;
     }
 
     private boolean hasValues(List<String> values) {

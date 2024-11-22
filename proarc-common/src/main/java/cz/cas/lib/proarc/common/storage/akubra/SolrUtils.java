@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 
 public class SolrUtils {
@@ -117,18 +118,18 @@ public class SolrUtils {
     }
 
     public static String getPidsQuery(List<String> pids) {
-        return getPidListQuery(pids, FIELD_PID);
+        return getListFilterQuery(pids, FIELD_PID);
     }
 
     public static String getModelQuery(List<String> models) {
-        return getListQuery(models, FIELD_MODEL);
+        return getListFilterQuery(models, FIELD_MODEL);
     }
 
     public static String getUserQuery(List<String> usernames, Boolean allowAllForUser) {
         if (allowAllForUser == Boolean.TRUE) {
             return null;
         }
-        return getListQuery(usernames, FIELD_USER);
+        return getListFilterQuery(usernames, FIELD_USER);
     }
 
     private static String getListQuery(List<String> list, String key) {
@@ -147,6 +148,37 @@ public class SolrUtils {
             }
         }
         queryBuilder.append(")");
+        return queryBuilder.toString();
+    }
+
+    private static String getListFilterQuery(List<String> list, String key) {
+        StringBuilder queryBuilder = new StringBuilder();
+        boolean isFirst = true;
+        for (String value : list) {
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
+            if (isFirst) {
+                isFirst = false;
+                value = value.trim();
+                value = ClientUtils.escapeQueryChars(value);
+                if (value.contains("*")) {
+                    value = value.replace("\\*", "*");
+                    queryBuilder.append(key).append(":").append(value).append("");
+                } else {
+                    queryBuilder.append(key).append(":\"").append(value).append("\"");
+                }
+            } else {
+                value = value.trim();
+                value = ClientUtils.escapeQueryChars(value);
+                if (value.contains("*")) {
+                    value = value.replace("\\*", "*");
+                    queryBuilder.append(" ").append(QueryOperator.OR.name()).append(" ").append(key).append(":").append(value);
+                } else {
+                    queryBuilder.append(" ").append(QueryOperator.OR.name()).append(" ").append(key).append(":\"").append(value).append("\"");
+                }
+            }
+        }
         return queryBuilder.toString();
     }
 
