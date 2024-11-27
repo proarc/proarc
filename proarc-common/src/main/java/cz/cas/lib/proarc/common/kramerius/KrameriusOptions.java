@@ -224,6 +224,7 @@ public class KrameriusOptions {
         static final String PROPERTY_KRAMERIUS_TARGET_CONVERTED_FOLDER = "krameriusTargetConvertedFolder";
         static final String PROPERTY_DELETE_AFTER_IMPORT = "deleteAfterImport";
         static final String PROPERTY_UPLOAD_TO_CATALOG = "uploadToCatalog";
+        static final String PROPERTY_PATH_TYPE = "pathType";
 
         private final String id;
         private final Configuration config;
@@ -336,6 +337,15 @@ public class KrameriusOptions {
         public boolean isTestType() {
             String type = getType();
             return "test".equalsIgnoreCase(type);
+        }
+
+        public String getPathType() {
+            String pathtype = config.getString(PROPERTY_PATH_TYPE, "relative");
+            if (!("relative".equals(pathtype) || "absolute".equals(pathtype))) {
+                LOG.warning("Unsupported path type: " + pathtype + " using default value \"relative\".");
+                return "relative";
+            }
+            return pathtype;
         }
 
         public List<KrameriusLicense> getLicenses() {

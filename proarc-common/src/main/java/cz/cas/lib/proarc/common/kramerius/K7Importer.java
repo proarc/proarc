@@ -54,11 +54,13 @@ public class K7Importer {
         if (KUtils.EXPORT_KRAMERIUS.equals(exportType)) {
             query = instance.getUrl() + instance.getUrlParametrizedImportQuery();
             String exportFolderPath = instance.getKrameriusImportFoxmlFolder() + exportFolder.getName();
-            json = "{\"defid\":\"import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"startIndexer\": true, \"updateExisting\": " + updateExisting + "}}";
+            String pathType = instance.getPathType();
+            json = "{\"defid\":\"import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"startIndexer\": true, \"updateExisting\": " + updateExisting + ", \"pathtype\": \"" + pathType + "\"}}";
         } else if (KUtils.EXPORT_NDK.equals(exportType)) {
             query = instance.getUrl() + instance.getUrlConvertImportQuery();
             String exportFolderPath = instance.getKrameriusConvertNdkFolder() + exportFolder.getName();
-            json = "{\"defid\":\"convert_and_import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"policy\": \"" + getPolicy(policy) + "\", \"startIndexer\": true, \"useIIPServer\": \"true\"}}";
+            String pathType = instance.getPathType();
+            json = "{\"defid\":\"convert_and_import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"policy\": \"" + getPolicy(policy) + "\", \"startIndexer\": true, \"useIIPServer\": \"true\", \"pathtype\": \"" + pathType + "\"}}";
         }
 
 
