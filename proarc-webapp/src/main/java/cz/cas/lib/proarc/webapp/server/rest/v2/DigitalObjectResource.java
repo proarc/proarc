@@ -2926,8 +2926,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
     ) {
-
-        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN)) {
+        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 

@@ -244,6 +244,8 @@ public final class UsersView implements RefreshAction.Refreshable {
         czidloFunctio.setCanEdit(admin);
         BooleanItem wfDeleteJobFunction = new BooleanItem(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION);
         wfDeleteJobFunction.setCanEdit(admin);
+        BooleanItem importToCatalogFunction = new BooleanItem(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION);
+        importToCatalogFunction.setCanEdit(admin);
         TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
         email.setColSpan("*");
         email.setWidth(300);
@@ -285,7 +287,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         cancel.setStartRow(false);
 
         form.setFields(username, password, forename, surname, email,
-                remoteName, remoteType, organization, role, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction, importToProdFunction, czidloFunctio, wfDeleteJobFunction,
+                remoteName, remoteType, organization, role, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction, importToProdFunction, czidloFunctio, wfDeleteJobFunction, importToCatalogFunction,
                 new RowSpacerItem(), submit, cancel);
 
         return form;

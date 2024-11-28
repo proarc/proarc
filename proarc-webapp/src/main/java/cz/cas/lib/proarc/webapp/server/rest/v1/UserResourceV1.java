@@ -237,7 +237,8 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
             @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
-            @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction
+            @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction,
+            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction
             ) {
         Locale locale = session.getLocale(httpHeaders);
         checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN, Permissions.USERS_CREATE);
@@ -267,6 +268,7 @@ public class UserResourceV1 {
         newProfile.setImportToProdFunction(importToProdFunction);
         newProfile.setCzidloFunction(czidloFunction);
         newProfile.setWfDeleteJobFunction(wfDeleteJobFunction);
+        newProfile.setImportToCatalogFunction(importToCatalogFunction);
         try {
             newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
                     session.getUser().getUserName(), session.asFedoraLog());
@@ -300,7 +302,8 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
             @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
-            @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction
+            @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction,
+            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction
             ) {
 
         Locale locale = session.getLocale(httpHeaders);
@@ -335,6 +338,7 @@ public class UserResourceV1 {
             update.setImportToProdFunction(importToProdFunction);
             update.setCzidloFunction(czidloFunction);
             update.setWfDeleteJobFunction(wfDeleteJobFunction);
+            update.setImportToCatalogFunction(importToCatalogFunction);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Surname_Required")).build();

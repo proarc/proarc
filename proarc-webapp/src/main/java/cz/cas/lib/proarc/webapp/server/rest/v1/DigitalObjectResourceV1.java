@@ -4705,7 +4705,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
     ) throws DigitalObjectException, JSONException, IOException {
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION);
 
         CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
 

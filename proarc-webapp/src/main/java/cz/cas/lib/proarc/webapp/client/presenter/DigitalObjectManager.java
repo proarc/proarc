@@ -499,7 +499,8 @@ public final class DigitalObjectManager {
                         Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION) ||
                         Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION) ||
                         Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION))) {
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION))) {
                     return false;
                 } else {
                     Object[] selection = Actions.getSelection(event);

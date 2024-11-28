@@ -53,6 +53,7 @@ public class UserProfile {
     private Boolean importToProdFunction;
     private Boolean czidloFunction;
     private Boolean wfDeleteJobFunction;
+    private Boolean importToCatalogFunction;
     private Date created;
     private Date lastLogin;
     private String status;
@@ -325,6 +326,18 @@ public class UserProfile {
 
     public void setWfDeleteJobFunction(Boolean wfDeleteJobFunction) {
         this.wfDeleteJobFunction = wfDeleteJobFunction;
+    }
+
+    public Boolean getImportToCatalogFunction() {
+        return importToCatalogFunction;
+    }
+
+    public Boolean hasImportToCatalogFunction() {
+        return Boolean.TRUE.equals(importToCatalogFunction);
+    }
+
+    public void setImportToCatalogFunction(Boolean importToCatalogFunction) {
+        this.importToCatalogFunction = importToCatalogFunction;
     }
 
     @Override

@@ -17,6 +17,7 @@ public class UserRole {
     public static final String PERMISSION_IMPORT_TO_PROD_FUNCTION = "importToProdFunction";
     public static final String PERMISSION_CZIDLO_FUNCTION = "czidloFunction";
     public static final String PERMISSION_WF_DELETE_JOB_FUNCTION = "wfDeleteJobFunction";
+    public static final String PERMISSION_IMPORT_TO_CATALOG_FUNCTION = "importToCatalogFunction";
 
     public static LinkedHashMap<String, String> getMap() {
         LinkedHashMap<String, String> valueMap = new LinkedHashMap();

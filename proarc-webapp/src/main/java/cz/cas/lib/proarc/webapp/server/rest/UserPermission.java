@@ -41,6 +41,9 @@ public class UserPermission {
             if (UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.getWfDeleteJobFunction())) {
                 return true;
             }
+            if (UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasImportToCatalogFunction())) {
+                return true;
+            }
         }
         return false;
     }

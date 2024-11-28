@@ -216,6 +216,7 @@ public class Editor implements EntryPoint {
                 String permissionRunUnlockFunction = "none";
                 String permissionCzidloFunction = "none";
                 String permissionWfDeleteJobFunction = "none";
+                String permissionImportToCatalogFunction = "none";
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
                     if (data.length > 0) {
@@ -227,6 +228,7 @@ public class Editor implements EntryPoint {
                         permissionRunChangeFunction = data[0].getAttribute(UserDataSource.FIELD_IMPORT_TO_PROD_FUNCTION);
                         permissionCzidloFunction = data[0].getAttribute(UserDataSource.FIELD_CZIDLO_FUNCTION);
                         permissionWfDeleteJobFunction = data[0].getAttribute(UserDataSource.FIELD_WF_DELETE_JOB_FUNCTION);
+                        permissionImportToCatalogFunction = data[0].getAttribute(UserDataSource.FIELD_IMPORT_TO_CATALOG_FUNCTION);
                     }
                     permissions.clear();
                     permissions.add(role);
@@ -236,6 +238,7 @@ public class Editor implements EntryPoint {
                     permissions.add("true".equals(permissionRunUnlockFunction) ? UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION : "none");
                     permissions.add("true".equals(permissionCzidloFunction) ? UserRole.PERMISSION_CZIDLO_FUNCTION : "none");
                     permissions.add("true".equals(permissionWfDeleteJobFunction) ? UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION : "none");
+                    permissions.add("true".equals(permissionImportToCatalogFunction) ? UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION : "none");
                     sweepTask.release();
                 }
             }

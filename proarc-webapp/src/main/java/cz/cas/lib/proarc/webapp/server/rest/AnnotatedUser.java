@@ -128,6 +128,10 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract Boolean getWfDeleteJobFunction();
 
+    @XmlElement(name = UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION)
+    @Override
+    public abstract Boolean getImportToCatalogFunction();
+
     @XmlTransient
     @Override
     public abstract URI getImportFolder();
