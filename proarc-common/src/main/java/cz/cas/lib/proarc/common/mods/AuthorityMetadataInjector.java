@@ -34,10 +34,15 @@ public class AuthorityMetadataInjector implements MetadataInjector {
     @Override
     public void addMetadata(DescriptionMetadata<String> authorityJson) throws DigitalObjectException {
         DescriptionMetadata<ModsDefinition> authority = new DescriptionMetadata<>();
-        ModsCollectionDefinition authorityCollectionMods = ModsUtils.unmarshal(authorityJson.getData(),
-                ModsCollectionDefinition.class);
-        authorityCollectionMods.getMods();
-        authority.setData(authorityCollectionMods.getMods().get(0));
+        ModsCollectionDefinition authorityCollectionMods = ModsUtils.unmarshal(authorityJson.getData(), ModsCollectionDefinition.class);
+        ModsDefinition authorityMods = null;
+        if (authorityCollectionMods == null || authorityCollectionMods.getMods().isEmpty()) {
+            authorityMods = ModsUtils.unmarshal(authorityJson.getData(), ModsDefinition.class);
+        } else {
+            authorityMods = authorityCollectionMods.getMods().get(0);
+        }
+
+        authority.setData(authorityMods);
         DescriptionMetadata<ModsDefinition> metadata = metadataHandler.getMetadata();
         metadata = insertAuthority(metadata, authority);
         metadataHandler.setMetadata(metadata, "authority added", NdkMetadataHandler.OPERATION_UPDATE);

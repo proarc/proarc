@@ -4734,6 +4734,16 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         <xsl:text>1</xsl:text>
                     </xsl:attribute>
                 </xsl:if>
+                <xsl:if test="../marc:datafield[@tag='678']">
+                    <description>
+                        <xsl:value-of select="../marc:datafield[@tag=678]"/>
+                    </description>
+                </xsl:if>
+                <xsl:if test="../marc:datafield[@tag='670']">
+                    <description>
+                        <xsl:value-of select="../marc:datafield[@tag='670']"/>
+                    </description>
+                </xsl:if>
             <!--   <xsl:call-template name="createNameAuthorityIdFrom100_700"/>-->
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
@@ -4753,6 +4763,16 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                         <xsl:text>1</xsl:text>
                     </xsl:attribute>
                 </xsl:if>
+                <xsl:if test="../marc:datafield[@tag='678']">
+                    <description>
+                        <xsl:value-of select="../marc:datafield[@tag=678]"/>
+                    </description>
+                </xsl:if>
+                <xsl:if test="../marc:datafield[@tag='670']">
+                    <description>
+                        <xsl:value-of select="../marc:datafield[@tag=670]"/>
+                    </description>
+                </xsl:if>
             <!--   <xsl:call-template name="createNameAuthorityIdFrom100_700"/>-->
                 <xsl:call-template name="nameABCDQ"/>
                 <xsl:call-template name="affiliation"/>
@@ -4771,6 +4791,16 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <xsl:attribute name="nameTitleGroup">
                         <xsl:text>1</xsl:text>
                     </xsl:attribute>
+                </xsl:if>
+                <xsl:if test="../marc:datafield[@tag='678']">
+                    <description>
+                        <xsl:value-of select="../marc:datafield[@tag=678]"/>
+                    </description>
+                </xsl:if>
+                <xsl:if test="../marc:datafield[@tag='670']">
+                    <description>
+                        <xsl:value-of select="../marc:datafield[@tag=670]"/>
+                    </description>
                 </xsl:if>
             <!--   <xsl:call-template name="createNameAuthorityIdFrom100_700"/>-->
                 <xsl:call-template name="nameABCDQ"/>
