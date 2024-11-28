@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.process.export.crossref;
 
+import com.sun.org.apache.xml.internal.serialize.OutputFormat;
+import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -44,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -205,11 +208,33 @@ class CrossrefBuilder {
                 line = reader.readLine();
             }
             reader.close();
+            String xmlFormatted = format(buffer.toString());
+            
             Writer writer = new OutputStreamWriter(new FileOutputStream(packageFile), StandardCharsets.UTF_8);
-            writer.append(buffer.toString());
+            writer.append(xmlFormatted);
             writer.close();
         } catch (Exception ex) {
             LOG.log(java.util.logging.Level.SEVERE, "Error with updating file", ex);
+        }
+    }
+
+    private String format(String xmlUnformatted) {
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            InputSource is = new InputSource(new StringReader(xmlUnformatted));
+            Document document = db.parse(is);
+
+            OutputFormat format = new OutputFormat(document);
+            format.setIndenting(true);
+            format.setIndent(4);
+            Writer out = new StringWriter();
+            XMLSerializer serializer = new XMLSerializer(out, format);
+            serializer.serialize(document);
+
+            return out.toString();
+        } catch (Exception e) {
+            return xmlUnformatted;
         }
     }
 

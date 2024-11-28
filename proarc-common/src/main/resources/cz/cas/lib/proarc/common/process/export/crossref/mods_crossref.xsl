@@ -342,7 +342,7 @@ Author Miroslav Pavelka
                                                                 <xsl:text>ror</xsl:text>
                                                             </xsl:attribute>
                                                             <xsl:variable name="ror" select="./mods:affiliation"/>
-                                                            <xsl:value-of select="concat('https://ror.org/', $ror)"/>
+                                                            <xsl:value-of select="$ror"/>
                                                         </xsl:element>
                                                     </xsl:element>
                                                 </xsl:element>
