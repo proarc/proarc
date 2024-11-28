@@ -96,7 +96,7 @@ public class ValidationProcess {
     }
 
     public enum Type {
-        EXPORT_NDK, EXPORT_ARCHIVE, VALIDATION
+        EXPORT_NDK, EXPORT_ARCHIVE, EXPORT_KRAMERIUS, VALIDATION
     }
 
     public Result validate(Type type) throws IOException {
@@ -294,7 +294,7 @@ public class ValidationProcess {
             }
         }
         if (pageCount < 1) {
-            if (Type.EXPORT_ARCHIVE.equals(type) || Type.EXPORT_NDK.equals(type)) {
+            if (Type.EXPORT_ARCHIVE.equals(type) || Type.EXPORT_NDK.equals(type) || Type.EXPORT_KRAMERIUS.equals(type)) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt neobsahuje žádnou stranu.", Level.SEVERE));
             } else if (Type.VALIDATION.equals(type) && (!(bdmArticleCount > 0 && NdkPlugin.MODEL_PERIODICALISSUE.equals(item.getModel())))) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt neobsahuje žádnou stranu.", Level.SEVERE));
