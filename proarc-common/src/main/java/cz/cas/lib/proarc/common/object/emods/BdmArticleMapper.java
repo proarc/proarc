@@ -121,7 +121,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
      *
      * @return true if formDefinition is not empty and if formDefinition is unique
      */
-    private boolean checkNewFormDefinition(FormDefinition newForm, ModsDefinition mods) {
+    public static boolean checkNewFormDefinition(FormDefinition newForm, ModsDefinition mods) {
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
                 if (newForm.getValue() == null || form.getValue() == null) {
@@ -141,7 +141,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
      * @param form element created by user
      * @param newFormDefinition element created by computer
      */
-    private void setFormDefinition(FormDefinition form, FormDefinition newFormDefinition, String value) {
+    public static void setFormDefinition(FormDefinition form, FormDefinition newFormDefinition, String value) {
         form.setType("media");
         form.setAuthority("rdamedia");
         newFormDefinition.setType("carrier");

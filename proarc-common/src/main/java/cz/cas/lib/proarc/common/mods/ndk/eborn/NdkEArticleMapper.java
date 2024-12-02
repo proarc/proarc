@@ -26,7 +26,12 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDigitalOrigin;
+import static cz.cas.lib.proarc.common.object.emods.BdmArticleMapper.checkNewFormDefinition;
+import static cz.cas.lib.proarc.common.object.emods.BdmArticleMapper.setFormDefinition;
 
 public class NdkEArticleMapper extends NdkArticleMapper {
 
@@ -37,6 +42,32 @@ public class NdkEArticleMapper extends NdkArticleMapper {
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
         PhysicalDescriptionDefinition reqPhysicalDescription = null;
+
+        List<PhysicalDescriptionDefinition> listPhysicalDescription = new ArrayList<>();
+        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+            for (FormDefinition form : pd.getForm()) {
+                FormDefinition newFormDefinition = new FormDefinition();
+                if ("bez média".equals(form.getValue())) {
+                    setFormDefinition(form, newFormDefinition, "svazek");
+                } else if ("počítač".equals(form.getValue())) {
+                    setFormDefinition(form, newFormDefinition, "online zdroj");
+                } else if ("jiný".equals(form.getValue()) && (form.getAuthority() == null || "rdamedia".equals(form.getAuthority()))) {
+                    setFormDefinition(form, newFormDefinition, "jiný");
+                } else {
+                    if (form.getAuthority() == null) {
+                        form.setAuthority("marcform");
+                    }
+                }
+                PhysicalDescriptionDefinition pdd = new PhysicalDescriptionDefinition();
+                pdd.getForm().add(newFormDefinition);
+                listPhysicalDescription.add(pdd);
+            }
+        }
+        for (PhysicalDescriptionDefinition pd : listPhysicalDescription) {
+            if (checkNewFormDefinition(pd.getForm().get(0), mods)) {
+                mods.getPhysicalDescription().add(pd);
+            }
+        }
 
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             reqPhysicalDescription = pd;
