@@ -53,25 +53,25 @@ public class NdkEPeriodicalSupplementMapper extends NdkPeriodicalSupplementMappe
 
     @Override
     protected void fixAndAddGenre(ModsDefinition mods, Context ctx) {
-        MapperUtils.removeGenre(mods, Const.GENRE_SUPPLEMENT);
+        MapperUtils.removeGenre(mods, Const.GENRE_ESUPPLEMENT);
         if (mods.getGenre().size() == 0) {
             //  mods/genre="supplement"
-            MapperUtils.addGenre(mods, Const.GENRE_ESUPPLEMENT);
+            MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
         }
         for (GenreDefinition genre : mods.getGenre()) {
             String type = null;
             if (genre.getValue() == null || "".equals(genre.getValue())) {
-                genre.setValue(Const.GENRE_ESUPPLEMENT);
-            } else if (genre.getValue() != null && Const.GENRE_ESUPPLEMENT.equals(genre.getValue()) && genre.getType() == null) {
+                genre.setValue(Const.GENRE_SUPPLEMENT);
+            } else if (genre.getValue() != null && Const.GENRE_SUPPLEMENT.equals(genre.getValue()) && genre.getType() == null) {
                 if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(ctx.getParentModel())) {
                     genre.setType("electronic_issue_supplement");
                 } else if (NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(ctx.getParentModel())) {
                     genre.setType("electronic_volume_supplement");
                 }
-            } else if (genre.getValue() != null && !Const.GENRE_ESUPPLEMENT.equals(genre.getValue())) {
+            } else if (genre.getValue() != null && !Const.GENRE_SUPPLEMENT.equals(genre.getValue())) {
                 if ("electronic_volume_supplement".equals(genre.getValue()) || "electronic_issue_supplement".equals(genre.getValue())) {
                     type = genre.getValue();
-                    genre.setValue(Const.GENRE_ESUPPLEMENT);
+                    genre.setValue(Const.GENRE_SUPPLEMENT);
                     if (genre.getType() == null || genre.getType().isEmpty()) {
                         genre.setType(type);
                     }
