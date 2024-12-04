@@ -58,6 +58,9 @@ public class BdmArticleMapper extends NdkArticleMapper {
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
             for (FormDefinition form : pd.getForm()) {
                 FormDefinition newFormDefinition = new FormDefinition();
+                if ("bez media".equals(form.getValue())) {
+                    form.setValue("bez média");
+                }
                 if ("bez média".equals(form.getValue())) {
                     setFormDefinition(form, newFormDefinition, "svazek");
                 } else if ("počítač".equals(form.getValue())) {
