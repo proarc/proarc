@@ -19,7 +19,11 @@ package cz.cas.lib.proarc.webapp.server.rest.v1;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dao.BatchViewFilter;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
@@ -31,6 +35,13 @@ import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskView;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
+import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
@@ -38,6 +49,7 @@ import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -150,13 +162,53 @@ public class UserResourceV1 {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
                         .build();
-            } else {
-                userManager.deleteUser(userId);
-                UserProfile found = userManager.find(userId);
-                return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_OBJECT_SUCCESFULLY_DELETED, 0, 0, 1,
-                        found != null ? Collections.singletonList(found) : Collections.emptyList());
+            }
+            List<SearchViewItem> items = search.findByProcessor(user2Delete.getUserName());
+            count = items.size();
+            if (count != 0) {
+                return SmartGwtResponse.<UserProfile>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
+                        .build();
+            }
+            BatchManager batchManager = BatchManager.getInstance();
+            List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(user2Delete.getId()).setMaxCount(9999));
+            count = batchViewList.size();
+            if (count != 0) {
+                return SmartGwtResponse.<UserProfile>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
+                        .build();
             }
 
+            WorkflowManager workflowManager = WorkflowManager.getInstance();
+            WorkflowProfiles workflowProfiles = WorkflowProfiles.getInstance();
+            WorkflowDefinition workflow = workflowProfiles.getProfiles();
+            JobFilter jobFilter = new JobFilter();
+            jobFilter.setUserId(new BigDecimal(user2Delete.getId()));
+            jobFilter.setMaxCount(9999);
+            jobFilter.setLocale(session.getLocale(httpHeaders));
+            List<JobView> jobViewList = workflowManager.findJob(jobFilter);
+            count = jobViewList.size();
+            if (count != 0) {
+                return SmartGwtResponse.<UserProfile>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
+                        .build();
+            }
+
+            TaskFilter taskFilter = new TaskFilter();
+            taskFilter.setUserId(Collections.singletonList(new BigDecimal(user2Delete.getId())));
+            taskFilter.setMaxCount(9999);
+            taskFilter.setLocale(session.getLocale(httpHeaders));
+            List<TaskView> taskViewList = workflowManager.tasks().findTask(taskFilter, workflow);
+            count = taskViewList.size();
+            if (count != 0) {
+                return SmartGwtResponse.<UserProfile>asError()
+                        .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
+                        .build();
+            }
+
+            userManager.deleteUser(userId);
+            UserProfile found = userManager.find(userId);
+            return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_OBJECT_SUCCESFULLY_DELETED, 0, 0, 1, found != null ? Collections.singletonList(found) : Collections.emptyList());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

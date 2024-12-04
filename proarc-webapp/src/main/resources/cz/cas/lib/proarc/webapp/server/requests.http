@@ -618,7 +618,7 @@ POST {{proarcUrl}}/rest/v2/object/changeOwner
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-oldOwner={{oldOwner}}&newOwner={{newOwner}}
+oldOwner=tester3&newOwner=proarc
 
 ### LOGIN
 POST {{proarcUrl}}/proarclogin

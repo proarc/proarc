@@ -33,6 +33,8 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.common.mods.AuthorityMetadataInjector;
@@ -115,11 +117,14 @@ import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
+import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
@@ -4740,7 +4745,7 @@ public class DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> changeObjectOwner (
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_OLD) String oldOwner,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner
-    ) throws IOException, FedoraClientException, DigitalObjectException {
+    ) throws IOException, FedoraClientException, DigitalObjectException, WorkflowException {
         Locale locale = session.getLocale(httpHeaders);
         checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
 
@@ -4802,15 +4807,103 @@ public class DigitalObjectResourceV1 {
                 }
             }
             LOG.info("Owners change for all objects (" + items.size() + ").");
-            BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), null, Batch.State.INTERNAL_DONE);
-            return returnFunctionSuccess();
         } catch (Throwable t) {
             BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), t.getMessage(), Batch.State.INTERNAL_FAILED);
             throw t;
         }
 
+        items = search.findByProcessor(oldOwner);
+        updated = 0;
+        try {
+            for (SearchViewItem item : items) {
+                ProArcObject object = findFedoraObject(item.getPid(), null);
+                DigitalObjectManager dom = DigitalObjectManager.getDefault();
+                DigitalObjectHandler doh = dom.createHandler(object);
+                RelationEditor relations = doh.relations();
+                relations.setUser(newOwner);
+                relations.write(relations.getLastModified(), "Updated objects processor.");
+                doh.commit();
+                updated++;
+                if (updated % 50 == 0) {
+                    LOG.info("Processor change for " + updated + " / " + items.size() + ".");
+                }
+            }
+            LOG.info("Processor change for all objects (" + items.size() + ").");
+        } catch (Throwable t) {
+            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), t.getMessage(), Batch.State.INTERNAL_FAILED);
+            throw t;
+        }
 
+        updated = 0;
+        List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(oldUser.getId()).setMaxCount(9999));
 
+        try {
+            for (BatchView batchView : batchViewList) {
+                Batch importBatch = batchManager.get(batchView.getId());
+                importBatch.setUserId(newUser.getId());
+                batchManager.update(importBatch);
+                updated++;
+                if (updated % 50 == 0) {
+                    LOG.info("Batch´s owner change for " + updated + " / " + batchViewList.size() + ".");
+                }
+            }
+            LOG.info("Batch´s owner change for all objects (" + batchViewList.size() + ".)");
+        } catch (Throwable t) {
+            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), t.getMessage(), Batch.State.INTERNAL_FAILED);
+            throw t;
+        }
+
+        updated = 0;
+        WorkflowManager workflowManager = WorkflowManager.getInstance();
+        WorkflowProfiles workflowProfiles = WorkflowProfiles.getInstance();
+        WorkflowDefinition workflow = workflowProfiles.getProfiles();
+        JobFilter jobFilter = new JobFilter();
+        jobFilter.setUserId(new BigDecimal(oldUser.getId()));
+        jobFilter.setMaxCount(9999);
+        jobFilter.setLocale(session.getLocale(httpHeaders));
+        List<JobView> jobViewList = workflowManager.findJob(jobFilter);
+
+        try {
+            for (JobView jobView : jobViewList) {
+                Job job = workflowManager.getJob(jobView.getId());
+                job.setOwnerId(new BigDecimal(newUser.getId()));
+                workflowManager.updateJob(job);
+                updated++;
+                if (updated % 50 == 0) {
+                    LOG.info("Jobs´s owner change for " + updated + " / " + jobViewList.size() + ".");
+                }
+            }
+            LOG.info("Jobs´s owner change for all objects (" + jobViewList.size() + ".)");
+        } catch (Throwable t) {
+            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), t.getMessage(), Batch.State.INTERNAL_FAILED);
+            throw t;
+        }
+
+        updated = 0;
+        TaskFilter taskFilter = new TaskFilter();
+        taskFilter.setUserId(Collections.singletonList(new BigDecimal(oldUser.getId())));
+        taskFilter.setMaxCount(9999);
+        taskFilter.setLocale(session.getLocale(httpHeaders));
+        List<TaskView> taskViewList = workflowManager.tasks().findTask(taskFilter, workflow);
+
+        try {
+            for (TaskView taskView : taskViewList) {
+                Task task = workflowManager.tasks().getTask(taskView.getId());
+                taskView.setOwnerId(new BigDecimal(newUser.getId()));
+                workflowManager.tasks().updateTask(task, (List<TaskParameter>) null, workflow);
+                updated++;
+                if (updated % 50 == 0) {
+                    LOG.info("Task´s owner change for " + updated + " / " + jobViewList.size() + ".");
+                }
+            }
+            LOG.info("Task´s owner change for all objects (" + jobViewList.size() + ".)");
+        } catch (Throwable t) {
+            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), t.getMessage(), Batch.State.INTERNAL_FAILED);
+            throw t;
+        }
+
+        BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), null, Batch.State.INTERNAL_DONE);
+        return returnFunctionSuccess();
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
