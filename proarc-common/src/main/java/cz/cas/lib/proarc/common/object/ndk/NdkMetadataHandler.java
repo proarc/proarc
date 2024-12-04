@@ -163,6 +163,13 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         if (!(NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || NdkPlugin.MODEL_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId) || NdkAudioPlugin.MODEL_PAGE.equals(modelId))) {
             setRules(defaultMods);
         }
+        if (NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICALISSUE);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            }
+        }
         if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
             if (title != null) {
