@@ -88,7 +88,8 @@ public class Const {
     public final static String GENRE_VOLUME = "volume";
 
     public static final String NDK_EBORN_MODELS_IDENTIFIER = "ndke";
-    public final static String GENRE_EARTICLE = "electronic_article";
+    public final static String GENRE_EARTICLE_WRONG_SYNTAX = "electronic_article";
+    public final static String GENRE_EARTICLE = "electronic article";
     public final static String GENRE_ECHAPTER = "electronic_chapter";
     public final static String GENRE_EISSUE_WRONG_SYNTAX = "electronic_issue";
     public final static String GENRE_EISSUE = "electronic issue";
