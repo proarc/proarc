@@ -3610,7 +3610,7 @@ public class DigitalObjectResourceV1 {
         }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT);
-            changeModels.findObjects(false);
+            changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
                 return returnValidationError(ERR_IS_LOCKED);
@@ -3643,7 +3643,7 @@ public class DigitalObjectResourceV1 {
         }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_SHEETMUSIC, OldPrintPlugin.MODEL_SHEETMUSIC);
-            changeModels.findObjects(false);
+            changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
                 return returnValidationError(ERR_IS_LOCKED);
@@ -3676,7 +3676,7 @@ public class DigitalObjectResourceV1 {
         }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_SHEETMUSIC);
-            changeModels.findObjects(false);
+            changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
                 return returnValidationError(ERR_IS_LOCKED);
@@ -3941,7 +3941,7 @@ public class DigitalObjectResourceV1 {
         }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT);
-            changeModels.findObjects(false);
+            changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
                 return returnValidationError(ERR_IS_LOCKED);
@@ -3974,7 +3974,7 @@ public class DigitalObjectResourceV1 {
         }
         for (String pid : pids) {
             ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects(false);
+            changeModels.findObjects();
 
             if (isLocked(changeModels.getPids())) {
                 return returnValidationError(ERR_IS_LOCKED);
