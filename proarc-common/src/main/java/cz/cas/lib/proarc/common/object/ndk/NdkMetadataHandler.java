@@ -259,6 +259,17 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
 //        } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
+        } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            }
+            title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHUNIT);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            }
         } else if (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
             //issue 540
             DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHTITLE);
