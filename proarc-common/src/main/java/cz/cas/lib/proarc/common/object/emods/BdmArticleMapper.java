@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkArticleMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -28,6 +29,7 @@ import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -84,6 +86,31 @@ public class BdmArticleMapper extends NdkArticleMapper {
         }
 
         setPageInterval(mods);
+        fixUnreviewedGenre(mods);
+    }
+
+    private void fixUnreviewedGenre(ModsDefinition mods) {
+        int countArticle = 0;
+        boolean isEmpty = false;
+
+        for (GenreDefinition genre : mods.getGenre()) {
+            if (Const.GENRE_ARTICLE.equals(genre.getValue())) {
+                countArticle++;
+                if (genre.getType() == null) {
+                    isEmpty = true;
+                }
+            }
+        }
+
+        if (countArticle > 1 && isEmpty) {
+            Iterator<GenreDefinition> iterator = mods.getGenre().iterator();
+            while (iterator.hasNext()) {
+                GenreDefinition genre = iterator.next();
+                if (Const.GENRE_ARTICLE.equals(genre.getValue()) && genre.getType() == null) {
+                    iterator.remove();
+                }
+            }
+        }
     }
 
     private void setPageInterval(ModsDefinition mods) {
