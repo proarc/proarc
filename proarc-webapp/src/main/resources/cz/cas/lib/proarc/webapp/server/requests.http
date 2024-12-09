@@ -144,7 +144,7 @@ POST http://localhost:8081/proarc/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ###
 
@@ -158,9 +158,8 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 POST http://localhost:8081/proarc/rest/v1/object/mods/editorPagesCopyMetadata
 Accept: application/json
-Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-{&sourcePids=[uuid%3A3bd2ed5e-36f0-44d4-8f21-b7230e71ab61,uuid%3A83f5ac44-3a40-4953-8013-2e1c63e71ad8,uuid%3A59904a07-3f23-4518-ba70-24f16cdf27e4]&destinationPids=[uuid%3A3bd3ed5e-36f0-44d4-8f21-b7230e71ab61,uuid%3A83f53c44-3a40-4953-8013-2e1c63e71ad8,uuid%3A59904a03-3f23-4518-ba70-24f16cdf27e4]&copyPageIndex=true&copyPageNumber=false&copyPageType=true&batchId=12}
+{"sourcePids":["uuid:3bd2ed5e-36f0-44d4-8f21-b7230e71ab61","uuid:83f5ac44-3a40-4953-8013-2e1c63e71ad8","uuid:59904a07-3f23-4518-ba70-24f16cdf27e4"],"destinationPids":["uuid:3bd3ed5e-36f0-44d4-8f21-b7230e71ab61","uuid:83f53c44-3a40-4953-8013-2e1c63e71ad8","uuid:59904a03-3f23-4518-ba70-24f16cdf27e4"],"copyPageIndex":true,"copyPageNumber":false,"copyPageType":true,"batchId":"12"}
 
 ###
 
@@ -187,7 +186,7 @@ Content-Type: application/json
 POST http://localhost:8081/proarc/rest/v1/object/mods/validate
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid%3A696ad6af-b3ab-431d-a4c4-149571ee71eb
+pid=uuid%3A696ad6af-b3ab-431d-a4c4-149571ee71eb
 
 
 ###
@@ -195,7 +194,7 @@ POST http://localhost:8081/proarc/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username=proarc&j_password=proarcAdmin
+j_username=proarc&j_password=proarcAdmin
 
 <> 2023-01-26T100714.200.html
 
@@ -231,7 +230,7 @@ POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### Kramerius export
 POST {{proarcLocalHostUrl}}/rest/v2/export/kramerius4
@@ -251,7 +250,7 @@ PUT {{proarcLocalHostUrl}}/rest/v1/object/mods/custom
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid%3Aa0c1d3ed-59e9-4b12-8b59-c2ff2690e511&editorId=model:ndkmonographvolume&xmlData=<?xml version="1.0" encoding="UTF-8" standalone="yes"?><mods:mods version="3.6" xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink"><mods:genre>volume</mods:genre><mods:identifier type="uuid">a0c1d3ed-59e9-4b12-8b59-c2ff2690e511</mods:identifier><mods:recordInfo><mods:recordCreationDate encoding="iso8601">20230222T112645</mods:recordCreationDate><mods:recordChangeDate encoding="iso8601">20230222T112645</mods:recordChangeDate><mods:descriptionStandard>rda</mods:descriptionStandard></mods:recordInfo><mods:typeOfResource>text</mods:typeOfResource></mods:mods>&timestamp=1677062754083&standard=rda
+pid=uuid%3Aa0c1d3ed-59e9-4b12-8b59-c2ff2690e511&editorId=model:ndkmonographvolume&xmlData=<?xml version="1.0" encoding="UTF-8" standalone="yes"?><mods:mods version="3.6" xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink"><mods:genre>volume</mods:genre><mods:identifier type="uuid">a0c1d3ed-59e9-4b12-8b59-c2ff2690e511</mods:identifier><mods:recordInfo><mods:recordCreationDate encoding="iso8601">20230222T112645</mods:recordCreationDate><mods:recordChangeDate encoding="iso8601">20230222T112645</mods:recordChangeDate><mods:descriptionStandard>rda</mods:descriptionStandard></mods:recordInfo><mods:typeOfResource>text</mods:typeOfResource></mods:mods>&timestamp=1677062754083&standard=rda
 
 
 ### GET XML
@@ -265,7 +264,7 @@ POST {{proarcNmUrl}}/rest/v1/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid={{nmUuid}}&isBagit=true
+pid={{nmUuid}}&isBagit=true
 
 ### Archive Export s Bagit
 POST {{proarcUrl}}/rest/v1/export/archive
@@ -287,14 +286,14 @@ POST {{proarcLocalHostUrl}}/rest/v1/export/archive
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid={{localUuid}}&isBagit=true
+pid={{localUuid}}&isBagit=true
 
 ### NDK Export s Bagit
 POST {{proarcRemoteUrl}}/rest/v1/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid={{remoteUuid}}&isBagit=true
+pid={{remoteUuid}}&isBagit=true
 
 
 ### GENERATE ALTO OCR RECURSIVELY
@@ -302,7 +301,7 @@ POST {{proarcCroUrl}}/rest/v1/import/generate
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&folderPath=denicky2
+folderPath=denicky2
 
 
 ### LOGIN
@@ -310,7 +309,7 @@ POST {{proarcRemoteUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### GET VALID EXPORTS
 GET {{proarcLocalHostUrl}}/rest/v1/export/validExports?model=model:oldprintvolume
@@ -322,7 +321,7 @@ POST {{proarcLocalHostUrl}}/rest/v1/user
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&name=miqchal
+name=miqchal
 
 
 ### REINDEX
@@ -330,7 +329,7 @@ PUT {{proarcLocalHostUrl}}/rest/v1/object/reindexObjects
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&batchId=845&model=model:ndkpage
+batchId=845&model=model:ndkpage
 
 ### EDITOR PAGES
 PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
@@ -345,7 +344,7 @@ POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 
 ### IMPORT
@@ -353,14 +352,14 @@ POST {{proarcRemoteUrl}}/rest/v1/import/batch
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&folderPath=Mzk/Monografie/Kratka/&profile=profile.default&device=device:a93dd5e2-1db7-44d0-be85-804759da8afe&priority=medium
+folderPath=Mzk/Monografie/Kratka/&profile=profile.default&device=device:a93dd5e2-1db7-44d0-be85-804759da8afe&priority=medium
 
 ### EXPORT KRAMERIUS
 POST {{proarcLocalHostUrl}}/rest/v1/export/archive
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:4a3b4ef7-0bc0-44e6-b0e2-9624d8ebb80e&isBagit=true
+pid=uuid:4a3b4ef7-0bc0-44e6-b0e2-9624d8ebb80e&isBagit=true
 
 
 
@@ -382,20 +381,21 @@ POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### NDK EXPORT with CESNET UPLOAD
 POST {{proarcLocalHostUrl}}/rest/v2/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:4d696c27-9253-41a6-bb24-9c0b6fdde49b&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
+pid=uuid:4d696c27-9253-41a6-bb24-9c0b6fdde49b&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
+
 ###
 POST {{proarcLocalHostUrl}}/rest/v2/object/unlockObject
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:fb3e739d-37a4-4cc0-8fba-4296f99a988d
+pid=uuid:fb3e739d-37a4-4cc0-8fba-4296f99a988d
 
 
 ### LOGIN
@@ -403,14 +403,14 @@ POST {{proarcNmUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### NDK EXPORT with CESNET UPLOAD
 POST {{proarcNmUrl}}/rest/v2/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:0d8c130c-a170-4ca7-a20b-c4b8870cea5d&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
+pid=uuid:0d8c130c-a170-4ca7-a20b-c4b8870cea5d&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
 
 
 select id, "CREATE", state from proarc_batch where folder = 'uuid:ed2ae08a-2333-4acb-80e2-c2722171ac9e';
@@ -421,7 +421,7 @@ POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### STREAM PROFILE
 GET {{proarcUrl}}/rest/v1/object/streamprofile?pid={{uuid}}&batchId={{batchId}}
@@ -431,7 +431,7 @@ PUT {{proarcLocalHostUrl}}/rest/v2/device
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&device:1883a7de-2f01-40e4-91ee-c7b631c0353c
+device:1883a7de-2f01-40e4-91ee-c7b631c0353c
 
 
 ### NDK Export s kramerius IUmport
@@ -439,7 +439,7 @@ POST {{proarcLocalHostUrl}}/rest/v1/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:9b2d468e-0827-4a1a-a9b0-4483a7bdd937&krameriusInstance=kramerius7-idu
+pid=uuid:9b2d468e-0827-4a1a-a9b0-4483a7bdd937&krameriusInstance=kramerius7-idu
 
 
 ### NDK Export s Kramerius Importem
@@ -447,49 +447,49 @@ POST {{proarcRemoteUrl}}/rest/v2/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid={{remoteUuid}}&krameriusInstance=kramerius7
+pid={{remoteUuid}}&krameriusInstance=kramerius7
 
 ### LOGIN
 POST {{proarcRemoteUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### LOGIN
 POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### REGISTER URNNBN
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolverId=inovatika
+pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolverId=inovatika
 
 ### INVALIDATE LOCAL URNNBN
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/invalidateLocal
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolverId=inovatika
+pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolverId=inovatika
 
 ### INVALIDATE REMOTE URNNBN
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/invalidateRemote
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&valueToDeactivate=urn:nbn:cz:aba007-000111&resolverId=inovatika
+valueToDeactivate=urn:nbn:cz:aba007-000111&resolverId=inovatika
 
 ### NEW REGISTRATION URNNBN WITH OLD VALUE DEACTIVATION
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/registerAgain
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:5d3fba10-2f81-4262-8a24-7c1e38eeba55&resolverId=inovatika
+pid=uuid:5d3fba10-2f81-4262-8a24-7c1e38eeba55&resolverId=inovatika
 
 ### REGISTER URNNBN - SUCCESSOR
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/createSuccessor
@@ -497,14 +497,14 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 #&pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolcerId=inovatika
-&pid=uuid:bab0d255-4819-45f0-9521-28715cabfee1&resolverId=inovatika
+pid=uuid:bab0d255-4819-45f0-9521-28715cabfee1&resolverId=inovatika
 
 ### UPDATE RESOLVER WITH IDENTIFIER
 POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/updateIdentifier
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:5d3fba10-2f81-4262-8a24-7c1e38eeba55&resolverId=inovatika&identifier=ccnb&operation=update
+pid=uuid:5d3fba10-2f81-4262-8a24-7c1e38eeba55&resolverId=inovatika&identifier=ccnb&operation=update
 
 ### LOGIN
 POST {{proarcUrl}}/proarclogin
@@ -525,21 +525,21 @@ PUT {{proarcLocalHostUrl}}/rest/v2/import/batch
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&state=LOADING_CONFLICT&profile=profile.default_archive_import&id=80&useOriginalMetadata=true
+state=LOADING_CONFLICT&profile=profile.default_archive_import&id=80&useOriginalMetadata=true
 
 ### LOGIN
 POST {{proarcLocalHostUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### UPDATE VERBIS RECORD
 POST {{proarcLocalHostUrl}}/rest/v2/object/updateCatalogRecord
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid=uuid:455a7723-c4ab-4b80-8e75-b1203ccefa59&catalogId=cmh
+pid=uuid:455a7723-c4ab-4b80-8e75-b1203ccefa59&catalogId=cmh
 
 
 ### GET RELEVANT CATALOG
@@ -562,7 +562,7 @@ POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&j_username={{proarcUsername}}&j_password={{proarcPwd}}
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### CREATE PERIODICAL ISSUE
 POST {{proarcLocalHostUrl}}/rest/v2/object
@@ -577,14 +577,14 @@ POST {{proarcUrl}}/rest/v2/object/generateAlto
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&pid={{uuid}}
+pid={{uuid}}
 
 ### GENERATE ALTO TO FOLDER
 POST {{proarcLocalHostUrl}}/rest/v2/import/generateAlto
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-&folderPath=altoToTest
+folderPath=altoToTest
 
 
 ### LOGIN
@@ -712,7 +712,9 @@ POST {{proarcUrl}}/rest/v2/object/mods/addRefenrence
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid=uuid:3e483d8d-0702-47ba-a338-d9741684b537&structured=false&reference="MOCNÁ, Dagmar. 2018. „Čapkovy novinové povídky“; in Tomáš Kubíček, Jan Wiendl (edd.): Obrazy kultury a společnosti v období první republiky (Brno: Moravská zemská knihovna), s. 152–168"
+pid=uuid:3e483d8d-0702-47ba-a338-d9741684b537&structured=false&reference="MOCNÁ, Dagmar. 2018. „Čapkovy novinové povídky“; in Tomáš Kubíček, Jan Wiendl (edd.):
+Obrazy kultury a společnosti v období první republiky
+(Brno: Moravská zemská knihovna), s. 152–168"
 
 
 ### Pridani citace strukturovane
@@ -729,6 +731,29 @@ pid=uuid:3e483d8d-0702-47ba-a338-d9741684b537&structured=true&reference=<citatio
 	<article_title>Populární romány Vlasty Javořické</article_title>
     <author>MOCNÁ, Dagmar</author>
 </citation>
+
+### Pridani strukturovanych citaci
+POST {{proarcUrl}}/rest/v2/object/mods/addRefenrence
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:3e483d8d-0702-47ba-a338-d9741684b537&structured=true&reference=<citation_list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><citation key="ref77">
+	<journal_title>Česká literatura</journal_title>
+	<volume>XLIII</volume>
+	<issue>5</issue>
+	<first_page>487</first_page>
+	<cYear>1995</cYear>
+	<article_title>Populární romány Vlasty Javořické</article_title>
+    <author>MOCNÁ, Dagmar</author>
+</citation>
+<citation key="ref79">
+	<journal_title>Slovenská literatura</journal_title>
+	<volume>XLIII</volume>
+	<issue>5</issue>
+	<cYear>1666</cYear>
+	<author>MOCNEJ, King</author>
+</citation>
+</citation_list>
 
 ### LOGIN
 POST {{proarcUrl}}/proarclogin

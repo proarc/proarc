@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,6 +88,17 @@ public class BdmArticleMapper extends NdkArticleMapper {
 
         setPageInterval(mods);
         fixUnreviewedGenre(mods);
+        fillSecondRelatedItemType(mods);
+    }
+
+    public static void fillSecondRelatedItemType(ModsDefinition mods) {
+        for (RelatedItemDefinition ri : mods.getRelatedItem()) {
+            for (RelatedItemDefinition relatedItem : ri.getRelatedItem()) {
+                if (relatedItem.getType() == null || relatedItem.getType().isEmpty()) {
+                    relatedItem.setType("host");
+                }
+            }
+        }
     }
 
     private void fixUnreviewedGenre(ModsDefinition mods) {

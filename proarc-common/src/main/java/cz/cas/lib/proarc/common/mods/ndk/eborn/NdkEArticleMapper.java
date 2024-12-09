@@ -31,6 +31,7 @@ import java.util.List;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDigitalOrigin;
 import static cz.cas.lib.proarc.common.object.emods.BdmArticleMapper.checkNewFormDefinition;
+import static cz.cas.lib.proarc.common.object.emods.BdmArticleMapper.fillSecondRelatedItemType;
 import static cz.cas.lib.proarc.common.object.emods.BdmArticleMapper.setFormDefinition;
 
 public class NdkEArticleMapper extends NdkArticleMapper {
@@ -41,6 +42,7 @@ public class NdkEArticleMapper extends NdkArticleMapper {
     @Override
     public void createMods(ModsDefinition mods, Context ctx) {
         super.createMods(mods, ctx);
+        fillSecondRelatedItemType(mods);
         PhysicalDescriptionDefinition reqPhysicalDescription = null;
 
         List<PhysicalDescriptionDefinition> listPhysicalDescription = new ArrayList<>();

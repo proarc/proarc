@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.actions;
+package cz.cas.lib.proarc.common.xml.citation;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

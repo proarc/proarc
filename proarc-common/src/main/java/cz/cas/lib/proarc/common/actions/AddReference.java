@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.actions;
 
+import cz.cas.lib.proarc.common.xml.citation.Citation;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -29,6 +30,7 @@ import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.common.xml.citation.CitationList;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
@@ -44,6 +46,7 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
@@ -111,127 +114,127 @@ public class AddReference {
     }
 
     private void addStructuredReference(ModsDefinition mods) {
-        Citation citation = createCitation();
+        List<Citation> citations = createCitation();
 
-        RelatedItemDefinition relatedItem = new RelatedItemDefinition();
-        mods.getRelatedItem().add(relatedItem);
-        relatedItem.setType("references");
-        if (hasValue(citation.getKey())) {
-            relatedItem.setID(citation.getKey().trim());
-        } else {
-            relatedItem.setID(getNextReferenceId(mods.getRelatedItem()));
-        }
+        for (Citation citation : citations) {
+            String newId = getNextReferenceId(mods.getRelatedItem());
 
-        if (hasValue(citation.getArticle_title())) {
-            TitleInfoDefinition titleInfo = new TitleInfoDefinition();
-            relatedItem.getTitleInfo().add(titleInfo);
-            StringPlusLanguage title = new StringPlusLanguage();
-            titleInfo.getTitle().add(title);
-            title.setValue(citation.getArticle_title());
-        }
+            RelatedItemDefinition relatedItem = new RelatedItemDefinition();
+            mods.getRelatedItem().add(relatedItem);
+            relatedItem.setType("references");
+            relatedItem.setID(newId);
 
-        if (hasValue(citation.getAuthor())) {
-            String surname = getSurname(citation.getAuthor());
-            String firstName = getFirstName(citation.getAuthor());
-
-            NameDefinition name = new NameDefinition();
-            relatedItem.getName().add(name);
-            NamePartDefinition surnameNamepart = new NamePartDefinition();
-            name.getNamePart().add(surnameNamepart);
-            surnameNamepart.setType("family");
-            surnameNamepart.setValue(surname);
-            if (hasValue(firstName)) {
-                NamePartDefinition fisrtnameNamepart = new NamePartDefinition();
-                name.getNamePart().add(fisrtnameNamepart);
-                fisrtnameNamepart.setType("given");
-                fisrtnameNamepart.setValue(firstName);
-            }
-        }
-
-        if (hasValue(citation.getDoi())) {
-            IdentifierDefinition identifier = new IdentifierDefinition();
-            relatedItem.getIdentifier().add(identifier);
-            identifier.setType("doi");
-            identifier.setValue(citation.getDoi());
-        }
-
-        if (hasValue(citation.getIsbn())) {
-            IdentifierDefinition identifier = new IdentifierDefinition();
-            relatedItem.getIdentifier().add(identifier);
-            identifier.setType("isbn");
-            identifier.setValue(citation.getIsbn());
-        }
-
-        if (hasValue(citation.getFirst_page())) {
-            PartDefinition part = new PartDefinition();
-            relatedItem.getPart().add(part);
-            ExtentDefinition extent = new ExtentDefinition();
-            extent.setUnit("pages");
-            part.getExtent().add(extent);
-            StringPlusLanguage startPage = new StringPlusLanguage();
-            extent.setStart(startPage);
-            startPage.setValue(citation.getFirst_page());
-            if (hasValue(citation.getLast_page())) {
-                StringPlusLanguage lastPage = new StringPlusLanguage();
-                extent.setEnd(lastPage);
-                lastPage.setValue(citation.getLast_page());
-            }
-        }
-
-        if (hasValue(citation.getJournal_title()) || hasValue(citation.getVolume_title()) || hasValue(citation.getVolume()) ||
-                hasValue(citation.getIssue()) || hasValue(citation.getcYear()) || hasValue(citation.getIssn())) {
-            RelatedItemDefinition relatedItem2 = new RelatedItemDefinition();
-            relatedItem2.setType("host");
-            relatedItem.getRelatedItem().add(relatedItem2);
-            if (hasValue(citation.getJournal_title())) {
+            if (hasValue(citation.getArticle_title())) {
                 TitleInfoDefinition titleInfo = new TitleInfoDefinition();
-                relatedItem2.getTitleInfo().add(titleInfo);
-                titleInfo.setOtherType("title");
+                relatedItem.getTitleInfo().add(titleInfo);
                 StringPlusLanguage title = new StringPlusLanguage();
                 titleInfo.getTitle().add(title);
-                title.setValue(citation.getJournal_title());
-            }
-            if (hasValue(citation.getVolume_title())) {
-                TitleInfoDefinition titleInfo = new TitleInfoDefinition();
-                relatedItem2.getTitleInfo().add(titleInfo);
-                titleInfo.setOtherType("volume");
-                StringPlusLanguage title = new StringPlusLanguage();
-                titleInfo.getTitle().add(title);
-                title.setValue(citation.getVolume_title());
-            }
-            if (hasValue(citation.getVolume()) || hasValue(citation.getIssue())) {
-                PartDefinition part = new PartDefinition();
-                relatedItem2.getPart().add(part);
-                if (hasValue(citation.getVolume())) {
-                    DetailDefinition detail = new DetailDefinition();
-                    part.getDetail().add(detail);
-                    detail.setType("volume");
-                    StringPlusLanguage volume = new StringPlusLanguage();
-                    detail.getNumber().add(volume);
-                    volume.setValue(citation.getVolume());
-                }
-                if (hasValue(citation.getIssue())) {
-                    DetailDefinition detail = new DetailDefinition();
-                    part.getDetail().add(detail);
-                    detail.setType("issue");
-                    StringPlusLanguage issue = new StringPlusLanguage();
-                    detail.getNumber().add(issue);
-                    issue.setValue(citation.getIssue());
-                }
-            }
-            if (hasValue(citation.getcYear())) {
-                OriginInfoDefinition originInfo = new OriginInfoDefinition();
-                relatedItem2.getOriginInfo().add(originInfo);
-                DateDefinition date = new DateDefinition();
-                originInfo.getDateIssued().add(date);
-                date.setValue(citation.getcYear());
+                title.setValue(citation.getArticle_title());
             }
 
-            if (hasValue(citation.getIssn())) {
+            if (hasValue(citation.getAuthor())) {
+                String surname = getSurname(citation.getAuthor());
+                String firstName = getFirstName(citation.getAuthor());
+
+                NameDefinition name = new NameDefinition();
+                relatedItem.getName().add(name);
+                NamePartDefinition surnameNamepart = new NamePartDefinition();
+                name.getNamePart().add(surnameNamepart);
+                surnameNamepart.setType("family");
+                surnameNamepart.setValue(surname);
+                if (hasValue(firstName)) {
+                    NamePartDefinition fisrtnameNamepart = new NamePartDefinition();
+                    name.getNamePart().add(fisrtnameNamepart);
+                    fisrtnameNamepart.setType("given");
+                    fisrtnameNamepart.setValue(firstName);
+                }
+            }
+
+            if (hasValue(citation.getDoi())) {
                 IdentifierDefinition identifier = new IdentifierDefinition();
-                relatedItem2.getIdentifier().add(identifier);
-                identifier.setType("issn");
-                identifier.setValue(citation.getIssn());
+                relatedItem.getIdentifier().add(identifier);
+                identifier.setType("doi");
+                identifier.setValue(citation.getDoi());
+            }
+
+            if (hasValue(citation.getIsbn())) {
+                IdentifierDefinition identifier = new IdentifierDefinition();
+                relatedItem.getIdentifier().add(identifier);
+                identifier.setType("isbn");
+                identifier.setValue(citation.getIsbn());
+            }
+
+            if (hasValue(citation.getFirst_page())) {
+                PartDefinition part = new PartDefinition();
+                relatedItem.getPart().add(part);
+                ExtentDefinition extent = new ExtentDefinition();
+                extent.setUnit("pages");
+                part.getExtent().add(extent);
+                StringPlusLanguage startPage = new StringPlusLanguage();
+                extent.setStart(startPage);
+                startPage.setValue(citation.getFirst_page());
+                if (hasValue(citation.getLast_page())) {
+                    StringPlusLanguage lastPage = new StringPlusLanguage();
+                    extent.setEnd(lastPage);
+                    lastPage.setValue(citation.getLast_page());
+                }
+            }
+
+            if (hasValue(citation.getJournal_title()) || hasValue(citation.getVolume_title()) || hasValue(citation.getVolume()) ||
+                    hasValue(citation.getIssue()) || hasValue(citation.getcYear()) || hasValue(citation.getIssn())) {
+                RelatedItemDefinition relatedItem2 = new RelatedItemDefinition();
+                relatedItem2.setType("host");
+                relatedItem.getRelatedItem().add(relatedItem2);
+                if (hasValue(citation.getJournal_title())) {
+                    TitleInfoDefinition titleInfo = new TitleInfoDefinition();
+                    relatedItem2.getTitleInfo().add(titleInfo);
+                    titleInfo.setOtherType("title");
+                    StringPlusLanguage title = new StringPlusLanguage();
+                    titleInfo.getTitle().add(title);
+                    title.setValue(citation.getJournal_title());
+                }
+                if (hasValue(citation.getVolume_title())) {
+                    TitleInfoDefinition titleInfo = new TitleInfoDefinition();
+                    relatedItem2.getTitleInfo().add(titleInfo);
+                    titleInfo.setOtherType("volume");
+                    StringPlusLanguage title = new StringPlusLanguage();
+                    titleInfo.getTitle().add(title);
+                    title.setValue(citation.getVolume_title());
+                }
+                if (hasValue(citation.getVolume()) || hasValue(citation.getIssue())) {
+                    PartDefinition part = new PartDefinition();
+                    relatedItem2.getPart().add(part);
+                    if (hasValue(citation.getVolume())) {
+                        DetailDefinition detail = new DetailDefinition();
+                        part.getDetail().add(detail);
+                        detail.setType("volume");
+                        StringPlusLanguage volume = new StringPlusLanguage();
+                        detail.getNumber().add(volume);
+                        volume.setValue(citation.getVolume());
+                    }
+                    if (hasValue(citation.getIssue())) {
+                        DetailDefinition detail = new DetailDefinition();
+                        part.getDetail().add(detail);
+                        detail.setType("issue");
+                        StringPlusLanguage issue = new StringPlusLanguage();
+                        detail.getNumber().add(issue);
+                        issue.setValue(citation.getIssue());
+                    }
+                }
+                if (hasValue(citation.getcYear())) {
+                    OriginInfoDefinition originInfo = new OriginInfoDefinition();
+                    relatedItem2.getOriginInfo().add(originInfo);
+                    DateDefinition date = new DateDefinition();
+                    originInfo.getDateIssued().add(date);
+                    date.setValue(citation.getcYear());
+                }
+
+                if (hasValue(citation.getIssn())) {
+                    IdentifierDefinition identifier = new IdentifierDefinition();
+                    relatedItem2.getIdentifier().add(identifier);
+                    identifier.setType("issn");
+                    identifier.setValue(citation.getIssn());
+                }
             }
         }
     }
@@ -256,27 +259,39 @@ public class AddReference {
         return value != null && !value.isEmpty();
     }
 
-    private Citation createCitation() {
+    private List<Citation> createCitation() {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(Citation.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             StringReader reader = new StringReader(this.reference);
-            return (Citation) unmarshaller.unmarshal(reader);
+            return Collections.singletonList((Citation) unmarshaller.unmarshal(reader));
         } catch (JAXBException e) {
-            LOG.warning("Nepodarilo se vytvorit objekt ze zadaneho textu: " + this.reference);
-            return null;
+            try {
+                JAXBContext jaxbContext = JAXBContext.newInstance(CitationList.class);
+                Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+                StringReader reader = new StringReader(this.reference);
+                CitationList citationList = (CitationList) unmarshaller.unmarshal(reader);
+                return citationList.getCitations();
+            } catch (JAXBException ex) {
+                LOG.warning("Nepodarilo se vytvorit objekt ze zadaneho textu: " + this.reference);
+                return null;
+            }
         }
     }
 
     private void addUnstructuredReference(ModsDefinition mods) {
-        RelatedItemDefinition relatedItemDefinition = new RelatedItemDefinition();
-        relatedItemDefinition.setType("references");
-        relatedItemDefinition.setID(getNextReferenceId(mods.getRelatedItem()));
-        NoteDefinition noteDefinition = new NoteDefinition();
-        noteDefinition.setType("source note");
-        noteDefinition.setValue(this.reference.trim());
-        relatedItemDefinition.getNote().add(noteDefinition);
-        mods.getRelatedItem().add(relatedItemDefinition);
+        String[] references = this.reference.split("\n");
+
+        for (String reference : references) {
+            RelatedItemDefinition relatedItemDefinition = new RelatedItemDefinition();
+            relatedItemDefinition.setType("references");
+            relatedItemDefinition.setID(getNextReferenceId(mods.getRelatedItem()));
+            NoteDefinition noteDefinition = new NoteDefinition();
+            noteDefinition.setType("source note");
+            noteDefinition.setValue(reference.trim());
+            relatedItemDefinition.getNote().add(noteDefinition);
+            mods.getRelatedItem().add(relatedItemDefinition);
+        }
     }
 
     private String getNextReferenceId(List<RelatedItemDefinition> relatedItems) {
@@ -291,13 +306,13 @@ public class AddReference {
             try {
                 int number = Integer.parseInt(id.replaceAll("[^0-9]", ""));
                 number++;
-                return "ref" + number;
+                return "ref" + String.format("%04d", number);
             } catch (Exception ex) {
                 // hodnota nelze rozparsovat, vraci se defaultni hodnota
-                return "ref1";
+                return "ref0001";
             }
         } else {
-            return "ref1";
+            return "ref0001";
         }
     }
 
