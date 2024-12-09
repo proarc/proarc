@@ -1,5 +1,5 @@
 ### LOGIN
-POST http://localhost:8081/proarc/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -7,11 +7,11 @@ j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ###
 
-GET http://localhost:8081/proarc/rest/v2/object/streamprofile?pid=uuid%3A3aa95cfd-ec72-4f44-8e78-21edb336cb8f
+GET {{proarcUrl}}/rest/v2/object/streamprofile?pid=uuid%3A3aa95cfd-ec72-4f44-8e78-21edb336cb8f
 
 ###
 
-PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+PUT {{proarcUrl}}/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -20,7 +20,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+PUT {{proarcUrl}}/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -28,7 +28,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+PUT {{proarcUrl}}/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -36,7 +36,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+PUT {{proarcUrl}}/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -44,7 +44,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+PUT {{proarcUrl}}/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -52,7 +52,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+PUT {{proarcUrl}}/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -60,7 +60,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+PUT {{proarcUrl}}/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -68,7 +68,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-POST http://localhost:8081/proarc/rest/v1/object/mods/addBrackets
+POST {{proarcUrl}}/rest/v1/object/mods/addBrackets
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -76,7 +76,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ### local
 
-POST http://localhost:8081/proarc/rest/v1/object/mods/addBrackets
+POST {{proarcUrl}}/rest/v1/object/mods/addBrackets
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -84,7 +84,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-POST http://localhost:8081/proarc/rest/v1/object/mods/removeBrackets
+POST {{proarcUrl}}/rest/v1/object/mods/removeBrackets
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -92,7 +92,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ### local
 
-POST http://localhost:8081/proarc/rest/v1/object/mods/removeBrackets
+POST {{proarcUrl}}/rest/v1/object/mods/removeBrackets
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -100,7 +100,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-POST http://localhost:8081/proarc/rest/v1/import/batches
+POST {{proarcUrl}}/rest/v1/import/batches
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -108,22 +108,22 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-GET http://localhost:8081/proarc/rest/v1/import/processingBatches
+GET {{proarcUrl}}/rest/v1/import/processingBatches
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-GET http://localhost:8081/proarc/rest/v1/import/processingBatches?state=INGESTING_FAILED
+GET {{proarcUrl}}/rest/v1/import/processingBatches?state=INGESTING_FAILED
 
 ###
 
-GET http://localhost:8081/proarc/rest/v1/info
+GET {{proarcUrl}}/rest/v1/info
 
 
 ###
 
-POST http://localhost:8081/proarc/rest/v1/import/batch/unlockFolder
+POST {{proarcUrl}}/rest/v1/import/batch/unlockFolder
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -131,16 +131,16 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-POST http://localhost:8081/proarc/rest/v1/indexer
+POST {{proarcUrl}}/rest/v1/indexer
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-GET http://localhost:8081/proarc/rest/v1/object/createPid
+GET {{proarcUrl}}/rest/v1/object/createPid
 
 ### LOGIN
-POST http://localhost:8081/proarc/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -148,7 +148,7 @@ j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ###
 
-POST http://localhost:8081/proarc/rest/v2/import/batchStopped
+POST {{proarcUrl}}/rest/v2/import/batchStopped
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -156,41 +156,41 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 
-POST http://localhost:8081/proarc/rest/v1/object/mods/editorPagesCopyMetadata
+POST {{proarcUrl}}/rest/v1/object/mods/editorPagesCopyMetadata
 Accept: application/json
 
 {"sourcePids":["uuid:3bd2ed5e-36f0-44d4-8f21-b7230e71ab61","uuid:83f5ac44-3a40-4953-8013-2e1c63e71ad8","uuid:59904a07-3f23-4518-ba70-24f16cdf27e4"],"destinationPids":["uuid:3bd3ed5e-36f0-44d4-8f21-b7230e71ab61","uuid:83f53c44-3a40-4953-8013-2e1c63e71ad8","uuid:59904a03-3f23-4518-ba70-24f16cdf27e4"],"copyPageIndex":true,"copyPageNumber":false,"copyPageType":true,"batchId":"12"}
 
 ###
 
-POST http://localhost:8081/proarc/rest/v1/object/mods/editorPagesCopyMetadata
+POST {{proarcUrl}}/rest/v1/object/mods/editorPagesCopyMetadata
 Content-Type: application/json
 
 {"sourcePids":["uuid:83702174-8d13-496c-b6e7-b435c0ae0a12"],"destinationPids":["uuid:edfbe2b3-5e92-4177-af3d-cdf57fbc9407","uuid:6e6fe60a-3f6d-49c1-8179-e140b2b7e4d0","uuid:249a3e2a-6d41-4fa4-aa53-bcfe545355ce"],"copyPageIndex":true,"copyPageNumber":true,"copyPageType":false,"batchId":"594"}
 ###
 
-DELETE http://localhost:8081/proarc/rest/v1/object
+DELETE {{proarcUrl}}/rest/v1/object
 Content-Type: application/json
 
 {"pid":["uuid:83702174-8d13-496c-b6e7-b435c0ae0a12"],"hierarchy":true, "purge":true, "restore":false}
 
 ###
 
-DELETE http://localhost:8081/proarc/rest/v1/import/batch/item
+DELETE {{proarcUrl}}/rest/v1/import/batch/item
 Content-Type: application/json
 
 {"pid":["uuid:83702174-8d13-496c-b6e7-b435c0ae0a12"],"batchId":"135"}
 
 ###
 
-POST http://localhost:8081/proarc/rest/v1/object/mods/validate
+POST {{proarcUrl}}/rest/v1/object/mods/validate
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid%3A696ad6af-b3ab-431d-a4c4-149571ee71eb
 
 
 ###
-POST http://localhost:8081/proarc/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -199,26 +199,26 @@ j_username=proarc&j_password=proarcAdmin
 <> 2023-01-26T100714.200.html
 
 ###
-POST http://localhost:8081/proarc/rest/v1/kramerius/edit
+POST {{proarcUrl}}/rest/v1/kramerius/edit
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 instance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-001b63bd97ba
 
 ###
-GET http://localhost:8081/proarc/rest/v1/kramerius/viewMods?instance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-001b63bd97ba
+GET {{proarcUrl}}/rest/v1/kramerius/viewMods?instance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-001b63bd97ba
 Accept: application/jsonf
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
-POST http://localhost:8081/proarc/rest/v1/kramerius/importToProArc
+POST {{proarcUrl}}/rest/v1/kramerius/importToProArc
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 instance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-001b63bd97ba
 
 ###
-POST http://localhost:8081/proarc/rest/v1/kramerius/importToKramerius
+POST {{proarcUrl}}/rest/v1/kramerius/importToKramerius
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -226,27 +226,27 @@ instance=kramerius7&importInstance=kramerius7&pid=uuid:27e8598c-59d8-11ed-a227-0
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### Kramerius export
-POST {{proarcLocalHostUrl}}/rest/v2/export/kramerius4
+POST {{proarcUrl}}/rest/v2/export/kramerius4
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid%3Ae5031795-e913-4cb4-9d7b-074fdb5d400c&license=onsite&krameriusInstance=local
 ###
-POST {{proarcLocalHostUrl}}/rest/v1/export/reexport
+POST {{proarcUrl}}/rest/v1/export/reexport
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 id=763
 
 ### UPDATE XML
-PUT {{proarcLocalHostUrl}}/rest/v1/object/mods/custom
+PUT {{proarcUrl}}/rest/v1/object/mods/custom
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -254,17 +254,17 @@ pid=uuid%3Aa0c1d3ed-59e9-4b12-8b59-c2ff2690e511&editorId=model:ndkmonographvolum
 
 
 ### GET XML
-GET {{proarcLocalHostUrl}}/rest/v1/object/mods/plain?pid=uuid%3Aa0c1d3ed-59e9-4b12-8b59-c2ff2690e511
+GET {{proarcUrl}}/rest/v1/object/mods/plain?pid=uuid%3Aa0c1d3ed-59e9-4b12-8b59-c2ff2690e511
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 
 ### NDK Export s Bagit
-POST {{proarcNmUrl}}/rest/v1/export/ndk
+POST {{proarcUrl}}/rest/v1/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid={{nmUuid}}&isBagit=true
+pid={{uuid}}&isBagit=true
 
 ### Archive Export s Bagit
 POST {{proarcUrl}}/rest/v1/export/archive
@@ -282,22 +282,22 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### Archive Export s Bagit
-POST {{proarcLocalHostUrl}}/rest/v1/export/archive
+POST {{proarcUrl}}/rest/v1/export/archive
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid={{localUuid}}&isBagit=true
+pid={{uuid}}&isBagit=true
 
 ### NDK Export s Bagit
-POST {{proarcRemoteUrl}}/rest/v1/export/ndk
+POST {{proarcUrl}}/rest/v1/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid={{remoteUuid}}&isBagit=true
+pid={{uuid}}&isBagit=true
 
 
 ### GENERATE ALTO OCR RECURSIVELY
-POST {{proarcCroUrl}}/rest/v1/import/generate
+POST {{proarcUrl}}/rest/v1/import/generate
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -305,19 +305,19 @@ folderPath=denicky2
 
 
 ### LOGIN
-POST {{proarcRemoteUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### GET VALID EXPORTS
-GET {{proarcLocalHostUrl}}/rest/v1/export/validExports?model=model:oldprintvolume
+GET {{proarcUrl}}/rest/v1/export/validExports?model=model:oldprintvolume
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ### ADD NEW USER WOTH ERROR
-POST {{proarcLocalHostUrl}}/rest/v1/user
+POST {{proarcUrl}}/rest/v1/user
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -325,14 +325,14 @@ name=miqchal
 
 
 ### REINDEX
-PUT {{proarcLocalHostUrl}}/rest/v1/object/reindexObjects
+PUT {{proarcUrl}}/rest/v1/object/reindexObjects
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 batchId=845&model=model:ndkpage
 
 ### EDITOR PAGES
-PUT http://localhost:8081/proarc/rest/v1/object/mods/editorPages
+PUT {{proarcUrl}}/rest/v1/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -340,7 +340,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -348,14 +348,14 @@ j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 
 ### IMPORT
-POST {{proarcRemoteUrl}}/rest/v1/import/batch
+POST {{proarcUrl}}/rest/v1/import/batch
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 folderPath=Mzk/Monografie/Kratka/&profile=profile.default&device=device:a93dd5e2-1db7-44d0-be85-804759da8afe&priority=medium
 
 ### EXPORT KRAMERIUS
-POST {{proarcLocalHostUrl}}/rest/v1/export/archive
+POST {{proarcUrl}}/rest/v1/export/archive
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -377,21 +377,21 @@ Content-Type: application/json
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### NDK EXPORT with CESNET UPLOAD
-POST {{proarcLocalHostUrl}}/rest/v2/export/ndk
+POST {{proarcUrl}}/rest/v2/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid:4d696c27-9253-41a6-bb24-9c0b6fdde49b&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
 
 ###
-POST {{proarcLocalHostUrl}}/rest/v2/object/unlockObject
+POST {{proarcUrl}}/rest/v2/object/unlockObject
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -399,14 +399,14 @@ pid=uuid:fb3e739d-37a4-4cc0-8fba-4296f99a988d
 
 
 ### LOGIN
-POST {{proarcNmUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### NDK EXPORT with CESNET UPLOAD
-POST {{proarcNmUrl}}/rest/v2/export/ndk
+POST {{proarcUrl}}/rest/v2/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -427,7 +427,7 @@ j_username={{proarcUsername}}&j_password={{proarcPwd}}
 GET {{proarcUrl}}/rest/v1/object/streamprofile?pid={{uuid}}&batchId={{batchId}}
 
 ### Update device
-PUT {{proarcLocalHostUrl}}/rest/v2/device
+PUT {{proarcUrl}}/rest/v2/device
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -435,7 +435,7 @@ device:1883a7de-2f01-40e4-91ee-c7b631c0353c
 
 
 ### NDK Export s kramerius IUmport
-POST {{proarcLocalHostUrl}}/rest/v1/export/ndk
+POST {{proarcUrl}}/rest/v1/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -443,56 +443,56 @@ pid=uuid:9b2d468e-0827-4a1a-a9b0-4483a7bdd937&krameriusInstance=kramerius7-idu
 
 
 ### NDK Export s Kramerius Importem
-POST {{proarcRemoteUrl}}/rest/v2/export/ndk
+POST {{proarcUrl}}/rest/v2/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid={{remoteUuid}}&krameriusInstance=kramerius7
+pid={{uuid}}&krameriusInstance=kramerius7
 
 ### LOGIN
-POST {{proarcRemoteUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### REGISTER URNNBN
-POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn
+POST {{proarcUrl}}/rest/v2/object/urnnbn
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolverId=inovatika
 
 ### INVALIDATE LOCAL URNNBN
-POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/invalidateLocal
+POST {{proarcUrl}}/rest/v2/object/urnnbn/invalidateLocal
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid:32c47d0e-25f6-4113-89ab-4ecd23050b3b&resolverId=inovatika
 
 ### INVALIDATE REMOTE URNNBN
-POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/invalidateRemote
+POST {{proarcUrl}}/rest/v2/object/urnnbn/invalidateRemote
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 valueToDeactivate=urn:nbn:cz:aba007-000111&resolverId=inovatika
 
 ### NEW REGISTRATION URNNBN WITH OLD VALUE DEACTIVATION
-POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/registerAgain
+POST {{proarcUrl}}/rest/v2/object/urnnbn/registerAgain
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid:5d3fba10-2f81-4262-8a24-7c1e38eeba55&resolverId=inovatika
 
 ### REGISTER URNNBN - SUCCESSOR
-POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/createSuccessor
+POST {{proarcUrl}}/rest/v2/object/urnnbn/createSuccessor
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -500,7 +500,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 pid=uuid:bab0d255-4819-45f0-9521-28715cabfee1&resolverId=inovatika
 
 ### UPDATE RESOLVER WITH IDENTIFIER
-POST {{proarcLocalHostUrl}}/rest/v2/object/urnnbn/updateIdentifier
+POST {{proarcUrl}}/rest/v2/object/urnnbn/updateIdentifier
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -521,21 +521,21 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 state=LOADING_CONFLICT&profile=profile.ndk_periodical_kramerius_import&id=284&useOriginalMetadata=true
 
 ### UPDATE IMPORT BATCH WITH REWRITE
-PUT {{proarcLocalHostUrl}}/rest/v2/import/batch
+PUT {{proarcUrl}}/rest/v2/import/batch
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 state=LOADING_CONFLICT&profile=profile.default_archive_import&id=80&useOriginalMetadata=true
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### UPDATE VERBIS RECORD
-POST {{proarcLocalHostUrl}}/rest/v2/object/updateCatalogRecord
+POST {{proarcUrl}}/rest/v2/object/updateCatalogRecord
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -544,13 +544,13 @@ pid=uuid:455a7723-c4ab-4b80-8e75-b1203ccefa59&catalogId=cmh
 
 ### GET RELEVANT CATALOG
 
-GET {{proarcLocalHostUrl}}/rest/v1/bibliographies?allowUpdate=true
+GET {{proarcUrl}}/rest/v1/bibliographies?allowUpdate=true
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ### update oldprint page
 
-PUT {{proarcLocalHostUrl}}/rest/v1/object/mods/custom
+PUT {{proarcUrl}}/rest/v1/object/mods/custom
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -565,7 +565,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 ### CREATE PERIODICAL ISSUE
-POST {{proarcLocalHostUrl}}/rest/v2/object
+POST {{proarcUrl}}/rest/v2/object
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -580,7 +580,7 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 pid={{uuid}}
 
 ### GENERATE ALTO TO FOLDER
-POST {{proarcLocalHostUrl}}/rest/v2/import/generateAlto
+POST {{proarcUrl}}/rest/v2/import/generateAlto
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
