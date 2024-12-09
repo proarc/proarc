@@ -2159,6 +2159,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:call-template name="createSubTemFrom045"/>
         </xsl:for-each>
 
+        <xsl:call-template name="createSubjectFrom150"/>
+
         <!--Revision 1.97.proarc.8.303-->
         <xsl:call-template name="createSubjectFrom072"/>
 
@@ -5469,6 +5471,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
     <xsl:template name="createSubGeoFrom151">
         <xsl:for-each select="marc:subfield[@code='a']">
             <geographic>
+                <xsl:if test="../marc:subfield[@code='7']">
+                    <xsl:variable name="subfield7" select="../marc:subfield[@code='7']"/>
+                    <xsl:attribute name="valueURI">
+                        <xsl:value-of select="concat('https://aleph.nkp.cz/dai/', $subfield7)"/>
+                    </xsl:attribute>
+                </xsl:if>
                 <xsl:value-of select="self::marc:subfield"/>
             </geographic>
         </xsl:for-each>
@@ -6158,6 +6166,23 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <xsl:copy>
             <xsl:apply-templates select="* | @* | text()" mode="global_copy"/>
         </xsl:copy>
+    </xsl:template>
+
+    <!--Revision proarc.1334-->
+    <xsl:template name="createSubjectFrom150">
+        <xsl:for-each select="marc:datafield[@tag=150]">
+            <subject>
+                <topic>
+                    <xsl:if test="marc:subfield[@code='7']">
+                        <xsl:variable name="subfield7" select="marc:subfield[@code='7']"/>
+                        <xsl:attribute name="valueURI">
+                            <xsl:value-of select="concat('https://aleph.nkp.cz/dai/', $subfield7)"/>
+                        </xsl:attribute>
+                    </xsl:if>
+                    <xsl:value-of select="marc:subfield[@code='a']"/>
+                </topic>
+            </subject>
+        </xsl:for-each>
     </xsl:template>
 
 </xsl:stylesheet>

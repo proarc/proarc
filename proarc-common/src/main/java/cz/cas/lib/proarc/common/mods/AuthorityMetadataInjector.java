@@ -16,13 +16,17 @@
 
 package cz.cas.lib.proarc.common.mods;
 
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.SubjectDefinition;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuthorityMetadataInjector implements MetadataInjector {
     MetadataHandler metadataHandler;
@@ -58,7 +62,26 @@ public class AuthorityMetadataInjector implements MetadataInjector {
 
     private DescriptionMetadata<ModsDefinition> insertSubject(DescriptionMetadata<ModsDefinition> metadata, DescriptionMetadata<ModsDefinition> authority) {
         if (authority != null && authority.getData() != null && authority.getData().getSubject() != null && authority.getData().getSubject().size() > 0) {
-            metadata.getData().getSubject().addAll(authority.getData().getSubject());
+            List<SubjectDefinition> subjectDefinitionList = new ArrayList<>();
+            for (SubjectDefinition subjectDefinition : authority.getData().getSubject()) {
+                for (StringPlusLanguagePlusAuthority topic : subjectDefinition.getTopic()) {
+                    if (topic.getValueURI() != null) {
+                        subjectDefinitionList.add(subjectDefinition);
+                        break;
+                    }
+                }
+                for (StringPlusLanguagePlusAuthority geographic : subjectDefinition.getGeographic()) {
+                    if (geographic.getValueURI() != null) {
+                        subjectDefinitionList.add(subjectDefinition);
+                        break;
+                    }
+                }
+            }
+            if (!subjectDefinitionList.isEmpty()) {
+                metadata.getData().getSubject().addAll(subjectDefinitionList);
+            } else {
+                metadata.getData().getSubject().addAll(authority.getData().getSubject());
+            }
         }
         return metadata;
     }

@@ -14,19 +14,35 @@
     <xsl:variable name="description" select="//mods:mods/mods:name/mods:description"/>
     <xsl:variable name="namePart" select="//mods:mods/mods:name/mods:namePart"/>
     <xsl:variable name="topicOfSubject" select="//mods:mods/mods:subject/mods:topic"/>
+    <xsl:variable name="topicIdentifier" select="//mods:mods/mods:subject/mods:topic/@valueURI"/>
     <xsl:variable name="geographicCode" select="//mods:mods/mods:subject/mods:geographicCode"/>
     <xsl:variable name="geographic" select="//mods:mods/mods:subject/mods:geographic"/>
+    <xsl:variable name="geographicIdentifier" select="//mods:mods/mods:subject/mods:geographic/@valueURI"/>
 
     <xsl:template match="/">
         <xsl:choose>
             <xsl:when test="boolean(normalize-space($geographic))">
-                <xsl:value-of select="concat('S:', $geographic)"/>
+                <xsl:choose>
+                    <xsl:when test="boolean(normalize-space($geographicIdentifier))">
+                        <xsl:value-of select="concat('S:', $geographic, ' (', $geographicIdentifier,')')"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="concat('S:', $geographic)"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:when>
             <xsl:when test="boolean(normalize-space($geographicCode))">
                 <xsl:value-of select="concat('S:Geographic code: ', $geographicCode)"/>
             </xsl:when>
             <xsl:when test="boolean(normalize-space($topicOfSubject))">
-                <xsl:value-of select="concat('S:', $topicOfSubject)"/>
+                <xsl:choose>
+                    <xsl:when test="boolean(normalize-space($topicIdentifier))">
+                        <xsl:value-of select="concat('S:', $topicOfSubject, ' (', $topicIdentifier,')')"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="concat('S:', $topicOfSubject)"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:when>
             <xsl:when test="boolean(normalize-space($family))">
                     <xsl:choose>
