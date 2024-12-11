@@ -180,7 +180,7 @@ public class ValidationProcess {
 
         // validace potomku
         for (SearchViewItem child : children) {
-            validatePid(child, result, item, type);
+            containsPageOrPdf(child, result, item, type);
         }
     }
 
