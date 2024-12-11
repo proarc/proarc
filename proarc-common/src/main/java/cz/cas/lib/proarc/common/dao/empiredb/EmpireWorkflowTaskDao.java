@@ -111,6 +111,7 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         cmd.join(tableTask.ownerId, db.tableUser.id, DBJoinType.LEFT);
 
         cmd.select(db.tableWorkflowPhysicalDoc.barcode);
+        cmd.select(db.tableWorkflowPhysicalDoc.signature);
 
         DBCommand pmatCmd = db.createCommand();
         final DBColumnExpr pmatMaterialId = db.tableWorkflowMaterial.id.min().as(db.tableWorkflowMaterial.id);
@@ -156,6 +157,9 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         }
         if (filter.getBarcode() != null) {
             cmd.where(db.tableWorkflowPhysicalDoc.barcode.is(filter.getBarcode()));
+        }
+        if (filter.getSignature() != null) {
+            cmd.where(db.tableWorkflowPhysicalDoc.signature.is(filter.getSignature()));
         }
         EmpireUtils.addWhereDate(cmd, tableTask.created, filter.getCreated());
         EmpireUtils.addWhereDate(cmd, tableTask.timestamp, filter.getModified());

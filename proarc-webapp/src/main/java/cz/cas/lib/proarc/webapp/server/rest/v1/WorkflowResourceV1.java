@@ -452,7 +452,8 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OWNERID) List<BigDecimal> userId,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_SORTBY) String sortBy,
-            @QueryParam(WorkflowModelConsts.MATERIAL_BARCODE) String barcode
+            @QueryParam(WorkflowModelConsts.MATERIAL_BARCODE) String barcode,
+            @QueryParam(WorkflowModelConsts.MATERIAL_SIGNATURE) String signature
     ) {
         int pageSize = 100;
         TaskFilter filter = new TaskFilter();
@@ -471,6 +472,7 @@ public class WorkflowResourceV1 {
         filter.setState(state);
         filter.setUserId(userId);
         filter.setBarcode(barcode);
+        filter.setSignature(signature);
         WorkflowDefinition workflow = workflowProfiles.getProfiles();
         if (workflow == null) {
             return profileError();

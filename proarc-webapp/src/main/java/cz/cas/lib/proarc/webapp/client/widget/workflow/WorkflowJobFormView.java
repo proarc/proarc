@@ -335,7 +335,8 @@ public class WorkflowJobFormView implements Refreshable {
                 new ListGridField(WorkflowTaskDataSource.FIELD_MODIFIED, 100),
                 new ListGridField(WorkflowTaskDataSource.FIELD_ID, 30),
                 new ListGridField(WorkflowTaskDataSource.FIELD_NOTE),
-                new ListGridField(WorkflowTaskDataSource.FIELD_BARCODE)
+                new ListGridField(WorkflowTaskDataSource.FIELD_BARCODE),
+                new ListGridField(WorkflowTaskDataSource.FIELD_SIGNATURE)
         );
         taskView.getField(WorkflowTaskDataSource.FIELD_TYPE).setHidden(true);
         taskView.getField(WorkflowTaskDataSource.FIELD_PRIORITY).setHidden(true);
@@ -344,6 +345,7 @@ public class WorkflowJobFormView implements Refreshable {
         taskView.getField(WorkflowTaskDataSource.FIELD_ID).setHidden(true);
         taskView.getField(WorkflowTaskDataSource.FIELD_NOTE).setHidden(true);
         taskView.getField(WorkflowTaskDataSource.FIELD_BARCODE).setHidden(true);
+        taskView.getField(WorkflowTaskDataSource.FIELD_SIGNATURE).setHidden(true);
         taskView.setViewState(taskViewPersistance.getViewState());
 
         taskView.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {

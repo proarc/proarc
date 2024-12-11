@@ -62,6 +62,7 @@ public class WorkflowTaskDataSource extends ProarcDataSource {
     public static final String FIELD_STATE = WorkflowModelConsts.TASK_STATE;
     public static final String FIELD_TYPE = WorkflowModelConsts.TASK_FILTER_PROFILENAME;
     public static final String FIELD_BARCODE = WorkflowModelConsts.MATERIAL_BARCODE;
+    public static final String FIELD_SIGNATURE = WorkflowModelConsts.MATERIAL_SIGNATURE;
     private static WorkflowTaskDataSource INSTANCE;
     private final LinkedHashMap<String, String> allTaskStates;
 
@@ -99,6 +100,11 @@ public class WorkflowTaskDataSource extends ProarcDataSource {
         barcode.setTitle(i18n.WorkflowMaterial_Field_Barcode_Title());
         barcode.setLength(255);
         barcode.setCanEdit(false);
+
+        DataSourceTextField signature = new DataSourceTextField(FIELD_SIGNATURE);
+        signature.setTitle(i18n.WorkflowMaterial_Field_Signature_Title());
+        signature.setLength(255);
+        signature.setCanEdit(false);
 
         DataSourceTextField jobId = new DataSourceTextField(FIELD_JOB_ID);
         jobId.setTitle(i18n.WorkflowTask_Field_JobId_Title());
@@ -156,7 +162,7 @@ public class WorkflowTaskDataSource extends ProarcDataSource {
         DataSourceField materials = new DataSourceField(FIELD_MATERIALS, FieldType.ANY);
         materials.setHidden(true);
 
-        setFields(label, barcode, type, state, priority, owner, created, modified,
+        setFields(label, barcode, signature, type, state, priority, owner, created, modified,
                 fieldId, note, jobId, jobLabel, params, materials);
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

@@ -64,6 +64,8 @@ public class TaskFilter {
     private Locale locale;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_BARCODE)
     private String barcode;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGNATURE)
+    private String signature;
 
     private List<BigDecimal> ids;
 
@@ -195,6 +197,14 @@ public class TaskFilter {
 
     public void setBarcode(String barcode) {
         this.barcode = barcode;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 
     public List<BigDecimal> getIds() {

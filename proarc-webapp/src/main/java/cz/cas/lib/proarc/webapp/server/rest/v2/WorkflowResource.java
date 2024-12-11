@@ -222,10 +222,11 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OWNERID) List<BigDecimal> userId,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_SORTBY) String sortBy,
-            @QueryParam(WorkflowModelConsts.MATERIAL_BARCODE) String barcode
+            @QueryParam(WorkflowModelConsts.MATERIAL_BARCODE) String barcode,
+            @QueryParam(WorkflowModelConsts.MATERIAL_SIGNATURE) String signature
     ) {
         try {
-            return super.getTask(created, id, jobId, jobLabel, modified, priority, profileName, state, userId, startRow, sortBy, barcode);
+            return super.getTask(created, id, jobId, jobLabel, modified, priority, profileName, state, userId, startRow, sortBy, barcode, signature);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
