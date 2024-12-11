@@ -33,6 +33,8 @@ public interface BatchItemDao extends Dao {
 
     void removeItems(int batchId);
 
+    void removeItem(int batchId, String pid);
+
     void update(BatchItem item);
 
 }

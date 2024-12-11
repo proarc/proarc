@@ -30,15 +30,15 @@ import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.LocalStorage;
-import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportFolderStatus;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -55,6 +55,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXB;
+
+import static cz.cas.lib.proarc.common.process.imports.ImportProcess.getTargetFolder;
 
 /**
  *
@@ -502,7 +504,7 @@ public class BatchManager {
     public LocalObject getRootObject(Batch batch) {
         File folder = resolveBatchFile(batch.getFolder());
         LocalStorage storage = new LocalStorage();
-        File targetBatchFolder = ImportProcess.getTargetFolder(folder, appConfig.getImportConfiguration(findImportProfile(batch.getId(), batch.getProfileId())));
+        File targetBatchFolder = getTargetFolder(folder, appConfig.getImportConfiguration(findImportProfile(batch.getId(), batch.getProfileId())));
         if (!targetBatchFolder.exists()) {
             throw new IllegalStateException(
                     String.format("Cannot resolve folder path: %s for %s!", targetBatchFolder, batch));
@@ -698,6 +700,17 @@ public class BatchManager {
             dao.update(batch);
             if (!State.STOPPED.equals(originalBatchState)) {
                 itemDao.removeItems(batch.getId());
+            } else {
+                List<BatchItem> batchItems = itemDao.find(batch.getId(), null, null, null, null, BatchItem.Type.OBJECT.name());
+                boolean delete = false;
+                for (BatchItem batchItem : batchItems) {
+                    if (delete) {
+                        itemDao.removeItem(batch.getId(), batchItem.getPid());
+                    } else if (!"LOADED".equals(batchItem.getState())) {
+                        delete = true;
+                        itemDao.removeItem(batch.getId(), batchItem.getPid());
+                    }
+                }
             }
             tx.commit();
         } catch (Throwable t) {
