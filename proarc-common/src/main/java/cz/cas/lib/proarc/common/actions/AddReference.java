@@ -138,6 +138,7 @@ public class AddReference {
 
                 NameDefinition name = new NameDefinition();
                 relatedItem.getName().add(name);
+                name.setType("personal");
                 NamePartDefinition surnameNamepart = new NamePartDefinition();
                 name.getNamePart().add(surnameNamepart);
                 surnameNamepart.setType("family");
