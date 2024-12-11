@@ -70,6 +70,7 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.AtmEditor;
 import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
@@ -198,6 +199,7 @@ import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_ADDING_REFERENCE_FAILED;
@@ -4721,6 +4723,15 @@ public class DigitalObjectResourceV1 {
         int count = 0;
         for (String pid : pids) {
             try {
+                if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                    Locale locale = session.getLocale(httpHeaders);
+                    ValidationProcess validationProcess = new ValidationProcess(appConfig, akubraConfiguration, params.getPids(), locale);
+                    ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.UPDATE_CATALOG_RECORD);
+                    if (!result.isStatusOk(true)) {
+                        finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
+                        throw new IOException(result.getMessages());
+                    }
+                }
                 catalogRecord.update(catalogId, pid);
                 count++;
             } catch (Throwable t) {

@@ -767,5 +767,5 @@ POST {{proarcUrl}}/rest/v2/object/updateCatalogRecord
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid=uuid:4daadca5-696c-4561-ba9d-3c40e53a1227&pid=uuid:33953086-c211-448b-ba87-dfb94e722053&pid=uuid:91686449-e382-4b2d-b0d3-8b7c1ab5da7f&catalogId=knaValidation
+pid=uuid:5d896307-8040-411b-b4da-2e3c293c6270&catalogId=knaValidation
 

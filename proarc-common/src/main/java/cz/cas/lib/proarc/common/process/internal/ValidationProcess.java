@@ -117,7 +117,7 @@ public class ValidationProcess {
     }
 
     public enum Type {
-        EXPORT_NDK, EXPORT_ARCHIVE, EXPORT_KRAMERIUS, VALIDATION
+        EXPORT_NDK, EXPORT_ARCHIVE, EXPORT_KRAMERIUS, VALIDATION, UPDATE_CATALOG_RECORD
     }
 
     public Result validate(Type type) throws IOException {
@@ -141,10 +141,47 @@ public class ValidationProcess {
             if (parentsList.size() > 1) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt má více nadřazených objektů!", Level.SEVERE));
             }
-            validatePid(item, result, parentsList.isEmpty() ? null : parentsList.get(0), type);
+            if (Type.UPDATE_CATALOG_RECORD.equals(type)) {
+                containsPageOrPdf(item, result, parentsList.isEmpty() ? null : parentsList.get(0), type);
+            } else {
+                validatePid(item, result, parentsList.isEmpty() ? null : parentsList.get(0), type);
+            }
         }
 
         return result;
+    }
+
+    private void containsPageOrPdf(SearchViewItem item, Result result, SearchViewItem parentItem, Type type) {
+        if (item == null) {
+            result.getValidationResults().add(new ValidationResult("PID", "Objekt nenalezen v SOLRu", Level.SEVERE));
+            return;
+        }
+
+        String model = item.getModel();
+
+        AkubraStorage.AkubraObject akubraObject = storage.find(item.getPid());
+        List<SearchViewItem> children = new ArrayList<>();
+        try {
+            children = search.findSortedChildren(item.getPid());
+        } catch (Throwable t) {
+            result.getValidationResults().add(new ValidationResult(item.getPid(), "Nepodařilo se získat potomky a tím pádem je validovat.", Level.SEVERE));
+        }
+
+        // seznam validaci
+        if (CONTAINS_PDF.contains(model)) {
+            validateContainsPdf(akubraObject, !children.isEmpty(), result);
+        }
+        if (CONTAINS_AUDIO_PAGE.contains(model)) {
+            validateMusic(item, children, result);
+        }
+        if (CONTAINS_PAGE.contains(model)) {
+            validatePages(item, children, result, type);
+        }
+
+        // validace potomku
+        for (SearchViewItem child : children) {
+            validatePid(child, result, item, type);
+        }
     }
 
     private void validatePid(SearchViewItem item, Result result, SearchViewItem parentItem, Type type) {
@@ -311,7 +348,7 @@ public class ValidationProcess {
             }
         }
         if (pageCount < 1) {
-            if (Type.EXPORT_ARCHIVE.equals(type) || Type.EXPORT_NDK.equals(type) || Type.EXPORT_KRAMERIUS.equals(type)) {
+            if (Type.EXPORT_ARCHIVE.equals(type) || Type.EXPORT_NDK.equals(type) || Type.EXPORT_KRAMERIUS.equals(type) || Type.UPDATE_CATALOG_RECORD.equals(type)) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt neobsahuje žádnou stranu.", Level.SEVERE));
             } else if (Type.VALIDATION.equals(type) && (!(bdmArticleCount > 0 && NdkPlugin.MODEL_PERIODICALISSUE.equals(item.getModel())))) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt neobsahuje žádnou stranu.", Level.SEVERE));
