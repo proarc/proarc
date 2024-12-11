@@ -133,6 +133,7 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_ITEM_PAGE_REPRE = "pageRepre";
 
     public static final String MEMBERS_ITEM_URNNBN = "urnNbn";
+    public static final String MEMBERS_ITEM_PART_NUMBER = "partNumber";
     public static final String MEMBERS_ITEM_DESCRIPTION_STANDARD = "descriptionStandard";
 
     public static final String ITEM_VALIDATION = "validation";

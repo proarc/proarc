@@ -15,7 +15,9 @@ import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.incad.kramerius.resourceindex.ProcessingIndexFeeder;
 import java.io.IOException;
 import java.util.HashMap;
@@ -50,6 +52,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_INDEX
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_NUMBER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_POSITION;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_TYPE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PART_NUMBER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PID;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOURCE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATE;
@@ -94,6 +97,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         String genre = ExportUtils.getGenre(mods);
         String urnNbn = getUrnNbn(mods);
         String descriptionStandard = getDescriptionStandatd(mods);
+        String partNumber = getPartNumber(mods);
 
         Boolean isLocked = relationEditor.isLocked();
 
@@ -102,7 +106,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         try {
             feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
                     ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members,
-                    pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard);
+                    pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber);
             if (commit) {
                 commit();
             }
@@ -139,9 +143,20 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         return null;
     }
 
+    public static String getPartNumber(ModsDefinition mods) {
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            for (StringPlusLanguage partNumber : titleInfo.getPartNumber()) {
+                if (partNumber != null && partNumber.getValue() != null && !partNumber.getValue().isEmpty()) {
+                    return partNumber.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
     private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
             String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex,
-            String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd) throws SolrServerException, IOException {
+            String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -170,6 +185,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_DESCRIPTION_STANDARD, descriptionStandatd);
         sdoc.addField(FIELD_VALIDATION_STATUS, VALIDATION_STATUS_UNKNOWN);
         sdoc.addField(FIELD_VALIDATION_PROCES, 0);
+        sdoc.addField(FIELD_PART_NUMBER, partNumber);
 
         return feedDescriptionDocument(sdoc);
     }

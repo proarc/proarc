@@ -57,6 +57,7 @@ public class SolrUtils {
     public static final String FIELD_OPERATION = "operation";
     public static final String FIELD_VALIDATION_STATUS = "validationStatus";
     public static final String FIELD_VALIDATION_PROCES = "validationProcessId";
+    public static final String FIELD_PART_NUMBER = "partNumber";
 
     public static final String PROPERTY_STATE_ACTIVE = "Active";
     public static final String PROPERTY_STATE_DEACTIVE = "Deactive";
@@ -228,6 +229,7 @@ public class SolrUtils {
         item.setK4(getContainsString(solrDocument, FIELD_EXPORT_CROSSREF));
         item.setIsLocked(getBoolean(solrDocument, FIELD_LOCKED));
         item.setUrnNbn(getString(solrDocument, FIELD_URNNBN));
+        item.setPartNumber(getString(solrDocument, FIELD_PART_NUMBER));
         item.setDescriptionStandard(getString(solrDocument, FIELD_DESCRIPTION_STANDARD));
         item.setValidationStatus(getString(solrDocument, FIELD_VALIDATION_STATUS));
         item.setValidationProcess(getInteger(solrDocument, FIELD_VALIDATION_PROCES));

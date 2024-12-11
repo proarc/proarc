@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema name="searchCore" version="5.0">
-    <!-- log: pridani poli pro hledani vsech poli v dotazu, razeni labelu -->
+<schema name="searchCore" version="6.0">
+    <!-- log: pridani pole partNumber -->
 
 
     <uniqueKey>pid</uniqueKey>
@@ -93,6 +93,7 @@
     <field name="genre" type="string"/>
     <field name="validationStatus" type="string"/>
     <field name="validationProcessId" type="pint"/>
+    <field name="partNumber" type="string"/>
 
 
     <copyField source="*" dest="fulltext"/>

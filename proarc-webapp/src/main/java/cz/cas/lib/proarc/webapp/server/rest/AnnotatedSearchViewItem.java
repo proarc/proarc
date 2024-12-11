@@ -141,6 +141,10 @@ public abstract class AnnotatedSearchViewItem extends SearchViewItem {
     @Override
     public abstract String getUrnNbn();
 
+    @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PART_NUMBER)
+    @Override
+    public abstract String getPartNumber();
+
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_DESCRIPTION_STANDARD)
     @Override
     public abstract String getDescriptionStandard();

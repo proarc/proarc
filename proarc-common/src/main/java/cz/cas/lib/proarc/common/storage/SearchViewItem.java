@@ -47,6 +47,7 @@ public class SearchViewItem {
     private String pageRepre;
 
     private String urnNbn;
+    private String partNumber;
     private String descriptionStandard;
 
     private String validationStatus;
@@ -359,6 +360,14 @@ public class SearchViewItem {
 
     public void setUrnNbn(String urnNbn) {
         this.urnNbn = urnNbn;
+    }
+
+    public String getPartNumber() {
+        return partNumber;
+    }
+
+    public void setPartNumber(String partNumber) {
+        this.partNumber = partNumber;
     }
 
     public String getDescriptionStandard() {
