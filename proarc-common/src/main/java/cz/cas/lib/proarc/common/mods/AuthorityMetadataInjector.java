@@ -66,12 +66,14 @@ public class AuthorityMetadataInjector implements MetadataInjector {
             for (SubjectDefinition subjectDefinition : authority.getData().getSubject()) {
                 for (StringPlusLanguagePlusAuthority topic : subjectDefinition.getTopic()) {
                     if (topic.getValueURI() != null) {
+                        subjectDefinition.setAuthority("czenas");
                         subjectDefinitionList.add(subjectDefinition);
                         break;
                     }
                 }
                 for (StringPlusLanguagePlusAuthority geographic : subjectDefinition.getGeographic()) {
                     if (geographic.getValueURI() != null) {
+                        subjectDefinition.setAuthority("czenas");
                         subjectDefinitionList.add(subjectDefinition);
                         break;
                     }
