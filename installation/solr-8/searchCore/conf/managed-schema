@@ -56,6 +56,7 @@
             <filter class="solr.LowerCaseFilterFactory"/>
         </analyzer>
     </fieldType>
+    <fieldType name="collatedCZECH" class="solr.ICUCollationField"  locale="cs" strength="tertiary" />
 
 
     <field name="_nest_path_" type="_nest_path_"/>
@@ -69,7 +70,8 @@
     <field name="fulltext" type="text_cz" multiValued="true" docValues="false"/>
     <field name="isLocked" type="boolean" docValues="false"/>
     <field name="krameriusExport" type="string"/>
-    <field name="label" type="string"/>
+    <field name="label" type="text_cz" multiValued="false"/>
+    <field name="labelSort" type="collatedCZECH" docValues="true" multiValued="false" sortMissingLast="true"/>
     <field name="members" type="text_general" docValues="false"/>
     <field name="model" type="string"/>
     <field name="modified" type="pdate"/>
@@ -94,4 +96,5 @@
 
 
     <copyField source="*" dest="fulltext"/>
+    <copyField source="label" dest="labelSort"/>
 </schema>
