@@ -36,9 +36,11 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,6 +61,8 @@ public class ValidationProcess {
     private int indexPageValue;
     private boolean reprePageValue;
     private String positionPageValue;
+
+    private Map<String, Integer> pageTypeMap = new HashMap<>();
 
     private static final Set<String> CONTAINS_PDF = new HashSet<String>(Arrays.asList(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE));
     private static final Set<String> CONTAINS_AUDIO_PAGE = new HashSet<String>(Arrays.asList(NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK));
@@ -84,15 +88,32 @@ public class ValidationProcess {
 //            OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC
     ));
 
+    private void resetValues() {
+        this.indexPageValue = 1;
+
+        this.reprePageValue = false;
+
+        this.positionPageValue = null;
+
+        pageTypeMap.clear();
+        pageTypeMap.put("cover", 0);
+        pageTypeMap.put("frontCover", 0);
+        pageTypeMap.put("backCover", 0);
+        pageTypeMap.put("spine", 0);
+        pageTypeMap.put("jacket", 0);
+        pageTypeMap.put("frontEndPaper", 0);
+        pageTypeMap.put("backEndPaper", 0);
+        pageTypeMap.put("frontJacket", 0);
+        pageTypeMap.put("titlePage", 0);
+    }
+
     public ValidationProcess(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, List<String> pids, Locale locale) {
         this.appConfig = appConfig;
         this.akubraConfiguration = akubraConfiguration;
         this.pids = pids;
         this.locale = locale;
 
-        this.indexPageValue = 1;
-        this.reprePageValue = false;
-        this.positionPageValue = null;
+        resetValues();
     }
 
     public enum Type {
@@ -114,9 +135,7 @@ public class ValidationProcess {
         List<SearchViewItem> items = search.find(pids);
         for (SearchViewItem item : items) {
 
-            this.indexPageValue = 1;
-            this.reprePageValue = false;
-            this.positionPageValue = null;
+            resetValues();
 
             List<SearchViewItem> parentsList = search.findReferrers(item.getPid());
             if (parentsList.size() > 1) {
@@ -279,9 +298,7 @@ public class ValidationProcess {
 
     private void validatePages(SearchViewItem item, List<SearchViewItem> children, Result result, Type type) {
 
-        this.indexPageValue = 1;
-        this.reprePageValue = false;
-        this.positionPageValue = null;
+        resetValues();
 
         int pageCount = 0;
         int bdmArticleCount = 0;
@@ -366,6 +383,15 @@ public class ValidationProcess {
                     result.getValidationResults().add(new ValidationResult(item.getPid(), "Vícenásobný výskyt reprezentativní strany.", Level.SEVERE));
                 } else {
                     reprePageValue = true;
+                }
+            }
+        }
+        if (item.getPageType() != null && !item.getPageType().isEmpty()) {
+            if (pageTypeMap.containsKey(item.getPageType())) {
+                if (pageTypeMap.get(item.getPageType()) > 0) {
+                    result.getValidationResults().add(new ValidationResult(item.getPid(), String.format("Vícenásobný výskyt typu strany \"%s\".", item.getPageType()), Level.WARNING));
+                } else {
+                    pageTypeMap.merge(item.getPageType(), 1, Integer::sum);
                 }
             }
         }
