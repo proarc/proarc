@@ -401,7 +401,11 @@ public class SolrSearchView extends SearchView {
             filterQueryList.add(FIELD_ORGANIZATION + ":\"" + organization + "\"");
         }
         if (user != null && !user.isEmpty() && (hasValues(Collections.singletonList(user)))) {
-            filterQueryList.add(getUserQuery(Collections.singletonList(user), allowAllForUser));
+            String userQuery = getUserQuery(Collections.singletonList(user), allowAllForUser);
+            if (userQuery != null && !userQuery.isEmpty()) {
+                filterQueryList.add(userQuery);
+            }
+
         }
         if (status != null && !status.isEmpty()) {
             filterQueryList.add(FIELD_STATUS + ":\"" + status + "\"");
