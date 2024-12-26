@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
@@ -118,6 +119,8 @@ public final class Kramerius4ExportOptions {
             put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, "hasIntCompPart");
             put(NdkAudioPlugin.MODEL_SONG, "hasSoundUnit");
             put(NdkAudioPlugin.MODEL_TRACK, "containsTrack");
+            put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, "hasVolume");
+            put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, "hasUnit");
         }
     };
 
@@ -162,6 +165,9 @@ public final class Kramerius4ExportOptions {
             put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
             put(NdkAudioPlugin.MODEL_SONG, "model:soundunit");
             put(NdkAudioPlugin.MODEL_TRACK, "model:track");
+            put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, "model:clippingcollection");
+            put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY,  "model:clippingdirectory");
+            put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, "model:clipping");
         }
     };
 

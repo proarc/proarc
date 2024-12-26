@@ -11,3 +11,4 @@ cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin
 cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin
 cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin
 cz.cas.lib.proarc.common.object.graphic.GraphicPlugin
+cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin

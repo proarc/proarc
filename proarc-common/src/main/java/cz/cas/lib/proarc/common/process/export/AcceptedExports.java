@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippin
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -57,6 +58,8 @@ public class AcceptedExports {
             NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
             NdkEbornPlugin.MODEL_EARTICLE,
+            // ndkClipping //
+            NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, NdkClippingPlugin.MODEL_CLIPPING_UNIT,
             // chronicle //
             ChroniclePlugin.MODEL_CHRONICLETITLE, ChroniclePlugin.MODEL_CHRONICLEVOLUME, ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT,
             // oldPrint //

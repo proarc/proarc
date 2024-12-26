@@ -106,8 +106,15 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitOldPrintGraphics(elm, p);
         } else if (OldPrintPlugin.MODEL_SHEETMUSIC.equals(model)) {
             return visitOldPrintSheetmusic(elm, p);
+        } else if (NdkClippingPlugin.MODEL_CLIPPING_COLLECTION.equals(model)) {
+            return visitNdkClippingCollection(elm, p);
+        } else if (NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY.equals(model)) {
+            return visitNdkClippingDirectory(elm, p);
+        } else if (NdkClippingPlugin.MODEL_CLIPPING_UNIT.equals(model)) {
+            return visitNdkClippingUnit(elm, p);
+        } else {
+            return super.visit(elm, p);
         }
-        return super.visit(elm, p);
     }
 
     @Override
@@ -245,6 +252,21 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
     }
 
     public R visitOldPrintMonographUnit(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    @Override
+    public R visitNdkClippingCollection(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    @Override
+    public R visitNdkClippingDirectory(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    @Override
+    public R visitNdkClippingUnit(DigitalObjectElement elm, P p) throws VisitorException {
         return visitChildren(elm, p);
     }
 

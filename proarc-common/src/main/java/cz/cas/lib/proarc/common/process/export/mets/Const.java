@@ -17,6 +17,7 @@
 
 package cz.cas.lib.proarc.common.process.export.mets;
 
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
@@ -87,6 +88,10 @@ public class Const {
     public final static String GENRE_TITLE = "title";
     public final static String GENRE_VOLUME = "volume";
 
+    public final static String GENRE_CLIPPING_COLLECTION = "clippingcollection";
+    public final static String GENRE_CLIPPING_DIRECTORY = "obálka";
+    public final static String GENRE_CLIPPING_UNIT = "výstřižek";
+
     public static final String NDK_EBORN_MODELS_IDENTIFIER = "ndke";
     public final static String GENRE_EARTICLE_WRONG_SYNTAX = "electronic_article";
     public final static String GENRE_EARTICLE = "electronic article";
@@ -128,6 +133,9 @@ public class Const {
     public final static String SOUND_PART = "SOUNDPART";
     public final static String SOUND_PAGE = "SOUNDPAGE";
     public final static String GRAPHIC = "GRAPHIC";
+    public final static String CLIPPING_COLLECTION = "CLIPCOLLECTION";
+    public final static String CLIPPING_DIRECTORY = "DIRECTORY";
+    public final static String CLIPPING_UNIT = "CLIPPING";
 
     public final static String MODS_ARTICLE = "ART";
     public final static String MODS_PICTURE = "PICT";
@@ -261,6 +269,9 @@ public class Const {
         typeMap.put(FEDORAPREFIX + SOUND_RECORDING_MODEL, SOUND_RECORDING);
         typeMap.put(FEDORAPREFIX + SOUND_PART_MODEL, SOUND_PART);
         typeMap.put(FEDORAPREFIX + SOUND_PAGE_MODEL, SOUND_PAGE);
+        typeMap.put(FEDORAPREFIX + NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, CLIPPING_COLLECTION);
+        typeMap.put(FEDORAPREFIX + NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, CLIPPING_DIRECTORY);
+        typeMap.put(FEDORAPREFIX + NdkClippingPlugin.MODEL_CLIPPING_UNIT, CLIPPING_UNIT);
 
 
         typeMap.put(FEDORAPREFIX + CHAPTER_MODEL, CHAPTER);
@@ -280,6 +291,9 @@ public class Const {
         typeNameMap.put(SOUND_PART, SOUND_PART);
         typeNameMap.put(SOUND_PAGE, SOUND_PAGE);
         typeNameMap.put(GRAPHIC, GRAPHIC);
+        typeNameMap.put(CLIPPING_COLLECTION, CLIPPING_COLLECTION);
+        typeNameMap.put(CLIPPING_DIRECTORY, CLIPPING_DIRECTORY);
+        typeNameMap.put(CLIPPING_UNIT, CLIPPING_UNIT);
 
 
         sttMandatoryStreams.add(MC_GRP_ID);

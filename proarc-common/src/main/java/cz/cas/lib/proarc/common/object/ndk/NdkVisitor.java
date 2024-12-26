@@ -56,4 +56,10 @@ public interface NdkVisitor<R, P> extends DigitalObjectVisitor<R, P> {
     R visitNdkPicture(DigitalObjectElement elm, P p) throws VisitorException;
 
     R visitNdkPage(DigitalObjectElement elm, P p) throws VisitorException;
+
+    R visitNdkClippingCollection(DigitalObjectElement elm, P p) throws VisitorException;
+
+    R visitNdkClippingDirectory(DigitalObjectElement elm, P p) throws VisitorException;
+
+    R visitNdkClippingUnit(DigitalObjectElement elm, P p) throws VisitorException;
 }

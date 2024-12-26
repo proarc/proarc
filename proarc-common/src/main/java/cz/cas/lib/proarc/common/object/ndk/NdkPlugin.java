@@ -281,9 +281,10 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
-                        new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID)
-                }
-        ));
+                        new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkClippingPlugin.MODEL_CLIPPING_UNIT, RelationCriteria.Type.PID)
+                }).setPriority(10)
+        );
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
                 Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),

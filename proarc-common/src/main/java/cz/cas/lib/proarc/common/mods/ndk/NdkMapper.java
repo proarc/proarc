@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -277,6 +278,9 @@ public abstract class NdkMapper {
                 put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, "model:supplement");
                 put(NdkEbornPlugin.MODEL_ECHAPTER, "model:internalpart");
                 put(NdkEbornPlugin.MODEL_EARTICLE, "model:internalpart");
+                put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, "model:clippingcollection");
+                put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, "model:obálka");
+                put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, "model:clipping");
             }
         };
 

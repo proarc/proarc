@@ -20,6 +20,7 @@ import com.smartgwt.client.widgets.form.DynamicForm;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
@@ -85,6 +86,9 @@ public final class NdkForms {
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, new NdkEPeriodicalSupplementForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EARTICLE, new NdkEArticleForm()::build);
         mappers.put(NdkPlugin.MODEL_NDK_PAGE, new NdkNewPageForm()::build);
+        mappers.put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, new NdkClippingCollectionForm()::build);
+        mappers.put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, new NdkClippingDirectoryForm()::build);
+        mappers.put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, new NdkClippingUnitForm()::build);
     }
 
     public NdkForms(ClientMessages i18n) {

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.urnnbn;
 
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
@@ -107,7 +108,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             OldPrintPlugin.MODEL_SUPPLEMENT,
             OldPrintPlugin.MODEL_CARTOGRAPHIC,
             OldPrintPlugin.MODEL_SHEETMUSIC,
-            OldPrintPlugin.MODEL_GRAPHICS
+            OldPrintPlugin.MODEL_GRAPHICS,
+            NdkClippingPlugin.MODEL_CLIPPING_UNIT
     ));
     private static final Logger LOG = Logger.getLogger(UrnNbnVisitor.class.getName());
 
@@ -359,6 +361,24 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             registeringObject = elm;
             return processOtherEntity(elm, "cartographic", p, null);
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    @Override
+    public Void visitNdkClippingUnit(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The clipping unit under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            return processOtherEntity(elm, "clipping", p, null);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {

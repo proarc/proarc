@@ -42,6 +42,7 @@ import com.smartgwt.client.widgets.grid.events.SelectionUpdatedEvent;
 import com.smartgwt.client.widgets.grid.events.SelectionUpdatedHandler;
 import com.smartgwt.client.widgets.layout.VLayout;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -83,7 +84,8 @@ public class UrnNbnAction extends AbstractAction {
                     NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
                     OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
                     OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC, OldPrintPlugin.MODEL_CHAPTER, OldPrintPlugin.MODEL_GRAPHICS,
-                    OldPrintPlugin.MODEL_CONVOLUTTE
+                    OldPrintPlugin.MODEL_CONVOLUTTE,
+                    NdkClippingPlugin.MODEL_CLIPPING_UNIT, NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY
                     )));
 
     public UrnNbnAction(ClientMessages i18n) {

@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalVolumeMapper;
 import cz.cas.lib.proarc.common.mods.ndk.eborn.NdkEPeriodicalSupplementMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPageMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import java.util.HashMap;
@@ -76,6 +77,9 @@ public class NdkMapperFactory {
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEPeriodicalVolumeMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkEPeriodicalSupplementMapper::new);
         mappers.put(NdkEbornPlugin.MODEL_EARTICLE, NdkEArticleMapper::new);
+        mappers.put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, NdkClippingCollectionMapper::new);
+        mappers.put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, NdkClippingDirectoryMapper::new);
+        mappers.put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, NdkClippingUnitMapper::new);
     }
 
     /**
