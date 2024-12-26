@@ -61,6 +61,7 @@ public class ValidationProcess {
     private int indexPageValue;
     private boolean reprePageValue;
     private String positionPageValue;
+    private boolean containsPdf;
 
     private Map<String, Integer> pageTypeMap = new HashMap<>();
 
@@ -105,6 +106,8 @@ public class ValidationProcess {
         pageTypeMap.put("backEndPaper", 0);
         pageTypeMap.put("frontJacket", 0);
         pageTypeMap.put("titlePage", 0);
+
+        this.containsPdf = false;
     }
 
     public ValidationProcess(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, List<String> pids, Locale locale) {
@@ -248,7 +251,9 @@ public class ValidationProcess {
 
         // urnnbn validace jako posledni
         if (REQUIRED_URNNBN_MODELS.contains(model) && !ArchiveObjectProcessor.containUrnNbn(mods.getIdentifier())) {
-            result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní identifikátor URN:NBN.", Level.SEVERE));
+            if (!(NdkPlugin.MODEL_PERIODICALISSUE.equals(model) && containsBdmArticle(children))) {
+                result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní identifikátor URN:NBN.", Level.SEVERE));
+            }
         }
     }
 
@@ -348,14 +353,23 @@ public class ValidationProcess {
             }
         }
         if (pageCount < 1) {
-            if (Type.EXPORT_ARCHIVE.equals(type) || Type.EXPORT_NDK.equals(type) || Type.EXPORT_KRAMERIUS.equals(type) || Type.UPDATE_CATALOG_RECORD.equals(type)) {
+            if (Type.EXPORT_ARCHIVE.equals(type) || Type.EXPORT_NDK.equals(type)) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt neobsahuje žádnou stranu.", Level.SEVERE));
-            } else if (Type.VALIDATION.equals(type) && (!(bdmArticleCount > 0 && NdkPlugin.MODEL_PERIODICALISSUE.equals(item.getModel())))) {
+            } else if ((Type.VALIDATION.equals(type) || Type.EXPORT_KRAMERIUS.equals(type) || Type.UPDATE_CATALOG_RECORD.equals(type)) && (!(bdmArticleCount > 0 && NdkPlugin.MODEL_PERIODICALISSUE.equals(item.getModel())))) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt neobsahuje žádnou stranu.", Level.SEVERE));
             }
         } else if (pageCount % 2 == 1) {
             result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt obsahuje lichý počet stran.", Level.WARNING));
         }
+    }
+
+    private boolean containsBdmArticle(List<SearchViewItem> children) {
+        for (SearchViewItem child : children) {
+            if (BornDigitalModsPlugin.MODEL_ARTICLE.equals(child.getModel())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void validateMusic(SearchViewItem item, List<SearchViewItem> children, Result result) {
