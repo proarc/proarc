@@ -58,6 +58,7 @@ public class SolrUtils {
     public static final String FIELD_VALIDATION_STATUS = "validationStatus";
     public static final String FIELD_VALIDATION_PROCES = "validationProcessId";
     public static final String FIELD_PART_NUMBER = "partNumber";
+    public static final String FIELD_IDENTIFIRES = "identifiers";
 
     public static final String PROPERTY_STATE_ACTIVE = "Active";
     public static final String PROPERTY_STATE_DEACTIVE = "Deactive";

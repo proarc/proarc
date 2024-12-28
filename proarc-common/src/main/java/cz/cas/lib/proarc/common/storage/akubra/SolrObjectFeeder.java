@@ -13,13 +13,16 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.RecordIdentifierDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.incad.kramerius.resourceindex.ProcessingIndexFeeder;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +44,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_CRO
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_KRAMERIUS;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_NDK;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_GENRE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_IDENTIFIRES;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_LABEL;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_LOCKED;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MEMBERS;
@@ -98,6 +102,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         String urnNbn = getUrnNbn(mods);
         String descriptionStandard = getDescriptionStandatd(mods);
         String partNumber = getPartNumber(mods);
+        String[] identifiers = getIdentifiersArray(mods);
 
         Boolean isLocked = relationEditor.isLocked();
 
@@ -106,13 +111,42 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         try {
             feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
                     ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members,
-                    pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber);
+                    pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber, identifiers);
             if (commit) {
                 commit();
             }
         } catch (SolrServerException | IOException ex) {
             throw new DigitalObjectException(pid, "Nepodarilo se zaindexovat objekt " + pid + " do SOLRu.");
         }
+    }
+
+    private String[] getIdentifiersArray(ModsDefinition mods) {
+        List<String> identifiers = new ArrayList<>();
+        for (RecordInfoDefinition recordInfo : mods.getRecordInfo()) {
+            for (RecordIdentifierDefinition recordIdentifier : recordInfo.getRecordIdentifier()) {
+                if (recordIdentifier.getValue() != null && !recordIdentifier.getValue().isEmpty()) {
+//                    identifiers.add("sysno");
+                    identifiers.add(recordIdentifier.getValue());
+                }
+            }
+        }
+        for (IdentifierDefinition identifier : mods.getIdentifier()) {
+            if (identifier.getValue() != null && !identifier.getValue().isEmpty()) {
+                if (identifier.getInvalid() == null || identifier.getInvalid().equals("false") || identifier.getInvalid().equals("no")) {
+//                    identifiers.add(identifier.getType() == null ? "" : (identifier.getType()));
+                    identifiers.add(identifier.getValue());
+                }
+            }
+        }
+        for (LocationDefinition location : mods.getLocation()) {
+            for (StringPlusLanguage shelfLocator : location.getShelfLocator()) {
+                if (shelfLocator.getValue() != null && !shelfLocator.getValue().isEmpty()) {
+//                    identifiers.add("signatura");
+                    identifiers.add(shelfLocator.getValue());
+                }
+            }
+        }
+        return identifiers.stream().toArray(String[]::new);
     }
 
     private ModsDefinition getModsDefinition(ProArcObject object) throws DigitalObjectException {
@@ -156,7 +190,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
     private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
             String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex,
-            String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber) throws SolrServerException, IOException {
+            String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -186,6 +220,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_VALIDATION_STATUS, VALIDATION_STATUS_UNKNOWN);
         sdoc.addField(FIELD_VALIDATION_PROCES, 0);
         sdoc.addField(FIELD_PART_NUMBER, partNumber);
+        sdoc.addField(FIELD_IDENTIFIRES, identifiers);
 
         return feedDescriptionDocument(sdoc);
     }

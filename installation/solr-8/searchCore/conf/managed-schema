@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema name="searchCore" version="6.0">
     <!-- log: pridani pole partNumber -->
+    <!-- log: pridani pole identifiers -->
 
 
     <uniqueKey>pid</uniqueKey>
@@ -94,6 +95,7 @@
     <field name="validationStatus" type="string"/>
     <field name="validationProcessId" type="pint"/>
     <field name="partNumber" type="string"/>
+    <field name="identifiers" type="string" multiValued="true"/>
 
 
     <copyField source="*" dest="fulltext"/>
