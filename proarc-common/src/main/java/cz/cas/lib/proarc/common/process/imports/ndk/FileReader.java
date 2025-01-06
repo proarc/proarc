@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.process.imports.ndk;
 
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -114,6 +112,7 @@ import javax.xml.transform.dom.DOMSource;
 import org.aes.audioobject.AudioObject;
 import org.apache.commons.configuration.Configuration;
 import org.w3c.dom.Node;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.scale;
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.writeImage;
@@ -952,6 +951,18 @@ public class FileReader {
         if (identifierValue != null) {
             return identifierValue.substring(identifierValue.lastIndexOf("/") + 1);
         }
+        if (mix.getBasicDigitalObjectInformation() != null &&
+                mix.getBasicDigitalObjectInformation().getFormatDesignation() != null &&
+                mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName() != null &&
+                mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName().getValue() != null) {
+            String formatName = mix.getBasicDigitalObjectInformation().getFormatDesignation().getFormatName().getValue();
+            if (formatName != null && formatName.contains("/tiff")) {
+                return "RAW";
+            } else if (formatName != null && formatName.contains("/jp2")) {
+                return "NDK_ARCHIVAL";
+            }
+        }
+
         return null;
     }
 
