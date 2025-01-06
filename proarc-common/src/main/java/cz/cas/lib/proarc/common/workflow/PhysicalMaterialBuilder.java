@@ -16,9 +16,6 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
-import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.config.AppConfigurationException;
-import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -31,8 +28,6 @@ import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.RecordInfoDefinition;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -46,6 +41,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import static cz.cas.lib.proarc.common.workflow.WorkflowMetadataHandler.setRules;
 
 /**
  *
@@ -106,21 +103,6 @@ class PhysicalMaterialBuilder {
 
         return ModsUtils.toXml(mods, true);
 
-    }
-
-    private ModsDefinition setRules(ModsDefinition mods) {
-        try {
-            AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
-            StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
-            String rules = config.getRules();
-            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
-            RecordInfoDefinition recordInfo = new RecordInfoDefinition();
-            recordInfo.getDescriptionStandard().add(0, descriptionStandard);
-            mods.getRecordInfo().add(0, recordInfo);
-        } catch (AppConfigurationException ex) {
-            ex.printStackTrace();
-        }
-        return mods;
     }
 
     public PhysicalMaterialBuilder setRdczId(BigDecimal rdczId) {

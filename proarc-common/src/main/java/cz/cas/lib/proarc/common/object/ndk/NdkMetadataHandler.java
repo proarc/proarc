@@ -298,7 +298,28 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             String signaturaVal = handler.getParameter(DigitalObjectHandler.PARAM_SIGNATURA);
             replaceShelfLocator(defaultMods, signaturaVal);
         } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
-            copyEArticle(parent, defaultMods);
+            // issue 859
+            RelatedItemDefinition relatedItem = new RelatedItemDefinition();
+            defaultMods.getRelatedItem().add(relatedItem);
+            DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
+            if (title != null) {
+                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+                if (titleMods.getTitleInfo().size() != 0) {
+                    relatedItem.getTitleInfo().add(titleMods.getTitleInfo().get(0));
+                }
+                relatedItem.getName().addAll(titleMods.getName());
+                copyIdentifier(relatedItem, titleMods, "issn");
+            }
+            DigitalObjectHandler issue = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICALISSUE);
+            if (issue != null) {
+                ModsDefinition issueMods = issue.<ModsDefinition>metadata().getMetadata().getData();
+                if (relatedItem.getTitleInfo().size() != 0
+                        && issueMods.getTitleInfo().size() != 0
+                        && issueMods.getTitleInfo().get(0).getPartNumber().size() != 0) {
+                    relatedItem.getTitleInfo().get(0).getPartNumber().add(issueMods.getTitleInfo().get(0).getPartNumber().get(0));
+                }
+                copyIdentifier(relatedItem, issueMods, "uuid");
+            }
         } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
             DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
             if (title != null) {
@@ -319,19 +340,19 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                 if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parent.relations().getModel())) {
                     DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
                     ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                    modsCopyMusicDocument(title, defaultMods);
+                    modsCopyMusicDocument(titleMods, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                     inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
                 } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parent.relations().getModel())){
                     DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_PHONOGRAPH);
                     ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                    modsCopyMusicDocument(title, defaultMods);
+                    modsCopyMusicDocument(titleMods, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                     inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
                 } else if (NdkAudioPlugin.MODEL_SONG.equals(parent.relations().getModel())) {
                     DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_SONG);
                     ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                    modsCopyMusicDocument(title, defaultMods);
+                    modsCopyMusicDocument(titleMods, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 }
             }
@@ -350,32 +371,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void copyEArticle(DigitalObjectHandler parent, ModsDefinition defaultMods) throws DigitalObjectException {
-        // issue 859
-        RelatedItemDefinition relatedItem = new RelatedItemDefinition();
-        defaultMods.getRelatedItem().add(relatedItem);
-        DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
-        if (title != null) {
-            ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-            if (titleMods.getTitleInfo().size() != 0) {
-                relatedItem.getTitleInfo().add(titleMods.getTitleInfo().get(0));
-            }
-            relatedItem.getName().addAll(titleMods.getName());
-            copyIdentifier(relatedItem, titleMods, "issn");
-        }
-        DigitalObjectHandler issue = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICALISSUE);
-        if (issue != null) {
-            ModsDefinition issueMods = issue.<ModsDefinition>metadata().getMetadata().getData();
-            if (relatedItem.getTitleInfo().size() != 0
-                    && issueMods.getTitleInfo().size() != 0
-                    && issueMods.getTitleInfo().get(0).getPartNumber().size() != 0) {
-                relatedItem.getTitleInfo().get(0).getPartNumber().add(issueMods.getTitleInfo().get(0).getPartNumber().get(0));
-            }
-            copyIdentifier(relatedItem, issueMods, "uuid");
-        }
-    }
-
-    private void copyIdentifier(RelatedItemDefinition relatedItem, ModsDefinition mods, String key) {
+    public static void copyIdentifier(RelatedItemDefinition relatedItem, ModsDefinition mods, String key) {
         List<IdentifierDefinition> identifiers = mods.getIdentifier();
         if (key == null) {
             return;
@@ -388,9 +384,8 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
     }
 
-    public void modsCopyMusicDocument(DigitalObjectHandler title, ModsDefinition defaultMods) throws DigitalObjectException {
-        if (title != null) {
-            ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
+    public static void modsCopyMusicDocument(ModsDefinition titleMods, ModsDefinition defaultMods) {
+        if (titleMods != null) {
             defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
             defaultMods.getName().addAll(titleMods.getName());
             defaultMods.getTypeOfResource().addAll(titleMods.getTypeOfResource());
@@ -439,7 +434,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    protected final void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids, String... includeIdTypes) {
+    public static final void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids, String... includeIdTypes) {
         for (IdentifierDefinition id : ids) {
             String type = id.getType();
             if (includeIdTypes == null) {
@@ -454,7 +449,26 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void inheritLocation(ModsDefinition mods, List<LocationDefinition> locs) {
+    public static final void inheritIdentifierExclude(ModsDefinition mods, List<IdentifierDefinition> ids, String... excludeIdTypes) {
+        for (IdentifierDefinition id : ids) {
+            String type = id.getType();
+            if (excludeIdTypes == null) {
+                mods.getIdentifier().add(id);
+            } else {
+                boolean exclude = false;
+                for (String excludeIdType : excludeIdTypes) {
+                    if (excludeIdType.equals(type)) {
+                        exclude = true;
+                    }
+                }
+                if (!exclude) {
+                    mods.getIdentifier().add(id);
+                }
+            }
+        }
+    }
+
+    public static void inheritLocation(ModsDefinition mods, List<LocationDefinition> locs) {
         for (LocationDefinition loc : locs) {
             List<PhysicalLocationDefinition> pls = loc.getPhysicalLocation();
             List<StringPlusLanguage> sls = loc.getShelfLocator();
@@ -465,7 +479,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    protected final void inheritOriginInfoDateIssued(ModsDefinition mods, List<OriginInfoDefinition> ois) {
+    public static final void inheritOriginInfoDateIssued(ModsDefinition mods, List<OriginInfoDefinition> ois) {
         for (OriginInfoDefinition oi : ois) {
             OriginInfoDefinition newOi = null;
             for (DateDefinition dateIssued : oi.getDateIssued()) {
@@ -478,7 +492,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    protected final void inheritPhysicalDescriptionForm(ModsDefinition mods, List<PhysicalDescriptionDefinition> pds) {
+    public static final void inheritPhysicalDescriptionForm(ModsDefinition mods, List<PhysicalDescriptionDefinition> pds) {
         for (PhysicalDescriptionDefinition pd : pds) {
             PhysicalDescriptionDefinition newPd = null;
             for (FormDefinition form : pd.getForm()) {
@@ -491,7 +505,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    private void inheritTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
+    public static void inheritTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
         for (TitleInfoDefinition ti : tis) {
             if (ti.getType() == null) {
                 ti.getPartNumber().clear();
@@ -502,7 +516,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    protected void inheritRecordInfo(ModsDefinition mods, List<RecordInfoDefinition> recordInfos) {
+    public static void inheritRecordInfo(ModsDefinition mods, List<RecordInfoDefinition> recordInfos) {
         for (int i = 0; i < recordInfos.size(); i++) {
             RecordInfoDefinition recordInfo = recordInfos.get(i);
             if (recordInfo.getDescriptionStandard().size() > 0 && recordInfo.getDescriptionStandard().get(0).getValue() != null) {
@@ -527,7 +541,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
     }
 
-    protected final void inheritSupplementTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
+    public static final void inheritSupplementTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
         for (TitleInfoDefinition ti : tis) {
             if (ti.getType() == null) {
                 ti.getPartNumber().clear();

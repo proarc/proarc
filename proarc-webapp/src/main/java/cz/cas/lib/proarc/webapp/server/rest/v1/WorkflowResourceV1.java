@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -30,6 +31,7 @@ import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.ValidationResult;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.user.Permissions;
@@ -37,6 +39,7 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
+import cz.cas.lib.proarc.common.workflow.WorkflowMetadataHandler;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
@@ -52,9 +55,11 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
+import cz.cas.lib.proarc.common.workflow.profile.ModelDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
@@ -286,6 +291,27 @@ public class WorkflowResourceV1 {
         if (profile == null) {
             return SmartGwtResponse.asError(WorkflowResourceApi.NEWJOB_PROFILE + " - invalid value! " + profileName);
         }
+        if (xml == null) { // extends parents xml
+            try {
+                Job parentJob = workflowManager.getJob(parentId);
+                if (model == null || model.isEmpty()) {
+                    List<ModelDefinition> models = profile.getModel();
+                    if (models.size() > 0) {
+                        model = models.get(0).getName();
+                    }
+                }
+                String newPid = FoxmlUtils.createPid();
+                WorkflowMetadataHandler metadataHandler = new WorkflowMetadataHandler(model, newPid, parentJob);
+                ModsDefinition mods = metadataHandler.createDefaultMods();
+                if (mods != null) {
+                    xml = ModsUtils.toXml(mods, true);
+                }
+            } catch (Exception e) {
+                LOG.severe("Impossible to copy parents metadata due to " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
         try {
             Job subjob = workflowManager.addSubjob(profile, parentId, model, session.getUser(), profiles, appConfig, xml, catalog, rdczId);
             JobFilter filter = new JobFilter();
