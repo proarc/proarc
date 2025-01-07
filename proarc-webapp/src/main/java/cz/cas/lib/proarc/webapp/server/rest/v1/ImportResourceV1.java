@@ -489,7 +489,7 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        if (user.getOrganization() == null) {
+        if (!session.checkRole(UserRole.ROLE_SUPERADMIN) && user.getOrganization() == null) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_USER_WITHOUT_ORGANIZATION, user.getUserName()));
         }
         if (Batch.State.LOADING.equals(batch.getState())) {
@@ -504,7 +504,7 @@ public class ImportResourceV1 {
             if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
                 // role superadmin is allowed to stop all batches
             } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) {
-                // role admin is allowed to stop all batches og their organization
+                // role admin is allowed to stop all batches or their organization
             } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
                 // role user is only allowed to stop their own batches
             } else {
@@ -518,7 +518,7 @@ public class ImportResourceV1 {
             if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
                 // role superadmin is allowed to stop all batches
             } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) {
-                // role admin is allowed to stop all batches og their organization
+                // role admin is allowed to stop all batches or their organization
             } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
                 // role user is only allowed to stop their own batches
             } else {
