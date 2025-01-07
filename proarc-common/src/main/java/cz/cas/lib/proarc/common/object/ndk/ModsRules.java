@@ -17,7 +17,9 @@
 package cz.cas.lib.proarc.common.object.ndk;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -48,6 +50,7 @@ public class ModsRules {
     private NdkMapper.Context context;
     private AppConfiguration config;
     private String parentModel;
+    private String parentPid;
 
     private static final String PROP_MODS_PHYSICAL_LOCATION_SIGLA = "metadata.mods.location.physicalLocation.sigla";
     private List<String> acceptableSiglaId;
@@ -67,15 +70,17 @@ public class ModsRules {
         this.context = context;
         this.config = appConfiguration;
         this.parentModel = null;
+        this.parentPid = null;
     }
 
-    public ModsRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex, String parentModel, AppConfiguration appConfiguration) {
+    public ModsRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex, String parentModel, String parentPid, AppConfiguration appConfiguration) {
         this.modelId = modelId;
         this.mods = mods;
         this.exception = ex;
         this.context = null;
         this.config = appConfiguration;
         this.parentModel = parentModel;
+        this.parentPid = parentPid;
     }
 
     public void check() throws DigitalObjectValidationException{
@@ -150,7 +155,26 @@ public class ModsRules {
     }
 
     public void checkDateIssued(ModsDefinition mods, String modelId) {
-        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
+        checkDateIssuedFormat(mods, modelId);
+        checkDateIssuedValidity(mods, modelId);
+    }
+
+    private void checkDateIssuedValidity(ModsDefinition mods, String modelId) {
+        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId) ||
+                NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(modelId)) {
+            if (mods != null) {
+                for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+                    for (DateDefinition date : originInfo.getDateIssued()) {
+                        checkDateValidity(date.getValue(), getParentMods());
+                    }
+                }
+            }
+        }
+    }
+
+    public void checkDateIssuedFormat(ModsDefinition mods, String modelId) {
+        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId) ||
+            NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(modelId)) {
             if (mods != null) {
                 for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
                     for (DateDefinition date : originInfo.getDateIssued()) {
@@ -158,6 +182,38 @@ public class ModsRules {
                     }
                 }
             }
+        }
+    }
+
+    private void checkDateValidity(String value, ModsDefinition parentMods) {
+        String parentDate = getDateIssued(parentMods);
+        if (parentDate != null) {
+            if (!value.contains(parentDate)) {
+                exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+            }
+        }
+    }
+
+    private String getDateIssued(ModsDefinition parentMods) {
+        for (OriginInfoDefinition originInfo : parentMods.getOriginInfo()) {
+            for (DateDefinition date : originInfo.getDateIssued()) {
+                if (date.getValue() != null && !date.getValue().isEmpty()) {
+                    return date.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    private ModsDefinition getParentMods() {
+        if (parentPid == null) {
+            parentPid = context.getHandler().getParameterParent().getFedoraObject().getPid();
+        }
+        try {
+            ModsDefinition parentMods = ModsUtils.getMods(parentPid);
+            return parentMods;
+        } catch (DigitalObjectException e) {
+            return null;
         }
     }
 

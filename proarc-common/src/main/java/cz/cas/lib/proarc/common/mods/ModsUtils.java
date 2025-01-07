@@ -16,7 +16,14 @@
  */
 package cz.cas.lib.proarc.common.mods;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.process.export.mets.MetsLSResolver;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.xml.Transformers;
 import cz.cas.lib.proarc.common.xml.Transformers.Format;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
@@ -250,5 +257,14 @@ public final class ModsUtils {
             }
         }
         return mods;
+    }
+
+    public static ModsDefinition getMods(String pid) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        ProArcObject fo = dom.find(pid, null);
+        XmlStreamEditor streamEditorOld = fo.getEditor(FoxmlUtils.inlineProfile(
+                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStreamEditorOld = new ModsStreamEditor(streamEditorOld, fo);
+        return modsStreamEditorOld.read();
     }
 }

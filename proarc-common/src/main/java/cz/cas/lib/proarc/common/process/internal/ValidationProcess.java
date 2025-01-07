@@ -226,7 +226,7 @@ public class ValidationProcess {
         DigitalObjectValidationException ex = new DigitalObjectValidationException(akubraObject.getPid(), null,
                 ModsStreamEditor.DATASTREAM_ID, "MODS validation", null);
         if (mods != null) {
-            ModsRules modsRules = new ModsRules(item.getModel(), mods, ex, parentItem == null ? null : parentItem.getModel(), appConfig);
+            ModsRules modsRules = new ModsRules(item.getModel(), mods, ex, parentItem == null ? null : parentItem.getModel(), parentItem == null ? null : parentItem.getPid(), appConfig);
             try {
                 modsRules.checkExtended();
             } catch (DigitalObjectValidationException e) {
