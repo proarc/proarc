@@ -18,6 +18,8 @@ package cz.cas.lib.proarc.common.process.export;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
+import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
@@ -76,6 +78,7 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -92,9 +95,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -292,6 +298,7 @@ public final class Kramerius4Export {
                 }
             }
         } catch (RuntimeException ex) {
+            ex.printStackTrace();
             result.setStatus(ExportResultLog.ResultStatus.FAILED);
             reslog.getExports().add(result);
             result.getError().add(new ExportResultLog.ResultError(null, ex));
@@ -300,6 +307,7 @@ public final class Kramerius4Export {
             krameriusResult.setException(ex);
             //throw ex;
         } catch (DigitalObjectException ex) {
+            ex.printStackTrace();
             result.setStatus(ExportResultLog.ResultStatus.FAILED);
             reslog.getExports().add(result);
             result.getError().add(new ExportResultLog.ResultError(null, ex));
@@ -308,18 +316,21 @@ public final class Kramerius4Export {
             krameriusResult.setException(ex);
             //throw new IllegalStateException(ex.getMessage());
         } catch (MetsExportException ex ) {
+            ex.printStackTrace();
             result.setStatus(ExportResultLog.ResultStatus.FAILED);
             result.getError().add(new ExportResultLog.ResultError(null, ex));
             result.setEnd();
             ExportUtils.writeExportResult(target, reslog);
             krameriusResult.setValidationError(ex);
         } catch (Exception ex) {
+            ex.printStackTrace();
             result.setStatus(ExportResultLog.ResultStatus.FAILED);
             result.getError().add(new ExportResultLog.ResultError(null, ex));
             result.setEnd();
             krameriusResult.setException(ex);
             ExportUtils.writeExportResult(target, reslog);
         } catch (Throwable ex) {
+            ex.printStackTrace();
             result.setStatus(ExportResultLog.ResultStatus.FAILED);
             result.getError().add(new ExportResultLog.ResultError(null, ex));
             result.setEnd();
@@ -533,6 +544,10 @@ public final class Kramerius4Export {
             DigitalObject dobj = null;
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
                 RemoteObject robject = rstorage.find(object.getPid());
+                RelationEditor editor = new RelationEditor(robject);
+                if (NdkAudioPlugin.MODEL_PAGE.equals(editor.getModel())) {  // ndk audio page se nexportuje ale jeho streamy se priradi k urovni vyse
+                    return;
+                }
                 FedoraClient client = robject.getClient();
                 dobj = FedoraClient.export(object.getPid()).context(exportPageContext == null ? "archive" : exportPageContext)
                         .format("info:fedora/fedora-system:FOXML-1.1")
@@ -540,6 +555,10 @@ public final class Kramerius4Export {
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject aobject = akubraStorage.find(object.getPid());
+                RelationEditor editor = new RelationEditor(aobject);
+                if (NdkAudioPlugin.MODEL_PAGE.equals(editor.getModel())) {  // ndk audio page se nexportuje ale jeho streamy se priradi k urovni vyse
+                    return;
+                }
                 dobj = AkubraUtils.getDigitalObjectToExport(aobject.getManager(), object.getPid());
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
@@ -622,9 +641,29 @@ public final class Kramerius4Export {
             if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
                 RemoteObject robject = rstorage.find(pid);
                 FedoraClient client = robject.getClient();
-                dobj = FedoraClient.export(pid).context(exportPageContext == null ? "archive" : exportPageContext)
-                        .format("info:fedora/fedora-system:FOXML-1.1")
-                        .execute(client).getEntity(DigitalObject.class);
+                try {
+                    FedoraResponse response = FedoraClient.getObjectXML(pid).execute(client);
+                    JAXBContext jaxbContext = JAXBContext.newInstance(DigitalObject.class);
+                    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+                    dobj = (DigitalObject) unmarshaller.unmarshal(response.getEntityInputStream());
+                    for (DatastreamType datastream : dobj.getDatastream()) {
+                        for (DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+                            if (datastreamVersion.getContentLocation() != null) {
+                                datastreamVersion.setXmlContent(null);
+                                datastreamVersion.setBinaryContent(null);
+                                if (datastreamVersion.getContentLocation() != null) {
+                                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(pid, BinaryEditor.NDK_AUDIO_USER_ID);
+                                    InputStream inputStream = dsRaw.execute(client).getEntityInputStream();
+                                    byte[] binaryContent = IOUtils.toByteArray(inputStream);
+                                    datastreamVersion.setBinaryContent(binaryContent);
+                                    datastreamVersion.setContentLocation(null);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new FedoraClientException("Unable to get " + pid + " from Fedora", e);
+                }
             } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject aobject = akubraStorage.find(pid);
@@ -640,6 +679,7 @@ public final class Kramerius4Export {
             }
             return;
         } catch (FedoraClientException | JAXBException | IOException ex) {
+            ex.printStackTrace();
             throw new IllegalStateException(pid, ex);
         }
     }
