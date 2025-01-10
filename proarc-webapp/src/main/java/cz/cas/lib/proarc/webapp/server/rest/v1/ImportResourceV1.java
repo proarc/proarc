@@ -28,6 +28,8 @@ import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
+import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.process.export.ExportProcess;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.imports.FedoraImport;
@@ -36,8 +38,6 @@ import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner.Folder;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
-import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
-import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.PageView;
 import cz.cas.lib.proarc.common.storage.PageView.Item;
@@ -101,7 +101,6 @@ import static cz.cas.lib.proarc.common.process.imports.ImportFileScanner.IMPORT_
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.TMP_DIR_NAME;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_BATCH_CANNOT_BE_STOPED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
-import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_USER_WITHOUT_ORGANIZATION;
 
 /**
  * Resource to handle imports.
@@ -489,9 +488,10 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        if (!session.checkRole(UserRole.ROLE_SUPERADMIN) && user.getOrganization() == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_USER_WITHOUT_ORGANIZATION, user.getUserName()));
-        }
+        // zruseno na zaklade pozadavku z issue client:453
+//        if (!session.checkRole(UserRole.ROLE_SUPERADMIN) && user.getOrganization() == null) {
+//            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_USER_WITHOUT_ORGANIZATION, user.getUserName()));
+//        }
         if (Batch.State.LOADING.equals(batch.getState())) {
             if (!(session.checkPermission(Permissions.ADMIN) || session.checkRole(UserRole.ROLE_SUPERADMIN) || isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
@@ -503,7 +503,8 @@ public class ImportResourceV1 {
         } else if (Batch.State.EXPORTING.equals(batch.getState())) {
             if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
                 // role superadmin is allowed to stop all batches
-            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) {
+            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOwner(batch)) {
+//            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) { // zmena na zaklade pozadavku z issue client:453
                 // role admin is allowed to stop all batches or their organization
             } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
                 // role user is only allowed to stop their own batches
@@ -517,7 +518,8 @@ public class ImportResourceV1 {
         } else if (Batch.State.EXPORT_PLANNED.equals(batch.getState())) {
             if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
                 // role superadmin is allowed to stop all batches
-            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) {
+            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOwner(batch)) {
+//            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) { // zmena na zaklade pozadavku z issue client:453
                 // role admin is allowed to stop all batches or their organization
             } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
                 // role user is only allowed to stop their own batches
