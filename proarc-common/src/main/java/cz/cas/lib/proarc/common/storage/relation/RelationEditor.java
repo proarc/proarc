@@ -180,11 +180,14 @@ public final class RelationEditor {
      * @param donator of model
      */
     public void setDonator(String donator) throws DigitalObjectException {
+        if (donator == null || donator.isEmpty() || "null".equals(donator) || "undefined".equals(donator)) {
+            setEmptyDonator();
+            return;
+        }
         if (!donator.startsWith("donator:")) {
             donator = "donator:" + donator;
         }
-        Rdf rdf = getRdf();
-        rdf.getDescription().setDonator(RdfRelation.fromPid(donator));
+        getRdf().getDescription().setDonator(RdfRelation.fromPid(donator));
     }
 
     public void setEmptyDonator() throws DigitalObjectException {
@@ -348,6 +351,10 @@ public final class RelationEditor {
     }
 
     public void setArchivalCopiesPath(String archivalCopiesPath) throws DigitalObjectException {
+        if (archivalCopiesPath == null || archivalCopiesPath.isEmpty() || "null".equals(archivalCopiesPath)  || "undefined".equals(archivalCopiesPath)) {
+            getRdf().getDescription().setArchivalCopiesPath(null);
+            return;
+        }
         getRdf().getDescription().setArchivalCopiesPath(archivalCopiesPath);
     }
 

@@ -31,13 +31,10 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -126,25 +123,9 @@ public final class AtmEditor {
                 write = true;
             }
         }
-        if (donator != null && !donator.isEmpty()) {
-            String oldVal = relationEditor.getDonator();
-            String newVal = NULL.equals(donator) ? null : donator;
-            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
-                relationEditor.setDonator(donator);
-                write = true;
-            }
-        }
-        if (archivalCopiesPath != null && !archivalCopiesPath.isEmpty()) {
-            String oldVal = relationEditor.getArchivalCopiesPath();
-            String newVal = NULL.equals(archivalCopiesPath) ? null : archivalCopiesPath;
-            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
-                relationEditor.setArchivalCopiesPath(archivalCopiesPath);
-                write = true;
-            }
-        }
-        if (write) {
-            relationEditor.write(relationEditor.getLastModified(), message);
-        }
+        relationEditor.setDonator(donator);
+        relationEditor.setArchivalCopiesPath(archivalCopiesPath);
+        relationEditor.write(relationEditor.getLastModified(), message);
     }
 
     /**
@@ -192,18 +173,8 @@ public final class AtmEditor {
                 }
             }
         }
-
-        if (donator != null && !donator.isEmpty()) {
-            String oldVal = relationEditor.getDonator();
-            String newVal = NULL.equals(donator) ? null : donator;
-            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
-                relationEditor.setDonator(donator);
-                write = true;
-            }
-        }
-        if (write) {
-            relationEditor.write(relationEditor.getLastModified(), message);
-        }
+        relationEditor.setDonator(donator);
+        relationEditor.write(relationEditor.getLastModified(), message);
     }
 
     /**
