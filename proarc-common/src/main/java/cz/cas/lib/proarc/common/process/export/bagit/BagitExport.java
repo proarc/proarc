@@ -1,12 +1,5 @@
 package cz.cas.lib.proarc.common.process.export.bagit;
 
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.model.enums.CompressionLevel;
-import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
-
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
@@ -38,6 +31,12 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 public class BagitExport {
 
@@ -142,6 +141,9 @@ public class BagitExport {
         bagitFolder = new File(parentFile, "bagit_" + exportFolder.getName());
         if (bagitFolder.exists()) {
             MetsUtils.deleteFolder(bagitFolder);
+            if (bagitFolder.exists()) {
+                throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
+            }
         }
         if (!bagitFolder.mkdir()) {
             throw new IOException("Impossible to create folder " + bagitFolder.getName());

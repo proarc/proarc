@@ -21,7 +21,6 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
@@ -50,6 +49,7 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.sip.NdkSipExport;
 import cz.cas.lib.proarc.common.process.export.workflow.WorkflowExport;
+import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -437,21 +437,6 @@ public final class ExportProcess implements Runnable {
             }
 
             ExportUtils.writeExportResult(targetFolder, export.getResultLog());
-            if (params.isBagit()) {
-                for (File targetFile : targetFolder.listFiles()) {
-                    if (targetFile.isDirectory()) {
-                        BagitExport bagitExport = new BagitExport(config, targetFile);
-                        bagitExport.prepare();
-                        bagitExport.bagit();
-                        bagitExport.zip();
-                        bagitExport.moveToBagitFolder();
-                        bagitExport.createMd5File();
-                        bagitExport.moveToSpecifiedDirectories();
-                        bagitExport.deleteExportFolder();
-                    }
-                }
-                targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
-            }
             for (NdkExport.Result r : ndkResults) {
                 try {
                     setWorkflowExport("task.exportArchive", "param.exportArchive", r.getPageIndexCount(), params, getRoot(r.getPid(), exportFolder));
@@ -471,6 +456,28 @@ public final class ExportProcess implements Runnable {
                 exportWorkflow.export(targetFolder, ndkResults, exportOptions.getLog());
             } catch (Exception ex) {
                 return finishedExportWithError(batchManager, batch, batch.getFolder(), ex);
+            }
+            if (params.isBagit()) {
+                for (File targetFile : targetFolder.listFiles()) {
+                    if (targetFile.isDirectory()) {
+                        BagitExport bagitExport = new BagitExport(config, targetFile);
+                        bagitExport.prepare();
+                        bagitExport.bagit();
+                        bagitExport.zip();
+                        bagitExport.moveToBagitFolder();
+                        bagitExport.createMd5File();
+                        bagitExport.moveToSpecifiedDirectories();
+                        bagitExport.deleteExportFolder();
+                    }
+                }
+                File bagitFolder = new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName());
+                if (bagitFolder.exists()) {
+                    MetsUtils.deleteFolder(bagitFolder);
+                    if (bagitFolder.exists()) {
+                        throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
+                    }
+                }
+                targetFolder.renameTo(bagitFolder);
             }
             return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, targetFolder.getAbsolutePath());
         } catch (Exception ex) {
@@ -705,7 +712,14 @@ public final class ExportProcess implements Runnable {
                                     }
                                 }
                             }
-                            targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
+                            File bagitFolder = new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName());
+                            if (bagitFolder.exists()) {
+                                MetsUtils.deleteFolder(bagitFolder);
+                                if (bagitFolder.exists()) {
+                                    throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
+                                }
+                            }
+                            targetFolder.renameTo(bagitFolder);
                         }
                     }
                     for (NdkExport.Result r : ndkResults) {
@@ -833,7 +847,14 @@ public final class ExportProcess implements Runnable {
                             bagitExport.deleteExportFolder();
                             bagitExport.deleteTargetFolderContent(targetFolder);
                         }
-                        targetFolder.renameTo(new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName()));
+                        File bagitFolder = new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName());
+                        if (bagitFolder.exists()) {
+                            MetsUtils.deleteFolder(bagitFolder);
+                            if (bagitFolder.exists()) {
+                                throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
+                            }
+                        }
+                        targetFolder.renameTo(bagitFolder);
                     }
                     batch = BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath());
 //                    return BatchUtils.finishedExportSuccessfully(batchManager, batch, k4Result.getFile().getAbsolutePath());
