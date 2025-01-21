@@ -698,20 +698,7 @@ public class BatchManager {
         itemDao.setTransaction(tx);
         try {
             dao.update(batch);
-            if (!State.STOPPED.equals(originalBatchState)) {
-                itemDao.removeItems(batch.getId());
-            } else {
-                List<BatchItem> batchItems = itemDao.find(batch.getId(), null, null, null, null, BatchItem.Type.OBJECT.name());
-                boolean delete = false;
-                for (BatchItem batchItem : batchItems) {
-                    if (delete) {
-                        itemDao.removeItem(batch.getId(), batchItem.getPid());
-                    } else if (!"LOADED".equals(batchItem.getState())) {
-                        delete = true;
-                        itemDao.removeItem(batch.getId(), batchItem.getPid());
-                    }
-                }
-            }
+            itemDao.removeItems(batch.getId());
             tx.commit();
         } catch (Throwable t) {
             tx.rollback();

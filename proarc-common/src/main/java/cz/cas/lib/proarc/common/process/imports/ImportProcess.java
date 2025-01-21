@@ -121,9 +121,7 @@ public final class ImportProcess implements Runnable {
         options.setOriginalBatchState(batch.getState());
         // if necessary reset old computed batch items
         ImportProcess process = new ImportProcess(options, ibm, ibm.getAppConfig());
-        if (!Batch.State.STOPPED.equals(batch.getState())) {
-            process.removeCaches(options.getImportFolder(), options);
-        }
+        process.removeCaches(options.getImportFolder(), options);
         process.removeBatchItems(batch);
         return process;
     }
@@ -292,10 +290,8 @@ public final class ImportProcess implements Runnable {
 
     public static File createTargetFolder(File importFolder, ImportProfile config, Batch.State originalBatchState) throws IOException {
         File folder = getTargetFolder(importFolder, config);
-        if (originalBatchState == null || !Batch.State.STOPPED.equals(originalBatchState)) {
-            if (!folder.mkdir() && !folder.mkdirs()) {
-                throw new IOException("Import folder already exists: " + folder);
-            }
+        if (!folder.mkdir()) {
+            throw new IOException("Import folder already exists: " + folder);
         }
         return folder;
 
