@@ -17,13 +17,19 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.mods.Extent;
+import cz.cas.lib.proarc.mods.FormDefinition;
+import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 
@@ -67,6 +73,18 @@ public class NdkMonographTitleMapper extends RdaNdkMapper {
         }
         addElementType(dc.getTypes(), getDcType());
         addLanguage(mods.getLanguage(), dc);
+        addOriginInfo(mods.getOriginInfo(), dc);
+        for (PhysicalDescriptionDefinition physicalDesc : mods.getPhysicalDescription()) {
+            for (FormDefinition form : physicalDesc.getForm()) {
+                addElementType(dc.getFormats(), form.getValue());
+            }
+            for (Extent extent : physicalDesc.getExtent()) {
+                addElementType(dc.getFormats(), extent.getValue());
+            }
+        }
+        for (LocationDefinition location : mods.getLocation()) {
+            addStringPlusLanguage(dc.getSources(), location.getPhysicalLocation());
+        }
         return dc;
     }
 
