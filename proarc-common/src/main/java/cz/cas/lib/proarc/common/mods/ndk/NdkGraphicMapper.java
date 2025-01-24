@@ -20,24 +20,31 @@ import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.mods.CartographicsDefinition;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
+import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
+import cz.cas.lib.proarc.mods.FormDefinition;
+import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.RoleDefinition;
 import cz.cas.lib.proarc.mods.RoleTermDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.SubjectDefinition;
 import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.mods.UrlDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.util.Collections;
 import java.util.List;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameWithEtal;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
@@ -129,6 +136,23 @@ public final class NdkGraphicMapper extends RdaNdkMapper {
                     addElementType(dc.getCoverages(), sb.toString());
                 }
             }
+        }
+        for (PhysicalDescriptionDefinition physicalDesc : mods.getPhysicalDescription()) {
+            for (FormDefinition form : physicalDesc.getForm()) {
+                addElementType(dc.getFormats(), form.getValue());
+            }
+            for (Extent extent : physicalDesc.getExtent()) {
+                addElementType(dc.getFormats(), extent.getValue());
+            }
+        }
+        addOriginInfo(mods.getOriginInfo(), dc);
+        addLanguage(mods.getLanguage(), dc);
+        for (LocationDefinition location : mods.getLocation()) {
+            for (UrlDefinition url : location.getUrl()) {
+                addElementType(dc.getSources(), url.getValue());
+            }
+            addStringPlusLanguage(dc.getSources(), location.getPhysicalLocation());
+            addStringPlusLanguage(dc.getSources(), location.getShelfLocator());
         }
         return dc;
     }
