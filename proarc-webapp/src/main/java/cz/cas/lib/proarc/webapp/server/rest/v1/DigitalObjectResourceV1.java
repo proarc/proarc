@@ -1480,6 +1480,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_TYPE_PAGE) String pageType,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_DOUBLE_COLUMNS) String doubleColumns,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_PAGE_POSITION) String pagePosition,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_REPRE_PAGE) Boolean isReprePage,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) throws IOException, DigitalObjectException {
         LOG.fine(String.format("pid: %s", pidsArray));
@@ -1494,7 +1495,7 @@ public class DigitalObjectResourceV1 {
             UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
             updatePages.createIndex(startIndex);
             updatePages.createListOfPids(pids);
-            updatePages.updatePagesLocal(objects, sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePosition);
+            updatePages.updatePagesLocal(objects, sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePosition, isReprePage);
             return new SmartGwtResponse<>();
         } else {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
@@ -1506,7 +1507,7 @@ public class DigitalObjectResourceV1 {
             UpdatePages updatePages = new UpdatePages(applyTo, applyToFirstPage, doubleColumns);
             updatePages.createListOfPids(pids);
             updatePages.createIndex(startIndex);
-            updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePosition);
+            updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePosition, isReprePage);
             return new SmartGwtResponse<>();
         }
     }

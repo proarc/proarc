@@ -639,6 +639,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_TYPE_PAGE) String pageType,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_DOUBLE_COLUMNS) String doubleColumns,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_PAGE_POSITION) String pagePosition,
+            @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_REPRE_PAGE) Boolean isReprePage,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
         if (pidsArray == null || pidsArray.isEmpty()) {
@@ -646,7 +647,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         }
         try {
             return super.updateDescriptionMetadataPages(pidsArray, applyTo, applyToFirstPage, prefix, suffix, useBrackets,
-                    sequenceType, startNumber, incrementNumber, startIndex, pageType, doubleColumns, pagePosition, batchId);
+                    sequenceType, startNumber, incrementNumber, startIndex, pageType, doubleColumns, pagePosition, isReprePage, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());
