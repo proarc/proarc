@@ -59,8 +59,10 @@ public class UpdatePages {
     private boolean applyToFirstPage;
     private boolean doubleColumns;
     private int pagePositionIndex;
+    private Boolean isReprePage;
 
     public UpdatePages() {
+        isReprePage = null;
     }
 
     public UpdatePages(String applyTo, String applyToFirstPage, String doubleColumns) throws DigitalObjectException {
@@ -169,10 +171,11 @@ public class UpdatePages {
         return false;
     }
 
-    public void updatePages(String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition) throws DigitalObjectException {
+    public void updatePages(String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition, Boolean isReprePage) throws DigitalObjectException {
         this.pageType = pageType;
         this.pagePosition = trim(pagePosition, "{", "}");
         this.pagePositionIndex = 0;
+        this.isReprePage = isReprePage;
 
         SeriesNumber series = new SeriesNumber(sequenceType, startNumber, incrementNumber, prefix, suffix, setUseBrackets(useBrackets));
 
@@ -205,10 +208,11 @@ public class UpdatePages {
         }
     }
 
-    public void updatePagesLocal(List<BatchManager.BatchItemObject> objects, String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition) throws DigitalObjectException {
+    public void updatePagesLocal(List<BatchManager.BatchItemObject> objects, String sequenceType, String startNumber, String incrementNumber, String prefix, String suffix, String pageType, String useBrackets, String pagePosition, Boolean isReprePage) throws DigitalObjectException {
         this.pageType = trim(pageType, "{", "}");
         this.pagePosition = trim(pagePosition, "{", "}");
         this.pagePositionIndex = 0;
+        this.isReprePage = isReprePage;
 
         SeriesNumber series = new SeriesNumber(sequenceType, startNumber, incrementNumber, prefix, suffix, setUseBrackets(useBrackets));
 
@@ -256,8 +260,9 @@ public class UpdatePages {
         }
         if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
             if (mods != null) {
-                if (NdkPlugin.MODEL_NDK_PAGE.equals(model)) {
+                if (NdkPlugin.MODEL_NDK_PAGE.equals(model) || OldPrintPlugin.MODEL_PAGE.equals(model)) {
                     setPagePosition(mods);
+                    setPageRepre(mods);
                 }
                 setPageIndex(mods);
                 setPageType(mods, true);
@@ -265,6 +270,25 @@ public class UpdatePages {
             }
         } else {
             throw new DigitalObjectException("Unsupported model: " + model);
+        }
+    }
+
+    private void setPageRepre(ModsDefinition mods) {
+        if (isReprePage == null) {
+            return;
+        }
+        if (isReprePage) {
+            for (GenreDefinition genre : mods.getGenre()) {
+                if ("page".equals(genre.getValue()) || "reprePage".equals(genre.getValue())) {
+                    genre.setValue("reprePage");
+                }
+            }
+        } else {
+            for (GenreDefinition genre : mods.getGenre()) {
+                if ("page".equals(genre.getValue()) || "reprePage".equals(genre.getValue())) {
+                    genre.setValue("page");
+                }
+            }
         }
     }
 
