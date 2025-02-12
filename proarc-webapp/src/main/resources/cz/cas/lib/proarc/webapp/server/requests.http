@@ -347,6 +347,14 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
 
+### Update STT stran
+POST {{proarcUrl}}/rest/v2/object/updateOldprintPage
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:36068043-0b35-48f8-89e3-78709fca0009&model=model
+
+
 ### IMPORT
 POST {{proarcUrl}}/rest/v1/import/batch
 Accept: application/json
