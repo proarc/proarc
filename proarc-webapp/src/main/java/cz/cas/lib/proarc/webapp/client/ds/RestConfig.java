@@ -163,6 +163,7 @@ public final class RestConfig {
     public static final String URL_CHANGE_NDK_EARTICLE_TO_BDM_ARTICLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_EARTICLE_TO_BDM_ARTICLE);
     public static final String URL_UPDATE_NDK_ARTICLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_ARTICLE);
     public static final String URL_UPDATE_NDK_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_NDK_PAGE);
+    public static final String URL_UPDATE_OLDPRINT_PAGE = path(URL_DIGOBJECT, DigitalObjectResourceApi.UPDATE_OLDPRINT_PAGE);
     public static final String URL_LOCALIZATION = path(URL_ROOT, LocalizationResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG = path(URL_ROOT, BibliographicCatalogResourceApi.PATH);
     public static final String URL_BIBLIOCATALOG_QUERY = path(

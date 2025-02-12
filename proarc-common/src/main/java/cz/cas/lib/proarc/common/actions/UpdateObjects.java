@@ -4,6 +4,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static cz.cas.lib.proarc.common.actions.ChangeModels.fixNdkPageMods;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
@@ -193,6 +195,7 @@ public class UpdateObjects {
         XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
         ModsDefinition mods = modsStreamEditor.read();
+        mods = fixMods(mods, model);
 
         mapper.createMods(mods, context);
         modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), "Update " + model + " - MODS stream");
@@ -206,6 +209,13 @@ public class UpdateObjects {
         fo.setLabel(mapper.toLabel(mods));
         handler.commit();
         updatedObjects++;
+    }
+
+    private ModsDefinition fixMods(ModsDefinition mods, String model) {
+        if (OldPrintPlugin.MODEL_PAGE.equals(model)) {
+            mods = fixNdkPageMods(mods);
+        }
+        return mods;
     }
 
     public int getUpdatedObjects() {

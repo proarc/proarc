@@ -178,7 +178,7 @@ public class ChangeModels {
         } else {
             switch (newModel) {
                 case NdkPlugin.MODEL_NDK_PAGE:
-                    fixNdkPageMods(mods);
+                    mods = fixNdkPageMods(mods);
                     break;
                case NdkPlugin.MODEL_MONOGRAPHVOLUME:
                     fixNdkMonographVolumeMods(mods, parentPid);
@@ -557,9 +557,10 @@ public class ChangeModels {
         return null;
     }
 
-    private void fixNdkPageMods(ModsDefinition mods) {
-        fixPartNdkPage(mods);
-        fixGenre(mods, getPageType(mods));
+    public static ModsDefinition fixNdkPageMods(ModsDefinition mods) {
+        mods = fixPartNdkPage(mods);
+        mods = fixGenre(mods, getPageType(mods));
+        return mods;
     }
 
     private void fixPageMods(ModsDefinition mods) {
@@ -612,7 +613,7 @@ public class ChangeModels {
 
     }
 
-    private void fixPartNdkPage(ModsDefinition mods) {
+    private static ModsDefinition fixPartNdkPage(ModsDefinition mods) {
         List<PartDefinition> partDefinitions = new ArrayList<>();
         String pageType = null;
         String pageNumber = null;
@@ -637,9 +638,10 @@ public class ChangeModels {
 
         mods.getPart().clear();
         mods.getPart().addAll(partDefinitions);
+        return mods;
     }
 
-    private DetailDefinition setValue(String type, String value) {
+    private static DetailDefinition setValue(String type, String value) {
         StringPlusLanguage number = new StringPlusLanguage();
         number.setValue(value);
 
@@ -650,7 +652,7 @@ public class ChangeModels {
         return detail;
     }
 
-    private PartDefinition createPart(String pageType, String pageNumber, String pageIndex) {
+    private static PartDefinition createPart(String pageType, String pageNumber, String pageIndex) {
         PartDefinition part = new PartDefinition();
         part.getDetail().add(setValue("pageIndex", pageIndex));
         part.getDetail().add(setValue("pageNumber", pageNumber));
@@ -659,20 +661,20 @@ public class ChangeModels {
         return part;
     }
 
-    private PartDefinition createPageIndexDetail(String pageIndex) {
+    private static PartDefinition createPageIndexDetail(String pageIndex) {
         PartDefinition part = new PartDefinition();
         part.getDetail().add(setValue("pageIndex", pageIndex));
         return part;
     }
 
-    private PartDefinition createPageNumberDetail(String pageType, String pageNumber) {
+    private static PartDefinition createPageNumberDetail(String pageType, String pageNumber) {
         PartDefinition part = new PartDefinition();
         part.setType(pageType);
         part.getDetail().add(setValue("pageNumber", pageNumber));
         return part;
     }
 
-    private String getValue(DetailDefinition detail) {
+    private static String getValue(DetailDefinition detail) {
         String value = null;
         for (StringPlusLanguage number : detail.getNumber()) {
             if (value == null) {
@@ -682,7 +684,7 @@ public class ChangeModels {
         return value;
     }
 
-    private String getPageType(ModsDefinition mods) {
+    private static String getPageType(ModsDefinition mods) {
         String pageType = null;
         for (PartDefinition part : mods.getPart()) {
             pageType = part.getType();
@@ -691,7 +693,7 @@ public class ChangeModels {
         return pageType;
     }
 
-    private void fixGenre(ModsDefinition mods, String pageType) {
+    private static ModsDefinition fixGenre(ModsDefinition mods, String pageType) {
         if (mods.getGenre().isEmpty()) {
             GenreDefinition genre = new GenreDefinition();
             genre.setValue("page");
@@ -700,6 +702,7 @@ public class ChangeModels {
         if (mods.getGenre().size() > 0) {
             mods.getGenre().get(0).setType(pageType);
         }
+        return mods;
     }
 
     private ModsDefinition getParentMods(String parentPid) throws DigitalObjectException {

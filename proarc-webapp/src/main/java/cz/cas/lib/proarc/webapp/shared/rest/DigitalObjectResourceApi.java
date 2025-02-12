@@ -361,6 +361,7 @@ public final class DigitalObjectResourceApi {
 
     public static final String UPDATE_NDK_ARTICLE = "updateNdkArticle";
     public static final String UPDATE_NDK_PAGE = "updateNdkPage";
+    public static final String UPDATE_OLDPRINT_PAGE = "updateOldprintPage";
 
     public static final String UPDATE_CATALOG_RECORD = "updateCatalogRecord";
 
