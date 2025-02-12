@@ -332,11 +332,11 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 batchId=845&model=model:ndkpage
 
 ### EDITOR PAGES
-PUT {{proarcUrl}}/rest/v1/object/mods/editorPages
+PUT {{proarcUrl}}/rest/v2/object/mods/editorPages
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-{&batchId=830&isc_metaDataPrefix=_&isc_dataFormat=json&pids=[uuid%3A5c52de64-2d85-4a13-a65b-1d0ff6d6650c,uuid%3Af7cf6e41-68e3-4919-be5f-a5548b5a3669]&timestamp=1597146647990&editorId=model%3Andkpage&_operationType=update&_textMatchStyle=exact&_dataSource=ModsCustomDataSource&pageType=obituary}
+batchId=1040&pids=[uuid:4d7f1ace-7129-4b88-8f15-fdcc64581b05,uuid:b29e963a-fc11-4377-84db-8b2bcc05f379]&pageType=obituary
 
 
 ### LOGIN
