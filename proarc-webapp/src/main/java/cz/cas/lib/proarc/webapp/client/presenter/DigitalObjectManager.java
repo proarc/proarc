@@ -105,6 +105,7 @@ import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.LockObje
 import cz.cas.lib.proarc.webapp.client.action.administration.lockModels.UnlockObjectAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateNdkPageAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.updateModels.UpdateOldprintPageAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.ArchiveOldPrintExportAction;
 import cz.cas.lib.proarc.webapp.client.action.export.CejshExportAction;
@@ -224,6 +225,7 @@ public final class DigitalObjectManager {
     private ChangeNdkEArticleToBdmArticleAction changeNdkEArticleToBdmArticleAction;
     private UpdateNdkArticleAction updateNdkArticleAction;
     private UpdateNdkPageAction updateNdkPageAction;
+    private UpdateOldprintPageAction updateOldprintPageAction;
     private TreeExpandAction expandTreeAction;
     private boolean initialized;
 
@@ -446,6 +448,7 @@ public final class DigitalObjectManager {
 
         updateNdkArticleAction = new UpdateNdkArticleAction(i18n);
         updateNdkPageAction = new UpdateNdkPageAction(i18n);
+        updateOldprintPageAction = new UpdateOldprintPageAction(i18n);
         expandTreeAction = new TreeExpandAction(
                 i18n,
                 treeView);
@@ -534,6 +537,7 @@ public final class DigitalObjectManager {
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(updateNdkArticleAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(updateNdkPageAction, actionSource, false));
+        menuAdministration.addItem(Actions.asMenuItem(updateOldprintPageAction, actionSource, false));
         menuAdministration.addItem(new MenuItemSeparator());
         menuAdministration.addItem(Actions.asMenuItem(updateAllObjectsAction, actionSource, false));
         menuAdministration.addItem(Actions.asMenuItem(indexAllObjectsAction, actionSource, true));

@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import com.smartgwt.client.data.fields.DataSourceTextField;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
  *
@@ -42,5 +42,9 @@ public class UpdateObjectDataSource extends ProarcDataSource {
 
     public static UpdateObjectDataSource updateNdkPage() {
         return new UpdateObjectDataSource(RestConfig.URL_UPDATE_NDK_PAGE);
+    }
+
+    public static UpdateObjectDataSource updateOldprintPage() {
+        return new UpdateObjectDataSource(RestConfig.URL_UPDATE_OLDPRINT_PAGE);
     }
 }

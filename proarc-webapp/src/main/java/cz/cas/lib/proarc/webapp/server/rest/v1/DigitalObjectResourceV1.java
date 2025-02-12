@@ -4707,6 +4707,28 @@ public class DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.UPDATE_OLDPRINT_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> updateOldprintPageObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
+    ) throws DigitalObjectException {
+
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+
+        Locale locale = session.getLocale(httpHeaders);
+        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
+        updateObjects.findObjects(pid, OldPrintPlugin.MODEL_PAGE);
+
+        if (isLocked(updateObjects.getPids())) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+
+        updateObjects.repair(OldPrintPlugin.MODEL_PAGE);
+        return returnFunctionSuccess();
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.UPDATE_CATALOG_RECORD)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> updateCatalogRecord(
