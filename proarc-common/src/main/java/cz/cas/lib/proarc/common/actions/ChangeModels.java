@@ -221,6 +221,7 @@ public class ChangeModels {
         switch (newModel) {
             case NdkEbornPlugin.MODEL_EARTICLE:
                 // no metadata change needed
+                break;
             default:
                 throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
         }
