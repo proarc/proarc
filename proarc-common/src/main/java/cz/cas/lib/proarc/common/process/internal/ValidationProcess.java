@@ -251,7 +251,7 @@ public class ValidationProcess {
 
         // urnnbn validace jako posledni
         if (REQUIRED_URNNBN_MODELS.contains(model) && !ArchiveObjectProcessor.containUrnNbn(mods.getIdentifier())) {
-            if (!(NdkPlugin.MODEL_PERIODICALISSUE.equals(model) && containsBdmArticle(children))) {
+            if (!((NdkPlugin.MODEL_PERIODICALISSUE.equals(model) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model)) && containsBdmArticle(children))) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní identifikátor URN:NBN.", Level.SEVERE));
             }
         }
@@ -355,7 +355,7 @@ public class ValidationProcess {
         if (pageCount < 1) {
             if (Type.EXPORT_ARCHIVE.equals(type) || Type.EXPORT_NDK.equals(type)) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt neobsahuje žádnou stranu.", Level.SEVERE));
-            } else if ((Type.VALIDATION.equals(type) || Type.EXPORT_KRAMERIUS.equals(type) || Type.UPDATE_CATALOG_RECORD.equals(type)) && (!(bdmArticleCount > 0 && NdkPlugin.MODEL_PERIODICALISSUE.equals(item.getModel())))) {
+            } else if ((Type.VALIDATION.equals(type) || Type.EXPORT_KRAMERIUS.equals(type) || Type.UPDATE_CATALOG_RECORD.equals(type)) && (!(bdmArticleCount > 0 && (NdkPlugin.MODEL_PERIODICALISSUE.equals(item.getModel()) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(item.getModel()))))) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt neobsahuje žádnou stranu.", Level.SEVERE));
             }
         } else if (pageCount % 2 == 1) {
