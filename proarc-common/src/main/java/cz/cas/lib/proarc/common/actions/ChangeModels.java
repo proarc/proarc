@@ -33,10 +33,12 @@ import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
@@ -277,6 +279,12 @@ public class ChangeModels {
             case CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE:
                 fixCollectionOfClippingsVolumeMods(mods, parentPid);
                 break;
+            case NdkEbornPlugin.MODEL_EPERIODICAL:
+            case NdkEbornPlugin.MODEL_EPERIODICALVOLUME:
+            case NdkEbornPlugin.MODEL_EPERIODICALISSUE:
+            case NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT:
+                fixPhysicalDescription(mods, "print", "electronic");
+                break;
             case OldPrintPlugin.MODEL_CARTOGRAPHIC:
             case OldPrintPlugin.MODEL_CHAPTER:
             case OldPrintPlugin.MODEL_SUPPLEMENT:
@@ -284,15 +292,24 @@ public class ChangeModels {
             case OldPrintPlugin.MODEL_MONOGRAPHUNIT:
             case OldPrintPlugin.MODEL_GRAPHICS:
             case OldPrintPlugin.MODEL_SHEETMUSIC:
-            case NdkEbornPlugin.MODEL_EPERIODICAL:
-            case NdkEbornPlugin.MODEL_EPERIODICALVOLUME:
-            case NdkEbornPlugin.MODEL_EPERIODICALISSUE:
-            case NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT:
             case NdkEbornPlugin.MODEL_EARTICLE:
                 // no metadata change needed
                 break;
             default:
                 throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
+        }
+    }
+
+    private void fixPhysicalDescription(ModsDefinition mods, String oldValue, String newValue) {
+        if (oldValue == null || newValue == null) {
+            return;
+        }
+        for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
+            for (FormDefinition form : physicalDescription.getForm()) {
+                if (oldValue.equals(form.getValue())) {
+                    form.setValue(newValue);
+                }
+            }
         }
     }
 
@@ -302,6 +319,8 @@ public class ChangeModels {
             case NdkPlugin.MODEL_PERIODICALVOLUME:
             case NdkPlugin.MODEL_PERIODICALISSUE:
             case NdkPlugin.MODEL_PERIODICALSUPPLEMENT:
+                fixPhysicalDescription(mods, "electronic", "print");
+                break;
             case NdkPlugin.MODEL_ARTICLE:
             case BornDigitalModsPlugin.MODEL_ARTICLE:
                 // no metadata change needed
