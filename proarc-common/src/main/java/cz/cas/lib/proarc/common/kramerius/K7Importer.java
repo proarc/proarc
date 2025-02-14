@@ -43,7 +43,7 @@ public class K7Importer {
         this.instance = instance;
     }
 
-    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting, String exportType, String policy) throws JSONException, IOException, InterruptedException {
+    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting, String exportType, String policy, String license) throws JSONException, IOException, InterruptedException {
 
         K7Authenticator authenticator = new K7Authenticator(instance);
         String token = authenticator.authenticate();
@@ -55,12 +55,12 @@ public class K7Importer {
             query = instance.getUrl() + instance.getUrlParametrizedImportQuery();
             String exportFolderPath = instance.getKrameriusImportFoxmlFolder() + exportFolder.getName();
             String pathType = instance.getPathType();
-            json = "{\"defid\":\"import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"startIndexer\": true, \"updateExisting\": " + updateExisting + ", \"pathtype\": \"" + pathType + "\"}}";
+            json = "{\"defid\":\"import\",\"params\":{\"inputDataDir\":\"" + exportFolderPath + "\",\"startIndexer\":true,\"updateExisting\":" + updateExisting + ",\"pathtype\":\"" + pathType + "\"}}";
         } else if (KUtils.EXPORT_NDK.equals(exportType)) {
             query = instance.getUrl() + instance.getUrlConvertImportQuery();
             String exportFolderPath = instance.getKrameriusConvertNdkFolder() + exportFolder.getName();
             String pathType = instance.getPathType();
-            json = "{\"defid\":\"convert_and_import\",\"params\": {\"inputDataDir\":\"" + exportFolderPath + "\",\"policy\": \"" + getPolicy(policy) + "\", \"startIndexer\": true, \"useIIPServer\": \"true\", \"pathtype\": \"" + pathType + "\"}}";
+            json = "{\"defid\":\"convert_and_import\",\"params\":{\"inputDataDir\":\"" + exportFolderPath + "\",\"policy\":\"" + getPolicy(policy, license) + "\",\"license\":\"" + license + "\",\"startIndexer\":true,\"useIIPServer\": true,\"pathtype\":\"" + pathType + "\"}}";
         }
 
 
@@ -110,7 +110,10 @@ public class K7Importer {
         }
     }
 
-    private String getPolicy(String policy) {
+    private String getPolicy(String policy, String license) {
+        if (license != null && !license.isEmpty()) {
+            return "PRIVATE";
+        }
         return "PUBLIC".equalsIgnoreCase(policy) ? "PUBLIC" : "PRIVATE";
     }
 

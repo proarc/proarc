@@ -107,7 +107,7 @@ public class NdkExport {
     public List<Result> export(File exportsFolder, List<String> pids,
                                boolean hierarchy, boolean keepResult, Boolean overwrite,
                                boolean ignoreMissingUrnNbn, String log, String krameriusInstanceId,
-                               String policy, Batch batch) throws ExportException {
+                               String policy, String license, Batch batch) throws ExportException {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
@@ -139,7 +139,7 @@ public class NdkExport {
                 if (!(krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId))) {
                     KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
                     KImporter kImporter = new KImporter(appConfig, instance);
-                    state = kImporter.importToKramerius(result.getTargetFolder(), false, KUtils.EXPORT_NDK, policy);
+                    state = kImporter.importToKramerius(result.getTargetFolder(), false, KUtils.EXPORT_NDK, policy, license);
                     LOG.fine("PROCESS " + state.getProcessState() + " BATCH " + state.getBatchState() + " DELETE " + instance.deleteAfterImport());
                     if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState())  && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                         if (instance.deleteAfterImport()) {

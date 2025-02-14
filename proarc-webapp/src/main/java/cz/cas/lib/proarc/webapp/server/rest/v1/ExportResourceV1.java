@@ -420,7 +420,8 @@ public class ExportResourceV1 {
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
             @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
-            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license
             ) throws Exception {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
@@ -434,7 +435,7 @@ public class ExportResourceV1 {
         }
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
-            BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy);
+            BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy, license);
             Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_NDK, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
