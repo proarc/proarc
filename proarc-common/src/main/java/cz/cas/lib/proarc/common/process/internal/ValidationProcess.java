@@ -295,17 +295,17 @@ public class ValidationProcess {
         if (exeption != null && exeption.getValidations() != null) {
             for (DigitalObjectValidationException.ValidationResult validationResult : exeption.getValidations()) {
                 if (validationResult.getBundleKey().equals(ModsRules.ERR_NDK_SUPPLEMENT_GENRE_TYPE)) {
-                    message = String.format("Špatná hodnota v atributu elementu \"Genre[@type]\". Očekávána hodnota \"type={0}\", ale nalezeno \"type={1}\".", validationResult.getValues());
+                    message = String.format("Špatná hodnota v atributu elementu \"Genre[@type]\". Očekávána hodnota \"type=%s\", ale nalezeno \"type=%s\".", validationResult.getValues());
                 } else if (validationResult.getBundleKey().equals(ModsRules.ERR_NDK_PHYSICALLOCATION_SIGLA)) {
-                    message = String.format("Špatná hodnota v elementu \"Location/PhysicalLocation\". V konfiguraci není hodnota \"{0}\" povolena.", validationResult.getValues());
+                    message = String.format("Špatná hodnota v elementu \"Location/PhysicalLocation\". V konfiguraci není hodnota \"%s\" povolena.", validationResult.getValues());
                 } else if (validationResult.getBundleKey().equals(ModsRules.ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA)) {
-                    message = String.format("Špatná hodnota v elementu \"RelatedItem/Location/PhysicalLocation\". V konfiguraci není hodnota \"{0}\" povolena.", validationResult.getValues());
+                    message = String.format("Špatná hodnota v elementu \"RelatedItem/Location/PhysicalLocation\". V konfiguraci není hodnota \"%s\" povolena.", validationResult.getValues());
                 } else if (validationResult.getBundleKey().equals(RdaRules.ERR_NDK_RDA_EMPTYEVENTTYPE)) {
                     message = String.format("Pro pravidla \"RDA\" musí atribut \"OriginInfo[@EventType]\" obsahovat alespoň jednou jednu z hodnot (PUBLICATION, PRODUCTION).");
                 } else if (validationResult.getBundleKey().equals(RdaRules.ERR_NDK_RDA_EMPTYVALUE)) {
-                    message = String.format("Element \"{0}\" musí být prázdný, pokud \"OriginInfo[@EventType]\": \"{1}\"!", validationResult.getValues());
+                    message = String.format("Element \"%s\" musí být prázdný, pokud \"OriginInfo[@EventType]\": \"%s\"!", validationResult.getValues());
                 } else if (validationResult.getBundleKey().equals(RdaRules.ERR_NDK_RDA_FILLVALUE)) {
-                    message = String.format("Element \"{0}\" nesmí být prázdný, pokud \"OriginInfo[@EventType]\": \"{1}\"!", validationResult.getValues());
+                    message = String.format("Element \"%s\" nesmí být prázdný, pokud \"OriginInfo[@EventType]\": \"%s\"!", validationResult.getValues());
                 } else if (validationResult.getBundleKey().equals(RdaRules.ERR_NDK_DESCRIPTIONSTANDARD)) {
                     message = String.format("Špatná hodnota v elmentu \"RecordInfo/DescriptionStandard\".");
                 } else if (validationResult.getBundleKey().equals(RdaRules.ERR_NDK_AACR_EMPTYVALUE)) {
@@ -313,12 +313,14 @@ public class ValidationProcess {
                 } else if (validationResult.getBundleKey().equals(RdaRules.ERR_NDK_AACR_INVALIDVALUE)) {
                     message = String.format("Špatná hodnota v elementu \"Physical Description\".");
                 } else if (validationResult.getBundleKey().equals(RdaRules.ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE)) {
-                    message = String.format("Špatná hodnota v atributu \"OriginInfo[@EventType]\": \"{0}\"!", validationResult.getValues());
+                    message = String.format("Špatná hodnota v atributu \"OriginInfo[@EventType]\": \"%s\"!", validationResult.getValues());
                 } else if (validationResult.getBundleKey().equals(ModsRules.ERR_NDK_PHYSICALLOCATION_MULTIPLE)) {
                     message = String.format("Vícenásobný výskyt elementu \"Location\".");
                     level = Level.WARNING;
                 } else if (validationResult.getBundleKey().equals(ModsRules.ERR_NDK_ORIGININFO_DATEISSSUED)) {
-                    message = String.format("Špatná hodnota v elementu \"OriginInfo/DateIssued\": \"{0}\"!", validationResult.getValues());
+                    if (!validationResult.isCanBeIgnored()) {
+                        message = String.format("Nepodporovaný formát v elementu \"OriginInfo/DateIssued\": \"%s\"!", validationResult.getValues());
+                    }
                 }
                 if (message != null) {
                     result.getValidationResults().add(new ValidationResult(pid, message, level));

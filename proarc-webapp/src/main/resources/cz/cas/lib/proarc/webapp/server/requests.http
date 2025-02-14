@@ -713,7 +713,7 @@ POST {{proarcUrl}}/rest/v2/object/validate
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid=uuid:91e24ccc-4292-49a4-9674-95192edef5ee
+pid=uuid:e1d156ca-5ed4-41c4-86a3-28969d2d5f03
 
 ### Pridani citace nestrukturovane
 POST {{proarcUrl}}/rest/v2/object/mods/addRefenrence
