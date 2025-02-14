@@ -82,6 +82,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
+import static org.apache.empire.commons.ObjectUtils.getInteger;
 
 /**
  * The helper to access and manipulate digital objects.
@@ -273,6 +274,8 @@ public class DigitalObjectManager {
 
         private String seriesFrequency;
         private String seriesDateFormat;
+        private Integer seriesCountToCreate;
+        private Integer seriesCountCreated;
 
         private Boolean isFirstSeries = true;
         private Boolean setPrecision = true;
@@ -331,22 +334,26 @@ public class DigitalObjectManager {
          * @return the handler
          */
         public CreateHandler issueSeries(LocalDate from, LocalDate to, List<Integer> dayIdxs, Boolean seriesMissingDaysIncluded, List<Integer> daysInRange, Integer partNumberFrom,
-                                         String seriesFrequency, String seriesDateFormat, String seriesSignatura) {
-            this.seriesDateFrom = Objects.requireNonNull(from, "from");
-            if (to != null) {
-                if (to.isBefore(from)) {
-                    throw new IllegalArgumentException(String.format("Invalid date interval. from > to: %s > %s", from, to));
+                                         String seriesFrequency, String seriesDateFormat, String seriesSignatura, Integer seriesCount) {
+            this.seriesDateFrom = from;
+            if (from != null) {
+                if (to != null) {
+                    if (to.isBefore(from)) {
+                        throw new IllegalArgumentException(String.format("Invalid date interval. from > to: %s > %s", from, to));
+                    }
+                    if (from.getYear() != to.getYear()) {
+                        throw new IllegalArgumentException(String.format("Not the same year: %s, %s", from, to));
+                    }
+                } else {
+                    to = from.with(TemporalAdjusters.lastDayOfYear());
                 }
-                if (from.getYear() != to.getYear()) {
-                    throw new IllegalArgumentException(String.format("Not the same year: %s, %s", from, to));
-                }
-            } else {
-                to = from.with(TemporalAdjusters.lastDayOfYear());
             }
             this.seriesDateTo = to;
             this.seriesFrequency = seriesFrequency;
             this.seriesDateFormat = seriesDateFormat;
-            this.selectedDay = seriesDateFrom.getDayOfMonth();
+            this.seriesCountToCreate = seriesCount;
+            this.seriesCountCreated = 0;
+            this.selectedDay = (seriesDateFrom == null ? null : seriesDateFrom.getDayOfMonth());
             this.seriesMissingDaysIncluded = seriesMissingDaysIncluded;
 
             if (dayIdxs == null || dayIdxs.isEmpty()) {
@@ -372,7 +379,7 @@ public class DigitalObjectManager {
 //                        .filter(day -> day != null && day >= 1 && day <= 7)
 //                        .map(i -> DayOfWeek.of(i))
 //                        .collect(Collectors.toSet());
-            if (seriesDaysIncluded.contains(seriesDateFrom.getDayOfWeek())) {
+            if (seriesDateFrom != null && seriesDaysIncluded.contains(seriesDateFrom.getDayOfWeek())) {
                 if (seriesFrequency == null || seriesFrequency.isEmpty() || "other".equalsIgnoreCase(seriesFrequency) || "d".equalsIgnoreCase(seriesFrequency) || "w".equalsIgnoreCase(seriesFrequency) || "hm".equalsIgnoreCase(seriesFrequency)) {
                     if ("yyyy".equalsIgnoreCase(seriesDateFormat) || "MM.yyyy".equalsIgnoreCase(seriesDateFormat)) {
                         throw new IllegalArgumentException("Nepovolená kombinace pole formátu a frekvence.");
@@ -418,7 +425,7 @@ public class DigitalObjectManager {
                 this.isFirstSeries = false;
             } else {
                 // move the start to the first acceptable day
-                this.hasNext = nextDate();
+                this.hasNext = nextDate() || anotherObjectCreate();
             }
             if (seriesSignatura != null && !seriesSignatura.isEmpty()) {
                 params.put(DigitalObjectHandler.PARAM_SIGNATURA, seriesSignatura);
@@ -440,14 +447,24 @@ public class DigitalObjectManager {
         }
 
         public boolean isBatch() {
-            return this.seriesDateFrom != null;
+            return this.seriesDateFrom != null || getInteger(seriesCountToCreate) > getInteger(seriesCountCreated);
         }
 
         public boolean hasNext() {
             if (hasNext == null) {
-                hasNext = nextDate() && nextPartNumber();
+                hasNext = (nextDate() && nextPartNumber()) || (nextPartNumber() && anotherObjectCreate());;
             }
             return hasNext;
+        }
+
+        private boolean anotherObjectCreate() {
+            if (seriesCountToCreate == null || seriesCountToCreate == 0) {
+                return true;
+            }
+            if ("other".equals(seriesFrequency) && seriesDateFrom == null && seriesDateTo == null) {
+                return getInteger(seriesCountToCreate) > getInteger(seriesCountCreated);
+            }
+            return false;
         }
 
         private void next() {
@@ -675,6 +692,7 @@ public class DigitalObjectManager {
                 // adjust series params
                 next();
                 items.add(createDigitalObject(createObject, validation, catalogId));
+                seriesCountCreated++;
             }
             return items;
         }
