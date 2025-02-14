@@ -580,6 +580,21 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 seriesPartNumberFrom=61&seriesDateFrom=2022-01-01&seriesDateTo=2022-05-01&model=model%3Andkperiodicalissue&parent=uuid:4f749d4c-7580-4211-b634-c3ec7fea75f0&seriesDateFormat=dd.mm.yyyy&seriesFrequency=w&seriesDaysIncluded=3
 
 
+### CREATE PERIODICAL ISSUE 2
+POST {{proarcUrl}}/rest/v2/object
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+model=model:ndkperiodicalissue&parent=uuid:6d6590fc-9ca9-41ca-b128-718334cb35f5&seriesPartNumberFrom=1&seriesFrequency=other&seriesDateFormat=dd.mm.yyyy&seriesTotalNumbers=2
+
+
+### CREATE PERIODICAL ISSUE 3
+POST {{proarcUrl}}/rest/v2/object
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+model=model:ndkperiodicalissue&parent=uuid:6d6590fc-9ca9-41ca-b128-718334cb35f5&seriesPartNumberFrom=1&seriesDateFrom=2000-02-01&seriesDateTo=2000-02-28&seriesDaysInRange=1&seriesFrequency=other&seriesDateFormat=dd.mm.yyyy&seriesTotalNumbers=2&validate=false
+
 ### GENERATE ALTO TO PID
 POST {{proarcUrl}}/rest/v2/object/generateAlto
 Accept: application/json

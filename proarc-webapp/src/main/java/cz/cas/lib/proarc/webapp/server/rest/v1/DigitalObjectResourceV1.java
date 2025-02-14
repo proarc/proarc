@@ -299,6 +299,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_SIGNATURA) String seriesSignatura,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_FREQUENCY) String seriesFrequency,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_TOTAL_OBJECTS) Integer seriesCount,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_FORMAT) String seriesDateFormat,
             @FormParam(DigitalObjectResourceApi.NEWOBJECT_XML_PARAM) String xmlMetadata,
             @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal workflowJobId,
@@ -346,10 +347,10 @@ public class DigitalObjectResourceV1 {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         try {
             CreateHandler handler = dom.create(modelId, pid, parentPid, user, xmlMetadata, session.asFedoraLog());
-            if (seriesDateFrom != null) {
-                handler.issueSeries(seriesDateFrom.getLocalDate(),
+            if (seriesDateFrom != null || seriesCount != null) {
+                handler.issueSeries(seriesDateFrom == null ? null : seriesDateFrom.getLocalDate(),
                         seriesDateTo == null ? null : seriesDateTo.getLocalDate(),
-                        seriesDaysIncluded, seriesMissingDaysIncluded, seriesDaysInRange, seriesPartNumberFrom, seriesFrequency, seriesDateFormat, seriesSignatura);
+                        seriesDaysIncluded, seriesMissingDaysIncluded, seriesDaysInRange, seriesPartNumberFrom, seriesFrequency, seriesDateFormat, seriesSignatura, seriesCount);
             }
             List<SearchViewItem> items;
             if (workflowJobId != null) {
