@@ -230,13 +230,14 @@ public class ExportResource extends ExportResourceV1 {
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
             @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
-            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy
+            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.NDK_PID_PARAM));
         }
         try {
-            return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy);
+            return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy, license);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

@@ -89,7 +89,7 @@ public class BatchParams {
         this.extendedArchivePackage = extendedArchivePackage;
     }
 
-    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, boolean ltpCesnet, String ltpCesnetToken, String krameriusInstanceId, String policy) {
+    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, boolean ltpCesnet, String ltpCesnetToken, String krameriusInstanceId, String policy, String license) {
         this.pids = pids;
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
@@ -98,6 +98,7 @@ public class BatchParams {
         this.ltpCesnetToken = ltpCesnetToken;
         this.krameriusInstanceId = krameriusInstanceId;
         this.policy = policy;
+        this.license = license;
     }
 
     public BatchParams(List<String> pids, String krameriusInstanceId) {

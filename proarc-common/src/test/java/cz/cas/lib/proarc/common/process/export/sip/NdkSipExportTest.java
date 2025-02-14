@@ -16,14 +16,13 @@
 
 package cz.cas.lib.proarc.common.process.export.sip;
 
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
 import com.mchange.util.AssertException;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
@@ -32,13 +31,11 @@ import cz.cas.lib.proarc.common.process.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mockrepository.MockFedoraClient;
 import cz.cas.lib.proarc.common.process.export.mockrepository.MockSearchView;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mets.info.Info;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -55,6 +52,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.TemporaryFolder;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Mocked;
 
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
 import static junit.framework.TestCase.assertEquals;
@@ -128,7 +128,7 @@ public class NdkSipExportTest {
         String pid = "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6";
 
         List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
-                true, true, null, false, null, KRAMERIUS_INSTANCE_LOCAL, "public", null);
+                true, true, null, false, null, KRAMERIUS_INSTANCE_LOCAL, "public", null, null);
 
         resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
                 .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));
@@ -156,7 +156,7 @@ public class NdkSipExportTest {
         String pid = "uuid:26342028-12c8-4446-9217-d3c9f249bd13";
 
         List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
-                true, true, null, false, null, KRAMERIUS_INSTANCE_LOCAL, "public", null);
+                true, true, null, false, null, KRAMERIUS_INSTANCE_LOCAL, "public", null, null);
 
         resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
                 .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));

@@ -38,7 +38,7 @@ public class KImporter {
         this.instance = instance;
     }
 
-    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting, String exportType, String policy) throws JSONException, IOException, InterruptedException {
+    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting, String exportType, String policy, String license) throws JSONException, IOException, InterruptedException {
         if (exportFolder != null && exportFolder.exists()) {
             Process process;
             try {
@@ -58,7 +58,7 @@ public class KImporter {
         krameriusVersion = krameriusVersion.replaceAll("[^0-9]", "");
         if (krameriusVersion.startsWith("7")) {
             K7Importer k7Importer = new K7Importer(appConfig, instance);
-            return k7Importer.importToKramerius(exportFolder, updateExisting, exportType, policy);
+            return k7Importer.importToKramerius(exportFolder, updateExisting, exportType, policy, license);
         } else if (krameriusVersion.startsWith("5")) {
             K5Importer k5Importer = new K5Importer(appConfig, instance);
             return k5Importer.importToKramerius(exportFolder, updateExisting, exportType, policy);

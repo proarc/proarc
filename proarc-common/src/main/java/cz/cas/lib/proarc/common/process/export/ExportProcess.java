@@ -670,7 +670,7 @@ public final class ExportProcess implements Runnable {
             }
 
             File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_NDK);
-            List<NdkExport.Result> ndkResults = export.export(exportFolder, params.getPids(), true, true, null, params.isIgnoreMissingUrnNbn(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPolicy(), batch);
+            List<NdkExport.Result> ndkResults = export.export(exportFolder, params.getPids(), true, true, null, params.isIgnoreMissingUrnNbn(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPolicy(), params.getLicense(), batch);
             for (NdkExport.Result r : ndkResults) {
                 if (r.getError() != null) {
                     String exportPath = MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
