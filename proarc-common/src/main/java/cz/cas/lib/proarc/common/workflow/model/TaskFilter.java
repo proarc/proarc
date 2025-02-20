@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import cz.cas.lib.proarc.common.workflow.model.Task.State;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -66,6 +67,10 @@ public class TaskFilter {
     private String barcode;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGNATURE)
     private String signature;
+    @XmlElement(name = WorkflowModelConsts.TASK_FILTER_NOTE)
+    private String note;
+    @XmlElement(name = WorkflowModelConsts.TASK_FILTER_ORDER)
+    private BigInteger order;
 
     private List<BigDecimal> ids;
 
@@ -213,5 +218,21 @@ public class TaskFilter {
 
     public void setIds(List<BigDecimal> ids) {
         this.ids = ids;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public BigInteger getOrder() {
+        return order;
+    }
+
+    public void setOrder(BigInteger order) {
+        this.order = order;
     }
 }

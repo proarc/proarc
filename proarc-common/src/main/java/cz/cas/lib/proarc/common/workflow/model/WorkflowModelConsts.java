@@ -110,6 +110,8 @@ public final class WorkflowModelConsts {
     public static final String TASK_FILTER_SORTBY = "_sortBy";
     public static final String TASK_FILTER_STATE = "state";
     public static final String TASK_FILTER_BARCODE = "barcode";
+    public static final String TASK_FILTER_NOTE = "note";
+    public static final String TASK_FILTER_ORDER = "order";
 
     public static final String PARAMETER_DISPLAYTYPE = "displayType";
     public static final String PARAMETER_JOBID = "jobId";

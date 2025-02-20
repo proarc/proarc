@@ -255,18 +255,26 @@ public abstract class NdkMapper {
             {
                 put(NdkPlugin.MODEL_ARTICLE, "model:internalpart");
                 put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
+                put(OldPrintPlugin.MODEL_CARTOGRAPHIC, "model:map");
                 put(NdkPlugin.MODEL_CHAPTER, "model:internalpart");
+                put(OldPrintPlugin.MODEL_CHAPTER, "model:internalpart");
                 put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
+                put(OldPrintPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
                 put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
+                put(OldPrintPlugin.MODEL_SUPPLEMENT, "model:supplement");
                 put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
+                put(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
                 put(NdkPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
+                put(OldPrintPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
                 put(NdkPlugin.MODEL_PERIODICAL, "model:periodical");
                 put(NdkPlugin.MODEL_PERIODICALISSUE, "model:periodicalitem");
                 put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "model:supplement");
                 put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
                 put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
                 put(NdkPlugin.MODEL_GRAPHIC, "model:graphic");
+                put(OldPrintPlugin.MODEL_GRAPHICS, "model:graphic");
                 put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
+                put(OldPrintPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
                 put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
                 put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
                 put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "model:electronicmonograph");
@@ -281,6 +289,7 @@ public abstract class NdkMapper {
                 put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, "model:clippingcollection");
                 put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, "model:obálka");
                 put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, "model:clipping");
+                put(OldPrintPlugin.MODEL_CONVOLUTTE, "model:convolutte");
             }
         };
 
