@@ -131,7 +131,7 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
             reqPhysicalDescription = pd;
             List<FormDefinition> forms = pd.getForm();
             for (FormDefinition form : forms) {
-                if ("print".equals(form.getValue())) {
+                if ("print".equals(form.getValue()) || "electronic".equals(form.getValue())) {
                     if (!ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM.equals(form.getAuthority())) {
                         form.setAuthority(ModsConstants.VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM);
                     }
