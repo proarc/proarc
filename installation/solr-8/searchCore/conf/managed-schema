@@ -71,7 +71,7 @@
     <field name="isLocked" type="boolean" docValues="false"/>
     <field name="krameriusExport" type="string"/>
     <field name="label" type="text_cz" multiValued="false"/>
-    <field name="labelSort" type="text_cz" docValues="true" multiValued="false" sortMissingLast="true"/>
+    <field name="labelSort" type="text_cz" multiValued="false"/>
     <field name="members" type="text_general" docValues="false"/>
     <field name="model" type="string"/>
     <field name="modified" type="pdate"/>
