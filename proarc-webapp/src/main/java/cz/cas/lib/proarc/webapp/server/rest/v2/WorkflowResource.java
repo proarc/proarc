@@ -41,6 +41,7 @@ import cz.cas.lib.proarc.webapp.server.rest.v1.WorkflowResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -220,13 +221,15 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.TASK_FILTER_PROFILENAME) List<String> profileName,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_STATE) List<Task.State> state,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OWNERID) List<BigDecimal> userId,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_NOTE) String note,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_ORDER) BigInteger order,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_SORTBY) String sortBy,
             @QueryParam(WorkflowModelConsts.MATERIAL_BARCODE) String barcode,
             @QueryParam(WorkflowModelConsts.MATERIAL_SIGNATURE) String signature
     ) {
         try {
-            return super.getTask(created, id, jobId, jobLabel, modified, priority, profileName, state, userId, startRow, sortBy, barcode, signature);
+            return super.getTask(created, id, jobId, jobLabel, modified, priority, profileName, state, userId, note, order, startRow, sortBy, barcode, signature);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
