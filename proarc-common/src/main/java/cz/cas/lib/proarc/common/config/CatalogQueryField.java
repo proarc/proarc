@@ -40,7 +40,23 @@ public class CatalogQueryField {
     }
 
     public String getTitle() {
-        return properties.getString(PROPERTY_FIELD_TITLE, getName());
+        return properties.getString(PROPERTY_FIELD_TITLE, getFieldNameDefault(getName()));
+    }
+
+    private String getFieldNameDefault(String name) {
+        switch (name) {
+            case "issn": return "ISSN";
+            case "isbn": return "ISBN";
+            case "barcode": return "Čárový kód";
+            case "ean": return "Čárový kód";
+            case "signature": return "Signatura";
+            case "ccnb": return "čČNB";
+            case "sys": return "SYS";
+            case "id": return "ID";
+            case "author": return "Autor";
+            case "title": return "Název";
+            default: return name;
+        }
     }
 
     public Configuration getProperties() {
