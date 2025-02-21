@@ -55,6 +55,7 @@ public class CatalogQueryField {
             case "id": return "ID";
             case "author": return "Autor";
             case "title": return "Název";
+            case "001": return "Pole 001";
             default: return name;
         }
     }
