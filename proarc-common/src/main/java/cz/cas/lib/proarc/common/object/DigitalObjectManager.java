@@ -452,7 +452,7 @@ public class DigitalObjectManager {
 
         public boolean hasNext() {
             if (hasNext == null) {
-                hasNext = (nextDate() && nextPartNumber()) || (nextPartNumber() && anotherObjectCreate());;
+                hasNext = (nextDate() && nextPartNumber()) || ("other".equals(seriesFrequency) && nextPartNumber() && anotherObjectCreate());;
             }
             return hasNext;
         }
