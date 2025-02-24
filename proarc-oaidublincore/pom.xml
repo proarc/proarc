@@ -8,7 +8,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>4.2.7</version>
+        <version>4.2.8-DEV</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

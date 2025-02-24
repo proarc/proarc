@@ -8,7 +8,7 @@
     <groupId>cz.cas.lib.proarc</groupId>
     <artifactId>proarc</artifactId>
     <packaging>pom</packaging>
-    <version>4.2.7</version>
+    <version>4.2.8-DEV</version>
     <name>ProArc</name>
     <url>${proarc.wiki}</url>
 
