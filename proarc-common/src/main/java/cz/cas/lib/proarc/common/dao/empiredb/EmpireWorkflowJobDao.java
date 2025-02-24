@@ -184,29 +184,30 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         if (filter.getIds() != null) {
             EmpireUtils.addWhereIsIn(cmd, tableJob.id, filter.getIds());
         } else {
-            EmpireUtils.addWhereIs(cmd, tableJob.id, () -> filter.getId());
+            EmpireUtils.addWhereIs(cmd, tableJob.id, filter.getId());
         }
-        EmpireUtils.addWhereLikeIgnoreCase(cmd, tableJob.label, () -> filter.getLabel());
-        EmpireUtils.addWhereLike(cmd, tableJob.financed, () -> filter.getFinanced());
-        EmpireUtils.addWhereLike(cmd, tpd.barcode, () -> filter.getMaterialBarcode());
-        EmpireUtils.addWhereLike(cmd, tpd.detail, () -> filter.getMaterialDetail());
-        EmpireUtils.addWhereLike(cmd, tpd.field001, () -> filter.getMaterialField001());
-        EmpireUtils.addWhereLike(cmd, tpd.issue, () -> filter.getMaterialIssue());
-        EmpireUtils.addWhereLike(cmd, tpd.sigla, () -> filter.getMaterialSigla());
-        EmpireUtils.addWhereLikeIgnoreCase(cmd, tpd.signature, () -> filter.getMaterialSignature());
-        EmpireUtils.addWhereLike(cmd, tpd.volume, () -> filter.getMaterialVolume());
-        EmpireUtils.addWhereLike(cmd, tpd.year, () -> filter.getMaterialYear());
-        EmpireUtils.addWhereLike(cmd, tpd.edition, () -> filter.getMaterialEdition());
-        EmpireUtils.addWhereIs(cmd, tableJob.parentId, () -> filter.getParentId());
-        EmpireUtils.addWhereIs(cmd, tableJob.profileName, () -> filter.getProfileName());
-        EmpireUtils.addWhereIs(cmd, tableJob.state, () -> filter.getState() == null ? null : filter.getState().name());
-        EmpireUtils.addWhereIs(cmd, tableJob.ownerId, () -> filter.getUserId());
-        EmpireUtils.addWhereIs(cmd, tableJob.priority, () -> filter.getPriority());
-        EmpireUtils.addWhereLike(cmd, taskName, () -> filter.getTaskName());
+        EmpireUtils.addWhereLikeIgnoreCase(cmd, tableJob.label, filter.getLabel());
+        EmpireUtils.addWhereLike(cmd, tableJob.financed, filter.getFinanced());
+        EmpireUtils.addWhereLike(cmd, tpd.barcode, filter.getMaterialBarcode());
+        EmpireUtils.addWhereLike(cmd, tpd.detail, filter.getMaterialDetail());
+        EmpireUtils.addWhereLike(cmd, tpd.field001, filter.getMaterialField001());
+        EmpireUtils.addWhereLike(cmd, tpd.issue, filter.getMaterialIssue());
+        EmpireUtils.addWhereLike(cmd, tpd.sigla, filter.getMaterialSigla());
+        EmpireUtils.addWhereLikeIgnoreCase(cmd, tpd.signature, filter.getMaterialSignature());
+        EmpireUtils.addWhereLike(cmd, tpd.volume, filter.getMaterialVolume());
+        EmpireUtils.addWhereLike(cmd, tpd.year, filter.getMaterialYear());
+        EmpireUtils.addWhereLike(cmd, tpd.edition, filter.getMaterialEdition());
+        EmpireUtils.addWhereIs(cmd, tableJob.parentId, filter.getParentId());
+        EmpireUtils.addWhereIs(cmd, tableJob.profileName, filter.getProfileName());
+        EmpireUtils.addWhereIs(cmd, tableJob.state, filter.getState() == null ? null : filter.getState().name());
+        EmpireUtils.addWhereIs(cmd, tableJob.ownerId, filter.getUserId());
+        EmpireUtils.addWhereIs(cmd, tableJob.priority, filter.getPriority());
+        EmpireUtils.addWhereLike(cmd, taskName, filter.getTaskName());
         EmpireUtils.addWhereDate(cmd, db.tableWorkflowJob.timestamp, filter.getTaskDate());
-        EmpireUtils.addWhereIs(cmd, taskUserId, () -> filter.getTaskUser());
-        EmpireUtils.addWhereLike(cmd, rawPath, () -> filter.getRawPath());
-        EmpireUtils.addWhereLike(cmd, tdo.pid, () -> filter.getPid());
+        EmpireUtils.addWhereIs(cmd, taskUserId, filter.getTaskUser());
+        EmpireUtils.addWhereLike(cmd, rawPath, filter.getRawPath());
+        EmpireUtils.addWhereLike(cmd, tdo.pid, filter.getPid());
+        EmpireUtils.addWhereLike(cmd, tableJob.note, filter.getNote());
 
         EmpireUtils.addWhereDate(cmd, tableJob.created, filter.getCreated());
         EmpireUtils.addWhereDate(cmd, tableJob.timestamp, filter.getModified());

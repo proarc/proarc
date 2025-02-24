@@ -72,6 +72,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -163,7 +164,8 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME) String taskUserName,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID) String pid,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_RAW_PATH) String rawPath,
-            @QueryParam(WorkflowModelConsts.JOB_DEVICE_ID) String deviceId
+            @QueryParam(WorkflowModelConsts.JOB_DEVICE_ID) String deviceId,
+            @QueryParam(WorkflowModelConsts.JOB_NOTE) String note
     ) {
         int pageSize = 100;
         JobFilter filter = new JobFilter();
@@ -197,6 +199,7 @@ public class WorkflowResourceV1 {
         filter.setRawPath(rawPath);
         filter.setDeviceId(deviceId);
         filter.setPid(pid);
+        filter.setNote(note);
         try {
             List<JobView> jobs;
             jobs = workflowManager.findJob(filter);
@@ -208,6 +211,12 @@ public class WorkflowResourceV1 {
                         SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
             } else {
                 List<BigDecimal> jobsId = workflowManager.findMainJobId(jobs);
+                if (jobsId == null || jobsId.isEmpty()) {
+                    int resultSize = jobs.size();
+                    int endRow = startRow + resultSize;
+                    int total = (resultSize != pageSize) ? endRow : endRow + 1;
+                    return new SmartGwtResponse<JobView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, jobs);
+                }
                 filter = new JobFilter();
                 filter.setLocale(session.getLocale(httpHeaders));
                 filter.setMaxCount(pageSize);
@@ -476,6 +485,8 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.TASK_FILTER_PROFILENAME) List<String> profileName,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_STATE) List<Task.State> state,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OWNERID) List<BigDecimal> userId,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_NOTE) String note,
+            @QueryParam(WorkflowModelConsts.TASK_FILTER_ORDER) BigInteger order,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_OFFSET) int startRow,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_SORTBY) String sortBy,
             @QueryParam(WorkflowModelConsts.MATERIAL_BARCODE) String barcode,
@@ -499,6 +510,8 @@ public class WorkflowResourceV1 {
         filter.setUserId(userId);
         filter.setBarcode(barcode);
         filter.setSignature(signature);
+        filter.setOrder(order);
+        filter.setNote(note);
         WorkflowDefinition workflow = workflowProfiles.getProfiles();
         if (workflow == null) {
             return profileError();

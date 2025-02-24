@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Supplier;
 import org.apache.empire.commons.OptionEntry;
 import org.apache.empire.commons.Options;
 import org.apache.empire.data.DataMode;
@@ -152,18 +151,18 @@ class EmpireUtils {
      * @param likePattern the compared value without wildcards. The supplied value may be {@code null}.
      * @return the modified command
      */
-    public static void addWhereLike(DBCommand cmd, DBColumnExpr column, Supplier<String> likePattern) {
-        if (likePattern.get() != null) {
-            String pattern = likePattern.get().trim().replace("%", "\\%");
+    public static void addWhereLike(DBCommand cmd, DBColumnExpr column, String likePattern) {
+        if (likePattern != null) {
+            String pattern = likePattern.trim().replace("%", "\\%");
             if (!pattern.isEmpty()) {
                 cmd.where(column.like('%' + pattern + '%'));
             }
         }
     }
 
-    public static void addWhereLikeIgnoreCase(DBCommand cmd, DBColumnExpr column, Supplier<String> likePattern) {
-        if (likePattern.get() != null) {
-            String pattern = likePattern.get().toUpperCase().trim().replace("%", "\\%");
+    public static void addWhereLikeIgnoreCase(DBCommand cmd, DBColumnExpr column, String likePattern) {
+        if (likePattern != null) {
+            String pattern = likePattern.toUpperCase().trim().replace("%", "\\%");
             if (!pattern.isEmpty()) {
                 cmd.where(column.upper().like('%' + pattern + '%'));
             }
@@ -177,9 +176,9 @@ class EmpireUtils {
      * @param isValue the compared value. The supplied value may be {@code null}.
      * @return the modified command
      */
-    public static DBCommand addWhereIs(DBCommand cmd, DBColumnExpr column, Supplier<Object> isValue) {
-        if (isValue.get() != null) {
-            cmd.where(column.is(isValue.get()));
+    public static DBCommand addWhereIs(DBCommand cmd, DBColumnExpr column, Object isValue) {
+        if (isValue != null) {
+            cmd.where(column.is(isValue));
         }
         return cmd;
     }

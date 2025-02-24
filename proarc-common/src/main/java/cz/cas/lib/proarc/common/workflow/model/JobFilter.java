@@ -93,6 +93,8 @@ public class JobFilter {
     private String taskUsername;
     @XmlElement(name = WorkflowModelConsts.JOB_DEVICE_ID)
     private String deviceId;
+    @XmlElement(name = WorkflowModelConsts.JOB_NOTE)
+    private String note;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_SORTBY)
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_OFFSET)
@@ -347,6 +349,14 @@ public class JobFilter {
 
     public void setDeviceId(String deviceId) {
         this.deviceId = deviceId;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public void setIds(List<BigDecimal> ids) {

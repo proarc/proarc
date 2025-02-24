@@ -2,7 +2,7 @@ GET {{proarcUrl}}/rest/v2/workflow/mods/plain?jobId=34&MetaModelRecord=model%3An
 
 
 ### LOGIN
-POST {{proarcLocalHostUrl}}/proarclogin
+POST {{proarcUrl}}/proarclogin
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
@@ -14,6 +14,11 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 profileName=job.monografienewmore&model=model:oldprintmonographtitle
+
+### GET JOB
+GET {{proarcUrl}}/rest/v2/workflow?taskName=task.archivacePackageK4
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ### CRETE DIGITAL OBJECT FROM JOB
 POST {{proarcLocalHostUrl}}/rest/v2/object
