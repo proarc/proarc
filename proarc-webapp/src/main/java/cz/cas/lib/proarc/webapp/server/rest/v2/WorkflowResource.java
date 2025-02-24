@@ -116,12 +116,13 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME) String taskUserName,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID) String pid,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_RAW_PATH) String rawPath,
-            @QueryParam(WorkflowModelConsts.JOB_DEVICE_ID) String deviceId
+            @QueryParam(WorkflowModelConsts.JOB_DEVICE_ID) String deviceId,
+            @QueryParam(WorkflowModelConsts.JOB_NOTE) String note
     ) {
         try {
             return super.getJob(id, created, label, modified, priority, profileName, state, userId, parentId, mBarcode,
                     mDetail, mField001, mIssue, mSigla, mSignature, mVolume, mYear, mEdition, startRow, financed,
-                    sortBy, taskName, taskDate, taskUser, taskUserName, pid, rawPath, deviceId);
+                    sortBy, taskName, taskDate, taskUser, taskUserName, pid, rawPath, deviceId, note);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

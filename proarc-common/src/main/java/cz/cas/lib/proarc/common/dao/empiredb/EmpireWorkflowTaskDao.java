@@ -162,7 +162,7 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
             cmd.where(tableTask.order.in(filter.getOrder()));
         }
         if (filter.getNote() != null) {
-            cmd.where(tableTask.note.is(filter.getNote()));
+            cmd.where(tableTask.note.like(filter.getNote()));
         }
         if (filter.getSignature() != null) {
             cmd.where(db.tableWorkflowPhysicalDoc.signature.is(filter.getSignature()));
