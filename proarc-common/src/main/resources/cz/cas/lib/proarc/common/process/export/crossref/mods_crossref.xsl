@@ -471,7 +471,28 @@ Author Miroslav Pavelka
                             </xsl:element>
                         </xsl:if>
                         <xsl:element name="resource">
-                            <xsl:value-of select="$kramerius_link"/>
+                            <xsl:choose>
+                                <xsl:when test="./mods:identifier[@type='doi']/@typeURI">
+                                    <xsl:variable name="typeURI" select="./mods:identifier[@type='doi']/@typeURI"/>
+                                    <xsl:choose>
+                                        <!-- Pokud končí na /uuid:, necháme beze změny -->
+                                        <xsl:when test="substring($typeURI, string-length($typeURI) - 5) = '/uuid:'">
+                                            <xsl:value-of select="$typeURI"/>
+                                        </xsl:when>
+                                        <!-- Pokud končí na /, přidáme uuid: -->
+                                        <xsl:when test="substring($typeURI, string-length($typeURI)) = '/'">
+                                            <xsl:value-of select="concat($typeURI, 'uuid:')"/>
+                                        </xsl:when>
+                                        <!-- Pokud končí na cokoli jiného, přidáme /uuid: -->
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="concat($typeURI, '/uuid:')"/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="$kramerius_link"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
                             <xsl:value-of select="./mods:identifier[@type='uuid']"/>
                         </xsl:element>
                     </xsl:element>
