@@ -12,6 +12,8 @@ import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -312,9 +314,13 @@ public class SolrUtils {
         if (date == null) {
             return null;
         }
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        String dateAsString = formatter.format(date);
+        DateTimeFormatter formatterNew = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneId.of("UTC"));
+        String dateAsString = formatterNew.format(date.toInstant());
         return dateAsString;
+//        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+//        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+//        String dateAsString = formatter.format(date);
+//        return dateAsString;
     }
 
     public static String now() {

@@ -483,7 +483,10 @@ Author Miroslav Pavelka
                                     <xsl:when test="./mods:note">
                                         <xsl:element name="citation">
                                             <xsl:attribute name="key">
-                                                <xsl:value-of select="./@ID"/>
+                                                <xsl:text>ref</xsl:text>
+                                                <xsl:call-template name="remove-leading-zeros">
+                                                    <xsl:with-param name="text" select="substring-after(@ID, 'ref')"/>
+                                                </xsl:call-template>
                                             </xsl:attribute>
                                             <xsl:element name="unstructured_citation">
                                                 <xsl:value-of select="./mods:note"/>
@@ -493,7 +496,10 @@ Author Miroslav Pavelka
                                     <xsl:otherwise>
                                         <xsl:element name="citation">
                                             <xsl:attribute name="key">
-                                                <xsl:value-of select="./@ID"/>
+                                                <xsl:text>ref</xsl:text>
+                                                <xsl:call-template name="remove-leading-zeros">
+                                                    <xsl:with-param name="text" select="substring-after(@ID, 'ref')"/>
+                                                </xsl:call-template>
                                             </xsl:attribute>
                                             <xsl:if test="./mods:titleInfo/mods:title">
                                                 <xsl:element name="article_title">
@@ -629,6 +635,26 @@ Author Miroslav Pavelka
                     <xsl:with-param name="workdate">
                         <xsl:value-of select="$publication_date"/>
                     </xsl:with-param>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="remove-leading-zeros">
+        <xsl:param name="text"/>
+        <xsl:choose>
+            <!-- Pokud je text prázdný, vrať prázdný řetězec -->
+            <xsl:when test="$text = ''">
+                <xsl:value-of select="''"/>
+            </xsl:when>
+            <!-- Pokud text nezačíná nulou, vrať jej -->
+            <xsl:when test="not(starts-with($text, '0'))">
+                <xsl:value-of select="$text"/>
+            </xsl:when>
+            <!-- Jinak odstraň první znak a zavolej šablonu znovu -->
+            <xsl:otherwise>
+                <xsl:call-template name="remove-leading-zeros">
+                    <xsl:with-param name="text" select="substring($text, 2)"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
