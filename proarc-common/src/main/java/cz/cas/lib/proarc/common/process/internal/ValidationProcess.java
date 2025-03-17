@@ -452,7 +452,11 @@ public class ValidationProcess {
             if (positionPageValue == null) {
                 positionPageValue = item.getPagePosition();
             } else if (positionPageValue.equals(item.getPagePosition())) {
-                result.getValidationResults().add(new ValidationResult(item.getPid(), "Opakující se pozice strany.", Level.SEVERE));
+                if ("left".equals(item.getPagePosition()) || "right".equals(item.getPagePosition())) {
+                    result.getValidationResults().add(new ValidationResult(item.getPid(), "Opakující se pozice strany (\"" + item.getPagePosition() + "\").", Level.SEVERE));
+                } else {
+                    result.getValidationResults().add(new ValidationResult(item.getPid(), "Opakující se pozice strany (\"" + item.getPagePosition() + "\").", Level.WARNING));
+                }
             } else {
                 positionPageValue = item.getPagePosition();
             }
