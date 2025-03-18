@@ -293,6 +293,39 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         return feedDescriptionDocument(sdoc);
     }
 
+    public void feedDescriptionSoftware(DigitalObject object, ProArcObject proArcObject, boolean commit) throws DigitalObjectException {
+        RelationEditor relationEditor = new RelationEditor(proArcObject);
+        String pid = proArcObject.getPid();
+        String model = relationEditor.getModel();
+        String owner = getProperties(object, PROPERTY_OWNER);
+        String label = getProperties(object, PROPERTY_LABEL);
+        String state = updateState(getProperties(object, PROPERTY_STATE));
+        String created = getProperties(object, PROPERTY_CREATEDATE);
+        String modified = getProperties(object, PROPERTY_LASTMODIFIED);
+
+        try {
+            feedDescriptionSoftware(pid, model, owner, label, state, created, modified);
+            if (commit) {
+                commit();
+            }
+        } catch (SolrServerException | IOException ex) {
+            throw new DigitalObjectException(pid, "Nepodarilo se zaindexovat objekt " + pid + " do SOLRu.");
+        }
+    }
+
+    private UpdateResponse feedDescriptionSoftware(String pid, String model, String owner, String label, String state, String created, String modified) throws SolrServerException, IOException {
+        SolrInputDocument sdoc = new SolrInputDocument();
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+        sdoc.addField(FIELD_MODEL, model);
+        sdoc.addField(FIELD_OWNER, owner);
+        sdoc.addField(FIELD_LABEL, label);
+        sdoc.addField(FIELD_STATE, state);
+        sdoc.addField(FIELD_CREATED, created);
+        sdoc.addField(FIELD_MODIFIED, modified);
+        return feedDescriptionDocument(sdoc);
+    }
+
     private String updateState(String state) {
         if ("Deleted".equals(state)) {
             return PROPERTY_STATE_DEACTIVE;

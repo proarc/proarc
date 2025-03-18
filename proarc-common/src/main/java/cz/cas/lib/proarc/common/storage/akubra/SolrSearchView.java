@@ -4,6 +4,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.software.SoftwareRepository;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
@@ -55,11 +56,11 @@ public class SolrSearchView extends SearchView {
     private Locale locale = Locale.ENGLISH;
     private final AkubraStorage storage;
     private final SolrClient solrClient;
-    private boolean allowDevices;
+    private boolean allowDevicesAndSoftware;
 
     public SolrSearchView(AkubraStorage storage, SolrClient solrClient) {
         this(storage, Integer.MAX_VALUE, solrClient);
-        allowDevices = false;
+        allowDevicesAndSoftware = false;
     }
 
     public SolrSearchView(AkubraStorage storage, int maxValue, SolrClient solrClient) {
@@ -75,8 +76,8 @@ public class SolrSearchView extends SearchView {
         this.locale = locale;
     }
 
-    public SolrSearchView setAllowDevices(boolean allowDevices) {
-        this.allowDevices = allowDevices;
+    public SolrSearchView setAllowDevicesAndSoftware(boolean allowDevicesAndSoftware) {
+        this.allowDevicesAndSoftware = allowDevicesAndSoftware;
         return this;
     }
 
@@ -131,13 +132,13 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
-    public List<SearchViewItem> findByModels(String modelId1, String modelId2) throws IOException, FedoraClientException {
-        return findByModels(0, modelId1, modelId2);
+    public List<SearchViewItem> findByModels(int offset, String modelId1, String modelId2) throws IOException, FedoraClientException {
+        return searchImplementation(offset, 1000, "created", SolrUtils.SortOperation.DESC, null, toList(modelId1, modelId2), null);
     }
 
     @Override
-    public List<SearchViewItem> findByModels(int offset, String modelId1, String modelId2) throws IOException, FedoraClientException {
-        return searchImplementation(offset, 1000, "created", SolrUtils.SortOperation.DESC, null, toList(modelId1, modelId2), null);
+    public List<SearchViewItem> findByModels(int offset, String... modelIds) throws IOException, FedoraClientException {
+        return searchImplementation(offset, 1000, "created", SolrUtils.SortOperation.DESC, null, Arrays.asList(modelIds), null);
     }
 
     @Override
@@ -516,9 +517,13 @@ public class SolrSearchView extends SearchView {
 
     private List<String> defaultFilterQuery() {
         List<String> defaultFilterQuery = new ArrayList<>();
-        if (!allowDevices) {
+        if (!allowDevicesAndSoftware) {
             defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(DeviceRepository.METAMODEL_ID) + "\"");
             defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(DeviceRepository.METAMODEL_AUDIODEVICE_ID) + "\"");
+            defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(SoftwareRepository.METAMODEL_AGENT_ID) + "\"");
+            defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(SoftwareRepository.METAMODEL_EVENT_ID) + "\"");
+            defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(SoftwareRepository.METAMODEL_OBJECT_ID) + "\"");
+            defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(SoftwareRepository.METAMODEL_SET_ID) + "\"");
         }
         return defaultFilterQuery;
     }

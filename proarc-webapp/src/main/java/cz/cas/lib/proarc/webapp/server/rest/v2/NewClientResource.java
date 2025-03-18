@@ -45,7 +45,7 @@ import javax.ws.rs.core.UriInfo;
 
 public class NewClientResource extends NewClientResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(DeviceResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(NewClientResource.class.getName());
 
     public NewClientResource(
             @Context Request request,

@@ -44,10 +44,6 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findByModels(String modelId1, String modelId2) throws  IOException, FedoraClientException {
-        throw new IOException("Method is not implmeneted");
-    }
-
     public List<SearchViewItem> findSortedChildren(String parentPid) throws FedoraClientException, IOException, DigitalObjectException {
         throw new IOException("Method is not implmeneted");
     }
@@ -70,6 +66,10 @@ public abstract class SearchView {
 
 
     public List<SearchViewItem> findByModels(int offset, String modelId1, String modelId2) throws IOException, FedoraClientException {
+        throw new IOException("Method is not implmeneted");
+    }
+
+    public List<SearchViewItem> findByModels(int offset, String... modelIds) throws IOException, FedoraClientException {
         throw new IOException("Method is not implmeneted");
     }
 

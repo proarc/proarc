@@ -869,20 +869,16 @@ public final class FedoraStorageSearchView extends SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
-    /**
-     * Find objects that have the given model.
-     * @param modelId1 model PID to query
-     * @param modelId2 model PID to query
-     * @return list of objects
-     * @throws IOException
-     * @throws FedoraClientException
-     */
-    public List<SearchViewItem> findByModels(String modelId1, String modelId2) throws  IOException, FedoraClientException {
-        return findByModel(0, modelId1, modelId2);
-    }
-
     public List<SearchViewItem> findByModels(int offset, String modelId1, String modelId2) throws IOException, FedoraClientException {
         return findByModels(offset, modelId1, modelId2, "$created desc");
+    }
+
+    public List<SearchViewItem> findByModels(int offset, String... modelIds) throws IOException, FedoraClientException {
+        List<SearchViewItem> items = new ArrayList<>();
+        for (String modelId : modelIds) {
+            items.addAll(findByModel(offset, modelId, "$created desc"));
+        }
+        return items;
     }
 
     public List<SearchViewItem> findByModels(int offset, String modelId1, String modelId2, String orderBy) throws IOException, FedoraClientException {

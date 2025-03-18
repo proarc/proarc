@@ -1,0 +1,213 @@
+/*
+ * Copyright (C) 2025 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package cz.cas.lib.proarc.webapp.server.rest.v1;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.common.software.Software;
+import cz.cas.lib.proarc.common.software.SoftwareException;
+import cz.cas.lib.proarc.common.software.SoftwareNotFoundException;
+import cz.cas.lib.proarc.common.software.SoftwareRepository;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.premis.PremisComplexType;
+import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.shared.rest.SoftwareResourceApi;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+/**
+ * Resource to manage softwares producing digital objects.
+ *
+ * @author Lukas Sykora
+ */
+@Deprecated
+@Path(RestConfig.URL_API_VERSION_1 + "/" + SoftwareResourceApi.PATH)
+public class SoftwareResourceV1 {
+
+    private static final Logger LOG = Logger.getLogger(SoftwareResourceV1.class.getName());
+    private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
+    private final Request httpRequest;
+    private final HttpHeaders httpHeaders;
+    private final SessionContext session;
+    private final SoftwareRepository devRepo;
+
+    public SoftwareResourceV1(
+            @Context Request request,
+            @Context SecurityContext securityCtx,
+            @Context HttpHeaders httpHeaders,
+            @Context UriInfo uriInfo,
+            @Context HttpServletRequest httpRequest
+            ) throws AppConfigurationException, IOException {
+
+        this.httpRequest = request;
+        this.httpHeaders = httpHeaders;
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+        this.session = SessionContext.from(httpRequest);
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            this.devRepo = new SoftwareRepository(FedoraStorage.getInstance(appConfig));
+            this.akubraConfiguration = null;
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+            this.devRepo = new SoftwareRepository(AkubraStorage.getInstance(akubraConfiguration));
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
+    }
+
+    @DELETE
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Software> deleteSoftware(
+            @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
+            ) throws SoftwareException {
+
+        try {
+            boolean deleted = devRepo.deleteSoftware(id, session.asFedoraLog());
+            if (!deleted) {
+                Locale locale = session.getLocale(httpHeaders);
+                throw RestException.plainText(Status.FORBIDDEN,
+                        ServerMessages.get(locale).SoftwareResource_Delete_InUse_Msg());
+            }
+            Software software = new Software();
+            software.setId(id);
+            return new SmartGwtResponse<Software>(software);
+        } catch (SoftwareNotFoundException ex) {
+//            LOG.log(Level.SEVERE, id, ex);
+            throw RestException.plainNotFound(SoftwareResourceApi.SOFTWARE_ITEM_ID, id);
+        }
+    }
+
+    /**
+     * Gets list of softwares.
+     *
+     * @param id software ID. If omitted all software are returned but without description.
+     * @return list of softwares
+     */
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Software> getSoftwares(
+            @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
+            @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
+            @QueryParam(SoftwareResourceApi.SOFTWARE_START_ROW_PARAM) int startRow
+            ) throws SoftwareException, IOException {
+
+        int total = 0;
+        boolean fetchDescription = id != null && !id.isEmpty();
+        List<Software> result = new ArrayList<>();
+
+        if (id == null && model == null) {
+            total = devRepo.findAllSoftware(appConfig, 0).size();
+            result = devRepo.findAllSoftware(appConfig, startRow);
+        } else {
+            result = devRepo.find(null, id, model, fetchDescription, startRow);
+            total = result.size();
+        }
+        int endRow = startRow + result.size() - 1;
+        return new SmartGwtResponse<Software>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, result);
+    }
+
+
+
+    @POST
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Software> newSoftware(
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
+            ) {
+        try {
+            String owner = session.getUser().getUserName();
+            Software software = devRepo.addSoftware(owner, model, "?", session.asFedoraLog());
+            return new SmartGwtResponse<Software>(software);
+        } catch (SoftwareException ex) {
+            throw new WebApplicationException(ex);
+        }
+    }
+
+    @PUT
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Software> updateSoftware(
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
+            ) throws IOException, SoftwareException {
+
+        if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing software!");
+        }
+        Software update = new Software();
+        update.setId(id);
+        update.setLabel(label);
+        update.setModel(model);
+        if (description != null && !description.isEmpty()) {
+            ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
+            PremisComplexType premis = jsMapper.readValue(description, PremisComplexType.class);
+            update.setDescription(premis);
+        } else {
+            update.setDescription(new PremisComplexType());
+        }
+        update.setTimestamp(timestamp);
+        try {
+            Software updated = devRepo.update(update, session.asFedoraLog());
+            return new SmartGwtResponse<Software>(updated);
+        } catch (SoftwareException ex) {
+            throw new WebApplicationException(ex);
+        }
+    }
+
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
+    }
+
+}

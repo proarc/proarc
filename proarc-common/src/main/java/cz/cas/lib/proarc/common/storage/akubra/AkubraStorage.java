@@ -16,6 +16,7 @@ import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
+import cz.cas.lib.proarc.common.software.SoftwareRepository;
 import cz.cas.lib.proarc.common.storage.AbstractProArcObject;
 import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -323,6 +324,9 @@ public class AkubraStorage {
             if (pid.startsWith("device:")) {
                 this.solrObjectFeeder.feedDescriptionDevice(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
+            } else if (pid.startsWith(SoftwareRepository.SOFTWARE_ID_PREFIX)) {
+                this.solrObjectFeeder.feedDescriptionSoftware(dObject, aObject, true);
+                this.solrLoggingFeeder.feedIngestLog(pid, owner);
             } else {
                 this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
@@ -331,6 +335,10 @@ public class AkubraStorage {
         } else {
             if (DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId)) {
                 this.solrObjectFeeder.feedDescriptionDevice(dObject, aObject, true);
+                this.solrLoggingFeeder.feedIngestLog(pid, owner);
+            } else if (SoftwareRepository.METAMODEL_AGENT_ID.equals(modelId) || SoftwareRepository.METAMODEL_EVENT_ID.equals(modelId) ||
+                    SoftwareRepository.METAMODEL_OBJECT_ID.equals(modelId) || SoftwareRepository.METAMODEL_SET_ID.equals(modelId)) {
+                this.solrObjectFeeder.feedDescriptionSoftware(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
             } else {
                 this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
@@ -439,6 +447,9 @@ public class AkubraStorage {
                     //this.manager.commit(object, null);
                     if (DeviceRepository.METAMODEL_ID.equals(this.modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(this.modelId)) {
                         this.objectFeeder.feedDescriptionDevice(object, this, true);
+                    } else if (SoftwareRepository.METAMODEL_AGENT_ID.equals(this.modelId) || SoftwareRepository.METAMODEL_EVENT_ID.equals(this.modelId) ||
+                            SoftwareRepository.METAMODEL_OBJECT_ID.equals(this.modelId) || SoftwareRepository.METAMODEL_SET_ID.equals(this.modelId)) {
+                        this.objectFeeder.feedDescriptionSoftware(object, this, true);
                     } else {
                         this.objectFeeder.feedDescriptionDocument(object, this, true);
                         if (indexHierarchical) {

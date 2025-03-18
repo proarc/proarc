@@ -204,6 +204,33 @@ public class IndexerResourceV1 {
                             }
                         }
                     }
+                } else if (proArcObject.getPid().startsWith("software")) {
+                    if (rebuildIndex) {
+                        try {
+                            feeder.feedDescriptionSoftware(digitalObject, proArcObject, false);
+                            filesCount++;
+                            if (filesCount % 50 == 0) {
+                                LOG.info("Proccessed " + filesCount + " objects");
+                                feeder.commit();
+                            }
+                        } catch (Exception exception) {
+                            if ("URI is not hierarchical".equals(exception.getMessage())) {
+                                try {
+                                    proArcObject = storage.find(digitalObject.getPID());
+                                    filesCount++;
+                                    feeder.feedDescriptionSoftware(digitalObject, proArcObject, false);
+                                    if (filesCount % 50 == 0) {
+                                        LOG.info("Proccessed " + filesCount + " objects");
+                                        feeder.commit();
+                                    }
+                                } catch (Exception ex) {
+                                    LOG.warning(proArcObject.getPid() + " - " + ((LocalStorage.LocalObject) proArcObject).getFoxml().getPath());
+                                }
+                            } else {
+                                LOG.warning(proArcObject.getPid() + " - " + ((LocalStorage.LocalObject) proArcObject).getFoxml().getPath());
+                            }
+                        }
+                    }
                 }
             } catch (Throwable throwable) {
                 LOG.log(Level.SEVERE, "Error in proccesing file: " + file.getAbsolutePath(), throwable);

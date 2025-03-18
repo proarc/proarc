@@ -425,7 +425,7 @@ public final class DeviceRepository {
             if (Storage.FEDORA.equals(typeOfStorage)) {
                 searchView = fedoraStorage.getSearch();
             } else if (Storage.AKUBRA.equals(typeOfStorage)) {
-                searchView = akubraStorage.getSearch().setAllowDevices(true);
+                searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
             }
             items = searchView.findByModels(offset, METAMODEL_ID, METAMODEL_AUDIODEVICE_ID);
         } catch (IOException | FedoraClientException ex) {
@@ -439,7 +439,7 @@ public final class DeviceRepository {
         if (Storage.FEDORA.equals(typeOfStorage)) {
             searchView = fedoraStorage.getSearch();
         } else if (Storage.AKUBRA.equals(typeOfStorage)) {
-            searchView = akubraStorage.getSearch().setAllowDevices(true);
+            searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
         }
 
         List<SearchViewItem> items = searchView.findByModel(METAMODEL_ID);

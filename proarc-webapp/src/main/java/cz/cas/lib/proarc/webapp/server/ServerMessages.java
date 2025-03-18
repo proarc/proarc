@@ -62,6 +62,11 @@ public final class ServerMessages {
         return getMessage(l, "DeviceResource_Delete_InUse_Msg");
     }
 
+
+    public String SoftwareResource_Delete_InUse_Msg() {
+        return getMessage(l, "SoftwareResource_Delete_InUse_Msg");
+    }
+
     public String Err_Ndk_Remove_UrnNbn(String urnNbn) {
         return getFormattedMessage(l, NdkMetadataHandler.ERR_NDK_REMOVE_URNNBN, urnNbn);
     }
@@ -97,5 +102,4 @@ public final class ServerMessages {
     public String KrameriusResource_Upload_Proarc_Msg() {
         return getMessage(l, "KrameriusResource_Upload_Proarc_Msg");
     }
-
 }
