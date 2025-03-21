@@ -302,9 +302,10 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         String state = updateState(getProperties(object, PROPERTY_STATE));
         String created = getProperties(object, PROPERTY_CREATEDATE);
         String modified = getProperties(object, PROPERTY_LASTMODIFIED);
+        List<String> members = relationEditor.getMembers();
 
         try {
-            feedDescriptionSoftware(pid, model, owner, label, state, created, modified);
+            feedDescriptionSoftware(pid, model, owner, label, state, members, created, modified);
             if (commit) {
                 commit();
             }
@@ -313,7 +314,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         }
     }
 
-    private UpdateResponse feedDescriptionSoftware(String pid, String model, String owner, String label, String state, String created, String modified) throws SolrServerException, IOException {
+    private UpdateResponse feedDescriptionSoftware(String pid, String model, String owner, String label, String state, List<String> members, String created, String modified) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -321,6 +322,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_OWNER, owner);
         sdoc.addField(FIELD_LABEL, label);
         sdoc.addField(FIELD_STATE, state);
+        sdoc.addField(FIELD_MEMBERS, members);
         sdoc.addField(FIELD_CREATED, created);
         sdoc.addField(FIELD_MODIFIED, modified);
         return feedDescriptionDocument(sdoc);

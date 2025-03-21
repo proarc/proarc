@@ -16,11 +16,10 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
-import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.software.Software;
 import cz.cas.lib.proarc.common.software.SoftwareException;
 import cz.cas.lib.proarc.common.software.SoftwareNotFoundException;
@@ -30,7 +29,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.premis.PremisComplexType;
+import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
@@ -38,6 +37,7 @@ import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.SoftwareResourceApi;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -59,6 +59,9 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.transform.stream.StreamSource;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_SOFTWARE_IN_USE;
 
 /**
  * Resource to manage softwares producing digital objects.
@@ -110,8 +113,8 @@ public class SoftwareResourceV1 {
             boolean deleted = devRepo.deleteSoftware(id, session.asFedoraLog());
             if (!deleted) {
                 Locale locale = session.getLocale(httpHeaders);
-                throw RestException.plainText(Status.FORBIDDEN,
-                        ServerMessages.get(locale).SoftwareResource_Delete_InUse_Msg());
+//                throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+                throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_SOFTWARE_IN_USE));
             }
             Software software = new Software();
             software.setId(id);
@@ -151,22 +154,60 @@ public class SoftwareResourceV1 {
         return new SmartGwtResponse<Software>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, result);
     }
 
-
+    /**
+     * Gets list of software with define preview.
+     *
+     * @param id software ID
+     * @return list of softwares
+     */
+    @GET
+    @Path(SoftwareResourceApi.PATH_PREVIEW)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Software> getSoftwarePreview(
+            @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
+            ) throws SoftwareException {
+        if (id == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing id!");
+        }
+        List<Software> result = devRepo.find(id);
+        int total = result.size();
+        int startRow = 0;
+        int endRow = startRow + result.size() - 1;
+        return new SmartGwtResponse<Software>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, result);
+    }
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Software> newSoftware(
-            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MEMBERS) List<String> setOfIds,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
         try {
             String owner = session.getUser().getUserName();
-            Software software = devRepo.addSoftware(owner, model, "?", session.asFedoraLog());
+            Software software = devRepo.addSoftware(owner, model, label == null || label.isEmpty() ? "?" : label, session.asFedoraLog());
+            boolean update = false;
+            if ((description != null && !description.isEmpty())) {
+                Mets mets = MetsUtils.unmarshalMets(new StreamSource(new StringReader(description)));
+                mets = devRepo.fixMetsAccordingModel(model, mets);
+                software.setDescription(mets);
+                software.setTimestamp(timestamp);
+
+                update = true;
+            }
+            if (setOfIds != null && !setOfIds.isEmpty()) {
+                setOfIds = devRepo.checkSetOfIds(setOfIds, software.getModel());
+                software.setSetOfLinkedIds(setOfIds);
+                update = true;
+            }
+            if (update) {
+                software = devRepo.update(software, session.asFedoraLog());
+            }
             return new SmartGwtResponse<Software>(software);
         } catch (SoftwareException ex) {
+
             throw new WebApplicationException(ex);
         }
     }
@@ -177,9 +218,10 @@ public class SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MEMBERS) List<String> setOfIds,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
-            ) throws IOException, SoftwareException {
+            ) throws SoftwareException {
 
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing software!");
@@ -188,20 +230,22 @@ public class SoftwareResourceV1 {
         update.setId(id);
         update.setLabel(label);
         update.setModel(model);
-        if (description != null && !description.isEmpty()) {
-            ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
-            PremisComplexType premis = jsMapper.readValue(description, PremisComplexType.class);
-            update.setDescription(premis);
-        } else {
-            update.setDescription(new PremisComplexType());
-        }
         update.setTimestamp(timestamp);
-        try {
-            Software updated = devRepo.update(update, session.asFedoraLog());
-            return new SmartGwtResponse<Software>(updated);
-        } catch (SoftwareException ex) {
-            throw new WebApplicationException(ex);
+        if (description != null && !description.isEmpty()) {
+            Mets mets = MetsUtils.unmarshalMets(new StreamSource(new StringReader(description)));
+            mets = devRepo.fixMetsAccordingModel(model, mets);
+            update.setDescription(mets);
+        } else {
+            update.setDescription(new Mets());
         }
+        if (setOfIds != null && !setOfIds.isEmpty()) {
+            setOfIds = devRepo.checkSetOfIds(setOfIds, update.getModel());
+            update.setSetOfLinkedIds(setOfIds);
+        } else {
+            update.setSetOfLinkedIds(new ArrayList<>());
+        }
+        Software updated = devRepo.update(update, session.asFedoraLog());
+        return new SmartGwtResponse<Software>(updated);
     }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {

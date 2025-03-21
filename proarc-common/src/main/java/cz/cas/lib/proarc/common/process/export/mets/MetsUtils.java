@@ -1449,9 +1449,10 @@ public class MetsUtils {
         Unmarshaller m = defaultUnmarshaller.get();
         if (m == null) {
             m = defaultJaxbContext().createUnmarshaller();
-            m.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-            m.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
+//            m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+//            m.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
             defaultUnmarshaller.set(m);
+
         }
         return m;
     }

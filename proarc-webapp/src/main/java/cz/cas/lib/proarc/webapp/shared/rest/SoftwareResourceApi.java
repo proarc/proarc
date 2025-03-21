@@ -25,12 +25,13 @@ public final class SoftwareResourceApi {
 
     // resource /software
     public static final String PATH = "software";
+    public static final String PATH_PREVIEW = "preview";
 
     public static final String SOFTWARE_ITEM_ID = "id";
     public static final String SOFTWARE_ITEM_LABEL = "label";
     public static final String SOFTWARE_ITEM_MODEL = "model";
     public static final String SOFTWARE_ITEM_DESCRIPTION = "description";
     public static final String SOFTWARE_ITEM_TIMESTAMP = "timestamp";
+    public static final String SOFTWARE_ITEM_MEMBERS = "members";
     public static final String SOFTWARE_START_ROW_PARAM = "_startRow";
-
 }

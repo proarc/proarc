@@ -909,6 +909,16 @@ public final class FedoraStorageSearchView extends SearchView {
         return !result.isEmpty();
     }
 
+    @Override
+    public boolean isSoftwareInUse(String softwareId) throws IOException, FedoraClientException {
+        String query = QUERY_FIND_REFERRERS.replace("${PID}",softwareId);
+        RiSearch search = buildSearch(query);
+        search.limit(1);
+        search.stream(true);
+        List<SearchViewItem> result = consumeSearch(search.execute(fedora));
+        return !result.isEmpty();
+    }
+
     private List<SearchViewItem> consumeSearch(RiSearchResponse response) throws IOException {
         String json = response.getEntity(String.class);
         Result result = readResponse(json);

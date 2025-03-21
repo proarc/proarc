@@ -13,6 +13,10 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
+    public boolean isSoftwareInUse(String softwareId) throws IOException, FedoraClientException {
+        throw new IOException("Method is not implmeneted");
+    }
+
     public List<SearchViewItem> find(String... pids) throws FedoraClientException, IOException {
         throw new IOException("Method is not implmeneted");
     }

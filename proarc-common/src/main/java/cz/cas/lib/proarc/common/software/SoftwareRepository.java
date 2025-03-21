@@ -21,6 +21,7 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
@@ -38,23 +39,41 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
+import cz.cas.lib.proarc.mets.AmdSecType;
+import cz.cas.lib.proarc.mets.MdSecType;
+import cz.cas.lib.proarc.mets.Mets;
+import cz.cas.lib.proarc.mets.MetsConstants;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import cz.cas.lib.proarc.premis.PremisComplexType;
+import cz.cas.lib.proarc.premis.AgentComplexType;
+import cz.cas.lib.proarc.premis.EventComplexType;
+import cz.cas.lib.proarc.premis.File;
+import cz.cas.lib.proarc.premis.LinkingAgentIdentifierComplexType;
+import cz.cas.lib.proarc.premis.LinkingEventIdentifierComplexType;
+import cz.cas.lib.proarc.premis.ObjectComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBElement;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+import org.w3c.dom.Document;
 
 /**
  * The repository of software producing digital objects.
@@ -114,7 +133,7 @@ public final class SoftwareRepository {
      * @param label software label
      * @param log log message
      * @return the software
-     * @throws cz.cas.lib.proarc.common.software.SoftwareException failure
+     * @throws SoftwareException failure
      */
     public Software addSoftware(String owner, String model, String label, String log) throws SoftwareException {
         UUID uuid = UUID.randomUUID();
@@ -126,7 +145,7 @@ public final class SoftwareRepository {
         }
     }
 
-    public Software addSoftwareWithMetadata(String owner, String model, String label, String log, PremisComplexType description) throws SoftwareException {
+    public Software addSoftwareWithMetadata(String owner, String model, String label, String log, Mets description) throws SoftwareException {
         UUID uuid = UUID.randomUUID();
         String pid = SOFTWARE_ID_PREFIX + uuid.toString();
         try {
@@ -142,8 +161,8 @@ public final class SoftwareRepository {
      * @param id  software PID
      * @param log log message
      * @return {@code true} if deleted or throw exception
-     * @throws cz.cas.lib.proarc.common.software.SoftwareException         failure
-     * @throws cz.cas.lib.proarc.common.software.SoftwareNotFoundException software not found
+     * @throws SoftwareException         failure
+     * @throws SoftwareNotFoundException software not found
      */
     public boolean deleteSoftware(String id, String log) throws SoftwareException, SoftwareNotFoundException {
         checkSoftwareId(id);
@@ -152,18 +171,32 @@ public final class SoftwareRepository {
             // software may be still used by any import item
             if (Storage.FEDORA.equals(typeOfStorage)) {
                 RemoteObject object = fedoraStorage.find(id);
-                object.purge(log);
-                return true;
+                if (fedoraStorage.getSearch().isSoftwareInUse(id)) {
+                    return false;
+                } else {
+                    object.purge(log);
+                    return true;
+                }
             } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                 AkubraObject object = akubraStorage.find(id);
-                object.purge(log);
-                return true;
+                if (akubraStorage.getSearch().isSoftwareInUse(id)) {
+                    return false;
+                } else {
+                    object.purge(log);
+                    return true;
+                }
             } else {
                 throw new SoftwareException("Not implemented or missing typeOfStorage");
             }
         } catch (DigitalObjectNotFoundException ex) {
             throw new SoftwareNotFoundException(null, ex, id);
-        } catch (DigitalObjectException ex) {
+        } catch (FedoraClientException ex) {
+            if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                throw new SoftwareNotFoundException(null, ex, id);
+            } else {
+                throw new SoftwareException(id, ex);
+            }
+        } catch (DigitalObjectException | IOException ex) {
             throw new SoftwareException(id, ex);
         }
     }
@@ -173,7 +206,7 @@ public final class SoftwareRepository {
      *
      * @param id software PID or {@code null} for all software.
      * @return list of software
-     * @throws cz.cas.lib.proarc.common.software.SoftwareException failure
+     * @throws SoftwareException failure
      */
     public List<Software> find(AppConfiguration config, String id) throws SoftwareException {
         return find(config, id, null, false, 0);
@@ -185,7 +218,7 @@ public final class SoftwareRepository {
      * @param id software PID or {@code null} for all software.
      * @param fetchDescription whether to include software descriptions in response
      * @return list of software
-     * @throws cz.cas.lib.proarc.common.software.SoftwareException failure
+     * @throws SoftwareException failure
      */
     public List<Software> find(AppConfiguration config, String id, String model, boolean fetchDescription, int offset) throws SoftwareException {
         try {
@@ -209,15 +242,37 @@ public final class SoftwareRepository {
         }
     }
 
+    public List<Software> find(String id) throws SoftwareException {
+        try {
+            List<Software> software = Collections.emptyList();
+            if (id != null) {
+                checkSoftwareId(id);
+                software = findSoftware(null, id);
+            }
+            fetchSoftwarePreview(software);
+            return software;
+        } catch (IOException ex) {
+            throw new SoftwareException(id, ex);
+        } catch (FedoraClientException ex) {
+            throw new SoftwareException(id, ex);
+        }
+    }
+
     /**
      * Fetches software descriptions.
      *
      * @param softwares software to query
-     * @throws cz.cas.lib.proarc.common.software.SoftwareException failure
+     * @throws SoftwareException failure
      */
-    void fetchSoftwareDescription(List<Software> softwares) throws SoftwareException {
+    private void fetchSoftwareDescription(List<Software> softwares) throws SoftwareException {
         for (Software software : softwares) {
             fetchSoftwareDescription(software);
+        }
+    }
+
+    private void fetchSoftwarePreview(List<Software> softwares) throws SoftwareException {
+        for (Software software : softwares) {
+            fetchSoftwarePreview(software);
         }
     }
 
@@ -226,9 +281,9 @@ public final class SoftwareRepository {
      *
      * @param software a software with ID
      * @return the software or {@code null} if not found
-     * @throws cz.cas.lib.proarc.common.software.SoftwareException failure
+     * @throws SoftwareException failure
      */
-    Software fetchSoftwareDescription(Software software) throws SoftwareException {
+    private Software fetchSoftwareDescription(Software software) throws SoftwareException {
         if (software == null || software.getId() == null) {
             return null;
         }
@@ -240,38 +295,188 @@ public final class SoftwareRepository {
             } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(id);
             }
-            XmlStreamEditor editor = getPremisDescriptionEditor(object);
+            object.setModel(software.getModel());
+            XmlStreamEditor editor = getMetsDescriptionEditor(object);
             Source src = editor.read();
-            PremisComplexType premisComplexType;
+            Mets mets;
             if (src != null) {
-                try {
-                    JAXBContext jaxbContext = JAXBContext.newInstance(PremisComplexType.class);
-                    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-                    premisComplexType = (PremisComplexType) unmarshaller.unmarshal(src);
-                } catch (JAXBException e) {
-                    LOG.log(Level.SEVERE, "Unable get Premis metadata");
-                    premisComplexType = new PremisComplexType();
-                }
+                mets = MetsUtils.unmarshalMets(src);
+//                mets = fixMetsAccordingModel(software.getModel(), mets);    Pri nacitani by mel byt mets uz upraven, musi se upravit pri ulozeni
             } else {
-                premisComplexType = new PremisComplexType();
+                mets = new Mets();
             }
-            if (METAMODEL_AGENT_ID.equals(software.getModel())) {
-                software.setAgentDescription(premisComplexType);
-                software.setAgentTimestamp(src == null ? null : editor.getLastModified());
-            } else if (METAMODEL_EVENT_ID.equals(software.getModel())) {
-                software.setEventDescription(premisComplexType);
-                software.setEventTimestamp(src == null ? null : editor.getLastModified());
-            } else if (METAMODEL_OBJECT_ID.equals(software.getModel())) {
-                software.setObjectDescription(premisComplexType);
-                software.setObjectTimestamp(src == null ? null : editor.getLastModified());
+            RelationEditor relationEditor = new RelationEditor(object);
+            List<String> setOfIds = relationEditor.getMembers();
+            if (setOfIds != null && !setOfIds.isEmpty()) {
+                software.setSetOfLinkedIds(setOfIds);
             } else {
-                throw new SoftwareException("Unknown object model: " + software.getModel());
+                software.setSetOfLinkedIds(new ArrayList<>());
             }
+            software.setDescription(mets);
+            software.setTimestamp(editor.getLastModified());
             return software;
         } catch (DigitalObjectNotFoundException ex) {
             return null;
         } catch (DigitalObjectException ex) {
             throw new SoftwareException(id, ex);
+        }
+    }
+
+    private Software fetchSoftwarePreview(Software software) throws SoftwareException {
+        if (software == null || software.getId() == null) {
+            return null;
+        }
+        String id = software.getId();
+
+        List<Mets> metsList = new ArrayList<>();
+        metsList.addAll(getMets(id));
+        Mets mets = combineMets(metsList);
+        software.setDescription(mets);
+        return software;
+    }
+
+    private Mets combineMets(List<Mets> metsList) {
+        Mets newMets = new Mets();
+        AmdSecType newAmdSec = new AmdSecType();
+        newMets.getAmdSec().add(newAmdSec);
+        for (Mets mets : metsList) {
+            for (AmdSecType amdSec : mets.getAmdSec()) {
+                if (!amdSec.getTechMD().isEmpty()) {
+                    newAmdSec.getTechMD().addAll(amdSec.getTechMD());
+                }
+                if (!amdSec.getDigiprovMD().isEmpty()) {
+                    newAmdSec.getDigiprovMD().addAll(amdSec.getDigiprovMD());
+                }
+            }
+        }
+        return newMets;
+    }
+
+    private Collection<? extends Mets> getMets(String pid) throws SoftwareException {
+        List<Mets> metsList = new ArrayList<>();
+        try {
+            ProArcObject object = null;
+            if (Storage.FEDORA.equals(typeOfStorage)) {
+                object = fedoraStorage.find(pid);
+            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                object = akubraStorage.find(pid);
+            }
+            XmlStreamEditor editor = getMetsDescriptionEditor(object);
+            Source src = editor.read();
+            Mets mets = null;
+            if (src != null) {
+                mets = MetsUtils.unmarshalMets(src);
+            }
+            RelationEditor relationEditor = new RelationEditor(object);
+            List<String> setOfIds = relationEditor.getMembers();
+            for (String member : setOfIds) {
+                String agentIdentifierType = getNodeValue(member, "//premis:agentIdentifierType/text()");
+                if (agentIdentifierType != null && !agentIdentifierType.isEmpty()) {
+                    String agentIdentifierValue = getNodeValue(member, "//premis:agentIdentifierValue/text()");
+                    mets = addLinkingAgent(mets, agentIdentifierType, agentIdentifierValue);
+                } else {
+                    String eventIdentifierType = getNodeValue(member, "//premis:eventIdentifierType/text()");
+                    if (eventIdentifierType != null && !eventIdentifierType.isEmpty()) {
+                        String eventIdentifierValue = getNodeValue(member, "//premis:eventIdentifierValue/text()");
+                        mets = addLinkingEvent(mets, agentIdentifierType, eventIdentifierValue);
+                    }
+                }
+            }
+            if (mets != null) {
+                metsList.add(mets);
+            }
+            for (String member : setOfIds) {
+                metsList.addAll(getMets(member));
+            }
+        } catch (Exception ex) {
+            LOG.warning(ex.getMessage());
+            ex.printStackTrace();
+            throw new SoftwareException("Nepodarilo se zkombinovat METS pro objekt " + pid);
+        }
+        return metsList;
+    }
+
+    private Mets addLinkingEvent(Mets mets, String eventIdentifierType, String eventIdentifierValue) {
+        MdSecType.MdWrap.XmlData xmlData = getXmlData(mets);
+        if (xmlData == null) {
+            return mets;
+        }
+        try {
+            LinkingEventIdentifierComplexType linkingEvent = new LinkingEventIdentifierComplexType();
+            linkingEvent.setLinkingEventIdentifierType(eventIdentifierType);
+            linkingEvent.setLinkingEventIdentifierValue(eventIdentifierValue);
+            File object = (File) ((JAXBElement) xmlData.getAny().get(0)).getValue();
+            object.getLinkingEventIdentifier().add(linkingEvent);
+        } catch (Exception ex) {
+            LOG.warning(ex.getMessage());
+            ex.printStackTrace();
+        }
+        return mets;
+    }
+
+    private Mets addLinkingAgent(Mets mets, String agentIdentifierType, String agentIdentifierValue) {
+        MdSecType.MdWrap.XmlData xmlData = getXmlData(mets);
+        if (xmlData == null) {
+            return mets;
+        }
+        try {
+            LinkingAgentIdentifierComplexType linkingAgent = new LinkingAgentIdentifierComplexType();
+            linkingAgent.setLinkingAgentIdentifierType(agentIdentifierType);
+            linkingAgent.setLinkingAgentIdentifierValue(agentIdentifierValue);
+            EventComplexType event = (EventComplexType) ((JAXBElement) xmlData.getAny().get(0)).getValue();
+            event.getLinkingAgentIdentifier().add(linkingAgent);
+        } catch (Exception ex) {
+            LOG.warning(ex.getMessage());
+            ex.printStackTrace();
+        }
+        return mets;
+    }
+
+    private MdSecType.MdWrap.XmlData getXmlData(Mets mets) {
+        for (AmdSecType amdSec : mets.getAmdSec()) {
+            for (MdSecType mdSec : amdSec.getDigiprovMD()) {
+                if (mdSec.getMdWrap() != null && mdSec.getMdWrap().getXmlData() != null) {
+                    MdSecType.MdWrap.XmlData xmlData = mdSec.getMdWrap().getXmlData();
+                    return xmlData;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String getNodeValue(String pid, String expression) throws SoftwareException {
+        try {
+            ProArcObject object = null;
+            if (Storage.FEDORA.equals(typeOfStorage)) {
+                object = fedoraStorage.find(pid);
+            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                object = akubraStorage.find(pid);
+            }
+            XmlStreamEditor editor = getMetsDescriptionEditor(object);
+            InputStream src = editor.readStream();
+
+            if (src == null) {
+                return null;
+            }
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(src);
+
+            // XPath pro nalezení agentIdentifierType
+            XPathFactory xPathFactory = XPathFactory.newInstance();
+            XPath xpath = xPathFactory.newXPath();
+            xpath.setNamespaceContext(new SimpleNamespaceContext().add(MetsConstants.PREFIX_NS_METS, MetsConstants.NS_METS).add("premis", PremisUtils.NS));
+
+            XPathExpression xPathExpression = xpath.compile(expression);
+
+            // Výsledek
+            String result = (String) xPathExpression.evaluate(document, XPathConstants.STRING);
+            return result;
+        } catch (Exception ex) {
+            LOG.warning(ex.getMessage());
+            ex.printStackTrace();
+            throw new SoftwareException("Nepodarilo se zkombinovat METS pro objekt " + pid);
         }
     }
 
@@ -281,7 +486,7 @@ public final class SoftwareRepository {
      * @param update data to update
      * @param log    log message
      * @return the updated software
-     * @throws cz.cas.lib.proarc.common.software.SoftwareException failure
+     * @throws SoftwareException failure
      */
     public Software update(Software update, String log) throws SoftwareException {
         String id = update.getId();
@@ -295,21 +500,26 @@ public final class SoftwareRepository {
             } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(id);
             }
+            object.setModel(update.getModel());
 
             updateDc(object, id, model, label, log);
-
-            XmlStreamEditor descriptionEditor = getPremisDescriptionEditor(object);
+            XmlStreamEditor descriptionEditor = getMetsDescriptionEditor(object);
             Source oldDescSrc = descriptionEditor.read();
             if (oldDescSrc == null) {
                 update.setTimestamp(descriptionEditor.getLastModified());
             }
             if (oldDescSrc != null && update.getDescription() == null) {
-                update.setDescription(new PremisComplexType());
+                update.setDescription(new Mets());
             }
             if (update.getDescription() != null) {
                 EditorResult result = descriptionEditor.createResult();
-                PremisUtils.marshal(result, update.getDescription(), true);
+                MetsUtils.marshal(result, update.getDescription(), true);
                 descriptionEditor.write(result, update.getTimestamp(), log);
+            }
+            if (update.getSetOfLinkedIds() != null) {
+                RelationEditor relationEditor = new RelationEditor(object);
+                relationEditor.setMembers(update.getSetOfLinkedIds());
+                relationEditor.write(relationEditor.getLastModified(), log);
             }
 
             object.setLabel(label);
@@ -321,11 +531,11 @@ public final class SoftwareRepository {
             software.setModel(model);
             software.setLabel(label);
             software.setDescription(update.getDescription());
+            software.setSetOfLinkedIds(update.getSetOfLinkedIds());
             software.setTimestamp(descriptionEditor.getLastModified());
             return software;
         } catch (DigitalObjectConcurrentModificationException ex) {
-            // XXX handle concurrency
-            throw new SoftwareException(id, ex);
+            throw new SoftwareConcurentModificationException(id, ex);
         } catch (DigitalObjectException ex) {
             throw new SoftwareException(id, ex);
         }
@@ -335,7 +545,7 @@ public final class SoftwareRepository {
         return addSoftware(pid, owner, model, label, null, log);
     }
 
-    private Software addSoftware(String pid, String owner, String model, String label, PremisComplexType description, String log) throws DigitalObjectException, SoftwareException {
+    private Software addSoftware(String pid, String owner, String model, String label, Mets description, String log) throws DigitalObjectException, SoftwareException {
 
         LocalObject lobject = new LocalStorage().create(pid);
         lobject.setLabel(label);
@@ -439,27 +649,102 @@ public final class SoftwareRepository {
     }
 
     /**
-     * Gets a datastream editor for Premis format.
+     * Gets a datastream editor for Mets format.
      *
      * @param robj an object to edit
      * @return the editor
      */
-    public static XmlStreamEditor getPremisDescriptionEditor(ProArcObject robj) throws SoftwareException {
-        String labelValue = null;
-        if (METAMODEL_AGENT_ID.equals(robj.getModel())) {
-            labelValue = DESCRIPTION_DS_AGENT_LABEL;
-        } else if (METAMODEL_EVENT_ID.equals(robj.getModel())) {
-            labelValue = DESCRIPTION_DS_EVENT_LABEL;
-        } else if (METAMODEL_OBJECT_ID.equals(robj.getModel())) {
-            labelValue = DESCRIPTION_DS_OBJECT_LABEL;
-        } else if (METAMODEL_SET_ID.equals(robj.getModel())) {
-            labelValue = DESCRIPTION_DS_SET_LABEL;
-        } else {
-            throw new SoftwareException("Unknown object model: " + robj.getModel());
-        }
+    public static XmlStreamEditor getMetsDescriptionEditor(ProArcObject robj) {
+        String labelValue = DESCRIPTION_DS_AGENT_LABEL;
         DatastreamProfile dProfile = FoxmlUtils.managedProfile(
-                DESCRIPTION_DS_ID, PremisUtils.NS, labelValue);
+                DESCRIPTION_DS_ID, MetsConstants.NS_METS, labelValue);
         XmlStreamEditor editor = robj.getEditor(dProfile);
         return editor;
+    }
+
+    public Mets fixMetsAccordingModel(String model, Mets mets) throws SoftwareException {
+        if (model == null || model.isEmpty()) {
+            return mets;
+        } else {
+            for (AmdSecType amdSecType : mets.getAmdSec()) {
+                for (MdSecType mdSec : amdSecType.getDigiprovMD()) {
+                    if (mdSec.getMdWrap() != null && mdSec.getMdWrap().getXmlData() != null) {
+                        MdSecType.MdWrap.XmlData xmlData = mdSec.getMdWrap().getXmlData();
+                        if (SoftwareRepository.METAMODEL_AGENT_ID.equals(model)) {
+                            try {
+                                AgentComplexType agent = (AgentComplexType) ((JAXBElement) xmlData.getAny().get(0)).getValue();
+                            } catch (Exception ex) {
+                                xmlData.getAny().clear();
+                            }
+                            amdSecType.getTechMD().clear();
+                        } else if (SoftwareRepository.METAMODEL_EVENT_ID.equals(model)) {
+                            try {
+                                EventComplexType event = (EventComplexType) ((JAXBElement) xmlData.getAny().get(0)).getValue();
+                            } catch (Exception ex) {
+                                xmlData.getAny().clear();
+                            }
+                            amdSecType.getTechMD().clear();
+                        } else {
+                            throw new SoftwareException("Nepodporovany model v zanoreni amdSec/digiprovMD/mdWrap/xmlData");
+                        }
+                    }
+                }
+                for (MdSecType mdSec : amdSecType.getTechMD()) {
+                    if (mdSec.getMdWrap() != null && mdSec.getMdWrap().getXmlData() != null) {
+                        MdSecType.MdWrap.XmlData xmlData = mdSec.getMdWrap().getXmlData();
+                        if (SoftwareRepository.METAMODEL_OBJECT_ID.equals(model)) {
+                            try {
+                                ObjectComplexType object = (ObjectComplexType) ((JAXBElement) xmlData.getAny().get(0)).getValue();
+                            } catch (Exception ex) {
+                                xmlData.getAny().clear();
+                            }
+                            amdSecType.getDigiprovMD().clear();
+                        } else {
+                            throw new SoftwareException("Nepodporovany model v zanoreni amdSec/techMD/mdWrap/xmlData");
+                        }
+                    }
+                }
+            }
+        }
+        return mets;
+    }
+
+    public List<String> checkSetOfIds(List<String> setOfIds, String model) throws SoftwareException {
+        for (String member : setOfIds) {
+            checkSoftwareId(member);
+        }
+        if (METAMODEL_AGENT_ID.equals(model) && !setOfIds.isEmpty()) {
+            throw new SoftwareException("AGENT nesmí mít odkaz na ostatní software.");
+        }
+        List<SearchViewItem> items = new ArrayList<>();
+        try {
+            SearchView searchView = null;
+            if (Storage.FEDORA.equals(typeOfStorage)) {
+                searchView = fedoraStorage.getSearch();
+            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
+            }
+            items = searchView.find(setOfIds);
+        } catch (IOException | FedoraClientException ex) {
+            throw new SoftwareException(ex.getMessage());
+        }
+
+        for (SearchViewItem item : items) {
+            if (METAMODEL_EVENT_ID.equals(model)) {
+                if (!METAMODEL_AGENT_ID.equals(item.getModel())) {
+                    throw new SoftwareException("EVENT musí mít odkaz jen na AGENT. Nalezena v vazba na " + item.getModel() + " -> " + item.getPid() + ").");
+                }
+            } else if (METAMODEL_OBJECT_ID.equals(model)) {
+                if (!METAMODEL_EVENT_ID.equals(item.getModel())) {
+                    throw new SoftwareException("OBJECT musí mít odkaz jen na EVENT. Nalezena v vazba na " + item.getModel() + " -> " + item.getPid() + ").");
+                }
+            } else if (METAMODEL_SET_ID.equals(model)) {
+                if (!METAMODEL_OBJECT_ID.equals(item.getModel())) {
+                    throw new SoftwareException("SET musí mít odkaz jen na OBJECT. Nalezena v vazba na " + item.getModel() + " -> " + item.getPid() + ").");
+                }
+            }
+        }
+
+        return setOfIds;
     }
 }

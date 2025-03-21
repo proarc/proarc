@@ -804,7 +804,7 @@ public class AkubraStorage {
                 missingDataStream = false;
                 modified = false;
                 DigitalObject digitalObject = this.manager.readObjectFromStorage(this.object.getPid());
-                if (!(ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId) || DeviceRepository.DESCRIPTION_DS_ID.equals(dsId) || DeviceRepository.AUDIODESCRIPTION_DS_ID.equals(dsId))) {
+                if (!(ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId) || DeviceRepository.DESCRIPTION_DS_ID.equals(dsId) || DeviceRepository.AUDIODESCRIPTION_DS_ID.equals(dsId)) && !this.object.getPid().startsWith("software")) {
                     this.solrObjectFeeder.feedDescriptionDocument(digitalObject, this.object, true);
                 }
                 profile = AkubraUtils.createDatastremProfile(digitalObject, dsId);

@@ -96,6 +96,23 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
+    public boolean isSoftwareInUse(String softwareId) throws IOException, FedoraClientException {
+        try {
+            StringBuilder queryBuilder = new StringBuilder();
+            queryBuilder = appendAndValue(queryBuilder, FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");
+            queryBuilder = appendAndValue(queryBuilder, FIELD_MEMBERS + ":\"" + ClientUtils.escapeQueryChars(softwareId) + "\"");
+            SolrQuery solrQuery = new SolrQuery(queryBuilder.toString());
+            QueryResponse response = this.solrClient.query(solrQuery);
+
+            int total = response.getResults().size();
+            return  total > 0;
+        } catch (SolrServerException ex) {
+            ex.printStackTrace();
+            throw new IOException(ex);
+        }
+    }
+
+    @Override
     public List<SearchViewItem> find(String... pids) throws IOException {
         return find(true, Arrays.asList(pids));
     }
