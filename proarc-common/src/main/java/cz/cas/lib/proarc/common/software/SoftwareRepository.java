@@ -53,12 +53,14 @@ import cz.cas.lib.proarc.premis.LinkingAgentIdentifierComplexType;
 import cz.cas.lib.proarc.premis.LinkingEventIdentifierComplexType;
 import cz.cas.lib.proarc.premis.ObjectComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
+import cz.cas.lib.proarc.premis.RelatedEventIdentificationComplexType;
+import cz.cas.lib.proarc.premis.RelationshipComplexType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -328,18 +330,19 @@ public final class SoftwareRepository {
         }
         String id = software.getId();
 
-        List<Mets> metsList = new ArrayList<>();
-        metsList.addAll(getMets(id));
+        HashMap<String, Mets> metsList = new HashMap<>();
+        metsList.putAll(getMets(id));
         Mets mets = combineMets(metsList);
         software.setDescription(mets);
         return software;
     }
 
-    private Mets combineMets(List<Mets> metsList) {
+    private Mets combineMets(HashMap<String, Mets> metsList) {
         Mets newMets = new Mets();
         AmdSecType newAmdSec = new AmdSecType();
         newMets.getAmdSec().add(newAmdSec);
-        for (Mets mets : metsList) {
+        for (String pid : metsList.keySet()) {
+            Mets mets = metsList.get(pid);
             for (AmdSecType amdSec : mets.getAmdSec()) {
                 if (!amdSec.getTechMD().isEmpty()) {
                     newAmdSec.getTechMD().addAll(amdSec.getTechMD());
@@ -352,8 +355,8 @@ public final class SoftwareRepository {
         return newMets;
     }
 
-    private Collection<? extends Mets> getMets(String pid) throws SoftwareException {
-        List<Mets> metsList = new ArrayList<>();
+    private HashMap<String, Mets> getMets(String pid) throws SoftwareException {
+        HashMap<String, Mets> metsList = new HashMap<>();
         try {
             ProArcObject object = null;
             if (Storage.FEDORA.equals(typeOfStorage)) {
@@ -373,20 +376,21 @@ public final class SoftwareRepository {
                 String agentIdentifierType = getNodeValue(member, "//premis:agentIdentifierType/text()");
                 if (agentIdentifierType != null && !agentIdentifierType.isEmpty()) {
                     String agentIdentifierValue = getNodeValue(member, "//premis:agentIdentifierValue/text()");
-                    mets = addLinkingAgent(mets, agentIdentifierType, agentIdentifierValue);
+                    String agentType = getNodeValue(member, "//premis:agentType/text()");
+                    mets = addLinkingAgent(relationEditor.getModel(), mets, agentIdentifierType, agentIdentifierValue, agentType);
                 } else {
                     String eventIdentifierType = getNodeValue(member, "//premis:eventIdentifierType/text()");
                     if (eventIdentifierType != null && !eventIdentifierType.isEmpty()) {
                         String eventIdentifierValue = getNodeValue(member, "//premis:eventIdentifierValue/text()");
-                        mets = addLinkingEvent(mets, agentIdentifierType, eventIdentifierValue);
+                        mets = addLinkingEvent(relationEditor.getModel(), mets, agentIdentifierType, eventIdentifierValue);
                     }
                 }
             }
             if (mets != null) {
-                metsList.add(mets);
+                metsList.put(pid, mets);
             }
             for (String member : setOfIds) {
-                metsList.addAll(getMets(member));
+                metsList.putAll(getMets(member));
             }
         } catch (Exception ex) {
             LOG.warning(ex.getMessage());
@@ -396,17 +400,27 @@ public final class SoftwareRepository {
         return metsList;
     }
 
-    private Mets addLinkingEvent(Mets mets, String eventIdentifierType, String eventIdentifierValue) {
-        MdSecType.MdWrap.XmlData xmlData = getXmlData(mets);
+    private Mets addLinkingEvent(String modelId, Mets mets, String eventIdentifierType, String eventIdentifierValue) {
+        MdSecType.MdWrap.XmlData xmlData = getXmlData(modelId, mets);
         if (xmlData == null) {
             return mets;
         }
         try {
-            LinkingEventIdentifierComplexType linkingEvent = new LinkingEventIdentifierComplexType();
-            linkingEvent.setLinkingEventIdentifierType(eventIdentifierType);
-            linkingEvent.setLinkingEventIdentifierValue(eventIdentifierValue);
             File object = (File) ((JAXBElement) xmlData.getAny().get(0)).getValue();
-            object.getLinkingEventIdentifier().add(linkingEvent);
+            if (object != null) {
+                if (!object.getRelationship().isEmpty()) {
+                    RelationshipComplexType relationship = object.getRelationship().get(0);
+                    RelatedEventIdentificationComplexType relationEvent = new RelatedEventIdentificationComplexType();
+                    relationEvent.setRelatedEventIdentifierType(eventIdentifierType);
+                    relationEvent.setRelatedEventIdentifierValue(eventIdentifierValue);
+                    relationship.getRelatedEventIdentification().add(relationEvent);
+                } else {
+                    LinkingEventIdentifierComplexType linkingEvent = new LinkingEventIdentifierComplexType();
+                    linkingEvent.setLinkingEventIdentifierType(eventIdentifierType);
+                    linkingEvent.setLinkingEventIdentifierValue(eventIdentifierValue);
+                    object.getLinkingEventIdentifier().add(linkingEvent);
+                }
+            }
         } catch (Exception ex) {
             LOG.warning(ex.getMessage());
             ex.printStackTrace();
@@ -414,8 +428,8 @@ public final class SoftwareRepository {
         return mets;
     }
 
-    private Mets addLinkingAgent(Mets mets, String agentIdentifierType, String agentIdentifierValue) {
-        MdSecType.MdWrap.XmlData xmlData = getXmlData(mets);
+    private Mets addLinkingAgent(String modelId, Mets mets, String agentIdentifierType, String agentIdentifierValue, String agentType) {
+        MdSecType.MdWrap.XmlData xmlData = getXmlData(modelId, mets);
         if (xmlData == null) {
             return mets;
         }
@@ -423,6 +437,7 @@ public final class SoftwareRepository {
             LinkingAgentIdentifierComplexType linkingAgent = new LinkingAgentIdentifierComplexType();
             linkingAgent.setLinkingAgentIdentifierType(agentIdentifierType);
             linkingAgent.setLinkingAgentIdentifierValue(agentIdentifierValue);
+            linkingAgent.getLinkingAgentRole().add(agentType);
             EventComplexType event = (EventComplexType) ((JAXBElement) xmlData.getAny().get(0)).getValue();
             event.getLinkingAgentIdentifier().add(linkingAgent);
         } catch (Exception ex) {
@@ -432,12 +447,21 @@ public final class SoftwareRepository {
         return mets;
     }
 
-    private MdSecType.MdWrap.XmlData getXmlData(Mets mets) {
+    private MdSecType.MdWrap.XmlData getXmlData(String modelId, Mets mets) {
         for (AmdSecType amdSec : mets.getAmdSec()) {
-            for (MdSecType mdSec : amdSec.getDigiprovMD()) {
-                if (mdSec.getMdWrap() != null && mdSec.getMdWrap().getXmlData() != null) {
-                    MdSecType.MdWrap.XmlData xmlData = mdSec.getMdWrap().getXmlData();
-                    return xmlData;
+            if (METAMODEL_EVENT_ID.equals(modelId)) {
+                for (MdSecType mdSec : amdSec.getDigiprovMD()) {
+                    if (mdSec.getMdWrap() != null && mdSec.getMdWrap().getXmlData() != null) {
+                        MdSecType.MdWrap.XmlData xmlData = mdSec.getMdWrap().getXmlData();
+                        return xmlData;
+                    }
+                }
+            } else if (METAMODEL_OBJECT_ID.equals(modelId)) {
+                for (MdSecType mdSec : amdSec.getTechMD()) {
+                    if (mdSec.getMdWrap() != null && mdSec.getMdWrap().getXmlData() != null) {
+                        MdSecType.MdWrap.XmlData xmlData = mdSec.getMdWrap().getXmlData();
+                        return xmlData;
+                    }
                 }
             }
         }
@@ -576,7 +600,7 @@ public final class SoftwareRepository {
             } else if (Storage.AKUBRA.equals(typeOfStorage)) {
                 searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
             }
-            items = searchView.findByModels(offset, METAMODEL_AGENT_ID, METAMODEL_EVENT_ID, METAMODEL_EVENT_ID, METAMODEL_SET_ID);
+            items = searchView.findByModels(offset, METAMODEL_AGENT_ID, METAMODEL_EVENT_ID, METAMODEL_OBJECT_ID, METAMODEL_SET_ID);
         } catch (IOException | FedoraClientException ex) {
             throw new SoftwareException(ex.getMessage());
         }
@@ -665,6 +689,8 @@ public final class SoftwareRepository {
     public Mets fixMetsAccordingModel(String model, Mets mets) throws SoftwareException {
         if (model == null || model.isEmpty()) {
             return mets;
+        } else if (SoftwareRepository.METAMODEL_SET_ID.equals(model)) {
+            return null;
         } else {
             for (AmdSecType amdSecType : mets.getAmdSec()) {
                 for (MdSecType mdSec : amdSecType.getDigiprovMD()) {

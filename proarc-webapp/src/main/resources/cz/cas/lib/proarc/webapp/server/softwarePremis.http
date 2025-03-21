@@ -35,7 +35,7 @@ label=zarizeni 1&model=proarc:softwareagent
 
 ### GET SOFTWARE WITH PID (agent)
 
-GET {{proarcUrl}}/rest/v2/software?id=software:73300247-68d4-4a72-9038-2b68558107e2
+GET {{proarcUrl}}/rest/v2/software?id=software:320d7837-8fbc-440b-acac-b6c608869946
 
 ### UPDATE SOFTWARE AGENT
 
@@ -43,7 +43,7 @@ PUT {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-id=software:73300247-68d4-4a72-9038-2b68558107e2&model=proarc:softwareagent&label=zarizeni xx&timestamp=1742311996750
+id=software:320d7837-8fbc-440b-acac-b6c608869946&model=proarc:softwareagent&label=zarizeni xx&timestamp=1742564098761
     &description=<?xml version="1.0" encoding="utf-8" standalone="yes"?><mets:mets xmlns:premis="info:lc/xmlns/premis-v2" xmlns:mets="http://www.loc.gov/METS/" xmlns:ndktech="http://www.ndk.cz/standardy-digitalizace/ndktech" xmlns:docmd="http://www.fcla.edu/docmd" xmlns:nk="info:ndk/xmlns/nk-v1" xmlns:xlink="http://www.w3.org/1999/xlink"><mets:amdSec><mets:digiprovMD><mets:mdWrap MIMETYPE="text/xml" MDTYPE="PREMIS"><mets:xmlData><premis:agent><premis:agentIdentifier><premis:agentIdentifierType>ProArc_AgentID</premis:agentIdentifierType><premis:agentIdentifierValue>ProArc</premis:agentIdentifierValue></premis:agentIdentifier><premis:agentName>ProArc</premis:agentName><premis:agentType>softwarea</premis:agentType></premis:agent></mets:xmlData></mets:mdWrap></mets:digiprovMD></mets:amdSec></mets:mets>
 
 ### CREATE NEW SOFTWARE WITH MODEL EVENT
@@ -56,7 +56,7 @@ label=event 1&model=proarc:softwareevent
 
 ### GET SOFTWARE WITH PID (event)
 
-GET {{proarcUrl}}/rest/v2/software?id=software:284ee070-8f2e-4769-9b8f-e9f9c7a0f150
+GET {{proarcUrl}}/rest/v2/software?id=software:ea364722-57ab-41a3-ad5a-f151c622e376
 
 ### UPDATE SOFTWARE EVENT
 
@@ -64,7 +64,7 @@ PUT {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-id=software:284ee070-8f2e-4769-9b8f-e9f9c7a0f150&model=proarc:softwareevent&label=zarizeni xx&timestamp=1742545751002
+id=software:ea364722-57ab-41a3-ad5a-f151c622e376&model=proarc:softwareevent&label=zarizeni xx&timestamp=1742564312739
     &members=software:73300247-68d4-4a72-9038-2b68558107e2
     &description=<?xml version="1.0" encoding="utf-8" standalone="yes"?><mets:mets xmlns:premis="info:lc/xmlns/premis-v2" xmlns:mets="http://www.loc.gov/METS/" xmlns:ndktech="http://www.ndk.cz/standardy-digitalizace/ndktech" xmlns:docmd="http://www.fcla.edu/docmd" xmlns:nk="info:ndk/xmlns/nk-v1" xmlns:xlink="http://www.w3.org/1999/xlink"><mets:amdSec><mets:digiprovMD><mets:mdWrap MIMETYPE="text/xml" MDTYPE="PREMIS"><mets:xmlData><premis:event><premis:eventIdentifier><premis:eventIdentifierType>ProArc_EventID</premis:eventIdentifierType><premis:eventIdentifierValue>digitization_001</premis:eventIdentifierValue></premis:eventIdentifier><premis:eventType>capture</premis:eventType><premis:eventDateTime>2025-01-06T09:50:52.499 01:00</premis:eventDateTime><premis:eventDetail>capture/digitization</premis:eventDetail><premis:eventOutcomeInformation><premis:eventOutcome>successful</premis:eventOutcome></premis:eventOutcomeInformation></premis:event></mets:xmlData></mets:mdWrap></mets:digiprovMD></mets:amdSec></mets:mets>
 
@@ -80,7 +80,66 @@ id=software:25ce8e79-bc1f-4e5c-9e3d-f0e85e8095c7&model=proarc:softwareevent&labe
 
 ### GET SOFTWARE WITH PREVIEW
 
-GET {{proarcUrl}}/rest/v2/software/preview?id=software:73300247-68d4-4a72-9038-2b68558107e2
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:77cf2c58-fbaa-479d-b60d-f3b4f0c4abac
+
+### GET SOFTWARE WITH PREVIEW
+
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:ea364722-57ab-41a3-ad5a-f151c622e376
+
+### CREATE NEW SOFTWARE WITH MODEL OBJECT
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=event 1&model=proarc:softwareobject
+
+### GET SOFTWARE WITH PID (object)
+
+GET {{proarcUrl}}/rest/v2/software?id=software:77cf2c58-fbaa-479d-b60d-f3b4f0c4abac
+
+### UPDATE SOFTWARE OBJECT
+
+PUT {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+id=software:2deeb368-a59c-45b3-8113-215cf3cdb834&model=proarc:softwareobject&label=zarizeni object 1&timestamp=1742567129516
+    &members=software:320d7837-8fbc-440b-acac-b6c608869946
+    &description=<?xml version="1.0" encoding="utf-8" standalone="yes"?><mets:mets xmlns:premis="info:lc/xmlns/premis-v2" xmlns:mets="http://www.loc.gov/METS/" xmlns:ndktech="http://www.ndk.cz/standardy-digitalizace/ndktech" xmlns:docmd="http://www.fcla.edu/docmd" xmlns:nk="info:ndk/xmlns/nk-v1" xmlns:xlink="http://www.w3.org/1999/xlink"><mets:amdSec ID="PAGE_0001"><mets:techMD ID="OBJ_002"><mets:mdWrap MIMETYPE="text/xml" MDTYPE="PREMIS"><mets:xmlData><premis:object xsi:type="premis:file" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><premis:objectIdentifier><premis:objectIdentifierType>ProArc_URI</premis:objectIdentifierType><premis:objectIdentifierValue>${uuid}/NDK_ARCHIVAL</premis:objectIdentifierValue></premis:objectIdentifier><premis:preservationLevel><premis:preservationLevelValue>preservation</premis:preservationLevelValue></premis:preservationLevel><premis:objectCharacteristics><premis:compositionLevel>0</premis:compositionLevel><premis:fixity><premis:messageDigestAlgorithm>MD5</premis:messageDigestAlgorithm><premis:messageDigestOriginator>ProArc</premis:messageDigestOriginator></premis:fixity><premis:size>872642</premis:size><premis:format><premis:formatDesignation><premis:formatName>image/jp2</premis:formatName><premis:formatVersion>1.0</premis:formatVersion></premis:formatDesignation><premis:formatRegistry><premis:formatRegistryName>PRONOM</premis:formatRegistryName><premis:formatRegistryKey>x-fmt/392</premis:formatRegistryKey></premis:formatRegistry></premis:format><premis:creatingApplication><premis:creatingApplicationName>ProArc</premis:creatingApplicationName><premis:creatingApplicationVersion>${proarcVersion}</premis:creatingApplicationVersion><premis:dateCreatedByApplication>${dateOfCreated}</premis:dateCreatedByApplication></premis:creatingApplication></premis:objectCharacteristics><premis:originalName>${filename}</premis:originalName><premis:relationship><premis:relationshipType>derivation</premis:relationshipType><premis:relationshipSubType>created from</premis:relationshipSubType><premis:relatedObjectIdentification><premis:relatedObjectIdentifierType>ProArc_URI</premis:relatedObjectIdentifierType><premis:relatedObjectIdentifierValue>${uuid}/RAW</premis:relatedObjectIdentifierValue></premis:relatedObjectIdentification></premis:relationship></premis:object></mets:xmlData></mets:mdWrap></mets:techMD></mets:amdSec></mets:mets>
+
+
+### GET SOFTWARE WITH PREVIEW
+
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:be365e96-0d5a-48eb-9efc-26decf1a6577
+
+### CREATE NEW SOFTWARE WITH MODEL SET
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=event 1&model=proarc:softwareset
+
+### GET SOFTWARE WITH PID (object)
+
+GET {{proarcUrl}}/rest/v2/software?id=software:2deeb368-a59c-45b3-8113-215cf3cdb834
+
+### UPDATE SOFTWARE OBJECT
+
+PUT {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+id=software:bfd081b1-1c08-4305-bb70-f0c65f16b68d&model=proarc:softwareset&label=zarizeni set&timestamp=1742565254009
+    &members=software:77cf2c58-fbaa-479d-b60d-f3b4f0c4abac&members=software:be365e96-0d5a-48eb-9efc-26decf1a6577
+
+
+### GET SOFTWARE WITH PREVIEW
+
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:bfd081b1-1c08-4305-bb70-f0c65f16b68d
+#GET {{proarcUrl}}/rest/v2/software/preview?id=software:be365e96-0d5a-48eb-9efc-26decf1a6577
+#GET {{proarcUrl}}/rest/v2/software/preview?id=software:77cf2c58-fbaa-479d-b60d-f3b4f0c4abac
 
 ### DELETE SOFTWARE
 
