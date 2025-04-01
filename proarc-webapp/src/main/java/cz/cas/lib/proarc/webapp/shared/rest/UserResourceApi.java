@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.webapp.server.rest.v1.UserResourceV1;
 public final class UserResourceApi {
 
     public static final String PATH = "user";
+    public static final String PATH_USER_SETTING = "userSetting";
 
     public static final String USER_WHOAMI_PARAM = "whoAmI";
 
@@ -56,5 +57,5 @@ public final class UserResourceApi {
     public static final String USER_WF_DELETE_JOB_FUNCTION = "wfDeleteJobFunction";
     public static final String USER_IMPORT_TO_CATALOG_FUNCTION = "importToCatalogFunction";
     public static final String USER_START_ROW_PARAM = "_startRow";
-
+    public static final String USER_SETTING = "userSetting";
 }

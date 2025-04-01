@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.GroupDao;
 import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.dao.UserDao;
+import cz.cas.lib.proarc.common.dao.UserSettingDao;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.SqlTransaction;
 import cz.cas.lib.proarc.common.storage.Storage;
@@ -30,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -483,4 +485,57 @@ final class UserManagerSql implements UserManager {
         return source.getConnection();
     }
 
+    @Override
+    public List<UserSetting> getUserSetting(Integer userId) {
+        Transaction tx = daos.createTransaction();
+        try {
+            UserSettingDao userSettingDao = daos.createUserSettingDao();
+            userSettingDao.setTransaction(tx);
+            return userSettingDao.findByUserId(userId);
+        } finally {
+            tx.close();
+        }
+    }
+
+    @Override
+    public UserSetting addUserSetting(UserSetting userSetting) {
+        if (userSetting == null) {
+            throw new NullPointerException();
+        }
+        Transaction tx = daos.createTransaction();
+        try {
+            UserSettingDao userSettingDao = daos.createUserSettingDao();
+            userSettingDao.setTransaction(tx);
+
+            UserSetting setting = userSettingDao.create();
+            setting.setUserId(userSetting.getUserId());
+            setting.setUserSetting(userSetting.getUserSetting());
+            setting.setTimestamp(new Timestamp(System.currentTimeMillis()));
+            userSettingDao.update(setting);
+            tx.commit();
+            return setting;
+        } finally {
+            tx.close();
+        }
+    }
+
+    @Override
+    public UserSetting updateUserSetting(UserSetting userSetting) {
+        if (userSetting == null) {
+            throw new NullPointerException();
+        }
+        Transaction tx = daos.createTransaction();
+        try {
+            UserSettingDao userSettingDao = daos.createUserSettingDao();
+            userSettingDao.setTransaction(tx);
+
+//        userSetting.setTimestamp(new Timestamp(System.currentTimeMillis()));
+            userSettingDao.update(userSetting);
+
+            tx.commit();
+            return userSetting;
+        } finally {
+            tx.close();
+        }
+    }
 }

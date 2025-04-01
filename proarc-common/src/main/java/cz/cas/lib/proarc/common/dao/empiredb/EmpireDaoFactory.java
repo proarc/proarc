@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.GroupDao;
 import cz.cas.lib.proarc.common.dao.UserDao;
+import cz.cas.lib.proarc.common.dao.UserSettingDao;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -79,6 +80,11 @@ public class EmpireDaoFactory implements DaoFactory {
     @Override
     public GroupDao createUserGroup() {
         return new EmpireGroupDao(db);
+    }
+
+    @Override
+    public UserSettingDao createUserSettingDao() {
+        return new EmpireUserSettingDao(db);
     }
 
     @Override

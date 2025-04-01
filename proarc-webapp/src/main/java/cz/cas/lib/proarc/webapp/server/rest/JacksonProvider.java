@@ -58,6 +58,7 @@ public final class JacksonProvider implements ContextResolver<ObjectMapper> {
         registerAnnotatedSuperclass(AnnotatedSmartGwtResponse.class);
         registerAnnotatedSuperclass(AnnotatedStringRecord.class);
         registerAnnotatedSuperclass(AnnotatedUser.class);
+        registerAnnotatedSuperclass(AnnotatedUserSetting.class);
         registerAnnotatedSuperclass(AnnotatedValueMap.class);
 
         registerAnnotatedSuperclass(AnnotatedMods.class);
