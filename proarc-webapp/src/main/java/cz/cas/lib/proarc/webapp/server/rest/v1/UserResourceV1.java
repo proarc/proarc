@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserSetting;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
@@ -75,6 +76,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNKNOWN_USER;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 
 /**
@@ -418,6 +421,61 @@ public class UserResourceV1 {
             result = new ArrayList<Permission>(permissions);
         }
         return new SmartGwtResponse<Permission>(result);
+    }
+
+    @GET
+    @Path(UserResourceApi.PATH_USER_SETTING)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<UserSetting> getUserSetting(
+//            @QueryParam(UserResourceApi.USER_ID) Integer userId
+    ) {
+        Integer userId = session.getUser().getId();
+
+        if (userId == null) {
+            UserSetting userSetting = new UserSetting();
+            userSetting.setValidation(returnLocalizedMessage(ERR_UNKNOWN_USER));
+            return new SmartGwtResponse<>(Collections.singletonList(userSetting));
+        }
+
+        List<UserSetting> userSetting = userManager.getUserSetting(userId);
+        return new SmartGwtResponse<>(userSetting);
+    }
+
+    @POST
+    @Path(UserResourceApi.PATH_USER_SETTING)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<UserSetting> updateUserSetting(
+//            @FormParam(UserResourceApi.USER_ID) Integer userId,
+            @FormParam(UserResourceApi.USER_SETTING) String settingJson
+    ) {
+        Integer userId = session.getUser().getId();
+        if (userId == null) {
+            UserSetting userSetting = new UserSetting();
+            userSetting.setValidation(returnLocalizedMessage(ERR_UNKNOWN_USER));
+            return new SmartGwtResponse<>(Collections.singletonList(userSetting));
+        }
+
+        if (settingJson == null || settingJson.isEmpty()) {
+            UserSetting userSetting = new UserSetting();
+            userSetting.setValidation(returnLocalizedMessage(ERR_MISSING_PARAMETER, UserResourceApi.USER_SETTING));
+            return new SmartGwtResponse<>(Collections.singletonList(userSetting));
+        }
+
+        List<UserSetting> settings = userManager.getUserSetting(userId);
+        if (settings.isEmpty()) {
+            UserSetting userSetting = new UserSetting();
+            userSetting.setUserId(userId);
+            userSetting.setUserSetting(settingJson);
+            userManager.addUserSetting(userSetting);
+        } else {
+            for (UserSetting setting : settings) {
+                setting.setUserSetting(settingJson);
+                userManager.updateUserSetting(setting);
+            }
+        }
+
+        settings = userManager.getUserSetting(userId);
+        return new SmartGwtResponse<UserSetting>(settings);
     }
 
     protected String checkAccess(UserProfile user, List<String> requiredRoles, Permission... permissions) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Jan Pokorsky
+ * Copyright (C) 2015 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,32 +16,21 @@
  */
 package cz.cas.lib.proarc.common.dao;
 
+import cz.cas.lib.proarc.common.user.UserSetting;
+import java.util.List;
+
 /**
+ * DAO for {@link cz.cas.lib.proarc.common.user.UserSetting}.
  *
- * @author Jan Pokorsky
+ * @author Lukas Sykora
  */
-public interface DaoFactory {
+public interface UserSettingDao extends Dao {
 
-    Transaction createTransaction();
+    UserSetting create();
 
-    BatchDao createBatch();
+    UserSetting find(int id);
 
-    BatchItemDao createBatchItem();
+    List<UserSetting> findByUserId(int userId);
 
-    UserDao createUser();
-
-    GroupDao createUserGroup();
-
-    UserSettingDao createUserSettingDao();
-
-    WorkflowJobDao createWorkflowJobDao();
-
-    WorkflowMaterialDao createWorkflowMaterialDao();
-
-    WorkflowParameterDao createWorkflowParameterDao();
-
-    WorkflowTaskDao createWorkflowTaskDao();
-
-    void init();
-
+    void update(UserSetting userSetting) throws ConcurrentModificationException;
 }

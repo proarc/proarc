@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserSetting;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
@@ -177,6 +178,35 @@ public class UserResource extends UserResourceV1 {
     ) {
         try {
             return super.findPermissions(userId);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @GET
+    @Path(UserResourceApi.PATH_USER_SETTING)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<UserSetting> getUserSetting(
+//            @QueryParam(UserResourceApi.USER_ID) Integer userId
+    ) {
+        try {
+            return super.getUserSetting();
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
+    @Path(UserResourceApi.PATH_USER_SETTING)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<UserSetting> updateUserSetting(
+//            @FormParam(UserResourceApi.USER_ID) Integer userId,
+            @FormParam(UserResourceApi.USER_SETTING) String settingJson
+    ) {
+        try {
+            return super.updateUserSetting(settingJson);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

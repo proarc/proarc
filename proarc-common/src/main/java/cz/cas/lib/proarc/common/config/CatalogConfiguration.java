@@ -140,7 +140,7 @@ public final class CatalogConfiguration {
     }
 
     public String getField001BaseDefault() {
-        return properties.getString(PROPERTY_FIELD001_BASE_DEFAULT, null);
+        return properties.getString(PROPERTY_FIELD001_BASE_DEFAULT, "");
     }
 
     public Integer getField001SysnoLenght() {
