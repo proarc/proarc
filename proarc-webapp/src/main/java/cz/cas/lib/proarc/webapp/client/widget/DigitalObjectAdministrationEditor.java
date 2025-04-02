@@ -38,6 +38,7 @@ import cz.cas.lib.proarc.webapp.client.ds.DeviceDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectAdministrationDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.ds.SoftwareDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.UserDataSource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.LinkedHashMap;
@@ -156,6 +157,7 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
     private void saveBatchEditor() {
         DynamicForm form = getBatchEditor().getForm();
         String device = form.getValueAsString(DigitalObjectAdministrationDataSource.FIELD_DEVICE);
+        String software = form.getValueAsString(DigitalObjectAdministrationDataSource.FIELD_SOFTWARE);
         String[] pids = DigitalObject.toPidArray(digitalObjects);
         Record update = new Record();
         update.setAttribute(DigitalObjectAdministrationDataSource.FIELD_PID, pids);
@@ -164,6 +166,7 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             update.setAttribute(DigitalObjectResourceApi.ATM_ITEM_BATCHID, batchId);
         }
         update.setAttribute(DigitalObjectAdministrationDataSource.FIELD_DEVICE, device);
+        update.setAttribute(DigitalObjectAdministrationDataSource.FIELD_SOFTWARE, software);
         DigitalObjectAdministrationDataSource.getInstance().updateData(update, new DSCallback() {
 
             @Override
@@ -235,6 +238,14 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             device.setAllowEmptyValue(true);
             device.setEmptyDisplayValue(ClientUtils.format("<i>&lt;%s&gt;</i>",
                     i18n.DigitalObjectEditor_AdministrationEditor_NoDeviceSelection_Title()));
+
+            SelectItem software = new SelectItem(DigitalObjectAdministrationDataSource.FIELD_SOFTWARE,
+                    i18n.DigitalObjectEditor_AdministrationEditor_Software_Title());
+            software.setWidth(250);
+            SoftwareDataSource.setOptionDataSource(software);
+            software.setAllowEmptyValue(true);
+            software.setEmptyDisplayValue(ClientUtils.format("<i>&lt;%s&gt;</i>",
+                    i18n.DigitalObjectEditor_AdministrationEditor_NoSoftwareSelection_Title()));
 
             TextItem filename = new TextItem(DigitalObjectAdministrationDataSource.FIELD_FILENAME,
                     i18n.DigitalObjectEditor_AdministrationEditor_File_Title());
@@ -316,7 +327,7 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             archivalCopies.setWidth("*");
             archivalCopies.setCanEdit(Boolean.TRUE);
 
-            form.setItems(pid, model, owner, creationDate, modificationDate, device, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status, locked, lockedBy, lockedDate, donator, archivalCopies);
+            form.setItems(pid, model, owner, creationDate, modificationDate, device, software, filename, export,  ndkExport, krameriusExport, archiveExport, crossrefExport, organization, user, status, locked, lockedBy, lockedDate, donator, archivalCopies);
             widget.setMembers(form);
         }
 
@@ -331,6 +342,7 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
         public void invalidateCache() {
             form.invalidateCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_DEVICE).invalidateDisplayValueCache();
+            form.getField(DigitalObjectAdministrationDataSource.FIELD_SOFTWARE).invalidateDisplayValueCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_DONATOR).invalidateDisplayValueCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_ARCHIVAL_COPIES).invalidateDisplayValueCache();
         }
@@ -358,7 +370,15 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
             device.setEmptyDisplayValue(ClientUtils.format("<i>&lt;%s&gt;</i>",
                     i18n.DigitalObjectEditor_AdministrationEditor_NoDeviceSelection_Title()));
 
-            form.setItems(device);
+            SelectItem software = new SelectItem(DigitalObjectAdministrationDataSource.FIELD_SOFTWARE,
+                    i18n.ImportSourceChooser_OptionSoftware_Title());
+            SoftwareDataSource.setOptionDataSource(software);
+            software.setWidth(250);
+            software.setAllowEmptyValue(true);
+            software.setEmptyDisplayValue(ClientUtils.format("<i>&lt;%s&gt;</i>",
+                    i18n.DigitalObjectEditor_AdministrationEditor_NoSoftwareSelection_Title()));
+
+            form.setItems(device, software);
             widget.setMembers(form);
         }
 
@@ -373,6 +393,7 @@ public final class DigitalObjectAdministrationEditor implements BatchDatastreamE
         public void invalidateCache() {
             form.invalidateCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_DEVICE).invalidateDisplayValueCache();
+            form.getField(DigitalObjectAdministrationDataSource.FIELD_SOFTWARE).invalidateDisplayValueCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_DONATOR).invalidateDisplayValueCache();
             form.getField(DigitalObjectAdministrationDataSource.FIELD_ARCHIVAL_COPIES).invalidateDisplayValueCache();
         }

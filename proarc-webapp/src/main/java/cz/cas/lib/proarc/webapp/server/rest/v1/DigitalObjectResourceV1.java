@@ -2538,6 +2538,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_SOFTWARE) String softwareId,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_STATUS) String status,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName,
@@ -2573,7 +2574,7 @@ public class DigitalObjectResourceV1 {
         for (String pid : pids) {
             ProArcObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, organization, userName, status, donator, archivalCopiesPath, session.asFedoraLog(), user.getRole());
+            editor.write(deviceId, softwareId, organization, userName, status, donator, archivalCopiesPath, session.asFedoraLog(), user.getRole());
             fobject.flush();
             if (!(model != null && model.length() > 0 && model.contains("page"))) {
                 editor.setChild(pid, organization, userName, status, donator, appConfig, akubraConfiguration, search, session.asFedoraLog());

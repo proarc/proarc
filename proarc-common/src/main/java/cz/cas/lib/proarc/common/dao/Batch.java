@@ -84,6 +84,7 @@ public class Batch {
     private Integer estimateItemNumber;
     // user input fields
     private String device;
+    private String software;
     private boolean generateIndices;
     private boolean generatePageNumber;
     private String log;
@@ -179,6 +180,14 @@ public class Batch {
         this.device = device;
     }
 
+    public String getSoftware() {
+        return software;
+    }
+
+    public void setSoftware(String software) {
+        this.software = software;
+    }
+
     public boolean isGenerateIndices() {
         return generateIndices;
     }
@@ -260,9 +269,9 @@ public class Batch {
                 + ", parentPid=" + parentPid + ", create=" + create
                 + ", timestamp=" + timestamp + ", state=" + state
                 + ", userId=" + userId + ", estimateItemNumber=" + estimateItemNumber
-                + ", device=" + device + ", generateIndices=" + generateIndices
-                + ", profileId=" + profileId + ", log=" + log
-                + ", priority=" + priority + ", params = " + params + "}";
+                + ", device=" + device + ", software=" + software
+                + ", generateIndices=" + generateIndices + ", profileId=" + profileId
+                + ", log=" + log + ", priority=" + priority + ", params = " + params + "}";
     }
 
 }

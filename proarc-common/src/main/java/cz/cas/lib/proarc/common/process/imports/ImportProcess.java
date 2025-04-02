@@ -82,11 +82,11 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
-            String device, boolean generateIndices, String priority,
+            String device, String software, boolean generateIndices, String priority,
             boolean useNewMetadata, boolean useOriginalMetadata,
             ImportProfile profile, AppConfiguration config
             ) throws IOException {
-        return prepare(importFolder, description, user, batchManager, device, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, profile, config);
+        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, profile, config);
     }
 
     /**
@@ -96,11 +96,11 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
-            String device, boolean generateIndices, boolean generatePageNumber, String priority,
+            String device, String software, boolean generateIndices, boolean generatePageNumber, String priority,
             boolean useNewMetadata, boolean useOriginalMetadata, ImportProfile profile, AppConfiguration config
             ) throws IOException {
 
-        ImportOptions options = new ImportOptions(importFolder, device,
+        ImportOptions options = new ImportOptions(importFolder, device, software,
                 generateIndices, generatePageNumber, user, profile, priority, useNewMetadata, useOriginalMetadata);
         ImportProcess process = new ImportProcess(options, batchManager, config);
         process.prepare(description, user);
@@ -379,6 +379,7 @@ public final class ImportProcess implements Runnable {
          */
         private File targetFolder;
         private String device;
+        private String software;
         private boolean generateIndices;
         private boolean generatePageNumber;
         private int consumedFileCounter;
@@ -392,15 +393,16 @@ public final class ImportProcess implements Runnable {
         private boolean useNewMetadata;
         private boolean useOriginalMetadata;
 
-        public ImportOptions(File importFolder, String device, boolean generateIndices, UserProfile username, ImportProfile profile, String priority) {
-            this(importFolder, device, generateIndices, false, username, profile, priority, false, false);
+        public ImportOptions(File importFolder, String device, String software, boolean generateIndices, UserProfile username, ImportProfile profile, String priority) {
+            this(importFolder, device, software, generateIndices, false, username, profile, priority, false, false);
         }
 
-        public ImportOptions(File importFolder, String device,
+        public ImportOptions(File importFolder, String device, String software,
                 boolean generateIndices, boolean gerenatePageNumber, UserProfile username,
                 ImportProfile profile, String priority, boolean useNewMetadata, boolean useOriginalMetadata
                 ) {
             this.device = device;
+            this.software = software;
             this.generateIndices = generateIndices;
             this.generatePageNumber = gerenatePageNumber;
             this.user = username;
@@ -444,6 +446,10 @@ public final class ImportProcess implements Runnable {
 
         public String getDevice() {
             return device;
+        }
+
+        public String getSoftware() {
+            return software;
         }
 
         public String getModel() {
@@ -502,7 +508,7 @@ public final class ImportProcess implements Runnable {
                                               boolean useNewMetadata, boolean useOriginalMetadata, UserProfile username, ImportProfile profile) {
 
             ImportOptions options = new ImportOptions(
-                    importFolder, batch.getDevice(),
+                    importFolder, batch.getDevice(), batch.getSoftware(),
                     batch.isGenerateIndices(), batch.isGeneratePageNumber(), username, profile, batch.getPriority(), useNewMetadata, useOriginalMetadata);
             options.setBatch(batch);
             return options;

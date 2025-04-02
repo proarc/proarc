@@ -71,12 +71,13 @@ public final class AtmEditor {
     /**
      * Updates metadata.
      * @param deviceId device ID to update. Use {@link #NULL} for clearing
+     * @param softwareId software ID to update. Use {@link #NULL} for clearing
      * @param organization  ID to update. Use {@link #NULL} for clearing
      * @param message audit message
      * @param role
      * @throws DigitalObjectException
      */
-    public void write(String deviceId, String organization, String user, String status, String donator, String archivalCopiesPath, String message, String role) throws DigitalObjectException {
+    public void write(String deviceId, String softwareId, String organization, String user, String status, String donator, String archivalCopiesPath, String message, String role) throws DigitalObjectException {
         boolean changedUser = false;
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
@@ -87,6 +88,16 @@ public final class AtmEditor {
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
                 relationEditor.setDevice(newVal);
                 write = true;
+            }
+        }
+        // check softwareId exist
+        if (softwareId != null && !softwareId.isEmpty()) {
+            String oldVal = relationEditor.getSoftware();
+            String newVal = NULL.equals(softwareId) ? null : softwareId;
+            if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
+                relationEditor.setSoftware(newVal);
+                write = true;
+                // todo check existing premis stream, if yes regenerate??
             }
         }
         if (user != null && !user.isEmpty()) {
@@ -219,6 +230,7 @@ public final class AtmEditor {
         }
         RelationEditor relationEditor = new RelationEditor(fobject);
         atm.deviceId = relationEditor.getDevice();
+        atm.softwareId = relationEditor.getSoftware();
         atm.importFile = relationEditor.getImportFile();
         atm.model = relationEditor.getModel();
         atm.export = relationEditor.getExportResult();
@@ -318,6 +330,7 @@ public final class AtmEditor {
         private String created;
         private String modified;
         private String deviceId;
+        private String softwareId;
         private String importFile;
         private String export;
         private String organization;
@@ -370,6 +383,10 @@ public final class AtmEditor {
 
         public String getDeviceId() {
             return deviceId;
+        }
+
+        public String getSoftwareId() {
+            return softwareId;
         }
 
         public String getImportFile() {

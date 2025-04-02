@@ -84,6 +84,14 @@ public class RdfDescription {
     private RdfRelation hasDevice;
 
     /**
+     * RDF relation defines digital software of the digital object. E.g.:
+     *
+     * <p/>{@code <proarc-rels:hasSoftware rdf:resource="info:fedora/software:objectSet"/>}
+     */
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
+    private RdfRelation hasSoftware;
+
+    /**
      * RDF relation defines filename of the imported digital content. E.g.:
      *
      * <p/>{@code <proarc-rels:importFile>ABA00726009905207199800001.tif<importFile/>}
@@ -262,6 +270,14 @@ public class RdfDescription {
 
     public void setDevice(RdfRelation hasDevice) {
         this.hasDevice = hasDevice;
+    }
+
+    public RdfRelation getSoftware() {
+        return hasSoftware;
+    }
+
+    public void setSoftware(RdfRelation hasSoftware) {
+        this.hasSoftware = hasSoftware;
     }
 
     public String getImportFile() {

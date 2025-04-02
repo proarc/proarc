@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
+import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
@@ -113,6 +114,8 @@ public class ProarcDatabaseV17 extends DBDatabase {
             DBSQLScript script = new DBSQLScript();
 
             EmpireUtils.addTable(schema.tableUserSetting, driver, script);
+
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.software, script);
 
             LOG.fine(script.toString());
             script.run(driver, conn);

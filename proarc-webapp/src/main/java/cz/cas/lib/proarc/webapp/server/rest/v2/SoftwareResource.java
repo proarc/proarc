@@ -92,6 +92,18 @@ public class SoftwareResource extends SoftwareResourceV1 {
         }
     }
 
+    @GET
+    @Path(SoftwareResourceApi.PATH_SET)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Software> getSoftwareSet() {
+        try {
+            return super.getSoftwareSet();
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
     /**
      * Gets list of software with define preview.
      *

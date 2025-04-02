@@ -117,6 +117,7 @@ public class EmpireBatchDaoTest {
         Batch batch = dao.create();
         batch.setCreate(Timestamp.valueOf("2013-01-17 12:12:12.000"));
         batch.setDevice("device:scanner");
+        batch.setSoftware("software:objectSet");
         batch.setEstimateItemNumber(2);
         batch.setFolder("folder/");
         batch.setGenerateIndices(true);

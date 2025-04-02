@@ -41,6 +41,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
@@ -114,7 +115,7 @@ public class SoftwareResourceV1 {
             if (!deleted) {
                 Locale locale = session.getLocale(httpHeaders);
 //                throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
-                throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_SOFTWARE_IN_USE));
+                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SOFTWARE_IN_USE));
             }
             Software software = new Software();
             software.setId(id);
@@ -152,6 +153,18 @@ public class SoftwareResourceV1 {
         }
         int endRow = startRow + result.size() - 1;
         return new SmartGwtResponse<Software>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, result);
+    }
+
+    @GET
+    @Path(SoftwareResourceApi.PATH_SET)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<Software> getSoftwareSet() {
+        try {
+            return getSoftwares(null, SoftwareRepository.METAMODEL_SET_ID, 0);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
     }
 
     /**

@@ -108,6 +108,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn create; // date of creation
         public final DBTableColumn timestamp; // optimistic lock
         public final DBTableColumn device; // digitization device ID (PID)
+        public final DBTableColumn software; // digitization software ID (PID)
         public final DBTableColumn generateIndices;
         public final DBTableColumn log;
         public final DBTableColumn profileId;
@@ -128,6 +129,7 @@ public class ProarcDatabase extends DBDatabase {
             create = addColumn("CREATE", DataType.DATETIME, 0, true);
             timestamp = addTimestampColumn("TIMESTAMP");
             device = addColumn("DEVICE", DataType.TEXT, 2000, false);
+            software = addColumn("SOFTWARE", DataType.TEXT, 2000, false);
             generateIndices = addColumn("GENERATE_INDICES", DataType.BOOL, 0, false);
             log = addColumn("LOG", DataType.CLOB, 0, false);
             profileId = addColumn("PROFILE_ID", DataType.TEXT, 2000, false);

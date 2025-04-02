@@ -58,6 +58,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_POSIT
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_TYPE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PART_NUMBER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PID;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOFTWARE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOURCE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATUS;
@@ -85,6 +86,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         String modified = getProperties(object, PROPERTY_LASTMODIFIED);
 
         String device = relationEditor.getDevice();
+        String software = relationEditor.getSoftware();
         String organization = relationEditor.getOrganization();
         String user = relationEditor.getUser();
         String status = relationEditor.getStatus();
@@ -110,7 +112,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
         try {
             feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
-                    ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members,
+                    ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, software, members,
                     pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber, identifiers);
             if (commit) {
                 commit();
@@ -189,7 +191,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
     }
 
     private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
-            String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex,
+            String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, String software, List<String> members, String pageIndex,
             String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
@@ -209,6 +211,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_EXPORT_CROSSREF, crossrefExport);
         sdoc.addField(FIELD_LOCKED, isLocked);
         sdoc.addField(FIELD_DEVICE, device);
+        sdoc.addField(FIELD_SOFTWARE, software);
         sdoc.addField(FIELD_MEMBERS, members.toArray());
         sdoc.addField(FIELD_PAGE_INDEX, pageIndex);
         sdoc.addField(FIELD_PAGE_NUMBER, pageNumber);

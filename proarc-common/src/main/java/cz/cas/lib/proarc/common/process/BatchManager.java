@@ -278,6 +278,7 @@ public class BatchManager {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(options.getDevice());
+        batch.setSoftware(options.getSoftware());
         batch.setEstimateItemNumber(itemNumber);
         String folderPath = relativizeBatchFile(folder);
         batch.setFolder(folderPath);
@@ -296,6 +297,7 @@ public class BatchManager {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(null);
+        batch.setSoftware(null);
         batch.setEstimateItemNumber(null);
         batch.setFolder(pid);
         batch.setPriority(Batch.PRIORITY_MEDIUM);

@@ -40,6 +40,7 @@ public final class ImportResourceApi {
     public static final String BATCHES_IN_PROCESS_PATH = "processingBatches";
     public static final String BATCH_STOP_PATH = "batchStopped";
     public static final String NEWBATCH_DEVICE_PARAM = "device";
+    public static final String NEWBATCH_SOFTWARE_PARAM = "software";
     public static final String NEWBATCH_INDICES_PARAM = "indices";
 
     public static final String BATCH_GENERATE_PATH = "generate";

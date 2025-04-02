@@ -100,6 +100,7 @@ public class ImportResource extends ImportResourceV1 {
     public SmartGwtResponse<BatchView> newBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
+            @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
@@ -107,7 +108,7 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
     ) {
         try {
-            return super.newBatch(path, device, indices, profileId, priority, useNewMetadata, useOriginalMetadata);
+            return super.newBatch(path, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -135,6 +136,7 @@ public class ImportResource extends ImportResourceV1 {
     public SmartGwtResponse<BatchView> newBatches(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
+            @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
@@ -142,7 +144,7 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
     ) {
         try {
-            return super.newBatches(pathes, device, indices, profileId, priority, useNewMetadata, useOriginalMetadata);
+            return super.newBatches(pathes, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

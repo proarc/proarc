@@ -259,6 +259,7 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_BATCHID = ImportResourceApi.BATCHITEM_BATCHID;
     public static final String ATM_ITEM_CREATED = MEMBERS_ITEM_CREATED;
     public static final String ATM_ITEM_DEVICE = "device";
+    public static final String ATM_ITEM_SOFTWARE = "software";
     public static final String ATM_ITEM_EXPORTRESULT = "exportResult";
     public static final String ATM_ITEM_NDK_EXPORT = "ndkExportResult";
     public static final String ATM_ITEM_ARCHIVE_EXPORT = "archiveExportResult";

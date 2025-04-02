@@ -167,6 +167,7 @@ public class TiffImporter implements ImageImporter {
         RelationEditor relEditor = objHandler.relations();
         relEditor.setModel(fedoraModel);
         relEditor.setDevice(ctx.getDevice());
+        relEditor.setSoftware(ctx.getSoftware());
         relEditor.setOrganization(ctx.getOrganization());
         relEditor.setUser(ctx.getConfig().getDefaultProcessor());
         relEditor.setStatus(STATUS_NEW);

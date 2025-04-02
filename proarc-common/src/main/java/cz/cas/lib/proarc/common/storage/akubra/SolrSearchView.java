@@ -37,6 +37,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MODIFIED;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_ORGANIZATION;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_OWNER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PID;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOFTWARE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATUS;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_USER;
@@ -105,6 +106,14 @@ public class SolrSearchView extends SearchView {
             QueryResponse response = this.solrClient.query(solrQuery);
 
             int total = response.getResults().size();
+            if (total > 0) {
+                return true;
+            }
+
+            String query = FIELD_SOFTWARE + ":\"" + ClientUtils.escapeQueryChars(softwareId) + "\"";
+            solrQuery = new SolrQuery(query);
+            response = this.solrClient.query(solrQuery);
+            total = response.getResults().size();
             return  total > 0;
         } catch (SolrServerException ex) {
             ex.printStackTrace();

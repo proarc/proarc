@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.NewClientResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.SoftwareResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UrnNbnResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
@@ -191,6 +192,8 @@ public final class RestConfig {
     public static final String URL_EXPORT_KWIS = path(
             URL_EXPORT, ExportResourceApi.KWIS_PATH);
     public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
+    public static final String URL_SOFTWARE = path(URL_ROOT, SoftwareResourceApi.PATH);
+    public static final String URL_SOFTWARE_SET = path(URL_SOFTWARE, SoftwareResourceApi.PATH_SET);
     public static final String URL_APPLICATION_INFO = path(URL_ROOT, ApplicationResourceApi.PATH);
     public static final String URL_VALUEMAP = path(URL_ROOT, ValueMapResourceApi.PATH);
     public static final String URL_CONFIGPROFILE = path(URL_ROOT, ConfigurationProfileResourceApi.PATH);

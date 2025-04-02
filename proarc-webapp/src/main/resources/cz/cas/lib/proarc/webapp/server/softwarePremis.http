@@ -143,7 +143,7 @@ GET {{proarcUrl}}/rest/v2/software/preview?id=software:bfd081b1-1c08-4305-bb70-f
 
 ### DELETE SOFTWARE
 
-DELETE {{proarcUrl}}/rest/v2/software?id=software:73300247-68d4-4a72-9038-2b68558107e2
+DELETE {{proarcUrl}}/rest/v2/software?id=software:bfd081b1-1c08-4305-bb70-f0c65f16b68d
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 

@@ -90,6 +90,7 @@ public class ImportBatchManagerTest {
         b.setId(1);
         b.setCreate(new Timestamp(System.currentTimeMillis()));
         b.setDevice("device");
+        b.setSoftware("software:objectSet");
         b.setFolder(ibm.relativizeBatchFile(batchFolder));
         b.setGenerateIndices(true);
         b.setState(State.LOADING);
@@ -112,6 +113,7 @@ public class ImportBatchManagerTest {
         b.setId(1);
         b.setCreate(new Timestamp(System.currentTimeMillis()));
         b.setDevice("device");
+        b.setSoftware("software:objectSet");
         b.setFolder(ibm.relativizeBatchFile(batchFolder));
         b.setGenerateIndices(true);
         b.setState(State.LOADING);

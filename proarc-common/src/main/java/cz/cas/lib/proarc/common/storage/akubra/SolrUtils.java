@@ -44,6 +44,7 @@ public class SolrUtils {
     public static final String FIELD_EXPORT_CROSSREF = "crossrefExport";
     public static final String FIELD_LOCKED = "isLocked";
     public static final String FIELD_DEVICE = "device";
+    public static final String FIELD_SOFTWARE = "software";
     public static final String FIELD_MEMBERS = "members";
     public static final String FIELD_SOURCE = "source";
     public static final String FIELD_PAGE_INDEX = "pageIndex";

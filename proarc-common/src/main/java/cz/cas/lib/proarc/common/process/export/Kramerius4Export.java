@@ -1095,6 +1095,7 @@ public final class Kramerius4Export {
             setDonator(relations, doc, editor);
 
             editor.setDevice(null);
+            editor.setSoftware(null);
             editor.setExportResult(null);
             editor.setKrameriusExportResult(null);
             editor.setArchiveExportResult(null);

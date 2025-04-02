@@ -26,6 +26,7 @@ public final class SoftwareResourceApi {
     // resource /software
     public static final String PATH = "software";
     public static final String PATH_PREVIEW = "preview";
+    public static final String PATH_SET = "set";
 
     public static final String SOFTWARE_ITEM_ID = "id";
     public static final String SOFTWARE_ITEM_LABEL = "label";

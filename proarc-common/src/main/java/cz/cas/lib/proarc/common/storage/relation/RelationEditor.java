@@ -212,6 +212,22 @@ public final class RelationEditor {
     }
 
     /**
+     * @param software PID of the software
+     */
+    public void setSoftware(String software) throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        rdf.getDescription().setSoftware(RdfRelation.fromPid(software));
+    }
+
+    /**
+     * @return PID of the software
+     */
+    public String getSoftware() throws DigitalObjectException {
+        Rdf rdf = getRdf();
+        return RdfRelation.toPid(rdf.getDescription().getSoftware());
+    }
+
+    /**
      * @param filename filename of the imported digital content
      */
     public void setImportFile(String filename) throws DigitalObjectException {
