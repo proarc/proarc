@@ -46,6 +46,9 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.MimeType;
+import cz.cas.lib.proarc.common.software.Software;
+import cz.cas.lib.proarc.common.software.SoftwareException;
+import cz.cas.lib.proarc.common.software.SoftwareRepository;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
@@ -973,6 +976,27 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     /**
+     * Returns the description of software
+     *
+     * @param metsElement
+     * @return
+     * @throws MetsExportException
+     */
+    public static Mets getSoftwareMets(IMetsElement metsElement) throws MetsExportException {
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            Software software = getSoftware(metsElement);
+            if (software == null) {
+                return null;
+            }
+            if ((software.getDescription() == null) || software.getDescription().getAmdSec() == null) {
+                throw new MetsExportException(metsElement.getOriginalPid(), "Software does not have the Premis", false, null);
+            }
+            return software.getDescription();
+        }
+        return null;
+    }
+
+    /**
      * Returns the device
      *
      * @param metsElement
@@ -1005,6 +1029,41 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get scanner info - expected 1 device, got:" + deviceList.size(), false, null);
         }
         return deviceList.get(0);
+    }
+
+    /**
+     * Returns the software
+     *
+     * @param metsElement
+     * @return
+     * @throws MetsExportException
+     */
+    public static Software getSoftware(IMetsElement metsElement) throws MetsExportException {
+        Node softwareNode = MetsUtils.xPathEvaluateNode(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='hasSoftware']");
+        if (softwareNode == null) {
+            return null;
+        }
+        Node attrNode = softwareNode.getAttributes().getNamedItem("rdf:resource");
+        if (attrNode == null) {
+            return null;
+        }
+        SoftwareRepository softwareRepository = null;
+        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            softwareRepository = new SoftwareRepository(metsElement.getMetsContext().getRemoteStorage());
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            softwareRepository = new SoftwareRepository(metsElement.getMetsContext().getAkubraStorage());
+        }
+        String softwareId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
+        List<Software> softwareList;
+        try {
+            softwareList = softwareRepository.find(softwareId);
+        } catch (SoftwareException e) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get software info", false, e);
+        }
+        if (softwareList.size() != 1) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to get software info - expected 1 set of software, got:" + softwareList.size(), false, null);
+        }
+        return softwareList.get(0);
     }
 
     /**

@@ -330,33 +330,56 @@ public final class SoftwareRepository {
         }
         String id = software.getId();
 
-        HashMap<String, Mets> metsList = new HashMap<>();
+        HashMap<String, SoftwareMets> metsList = new HashMap<>();
         metsList.putAll(getMets(id));
         Mets mets = combineMets(metsList);
         software.setDescription(mets);
         return software;
     }
 
-    private Mets combineMets(HashMap<String, Mets> metsList) {
+    private Mets combineMets(HashMap<String, SoftwareMets> metsList) {
         Mets newMets = new Mets();
         AmdSecType newAmdSec = new AmdSecType();
         newMets.getAmdSec().add(newAmdSec);
+
+        List<MdSecType> agentList = new ArrayList<>();
+        int agentIndex = 1;
+        List<MdSecType> eventList = new ArrayList<>();
+        int eventIndex = 1;
+        int objetIndex = 1;
         for (String pid : metsList.keySet()) {
-            Mets mets = metsList.get(pid);
-            for (AmdSecType amdSec : mets.getAmdSec()) {
-                if (!amdSec.getTechMD().isEmpty()) {
-                    newAmdSec.getTechMD().addAll(amdSec.getTechMD());
-                }
-                if (!amdSec.getDigiprovMD().isEmpty()) {
-                    newAmdSec.getDigiprovMD().addAll(amdSec.getDigiprovMD());
+            SoftwareMets softwareMets = metsList.get(pid);
+            if (softwareMets.getMets() != null) {
+                for (AmdSecType amdSec : softwareMets.getMets().getAmdSec()) {
+                    if (!amdSec.getTechMD().isEmpty()) {
+                        for (MdSecType techMD : amdSec.getTechMD()) {
+                            techMD.setID("OBJ_" + String.format("%03d", objetIndex++));
+                            newAmdSec.getTechMD().add(techMD);
+                        }
+                    }
+                    if (!amdSec.getDigiprovMD().isEmpty()) {
+                        if (SoftwareRepository.METAMODEL_AGENT_ID.equals(softwareMets.getModelId())) {
+                            for (MdSecType digiprovMD : amdSec.getDigiprovMD()) {
+                                digiprovMD.setID("AGENT_" + String.format("%03d", agentIndex++));
+                                agentList.add(digiprovMD);
+                            }
+                        } else if (SoftwareRepository.METAMODEL_EVENT_ID.equals(softwareMets.getModelId())) {
+                            for (MdSecType digiprovMD : amdSec.getDigiprovMD()) {
+                                digiprovMD.setID("EVENT_" + String.format("%03d", eventIndex++));
+                                eventList.add(digiprovMD);
+                            }
+                        }
+                    }
                 }
             }
         }
+        newAmdSec.getDigiprovMD().addAll(eventList);
+        newAmdSec.getDigiprovMD().addAll(agentList);
         return newMets;
     }
 
-    private HashMap<String, Mets> getMets(String pid) throws SoftwareException {
-        HashMap<String, Mets> metsList = new HashMap<>();
+    private HashMap<String, SoftwareMets> getMets(String pid) throws SoftwareException {
+        HashMap<String, SoftwareMets> metsList = new HashMap<>();
         try {
             ProArcObject object = null;
             if (Storage.FEDORA.equals(typeOfStorage)) {
@@ -372,6 +395,7 @@ public final class SoftwareRepository {
             }
             RelationEditor relationEditor = new RelationEditor(object);
             List<String> setOfIds = relationEditor.getMembers();
+            String model = relationEditor.getModel();
             for (String member : setOfIds) {
                 String agentIdentifierType = getNodeValue(member, "//premis:agentIdentifierType/text()");
                 if (agentIdentifierType != null && !agentIdentifierType.isEmpty()) {
@@ -382,12 +406,12 @@ public final class SoftwareRepository {
                     String eventIdentifierType = getNodeValue(member, "//premis:eventIdentifierType/text()");
                     if (eventIdentifierType != null && !eventIdentifierType.isEmpty()) {
                         String eventIdentifierValue = getNodeValue(member, "//premis:eventIdentifierValue/text()");
-                        mets = addLinkingEvent(relationEditor.getModel(), mets, agentIdentifierType, eventIdentifierValue);
+                        mets = addLinkingEvent(relationEditor.getModel(), mets, eventIdentifierType, eventIdentifierValue);
                     }
                 }
             }
             if (mets != null) {
-                metsList.put(pid, mets);
+                metsList.put(pid, new SoftwareMets(mets, model));
             }
             for (String member : setOfIds) {
                 metsList.putAll(getMets(member));
@@ -772,5 +796,32 @@ public final class SoftwareRepository {
         }
 
         return setOfIds;
+    }
+
+    public class SoftwareMets {
+
+        private Mets mets;
+        private String modelId;
+
+        public SoftwareMets(Mets mets, String modelId) {
+            this.mets = mets;
+            this.modelId = modelId;
+        }
+
+        public Mets getMets() {
+            return mets;
+        }
+
+        public void setMets(Mets mets) {
+            this.mets = mets;
+        }
+
+        public String getModelId() {
+            return modelId;
+        }
+
+        public void setModelId(String modelId) {
+            this.modelId = modelId;
+        }
     }
 }

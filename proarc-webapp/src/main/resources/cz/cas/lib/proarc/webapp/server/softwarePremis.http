@@ -164,7 +164,7 @@ POST {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-label=zarizeni 1&model=proarc:softwareagent&type=default
+label=agent xx&model=proarc:softwareagent&createDefaultMetadata=default
 
 ### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE DIGITALIZATION
 
@@ -172,7 +172,7 @@ POST {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-label=zarizeni 1&model=proarc:softwareevent&type=eventDigitalization&members=software:0c4200fa-02a2-48d6-982b-908eae859c76
+label=eventDigitalization xx&model=proarc:softwareevent&createDefaultMetadata=eventDigitalization&members=software:0f0f7a7d-838b-4a57-ab71-e454974e190c
 
 ### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE CREATION
 
@@ -180,7 +180,7 @@ POST {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-label=zarizeni 1&model=proarc:softwareevent&type=eventCreation&members=software:0c4200fa-02a2-48d6-982b-908eae859c76
+label=eventCreation xx&model=proarc:softwareevent&createDefaultMetadata=eventCreation&members=software:0f0f7a7d-838b-4a57-ab71-e454974e190c
 
 ### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE XML CREATION
 
@@ -188,7 +188,7 @@ POST {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-label=zarizeni 1&model=proarc:softwareevent&type=eventXmlCreation&members=software:0c4200fa-02a2-48d6-982b-908eae859c76
+label=eventXmlCreation xx&model=proarc:softwareevent&createDefaultMetadata=eventXmlCreation&members=software:0f0f7a7d-838b-4a57-ab71-e454974e190c
 
 ### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE DELETION
 
@@ -196,7 +196,7 @@ POST {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-label=eventDeletion 1&model=proarc:softwareevent&type=eventDeletion&members=software:0c4200fa-02a2-48d6-982b-908eae859c76
+label=eventDeletion xx&model=proarc:softwareevent&createDefaultMetadata=eventDeletion&members=software:0f0f7a7d-838b-4a57-ab71-e454974e190c
 
 ### CREATE NEW SOFTWARE WITH MODEL OBJECT AND DEFAULT METADATA FOR TYPE PRESERVATION_ARCHIVAL
 
@@ -204,7 +204,7 @@ POST {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-label=objectPreservationArchival 1&model=proarc:softwareobject&type=objectPreservationArchival&members=software:ee44693b-0af6-450a-a8e0-e395f4ffd41c
+label=objectPreservationArchival xx&model=proarc:softwareobject&createDefaultMetadata=objectPreservationArchival&members=software:9fa44851-03f0-465c-81a8-20b176f703a2
 
 ### CREATE NEW SOFTWARE WITH MODEL OBJECT AND DEFAULT METADATA FOR TYPE PRESERVATION_ALTO
 
@@ -212,7 +212,7 @@ POST {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-label=objectPreservationAlto 1&model=proarc:softwareobject&type=objectPreservationAlto&members=software:e2978e0d-8b59-446f-bcce-e91dd72210f5
+label=objectPreservationAlto xx&model=proarc:softwareobject&createDefaultMetadata=objectPreservationAlto&members=software:0025ac40-0c3f-4bb5-a9b2-f4b97d4650ac
 
 ### CREATE NEW SOFTWARE WITH MODEL OBJECT AND DEFAULT METADATA FOR TYPE DELETIONTIF
 
@@ -220,7 +220,7 @@ POST {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-label=objectDeletionTif 1&model=proarc:softwareobject&type=objectDeletionTif&members=software:75853d41-ad6f-419b-891a-f7fc814702cf
+label=objectDeletionTif xx&model=proarc:softwareobject&createDefaultMetadata=objectDeletionTif&members=software:5227c490-bc72-4396-9550-4d07af3bfece
 
 ### CREATE NEW SOFTWARE WITH MODEL SET
 
@@ -228,4 +228,9 @@ POST {{proarcUrl}}/rest/v2/software
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-label=event 1&model=proarc:softwareset&members=software:5ae3bfa5-bba4-4c4c-8d13-a1af9c22f4c9&members=software:dca1cf32-191b-489c-9dbf-744b5f58a045&members=software:1603fd39-84a8-4a73-a7f0-d0ca9f6b1dae
+label=setLs xx&model=proarc:softwareset&members=software:88da5b35-00b5-4d9e-a655-1f090c70c284&members=software:9e88b298-2e28-4537-981d-1ff1abdd7318&members=software:f5cc0235-e29b-4891-a9b7-c0eaa8e1a71e
+
+
+### GET SOFTWARE WITH PREVIEW
+
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:aec1bbdf-b802-4bc5-84c4-1017eee29c97
