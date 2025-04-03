@@ -130,11 +130,12 @@ public class SoftwareResource extends SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MEMBERS) List<String> setOfIds,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_ADD_DEFAULT_METADATA) String type,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
         try {
-            return super.newSoftware(label, model, setOfIds, description, timestamp);
+            return super.newSoftware(label, model, setOfIds, type, description, timestamp);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

@@ -157,3 +157,75 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### CREATE NEW SOFTWARE WITH MODEL AGENT AND DEFAULT METADATA
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=zarizeni 1&model=proarc:softwareagent&type=default
+
+### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE DIGITALIZATION
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=zarizeni 1&model=proarc:softwareevent&type=eventDigitalization&members=software:0c4200fa-02a2-48d6-982b-908eae859c76
+
+### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE CREATION
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=zarizeni 1&model=proarc:softwareevent&type=eventCreation&members=software:0c4200fa-02a2-48d6-982b-908eae859c76
+
+### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE XML CREATION
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=zarizeni 1&model=proarc:softwareevent&type=eventXmlCreation&members=software:0c4200fa-02a2-48d6-982b-908eae859c76
+
+### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE DELETION
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=eventDeletion 1&model=proarc:softwareevent&type=eventDeletion&members=software:0c4200fa-02a2-48d6-982b-908eae859c76
+
+### CREATE NEW SOFTWARE WITH MODEL OBJECT AND DEFAULT METADATA FOR TYPE PRESERVATION_ARCHIVAL
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=objectPreservationArchival 1&model=proarc:softwareobject&type=objectPreservationArchival&members=software:ee44693b-0af6-450a-a8e0-e395f4ffd41c
+
+### CREATE NEW SOFTWARE WITH MODEL OBJECT AND DEFAULT METADATA FOR TYPE PRESERVATION_ALTO
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=objectPreservationAlto 1&model=proarc:softwareobject&type=objectPreservationAlto&members=software:e2978e0d-8b59-446f-bcce-e91dd72210f5
+
+### CREATE NEW SOFTWARE WITH MODEL OBJECT AND DEFAULT METADATA FOR TYPE DELETIONTIF
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=objectDeletionTif 1&model=proarc:softwareobject&type=objectDeletionTif&members=software:75853d41-ad6f-419b-891a-f7fc814702cf
+
+### CREATE NEW SOFTWARE WITH MODEL SET
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=event 1&model=proarc:softwareset&members=software:5ae3bfa5-bba4-4c4c-8d13-a1af9c22f4c9&members=software:dca1cf32-191b-489c-9dbf-744b5f58a045&members=software:1603fd39-84a8-4a73-a7f0-d0ca9f6b1dae

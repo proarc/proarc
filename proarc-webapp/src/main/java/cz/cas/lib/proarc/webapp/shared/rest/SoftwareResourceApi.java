@@ -31,6 +31,7 @@ public final class SoftwareResourceApi {
     public static final String SOFTWARE_ITEM_ID = "id";
     public static final String SOFTWARE_ITEM_LABEL = "label";
     public static final String SOFTWARE_ITEM_MODEL = "model";
+    public static final String SOFTWARE_ITEM_ADD_DEFAULT_METADATA = "createDefaultMetadata";
     public static final String SOFTWARE_ITEM_DESCRIPTION = "description";
     public static final String SOFTWARE_ITEM_TIMESTAMP = "timestamp";
     public static final String SOFTWARE_ITEM_MEMBERS = "members";

@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.software.Software;
 import cz.cas.lib.proarc.common.software.SoftwareException;
 import cz.cas.lib.proarc.common.software.SoftwareNotFoundException;
 import cz.cas.lib.proarc.common.software.SoftwareRepository;
+import cz.cas.lib.proarc.common.software.SoftwareUtils;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
@@ -195,6 +196,7 @@ public class SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MEMBERS) List<String> setOfIds,
+            @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_ADD_DEFAULT_METADATA) String type,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
@@ -207,7 +209,14 @@ public class SoftwareResourceV1 {
                 mets = devRepo.fixMetsAccordingModel(model, mets);
                 software.setDescription(mets);
                 software.setTimestamp(timestamp);
-
+                update = true;
+            }
+            if (type != null && !type.isEmpty()) {
+                String defaultDescription = SoftwareUtils.createDefaultDescription(model, type);
+                Mets defaultMets = MetsUtils.unmarshalMets(new StreamSource(new StringReader(defaultDescription)));
+                defaultMets = devRepo.fixMetsAccordingModel(model, defaultMets);
+                software.setDescription(defaultMets);
+                software.setTimestamp(0L);
                 update = true;
             }
             if (setOfIds != null && !setOfIds.isEmpty()) {
