@@ -231,6 +231,33 @@ public class PremisEditor {
         return;
     }
 
+    public void regenerate(ProArcObject object, AppConfiguration config, AkubraConfiguration akubraConfig) throws DigitalObjectException {
+        try {
+            MetsElement metsElement = getElement(object.getPid(), config, akubraConfig);
+
+            Mets mets = MetsElementVisitor.getSoftwareMets(metsElement);
+            HashMap<String, FileMD5Info> md5InfosMap = createMd5InfoMap(metsElement);
+            if (mets != null) {
+                String metsValue = MetsUtils.toXml(mets, true);
+                mets = fillValues(metsValue, metsElement, md5InfosMap);
+            } else {
+                mets = new Mets();
+                AmdSecType amdSec = new AmdSecType();
+                amdSec.setID(metsElement.getElementID());
+                mets.getAmdSec().add(amdSec);
+                Mets deviceMets = MetsElementVisitor.getScannerMets(metsElement);
+                addPremisToAmdSec(config.getNdkExportOptions(), amdSec, md5InfosMap, metsElement, null, deviceMets, null);
+            }
+
+            if (mets != null) {
+                write(mets, editor.getLastModified(), "Regenerate mets.");
+                object.flush();
+            }
+        } catch (Exception e) {
+            throw new DigitalObjectException(object.getPid(), "Nepodarilo se vytvorit Technicka metadata.");
+        }
+    }
+
     public Mets generate(ProArcObject fobject, AppConfiguration config, AkubraConfiguration akubraConfiguration, String importFile) throws DigitalObjectException {
         try {
             MetsElement metsElement = getElement(fobject.getPid(), config, akubraConfiguration);

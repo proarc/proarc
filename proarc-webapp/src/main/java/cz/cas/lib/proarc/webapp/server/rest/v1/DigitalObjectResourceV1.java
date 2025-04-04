@@ -2360,6 +2360,31 @@ public class DigitalObjectResourceV1 {
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
     }
 
+    @POST
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_PREMIS_GENERATE_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> generateTechnicalMetadataPremis(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
+    ) throws IOException, DigitalObjectException {
+
+
+        if (isLocked(pids)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+
+        for (String pid : pids) {
+            ProArcObject object = findFedoraObject(pid, batchId);
+            RelationEditor relationEditor = new RelationEditor(object);
+            if (relationEditor == null) {
+                return null;
+            }
+            PremisEditor premisEditor = PremisEditor.ndkArchival(object);
+            premisEditor.regenerate(object, appConfig, akubraConfiguration);
+        }
+        return returnFunctionSuccess();
+    }
+
 
     @GET
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_CODING_HISTORY_PATH)

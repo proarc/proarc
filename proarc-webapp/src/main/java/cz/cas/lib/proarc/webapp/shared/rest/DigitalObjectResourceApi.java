@@ -241,6 +241,7 @@ public final class DigitalObjectResourceApi {
     public static final String TECHNICALMETADATA_XML_AES_PATH = "technicalMetadataAesXml";
     public static final String TECHNICALMETADATA_XML_CODING_HISTORY_PATH = "technicalMetadataXmlCodingHistory";
     public static final String TECHNICALMETADATA_XML_PREMIS_PATH = "technicalMetadataXmlPremis";
+    public static final String TECHNICALMETADATA_XML_PREMIS_GENERATE_PATH = "technicalMetadataXmlPremisGenerate";
 
     /** Resource /object/preview */
     public static final String PREVIEW_PATH = "preview";

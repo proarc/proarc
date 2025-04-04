@@ -234,3 +234,25 @@ label=setLs xx&model=proarc:softwareset&members=software:88da5b35-00b5-4d9e-a655
 ### GET SOFTWARE WITH PREVIEW
 
 GET {{proarcUrl}}/rest/v2/software/preview?id=software:aec1bbdf-b802-4bc5-84c4-1017eee29c97
+
+
+### LOGIN
+POST {{proarcUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### GENERATE PREMIS
+POST {{proarcUrl}}/rest/v2/object/technicalMetadataXmlPremisGenerate
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:c524bfdf-888d-4e84-b570-7bc240d1a024&pid=uuid:1a0186cd-6a0b-4a9f-9a46-777060f1177c&pid=uuid:d03d2484-457a-498d-b640-961631deb311&pid=uuid:fa6bb7c5-1d7b-4eaf-be27-830c7dc4450b&pid=uuid:e0956ea8-68b3-46c1-b8f3-082dda319c6b&pid=uuid:2b266421-37e5-43f7-80fc-5cb7447361d3&pid=uuid:5748743b-e95a-475d-afed-2957744c035d&pid=uuid:3542f416-a748-49a0-b3ba-dec315039d5d
+
+### GENERATE PREMIS
+POST {{proarcUrl}}/rest/v2/object/technicalMetadataXmlPremisGenerate
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:3542f416-a748-49a0-b3ba-dec315039d5d
