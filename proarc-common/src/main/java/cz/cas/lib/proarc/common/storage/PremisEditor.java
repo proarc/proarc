@@ -262,26 +262,45 @@ public class PremisEditor {
         try {
             MetsElement metsElement = getElement(fobject.getPid(), config, akubraConfiguration);
 
+
             Mets amdSecMets = new Mets();
             AmdSecType amdSec = new AmdSecType();
-            amdSec.setID(metsElement.getElementID());
-            amdSecMets.getAmdSec().add(amdSec);
 
             Mets deviceMets = MetsElementVisitor.getScannerMets(metsElement);
-            Mets softwareMets = MetsElementVisitor.getSoftwareMets(metsElement);
             HashMap<String, FileMD5Info> md5InfosMap = createMd5InfoMap(metsElement);
-            if (softwareMets != null) {
-                String metsValue = MetsUtils.toXml(softwareMets, true);
-                return fillValues(metsValue, metsElement, md5InfosMap);
-            }
-            addPremisToAmdSec(config.getNdkExportOptions(), amdSec, md5InfosMap, metsElement, null, deviceMets, null);
+
+            amdSec = generate(metsElement, config.getNdkExportOptions(), amdSec, md5InfosMap, null, deviceMets, null);
+            amdSec.setID(metsElement.getElementID());
+            amdSecMets.getAmdSec().add(amdSec);
             return amdSecMets;
         } catch (Exception e) {
             throw new DigitalObjectException(fobject.getPid(), "Nepodarilo se vytvorit Technicka metadata");
         }
     }
 
-    private Mets fillValues(String metsValue, MetsElement metsElement, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
+    public AmdSecType generate(IMetsElement metsElement, NdkExportOptions exportOptions, AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, HashMap<String, MetsType.FileSec.FileGrp> amdSecFileGrpMap, Mets metsDevice, Mix mixDevice) throws DigitalObjectException {
+        try {
+            Mets softwareMets = MetsElementVisitor.getSoftwareMets(metsElement);
+            if (softwareMets != null) {
+                String metsValue = MetsUtils.toXml(softwareMets, true);
+                softwareMets = fillValues(metsValue, metsElement, md5InfosMap);
+//                return softwareMets.getAmdSec().get(0);
+                for (AmdSecType amdSecType : softwareMets.getAmdSec()) {
+                    amdSec.getDigiprovMD().addAll(amdSecType.getDigiprovMD());
+                    amdSec.getRightsMD().addAll(amdSecType.getRightsMD());
+                    amdSec.getSourceMD().addAll(amdSecType.getSourceMD());
+                    amdSec.getTechMD().addAll(amdSecType.getTechMD());
+                }
+                return amdSec;
+            }
+            addPremisToAmdSec(exportOptions, amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice, mixDevice);
+            return amdSec;
+        } catch (Exception e) {
+            throw new DigitalObjectException(metsElement.getOriginalPid(), "Nepodarilo se vytvorit Technicka metadata");
+        }
+    }
+
+    public Mets fillValues(String metsValue, IMetsElement metsElement, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
         if (metsValue == null || metsValue.isEmpty()) {
             return new Mets();
         }

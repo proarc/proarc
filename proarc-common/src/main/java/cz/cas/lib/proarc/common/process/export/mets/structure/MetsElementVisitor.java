@@ -1489,10 +1489,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
 
             Mets premisMets = null;
+            PremisEditor premisEditor = null;
             try {
                 DigitalObjectManager dom = DigitalObjectManager.getDefault();
                 ProArcObject fObject = dom.find(metsElement.getOriginalPid(), null);
-                PremisEditor premisEditor = PremisEditor.ndkArchival(fObject);
+                premisEditor = PremisEditor.ndkArchival(fObject);
                 premisMets = premisEditor.readMets();
             } catch (Exception e) {
                 LOG.log(Level.WARNING, e.getMessage() + " " + e.getStackTrace().toString());
@@ -1501,7 +1502,16 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             if (premisMets != null) {
                 addEditedPremisToAmdSec(amdSec, premisMets);
             } else {
-                addPremisToAmdSec(metsElement.getMetsContext().getOptions(), amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice, jHoveOutputRaw == null ? null : jHoveOutputRaw.getMix());
+                if (premisEditor != null) {
+                    try {
+                        premisEditor.generate(metsElement, metsElement.getMetsContext().getOptions(), amdSec, md5InfosMap, amdSecFileGrpMap, metsDevice, jHoveOutputRaw == null ? null : jHoveOutputRaw.getMix());
+                    } catch (Exception e) {
+                        LOG.log(Level.WARNING, e.getMessage() + " " + e.getStackTrace().toString());
+                        addPremisToAmdSec(metsElement.getMetsContext().getOptions(), amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice, jHoveOutputRaw == null ? null : jHoveOutputRaw.getMix());
+                    }
+                } else {
+                    addPremisToAmdSec(metsElement.getMetsContext().getOptions(), amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice, jHoveOutputRaw == null ? null : jHoveOutputRaw.getMix());
+                }
             }
 
             mapType.setDiv(divType);
