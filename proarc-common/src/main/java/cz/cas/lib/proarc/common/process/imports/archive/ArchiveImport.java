@@ -80,32 +80,45 @@ public class ArchiveImport implements ImportHandler {
                 throw new Exception("Nepodarilo se vytvorit slozku: " + archivalCopiesHome.getAbsolutePath());
             }
         }
-        File importFolders = importConfig.getImportFolder();
-        for (File importFolder : importFolders.listFiles()) {
-            if (importFolder.isDirectory()) {
-                for (File archivalCopyFolder : importFolder.listFiles()) {
-                    if (archivalCopyFolder.isDirectory()) {
-                        if (config.getArchiveExportOptions().getArchivalCopyFolderName().equals(archivalCopyFolder.getName())) {
-                            File destination = new File(archivalCopiesHome, importFolder.getName());
-                            if (destination.exists()) {
-                                MetsUtils.deleteFolder(destination);
-                            }
-                            destination.mkdir();
-                            FileUtils.copyDirectory(archivalCopyFolder, destination);
+        File importFolder = getImportFolder(config, importConfig.getImportFolder());
+        if (importFolder != null && importFolder.exists()) {
+            String folderName = isession.getRootPid();
+            if (folderName != null && !folderName.isEmpty()) {
+                folderName = folderName.replace("uuid:", "");
+            } else {
+                folderName = importFolder.getName();
+            }
+            File destination = new File(archivalCopiesHome, folderName);
+            if (destination.exists()) {
+                MetsUtils.deleteFolder(destination);
+            }
+            destination.mkdir();
+            FileUtils.copyDirectory(importFolder, destination);
 
-                            for (File file : destination.listFiles()) {
-                                if (file.getName().endsWith(".txt") || file.getName().endsWith(".md5")) {
-                                    MetsUtils.deleteFolder(file);
-                                }
-                                if (config.getArchiveExportOptions().getNoTifAvailableFileName().equals(file.getName())) {
-                                    MetsUtils.deleteFolder(file);
-                                }
-                            }
-                        }
-                    }
+            for (File file : destination.listFiles()) {
+                if (file.getName().endsWith(".txt") || file.getName().endsWith(".md5")) {
+                    MetsUtils.deleteFolder(file);
+                }
+                if (config.getArchiveExportOptions().getNoTifAvailableFileName().equals(file.getName())) {
+                    MetsUtils.deleteFolder(file);
                 }
             }
         }
+    }
+
+    private File getImportFolder(AppConfiguration config, File folder) {
+        if (config.getArchiveExportOptions().getArchivalCopyFolderName().equals(folder.getName())) {
+            return folder;
+        }
+        if (folder.isDirectory()) {
+            for (File file : folder.listFiles()) {
+                File requiredFile =  getImportFolder(config, file);
+                if (requiredFile != null) {
+                    return requiredFile;
+                }
+            }
+        }
+        return null;
     }
 
     public void load(ImportOptions importConfig, AppConfiguration config) throws Exception {
