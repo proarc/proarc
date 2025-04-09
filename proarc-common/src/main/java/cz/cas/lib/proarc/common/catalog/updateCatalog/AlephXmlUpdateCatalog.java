@@ -76,7 +76,7 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
             LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_BASE_LENGHT));
             ok = false;
         }
-        if (catalog.getField001BaseDefault() != null && catalog.getField001BaseDefault().isEmpty()) {
+        if (catalog.getField001BaseDefault() == null) {
             LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_BASE_DEFAULT));
             ok = false;
         }
