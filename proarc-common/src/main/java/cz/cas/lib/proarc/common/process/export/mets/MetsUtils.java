@@ -1353,6 +1353,9 @@ public class MetsUtils {
             }*/
 
         }
+        if (targetFolder == null) {
+            return null;
+        }
         for (File file : targetFolder.listFiles()) {
             if (file.isDirectory()) {
                 deleteFolder(file);

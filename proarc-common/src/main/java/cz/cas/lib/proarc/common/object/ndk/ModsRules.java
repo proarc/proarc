@@ -186,6 +186,9 @@ public class ModsRules {
     }
 
     private void checkDateValidity(String value, ModsDefinition parentMods) {
+        if (parentMods == null) {
+            return;
+        }
         String parentDate = getDateIssued(parentMods);
         if (parentDate != null) {
             if (!value.contains(parentDate)) {
@@ -207,7 +210,13 @@ public class ModsRules {
 
     private ModsDefinition getParentMods() {
         if (parentPid == null) {
-            parentPid = context.getHandler().getParameterParent().getFedoraObject().getPid();
+            if (context != null && context.getHandler() != null && context.getHandler().getParameterParent() != null &&
+                    context.getHandler().getParameterParent().getFedoraObject() != null && context.getHandler().getParameterParent().getFedoraObject().getPid() != null) {
+                parentPid = context.getHandler().getParameterParent().getFedoraObject().getPid();
+            }
+        }
+        if (parentPid == null) {
+            return null;
         }
         try {
             ModsDefinition parentMods = ModsUtils.getMods(parentPid);
