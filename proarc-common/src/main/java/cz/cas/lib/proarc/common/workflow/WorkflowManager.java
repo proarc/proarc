@@ -280,6 +280,9 @@ public class WorkflowManager {
 
             if (handler.getPid() == null && mods != null && !mods.isEmpty()) {
                 String pid = FoxmlUtils.identifierAsPid(ResolverUtils.getIdentifier("uuid", ModsUtils.unmarshalModsType(new StreamSource(new StringReader(mods)))));
+                if (pid == null || pid.isEmpty() || "uuid".equals(pid) || "uuid:".equals(pid)) {
+                    pid = FoxmlUtils.createPid();
+                }
                 handler.setPid(pid);
             }
             SearchViewItem items = handler.createDigitalObject(createObject, validation);
