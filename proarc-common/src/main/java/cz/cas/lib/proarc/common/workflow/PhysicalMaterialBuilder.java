@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
+import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.IOException;
 import java.io.StringReader;
@@ -81,6 +82,7 @@ class PhysicalMaterialBuilder {
             if (modsXml == null || modsXml.isEmpty()) {
                 modsXml = createDefaultMods(model);
             }
+            modsXml = updateMods(modsXml, model);
             return setMetadataImpl(modsXml, model);
         } catch (Exception ex) {
             StringBuilder sb = new StringBuilder("Cannot set metadata!");
@@ -88,6 +90,39 @@ class PhysicalMaterialBuilder {
                 sb.append('\n').append(error);
             }
             throw new IllegalStateException(sb.toString(), ex);
+        }
+    }
+
+    private String updateMods(String modsXml, String modelId) throws XPathExpressionException, IOException, SAXException {
+        if (modsXml != null) {
+            Document modsDom = db.parse(new InputSource(new StringReader(modsXml)));
+            Element modsElm = (Element) xpath.evaluate(
+                    "m:mods | m:modsCollection/m:mods", modsDom, XPathConstants.NODE);
+            String pid = xpath.evaluate("m:identifier[@type='uuid']", modsElm);
+            if (pid != null) {
+                if (!pid.startsWith("uuid:")) {
+                    pid = "uuid:" + pid;
+                }
+            } else {
+                pid = FoxmlUtils.createPid();
+            }
+
+            ModsCollectionDefinition modsCollection = ModsUtils.unmarshal(modsXml, ModsCollectionDefinition.class);
+            ModsDefinition mods = null;
+            if (modsCollection == null || modsCollection.getMods().isEmpty()) {
+                mods = ModsUtils.unmarshal(modsXml, ModsDefinition.class);
+            } else {
+                mods = modsCollection.getMods().get(0);
+            }
+
+            NdkMapper.Context context = new NdkMapper.Context(pid);
+
+            NdkMapper mapper = NdkMapper.get(modelId);
+            mapper.createMods(mods, context);
+
+            return ModsUtils.toXml(mods, true);
+        } else {
+            return createDefaultMods(modelId);
         }
     }
 

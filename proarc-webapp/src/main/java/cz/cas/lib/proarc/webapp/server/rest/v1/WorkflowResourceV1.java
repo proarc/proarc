@@ -312,6 +312,7 @@ public class WorkflowResourceV1 {
                 String newPid = FoxmlUtils.createPid();
                 WorkflowMetadataHandler metadataHandler = new WorkflowMetadataHandler(model, newPid, parentJob);
                 ModsDefinition mods = metadataHandler.createDefaultMods();
+
                 if (mods != null) {
                     xml = ModsUtils.toXml(mods, true);
                 }
