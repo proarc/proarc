@@ -575,6 +575,29 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         }
     }
 
+    @PUT
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_OBJECTS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<SearchViewItem> updateDescriptionMetadataObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura
+    ) {
+
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        try {
+            return super.updateDescriptionMetadataObjects(pids, partNumber, signatura);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return SmartGwtResponse.asError(ex.getMyMessage());
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_VALIDATE_OBJECT_PATH)
     @Produces({MediaType.APPLICATION_JSON})

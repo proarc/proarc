@@ -829,3 +829,23 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid:5d896307-8040-411b-b4da-2e3c293c6270&catalogId=knaValidation
 
+### LOGIN
+POST {{proarcUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### EDITOR OBJECTS
+PUT {{proarcUrl}}/rest/v2/object/mods/editorObjects
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:f9ae3bc4-2257-4bab-a3ea-2c7155459fba&pid=uuid:38b04de1-b97b-466c-9fd5-6ea5ba026341&signatura= &partNumber=0
+
+### EDITOR OBJECTS
+PUT {{proarcUrl}}/rest/v2/object/mods/editorObjects
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pids=uuid:f9ae3bc4-2257-4bab-a3ea-2c7155459fba&partNumber=s&signatura=

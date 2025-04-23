@@ -163,6 +163,7 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_CUSTOM_PATH = "custom";
     public static final String MODS_CUSTOM_EDITORID = "editorId";
     public static final String MODS_CUSTOM_EDITOR_PAGES = "editorPages";
+    public static final String MODS_CUSTOM_EDITOR_OBJECTS = "editorObjects";
     public static final String MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA = "editorPagesCopyMetadata";
     public static final String MODS_CUSTOM_CUSTOMJSONDATA = "jsonData";
     public static final String MODS_CUSTOM_CUSTOMXMLDATA = "xmlData";
@@ -191,6 +192,9 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_PAGE_RULES_DOUBLE_COLUMNS = "doubleColumns";
     public static final String MODS_PAGE_RULES_PAGE_POSITION = "pagePosition";
     public static final String MODS_PAGE_RULES_REPRE_PAGE = "isReprePage";
+
+    public static final String MODS_OBJECT_RULES_PARTNUMBER = "partNumber";
+    public static final String MODS_OBJECT_RULES_SIGNATURA = "signatura";
 
     public static final String MODS_CUSTOM_FUNCTION_ADD_BRACKETS = "addBrackets";
     public static final String MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS = "removeBrackets";
