@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.UpdateObjects;
 import cz.cas.lib.proarc.common.actions.UpdatePages;
 import cz.cas.lib.proarc.common.actions.UpdatePagesMetadata;
+import cz.cas.lib.proarc.common.actions.UpgradeMetadataObjects;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -1354,6 +1355,33 @@ public class DigitalObjectResourceV1 {
 //        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_OBJECTS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<SearchViewItem> updateDescriptionMetadataObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura
+    ) throws DigitalObjectException, IOException, FedoraClientException {
+
+        LOG.fine(String.format("pids: %s", pids.toArray()));
+
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+
+        if (isLocked(pids)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED, false);
+            return toValidationError(validationException, STATUS_LOCKED, session.getLocale(httpHeaders));
+        }
+        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, session.getLocale(httpHeaders));
+        updateObjects.createListOfPids(pids);
+        updateObjects.createPartNumber(partNumber);
+        updateObjects.updateObjects(signatura);
+        return returnFunctionSuccess();
     }
 
     @POST
@@ -4681,11 +4709,11 @@ public class DigitalObjectResourceV1 {
 
 
         Locale locale = session.getLocale(httpHeaders);
-        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
-        List<SearchViewItem> objects = updateObjects.findAllObjects();
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        List<SearchViewItem> objects = upgradeMetadataObjects.findAllObjects();
         //Map<String, Integer> map = updateObjects.countObjects(objects);
-        updateObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
-        LOG.log(Level.INFO, "Update finished, updated " + updateObjects.getUpdatedObjects() + "/" + objects.size() + " object(s).");
+        upgradeMetadataObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
+        LOG.log(Level.INFO, "Update finished, updated " + upgradeMetadataObjects.getUpdatedObjects() + "/" + objects.size() + " object(s).");
         return returnFunctionSuccess();
     }
 
@@ -4700,14 +4728,14 @@ public class DigitalObjectResourceV1 {
         checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
 
         Locale locale = session.getLocale(httpHeaders);
-        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
-        updateObjects.findObjects(pid, NdkPlugin.MODEL_ARTICLE);
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        upgradeMetadataObjects.findObjects(pid, NdkPlugin.MODEL_ARTICLE);
 
-        if (isLocked(updateObjects.getPids())) {
+        if (isLocked(upgradeMetadataObjects.getPids())) {
             return returnValidationError(ERR_IS_LOCKED);
         }
 
-        updateObjects.repair(NdkPlugin.MODEL_ARTICLE);
+        upgradeMetadataObjects.repair(NdkPlugin.MODEL_ARTICLE);
         return returnFunctionSuccess();
     }
 
@@ -4722,14 +4750,14 @@ public class DigitalObjectResourceV1 {
         checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
 
         Locale locale = session.getLocale(httpHeaders);
-        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
-        updateObjects.findObjects(pid, NdkPlugin.MODEL_NDK_PAGE);
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        upgradeMetadataObjects.findObjects(pid, NdkPlugin.MODEL_NDK_PAGE);
 
-        if (isLocked(updateObjects.getPids())) {
+        if (isLocked(upgradeMetadataObjects.getPids())) {
             return returnValidationError(ERR_IS_LOCKED);
         }
 
-        updateObjects.repair(NdkPlugin.MODEL_NDK_PAGE);
+        upgradeMetadataObjects.repair(NdkPlugin.MODEL_NDK_PAGE);
         return returnFunctionSuccess();
     }
 
@@ -4744,14 +4772,14 @@ public class DigitalObjectResourceV1 {
         checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
 
         Locale locale = session.getLocale(httpHeaders);
-        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
-        updateObjects.findObjects(pid, OldPrintPlugin.MODEL_PAGE);
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        upgradeMetadataObjects.findObjects(pid, OldPrintPlugin.MODEL_PAGE);
 
-        if (isLocked(updateObjects.getPids())) {
+        if (isLocked(upgradeMetadataObjects.getPids())) {
             return returnValidationError(ERR_IS_LOCKED);
         }
 
-        updateObjects.repair(OldPrintPlugin.MODEL_PAGE);
+        upgradeMetadataObjects.repair(OldPrintPlugin.MODEL_PAGE);
         return returnFunctionSuccess();
     }
 
