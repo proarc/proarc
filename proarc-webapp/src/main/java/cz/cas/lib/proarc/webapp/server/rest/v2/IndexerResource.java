@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v2;
 
-import com.google.common.net.HttpHeaders;
 import com.google.gwt.http.client.Request;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
@@ -32,6 +31,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;

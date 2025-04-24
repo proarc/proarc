@@ -56,6 +56,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_INDEX
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_NUMBER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_POSITION;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_TYPE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PARENT_PID;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PART_NUMBER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PID;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOFTWARE;
@@ -246,6 +247,25 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
             commit();
         } catch (SolrServerException | IOException ex) {
             throw new DigitalObjectException(pid, "Nepodarilo se zapsat stav validace pro pid " + pid + " do SOLRu.");
+        }
+    }
+
+    public void feedParentPid(String pid, String parentPid, boolean commit) throws DigitalObjectException {
+        SolrInputDocument sdoc = new SolrInputDocument();
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+
+        Map<String, Object> updateParent = new HashMap<>();
+        updateParent.put("set", parentPid);
+        sdoc.addField(FIELD_PARENT_PID, updateParent);
+
+        try {
+            UpdateResponse response = feedDescriptionDocument(sdoc);
+            if (commit) {
+                commit();
+            }
+        } catch (SolrServerException | IOException ex) {
+            throw new DigitalObjectException(pid, "Nepodarilo se zapsat parent pid \"" + parentPid + "\" do pro pid \"" + pid + "\" do SOLRu.");
         }
     }
 

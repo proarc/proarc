@@ -28,6 +28,7 @@ public class SolrUtils {
     public enum QueryOperator {AND, OR};
 
     public static final String FIELD_PID = "pid";
+    public static final String FIELD_PARENT_PID = "parentPid";
     public static final String FIELD_MODEL = "model";
     public static final String FIELD_OWNER = "owner";
     public static final String FIELD_LABEL = "label";
@@ -214,6 +215,7 @@ public class SolrUtils {
 
         item.setPid(getString(solrDocument, FIELD_PID));
         item.setModel(getString(solrDocument, FIELD_MODEL));
+        item.setParentPid(getString(solrDocument, FIELD_PARENT_PID));
         item.setOwner(getString(solrDocument, FIELD_OWNER));
         item.setLabel(getString(solrDocument, FIELD_LABEL));
         item.setState(getString(solrDocument, FIELD_STATE));
