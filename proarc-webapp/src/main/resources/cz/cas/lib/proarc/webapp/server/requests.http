@@ -849,3 +849,17 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pids=uuid:f9ae3bc4-2257-4bab-a3ea-2c7155459fba&partNumber=s&signatura=
+
+### LOGIN
+POST {{proarcUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### GENERATE THUMBNAIL
+POST {{proarcUrl}}/rest/v2/object/thumb
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:951ae74c-b743-49bc-b666-9a8ca92dafff

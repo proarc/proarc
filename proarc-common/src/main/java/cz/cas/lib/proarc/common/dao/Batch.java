@@ -60,6 +60,7 @@ public class Batch {
 
     public static final String EXTERNAL_PERO = "externalProfile.pero";
     public static final String EXTERNAL_PDFA = "externalProfile.pdfa";
+    public static final String EXTERNAL_THUMBNAIL = "externalProfile.thumbnail";
 
     public enum State {
 

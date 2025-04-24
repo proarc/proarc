@@ -2064,6 +2064,34 @@ public class DigitalObjectResourceV1 {
         return getDissemination(pid, batchId, BinaryEditor.THUMB_ID);
     }
 
+    @POST
+    @Path(DigitalObjectResourceApi.THUMB_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<InternalExternalProcessResult> generateThumbnail(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws IOException {
+        if (pids == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        BatchParams params = new BatchParams(pids);
+        List<Integer> batches = new ArrayList<>();
+        for (String pid : pids) {
+            Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_THUMBNAIL, params);
+
+            InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+            batches.add(batch.getId());
+        }
+        if (batches.isEmpty()) {
+            InternalExternalProcessResult result = new InternalExternalProcessResult(null, "Proces není naplánován.");
+            return new SmartGwtResponse<>(result);
+        } else {
+            InternalExternalProcessResult result = new InternalExternalProcessResult(batches.get(0), batches.size() == 1 ? "Proces naplánován." : "Celkem naplánovány " + batches.size() + " procesy.");
+            return new SmartGwtResponse(result);
+        }
+    }
+
+
     @GET
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_PLAIN_PATH)
     @Produces(MediaType.APPLICATION_JSON)
