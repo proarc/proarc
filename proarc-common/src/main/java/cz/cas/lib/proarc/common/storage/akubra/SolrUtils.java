@@ -71,6 +71,8 @@ public class SolrUtils {
     public static final String VALIDATION_STATUS_ERROR = "ERROR";
     public static final String VALIDATION_STATUS_UNKNOWN = "UNKNOWN";
 
+    public static final String PROPERTY_PARENTPID_NO_PARENT = "NO_PARENT";
+
     public static StringBuilder appendAndValue(StringBuilder queryBuilder, String value) {
         return appendValue(queryBuilder, value, QueryOperator.AND.name());
     }

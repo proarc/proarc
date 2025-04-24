@@ -251,6 +251,9 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
     }
 
     public void feedParentPid(String pid, String parentPid, boolean commit) throws DigitalObjectException {
+        if (parentPid == null || parentPid.isEmpty()) {
+            parentPid = SolrUtils.PROPERTY_PARENTPID_NO_PARENT;
+        }
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);

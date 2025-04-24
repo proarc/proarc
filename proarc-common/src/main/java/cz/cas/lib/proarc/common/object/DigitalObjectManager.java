@@ -760,7 +760,7 @@ public class DigitalObjectManager {
                 if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
                     getRemotes().ingest(localObject, user.getUserName(), message);
                 } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                    getAkubraStorage().ingest(localObject, user.getUserName(), message);
+                    getAkubraStorage().ingest(localObject, parentPid, user.getUserName(), message);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
                 }

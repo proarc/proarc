@@ -535,6 +535,10 @@ public final class AkubraImport {
         editor.setMembers(members);
         editor.write(editor.getLastModified(), message);
         object.flush();
+
+        for (String pid : pids) {
+            akubraStorage.indexParentPid(pid, parent);
+        }
     }
 
     public File resolveBatchFile(String file) {

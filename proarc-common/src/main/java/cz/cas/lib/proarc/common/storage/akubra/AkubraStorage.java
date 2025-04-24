@@ -187,11 +187,11 @@ public class AkubraStorage {
         }
     }
 
-    public void ingest(LocalObject object, String ingestUser) throws DigitalObjectException, DigitalObjectExistException {
-        ingest(object, ingestUser, "Ingested locally");
+    public void ingest(LocalObject object, String parentPid, String ingestUser) throws DigitalObjectException, DigitalObjectExistException {
+        ingest(object, parentPid, ingestUser, "Ingested locally");
     }
 
-    public void ingest(LocalObject object, String ingestUser, String log) throws DigitalObjectException, DigitalObjectExistException {
+    public void ingest(LocalObject object, String parentPid, String ingestUser, String log) throws DigitalObjectException, DigitalObjectExistException {
         if (ingestUser == null || ingestUser.isEmpty()) {
             throw new IllegalArgumentException("ingestUser");
         }
@@ -216,7 +216,7 @@ public class AkubraStorage {
             InputStream inputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
             this.manager.addOrReplaceObject(object.getPid(), inputStream);
             indexDocument(object);
-
+            indexParentPid(object.getPid(), parentPid);
             LOG.log(Level.FINE, "Object with PID {0} added to repository.", object.getPid());
         } catch (TransformerException | URISyntaxException | LowlevelStorageException | IOException e) {
             throw new DigitalObjectException(object.getPid(), "Error during adding new object", e);
@@ -350,6 +350,10 @@ public class AkubraStorage {
 
     public void indexDocument(LocalObject object) throws IOException, DigitalObjectException {
         indexDocument(object.getPid(), object.getModel(), object.getOwner());
+    }
+
+    public void indexParentPid(String pid, String parentPid) throws DigitalObjectException {
+        this.solrObjectFeeder.feedParentPid(pid, parentPid, true);
     }
 
     public void indexValidationResult(Batch batch) throws DigitalObjectException {
