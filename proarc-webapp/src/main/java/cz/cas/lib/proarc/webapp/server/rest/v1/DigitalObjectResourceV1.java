@@ -1954,7 +1954,7 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Map<String, Object>> updateDissemination(
+    public SmartGwtResponse<InternalExternalProcessResult> updateDissemination(
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
@@ -1969,7 +1969,7 @@ public class DigitalObjectResourceV1 {
             return updateDisseminationImpl(pid, batchId, dsId, file, fileInfo, fileBodyPart, mimeType);
         } catch (Throwable ex) {
             if (jsonErrors) {
-                return SmartGwtResponse.<Map<String, Object>>asError(ex);
+                return SmartGwtResponse.asError(ex);
             } else {
                 if (!(ex instanceof WebApplicationException)) {
                     ex = new WebApplicationException(ex);
@@ -1979,7 +1979,7 @@ public class DigitalObjectResourceV1 {
         }
     }
 
-    private SmartGwtResponse<Map<String, Object>> updateDisseminationImpl(
+    private SmartGwtResponse<InternalExternalProcessResult> updateDisseminationImpl(
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
@@ -1990,10 +1990,10 @@ public class DigitalObjectResourceV1 {
     ) throws IOException, DigitalObjectException {
 
         if (pid == null) {
-            return SmartGwtResponse.<Map<String, Object>>asError(DigitalObjectResourceApi.DIGITALOBJECT_PID, "Missing PID!");
+            return SmartGwtResponse.asError(DigitalObjectResourceApi.DIGITALOBJECT_PID, "Missing PID!");
         }
         if (fileContent == null) {
-            return SmartGwtResponse.<Map<String, Object>>asError(DigitalObjectResourceApi.DISSEMINATION_FILE, "Missing file!");
+            return SmartGwtResponse.asError(DigitalObjectResourceApi.DISSEMINATION_FILE, "Missing file!");
         }
 
         if (dsId != null && !dsId.equals(BinaryEditor.RAW_ID)) {
@@ -2011,7 +2011,7 @@ public class DigitalObjectResourceV1 {
             try {
                 mime = mimeType != null ? MediaType.valueOf(mimeType) : fileBodyPart.getMediaType();
             } catch (IllegalArgumentException ex) {
-                return SmartGwtResponse.<Map<String, Object>>asError(
+                return SmartGwtResponse.asError(
                         DigitalObjectResourceApi.DISSEMINATION_MIME, "Invalid MIME type! " + mimeType);
             }
             LOG.log(Level.FINE, "filename: {0}, user mime: {1}, resolved mime: {2}, {3}/{4}", new Object[]{filename, mimeType, mime, pid, dsId});
@@ -2023,7 +2023,8 @@ public class DigitalObjectResourceV1 {
         } finally {
             file.delete();
         }
-        return new SmartGwtResponse<Map<String, Object>>(Collections.singletonMap("processId", (Object) 0L));
+        return generateThumbnail(Collections.singletonList(pid));
+//        return new SmartGwtResponse<Map<String, Object>>(Collections.singletonMap("processId", (Object) 0L));
     }
 
     /**
