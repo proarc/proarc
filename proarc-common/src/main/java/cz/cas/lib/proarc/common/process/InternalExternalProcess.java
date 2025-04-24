@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
 import cz.cas.lib.proarc.common.process.external.PdfaProcess;
 import cz.cas.lib.proarc.common.process.external.PeroProcess;
+import cz.cas.lib.proarc.common.process.external.ThumbnailPdfProcess;
 import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -104,6 +105,7 @@ public final class InternalExternalProcess implements Runnable {
             switch (profileId) {
                 case Batch.EXTERNAL_PERO:
                 case Batch.EXTERNAL_PDFA:
+                case Batch.EXTERNAL_THUMBNAIL:
                     return finishedExternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
                 case Batch.INTERNAL_VALIDATION:
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
@@ -119,6 +121,9 @@ public final class InternalExternalProcess implements Runnable {
                 case Batch.EXTERNAL_PDFA:
                     batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
                     return pdfaProcess(batch, params);
+                case Batch.EXTERNAL_THUMBNAIL:
+                    batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
+                    return thumbnailProcess(batch, params);
                 case Batch.INTERNAL_VALIDATION:
                     batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
                     return validationProcess(batch, params);
@@ -150,6 +155,22 @@ public final class InternalExternalProcess implements Runnable {
         try {
             PdfaProcess pdfaProcess = new PdfaProcess(config, akubraConfiguration);
             PdfaProcess.Result result = pdfaProcess.generatePdfA(params.getPids(), options.getFolder());
+            if (result.getException() != null) {
+                batch = finishedExternalWithError(this.batchManager, batch, batch.getFolder(), result.getException());
+                throw result.getException();
+            } else {
+                batch = finishedExternalSuccessfully(this.batchManager, batch, batch.getFolder());
+            }
+            return batch;
+        } catch (Exception ex) {
+            return finishedExternalWithError(this.batchManager, batch, batch.getFolder(), ex);
+        }
+    }
+
+    private Batch thumbnailProcess(Batch batch, BatchParams params) {
+        try {
+            ThumbnailPdfProcess thumbnailProcess = new ThumbnailPdfProcess(config, akubraConfiguration);
+            ThumbnailPdfProcess.Result result = thumbnailProcess.generateThumbnail(params.getPids(), options.getFolder());
             if (result.getException() != null) {
                 batch = finishedExternalWithError(this.batchManager, batch, batch.getFolder(), result.getException());
                 throw result.getException();

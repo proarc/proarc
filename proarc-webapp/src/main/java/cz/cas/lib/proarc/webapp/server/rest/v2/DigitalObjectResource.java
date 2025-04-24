@@ -979,6 +979,23 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         }
     }
 
+    @POST
+    @Path(DigitalObjectResourceApi.THUMB_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<InternalExternalProcessResult> generateThumbnail(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) {
+        if (pids == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        try {
+            return super.generateThumbnail(pids);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
     @GET
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_PLAIN_PATH)
     @Produces(MediaType.APPLICATION_JSON)
