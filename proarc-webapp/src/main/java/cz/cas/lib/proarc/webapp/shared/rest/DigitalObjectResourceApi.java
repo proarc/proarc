@@ -385,6 +385,7 @@ public final class DigitalObjectResourceApi {
         PHRASE("phrase"),
         QUERY("query"),
         DELETED("deleted"),
+        ORPHAN("orphan"),
         ALPHABETICAL("alphabetical"),
         ADVANCED("advanced"),
         STATUS("status"),
