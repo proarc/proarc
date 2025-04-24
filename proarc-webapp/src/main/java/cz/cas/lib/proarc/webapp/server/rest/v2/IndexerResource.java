@@ -62,6 +62,19 @@ public class IndexerResource extends IndexerResourceV1 {
     }
 
     @POST
+    @Path(IndexerResourceApi.INDEX_PARENT_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<SearchViewItem> setParentsPid () {
+
+        try {
+            return super.setParentsPid();
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @POST
     @Path(IndexerResourceApi.OBJECT_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> indexDocument (

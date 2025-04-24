@@ -5,6 +5,10 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchParams;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.SearchView;
@@ -26,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,6 +52,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
+import static cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.returnFunctionSuccess;
 
 @Deprecated
 @Path(RestConfig.URL_API_VERSION_1 + "/" + IndexerResourceApi.PATH)
@@ -60,6 +66,9 @@ public class IndexerResourceV1 {
     private final HttpHeaders httpHeaders;
     private final UserProfile user;
     private final SessionContext session;
+    private final BatchManager importManager;
+
+
     private static Unmarshaller unmarshaller;
 
     int filesCount = 0;
@@ -79,6 +88,7 @@ public class IndexerResourceV1 {
         } else {
             this.akubraConfiguration = null;
         }
+        this.importManager = BatchManager.getInstance(appConfiguration);
         this.session = SessionContext.from(httpServletRequest);
         this.user = this.session.getUser();
         LOG.fine(user.toString());
@@ -102,20 +112,60 @@ public class IndexerResourceV1 {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
         }
 
-        String objectStorePath = this.akubraConfiguration.getObjectStorePath();
-        String datastreamStorePath = this.akubraConfiguration.getDatastreamStorePath();
+        BatchParams params = new BatchParams(Collections.singletonList("INDEXACE OBJEKTŮ"));
+        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("INDEXACE OBJEKTŮ"), user, Batch.INTERNAL_INDEX_OBJECTS_TO_SOLR, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
 
-        String searchSolrHost = this.akubraConfiguration.getSolrSearchHost();
-        SolrClient solrClient = new ConcurrentUpdateSolrClient.Builder(searchSolrHost).withQueueSize(100).build();
-        SolrObjectFeeder feeder = new SolrObjectFeeder(solrClient);
+        try {
+            String objectStorePath = this.akubraConfiguration.getObjectStorePath();
+            String datastreamStorePath = this.akubraConfiguration.getDatastreamStorePath();
 
-        feeder.deleteProcessingIndex();
-        feeder.commit();
-        //processRoot(feeder, datastreamStorePath, false);
-        processRoot(feeder, objectStorePath, true);
-        processParentPid(feeder, objectStorePath);
+            String searchSolrHost = this.akubraConfiguration.getSolrSearchHost();
+            SolrClient solrClient = new ConcurrentUpdateSolrClient.Builder(searchSolrHost).withQueueSize(100).build();
+            SolrObjectFeeder feeder = new SolrObjectFeeder(solrClient);
 
-        return new SmartGwtResponse<>();
+            feeder.deleteProcessingIndex();
+            feeder.commit();
+            //processRoot(feeder, datastreamStorePath, false);
+            processRoot(feeder, objectStorePath, true);
+            processParentPid(feeder, objectStorePath);
+
+            BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), null, Batch.State.INTERNAL_DONE);
+            return returnFunctionSuccess();
+        } catch (Exception ex) {
+            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), BatchManager.toString(ex), Batch.State.INTERNAL_FAILED);
+            throw ex;
+        }
+    }
+
+    @POST
+    @Path(IndexerResourceApi.INDEX_PARENT_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<SearchViewItem> setParentsPid () throws SolrServerException, IOException {
+
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+
+        if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
+        }
+
+        BatchParams params = new BatchParams(Collections.singletonList("INDEXACE NADŘAZENÝCH OBJEKTŮ"));
+        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("INDEXACE NADŘAZENÝCH OBJEKTŮ"), user, Batch.INTERNAL_INDEX_PARENTS_TO_SOLR, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+
+        try {
+            String objectStorePath = this.akubraConfiguration.getObjectStorePath();
+
+            String searchSolrHost = this.akubraConfiguration.getSolrSearchHost();
+            SolrClient solrClient = new ConcurrentUpdateSolrClient.Builder(searchSolrHost).withQueueSize(100).build();
+            SolrObjectFeeder feeder = new SolrObjectFeeder(solrClient);
+
+            processParentPid(feeder, objectStorePath);
+
+            BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), null, Batch.State.INTERNAL_DONE);
+            return returnFunctionSuccess();
+        } catch (Exception ex) {
+            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), BatchManager.toString(ex), Batch.State.INTERNAL_FAILED);
+            throw ex;
+        }
     }
 
     private void processRoot(SolrObjectFeeder feeder, String storePath, boolean rebuildIndex) throws IOException, SolrServerException {

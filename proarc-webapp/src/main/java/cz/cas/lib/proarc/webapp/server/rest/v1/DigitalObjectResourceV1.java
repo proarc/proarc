@@ -5185,7 +5185,7 @@ public class DigitalObjectResourceV1 {
         return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, Collections.singletonList(item));
     }
 
-    private SmartGwtResponse<SearchViewItem> returnFunctionSuccess() {
+    public static SmartGwtResponse<SearchViewItem> returnFunctionSuccess() {
         SearchViewItem item = new SearchViewItem();
         item.setStatus("OK");
         return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, 1, Collections.singletonList(item));
