@@ -328,7 +328,7 @@ public class AkubraStorage {
                 this.solrObjectFeeder.feedDescriptionSoftware(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
             } else {
-                this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
+                this.solrObjectFeeder.updateDescriptionDocument(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
                 SolrUtils.indexParentResult(this.getSearch(), this.getSolrObjectFeeder(), pid);
             }
@@ -341,7 +341,7 @@ public class AkubraStorage {
                 this.solrObjectFeeder.feedDescriptionSoftware(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
             } else {
-                this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
+                this.solrObjectFeeder.updateDescriptionDocument(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
                 SolrUtils.indexParentResult(this.getSearch(), this.getSolrObjectFeeder(), pid);
             }
@@ -455,7 +455,7 @@ public class AkubraStorage {
                             SoftwareRepository.METAMODEL_OBJECT_ID.equals(this.modelId) || SoftwareRepository.METAMODEL_SET_ID.equals(this.modelId)) {
                         this.objectFeeder.feedDescriptionSoftware(object, this, true);
                     } else {
-                        this.objectFeeder.feedDescriptionDocument(object, this, true);
+                        this.objectFeeder.updateDescriptionDocument(object, this, true);
                         if (indexHierarchical) {
                             SolrUtils.indexParentResult(solrSearchView, objectFeeder, object.getPID());
                         }
@@ -549,7 +549,7 @@ public class AkubraStorage {
                     InputStream inputStream = this.manager.marshallObject(object);
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
-                    this.objectFeeder.feedDescriptionDocument(object, this, true);
+                    this.objectFeeder.updateDescriptionDocument(object, this, true);
                     this.objectFeeder.commit();
                     this.loggingFeeder.feedDeleteLog(getPid(), logMessage);
                 }
@@ -569,7 +569,7 @@ public class AkubraStorage {
                     InputStream inputStream = this.manager.marshallObject(object);
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
-                    this.objectFeeder.feedDescriptionDocument(object, this, true);
+                    this.objectFeeder.updateDescriptionDocument(object, this, true);
                     this.objectFeeder.commit();
                     this.loggingFeeder.feedRestoreLog(getPid(), logMessage);
                 }
@@ -809,7 +809,7 @@ public class AkubraStorage {
                 modified = false;
                 DigitalObject digitalObject = this.manager.readObjectFromStorage(this.object.getPid());
                 if (!(ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId) || DeviceRepository.DESCRIPTION_DS_ID.equals(dsId) || DeviceRepository.AUDIODESCRIPTION_DS_ID.equals(dsId)) && !this.object.getPid().startsWith("software")) {
-                    this.solrObjectFeeder.feedDescriptionDocument(digitalObject, this.object, true);
+                    this.solrObjectFeeder.updateDescriptionDocument(digitalObject, this.object, true);
                 }
                 profile = AkubraUtils.createDatastremProfile(digitalObject, dsId);
                 lastModified = AkubraUtils.getLastModified(digitalObject, dsId);

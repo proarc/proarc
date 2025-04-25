@@ -99,6 +99,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
+import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
@@ -614,6 +615,16 @@ public class DigitalObjectResourceV1 {
                 total = items.size();
                 page = 1;
                 break;
+            case ORPHAN:
+                if (username == null) {
+                    username = queryProcessor;
+                }
+                if (organization == null) {
+                    organization = queryOrganization;
+                }
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
+                break;
             case DELETED:
                 items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
@@ -634,8 +645,8 @@ public class DigitalObjectResourceV1 {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, null);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, null, sortField, sort.toString(), startRow, 100);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }

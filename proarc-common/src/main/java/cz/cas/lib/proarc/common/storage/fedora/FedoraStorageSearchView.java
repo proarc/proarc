@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.SearchViewQuery;
+import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationResource;
@@ -489,7 +490,10 @@ public final class FedoraStorageSearchView extends SearchView {
     }
 
     @Override
-    public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String parentPid, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
+        if (SolrUtils.PROPERTY_PARENTPID_NO_PARENT.equals(parentPid)) {
+            return new ArrayList<>();
+        }
         sortField = createSortField(sortField);
         sort = createSort(sort);
         if (label == null && identifier == null && owner == null && creator == null) {
@@ -500,7 +504,10 @@ public final class FedoraStorageSearchView extends SearchView {
     }
 
     @Override
-    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension) throws FedoraClientException, IOException {
+    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String parentPid) throws FedoraClientException, IOException {
+        if (SolrUtils.PROPERTY_PARENTPID_NO_PARENT.equals(parentPid)) {
+            return 0;
+        }
         if (label == null && identifier == null && owner == null && creator == null) {
             return findAdvancedCountObjects(null, status, organization, processor, model, allowAllForProcessor, filterWithoutExtension);
         }

@@ -302,12 +302,12 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filterType.setValueMap(filterMap);
         filterType.setValue(FILTER_LAST_CREATED);
 
-        FormItemIfFunction showIfQuery = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED, FILTER_ORPHAN);
+        FormItemIfFunction showIfQuery = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED);
         FormItemIfFunction showIfPhrase = new StringMatchFunction(filterType, FILTER_PHRASE);
-        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ORPHAN, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE);
-        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE);
-        FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_ADVANCED);
-        FormItemIfFunction showSortField = new StringMatchFunction(filterType, FILTER_PHRASE, FILTER_ADVANCED);
+        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE, FILTER_ORPHAN);
+        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE, FILTER_ORPHAN);
+        FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_ADVANCED, FILTER_ORPHAN);
+        FormItemIfFunction showSortField = new StringMatchFunction(filterType, FILTER_PHRASE, FILTER_ADVANCED, FILTER_ORPHAN);
         FormItemIfFunction showIfQueryOrAdvanced = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED, FILTER_ORPHAN, FILTER_ADVANCED);
 
         final TextItem phrase = createAdvancedItem(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM,

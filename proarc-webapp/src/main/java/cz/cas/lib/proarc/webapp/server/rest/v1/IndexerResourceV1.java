@@ -18,6 +18,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.SolrObjectFeeder;
+import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -239,7 +240,7 @@ public class IndexerResourceV1 {
                     List<SearchViewItem> parents = search.findReferrers(proArcObject.getPid());
 
                     if (parents.isEmpty()) {
-                        feeder.feedParentPid(proArcObject.getPid(), "NO_PARENTS", false);
+                        feeder.feedParentPid(proArcObject.getPid(), SolrUtils.PROPERTY_PARENTPID_NO_PARENT, false);
                     } else {
                         feeder.feedParentPid(proArcObject.getPid(), parents.get(0).getPid(), false);
                     }
@@ -269,7 +270,7 @@ public class IndexerResourceV1 {
                 if (proArcObject.getPid().startsWith("uuid")) {
                     if (rebuildIndex) {
                         try {
-                            feeder.feedDescriptionDocument(digitalObject, proArcObject, false);
+                            feeder.insertDescriptionDocument(digitalObject, proArcObject, false);
                             this.filesCount++;
                             this.objectCount++;
                             if (filesCount % 50 == 0) {
@@ -282,7 +283,7 @@ public class IndexerResourceV1 {
                                     proArcObject = storage.find(digitalObject.getPID());
                                     filesCount++;
                                     this.objectCount++;
-                                    feeder.feedDescriptionDocument(digitalObject, proArcObject, false);
+                                    feeder.insertDescriptionDocument(digitalObject, proArcObject, false);
                                     if (filesCount % 50 == 0) {
                                         LOG.info("Proccessed " + filesCount + " objects");
                                         feeder.commit();
