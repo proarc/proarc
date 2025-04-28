@@ -99,6 +99,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
+import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
@@ -614,6 +615,16 @@ public class DigitalObjectResourceV1 {
                 total = items.size();
                 page = 1;
                 break;
+            case ORPHAN:
+                if (username == null) {
+                    username = queryProcessor;
+                }
+                if (organization == null) {
+                    organization = queryOrganization;
+                }
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
+                break;
             case DELETED:
                 items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
@@ -634,8 +645,8 @@ public class DigitalObjectResourceV1 {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, null);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, null, sortField, sort.toString(), startRow, 100);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }
@@ -846,6 +857,10 @@ public class DigitalObjectResourceV1 {
         members.clear();
         // add new members
         ArrayList<SearchViewItem> added = new ArrayList<SearchViewItem>();
+        AkubraStorage storage = null;
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            storage = AkubraStorage.getInstance(akubraConfiguration);
+        }
         for (String addPid : toSetPids) {
             if (!members.contains(addPid)) {
                 members.add(addPid);
@@ -856,6 +871,10 @@ public class DigitalObjectResourceV1 {
                 }
                 item.setParentPid(parentPid);
                 added.add(item);
+
+                if (storage != null) {
+                    storage.indexParentPid(item.getPid(), item.getParentPid());
+                }
             }
         }
         editor.setMembers(members);
@@ -990,7 +1009,7 @@ public class DigitalObjectResourceV1 {
     private List<SearchViewItem> addMembers(DigitalObjectHandler parent,
                                             List<String> toAddPids,
                                             Map<String, SearchViewItem> memberSearchMap
-    ) throws DigitalObjectException {
+    ) throws DigitalObjectException, IOException {
 
         String parentPid = parent.getFedoraObject().getPid();
         HashSet<String> toAddPidSet = new HashSet<String>(toAddPids);
@@ -1001,6 +1020,11 @@ public class DigitalObjectResourceV1 {
         RelationEditor editor = parent.relations();
         List<String> members = editor.getMembers();
         // add new members
+
+        AkubraStorage storage = null;
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            storage = AkubraStorage.getInstance(akubraConfiguration);
+        }
         for (String addPid : toAddPids) {
             if (!members.contains(addPid)) {
                 members.add(addPid);
@@ -1010,6 +1034,10 @@ public class DigitalObjectResourceV1 {
                 }
                 item.setParentPid(parentPid);
                 added.add(item);
+
+                if (storage != null) {
+                    storage.indexParentPid(item.getPid(), item.getParentPid());
+                }
             } else {
                 throw RestException.plainText(Status.BAD_REQUEST,
                         parentPid + " already contains: " + addPid);
@@ -1080,7 +1108,7 @@ public class DigitalObjectResourceV1 {
      * @param parent         parent PID
      * @param toRemovePidSet PIDs of children to remove
      */
-    private void deleteMembers(DigitalObjectHandler parent, Set<String> toRemovePidSet) throws DigitalObjectException {
+    private void deleteMembers(DigitalObjectHandler parent, Set<String> toRemovePidSet) throws DigitalObjectException, IOException {
         RelationEditor editor = parent.relations();
         List<String> members = editor.getMembers();
         // check that PIDs being removed are members of parent object
@@ -1095,6 +1123,16 @@ public class DigitalObjectResourceV1 {
         if (members.removeAll(toRemovePidSet)) {
             editor.setMembers(members);
             editor.write(editor.getLastModified(), session.asFedoraLog());
+        }
+
+        AkubraStorage storage = null;
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            storage = AkubraStorage.getInstance(akubraConfiguration);
+        }
+        for (String pid : toRemovePidSet) {
+            if (storage != null) {
+                storage.indexParentPid(pid, parent.getFedoraObject().getPid());
+            }
         }
     }
 
@@ -5214,7 +5252,7 @@ public class DigitalObjectResourceV1 {
         return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, Collections.singletonList(item));
     }
 
-    private SmartGwtResponse<SearchViewItem> returnFunctionSuccess() {
+    public static SmartGwtResponse<SearchViewItem> returnFunctionSuccess() {
         SearchViewItem item = new SearchViewItem();
         item.setStatus("OK");
         return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, 1, Collections.singletonList(item));

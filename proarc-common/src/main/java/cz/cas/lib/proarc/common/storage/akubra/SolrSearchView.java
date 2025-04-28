@@ -36,6 +36,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MODEL;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MODIFIED;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_ORGANIZATION;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_OWNER;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PARENT_PID;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PID;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOFTWARE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATE;
@@ -317,7 +318,7 @@ public class SolrSearchView extends SearchView {
         if (title == null || title.isEmpty()) {
             title = q.getLabel();
         }
-        return searchImplementation(0, maxLimit, null, null, onlyActive, models, pids, q.getOwner(), q.getOrganization(), q.getCreator(), title, q.getStatus(), false);
+        return searchImplementation(0, maxLimit, null, null, onlyActive, models, pids, q.getOwner(), q.getOrganization(), q.getCreator(), title, q.getStatus(), q.getParentPid(), false);
     }
 
     @Override
@@ -327,70 +328,70 @@ public class SolrSearchView extends SearchView {
 
     @Override
     public int countModels(String model, String user, String organization, String username, Boolean filterWithoutExtension) throws IOException {
-        return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), null, user, organization, username, null, null, true);
+        return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), null, user, organization, username, null, null, true, null);
     }
 
     @Override
-    public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String parentPid, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
         List<String> queryPids = new ArrayList<>();
         if (identifier != null && identifier.contains(",")) {
             queryPids.addAll(Arrays.asList(identifier.split("\\s*,\\s*")));
         } else {
             queryPids.add(identifier);
         }
-        return searchImplementation(offset, limit, sortField, transfromSort(sort), true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, allowAllForProcessor);
+        return searchImplementation(offset, limit, sortField, transfromSort(sort), true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, parentPid, allowAllForProcessor);
     }
 
     @Override
-    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension) throws IOException {
+    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String parentPid) throws IOException {
         List<String> queryPids = new ArrayList<>();
         if (identifier != null && identifier.contains(",")) {
             queryPids.addAll(Arrays.asList(identifier.split("\\s*,\\s*")));
         } else {
             queryPids.add(identifier);
         }
-        return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, allowAllForProcessor);
+        return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, allowAllForProcessor, parentPid);
     }
 
     @Override
     public int countByOwner(String owner) throws IOException {
-        return searchCountImplementation(0, this.maxLimit, null, null, null, owner, null, null, null, null, null);
+        return searchCountImplementation(0, this.maxLimit, null, null, null, owner, null, null, null, null, null, null);
     }
 
     private List<SearchViewItem> findLastImp(int offset, String model, String user, String organization, String username, Boolean filterWithoutExtension, int limit, String sortField, String sortOperation) throws IOException {
-        return searchImplementation(offset, limit, sortField, transfromSort(sortOperation), true,  Collections.singletonList(model), null, user, organization, username, null, null, true);
+        return searchImplementation(offset, limit, sortField, transfromSort(sortOperation), true,  Collections.singletonList(model), null, user, organization, username, null, null, null, true);
     }
 
     private List<SearchViewItem> searchImplementation(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids) throws IOException {
-        return searchImplementation(offset, limit, sortField, sortOperation, onlyActive, models, pids, null, null, null, null, null, true);
+        return searchImplementation(offset, limit, sortField, sortOperation, onlyActive, models, pids, null, null, null, null, null, null, true);
     }
 
 
-    private List<SearchViewItem> searchImplementation(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) throws IOException {
+    private List<SearchViewItem> searchImplementation(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, String parentPid, Boolean allowAllForUser) throws IOException {
         if (pids == null || pids.isEmpty()) {
-            return searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, pids, owner, organization, user, label, status, allowAllForUser);
+            return searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, pids, owner, organization, user, label, status, parentPid, allowAllForUser);
         } else {
             List<SearchViewItem> items = new ArrayList<>();
             List<String> tmpPids = new ArrayList<>();
             for (int index = 0; index < pids.size(); index++) {
                 tmpPids.add(pids.get(index));
                 if (index % DEFAULT_PIDS_SIZE == 0) {
-                    items.addAll(searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, tmpPids, owner, organization, user, label, status, allowAllForUser));
+                    items.addAll(searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, tmpPids, owner, organization, user, label, status, parentPid, allowAllForUser));
                     tmpPids.clear();
                 }
             }
             if (!tmpPids.isEmpty()) {
-                items.addAll(searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, tmpPids, owner, organization, user, label, status, allowAllForUser));
+                items.addAll(searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, tmpPids, owner, organization, user, label, status, parentPid, allowAllForUser));
                 tmpPids.clear();
             }
             return items;
         }
     }
 
-    private List<SearchViewItem> searchImpl(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, Boolean allowAllForUser) throws IOException {
+    private List<SearchViewItem> searchImpl(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String label, String status, String parentPid, Boolean allowAllForUser) throws IOException {
         try {
             String query = createQuery(label);
-            List<String> filterQueryList = createFilterQuery(onlyActive, models, pids, owner, organization, user, status, allowAllForUser);
+            List<String> filterQueryList = createFilterQuery(onlyActive, models, pids, owner, organization, user, status, parentPid, allowAllForUser);
             limit = updateLimit(limit, pids);
             SolrQuery solrQuery = createQueryWithParams(query, FIELD_LABEL, filterQueryList, offset, limit, sortOperation, sortField);
 
@@ -408,7 +409,7 @@ public class SolrSearchView extends SearchView {
         }
     }
 
-    private List<String> createFilterQuery(Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String status, Boolean allowAllForUser) {
+    private List<String> createFilterQuery(Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String user, String status, String parentPid, Boolean allowAllForUser) {
         List<String> filterQueryList = defaultFilterQuery();
         if (onlyActive != null && onlyActive) {
             filterQueryList.add(FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");
@@ -432,10 +433,12 @@ public class SolrSearchView extends SearchView {
             if (userQuery != null && !userQuery.isEmpty()) {
                 filterQueryList.add(userQuery);
             }
-
         }
         if (status != null && !status.isEmpty()) {
             filterQueryList.add(FIELD_STATUS + ":\"" + status + "\"");
+        }
+        if (parentPid != null && !parentPid.isEmpty()) {
+            filterQueryList.add(FIELD_PARENT_PID + ":\"" + parentPid + "\"");
         }
         return filterQueryList;
     }
@@ -459,7 +462,7 @@ public class SolrSearchView extends SearchView {
             if (model != null && !model.isEmpty()) {
                 models = Collections.singletonList(model);
             }
-            List<String> filterQueryList = createFilterQuery(true, models, null, null, organization, username, status, allowAllForUser);
+            List<String> filterQueryList = createFilterQuery(true, models, null, null, organization, username, status, null, allowAllForUser);
             SolrQuery solrQuery = createQueryWithParams(query, FIELD_FULLTEXT, filterQueryList, offset, limit, transfromSort(sort), sortField);
 
             List<SearchViewItem> items = new ArrayList<>();
@@ -476,10 +479,10 @@ public class SolrSearchView extends SearchView {
         }
     }
 
-    private int searchCountImplementation(Integer offset, Integer limit, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String username, String label, String status, Boolean allowAllForUser) throws IOException {
+    private int searchCountImplementation(Integer offset, Integer limit, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String username, String label, String status, Boolean allowAllForUser, String parentPid) throws IOException {
         try {
             String query = createQuery(label);
-            List<String> filterQueryList = createFilterQuery(onlyActive, models, pids, owner, organization, username, status, allowAllForUser);
+            List<String> filterQueryList = createFilterQuery(onlyActive, models, pids, owner, organization, username, status, parentPid, allowAllForUser);
             SolrQuery solrQuery = createQueryWithParams(query, FIELD_LABEL, filterQueryList, offset, limit, null, null);
 
             QueryResponse response = this.solrClient.query(solrQuery);

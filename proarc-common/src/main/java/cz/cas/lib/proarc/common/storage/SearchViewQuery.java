@@ -12,6 +12,7 @@ public class SearchViewQuery {
     private String owner;
     private String model;
     private String status;
+    private String parentPid;
     private Collection<String> hasOwners;
 
     public String getOrganization() {
@@ -97,4 +98,13 @@ public class SearchViewQuery {
         return this;
     }
 
+
+    public String getParentPid() {
+        return parentPid;
+    }
+
+    public SearchViewQuery setParentPid(String parentPid) {
+        this.parentPid = parentPid;
+        return this;
+    }
 }

@@ -36,6 +36,7 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
@@ -409,7 +410,7 @@ public final class DeviceRepository {
         if (Storage.FEDORA.equals(typeOfStorage)) {
             fedoraStorage.ingest(lobject, owner);
         } else if (Storage.AKUBRA.equals(typeOfStorage)) {
-            akubraStorage.ingest(lobject, owner);
+            akubraStorage.ingest(lobject, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, owner);
         }
         Device device = new Device();
         device.setId(pid);

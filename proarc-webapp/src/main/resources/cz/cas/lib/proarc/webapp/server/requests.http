@@ -135,6 +135,12 @@ POST {{proarcUrl}}/rest/v1/indexer
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
+### INDEX PARENTS
+
+POST {{proarcUrl}}/rest/v2/indexer/parents
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
 ###
 
 GET {{proarcUrl}}/rest/v1/object/createPid

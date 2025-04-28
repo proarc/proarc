@@ -51,6 +51,8 @@ public class Batch {
     public static final String UPLOAD_PROARC = "uploadProfile.proarc";
     public static final String UPLOAD_KRAMERIUS = "uploadProfile.kramerius";
 
+    public static final String INTERNAL_INDEX_OBJECTS_TO_SOLR = "internalProfile.indexObjectsToSolr";
+    public static final String INTERNAL_INDEX_PARENTS_TO_SOLR = "internalProfile.indexObjectsToSolr";
     public static final String INTERNAL_REINDEX = "internalProfile.reindex";
     public static final String INTERNAL_CHANGE_OBJECTS_OWNERS = "internalProfile.changeOwners";
     public static final String INTERNAL_UPDATE_CATALOG_RECORDS = "internalProfile.updateCatalogRecords";
