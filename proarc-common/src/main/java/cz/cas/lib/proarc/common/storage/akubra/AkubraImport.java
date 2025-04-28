@@ -75,6 +75,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.solr.client.solrj.SolrServerException;
+
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.getTargetFolder;
 import static cz.cas.lib.proarc.common.process.imports.ImportUtils.createPidHierarchy;
@@ -119,6 +121,7 @@ public final class AkubraImport {
         try {
             boolean itemFailed = importItems(batch, importer, ingestedPids, repair);
             addParentMembers(batch, parentPid, ingestedPids, message);
+            indexParent(ingestedPids);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
             if (Batch.State.INGESTED.equals(batch.getState())) {
                 deleteImportFolder(batch);
@@ -141,6 +144,24 @@ public final class AkubraImport {
                     new Object[]{System.currentTimeMillis() - startTime, ingestedPids.size(), batch});
         }
         return batch;
+    }
+
+    private void indexParent(ArrayList<String> ingestedPids) throws IOException, FedoraClientException, DigitalObjectException, SolrServerException {
+        boolean commit = false;
+        for (String ingestedPid : ingestedPids) {
+            if (ingestedPid.startsWith("uuid")) {
+                List<SearchViewItem> parents = search.findReferrers(ingestedPid);
+                if (parents.isEmpty()) {
+                    akubraStorage.getSolrObjectFeeder().feedParentPid(ingestedPid, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, false);
+                } else {
+                    akubraStorage.getSolrObjectFeeder().feedParentPid(ingestedPid, parents.get(0).getPid(), false);
+                }
+                commit = true;
+            }
+        }
+        if (commit) {
+            akubraStorage.getSolrObjectFeeder().commit();
+        }
     }
 
     private void setWorkflowMetadataDescription(String type, IMetsElement root) throws DigitalObjectException, WorkflowException {

@@ -550,6 +550,7 @@ public class AkubraStorage {
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
                     this.objectFeeder.updateDescriptionDocument(object, this, true);
+                    this.objectFeeder.feedParentPid(object.getPID(), SolrUtils.PROPERTY_PARENTPID_NO_PARENT, true);
                     this.objectFeeder.commit();
                     this.loggingFeeder.feedDeleteLog(getPid(), logMessage);
                 }
@@ -570,6 +571,7 @@ public class AkubraStorage {
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
                     this.objectFeeder.updateDescriptionDocument(object, this, true);
+                    this.objectFeeder.feedParentPid(object.getPID(), SolrUtils.PROPERTY_PARENTPID_NO_PARENT, true);
                     this.objectFeeder.commit();
                     this.loggingFeeder.feedRestoreLog(getPid(), logMessage);
                 }
