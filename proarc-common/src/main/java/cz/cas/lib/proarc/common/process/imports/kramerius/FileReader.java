@@ -88,6 +88,8 @@ import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
+import static cz.cas.lib.proarc.common.actions.ChangeModels.fixNdkPageMods;
+
 /**
  * It reads the kramerius package and generates digital objects for a batch import.
  *
@@ -798,15 +800,21 @@ public class FileReader {
         String modelId = null;
         RelationEditor relationEditor = new RelationEditor(localObject);
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(localObject);
-        DigitalObjectHandler handler = new DigitalObjectHandler(localObject, MetaModelRepository.getInstance());
         boolean containsPdf = containsPdf(localObject);
 
         try {
             ModsDefinition mods = modsStreamEditor.read();
 
-            // set device
             if (isPage(relationEditor)) {
+                // set device
                 relationEditor.setDevice(ctx.getDevice());
+
+                // change page model if config
+                if (NdkPlugin.MODEL_NDK_PAGE.equals(ctx.getModel())) {
+                    relationEditor.setModel(NdkPlugin.MODEL_NDK_PAGE);
+                    mods = fixNdkPageMods(mods);
+                    modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), "Migrace na NDK stranu");
+                }
             }
 
             //repair mapping
@@ -833,8 +841,9 @@ public class FileReader {
             localObject.purgeDatastream(BinaryEditor.NDK_ARCHIVAL_ID, "Odebrani nepotrebneho streamu " + BinaryEditor.NDK_ARCHIVAL_ID);
             localObject.purgeDatastream(BinaryEditor.NDK_USER_ID, "Odebrani nepotrebneho streamu " + BinaryEditor.NDK_USER_ID);
         }
+        localObject.flush();
 
-
+        DigitalObjectHandler handler = new DigitalObjectHandler(localObject, MetaModelRepository.getInstance());
         try {
             NdkMapper mapper = NdkMapper.get(modelId);
             mapper.setModelId(modelId);
