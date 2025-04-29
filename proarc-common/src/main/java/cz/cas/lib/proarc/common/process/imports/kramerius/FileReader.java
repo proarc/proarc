@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
@@ -100,6 +101,7 @@ public class FileReader {
     private static final Logger LOG = Logger.getLogger(FileReader.class.getName());
 
     public static final String NDK_MONOGRAPH_MAP = "ndk_monograph";
+    public static final String NDK_MONOGRAPH_TITLE_MAP = "ndk_monograph_title";
     public static final String NDK_PERIODICAL_MAP = "ndk_periodical";
     public static final String NDK_EMONOGRAPH_MAP = "ndk_emonograph";
     public static final String NDK_EPERIODICAL_MAP = "ndk_eperiodical";
@@ -108,7 +110,7 @@ public class FileReader {
 
     private final Set<String> KRAMERIUS_PREFIX = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "kramerius:hasIntCompPart", "hasIntCompPart", "kramerius:hasItem", "hasItem",
-            "kramerius:hasPage", "hasPage", "kramerius:hasUnit", "hasInit", "kramerius:hasVolume", "hasVolume")));
+            "kramerius:hasPage", "hasPage", "kramerius:hasUnit", "hasUnit", "kramerius:hasVolume", "hasVolume")));
 
     private final Set<String> KRAMERIUS_DATASTREAMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "RELS-EXT", "IMG_FULL", "IMG_PREVIEW", "IMG_THUMB", "TEXT_OCR", "ALTO", "BIBLIO_MODS", "DC", "NDK_ARCHIVAL", "NDK_USER", "FULL", "PREVIEW", "THUMBNAIL")));
@@ -139,10 +141,30 @@ public class FileReader {
             put("model:article", NdkPlugin.MODEL_ARTICLE);
             put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
             put("model:graphic", NdkPlugin.MODEL_GRAPHIC);
-            put("model:chapter", NdkPlugin.MODEL_CHAPTER);
+            put("model:internalpart", NdkPlugin.MODEL_CHAPTER);
             // put("model:monograph", NdkPlugin.MODEL_MONOGRAPHTITLE);
             put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
             put("model:monograph", NdkPlugin.MODEL_MONOGRAPHVOLUME);
+//            put("model:monographunit", NdkPlugin.MODEL_MONOGRAPHUNIT);
+            //put("model:periodical", NdkPlugin.MODEL_PERIODICAL);
+            //put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
+            //put("model:supplement", NdkPlugin.MODEL_PERIODICALSUPPLEMENT);
+            //put("model:periodicalvolume", NdkPlugin.MODEL_PERIODICALVOLUME);
+               put("model:picture", NdkPlugin.MODEL_PICTURE);
+            put("model:sheetmusic", NdkPlugin.MODEL_SHEETMUSIC);
+        }
+    };
+
+    // Monograph Title model mapping
+    private final Map<String, String> modelMonographTitleMap = new HashMap<String, String>() {
+        {
+            put("model:article", NdkPlugin.MODEL_ARTICLE);
+            put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
+            put("model:graphic", NdkPlugin.MODEL_GRAPHIC);
+            put("model:internalpart", NdkPlugin.MODEL_CHAPTER);
+            // put("model:monograph", NdkPlugin.MODEL_MONOGRAPHTITLE);
+            put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
+            put("model:monograph", NdkPlugin.MODEL_MONOGRAPHTITLE);
             put("model:monographunit", NdkPlugin.MODEL_MONOGRAPHUNIT);
             //put("model:periodical", NdkPlugin.MODEL_PERIODICAL);
             //put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
@@ -195,6 +217,10 @@ public class FileReader {
 
     public Map<String, String> getModelMonographMap() {
         return modelMonographMap;
+    }
+
+    public Map<String, String> getModelMonographTitleMap() {
+        return modelMonographTitleMap;
     }
 
     public Map<String, String> getModelPeriodicalMap() {
@@ -321,6 +347,7 @@ public class FileReader {
                 createDataStreams(dObj, ctx);
                 lObj = iSession.getLocals().create(objFile, dObj);
                 updateLocalObject(lObj, ctx);
+
                 importItem = iSession.addObject(lObj, true);
             }
         } else {
@@ -368,7 +395,7 @@ public class FileReader {
     }
 
     private void removePart(ModsDefinition mods, String model) {
-        if (!(NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model))) {
+        if (!(NdkPlugin.MODEL_PAGE.equals(model) || NdkPlugin.MODEL_NDK_PAGE.equals(model) || NdkPlugin.MODEL_CHAPTER.equals(model) || NdkPlugin.MODEL_ARTICLE.equals(model) || BornDigitalModsPlugin.MODEL_ARTICLE.equals(model))) {
             mods.getPart().clear();
         }
     }
@@ -583,6 +610,28 @@ public class FileReader {
                     }
                 }
 
+            } else {
+                if (full.getDatastreamVersion().get(0).getMIMETYPE() != null && "application/pdf".equals(full.getDatastreamVersion().get(0).getMIMETYPE())) {
+                    byte[] binaryContent = full.getDatastreamVersion().get(0).getBinaryContent();
+                    if (binaryContent != null && binaryContent.length > 0) {
+                        DatastreamType raw = new DatastreamType();
+                        DatastreamVersionType datastreamVersionType = new DatastreamVersionType();
+
+                        raw.setID(BinaryEditor.RAW_ID);
+                        raw.setCONTROLGROUP(full.getCONTROLGROUP());
+                        raw.setSTATE(full.getSTATE());
+                        raw.setVERSIONABLE(full.isVERSIONABLE());
+                        raw.getDatastreamVersion().add(datastreamVersionType);
+
+                        datastreamVersionType.setID(BinaryEditor.RAW_ID + ".0");
+                        datastreamVersionType.setLABEL(BinaryEditor.RAW_LABEL);
+                        datastreamVersionType.setCREATED(full.getDatastreamVersion().get(0).getCREATED());
+                        datastreamVersionType.setMIMETYPE(full.getDatastreamVersion().get(0).getMIMETYPE());
+                        datastreamVersionType.setBinaryContent(binaryContent);
+                        return raw;
+                    }
+                }
+
             }
         }
         return null;
@@ -750,6 +799,7 @@ public class FileReader {
         RelationEditor relationEditor = new RelationEditor(localObject);
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(localObject);
         DigitalObjectHandler handler = new DigitalObjectHandler(localObject, MetaModelRepository.getInstance());
+        boolean containsPdf = containsPdf(localObject);
 
         try {
             ModsDefinition mods = modsStreamEditor.read();
@@ -760,7 +810,7 @@ public class FileReader {
             }
 
             //repair mapping
-            modelId = repairModelMapping(relationEditor, mods);
+            modelId = repairModelMapping(relationEditor, mods, containsPdf);
 
             //set members
             List<String> members = getMembers(relationEditor);
@@ -778,6 +828,12 @@ public class FileReader {
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Element RELS-EXT can not be override." + localObject.getPid());
         }
+        if (BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
+            localObject.purgeDatastream(BinaryEditor.FULL_ID, "Odebrani nepotrebneho streamu " + BinaryEditor.FULL_ID);
+            localObject.purgeDatastream(BinaryEditor.NDK_ARCHIVAL_ID, "Odebrani nepotrebneho streamu " + BinaryEditor.NDK_ARCHIVAL_ID);
+            localObject.purgeDatastream(BinaryEditor.NDK_USER_ID, "Odebrani nepotrebneho streamu " + BinaryEditor.NDK_USER_ID);
+        }
+
 
         try {
             NdkMapper mapper = NdkMapper.get(modelId);
@@ -812,6 +868,22 @@ public class FileReader {
         }
     }
 
+    private boolean containsPdf(LocalObject localObject) {
+        if (localObject == null || localObject.getDigitalObject() == null) {
+            return false;
+        }
+        for (DatastreamType datastream : localObject.getDigitalObject().getDatastream()) {
+            if (BinaryEditor.FULL_ID.equals(datastream.getID())) {
+                for (DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+                    if (datastreamVersion.getMIMETYPE() != null && "application/pdf".equals(datastreamVersion.getMIMETYPE())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private void repairModsIdentifier(List<IdentifierDefinition> identifiers) {
         for (IdentifierDefinition identifier: identifiers) {
             if ("urn".equalsIgnoreCase(identifier.getType())) {
@@ -839,13 +911,16 @@ public class FileReader {
         return members;
     }
 
-    private String repairModelMapping(RelationEditor relationEditor, ModsDefinition mods) throws DigitalObjectException {
+    private String repairModelMapping(RelationEditor relationEditor, ModsDefinition mods, boolean containsPdf) throws DigitalObjectException {
         String oldModelId = relationEditor.getModel();
         if (oldModelId != null && !NdkPlugin.MODEL_PAGE.equals(oldModelId)) {
             String newModelId = "";
             switch(type) {
                 case NDK_MONOGRAPH_MAP:
                     newModelId = getModelMonographMap().get(oldModelId);
+                    break;
+                case NDK_MONOGRAPH_TITLE_MAP:
+                    newModelId = getModelMonographTitleMap().get(oldModelId);
                     break;
                 case NDK_PERIODICAL_MAP:
                     newModelId = getModelPeriodicalMap().get(oldModelId);
@@ -869,6 +944,9 @@ public class FileReader {
             }
             if (NdkPlugin.MODEL_PERIODICALISSUE.equals(newModelId)) {
                 newModelId = checkModelInMods(newModelId, mods);
+            }
+            if (NdkPlugin.MODEL_ARTICLE.equals(newModelId) && containsPdf) {
+                newModelId = BornDigitalModsPlugin.MODEL_ARTICLE;
             }
             relationEditor.setModel(newModelId);
             return newModelId;

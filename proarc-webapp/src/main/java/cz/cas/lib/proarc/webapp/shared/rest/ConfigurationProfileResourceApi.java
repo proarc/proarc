@@ -40,6 +40,7 @@ public interface ConfigurationProfileResourceApi {
     public static final String NDK_ID = ConfigurationProfile.DEFAULT_NDK_IMPORT;
     public static final String KRAMERIUS_DEFAULT_ID = ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT;
     public static final String KRAMERIUS_NDK_MONOGRAPH_ID = ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT;
+    public static final String KRAMERIUS_NDK_MONOGRAPH_TITLE_ID = ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT;
     public static final String KRAMERIUS_NDK_PERIODICAL_ID = ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT;
     public static final String KRAMERIUS_NDK_EMONOGRAPH_ID = ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT;
     public static final String KRAMERIUS_NDK_EPERIODICAL_ID = ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT;
