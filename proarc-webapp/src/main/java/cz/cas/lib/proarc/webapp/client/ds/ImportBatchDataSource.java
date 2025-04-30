@@ -139,6 +139,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         profiles.put(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_IMPORT());
         profiles.put(ConfigurationProfile.STT_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_STT_IMPORT());
         profiles.put(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_MONOGRAPH_IMPORT());
+        profiles.put(ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_MONOGRAPH_TITLE_IMPORT());
         profiles.put(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_PERIODIKA_IMPORT());
         profiles.put(ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_EMONOGRAPH_IMPORT());
         profiles.put(ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT, i18n.ImportProfile_KRAMERIUS_EPERIODIKA_IMPORT());
@@ -297,6 +298,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         public static boolean isKramerius(String profileID) {
             return ConfigurationProfileResourceApi.KRAMERIUS_DEFAULT_ID.equals(profileID)
                     || ConfigurationProfileResourceApi.KRAMERIUS_NDK_MONOGRAPH_ID.equals(profileID)
+                    || ConfigurationProfileResourceApi.KRAMERIUS_NDK_MONOGRAPH_TITLE_ID.equals(profileID)
                     || ConfigurationProfileResourceApi.KRAMERIUS_NDK_PERIODICAL_ID.equals(profileID)
                     || ConfigurationProfileResourceApi.KRAMERIUS_NDK_EMONOGRAPH_ID.equals(profileID)
                     || ConfigurationProfileResourceApi.KRAMERIUS_NDK_EPERIODICAL_ID.equals(profileID)

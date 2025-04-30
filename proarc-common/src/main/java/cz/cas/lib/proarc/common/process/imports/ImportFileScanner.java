@@ -203,6 +203,7 @@ public final class ImportFileScanner {
         private State statusNdk;
         private State statusReplaceStream;
         private State statusKrameriusNdkMonograph;
+        private State statusKrameriusNdkMonographTitle;
         private State statusKrameriusNdkPeriodical;
         private State statusKrameriusNdkEMonograph;
         private State statusKrameriusNdkEPeriodical;
@@ -267,6 +268,13 @@ public final class ImportFileScanner {
                 statusKrameriusNdkMonograph = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT));
             }
             return statusKrameriusNdkMonograph;
+        }
+
+        public State getStatusKrameriusNdkMonographTitle(AppConfiguration appConfig) {
+            if (statusKrameriusNdkMonographTitle == null) {
+                statusKrameriusNdkMonographTitle = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT));
+            }
+            return statusKrameriusNdkMonographTitle;
         }
 
         public State getStatusKrameriusNdkPeriodical(AppConfiguration appConfig) {

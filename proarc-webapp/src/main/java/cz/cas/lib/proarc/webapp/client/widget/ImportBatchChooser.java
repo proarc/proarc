@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
-import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.types.Alignment;
@@ -170,9 +169,9 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
                 updateOnSelection();
             }
         });
-        Criteria filter = new Criteria();
-        filter.addCriteria(lgfImported.getName(), ImportBatchDataSource.State.LOADED.toString());
-        lg.setInitialCriteria(filter);
+//        Criteria filter = new Criteria();
+//        filter.addCriteria(lgfImported.getName(), ImportBatchDataSource.State.LOADED.toString());
+//        lg.setInitialCriteria(filter);
         lg.setSortField(lgfModified.getName());
         lg.setSortDirection(SortDirection.DESCENDING);
         lg.addDataArrivedHandler(new DataArrivedHandler() {
@@ -427,7 +426,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         @Override
         public boolean accept(ActionEvent event) {
             BatchRecord batch = getSelectedBatch();
-            return batch != null && batch.getParentPid() != null && !batch.isKrameirus() && !batch.isReplaceStream();
+            return batch != null && batch.getParentPid() != null && !batch.isReplaceStream();
         }
 
         @Override

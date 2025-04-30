@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -393,6 +394,10 @@ public final class ImportProcess implements Runnable {
         private boolean useNewMetadata;
         private boolean useOriginalMetadata;
 
+        // parametry kvuli auto migraci z k4 na ndk
+        private List<String> pidsToUpdate;
+        private boolean wasK4Model;
+
         public ImportOptions(File importFolder, String device, String software, boolean generateIndices, UserProfile username, ImportProfile profile, String priority) {
             this(importFolder, device, software, generateIndices, false, username, profile, priority, false, false);
         }
@@ -411,6 +416,9 @@ public final class ImportProcess implements Runnable {
             this.priority = priority;
             this.useNewMetadata = useNewMetadata;
             this.useOriginalMetadata = useOriginalMetadata;
+
+            this.pidsToUpdate = new ArrayList<>();
+            this.wasK4Model = false;
         }
 
         public ImportHandler getImporter() {
@@ -552,6 +560,22 @@ public final class ImportProcess implements Runnable {
 
         public void setUseOriginalMetadata(boolean useOriginalMetadata) {
             this.useOriginalMetadata = useOriginalMetadata;
+        }
+
+        public List<String> getPidsToUpdate() {
+            return pidsToUpdate;
+        }
+
+        public void setPidsToUpdate(List<String> pidsToUpdate) {
+            this.pidsToUpdate = pidsToUpdate;
+        }
+
+        public boolean wasK4Model() {
+            return wasK4Model;
+        }
+
+        public void setWasK4Model(boolean wasK4Model) {
+            this.wasK4Model = wasK4Model;
         }
     }
 
