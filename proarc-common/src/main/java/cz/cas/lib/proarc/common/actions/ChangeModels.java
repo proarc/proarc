@@ -332,41 +332,38 @@ public class ChangeModels {
     }
 
     private void fixModsFromK4(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
+        fixModsFromK4(pid, mods, this.newModel, this.oldModel, getParentMods(parentPid));
+    }
+
+    public static ModsDefinition fixModsFromK4(String pid, ModsDefinition mods, String newModel, String oldModel, ModsDefinition parentMods) throws DigitalObjectException {
         switch (newModel) {
             case NdkPlugin.MODEL_PERIODICAL:
-                fixNdkPeriodicalFromK4Periodical(mods, parentPid);
-                break;
+                return fixNdkPeriodicalFromK4Periodical(mods);
             case NdkPlugin.MODEL_PERIODICALVOLUME:
-                fixNdkPeriodicalVolumeFromK4PeriodicalVolume(mods, parentPid);
-                break;
+                return fixNdkPeriodicalVolumeFromK4PeriodicalVolume(mods);
             case NdkPlugin.MODEL_PERIODICALISSUE:
-                fixNdkPeriodicalIssueFromK4PeriodicalIssue(mods, parentPid);
-                break;
+                return fixNdkPeriodicalIssueFromK4PeriodicalIssue(mods, parentMods);
             case NdkPlugin.MODEL_MONOGRAPHVOLUME:
             case NdkPlugin.MODEL_MONOGRAPHUNIT:
                 switch (oldModel) {
                     case K4Plugin.MODEL_MONOGRAPH:
-                        fixNdkMonographVolumeFromK4Monograph(mods, parentPid);
-                        break;
+                        return fixNdkMonographVolumeFromK4Monograph(mods);
                     case K4Plugin.MODEL_MONOGRAPHUNIT:
-                        fixNdkMonographVolumeOrUnitFromK4MonographUnit(mods, parentPid);
-                        break;
+                        return fixNdkMonographVolumeOrUnitFromK4MonographUnit(mods, parentMods);
                     default:
                         throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported previous model (" + oldModel + ").");
                 }
-                break;
             default:
                 throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model (previous model - " + oldModel + ").");
         }
     }
 
-    private void fixNdkMonographVolumeOrUnitFromK4MonographUnit(ModsDefinition mods, String parentPid) throws DigitalObjectException {
+    private static ModsDefinition fixNdkMonographVolumeOrUnitFromK4MonographUnit(ModsDefinition mods, ModsDefinition rootMods) throws DigitalObjectException {
         LOG.info("Updating mods for Ndk Monograph Volume (previous mode K4 Monograph Unit).");
-        ModsDefinition parentMods = getParentMods(parentPid);
 
-        if (parentMods != null) {
+        if (rootMods != null) {
             TitleInfoDefinition title = null;
-            for (TitleInfoDefinition titleInfo : parentMods.getTitleInfo()) {
+            for (TitleInfoDefinition titleInfo : rootMods.getTitleInfo()) {
                 if (titleInfo.getType() == null) {
                     title = titleInfo;
                     break;
@@ -387,7 +384,7 @@ public class ChangeModels {
                 }
             }
 
-            copyMods(mods, parentMods);
+            copyMods(mods, rootMods);
             if (!mods.getTitleInfo().contains(title)) {
                 mods.getTitleInfo().add(title);
             }
@@ -409,9 +406,10 @@ public class ChangeModels {
         }
         mods.getPart().clear();
         addRecordInfo(mods);
+        return mods;
     }
 
-    private void copyMods(ModsDefinition mods, ModsDefinition parentMods) {
+    private static ModsDefinition copyMods(ModsDefinition mods, ModsDefinition parentMods) {
         mods.getAbstract().addAll(parentMods.getAbstract());
         mods.getClassification().addAll(parentMods.getClassification());
         mods.getExtension().addAll(parentMods.getExtension());
@@ -428,9 +426,10 @@ public class ChangeModels {
         mods.getTableOfContents().addAll(parentMods.getTableOfContents());
         mods.getTitleInfo().addAll(parentMods.getTitleInfo());
         mods.getTypeOfResource().addAll(parentMods.getTypeOfResource());
+        return mods;
     }
 
-    private void addRecordInfo(ModsDefinition mods) {
+    private static ModsDefinition addRecordInfo(ModsDefinition mods) {
         if (mods.getRecordInfo().isEmpty()) {
             mods.getRecordInfo().add(new RecordInfoDefinition());
         }
@@ -441,14 +440,16 @@ public class ChangeModels {
                 recordInfo.getDescriptionStandard().add(descriptionStandard);
             }
         }
+        return mods;
     }
 
-    private void fixNdkMonographVolumeFromK4Monograph(ModsDefinition mods, String parentPid) {
+    private static ModsDefinition fixNdkMonographVolumeFromK4Monograph(ModsDefinition mods) {
         LOG.info("Updating mods for Ndk Monograph Volume (previous mode K4 Monograph).");
         addRecordInfo(mods);
+        return mods;
     }
 
-    private void fixNdkPeriodicalVolumeFromK4PeriodicalVolume(ModsDefinition mods, String parentPid) {
+    private static ModsDefinition fixNdkPeriodicalVolumeFromK4PeriodicalVolume(ModsDefinition mods) {
         LOG.info("Updating mods for Ndk Peridical Volume (previous mode K4 Periodical Volume).");
         addRecordInfo(mods);
 
@@ -471,29 +472,17 @@ public class ChangeModels {
             }
         }
         mods.getPart().clear();
+        return mods;
     }
 
-    private void fixNdkPeriodicalIssueFromK4PeriodicalIssue(ModsDefinition mods, String parentPid) throws DigitalObjectException {
+    private static ModsDefinition fixNdkPeriodicalIssueFromK4PeriodicalIssue(ModsDefinition mods, ModsDefinition rootMods) throws DigitalObjectException {
         LOG.info("Updating mods for Ndk Peridical Issue (previous mode K4 Periodical Issue).");
         addRecordInfo(mods);
 
-        ModsDefinition rootMods = getParentMods(parentPid);
-        if (mods.getLanguage().isEmpty()) {
-            if (!rootMods.getLanguage().isEmpty()) {
-                mods.getLanguage().addAll(rootMods.getLanguage());
-            }
-        }
-        if (mods.getLocation().isEmpty()) {
-            if (!rootMods.getLocation().isEmpty()) {
-                mods.getLocation().addAll(rootMods.getLocation());
-            }
-        }
         TitleInfoDefinition title = null;
-        for (TitleInfoDefinition titleInfo : rootMods.getTitleInfo()) {
-            if (titleInfo.getType() == null) {
-                title = titleInfo;
-                break;
-            }
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            title = titleInfo;
+            break;
         }
         for (PartDefinition part : mods.getPart()) {
             for (DateDefinition date : part.getDate()) {
@@ -515,14 +504,46 @@ public class ChangeModels {
             }
         }
         if (title != null) {
-            mods.getTitleInfo().add(title);
+            if (!mods.getTitleInfo().contains(title)) {
+                mods.getTitleInfo().add(title);
+            }
         }
+
+        if (rootMods != null) {
+            if (mods.getLanguage().isEmpty()) {
+                if (!rootMods.getLanguage().isEmpty()) {
+                    mods.getLanguage().addAll(rootMods.getLanguage());
+                }
+            }
+            if (mods.getLocation().isEmpty()) {
+                if (!rootMods.getLocation().isEmpty()) {
+                    mods.getLocation().addAll(rootMods.getLocation());
+                }
+            }
+            TitleInfoDefinition rootTitleInfo = null;
+            for (TitleInfoDefinition titleInfo : rootMods.getTitleInfo()) {
+                if (titleInfo.getType() == null) {
+                    rootTitleInfo = titleInfo;
+                    break;
+                }
+            }
+            if (rootTitleInfo != null && title != null) {
+                if (title.getTitle().isEmpty() && !rootTitleInfo.getTitle().isEmpty()) {
+                    title.getTitle().addAll(rootTitleInfo.getTitle());
+                }
+                if (title.getSubTitle().isEmpty() && !rootTitleInfo.getSubTitle().isEmpty()) {
+                    title.getSubTitle().addAll(rootTitleInfo.getSubTitle());
+                }
+            }
+        }
+
         mods.getPart().clear();
+        return mods;
     }
 
-    private void fixNdkPeriodicalFromK4Periodical(ModsDefinition mods, String parentPid) {
+    private static ModsDefinition fixNdkPeriodicalFromK4Periodical(ModsDefinition mods) {
         LOG.info("Updating mods for Ndk Peridical (previous mode K4 Periodical).");
-        addRecordInfo(mods);
+        return addRecordInfo(mods);
     }
 
     private void fixCollectionOfClippingsVolumeMods(ModsDefinition mods, String parentPid) throws DigitalObjectException {

@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -88,6 +89,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
+import static cz.cas.lib.proarc.common.actions.ChangeModels.fixModsFromK4;
 import static cz.cas.lib.proarc.common.actions.ChangeModels.fixNdkPageMods;
 
 /**
@@ -820,6 +822,35 @@ public class FileReader {
             //repair mapping
             modelId = repairModelMapping(relationEditor, mods, containsPdf);
 
+            // nastaveni rootu batche
+            if (NdkPlugin.MODEL_PERIODICAL.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)
+                    || NdkPlugin.MODEL_GRAPHIC.equals(modelId) || NdkPlugin.MODEL_CARTOGRAPHIC.equals(modelId) || NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)
+                    || OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(modelId) || OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)
+                    || OldPrintPlugin.MODEL_GRAPHICS.equals(modelId) || OldPrintPlugin.MODEL_CARTOGRAPHIC.equals(modelId) || OldPrintPlugin.MODEL_SHEETMUSIC.equals(modelId)
+                    || NdkEbornPlugin.MODEL_EPERIODICAL.equals(modelId) || NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(modelId) || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)
+                    || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId) || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(modelId)) {
+                Batch batch = ctx.getBatch();
+                batch.setParentPid(localObject.getPid());
+                batch = iSession.getImportManager().update(batch);
+                ctx.setBatch(batch);
+            }
+
+            // zjisteni, zda se jednalo o puvodni K4 modely a zapsani jejich uuid k budoucimu updatu
+            if (NdkPlugin.MODEL_PERIODICAL.equals(modelId) || NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId) || NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
+                    || NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
+                ctx.getPidsToUpdate().add(localObject.getPid());
+
+                if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
+                    if (mods != null && mods.getPart() != null && mods.getPart().size() > 0 && mods.getPart().get(0) != null && "PeriodicalIssue".equals(mods.getPart().get(0).getType())) {
+                        ctx.setWasK4Model(true);
+                    }
+                } else if (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
+                    if (mods != null && mods.getPart() != null && mods.getPart().size() > 0 && mods.getPart().get(0) != null && "Volume".equals(mods.getPart().get(0).getType())) {
+                        ctx.setWasK4Model(true);
+                    }
+                }
+            }
+
             //set members
             List<String> members = getMembers(relationEditor);
             if (members.size() > 0) {
@@ -852,6 +883,13 @@ public class FileReader {
             //repair Mods
             ModsStreamEditor modsStream = new ModsStreamEditor(localObject);
             ModsDefinition mods = modsStream.read();
+            try {
+                mods = fixModsFromK4(localObject.getPid(), mods, modelId, getK4Model(modelId), null);
+            } catch (DigitalObjectException ex) {
+                if (!ex.getMessage().contains("ChangeModels:fixMods")) {
+                    throw ex;
+                }
+            }
             repairModsIdentifier(mods.getIdentifier());
 //            setDefualtTitle(mods);
             setOriginDate(mods);
@@ -875,6 +913,22 @@ public class FileReader {
         } catch (Exception ex){
             LOG.log(Level.SEVERE, "Stream Mods can not be override. " + localObject.getPid());
         }
+    }
+
+
+    public static String getK4Model(String modelId) {
+        if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(modelId) || NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
+            return K4Plugin.MODEL_MONOGRAPH;
+        } else if (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
+            return K4Plugin.MODEL_MONOGRAPHUNIT;
+        } else if (NdkPlugin.MODEL_PERIODICAL.equals(modelId)) {
+            return K4Plugin.MODEL_PERIODICAL;
+        } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
+            return K4Plugin.MODEL_PERIODICALVOLUME;
+        } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
+            return K4Plugin.MODEL_PERIODICALITEM;
+        }
+        return modelId;
     }
 
     private boolean containsPdf(LocalObject localObject) {

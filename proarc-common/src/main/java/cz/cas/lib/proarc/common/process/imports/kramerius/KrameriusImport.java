@@ -19,19 +19,27 @@ package cz.cas.lib.proarc.common.process.imports.kramerius;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.imports.FedoraImport;
+import cz.cas.lib.proarc.common.process.imports.ImportHandler;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
-import cz.cas.lib.proarc.common.process.imports.FedoraImport;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.ImportHandler;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static cz.cas.lib.proarc.common.actions.ChangeModels.fixModsFromK4;
+import static cz.cas.lib.proarc.common.process.imports.kramerius.FileReader.getK4Model;
 
 /**
  * Imports Kramerius packages.
@@ -67,11 +75,48 @@ public class KrameriusImport implements ImportHandler {
         ingest(importConfig);
     }
 
+    private void updateModsIfNeeded(ImportProcess.ImportOptions importConfig) throws DigitalObjectException {
+        if (importConfig.wasK4Model()) {
+            Batch batch = isession.getImportManager().get(importConfig.getBatch().getId());
+            if (batch != null && batch.getParentPid() != null && !importConfig.getPidsToUpdate().isEmpty()) {
+                String parentPid = batch.getParentPid();
+
+                BatchManager.BatchItemObject parentImportItem = isession.findItem(parentPid);
+                LocalStorage.LocalObject parentObj = isession.findLocalObject(parentImportItem);
+
+                RelationEditor parentRelationEditor = new RelationEditor(parentObj);
+                if (!(NdkPlugin.MODEL_PERIODICAL.equals(parentRelationEditor.getModel()) || NdkPlugin.MODEL_MONOGRAPHTITLE.equals(parentRelationEditor.getModel()))) {
+                    return;
+                }
+                String parentModelId = parentRelationEditor.getModel();
+
+                ModsStreamEditor parentModsEditor = new ModsStreamEditor(parentObj);
+                ModsDefinition parentMods = parentModsEditor.read();
+
+                for (String pidToUpdate : importConfig.getPidsToUpdate()) {
+                    BatchManager.BatchItemObject importItem = isession.findItem(pidToUpdate);
+                    LocalStorage.LocalObject lObj = isession.findLocalObject(importItem);
+                    RelationEditor relationEditor = new RelationEditor(lObj);
+                    String modelId = relationEditor.getModel();
+
+                    ModsStreamEditor modsEditor = new ModsStreamEditor(lObj);
+                    ModsDefinition mods = modsEditor.read();
+
+                    mods = fixModsFromK4(pidToUpdate, mods, modelId, getK4Model(modelId), parentMods);
+
+                    modsEditor.write(mods, modsEditor.getLastModified(), "Update MODS po zmene modelu z K4 na NDK.");
+                    lObj.flush();
+                }
+            }
+        }
+    }
+
     public void load(ImportProcess.ImportOptions importConfig) throws Exception {
         File importFolder = importConfig.getImportFolder();
         List<File> importFiles = KrameriusScanner.findImportableFiles(importFolder);
         try {
             consume(importFiles, importConfig);
+            updateModsIfNeeded(importConfig);
         } catch (DigitalObjectException ex) {
             if (ex != null && ex.getPid() != null && ex.getPid().contains("The repository already contains pid:")) {
                 Batch batch = importConfig.getBatch();
@@ -97,7 +142,13 @@ public class KrameriusImport implements ImportHandler {
         } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
             AkubraImport ingest = new AkubraImport(config, akubraConfiguration, ibm, null, importConfig);
+
+            String parentPid = batch.getParentPid();
+            batch.setParentPid(null); // nastaveni parentPid na null, protoze stale neni v repozitory, ale jen lokalne. Po ingestu se nastavi na
+
             ingest.importBatch(batch, importConfig.getUsername(), null);
+
+            batch.setParentPid(parentPid);
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
         }
