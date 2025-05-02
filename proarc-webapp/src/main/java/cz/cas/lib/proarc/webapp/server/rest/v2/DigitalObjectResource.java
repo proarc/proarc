@@ -53,7 +53,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -215,6 +214,20 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @DefaultValue("false") boolean restore) {
         try {
             return super.deleteObject(deleteObjectRequest, pids, hierarchy, purge, restore);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
+    @DELETE
+    @Path(DigitalObjectResourceApi.PURGE_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<SearchViewItem> purgeObjects(
+            @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
+            @DefaultValue("deleted") SearchType type) {
+        try {
+            return super.purgeObjects(type);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

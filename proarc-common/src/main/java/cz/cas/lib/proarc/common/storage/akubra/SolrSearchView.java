@@ -2,6 +2,8 @@ package cz.cas.lib.proarc.common.storage.akubra;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.software.SoftwareRepository;
@@ -417,7 +419,11 @@ public class SolrSearchView extends SearchView {
             filterQueryList.add(FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_DEACTIVE + "\"");
         }
         if (models != null && !models.isEmpty() && hasValues(models)) {
-            filterQueryList.add(getModelQuery(models));
+            if (models.contains(MetaModel.MODELS_LEAF)) {
+                filterQueryList.add(getModelQuery(Arrays.asList(new String[] { NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE, NdkAudioPlugin.MODEL_PAGE})));
+            } else {
+                filterQueryList.add(getModelQuery(models));
+            }
         }
         if (pids != null && !pids.isEmpty() && hasValues(pids)) {
             filterQueryList.add(getPidsQuery(pids));

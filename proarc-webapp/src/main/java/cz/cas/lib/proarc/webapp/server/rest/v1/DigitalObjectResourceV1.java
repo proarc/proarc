@@ -507,6 +507,95 @@ public class DigitalObjectResourceV1 {
         }
     }
 
+    @DELETE
+    @Path(DigitalObjectResourceApi.PURGE_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<SearchViewItem> purgeObjects(
+            @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
+            @DefaultValue("deleted") SearchType type) throws DigitalObjectException, IOException, FedoraClientException {
+
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+
+        SearchView search = null;
+        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
+            search = storage.getSearch(session.getLocale(httpHeaders));
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+            search = akubraStorage.getSearch(session.getLocale(httpHeaders));
+        } else {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
+
+        int countDeleted = 0;
+        while(true) {
+            List<SearchViewItem> items = new ArrayList<>();
+            switch (type) {
+                case ORPHAN:
+                    items = search.findAdvancedSearchItems(null, null, null, null, null, null, MetaModel.MODELS_LEAF, null, false, false, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
+                    break;
+                case DELETED:
+                    items = search.findQuery(new SearchViewQuery(), "deleted");
+                    break;
+            }
+
+            if (items.isEmpty()) {
+                break;
+            } else {
+                List<String> pids = new LinkedList<>();
+                for (SearchViewItem item : items) {
+                    pids.add(item.getPid());
+                }
+                if (isLocked(pids)) {
+                    throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+                }
+                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                    FedoraStorage fedora = FedoraStorage.getInstance(appConfig);
+                    PurgeFedoraObject service = new PurgeFedoraObject(fedora);
+                    for (String pid : pids) {
+                        try {
+                            setWorkflow("task.deletionPA", getIMetsElement(pid, false));
+                            service.purge(pid, true, session.asFedoraLog());
+                            countDeleted++;
+                        } catch (Exception e) {
+                            if (e.getMessage() != null && e.getMessage().contains("low-level storage")) {
+                                LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
+                            } else if (e.getMessage() != null && e.getMessage().contains("Unable to get")) {
+                                LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
+                            } else {
+                                throw new DigitalObjectException(pid, e.getMessage());
+                            }
+                        }
+                    }
+                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                    AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
+                    PurgeAkubraObject service = new PurgeAkubraObject(akubra);
+                    for (String pid : pids) {
+                        try {
+                            setWorkflow("task.deletionPA", getIMetsElement(pid, false));
+                            service.purge(pid, true, session.asFedoraLog());
+                            countDeleted++;
+                        } catch (Exception e) {
+                            if (e.getMessage() != null && e.getMessage().contains("low-level storage")) {
+                                LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
+                            } else if (e.getMessage() != null && e.getMessage().contains("Unable to get")) {
+                                LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
+                            } else {
+                                e.printStackTrace();
+                                throw new DigitalObjectException(pid, e.getMessage());
+                            }
+                        }
+                    }
+                } else {
+                    throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+                }
+            }
+        }
+
+        LOG.info(countDeleted + " objects deleted");
+        return returnFunctionSuccess();
+    }
+
     public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
         return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, null, 0, null, null);
     }

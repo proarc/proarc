@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -87,12 +88,14 @@ public final class PurgeAkubraObject {
         } catch (DigitalObjectException ex) {
             throw new PurgeException(ex);
         }
+        List<String> reversedPurge = new ArrayList<>(toPurge);
+        Collections.reverse(reversedPurge);
         if (setDeleted) {
-            setDeleted(toPurge);
+            setDeleted(reversedPurge);
         } else if (isRestore) {
-            setRestore(toPurge);
+            setRestore(reversedPurge);
         } else {
-            purge(toPurge);
+            purge(reversedPurge);
         }
     }
 
@@ -175,13 +178,13 @@ public final class PurgeAkubraObject {
         }
     }
 
-    private void purge(Set<String> pids) throws PurgeException {
+    private void purge(List<String> pids) throws PurgeException {
         for (String pid : pids) {
             purge(pid);
         }
     }
 
-    private void setDeleted(Set<String> pids) throws PurgeException {
+    private void setDeleted(List<String> pids) throws PurgeException {
         for (String pid : pids) {
             setDeleted(pid);
         }
@@ -196,7 +199,7 @@ public final class PurgeAkubraObject {
         }
     }
 
-    private void setRestore(Set<String> pids) throws PurgeException {
+    private void setRestore(List<String> pids) throws PurgeException {
         for (String pid : pids) {
             setRestore(pid);
         }

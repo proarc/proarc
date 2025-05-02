@@ -24,6 +24,7 @@ public final class DigitalObjectResourceApi {
 
     // resource /object
     public static final String PATH = "object";
+    public static final String PURGE_PATH = "purge";
 
     public static final String DIGITALOBJECT_PID = "pid";
     public static final String DIGITALOBJECT_PARENT_PID = "parent";
