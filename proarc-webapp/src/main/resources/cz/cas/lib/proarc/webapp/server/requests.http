@@ -180,6 +180,10 @@ Content-Type: application/json
 
 {"pid":["uuid:83702174-8d13-496c-b6e7-b435c0ae0a12"],"hierarchy":true, "purge":true, "restore":false}
 
+### purge deleted objects
+
+DELETE {{proarcUrl}}/rest/v2/object/purge?type=orphan
+
 
 ### delete pomoci jsonu o velkem mnozstvi pidu
 
