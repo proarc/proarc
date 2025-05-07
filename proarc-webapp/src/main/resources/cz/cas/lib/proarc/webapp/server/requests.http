@@ -182,7 +182,7 @@ Content-Type: application/json
 
 ### purge deleted objects
 
-DELETE {{proarcUrl}}/rest/v2/object/purge?type=orphan
+DELETE {{proarcUrl}}/rest/v2/object/purge?type=deleted
 
 
 ### delete pomoci jsonu o velkem mnozstvi pidu

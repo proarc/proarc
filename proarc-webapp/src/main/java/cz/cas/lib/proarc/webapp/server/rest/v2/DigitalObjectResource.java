@@ -180,7 +180,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @DELETE
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> deleteObject(
+    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
             @DefaultValue("true") boolean hierarchy,
@@ -203,7 +203,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @DELETE
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> deleteObject(
+    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
             ProArcRequest.DeleteObjectRequest deleteObjectRequest,
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
@@ -223,7 +223,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @DELETE
     @Path(DigitalObjectResourceApi.PURGE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> purgeObjects(
+    public SmartGwtResponse<InternalExternalProcessResult> purgeObjects(
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
             @DefaultValue("deleted") SearchType type) {
         try {
