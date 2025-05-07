@@ -97,7 +97,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
 import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
@@ -411,7 +410,7 @@ public class DigitalObjectResourceV1 {
     @DELETE
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> deleteObject(
+    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
             @DefaultValue("true") boolean hierarchy,
@@ -419,79 +418,33 @@ public class DigitalObjectResourceV1 {
             @DefaultValue("false") boolean purge,
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
             @DefaultValue("false") boolean restore
-    ) throws IOException, PurgeException {
+    ) throws IOException {
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage fedora = FedoraStorage.getInstance(appConfig);
-            ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
-            PurgeFedoraObject service = new PurgeFedoraObject(fedora);
-            for (String pid : pids) {
-                try {
-                    setWorkflow("task.deletionPA", getIMetsElement(pid, false));
-                } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
-                    if (e.getMessage() != null && e.getMessage().contains("low-level storage")) {
-                        LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                    } else if (e.getMessage() != null && e.getMessage().contains("Unable to get")) {
-                        LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                    } else {
-                        throw new IOException(e);
-                    }
-                }
-            }
-            if (purge) {
-                session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
-                service.purge(pids, hierarchy, session.asFedoraLog());
-            } else if (restore) {
-                service.restore(pids, session.asFedoraLog());
-            } else {
-                service.delete(pids, hierarchy, session.asFedoraLog());
-            }
-            for (String pid : pids) {
-                result.add(new DigitalObject(pid, null));
-            }
-            return new SmartGwtResponse<DigitalObject>(result);
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
-            ArrayList<DigitalObject> result = new ArrayList<>(pids.size());
-            PurgeAkubraObject service = new PurgeAkubraObject(akubra);
-            for (String pid : pids) {
-                try {
-                    setWorkflow("task.deletionPA", getIMetsElement(pid, false));
-                } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
-                    if (e.getMessage() != null && e.getMessage().contains("low-level storage")) {
-                        LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                    } else if (e.getMessage() != null && e.getMessage().contains("Unable to get")) {
-                        LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                    } else {
-                        throw new IOException(e);
-                    }
-                }
-            }
-            if (purge) {
-                session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
-                service.purge(pids, hierarchy, session.asFedoraLog());
-            } else if (restore) {
-                service.restore(pids, session.asFedoraLog());
-            } else {
-                service.delete(pids, hierarchy, session.asFedoraLog());
-            }
-            for (String pid : pids) {
-                result.add(new DigitalObject(pid, null));
-            }
-            return new SmartGwtResponse<DigitalObject>(result);
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        if (purge) {
+            checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
         }
+
+        BatchParams params = new BatchParams(pids);
+        params.setHierarchy(hierarchy);
+        params.setPurge(purge);
+        params.setRestore(restore);
+
+        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, pids.isEmpty() ? "DELETE 0 PIDs." : pids.get(0), user, Batch.INTERNAL_DELETION, params);
+
+        InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<>(result);
     }
 
     @DELETE
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> deleteObject(
+    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
             ProArcRequest.DeleteObjectRequest deleteObjectRequest,
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
@@ -510,90 +463,23 @@ public class DigitalObjectResourceV1 {
     @DELETE
     @Path(DigitalObjectResourceApi.PURGE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> purgeObjects(
+    public SmartGwtResponse<InternalExternalProcessResult> purgeObjects(
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
             @DefaultValue("deleted") SearchType type) throws DigitalObjectException, IOException, FedoraClientException {
 
         checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
 
-        SearchView search = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
-            search = storage.getSearch(session.getLocale(httpHeaders));
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
-            search = akubraStorage.getSearch(session.getLocale(httpHeaders));
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
-        }
+        BatchParams params = new BatchParams();
+        params.setType(type.name());
+        params.setHierarchy(true);
+        params.setPurge(true);
 
-        int countDeleted = 0;
-        while(true) {
-            List<SearchViewItem> items = new ArrayList<>();
-            switch (type) {
-                case ORPHAN:
-                    items = search.findAdvancedSearchItems(null, null, null, null, null, null, MetaModel.MODELS_LEAF, null, false, false, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
-                    break;
-                case DELETED:
-                    items = search.findQuery(new SearchViewQuery(), "deleted");
-                    break;
-            }
+        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, "DELETE \"" + type.name() + "\"" , user, Batch.INTERNAL_DELETION, params);
 
-            if (items.isEmpty()) {
-                break;
-            } else {
-                List<String> pids = new LinkedList<>();
-                for (SearchViewItem item : items) {
-                    pids.add(item.getPid());
-                }
-                if (isLocked(pids)) {
-                    throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
-                }
-                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    FedoraStorage fedora = FedoraStorage.getInstance(appConfig);
-                    PurgeFedoraObject service = new PurgeFedoraObject(fedora);
-                    for (String pid : pids) {
-                        try {
-                            setWorkflow("task.deletionPA", getIMetsElement(pid, false));
-                            service.purge(pid, true, session.asFedoraLog());
-                            countDeleted++;
-                        } catch (Exception e) {
-                            if (e.getMessage() != null && e.getMessage().contains("low-level storage")) {
-                                LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                            } else if (e.getMessage() != null && e.getMessage().contains("Unable to get")) {
-                                LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                            } else {
-                                throw new DigitalObjectException(pid, e.getMessage());
-                            }
-                        }
-                    }
-                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                    AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
-                    PurgeAkubraObject service = new PurgeAkubraObject(akubra);
-                    for (String pid : pids) {
-                        try {
-                            setWorkflow("task.deletionPA", getIMetsElement(pid, false));
-                            service.purge(pid, true, session.asFedoraLog());
-                            countDeleted++;
-                        } catch (Exception e) {
-                            if (e.getMessage() != null && e.getMessage().contains("low-level storage")) {
-                                LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                            } else if (e.getMessage() != null && e.getMessage().contains("Unable to get")) {
-                                LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                            } else {
-                                e.printStackTrace();
-                                throw new DigitalObjectException(pid, e.getMessage());
-                            }
-                        }
-                    }
-                } else {
-                    throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
-                }
-            }
-        }
-
-        LOG.info(countDeleted + " objects deleted");
-        return returnFunctionSuccess();
+        InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<>(result);
     }
 
     public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
