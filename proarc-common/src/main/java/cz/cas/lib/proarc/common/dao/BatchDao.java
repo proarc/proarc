@@ -63,4 +63,6 @@ public interface BatchDao extends Dao {
 
     List<Batch> findBatch(String pid, String processProfile, State state);
 
+    void removeBatch(int batchId);
+
 }

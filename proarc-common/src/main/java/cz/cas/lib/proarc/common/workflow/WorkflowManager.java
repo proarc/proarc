@@ -413,7 +413,7 @@ public class WorkflowManager {
                 pm.setDetail(t.getDetail());
                 pm.setBarcode(t.getBarcode());
                 pm.setEdition(t.getEdition());
-                jobLabel = pm.getLabel();
+                jobLabel = t.getLabel();
             }
             if (jobLabel == null ? job.getLabel() != null : !jobLabel.equals(job.getLabel())) {
                 job.setLabel(jobLabel);

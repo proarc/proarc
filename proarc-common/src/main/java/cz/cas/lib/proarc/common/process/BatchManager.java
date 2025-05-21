@@ -716,6 +716,24 @@ public class BatchManager {
         return sw.toString();
     }
 
+    public void deleteBatch(int batchId) {
+        BatchDao dao = daos.createBatch();
+        BatchItemDao itemDao = daos.createBatchItem();
+        Transaction tx = daos.createTransaction();
+        dao.setTransaction(tx);
+        itemDao.setTransaction(tx);
+        try {
+            itemDao.removeItems(batchId);
+            dao.removeBatch(batchId);
+            tx.commit();
+        } catch (Throwable t) {
+            tx.rollback();
+            throw t;
+        } finally {
+            tx.close();
+        }
+    }
+
     public static abstract class AbstractBatchItem {
 
         protected final BatchItem item;

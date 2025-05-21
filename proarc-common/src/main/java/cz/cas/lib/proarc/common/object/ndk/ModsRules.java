@@ -32,6 +32,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -294,7 +295,7 @@ public class ModsRules {
         // Kontrola formátu DD.MM.RRRR
         public static boolean isValidFullDate(String datum) {
             try {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.uuuu").withResolverStyle(ResolverStyle.STRICT);
                 LocalDate.parse(datum, formatter); // Zde kontrolujeme, zda datum existuje (tj. např. 31.02. selže)
                 return true;
             } catch (DateTimeParseException e) {

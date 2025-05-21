@@ -293,4 +293,11 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         }
     }
 
+    @Override
+    public void removeBatch(int batchId) {
+        DBCommand cmd = db.createCommand();
+        cmd.where(table.id.is(batchId));
+        db.executeDelete(table, cmd, getConnection());
+    }
+
 }

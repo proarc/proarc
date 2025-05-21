@@ -151,6 +151,23 @@ public class ImportResource extends ImportResourceV1 {
         }
     }
 
+    @DELETE
+    @Path(ImportResourceApi.BATCH_PATH)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<BatchView> deleteBatch(
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
+    ) {
+        try {
+            return super.deleteBatch(batchId, batchState, profileId, creatorId);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
     @GET
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)

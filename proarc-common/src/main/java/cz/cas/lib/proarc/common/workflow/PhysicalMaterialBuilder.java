@@ -159,7 +159,8 @@ class PhysicalMaterialBuilder {
             String dateIssued = xpath.evaluate("m:originInfo/m:dateIssued", modsElm);
             String partNumber = xpath.evaluate("m:titleInfo/m:partNumber", modsElm);
             String edition = xpath.evaluate("m:relatedItem[@type='series']/m:titleInfo/m:title", modsElm);
-            StringBuilder label = getTitle(new StringBuilder(), modsElm);
+//            StringBuilder label = getTitle(new StringBuilder(), modsElm, model);
+            String label = getLabel(modsXml, model);
             m.setMetadata(modsXml);
             m.setBarcode(barcode);
             m.setSigla(sigla);
@@ -180,16 +181,54 @@ class PhysicalMaterialBuilder {
         return this;
     }
 
+    private String getLabel(String modsXml, String modelId) throws IOException, SAXException, XPathExpressionException {
+        if (modsXml != null || !modsXml.isEmpty()) {
+            Document modsDom = db.parse(new InputSource(new StringReader(modsXml)));
+            Element modsElm = (Element) xpath.evaluate(
+                    "m:mods | m:modsCollection/m:mods", modsDom, XPathConstants.NODE);
+            String pid = xpath.evaluate("m:identifier[@type='uuid']", modsElm);
+            if (pid != null) {
+                if (!pid.startsWith("uuid:")) {
+                    pid = "uuid:" + pid;
+                }
+            } else {
+                pid = FoxmlUtils.createPid();
+            }
+            ModsCollectionDefinition modsCollection = ModsUtils.unmarshal(modsXml, ModsCollectionDefinition.class);
+            ModsDefinition mods = null;
+            if (modsCollection == null || modsCollection.getMods().isEmpty()) {
+                mods = ModsUtils.unmarshal(modsXml, ModsDefinition.class);
+            } else {
+                mods = modsCollection.getMods().get(0);
+            }
+
+            NdkMapper.Context context = new NdkMapper.Context(pid);
+
+            NdkMapper mapper = NdkMapper.get(modelId);
+            return mapper.toLabel(mods);
+        }
+        return "";
+    }
+
     private StringBuilder getTitle(StringBuilder label, Element modsElm) throws XPathExpressionException {
         Element titleInfoElm = (Element) xpath.evaluate(
-                "m:titleInfo[not(@type) and m:title/text()]", modsElm, XPathConstants.NODE);
+                "m:titleInfo[not(@type)]", modsElm, XPathConstants.NODE);
         if (titleInfoElm != null) {
             String title = val(xpath.evaluate("m:title/text()", titleInfoElm));
             String subTitle = val(xpath.evaluate("m:subTitle/text()", titleInfoElm));
+            String partNumber = val(xpath.evaluate("m:partNumber/text()", titleInfoElm));
             label.append(title);
             if (subTitle != null) {
-                label.append(" : ");
+                if (!label.toString().isEmpty()) {
+                    label.append(" : ");
+                }
                 label.append(subTitle);
+            }
+            if (partNumber != null) {
+                if (!label.toString().isEmpty()) {
+                    label.append(" / ");
+                }
+                label.append(partNumber);
             }
         }
         return label;

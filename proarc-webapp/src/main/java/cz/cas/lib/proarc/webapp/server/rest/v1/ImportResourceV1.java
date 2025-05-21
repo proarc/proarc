@@ -101,6 +101,7 @@ import static cz.cas.lib.proarc.common.process.imports.ImportFileScanner.IMPORT_
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.TMP_DIR_NAME;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_BATCH_CANNOT_BE_STOPED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 
 /**
  * Resource to handle imports.
@@ -379,6 +380,40 @@ public class ImportResourceV1 {
             }
         }
         return value;
+    }
+
+    @DELETE
+    @Path(ImportResourceApi.BATCH_PATH)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<BatchView> deleteBatch(
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
+    ) {
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+
+        if (batchId == null && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing values in parameters.");
+        }
+
+        BatchViewFilter filterAll = new BatchViewFilter()
+                .setBatchId(batchId)
+                .setUserId(creatorId)
+                .setCreatorId(creatorId)
+                .setState(batchState)
+                .setProfile(profileId)
+                .setMaxCount(100000)
+                .setSortBy("id");
+        List<BatchView> batches2Delete = importManager.viewBatch(filterAll);
+
+        for (BatchView batch2Delete : batches2Delete) {
+            importManager.deleteBatch(batch2Delete.getId());
+        }
+        int batchSize = batches2Delete.size();
+        int endRow = batchSize - 1;
+        int total = batches2Delete.size();
+        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, batches2Delete);
     }
 
     /**
