@@ -106,7 +106,9 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn parentPid;
         public final DBTableColumn estimateItemNumber;
         public final DBTableColumn create; // date of creation
+        public final DBTableColumn updated; // date of update
         public final DBTableColumn timestamp; // optimistic lock
+        public final DBTableColumn itemUpdated; // date of items update
         public final DBTableColumn device; // digitization device ID (PID)
         public final DBTableColumn software; // digitization software ID (PID)
         public final DBTableColumn generateIndices;
@@ -135,6 +137,10 @@ public class ProarcDatabase extends DBDatabase {
             profileId = addColumn("PROFILE_ID", DataType.TEXT, 2000, false);
             priority = addColumn("PRIORITY", DataType.TEXT, 50, false);
             params = addColumn("PARAMS", DataType.TEXT, 10000, false);
+            itemUpdated = addColumn("ITEM_UPDATED", DataType.DATETIME, 0, false);
+            itemUpdated.setBeanPropertyName("itemUpdated");
+            updated = addColumn("UPDATED", DataType.DATETIME, 0, false);
+            updated.setBeanPropertyName("updated");
             setPrimaryKey(id);
             addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
         }

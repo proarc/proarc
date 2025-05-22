@@ -116,6 +116,7 @@ public class ProarcDatabaseV17 extends DBDatabase {
             EmpireUtils.addTable(schema.tableUserSetting, driver, script);
 
             driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.software, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.itemUpdated, script);
 
             LOG.fine(script.toString());
             script.run(driver, conn);

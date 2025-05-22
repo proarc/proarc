@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -252,6 +253,7 @@ public class ExportResourceV1 {
                 }
 
                 batch.setState(Batch.State.EXPORT_PLANNED);
+                batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                 batch = batchManager.update(batch);
 
                 ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));

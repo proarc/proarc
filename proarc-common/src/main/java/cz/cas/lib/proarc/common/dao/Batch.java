@@ -82,6 +82,8 @@ public class Batch {
     private String parentPid;
     private Timestamp create;
     private Timestamp timestamp;
+    private Timestamp updated;
+    private Timestamp itemUpdated;
     private State state;
     private Integer userId;
     private Integer estimateItemNumber;
@@ -221,6 +223,22 @@ public class Batch {
 
     public void setProfileId(String profileId) {
         this.profileId = profileId;
+    }
+
+    public Timestamp getItemUpdated() {
+        return itemUpdated;
+    }
+
+    public void setItemUpdated(Timestamp itemUpdated) {
+        this.itemUpdated = itemUpdated;
+    }
+
+    public Timestamp getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(Timestamp updated) {
+        this.updated = updated;
     }
 
     public String getParams() {

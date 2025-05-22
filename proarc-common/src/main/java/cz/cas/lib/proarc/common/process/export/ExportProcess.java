@@ -76,6 +76,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -223,6 +224,7 @@ public final class ExportProcess implements Runnable {
             }
         }
         batch.setState(Batch.State.STOPPED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         importManager.update(batch);
 
         exportDispatcher.restart();
@@ -231,6 +233,7 @@ public final class ExportProcess implements Runnable {
 
     public static void cancelPlannedBatch(Batch batch, BatchManager importManager, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
         batch.setState(Batch.State.STOPPED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         importManager.update(batch);
     }
 

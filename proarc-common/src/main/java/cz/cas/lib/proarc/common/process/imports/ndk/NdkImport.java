@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.process.imports.ndk.FileReader.ImportSession;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -87,6 +88,7 @@ public class NdkImport implements ImportHandler {
         Batch batch = importConfig.getBatch();
         if (Batch.State.LOADING.equals(batch.getState())) {
             batch.setState(Batch.State.LOADED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             iSession.getImportManager().update(batch);
         }
     }

@@ -94,6 +94,7 @@ public class ImportBatchManagerTest {
         b.setFolder(ibm.relativizeBatchFile(batchFolder));
         b.setGenerateIndices(true);
         b.setState(State.LOADING);
+        b.setUpdated(new Timestamp(System.currentTimeMillis()));
 
         ibm.updateFolderStatus(b);
 
@@ -117,6 +118,7 @@ public class ImportBatchManagerTest {
         b.setFolder(ibm.relativizeBatchFile(batchFolder));
         b.setGenerateIndices(true);
         b.setState(State.LOADING);
+        b.setUpdated(new Timestamp(System.currentTimeMillis()));
 
         ImportFolderStatus result = ibm.getFolderStatus(b);
         assertNull(result);

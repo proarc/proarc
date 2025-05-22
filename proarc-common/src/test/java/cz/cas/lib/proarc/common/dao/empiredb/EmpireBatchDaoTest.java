@@ -124,6 +124,7 @@ public class EmpireBatchDaoTest {
         batch.setLog("log");
         batch.setParentPid("uuid:0eaa6730-9068-11dd-97de-000d606f5dc6");
         batch.setState(State.LOADING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setTitle("title_folder/");
         batch.setUserId(1);
         batch.setProfileId(ConfigurationProfile.DEFAULT);
@@ -151,6 +152,7 @@ public class EmpireBatchDaoTest {
         Batch batch = dao.find(1);
         State expectedState = State.INGESTING;
         batch.setState(expectedState);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         String expectedLog = "updated log";
         batch.setLog(expectedLog);
         Timestamp timestamp = batch.getTimestamp();
@@ -175,6 +177,7 @@ public class EmpireBatchDaoTest {
         Batch batch = dao.find(1);
         State expectedState = State.INGESTING;
         batch.setState(expectedState);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         String expectedLog = "updated log";
         batch.setLog(expectedLog);
         Timestamp timestamp = batch.getTimestamp();
@@ -185,6 +188,7 @@ public class EmpireBatchDaoTest {
         try {
             Batch batch2 = dao2.find(1);
             batch2.setState(State.INGESTING_FAILED);
+            batch2.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch2.setLog("concurrent update");
             dao2.update(batch2);
             tx2.commit();
@@ -239,6 +243,7 @@ public class EmpireBatchDaoTest {
 
         Batch batch = dao.find(1);
         batch.setState(State.LOADED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         dao.update(batch);
 
         result = dao.findLoadingBatches();

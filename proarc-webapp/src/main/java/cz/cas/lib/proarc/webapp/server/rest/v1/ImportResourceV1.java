@@ -70,6 +70,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -439,6 +440,10 @@ public class ImportResourceV1 {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_FROM) DateTimeParam createFrom,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_TO) DateTimeParam createTo,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_UPDATED_FROM) DateTimeParam updatedFrom,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_UPDATED_TO) DateTimeParam updatedTo,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED_FROM) DateTimeParam itemUpdatedFrom,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED_TO) DateTimeParam itemUpdatedTo,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_FROM) DateTimeParam modifiedFrom,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_TO) DateTimeParam modifiedTo,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_DESCRIPTION) String filePattern,
@@ -460,6 +465,10 @@ public class ImportResourceV1 {
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                     .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
+                    .setUpdatedFrom(updatedFrom == null ? null : updatedFrom.toTimestamp())
+                    .setUpdatedTo(updatedTo == null ? null : updatedTo.toTimestamp())
+                    .setItemUpdatedFrom(itemUpdatedFrom == null ? null : itemUpdatedFrom.toTimestamp())
+                    .setItemUpdatedTo(itemUpdatedTo == null ? null : itemUpdatedTo.toTimestamp())
                     .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
                     .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                     .setFilePattern(filePattern)
@@ -478,6 +487,10 @@ public class ImportResourceV1 {
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                 .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
+                .setUpdatedFrom(updatedFrom == null ? null : updatedFrom.toTimestamp())
+                .setUpdatedTo(updatedTo == null ? null : updatedTo.toTimestamp())
+                .setItemUpdatedFrom(itemUpdatedFrom == null ? null : itemUpdatedFrom.toTimestamp())
+                .setItemUpdatedTo(itemUpdatedTo == null ? null : itemUpdatedTo.toTimestamp())
                 .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
                 .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                 .setFilePattern(filePattern)
@@ -671,6 +684,7 @@ public class ImportResourceV1 {
                 ImportDispatcher.getDefault().addImport(resume);
             } catch (IllegalStateException ex) {
                 batch.setState(Batch.State.LOADING_FAILED);
+                batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                 importManager.update(batch);
                 throw ex;
             }

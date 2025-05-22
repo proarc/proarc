@@ -286,6 +286,7 @@ public class BatchManager {
         batch.setGeneratePageNumber(options.isGeneratePageNumber());
         batch.setPriority(options.getPriority());
         batch.setState(Batch.State.LOADING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setTitle(title);
         batch.setUserId(user.getId());
         batch.setProfileId(options.getConfig().getProfileId());
@@ -302,6 +303,7 @@ public class BatchManager {
         batch.setFolder(pid);
         batch.setPriority(Batch.PRIORITY_MEDIUM);
         batch.setState(state);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setTitle(pid);
         batch.setUserId(user.getId());
         batch.setProfileId(profile);
@@ -692,6 +694,7 @@ public class BatchManager {
         }
         Batch.State originalBatchState = batch.getState();
         batch.setState(State.LOADING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setLog(null);
         BatchDao dao = daos.createBatch();
         BatchItemDao itemDao = daos.createBatchItem();

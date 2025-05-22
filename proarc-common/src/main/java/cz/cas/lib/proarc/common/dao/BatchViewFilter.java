@@ -34,6 +34,10 @@ public class BatchViewFilter {
     private String filePattern;
     private Timestamp createdFrom;
     private Timestamp createdTo;
+    private Timestamp updatedFrom;
+    private Timestamp updatedTo;
+    private Timestamp itemUpdatedFrom;
+    private Timestamp itemUpdatedTo;
     private Timestamp modifiedFrom;
     private Timestamp modifiedTo;
     private String profile;
@@ -73,6 +77,22 @@ public class BatchViewFilter {
 
     public Timestamp getCreatedTo() {
         return createdTo;
+    }
+
+    public Timestamp getUpdatedFrom() {
+        return updatedFrom;
+    }
+
+    public Timestamp getUpdatedTo() {
+        return updatedTo;
+    }
+
+    public Timestamp getItemUpdatedFrom() {
+        return itemUpdatedFrom;
+    }
+
+    public Timestamp getItemUpdatedTo() {
+        return itemUpdatedTo;
     }
 
     public Timestamp getModifiedFrom() {
@@ -125,6 +145,26 @@ public class BatchViewFilter {
 
     public BatchViewFilter setCreatedTo(Timestamp createdTo) {
         this.createdTo = createdTo;
+        return this;
+    }
+
+    public BatchViewFilter setUpdatedFrom(Timestamp updatedFrom) {
+        this.updatedFrom = updatedFrom;
+        return this;
+    }
+
+    public BatchViewFilter setUpdatedTo(Timestamp updatedTo) {
+        this.updatedTo = updatedTo;
+        return this;
+    }
+
+    public BatchViewFilter setItemUpdatedFrom(Timestamp itemUpdatedFrom) {
+        this.itemUpdatedFrom = itemUpdatedFrom;
+        return this;
+    }
+
+    public BatchViewFilter setItemUpdatedTo(Timestamp itemUpdatedTo) {
+        this.itemUpdatedTo = itemUpdatedTo;
         return this;
     }
 

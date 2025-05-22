@@ -127,6 +127,26 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfDate.setFilterEditorProperties(dateRangeItem);
         lgfDate.setCanFilter(true);
 
+        ListGridField lgfUpdated = new ListGridField(ImportBatchDataSource.FIELD_UPDATED,
+                i18n.ImportBatchDataSource_ImportUpdatedFieldTitle());
+        lgfUpdated.setWidth(120);
+        lgfUpdated.setAlign(Alignment.CENTER);
+        lgfUpdated.setCanSort(true);
+        MiniDateRangeItem updatedRangeItem = new MiniDateRangeItem();
+        updatedRangeItem.setAttribute("allowRelativeDates", false);
+        lgfUpdated.setFilterEditorProperties(updatedRangeItem);
+        lgfUpdated.setCanFilter(true);
+
+        ListGridField lgfItemUpdated = new ListGridField(ImportBatchDataSource.FIELD_ITEM_UPDATED,
+                i18n.ImportBatchDataSource_ImportItemUpdatedFieldTitle());
+        lgfItemUpdated.setWidth(120);
+        lgfItemUpdated.setAlign(Alignment.CENTER);
+        lgfItemUpdated.setCanSort(true);
+        MiniDateRangeItem itemUpdatedRangeItem = new MiniDateRangeItem();
+        itemUpdatedRangeItem.setAttribute("allowRelativeDates", false);
+        lgfItemUpdated.setFilterEditorProperties(itemUpdatedRangeItem);
+        lgfItemUpdated.setCanFilter(true);
+
         ListGridField lgfModified = new ListGridField(ImportBatchDataSource.FIELD_TIMESTAMP,
                 i18n.ImportBatchDataSource_ImportModifiedFieldTitle());
         lgfModified.setWidth(120);
@@ -160,7 +180,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfPriority.setCanSort(true);
         lgfPriority.setCanFilter(true);
 
-        lg.setFields(lgfFolder, lgfDate, lgfModified, lgfImported, lgfUser, lgfProfile, lgfPriority);
+        lg.setFields(lgfFolder, lgfDate, lgfUpdated, lgfItemUpdated, lgfModified, lgfImported, lgfUser, lgfProfile, lgfPriority);
 
         lg.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
