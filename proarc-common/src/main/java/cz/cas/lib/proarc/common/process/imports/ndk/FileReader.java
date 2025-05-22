@@ -99,6 +99,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -173,12 +174,14 @@ public class FileReader {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
             Batch batch = ctx.getBatch();
             batch.setState(Batch.State.LOADING_CONFLICT);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch.setLog(BatchManager.toString(ex));
             iSession.getImportManager().update(batch);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
             Batch batch = ctx.getBatch();
             batch.setState(Batch.State.LOADING_FAILED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch.setLog(BatchManager.toString(ex));
             iSession.getImportManager().update(batch);
         }

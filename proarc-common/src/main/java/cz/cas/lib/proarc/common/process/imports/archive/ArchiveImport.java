@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.process.imports.ImportHandler;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 
@@ -130,6 +131,7 @@ public class ArchiveImport implements ImportHandler {
             if (ex != null && ex.getPid() != null && ex.getPid().contains("The repository already contains pid:")) {
                 Batch batch = importConfig.getBatch();
                 batch.setState(Batch.State.LOADING_CONFLICT);
+                batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                 isession.getImportManager().update(batch);
                 throw new IllegalStateException(ex.getMessage(), ex);
             } else {
@@ -138,6 +140,7 @@ public class ArchiveImport implements ImportHandler {
         }
         Batch batch = importConfig.getBatch();
         batch.setState(State.LOADED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         isession.getImportManager().update(batch);
     }
 

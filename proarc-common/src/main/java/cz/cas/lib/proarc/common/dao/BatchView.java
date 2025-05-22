@@ -30,6 +30,8 @@ public class BatchView {
     private String title;
     private Timestamp timestamp;
     private Timestamp create;
+    private Timestamp updated;
+    private Timestamp itemUpdated;
     private String state;
     private Integer userId;
     private String userName;
@@ -157,6 +159,22 @@ public class BatchView {
             priority = Batch.PRIORITY_MEDIUM;
         }
         this.priority = priority;
+    }
+
+    public Timestamp getItemUpdated() {
+        return itemUpdated;
+    }
+
+    public void setItemUpdated(Timestamp itemUpdated) {
+        this.itemUpdated = itemUpdated;
+    }
+
+    public Timestamp getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(Timestamp updated) {
+        this.updated = updated;
     }
 
     @Override

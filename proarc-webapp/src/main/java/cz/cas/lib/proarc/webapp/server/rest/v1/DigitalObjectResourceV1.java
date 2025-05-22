@@ -153,6 +153,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1367,6 +1368,14 @@ public class DigitalObjectResourceV1 {
         }
 //        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
+
+        if (batchId != null) {
+            Batch batch = batchManager.get(batchId);
+            if (batch != null) {
+                batch.setItemUpdated(new Timestamp(System.currentTimeMillis()));
+                batch = batchManager.update(batch);
+            }
+        }
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
 

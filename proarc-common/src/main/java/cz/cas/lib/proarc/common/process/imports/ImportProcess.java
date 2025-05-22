@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -157,6 +158,7 @@ public final class ImportProcess implements Runnable {
         }
         LOG.log(Level.INFO, batch.toString(), "has been stopped");
         batch.setState(Batch.State.STOPPED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         ibm.update(batch);
 
         importDispatcher.restart();
@@ -223,6 +225,7 @@ public final class ImportProcess implements Runnable {
         LOG.log(Level.SEVERE, batch.toString(), t);
         if (!Batch.State.LOADING_CONFLICT.equals(batch.getState())) {
             batch.setState(Batch.State.LOADING_FAILED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         }
         batch.setLog(BatchManager.toString(t));
         return batchManager.update(batch);
@@ -262,6 +265,7 @@ public final class ImportProcess implements Runnable {
             importConfig.getImporter().start(importConfig, batchManager, config);
             if (batch.getState() == Batch.State.LOADING) {
                 batch.setState(Batch.State.LOADED);
+                batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             }
             batch = batchManager.update(batch);
             return batch;

@@ -66,6 +66,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -114,6 +115,7 @@ public final class AkubraImport {
             throw new IllegalStateException("Invalid batch state: " + batch);
         }
         batch.setState(Batch.State.INGESTING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch = ibm.update(batch);
         String parentPid = batch.getParentPid();
         long startTime = System.currentTimeMillis();
@@ -123,6 +125,7 @@ public final class AkubraImport {
             addParentMembers(batch, parentPid, ingestedPids, message);
             indexParent(ingestedPids);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             if (Batch.State.INGESTED.equals(batch.getState())) {
                 deleteImportFolder(batch);
             }
@@ -137,6 +140,7 @@ public final class AkubraImport {
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
             batch.setState(Batch.State.INGESTING_FAILED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch.setLog(BatchManager.toString(t));
         } finally {
             batch = ibm.update(batch);

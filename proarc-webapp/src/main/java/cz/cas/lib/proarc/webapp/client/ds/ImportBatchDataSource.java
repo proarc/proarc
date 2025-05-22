@@ -49,6 +49,8 @@ public final class ImportBatchDataSource extends ProarcDataSource {
     public static final String FIELD_PATH = ImportResourceApi.IMPORT_BATCH_FOLDER;
     public static final String FIELD_DESCRIPTION = ImportResourceApi.IMPORT_BATCH_DESCRIPTION;
     public static final String FIELD_TIMESTAMP = ImportResourceApi.IMPORT_BATCH_TIMESTAMP;
+    public static final String FIELD_UPDATED = ImportResourceApi.IMPORT_BATCH_UPDATED;
+    public static final String FIELD_ITEM_UPDATED = ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED;
     public static final String FIELD_CREATE = ImportResourceApi.IMPORT_BATCH_CREATE;
     public static final String FIELD_STATE = ImportResourceApi.IMPORT_BATCH_STATE;
     public static final String FIELD_USER_ID = ImportResourceApi.IMPORT_BATCH_USERID;
@@ -93,6 +95,12 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 
         DataSourceDateTimeField timestamp = new DataSourceDateTimeField(FIELD_TIMESTAMP);
         timestamp.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
+
+        DataSourceDateTimeField updated = new DataSourceDateTimeField(FIELD_UPDATED);
+        updated.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
+
+        DataSourceDateTimeField itemUpdated = new DataSourceDateTimeField(FIELD_ITEM_UPDATED);
+        itemUpdated.setDateFormatter(DateDisplayFormat.TOEUROPEANSHORTDATETIME);
 
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();
@@ -177,7 +185,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 
         DataSourceTextField log = new DataSourceTextField(FIELD_LOG);
 
-        setFields(id, description, userId, user, create, timestamp, state, parent, log, profileId, priority);
+        setFields(id, description, userId, user, create, updated, itemUpdated, timestamp, state, parent, log, profileId, priority);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
@@ -217,6 +225,18 @@ public final class ImportBatchDataSource extends ProarcDataSource {
                         map.put(ImportResourceApi.IMPORT_BATCH_CREATE_TO, criterion.getValueAsDate());
                     } else {
                         map.put(ImportResourceApi.IMPORT_BATCH_CREATE_FROM, criterion.getValueAsDate());
+                    }
+                } else if (FIELD_UPDATED.equals(fieldName)) {
+                    if (criterion.getOperator() == OperatorId.LESS_OR_EQUAL) {
+                        map.put(ImportResourceApi.IMPORT_BATCH_UPDATED_TO, criterion.getValueAsDate());
+                    } else {
+                        map.put(ImportResourceApi.IMPORT_BATCH_UPDATED_FROM, criterion.getValueAsDate());
+                    }
+                } else if (FIELD_ITEM_UPDATED.equals(fieldName)) {
+                    if (criterion.getOperator() == OperatorId.LESS_OR_EQUAL) {
+                        map.put(ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED_TO, criterion.getValueAsDate());
+                    } else {
+                        map.put(ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED_FROM, criterion.getValueAsDate());
                     }
                 } else if (FIELD_TIMESTAMP.equals(fieldName)) {
                     if (criterion.getOperator() == OperatorId.LESS_OR_EQUAL) {

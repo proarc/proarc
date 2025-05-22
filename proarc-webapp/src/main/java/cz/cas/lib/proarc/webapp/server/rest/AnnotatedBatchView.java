@@ -91,4 +91,13 @@ public abstract class AnnotatedBatchView extends BatchView {
     @Override
     public abstract String getPriority();
 
+    @XmlSchemaType(name = "dateTime")
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED)
+    @Override
+    public abstract Timestamp getItemUpdated();
+
+    @XmlSchemaType(name = "dateTime")
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_UPDATED)
+    @Override
+    public abstract Timestamp getUpdated();
 }

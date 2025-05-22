@@ -213,7 +213,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         UserTable ut = db.tableUser;
         DBCommand cmd = db.createCommand();
         cmd.select(table.id, table.state, table.userId, table.folder, table.title,
-                table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber, table.priority);
+                table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber, table.priority, table.updated, table.itemUpdated);
         cmd.select(ut.username);
         cmd.join(table.userId, ut.id);
         if (filter.getCreatorId() != null) {
@@ -237,6 +237,22 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         if (filter.getCreatedTo() != null) {
             cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
                     table.create.isLessOrEqual(filter.getCreatedTo())));
+        }
+        if (filter.getUpdatedFrom() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.updated.isMoreOrEqual(filter.getUpdatedFrom())));
+        }
+        if (filter.getUpdatedTo() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.updated.isLessOrEqual(filter.getUpdatedTo())));
+        }
+        if (filter.getItemUpdatedFrom() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.itemUpdated.isMoreOrEqual(filter.getItemUpdatedFrom())));
+        }
+        if (filter.getItemUpdatedTo() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.itemUpdated.isLessOrEqual(filter.getItemUpdatedTo())));
         }
         if (filter.getModifiedFrom() != null) {
             cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(

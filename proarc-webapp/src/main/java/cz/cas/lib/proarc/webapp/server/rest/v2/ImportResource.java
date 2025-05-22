@@ -176,6 +176,10 @@ public class ImportResource extends ImportResourceV1 {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_FROM) DateTimeParam createFrom,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_TO) DateTimeParam createTo,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_UPDATED_FROM) DateTimeParam updatedFrom,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_UPDATED_TO) DateTimeParam updatedTo,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED_FROM) DateTimeParam itemUpdatedFrom,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED_TO) DateTimeParam itemUpdatedTo,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_FROM) DateTimeParam modifiedFrom,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_TO) DateTimeParam modifiedTo,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_DESCRIPTION) String filePattern,
@@ -187,7 +191,7 @@ public class ImportResource extends ImportResourceV1 {
             @QueryParam("_sortBy") String sortBy
     ) {
         try {
-            return super.listBatches(batchId, batchState, createFrom, createTo, modifiedFrom, modifiedTo, filePattern,
+            return super.listBatches(batchId, batchState, createFrom, createTo, updatedFrom, updatedTo, itemUpdatedFrom, itemUpdatedTo, modifiedFrom, modifiedTo, filePattern,
                     profile, creatorId, priority, startRow, size, sortBy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);

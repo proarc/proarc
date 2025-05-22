@@ -57,6 +57,12 @@ public final class ImportResourceApi {
     public static final String IMPORT_BATCH_TIMESTAMP = "timestamp";
     public static final String IMPORT_BATCH_MODIFIED_FROM = "modifiedFrom";
     public static final String IMPORT_BATCH_MODIFIED_TO = "modifiedTo";
+    public static final String IMPORT_BATCH_UPDATED = "updated";
+    public static final String IMPORT_BATCH_UPDATED_FROM = "updatedFrom";
+    public static final String IMPORT_BATCH_UPDATED_TO = "updatedTo";
+    public static final String IMPORT_BATCH_ITEM_UPDATED = "itemUpdated";
+    public static final String IMPORT_BATCH_ITEM_UPDATED_FROM = "itemUpdatedFrom";
+    public static final String IMPORT_BATCH_ITEM_UPDATED_TO = "itemUpdatedTo";
     public static final String IMPORT_BATCH_USERID = "userId";
     public static final String IMPORT_BATCH_USER = "user";
     public static final String IMPORT_BATCH_STATE = "state";

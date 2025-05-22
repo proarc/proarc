@@ -7,6 +7,7 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
 import java.io.StringWriter;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -21,6 +22,7 @@ public class BatchUtils {
             return batchManager.add(getPid(pids), user, processProfile, state, params);
         } else {
             batch.setState(state);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch.setLog(null);
             batch.setUserId(user.getId());
             batch.setProfileId(processProfile);
@@ -41,6 +43,7 @@ public class BatchUtils {
 
     public static Batch finishedSuccessfully(BatchManager batchManager, Batch batch, String path, String message, Batch.State state) {
         batch.setState(state);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setFolder(path);
         batch.setLog(message != null && !message.isEmpty() ? message : null);
         return batchManager.update(batch);
@@ -48,6 +51,7 @@ public class BatchUtils {
 
     private static Batch finishedWithWarning(BatchManager batchManager, Batch batch, String path, String warnings, Batch.State state) {
         batch.setState(state);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setFolder(path);
         batch.setLog(warnings);
         return batchManager.update(batch);
@@ -55,6 +59,7 @@ public class BatchUtils {
 
     public static Batch finishedWithError(BatchManager batchManager, Batch batch, String path, String exception, Batch.State state) {
         batch.setState(state);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setFolder(path);
         batch.setLog(exception);
         return batchManager.update(batch);
@@ -74,6 +79,7 @@ public class BatchUtils {
 
     public static Batch startWaitingExportBatch(BatchManager batchManager, Batch batch) {
         batch.setState(Batch.State.EXPORTING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         return batchManager.update(batch);
     }
 
@@ -186,6 +192,7 @@ public class BatchUtils {
 
     public static Batch startWaitingInternalBatch(BatchManager batchManager, Batch batch) {
         batch.setState(Batch.State.INTERNAL_RUNNING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         return batchManager.update(batch);
     }
 
@@ -211,6 +218,7 @@ public class BatchUtils {
 
     public static Batch startWaitingExternalBatch(BatchManager batchManager, Batch batch) {
         batch.setState(Batch.State.EXTERNAL_RUNNING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         return batchManager.update(batch);
     }
 
