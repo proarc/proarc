@@ -179,7 +179,9 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
                 new RelationCriteria[] {
                         new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)}
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
                 MODEL_EARTICLE, null, null,
@@ -194,7 +196,6 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID)}
 
         ));
-
         return Collections.unmodifiableList(models);
     }
 

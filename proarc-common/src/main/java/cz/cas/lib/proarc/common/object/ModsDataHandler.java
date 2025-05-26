@@ -70,15 +70,28 @@ public class ModsDataHandler {
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         }
-        if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
+        if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(modelId)) {
             ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICAL, parentHandler, parentJob);
             if (titleMods != null) {
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
+            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, parentHandler, parentJob);
+            if (titleMods != null) {
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            }
         }
-        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
+        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
             // issue 124
             ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICAL, parentHandler, parentJob);
+            if (titleMods != null) {
+                inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
+
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+                inheritLocation(defaultMods, titleMods.getLocation());
+                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+            }
+            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, parentHandler, parentJob);
             if (titleMods != null) {
                 inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
 
@@ -169,16 +182,6 @@ public class ModsDataHandler {
                 defaultMods.getClassification().addAll(titleMods.getClassification());
                 inheritIdentifierExclude(defaultMods, titleMods.getIdentifier(), "uuid");
                 defaultMods.getLocation().addAll(titleMods.getLocation());
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
-            // issue 124
-            ModsDefinition titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, parentHandler, parentJob);
-            if (titleMods != null) {
-                inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                inheritLocation(defaultMods, titleMods.getLocation());
-                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {

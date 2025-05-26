@@ -145,7 +145,9 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         DatastreamEditorType.ATM),
                 new RelationCriteria[] {
                         new RelationCriteria(MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)
+                        new RelationCriteria(NdkEbornPlugin.MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)
                 }
                 ));
         models.add(new MetaModel(

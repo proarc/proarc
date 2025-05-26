@@ -71,7 +71,7 @@ import static cz.cas.lib.proarc.common.storage.PremisEditor.getCustomAgent;
 import static cz.cas.lib.proarc.common.storage.PremisEditor.getPremisEvent;
 import static cz.cas.lib.proarc.common.storage.PremisEditor.getPremisFile;
 
-class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisitor {
+public class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisitor {
 
     private static final Logger LOG = Logger.getLogger(SipElementVisitor.class.getName());
 
@@ -95,6 +95,7 @@ class SipElementVisitor extends MetsElementVisitor implements IMetsElementVisito
         Objects.requireNonNull(metsElement, "metsElement can not be null");
         metsElement.getMetsContext().getFileList().clear();
         this.ignoreMissingUrnNbn = metsElement.getIgnoreMissingUrnNbn();
+        mainObjectModel = metsElement.getModel().replaceAll("info:fedora/", "");
         mets = prepareMets(metsElement);
         initHeader(metsElement);
         LOG.log(Level.FINE, "Inserting into Mets:" + metsElement.getOriginalPid() + "(" + metsElement.getElementType() + ")");

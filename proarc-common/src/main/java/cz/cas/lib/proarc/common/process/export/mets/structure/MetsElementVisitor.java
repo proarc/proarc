@@ -84,8 +84,12 @@ import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics.PhotometricInterpretation;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
+import cz.cas.lib.proarc.mods.FormDefinition;
+import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.premis.PremisComplexType;
 import java.io.ByteArrayInputStream;
@@ -154,6 +158,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     protected int titleCounter = 1;
     int audioPageCounter = 0;
     private boolean ignoreMissingUrnNbn = false;
+
+    protected String mainObjectModel;
 
     /**
      * creates directory structure for mets elements
@@ -438,6 +444,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      */
     protected void addDmdSec(IMetsElement metsElement) {
+        boolean updateModsNeeded = updateModsNeeded(metsElement.getModel().replaceAll("info:fedora/", ""), mainObjectModel);
         // MODS
         if (metsElement.getModsStream() != null) {
             MdSecType modsMdSecType = new MdSecType();
@@ -452,7 +459,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             XmlData modsxmlData = new XmlData();
             metsElement.getModsStream().get(0).setAttribute("ID", "MODS_" + metsElement.getModsElementID());
             metsElement.getModsStream().get(0).removeAttribute("version");
-            modsxmlData.getAny().addAll(metsElement.getModsStream());
+            if (updateModsNeeded) {
+                modsxmlData.getAny().addAll(updateXmlModsIfNeeded(metsElement.getModsStream(), mainObjectModel));
+            } else {
+                modsxmlData.getAny().addAll(metsElement.getModsStream());
+            }
             modsMdWrap.setXmlData(modsxmlData);
             modsMdSecType.setMdWrap(modsMdWrap);
         }
@@ -470,6 +481,266 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             dcMdWrap.setXmlData(dcxmlData);
             dcMdSecType.setMdWrap(dcMdWrap);
         }
+    }
+
+    public static List<Element> updateXmlModsIfNeeded(List<Element> modsStream, String mainObjectModel) {
+        NodeList genreNodes = modsStream.get(0).getElementsByTagNameNS("*", "genre");
+        for (int i = 0; i < genreNodes.getLength(); i++) {
+            Element genre = (Element) genreNodes.item(i);
+            boolean hasAuthority = genre.hasAttribute("authority");
+            String text = genre.getTextContent().trim();
+
+            if (NdkPlugin.MODEL_PERIODICALISSUE.equals(mainObjectModel) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+                if (!hasAuthority && Const.GENRE_ETITLE.equals(text)) {
+                    genre.setTextContent(Const.GENRE_TITLE);
+                }
+                if (!hasAuthority && Const.GENRE_EVOLUME.equals(text)) {
+                    genre.setTextContent(Const.GENRE_VOLUME);
+                }
+            } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(mainObjectModel) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+                if (!hasAuthority && Const.GENRE_TITLE.equals(text)) {
+                    genre.setTextContent(Const.GENRE_ETITLE);
+                }
+                if (!hasAuthority && Const.GENRE_VOLUME.equals(text)) {
+                    genre.setTextContent(Const.GENRE_EVOLUME);
+                }
+            }
+        }
+
+        Document doc = modsStream.get(0).getOwnerDocument();
+        NodeList physicalDescriptionNodes = modsStream.get(0).getElementsByTagNameNS("*", "physicalDescription");
+        for (int i = 0; i < physicalDescriptionNodes.getLength(); i++) {
+            Element physicalDescription = (Element) physicalDescriptionNodes.item(i);
+
+            if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(mainObjectModel) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+                // Zkontroluj, jestli už tam náhodou není
+                NodeList existingOrigins = physicalDescription.getElementsByTagNameNS("*", "digitalOrigin");
+                if (existingOrigins.getLength() == 0) {
+                    Element digitalOrigin = doc.createElementNS(ModsConstants.NS, "mods:digitalOrigin");
+                    digitalOrigin.setTextContent("born digital");
+                    prependElement(physicalDescription, digitalOrigin);
+                }
+
+                NodeList forms = physicalDescription.getElementsByTagNameNS("*", "form");
+
+                boolean hasElectronic = false;
+                List<Element> printForms = new ArrayList<>();
+
+                for (int j = 0; j < forms.getLength(); j++) {
+                    Element form = (Element) forms.item(j);
+                    if ("marcform".equals(form.getAttribute("authority"))) {
+                        String value = form.getTextContent().trim();
+
+                        if ("electronic".equalsIgnoreCase(value)) {
+                            hasElectronic = true;
+                        } else if ("print".equalsIgnoreCase(value)) {
+                            printForms.add(form);
+                        }
+                    }
+                }
+
+                if (hasElectronic) {
+                    // Pokud už "electronic" existuje, smaž "print"
+                    for (Element toRemove : printForms) {
+                        removeElementWithWhitespace(physicalDescription, toRemove);
+                    }
+                } else if (!printForms.isEmpty()) {
+                    // Pokud "electronic" neexistuje, první "print" přejmenuj
+                    Element toModify = printForms.get(0);
+                    toModify.setTextContent("electronic");
+
+                    // Zbytek případných "print" elementů smaž
+                    for (int j = 1; j < printForms.size(); j++) {
+                        removeElementWithWhitespace(physicalDescription, printForms.get(j));
+                    }
+                }
+            } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(mainObjectModel) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+                // Zkontroluj, jestli už tam náhodou není
+                NodeList existingOrigins = physicalDescription.getElementsByTagNameNS("*", "digitalOrigin");
+                if (existingOrigins.getLength() > 0) {
+                    // Zbytek případných "digitalOrigin" elementů smaž
+                    for (int j = 0; j < existingOrigins.getLength(); j++) {
+                        removeElementWithWhitespace(physicalDescription, (Element) existingOrigins.item(j));
+                    }
+                }
+
+                NodeList forms = physicalDescription.getElementsByTagNameNS("*", "form");
+
+                boolean hasPrint = false;
+                List<Element> electronicForms = new ArrayList<>();
+
+                for (int j = 0; j < forms.getLength(); j++) {
+                    Element form = (Element) forms.item(j);
+                    if ("marcform".equals(form.getAttribute("authority"))) {
+                        String value = form.getTextContent().trim();
+
+                        if ("print".equalsIgnoreCase(value)) {
+                            hasPrint = true;
+                        } else if ("electronic".equalsIgnoreCase(value)) {
+                            electronicForms.add(form);
+                        }
+                    }
+                }
+
+                if (hasPrint) {
+                    // Pokud už "print" existuje, smaž "electronic"
+                    for (Element toRemove : electronicForms) {
+                        removeElementWithWhitespace(physicalDescription, toRemove);
+                    }
+                } else if (!electronicForms.isEmpty()) {
+                    // Pokud "print" neexistuje, první "electronic" přejmenuj
+                    Element toModify = electronicForms.get(0);
+                    toModify.setTextContent("print");
+
+                    // Zbytek případných "electronic" elementů smaž
+                    for (int j = 1; j < electronicForms.size(); j++) {
+                        removeElementWithWhitespace(physicalDescription, electronicForms.get(j));
+                    }
+                }
+            }
+        }
+        return modsStream;
+    }
+
+    public static ModsDefinition updateModsIfNeeded(ModsDefinition mods, String mainObjectModel) {
+        for (GenreDefinition genre : mods.getGenre()) {
+            boolean hasAuthority = !(genre.getAuthority() == null || genre.getAuthority().isEmpty());
+            String text = genre.getValue().trim();
+
+            if (NdkPlugin.MODEL_PERIODICALISSUE.equals(mainObjectModel) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+                if (!hasAuthority && Const.GENRE_ETITLE.equals(text)) {
+                    genre.setValue(Const.GENRE_TITLE);
+                }
+                if (!hasAuthority && Const.GENRE_EVOLUME.equals(text)) {
+                    genre.setValue(Const.GENRE_VOLUME);
+                }
+            } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(mainObjectModel) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+                if (!hasAuthority && Const.GENRE_TITLE.equals(text)) {
+                    genre.setValue(Const.GENRE_ETITLE);
+                }
+                if (!hasAuthority && Const.GENRE_VOLUME.equals(text)) {
+                    genre.setValue(Const.GENRE_EVOLUME);
+                }
+            }
+        }
+
+        for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
+            if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(mainObjectModel) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+                // Zkontroluj, jestli už tam náhodou není
+                if (physicalDescription.getDigitalOrigin().isEmpty()) {
+                    physicalDescription.getDigitalOrigin().add(DigitalOriginDefinition.BORN_DIGITAL);
+                }
+
+                boolean hasElectronic = false;
+                List<FormDefinition> printForms = new ArrayList<>();
+
+                for (FormDefinition form : physicalDescription.getForm()) {
+                    if ("marcform".equals(form.getAuthority())) {
+                        String value = form.getValue().trim();
+
+                        if ("electronic".equalsIgnoreCase(value)) {
+                            hasElectronic = true;
+                        } else if ("print".equalsIgnoreCase(value)) {
+                            printForms.add(form);
+                        }
+                    }
+                }
+
+                if (hasElectronic) {
+                    // Pokud už "electronic" existuje, smaž "print"
+                    physicalDescription.getForm().removeAll(printForms);
+                } else if (!printForms.isEmpty()) {
+                    // Pokud "electronic" neexistuje, první "print" přejmenuj
+                    printForms.get(0).setValue("electronic");
+
+                    // Zbytek případných "print" elementů smaž
+                    for (int j = 1; j < printForms.size(); j++) {
+                        physicalDescription.getForm().remove(printForms.get(j));
+                    }
+                }
+            } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(mainObjectModel) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+                // Zkontroluj, jestli už tam náhodou není
+                physicalDescription.getDigitalOrigin().clear();
+
+                boolean hasPrint = false;
+                List<FormDefinition> electronicForms = new ArrayList<>();
+
+                for (FormDefinition form : physicalDescription.getForm()) {
+                    if ("marcform".equals(form.getAuthority())) {
+                        String value = form.getValue().trim();
+
+                        if ("print".equalsIgnoreCase(value)) {
+                            hasPrint = true;
+                        } else if ("electronic".equalsIgnoreCase(value)) {
+                            electronicForms.add(form);
+                        }
+                    }
+                }
+
+                if (hasPrint) {
+                    // Pokud už "print" existuje, smaž "electronic"
+                    physicalDescription.getForm().removeAll(electronicForms);
+                } else if (!electronicForms.isEmpty()) {
+                    // Pokud "print" neexistuje, první "electronic" přejmenuj
+                    electronicForms.get(0).setValue("print");
+
+                    // Zbytek případných "electronic" elementů smaž
+                    for (int j = 1; j < electronicForms.size(); j++) {
+                        physicalDescription.getForm().remove(electronicForms.get(j));
+                    }
+                }
+            }
+        }
+        return mods;
+    }
+
+    private static void prependElement(Element parent, Element newChild) {
+        Node first = parent.getFirstChild();
+
+        while (first != null && first.getNodeType() == Node.TEXT_NODE && first.getTextContent().trim().isEmpty()) {
+            first = first.getNextSibling(); // přeskoč whitespace
+        }
+
+        if (first != null) {
+            parent.insertBefore(newChild, first);
+        } else {
+            parent.appendChild(newChild); // fallback – pokud je element prázdný
+        }
+    }
+
+    private static void removeElementWithWhitespace(Element parent, Element elementToRemove) {
+        boolean deleted = false;
+        Node prev = elementToRemove.getPreviousSibling();
+        Node next = elementToRemove.getNextSibling();
+
+        // Smaž předchozí textový uzel, pokud je to whitespace
+        if (prev != null && prev.getNodeType() == Node.TEXT_NODE && prev.getTextContent().trim().isEmpty()) {
+            parent.removeChild(prev);
+            deleted = true;
+        }
+
+        // Smaž prvek
+        parent.removeChild(elementToRemove);
+
+        // smaž následující textový uzel, pokud je to whitespace a jeste nebylo smazáno
+        if (!deleted) {
+            if (next != null && next.getNodeType() == Node.TEXT_NODE && next.getTextContent().trim().isEmpty()) {
+                parent.removeChild(next);
+            }
+        }
+    }
+
+    public static boolean updateModsNeeded(String model, String mainObjectModel) {
+        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(mainObjectModel) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+            if (NdkEbornPlugin.MODEL_EPERIODICAL.equals(model) || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(model)) {
+                return true;
+            }
+        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(mainObjectModel) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(mainObjectModel)) {
+            if (NdkPlugin.MODEL_PERIODICAL.equals(model) || NdkPlugin.MODEL_PERIODICALVOLUME.equals(model)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void fillMdTypeVersion(MdWrap modsMdWrap, IMetsElement metsElement) {
@@ -2436,6 +2707,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             this.ignoreMissingUrnNbn = metsElement.getIgnoreMissingUrnNbn();
             // clear the output fileList before the generation starts
             metsElement.getMetsContext().getFileList().clear();
+            mainObjectModel = metsElement.getModel().replaceAll("info:fedora/", "");
             mets = prepareMets(metsElement);
             initHeader(metsElement);
             LOG.log(Level.FINE, "Inserting into Mets:" + metsElement.getOriginalPid() + "(" + metsElement.getElementType() + ")");

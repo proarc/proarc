@@ -179,7 +179,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     @Override
     public Void visitNdkPeriodicalSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
         if (registeringObject != null) {
-            if (!NdkPlugin.MODEL_PERIODICALISSUE.equals(registeringObject.getModelId())) {
+            if (!(NdkPlugin.MODEL_PERIODICALISSUE.equals(registeringObject.getModelId()) || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(registeringObject.getModelId()))) {
                 // supplement under issue - ignore
                 // invalid hierarchy
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -190,7 +190,9 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
             String parentModelId = parent.getModelId();
-            if (parent == DigitalObjectElement.NULL || NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModelId) || NdkPlugin.MODEL_PERIODICALISSUE.equals(parentModelId)) {
+            if (parent == DigitalObjectElement.NULL ||
+                    NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModelId) || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(parentModelId) ||
+                    NdkPlugin.MODEL_PERIODICALISSUE.equals(parentModelId) || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(parentModelId)) {
                 try {
                     registeringObject = elm;
                     return processNdkPeriodicalIssue(elm, p);
@@ -209,7 +211,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     @Override
     public Void visitNdkEPeriodicalSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
         if (registeringObject != null) {
-            if (!NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(registeringObject.getModelId())) {
+            if (!(NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(registeringObject.getModelId()) || NdkPlugin.MODEL_PERIODICALISSUE.equals(registeringObject.getModelId()))) {
                 // supplement under issue - ignore
                 // invalid hierarchy
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -220,7 +222,9 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             DigitalObjectElement parent = getCrawler().getParent(elm.getPid());
             String parentModelId = parent.getModelId();
-            if (parent == DigitalObjectElement.NULL || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(parentModelId) || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(parentModelId)) {
+            if (parent == DigitalObjectElement.NULL ||
+                    NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModelId) || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(parentModelId) ||
+                    NdkPlugin.MODEL_PERIODICALISSUE.equals(parentModelId) || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(parentModelId)) {
                 try {
                     registeringObject = elm;
                     return processNdkEPeriodicalIssue(elm, p);
@@ -810,7 +814,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return null;
             }
             DigitalObjectElement titleElm = path.next();
-            if (!NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId())) {
+            if (!(NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId()) || NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId()))) {
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                         "Requires Periodical Title as a root of the hierarchy instead of %s!",
                         titleElm.toLog()));
@@ -821,7 +825,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
             if (path.hasNext()) {
                 DigitalObjectElement volumeElm = path.next();
-                if (!NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId())) {
+                if (!(NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId())) || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId())) {
                     p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                             "Requires Periodical Title or Volume as parent instead of %s!",
                             volumeElm.toLog()));
@@ -870,7 +874,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return null;
             }
             DigitalObjectElement titleElm = path.next();
-            if (!NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId())) {
+            if (!(NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId())) || NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId())) {
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                         "Requires Periodical Title as a root of the hierarchy instead of %s!",
                         titleElm.toLog()));
@@ -881,7 +885,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
             if (path.hasNext()) {
                 DigitalObjectElement volumeElm = path.next();
-                if (!NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId())) {
+                if (!(NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId())) || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId())) {
                     p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                             "Requires Periodical Title or Volume as parent instead of %s!",
                             volumeElm.toLog()));
@@ -930,7 +934,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return null;
             }
             DigitalObjectElement titleElm = path.next();
-            if (!NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId())) {
+            if (!(NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId()) || NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId()))) {
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                         "Requires Periodical Title as a root of the hierarchy instead of %s!",
                         titleElm.toLog()));
@@ -941,7 +945,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
             if (path.hasNext()) {
                 DigitalObjectElement volumeElm = path.next();
-                if (!NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId())) {
+                if (!(NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId()) || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId()))) {
                     p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                             "Requires Periodical Title or Volume as parent instead of %s!",
                             volumeElm.toLog()));
@@ -1003,7 +1007,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return null;
             }
             DigitalObjectElement titleElm = path.next();
-            if (!NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId())) {
+            if (!(NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId()) || NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId()))) {
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                         "Requires ePeriodical Title as a root of the hierarchy instead of %s!",
                         titleElm.toLog()));
@@ -1014,7 +1018,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
             if (path.hasNext()) {
                 DigitalObjectElement volumeElm = path.next();
-                if (!NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId())) {
+                if (!(NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId()) || NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId()))) {
                     p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                             "Requires ePeriodical Volume as parent instead of %s!",
                             volumeElm.toLog()));
@@ -1059,7 +1063,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return null;
             }
             DigitalObjectElement titleElm = path.next();
-            if (!NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId())) {
+            if (!(NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId()) || NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId()))) {
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                         "Requires ePeriodical Title as a root of the hierarchy instead of %s!",
                         titleElm.toLog()));
@@ -1070,7 +1074,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
             if (path.hasNext()) {
                 DigitalObjectElement volumeElm = path.next();
-                if (!NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId())) {
+                if (!(NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId()) || NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId()))) {
                     p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                             "Requires ePeriodical Volume as parent instead of %s!",
                             volumeElm.toLog()));
@@ -1116,7 +1120,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return null;
             }
             DigitalObjectElement titleElm = path.next();
-            if (!NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId())) {
+            if (!(NdkEbornPlugin.MODEL_EPERIODICAL.equals(titleElm.getModelId()) || NdkPlugin.MODEL_PERIODICAL.equals(titleElm.getModelId()))) {
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                         "Requires ePeriodical Title as a root of the hierarchy instead of %s!",
                         titleElm.toLog()));
@@ -1127,7 +1131,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
             if (path.hasNext()) {
                 DigitalObjectElement volumeElm = path.next();
-                if (!NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId())) {
+                if (!(NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(volumeElm.getModelId()) || NdkPlugin.MODEL_PERIODICALVOLUME.equals(volumeElm.getModelId()))) {
                     p.getStatus().error(elm, Status.UNEXPECTED_PARENT, String.format(
                             "Requires ePeriodical Volume as parent instead of %s!",
                             volumeElm.toLog()));
