@@ -113,6 +113,7 @@ public final class Kramerius4ExportOptions {
             put(NdkEbornPlugin.MODEL_EARTICLE, "hasIntCompPart");
             put(NdkEbornPlugin.MODEL_ECHAPTER, "hasIntCompPart");
             put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "hasUnit");
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, "hasUnit");
             put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "hasIntCompPart");
             put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "hasItem");
             put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "hasVolume");
@@ -137,6 +138,7 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
             put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "model:supplement");
             put(NdkPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, "model:monographunit");
             put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
             put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "model:monograph");
             put(NdkPlugin.MODEL_PERIODICAL, "model:periodical");

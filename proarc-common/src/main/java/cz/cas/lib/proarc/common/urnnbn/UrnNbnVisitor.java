@@ -95,6 +95,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkPlugin.MODEL_GRAPHIC,
             NdkPlugin.MODEL_SHEETMUSIC,
             NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME,
+            NdkEbornPlugin.MODEL_EMONOGRAPHUNIT,
             NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
             NdkEbornPlugin.MODEL_ECHAPTER,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE,
@@ -286,7 +287,25 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            return processNdkEMonographVolumeOrSupplement(elm, p);
+            return processNdkEMonographVolumeOrUnitOrSupplement(elm, p);
+        } catch (DigitalObjectException ex) {
+            throw new VisitorException(ex);
+        } finally {
+            registeringObject = null;
+        }
+    }
+
+    @Override
+    public Void visitNdkEMonographUnit(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        if (registeringObject != null) {
+            // invalid hierarchy
+            p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
+                    "The eDocument unit under " + registeringObject.toLog());
+            return null;
+        }
+        try {
+            registeringObject = elm;
+            return processNdkEMonographVolumeOrUnitOrSupplement(elm, p);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {
@@ -327,7 +346,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     @Override
     public Void visitNdkEMonographSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
         if (registeringObject != null) {
-            if (!(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(registeringObject.getModelId()))) {
+            if (!(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(registeringObject.getModelId())
+                        || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(registeringObject.getModelId()))) {
                 // supplement under monograph volume - ignore
                 // invalid hierarchy
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -341,7 +361,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             if (parent == DigitalObjectElement.NULL || NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(parentModelId)) {
                 try {
                     registeringObject = elm;
-                    return processNdkEMonographVolumeOrSupplement(elm, p);
+                    return processNdkEMonographVolumeOrUnitOrSupplement(elm, p);
                 } finally {
                     registeringObject = null;
                 }
@@ -1494,7 +1514,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         return null;
     }
 
-    private Void processNdkEMonographVolumeOrSupplement(DigitalObjectElement elm, UrnNbnContext p)
+    private Void processNdkEMonographVolumeOrUnitOrSupplement(DigitalObjectElement elm, UrnNbnContext p)
             throws DigitalObjectException, VisitorException {
 
         final String pid = elm.getPid();

@@ -79,6 +79,8 @@ import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.Ch
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkPictureToOldprintGraphicAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEArticleToBdmArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEArticleToNdkArticleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEMonographUnitToNdkEMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEMonographVolumeToNdkEMonographUnitAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalIssueToNdkPeriodicalIssueAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalToNdkPeriodicalAction;
@@ -185,6 +187,8 @@ public final class DigitalObjectManager {
     private ChangeNdkMonographVolumeToClippingsVolumeAction changeNdkMonographVolumeToClippingsVolumeAction;
     private ChangeNdkMonographVolumeToNdkMonographTitleAction changeNdkMonographVolumeToNdkMonographTitleAction;
     private ChangeNdkMonographVolumeToNdkMonographUnitAction changeNdkMonographVolumeToNdkMonographUnitAction;
+    private ChangeNdkEMonographVolumeToNdkEMonographUnitAction changeNdkEMonographVolumeToNdkEMonographUnitAction;
+    private ChangeNdkEMonographUnitToNdkEMonographVolumeAction changeNdkEMonographUnitToNdkEMonographVolumeAction;
     private ChangeNdkMonographTitleToClippingsTitleAction changeNdkMonographTitleToClippingsTitleAction;
     private ChangeNdkMonographTitleToNdkMonographVolumeAction changeNdkMonographTitleToNdkMonographVolumeAction;
     private ChangeNdkMonographUnitToNdkMonographVolumeAction changeNdkMonographUnitToNdkMonographVolumeAction;
@@ -408,6 +412,8 @@ public final class DigitalObjectManager {
         changeNdkMonographVolumeToClippingsVolumeAction = new ChangeNdkMonographVolumeToClippingsVolumeAction(i18n);
         changeNdkMonographVolumeToNdkMonographTitleAction = new ChangeNdkMonographVolumeToNdkMonographTitleAction(i18n);
         changeNdkMonographVolumeToNdkMonographUnitAction = new ChangeNdkMonographVolumeToNdkMonographUnitAction(i18n);
+        changeNdkEMonographVolumeToNdkEMonographUnitAction = new ChangeNdkEMonographVolumeToNdkEMonographUnitAction(i18n);
+        changeNdkEMonographUnitToNdkEMonographVolumeAction = new ChangeNdkEMonographUnitToNdkEMonographVolumeAction(i18n);
         changeNdkMonographTitleToClippingsTitleAction = new ChangeNdkMonographTitleToClippingsTitleAction(i18n);
         changeNdkMonographTitleToNdkMonographVolumeAction = new ChangeNdkMonographTitleToNdkMonographVolumeAction(i18n);
         changeNdkMonographUnitToNdkMonographVolumeAction = new ChangeNdkMonographUnitToNdkMonographVolumeAction(i18n);
@@ -631,6 +637,8 @@ public final class DigitalObjectManager {
         changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction, actionSource, false));
         changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEArticleToNdkArticleAction, actionSource, false));
         changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEArticleToBdmArticleAction, actionSource, false));
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEMonographVolumeToNdkEMonographUnitAction, actionSource, false));
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEMonographUnitToNdkEMonographVolumeAction, actionSource, false));
         changeNdkEModels.setSubmenu(changeNdkEModelsMenu);
         return changeNdkEModels;
     }

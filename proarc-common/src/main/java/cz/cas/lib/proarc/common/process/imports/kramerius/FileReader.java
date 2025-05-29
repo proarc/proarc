@@ -108,6 +108,7 @@ public class FileReader {
     public static final String NDK_MONOGRAPH_TITLE_MAP = "ndk_monograph_title";
     public static final String NDK_PERIODICAL_MAP = "ndk_periodical";
     public static final String NDK_EMONOGRAPH_MAP = "ndk_emonograph";
+    public static final String NDK_EMONOGRAPH_TITLE_MAP = "ndk_emonograph_title";
     public static final String NDK_EPERIODICAL_MAP = "ndk_eperiodical";
     public static final String STT_MAP = "stt";
     public static final String K4_MAP = "default";
@@ -199,7 +200,16 @@ public class FileReader {
             put("model:chapter", NdkEbornPlugin.MODEL_ECHAPTER);
             put("model:supplement", NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT);
             put("model:monograph", NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME);
-            put("model:monographunit", NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME);
+//            put("model:monographunit", NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME);
+        }
+    };
+
+    private final Map<String, String> modelEMonographTitleMap = new HashMap<String, String>() {
+        {
+            put("model:chapter", NdkEbornPlugin.MODEL_ECHAPTER);
+            put("model:supplement", NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT);
+            put("model:monograph", NdkEbornPlugin.MODEL_EMONOGRAPHTITLE);
+            put("model:monographunit", NdkEbornPlugin.MODEL_EMONOGRAPHUNIT);
         }
     };
 
@@ -233,6 +243,10 @@ public class FileReader {
 
     public Map<String, String> getModelEMonographMap() {
         return modelEMonographMap;
+    }
+
+    public Map<String, String> getModelEMonographTitleMap() {
+        return modelEMonographTitleMap;
     }
 
     public Map<String, String> getModelEPeriodicalMap() {
@@ -382,6 +396,7 @@ public class FileReader {
             }
 
             if (ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())
+                    || ConfigurationProfile.NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())
                     || ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())) {
                 if (eModelsDatastreamVersionId.containsKey(datastream.getID())) {
                     String newId = eModelsDatastreamVersionId.get(datastream.getID());
@@ -504,6 +519,7 @@ public class FileReader {
     private void fillDatastreams(List<DatastreamType> datastreams, DigitalObject dObj, ImportProcess.ImportOptions ctx) {
         for (int i = 0; i < datastreams.size(); i++) {
             if (ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())
+                    || ConfigurationProfile.NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())
                     || ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT.equals(ctx.getProfile().getProfileId())) {
                 if (EMODELS_KRAMERIUS_DATASTREAMS.contains(datastreams.get(i).getID())) {
                     dObj.getDatastream().add(datastreams.get(i));
@@ -990,6 +1006,9 @@ public class FileReader {
                     break;
                 case NDK_EMONOGRAPH_MAP:
                     newModelId = getModelEMonographMap().get(oldModelId);
+                    break;
+                case NDK_EMONOGRAPH_TITLE_MAP:
+                    newModelId = getModelEMonographTitleMap().get(oldModelId);
                     break;
                 case NDK_EPERIODICAL_MAP:
                     newModelId = getModelEPeriodicalMap().get(oldModelId);

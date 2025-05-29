@@ -48,6 +48,8 @@ public class ConfigurationProfile {
     public static final String NDK_PERIODICAL_KRAMERIUS_IMPORT = "profile.ndk_periodical_kramerius_import";
     /** The ID of the ndk eMonograph kramerius import profile that is based on (@code proarc.cfg]. */
     public static final String NDK_EMONOGRAPH_KRAMERIUS_IMPORT = "profile.ndk_emonograph_kramerius_import";
+    /** The ID of the ndk eMonograph title kramerius import profile that is based on (@code proarc.cfg]. */
+    public static final String NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT = "profile.ndk_emonograph_title_kramerius_import";
     /** The ID of the ndk ePeriodical kramerius import profile that is based on (@code proarc.cfg]. */
     public static final String NDK_EPERIODICAL_KRAMERIUS_IMPORT = "profile.ndk_eperiodical_kramerius_import";
     /** The ID of profile that only generates ALTO and OCR. */

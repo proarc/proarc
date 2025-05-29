@@ -327,6 +327,8 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME = "changeNdkMonographVolumeToClippingsVolume";
     public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE = "changeNdkMonographVolumeToNdkMonographTitle";
     public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_UNIT = "changeNdkMonographVolumeToNdkMonographUnit";
+    public static final String CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT = "changeNdkEMonographVolumeToNdkEMonographUnit";
+    public static final String CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME = "changeNdkEMonographUnitToNdkEMonographVolume";
     public static final String CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = "changeClippingsTitleToNdkMonographTitle";
     public static final String CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE = "changeNdkMonographTitleToClippingsTitle";
     public static final String CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME = "changeNdkMonographTitleToNdkMonographVolume";
