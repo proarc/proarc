@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.object.ndk;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.mods.DateDefinition;
@@ -26,6 +27,7 @@ import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import java.time.LocalDate;
@@ -68,6 +70,10 @@ public class ModsRules {
     private static final Set<String> PICTURE_GENRE_MAP = new HashSet<>(Arrays.asList("photograph", "chart", "graphic", "illustration", "advertisement", "map", "plate", "table", "technicalPlanScheme", "unspecified"));
     private static final Set<String> ARTICLE_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "dedication", "afterword", "editorsNote", "advertisement", "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction", "conclusion", "otherNote", "unspecified", "mainArticle", "editorial", "news"));
     private static final Set<String> CHAPTER_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "dedication", "afterword", "editorsNote", "advertisement", "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction", "conclusion", "otherNote", "unspecified", "article", "chapter", "subchapter"));
+    public static final Set<String> PAGE_PART_TYPE = new HashSet<>(Arrays.asList("cover", "frontCover", "backCover", "appendix", "errata", "frontispiece", "spine", "impressum", "normalPage", "edge", "imprimatur", "blank", "jacket", "Jacket", "frontEndPaper",
+            "backEndPaper", "frontEndSheet", "backEndSheet", "frontJacket", "listOfIllustrations", "listOfMaps", "listOfTables", "colophon", "Colophon", "titlePage", "flyleaf", "Flyleaf",
+            "bibliography", "dedication", "afterword", "illustration", "advertisement", "map", "sheetMusic", "tableOfContents", "preface", "index", "table", "introduction", "conclusion",
+            "imgDisc", "manuscriptNotes"));
 
     private ModsRules() {}
 
@@ -173,6 +179,15 @@ public class ModsRules {
                         if (!PICTURE_GENRE_MAP.contains(genreType)) {
                             exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_PICTURE);
                         }
+                    }
+                }
+            }
+        } else if (NdkPlugin.MODEL_PAGE.equals(modelId) || NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
+            for (PartDefinition part : mods.getPart()) {
+                String pageType = part.getType();
+                if (pageType != null && !pageType.isEmpty()) {
+                    if (!PAGE_PART_TYPE.contains(pageType)) {
+                        exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, pageType, modelId);
                     }
                 }
             }

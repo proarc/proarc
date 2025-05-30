@@ -46,6 +46,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 
+import static cz.cas.lib.proarc.common.object.ndk.ModsRules.PAGE_PART_TYPE;
+
 public class ValidationProcess {
 
     private static final Logger LOG = Logger.getLogger(ValidationProcess.class.getName());
@@ -64,9 +66,6 @@ public class ValidationProcess {
     private boolean containsPdf;
 
     private Map<String, Integer> pageTypeMap = new HashMap<>();
-    private static final Set<String> PAGE_TYPE = new HashSet<>(Arrays.asList("cover", "frontCover", "backCover", "errata", "spine", "normalPage", "blank", "jacket", "Jacket", "frontEndPaper",
-            "backEndPaper", "frontEndSheet", "backEndSheet", "frontJajacket", "listOfIllustrations", "listOfMaps", "listOfTables", "colophon", "Colophon", "titlePage", "flyleaf", "Flyleaf",
-            "bibliography", "dedication", "afterword", "illustration", "advertisement", "map", "sheetMusic", "tableOfContents", "preface", "index", "table", "introduction", "conclusion"));
 
     private static final Set<String> CONTAINS_PDF = new HashSet<String>(Arrays.asList(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE));
     private static final Set<String> CONTAINS_AUDIO_PAGE = new HashSet<String>(Arrays.asList(NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK));
@@ -443,7 +442,7 @@ public class ValidationProcess {
             }
         }
         if (item.getPageType() != null && !item.getPageType().isEmpty()) {
-            if (!PAGE_TYPE.contains(item.getPageType())) {
+            if (!PAGE_PART_TYPE.contains(item.getPageType())) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), String.format("Zvolený typ strany \"%s\" není podporován.", item.getPageType()), Level.SEVERE));
             }
             if (pageTypeMap.containsKey(item.getPageType())) {
