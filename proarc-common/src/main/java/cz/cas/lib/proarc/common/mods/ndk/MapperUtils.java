@@ -494,6 +494,18 @@ public final class MapperUtils {
         }
         return dcElms;
     }
+    static String findTitle(ModsDefinition mods) {
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            if (titleInfo.getType() == null || titleInfo.getType().isEmpty()) {
+                for (StringPlusLanguage title : titleInfo.getTitle()) {
+                    if (title.getValue() != null && !title.getValue().isEmpty()) {
+                        return title.getValue();
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     static String findPartNumber(ModsDefinition mods) {
         List<TitleInfoDefinition> titleInfos = mods.getTitleInfo();

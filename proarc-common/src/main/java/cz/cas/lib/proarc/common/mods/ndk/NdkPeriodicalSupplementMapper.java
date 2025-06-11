@@ -16,9 +16,9 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
-import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
@@ -46,7 +46,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLanguage;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartName;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findTitle;
 
 /**
  *
@@ -130,13 +130,22 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
 
     @Override
     protected String createObjectLabel(ModsDefinition mods) {
-        String partNumber = findPartNumber(mods);
+        String title = findTitle(mods);
         String partName = findPartName(mods);
-        if (partNumber != null && partName != null) {
-            return partNumber + ", " + partName;
-        } else {
-            return partNumber != null ? partNumber : partName;
+
+        StringBuilder sb = new StringBuilder();
+        if (title != null && !title.isEmpty()) {
+            sb.append(title);
         }
+
+        if (partName != null && !partName.isEmpty()) {
+            if (sb.length() > 0) {
+                sb.append(": ");
+            }
+            sb.append(partName);
+        }
+
+        return sb.length() > 0 ? sb.toString() : "?";
     }
 
     @Override
