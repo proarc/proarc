@@ -58,31 +58,31 @@ public class ModsDataHandler {
         this.appConfiguration = appConfiguration;
     }
 
-    public ModsDefinition createDefaultMetadata(String pid, String modelId, DigitalObjectHandler parentHandler, Job parentJob) throws DigitalObjectException {
+    public ModsDefinition createDefaultMetadata(String pid, String modelId, DigitalObjectHandler objectHandler, Job parentJob) throws DigitalObjectException {
         ModsDefinition defaultMods = ModsStreamEditor.defaultMods(pid);
 
         if (!(NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || NdkPlugin.MODEL_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId) || NdkAudioPlugin.MODEL_PAGE.equals(modelId))) {
             setRules(defaultMods);
         }
         if (NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
-            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICALISSUE, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICALISSUE, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         }
         if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(modelId)) {
-            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICAL, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICAL, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
-            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, parentHandler, parentJob);
+            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         }
         if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
             // issue 124
-            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICAL, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICAL, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
 
@@ -91,7 +91,7 @@ public class ModsDataHandler {
                 inheritLocation(defaultMods, titleMods.getLocation());
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
             }
-            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, parentHandler, parentJob);
+            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
 
@@ -99,10 +99,19 @@ public class ModsDataHandler {
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 inheritLocation(defaultMods, titleMods.getLocation());
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+            }
+            if (objectHandler != null) {
+                String partNumberVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
+                String dateIssuedVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
+                String dateIssuedEndOfRangeVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE_END_OF_RANGE);
+                fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal, dateIssuedEndOfRangeVal);
+
+                String signaturaVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_SIGNATURA);
+                replaceShelfLocator(defaultMods, signaturaVal);
             }
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
             // issue 137
-            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICAL, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICAL, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
@@ -111,7 +120,7 @@ public class ModsDataHandler {
             }
         } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)) {
             // issue 240
-            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHVOLUME, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
@@ -120,7 +129,7 @@ public class ModsDataHandler {
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
-            titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHUNIT, parentHandler, parentJob);
+            titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHUNIT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
@@ -129,7 +138,7 @@ public class ModsDataHandler {
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
-            titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, parentHandler, parentJob);
+            titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getName().addAll(titleMods.getName());
@@ -143,14 +152,14 @@ public class ModsDataHandler {
             }
         } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
             // issue 241
-            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHVOLUME, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
-            titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHUNIT, parentHandler, parentJob);
+            titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHUNIT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
@@ -159,17 +168,17 @@ public class ModsDataHandler {
             }
 //        } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
         } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {
-            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHVOLUME, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
-            titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHUNIT, parentHandler, parentJob);
+            titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHUNIT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         } else if (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
             //issue 540
-            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHTITLE, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHTITLE, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getName().addAll(titleMods.getName());
@@ -188,7 +197,7 @@ public class ModsDataHandler {
             // issue 859
             RelatedItemDefinition relatedItem = new RelatedItemDefinition();
             defaultMods.getRelatedItem().add(relatedItem);
-            ModsDefinition titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 if (titleMods.getTitleInfo().size() != 0) {
                     relatedItem.getTitleInfo().add(titleMods.getTitleInfo().get(0));
@@ -196,7 +205,7 @@ public class ModsDataHandler {
                 relatedItem.getName().addAll(titleMods.getName());
                 copyIdentifier(relatedItem, titleMods, "issn");
             }
-            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICALISSUE, parentHandler, parentJob);
+            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICALISSUE, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 if (relatedItem.getTitleInfo().size() != 0
                         && titleMods.getTitleInfo().size() != 0
@@ -206,7 +215,7 @@ public class ModsDataHandler {
                 copyIdentifier(relatedItem, titleMods, "uuid");
             }
         } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
-            ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getName().addAll(titleMods.getName());
@@ -222,24 +231,24 @@ public class ModsDataHandler {
         } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
             if (parentJob != null) {
                 if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentJob.getModel())) {
-                    ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, parentHandler, parentJob);
+                    ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
                     modsCopyMusicDocument(titleMods, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                     inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
                 } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentJob.getModel())) {
-                    ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_PHONOGRAPH, parentHandler, parentJob);
+                    ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_PHONOGRAPH, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
                     modsCopyMusicDocument(titleMods, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                     inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
                 } else if (NdkAudioPlugin.MODEL_SONG.equals(parentJob.getModel())) {
-                    ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_SONG, parentHandler, parentJob);
+                    ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_SONG, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
                     modsCopyMusicDocument(titleMods, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 }
             }
         } if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
             // issue 329
-            ModsDefinition titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
@@ -248,7 +257,7 @@ public class ModsDataHandler {
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
-            titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHUNIT, parentHandler, parentJob);
+            titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHUNIT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
@@ -259,7 +268,7 @@ public class ModsDataHandler {
             }
         } else if (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
             //issue 540
-            ModsDefinition titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHTITLE, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHTITLE, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
@@ -267,14 +276,14 @@ public class ModsDataHandler {
             }
         } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
             // issue 241
-            ModsDefinition titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, parentHandler, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
-            titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHUNIT, parentHandler, parentJob);
+            titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHUNIT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
@@ -395,7 +404,13 @@ public class ModsDataHandler {
 
     private void replaceShelfLocator(ModsDefinition defaultMods, String signatura) {
         if (signatura != null && !signatura.isEmpty()) {
+            if (defaultMods.getLocation().isEmpty()) {
+                defaultMods.getLocation().add(new LocationDefinition());
+            }
             for (LocationDefinition loc : defaultMods.getLocation()) {
+                if (loc.getShelfLocator().isEmpty()) {
+                    loc.getShelfLocator().add(new StringPlusLanguage());
+                }
                 for (StringPlusLanguage shelfLocator : loc.getShelfLocator()) {
                     shelfLocator.setValue(signatura);
                 }
