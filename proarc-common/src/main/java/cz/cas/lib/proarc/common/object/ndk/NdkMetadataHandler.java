@@ -148,7 +148,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
      */
     protected ModsDefinition createDefault(String modelId) throws DigitalObjectException {
         ModsDataHandler modsDataHandler = new ModsDataHandler(appConfiguration);
-        ModsDefinition defaultMods = modsDataHandler.createDefaultMetadata(fobject.getPid(), modelId, handler.getParameterParent(), null);
+        ModsDefinition defaultMods = modsDataHandler.createDefaultMetadata(fobject.getPid(), modelId, handler, null);
         return defaultMods;
     }
 

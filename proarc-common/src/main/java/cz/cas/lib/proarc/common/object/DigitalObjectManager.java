@@ -432,7 +432,7 @@ public class DigitalObjectManager {
             }
             this.seriesPartNumberFrom = partNumberFrom;
             if (partNumberFrom != null) {
-                params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
+                    params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
             }
             return this;
         }
