@@ -99,7 +99,7 @@ class PhysicalMaterialBuilder {
             Element modsElm = (Element) xpath.evaluate(
                     "m:mods | m:modsCollection/m:mods", modsDom, XPathConstants.NODE);
             String pid = xpath.evaluate("m:identifier[@type='uuid']", modsElm);
-            if (pid != null) {
+            if (pid != null && !pid.isEmpty()) {
                 if (!pid.startsWith("uuid:")) {
                     pid = "uuid:" + pid;
                 }
