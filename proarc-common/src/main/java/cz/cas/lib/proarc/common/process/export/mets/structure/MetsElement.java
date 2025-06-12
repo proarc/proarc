@@ -428,11 +428,7 @@ public class MetsElement implements IMetsElement {
         this.elementID = this.elementType + "_" + String.format("%04d", metsContext.addElementId(this.elementType));
         this.modsElementID = elementID.replaceAll(this.elementType, modsName);
 
-        if (Const.ARTICLE.equals(elementType)) {
-            this.elementID = elementID.replaceAll(this.elementType, modsName);
-        }
-
-        if (Const.SUPPLEMENT.equals(elementType)) {
+        if (Const.ARTICLE.equals(elementType) || Const.PICTURE.equals(elementType) || Const.SUPPLEMENT.equals(elementType)) {
             this.elementID = elementID.replaceAll(this.elementType, modsName);
         }
 
