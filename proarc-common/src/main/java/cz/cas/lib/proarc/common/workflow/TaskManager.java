@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Material;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.Task.State;
@@ -45,12 +46,15 @@ import cz.cas.lib.proarc.common.workflow.profile.TaskDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.math.BigDecimal;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -249,6 +253,11 @@ public class TaskManager {
                 paramDao.add(task.getId(), params);
             }
             tx.commit();
+
+            if (task.getTypeRef().startsWith("task.scan") && State.FINISHED.equals(task.getState())) {
+                updateFolderPath(job);
+            }
+
             return task;
         } catch (ConcurrentModificationException t) {
             tx.rollback();
@@ -262,6 +271,76 @@ public class TaskManager {
         } finally {
             tx.close();
         }
+    }
+
+    private void updateFolderPath(Job job) throws WorkflowException {
+        String barcode = null;
+        MaterialFilter filter = new MaterialFilter();
+        filter.setJobId(job.getId());
+        filter.setType(MaterialType.PHYSICAL_DOCUMENT);
+        filter.setLocale(new Locale("cs", "CZ"));
+
+        List<MaterialView> materials = wmgr.findMaterial(filter);
+        if (materials.size() != 1) {
+            return;
+        }
+        MaterialView material = materials.get(0);
+        if (material == null) {
+            return;
+        }
+        barcode = material.getBarcode();
+        if (barcode == null || barcode.isEmpty()) {
+            return;
+        }
+
+        filter = new MaterialFilter();
+        filter.setJobId(job.getId());
+        filter.setType(MaterialType.FOLDER);
+        filter.setLocale(new Locale("cs", "CZ"));
+
+        materials = wmgr.findMaterial(filter);
+        if (materials.size() != 1) {
+            return;
+        }
+        material = materials.get(0);
+        if (material == null) {
+            return;
+        }
+        String path = material.getPath();
+        if (path == null || path.isEmpty()) {
+            return;
+        }
+
+        path = adjustPath(path, barcode);
+
+        material.setPath(path);
+        material.setLabel(path);
+        wmgr.updateMaterial(material);
+    }
+
+    public static String adjustPath(String folderPath, String barcodeFolder) {
+        boolean hasDotPrefix = folderPath.startsWith(".");
+        Path path = Paths.get(folderPath).normalize();
+
+        // Získáme název poslední složky
+        String lastFolder = path.getFileName().toString();
+
+        String pathValue = null;
+        if (lastFolder.equals(barcodeFolder)) {
+            // Pokud poslední složka odpovídá tmpFolder, vrať původní cestu (normalizovanou)
+            pathValue = path.toString();
+        } else {
+            // Pokud ne, přidej tmpFolder na konec
+            pathValue = path.resolve(barcodeFolder).toString();
+        }
+
+        if (hasDotPrefix) {
+            pathValue = "./" + pathValue;
+        }
+        if (pathValue.contains("\\")) {
+            pathValue = pathValue.replace("\\", "/");
+        }
+        return pathValue;
     }
 
     private void updateJobState(List<TaskView> jobTasks, Job job, WorkflowJobDao jobDao) throws ConcurrentModificationException {
