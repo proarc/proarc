@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Lukas Sykora
+ * Copyright (C) 2025 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,55 +14,51 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.webapp.client.action;
+package cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke;
 
 import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
-import cz.cas.lib.proarc.webapp.client.ds.CopyObjectDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource.DigitalObject;
-import cz.cas.lib.proarc.webapp.client.ds.RelationDataSource;
+import cz.cas.lib.proarc.webapp.client.ClientUtils;
+import cz.cas.lib.proarc.webapp.client.Editor;
+import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
+import cz.cas.lib.proarc.webapp.client.action.ActionEvent;
+import cz.cas.lib.proarc.webapp.client.action.Actions;
+import cz.cas.lib.proarc.webapp.client.ds.ChangeModelsDataSource;
+import cz.cas.lib.proarc.webapp.client.ds.DigitalObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.ds.SearchDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 
 /**
- * Copy Object.
+ * Change Ndk eMonograph Unit to Ndk eMonograph Volume
  *
  * @author Lukas Sykora
  */
-public class CopyObjectAction extends AbstractAction {
+public class ChangeNdkEMonographUnitToNdkEMonographVolumeAction extends AbstractAction {
 
     private final ClientMessages i18n;
 
-    public static final Set<String> COPY_MODELS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList(NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT,
-                    NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT,
-                    GraphicPlugin.MODEL_GRAPHIC
-            )));
-
-    public CopyObjectAction(ClientMessages i18n) {
-        this(i18n, i18n.CopyObjectAction_Title(),
-                "16/copy.png",
-                i18n.CopyObjectAction_Hint());
+    public ChangeNdkEMonographUnitToNdkEMonographVolumeAction(ClientMessages i18n) {
+        this(i18n, i18n.ChangeNdkEMonographUnitToNdkEMonographVolumeAction_Title(),
+                "[SKIN]/headerIcons/transfer.png",
+                i18n.ChangeModelAction_Hint());
     }
 
-    public CopyObjectAction(ClientMessages i18n, String title, String icon, String tooltip) {
+    public ChangeNdkEMonographUnitToNdkEMonographVolumeAction(ClientMessages i18n, String title, String icon, String tooltip) {
         super(title, icon, tooltip);
         this.i18n = i18n;
     }
 
     @Override
     public boolean accept(ActionEvent event) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION))) {
+            return false;
+        }
         Object[] selection = Actions.getSelection(event);
         boolean accept = false;
         if (selection != null && selection instanceof Record[]) {
@@ -75,24 +71,22 @@ public class CopyObjectAction extends AbstractAction {
     @Override
     public void performAction(ActionEvent event) {
         Record[] records = Actions.getSelection(event);
+        String[] pids = ClientUtils.toFieldValues(records, DigitalObjectResourceApi.DIGITALOBJECT_PID);
         Record record = new Record();
-        for (Record recordLocal : records){
-            DigitalObject dobj = DigitalObject.createOrNull(recordLocal);
-            if (dobj != null) {
-                record = recordLocal;
-                continue;
-            }
+        record.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_PID, pids);
+        if (records != null && records.length > 0) {
+            record.setAttribute(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, records[0].getAttribute(DigitalObjectResourceApi.DIGITALOBJECT_MODEL));
         }
-        register(record);
+        changeModel(record);
     }
 
     private boolean acceptModel(Record[] records) {
         boolean accept = false;
         for (Record record : records) {
-            DigitalObject dobj = DigitalObject.createOrNull(record);
+            DigitalObjectDataSource.DigitalObject dobj = DigitalObjectDataSource.DigitalObject.createOrNull(record);
             if (dobj != null) {
                 String modelId = dobj.getModelId();
-                if (modelId != null && COPY_MODELS.contains(modelId)) {
+                if (modelId != null && (NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(modelId))) {
                     accept = true;
                     continue;
                 }
@@ -103,23 +97,19 @@ public class CopyObjectAction extends AbstractAction {
         return accept;
     }
 
-    private void register(Record record) {
+    private void changeModel(Record record) {
         DSRequest dsRequest = new DSRequest();
         dsRequest.setHttpMethod("POST");
-        CopyObjectDataSource ds = CopyObjectDataSource.getInstance();
+        ChangeModelsDataSource ds = ChangeModelsDataSource.changeNdkEMonographUnitToNdkEMonographVolume();
         ds.addData(record, new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
                 if (hasValidationError(response)) {
                     handleValidations(response);
                 } else if (RestConfig.isStatusOk(response)) {
-                    StatusView.getInstance().show(i18n.DigitalObjectCreator_FinishedStep_Done_Msg());
-                    CopyObjectDataSource.getInstance().updateCaches(response, request);
-                    SearchDataSource.getInstance().updateCaches(response, request);
-                    RelationDataSource.getInstance().updateCaches(response, request);
+                    StatusView.getInstance().show(i18n.ChangeNdkEMonographUnitToNdkEMonographVolumeAction_FinishStep_Msg());
                 }
             }
         }, dsRequest);
     }
-
 }

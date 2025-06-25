@@ -176,7 +176,9 @@ public final class NdkPictureForm {
                     .addMapValue("graphic", "grafika")
                     .addMapValue("map", "mapa")
                     .addMapValue("advertisement", "reklama")
-                    .addMapValue("cover", "obálka")
+                    .addMapValue("plate", "obrazová příloha")
+                    .addMapValue("technicalPlanScheme", "technický plán/schéma")
+//                    .addMapValue("cover", "obálka")
                     .addMapValue("unspecified", "nespecifikován")
                 .createField()) // @type
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup

@@ -374,6 +374,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             modsRules.checkPhysicalLocation(mods.getLocation());
             modsRules.checkRelatedItemPhysicalLocation(mods.getRelatedItem());
             modsRules.checkDateIssuedFormat(mods, modelId);
+            modsRules.checkGenreType(mods, modelId);
             if (!ex.getValidations().isEmpty()) {
                 throw ex;
             }

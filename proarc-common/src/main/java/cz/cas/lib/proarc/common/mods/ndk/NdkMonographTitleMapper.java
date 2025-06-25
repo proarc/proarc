@@ -23,14 +23,21 @@ import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.SubjectDefinition;
+import cz.cas.lib.proarc.mods.SubjectNameDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.mods.UrlDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addLanguage;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addName;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNonSort;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addOriginInfo;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addStringPlusLanguage;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addSubTitle;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 
 /**
@@ -69,8 +76,18 @@ public class NdkMonographTitleMapper extends RdaNdkMapper {
     protected OaiDcType createDc(ModsDefinition mods, Context ctx) {
         OaiDcType dc = super.createDc(mods, ctx);
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            addElementType(dc.getTitles(), createTitleString(titleInfo));
+            StringBuilder title = new StringBuilder();
+            addNonSort(title, titleInfo);
+            addTitle(title, titleInfo);
+            addSubTitle(title, titleInfo);
+            addElementType(dc.getTitles(), title.toString());
+
+            addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartNumber());
+            addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartName());
         }
+        addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
+
         addElementType(dc.getTypes(), getDcType());
         addLanguage(mods.getLanguage(), dc);
         addOriginInfo(mods.getOriginInfo(), dc);
@@ -82,8 +99,23 @@ public class NdkMonographTitleMapper extends RdaNdkMapper {
                 addElementType(dc.getFormats(), extent.getValue());
             }
         }
+        addStringPlusLanguage(dc.getDescriptions(), mods.getAbstract());
+        addStringPlusLanguage(dc.getDescriptions(), mods.getNote());
+        for (SubjectDefinition subject : mods.getSubject()) {
+            addStringPlusLanguage(dc.getSubjects(), subject.getTopic());
+            addStringPlusLanguage(dc.getSubjects(), subject.getGeographic());
+            addStringPlusLanguage(dc.getSubjects(), subject.getTemporal());
+            for (SubjectNameDefinition subjectName : subject.getName()) {
+                addStringPlusLanguage(dc.getSubjects(), subjectName.getNamePart());
+            }
+        }
+        addStringPlusLanguage(dc.getSubjects(), mods.getClassification());
         for (LocationDefinition location : mods.getLocation()) {
+            for (UrlDefinition url : location.getUrl()) {
+                addElementType(dc.getSources(), url.getValue());
+            }
             addStringPlusLanguage(dc.getSources(), location.getPhysicalLocation());
+            addStringPlusLanguage(dc.getSources(), location.getShelfLocator());
         }
         return dc;
     }

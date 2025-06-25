@@ -85,6 +85,7 @@ public class ArchiveObjectSelector {
                 || NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
                 || NdkPlugin.MODEL_SHEETMUSIC.equals(modelId)
                 || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)
+                || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(modelId)
                 || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)
                 || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId)
                 || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(modelId)

@@ -92,6 +92,14 @@ public class ChangeModelsDataSource extends ProarcDataSource {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_UNIT);
     }
 
+    public static ChangeModelsDataSource changeNdkEMonographVolumeToNdkEMonographUnit() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT);
+    }
+
+    public static ChangeModelsDataSource changeNdkEMonographUnitToNdkEMonographVolume() {
+        return new ChangeModelsDataSource(RestConfig.URL_CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME);
+    }
+
     public static ChangeModelsDataSource changeK4PeriodicalToNdkPeriodical() {
         return new ChangeModelsDataSource(RestConfig.URL_CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL);
     }

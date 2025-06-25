@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Martin Rumanek
+ * Copyright (C) 2025 Lukas Sykora
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMonographVolumeMapper;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMonographUnitMapper;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -27,7 +27,7 @@ import java.util.List;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDigitalOrigin;
 
-public class NdkEMonographVolumeMapper extends NdkMonographVolumeMapper {
+public class NdkEMonographUnitMapper extends NdkMonographUnitMapper {
 
     public boolean isAddTextResource() {
         return true;

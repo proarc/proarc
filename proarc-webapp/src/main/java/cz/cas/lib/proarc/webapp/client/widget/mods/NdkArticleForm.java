@@ -203,6 +203,22 @@ public class NdkArticleForm {
                     .addMapValue("main article", "hlavní článek")
                     .addMapValue("index", "rejstřík")
                     .addMapValue("unspecified", "nespecifikován")
+                    .addMapValue("annotation", "anotace")
+                    .addMapValue("afterword", "doslov")
+                    .addMapValue("bibliographicalPortrait", "medailonek")
+                    .addMapValue("obituary", "nekrolog")
+                    .addMapValue("sheetMusic", "notový zápis")
+                    .addMapValue("tableOfContents", "obsah")
+                    .addMapValue("contributors", "přispěvatelé")
+                    .addMapValue("summary", "resumé")
+                    .addMapValue("interview", "rezhovor")
+                    .addMapValue("study", "studie")
+                    .addMapValue("technicalPlanScheme", "technický plán/schéma")
+                    .addMapValue("conclusion", "závěr")
+                    .addMapValue("otherNote", "jiná poznámka")
+                    .addMapValue("mainArticle", "hlavní článek")
+                    .addMapValue("editorial", "úvodník")
+                    .addMapValue("news", "zpráva")
                 .createField()) // @type
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration

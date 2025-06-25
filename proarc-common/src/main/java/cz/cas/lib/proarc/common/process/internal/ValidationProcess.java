@@ -46,6 +46,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 
+import static cz.cas.lib.proarc.common.object.ndk.ModsRules.PAGE_PART_TYPE;
+
 public class ValidationProcess {
 
     private static final Logger LOG = Logger.getLogger(ValidationProcess.class.getName());
@@ -65,7 +67,7 @@ public class ValidationProcess {
 
     private Map<String, Integer> pageTypeMap = new HashMap<>();
 
-    private static final Set<String> CONTAINS_PDF = new HashSet<String>(Arrays.asList(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE));
+    private static final Set<String> CONTAINS_PDF = new HashSet<String>(Arrays.asList(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE));
     private static final Set<String> CONTAINS_AUDIO_PAGE = new HashSet<String>(Arrays.asList(NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK));
     private static final Set<String> CONTAINS_PAGE = new HashSet<String>(Arrays.asList(
             NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
@@ -83,7 +85,7 @@ public class ValidationProcess {
             NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
             NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
-            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
+            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT
 //            OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
 //            OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC
@@ -440,6 +442,9 @@ public class ValidationProcess {
             }
         }
         if (item.getPageType() != null && !item.getPageType().isEmpty()) {
+            if (!PAGE_PART_TYPE.contains(item.getPageType())) {
+                result.getValidationResults().add(new ValidationResult(item.getPid(), String.format("Zvolený typ strany \"%s\" není podporován.", item.getPageType()), Level.SEVERE));
+            }
             if (pageTypeMap.containsKey(item.getPageType())) {
                 if (pageTypeMap.get(item.getPageType()) > 0) {
                     result.getValidationResults().add(new ValidationResult(item.getPid(), String.format("Vícenásobný výskyt typu strany \"%s\".", item.getPageType()), Level.WARNING));

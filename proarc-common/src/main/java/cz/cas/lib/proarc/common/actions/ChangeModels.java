@@ -326,6 +326,24 @@ public class ChangeModels {
             case BornDigitalModsPlugin.MODEL_ARTICLE:
                 // no metadata change needed
                 break;
+            case NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME:
+                switch (oldModel) {
+                    case NdkEbornPlugin.MODEL_EMONOGRAPHUNIT:
+                        // no metadata change needed
+                        break;
+                    default:
+                        throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported previous model (" + oldModel + ").");
+                }
+                break;
+            case NdkEbornPlugin.MODEL_EMONOGRAPHUNIT:
+                switch (oldModel) {
+                    case NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME:
+                        // no metadata change needed
+                        break;
+                    default:
+                        throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported previous model (" + oldModel + ").");
+                }
+                break;
             default:
                 throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
         }
