@@ -5,6 +5,7 @@ import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -288,6 +289,28 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
             }
         } catch (SolrServerException | IOException ex) {
             throw new DigitalObjectException(pid, "Nepodarilo se zapsat parent pid \"" + parentPid + "\" do pro pid \"" + pid + "\" do SOLRu.");
+        }
+    }
+
+    public void feedObjectStatus(String pid, String status, boolean commit) throws DigitalObjectException {
+        if (status == null || status.isEmpty()) {
+            status = DigitalObjectStatusUtils.STATUS_DESCRIBED;
+        }
+        SolrInputDocument sdoc = new SolrInputDocument();
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+
+        Map<String, Object> statusMap = new HashMap<>();
+        statusMap.put("set", status);
+        sdoc.addField(FIELD_STATUS, statusMap);
+
+        try {
+            UpdateResponse response = feedDescriptionDocument(sdoc);
+            if (commit) {
+                commit();
+            }
+        } catch (SolrServerException | IOException ex) {
+            throw new DigitalObjectException(pid, "Nepodarilo se zapsat status \"" + status + "\" do pro pid \"" + pid + "\" do SOLRu.");
         }
     }
 

@@ -356,6 +356,10 @@ public class AkubraStorage {
         this.solrObjectFeeder.feedParentPid(pid, parentPid, true);
     }
 
+    public void indexObjectStatus(String pid, String status) throws DigitalObjectException {
+        this.solrObjectFeeder.feedObjectStatus(pid, status, true);
+    }
+
     public void indexValidationResult(Batch batch) throws DigitalObjectException {
         indexValidationResult(batch.getFolder(), batch.getId(), batch.getState());
     }

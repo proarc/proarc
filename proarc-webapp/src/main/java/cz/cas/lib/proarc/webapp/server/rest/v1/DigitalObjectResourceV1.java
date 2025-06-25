@@ -47,6 +47,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHierarchyHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.K4Plugin;
@@ -428,6 +429,21 @@ public class DigitalObjectResourceV1 {
         if (purge) {
             checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
         }
+
+        AkubraStorage storage = null;
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            storage = AkubraStorage.getInstance(akubraConfiguration);
+            for (String pid : pids) {
+                if (storage != null) {
+                    try {
+                        storage.indexObjectStatus(pid, DigitalObjectStatusUtils.STATUS_TO_DELETE);
+                    } catch (Exception ex) {
+                        LOG.warning("Nepodarilo se zapsat docasnou zmenu stavu pro informaci o naplanovanem smazani objektu pid \"" + pid + "\".");
+                    }
+                }
+            }
+        }
+
 
         BatchParams params = new BatchParams(pids);
         params.setHierarchy(hierarchy);
