@@ -48,6 +48,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATUS;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_USER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.appendAndValue;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.createItem;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.getIdentifiersQuery;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.getModelQuery;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.getPidsQuery;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.getUserQuery;
@@ -428,7 +429,14 @@ public class SolrSearchView extends SearchView {
             }
         }
         if (pids != null && !pids.isEmpty() && hasValues(pids)) {
-            filterQueryList.add(getPidsQuery(pids));
+            String pidQuery = getPidsQuery(pids);
+            if (pidQuery != null && !pidQuery.isEmpty()) {
+                filterQueryList.add(pidQuery);
+            }
+            String identifiersQuery = getIdentifiersQuery(pids);
+            if (identifiersQuery != null && !identifiersQuery.isEmpty()) {
+                filterQueryList.add(identifiersQuery);
+            }
         }
         if (owner != null && !owner.isEmpty()) {
             filterQueryList.add(FIELD_OWNER + ":\"" + owner + "\"");
