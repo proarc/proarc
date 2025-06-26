@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 
@@ -126,7 +127,15 @@ public class SolrUtils {
     }
 
     public static String getPidsQuery(List<String> pids) {
-        return getListFilterQuery(pids, FIELD_PID);
+        return getListFilterQuery(pids.stream()
+                .map(s -> s.startsWith("uuid:") ? s : null) // ochrana proti jiným stringům nez uuid
+                .collect(Collectors.toList()), FIELD_PID);
+    }
+
+    public static String getIdentifiersQuery(List<String> pids) {
+        return getListFilterQuery(pids.stream()
+                .map(s -> s.startsWith("uuid:") ? null : s) // ochrana proti jiným stringům nez uuid
+                .collect(Collectors.toList()), FIELD_IDENTIFIRES);
     }
 
     public static String getModelQuery(List<String> models) {
