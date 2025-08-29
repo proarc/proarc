@@ -558,9 +558,12 @@ public class FileReader {
             String pageNumber = pageDiv.getORDERLABEL();
             String pageType = pageDiv.getTYPE();
             ModsDefinition mods = null;
-            String model = null;
-            if (pageDiv.getID().startsWith("DIV_P")) {
+            String model = NdkPlugin.MODEL_NDK_PAGE;
+            if (pageDiv.getID().startsWith("DIV_P") || pageDiv.getID().startsWith("PageId")) {
                 mods = modsMap.get(pageDiv.getID().replaceFirst("DIV_P", "MODSMD"));
+                if (mods == null) {
+                    mods = modsMap.get(pageDiv.getID().replaceFirst("PageId", "MODSMD"));
+                }
                 if (PackageType.NDK.equals(packageType)) {
                     model = NdkPlugin.MODEL_NDK_PAGE;
                 } else {
