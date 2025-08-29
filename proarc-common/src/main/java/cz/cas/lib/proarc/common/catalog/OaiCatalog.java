@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.xml.Transformers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.xml.transform.ErrorListener;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
@@ -41,6 +43,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -132,7 +135,19 @@ public class OaiCatalog implements BibliographicCatalog {
             DOMResult marcResult = transformOaiResponse(
                     new StreamSource(new StringReader(oaiResponse)), new DOMResult());
             if (marcResult != null) {
-                MetadataItem item = createResponse(0, new DOMSource(marcResult.getNode()), locale);
+                DOMSource source = new DOMSource(marcResult.getNode());
+
+                if (LOG.isLoggable(Level.FINE)) {
+                    StringWriter writer = new StringWriter();
+                    TransformerFactory tf = TransformerFactory.newInstance();
+                    Transformer transformer = tf.newTransformer();
+                    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+                    transformer.transform(source, new StreamResult(writer));
+                    LOG.fine(writer.toString());
+                }
+                MetadataItem item = createResponse(0, source, locale);
                 result.add(item);
             }
         }
