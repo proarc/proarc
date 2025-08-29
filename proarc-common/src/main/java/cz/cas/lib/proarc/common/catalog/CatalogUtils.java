@@ -2,7 +2,6 @@ package cz.cas.lib.proarc.common.catalog;
 
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
-import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.IssuanceDefinition;
@@ -731,13 +730,19 @@ public class CatalogUtils {
         try {
             XPathFactory xPathFactory = ProarcXmlUtils.defaultXPathFactory();
             XPath xPath = xPathFactory.newXPath();
-            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
-            XPathExpression originInfoPath = xPath.compile("m:collection/m:record/m:datafield[@tag=" + tagValue + "]");
+            String expr = "//*[local-name()='record']/*[local-name()='datafield' and @tag='" + tagValue + "']";
+            XPathExpression originInfoPath = xPath.compile(expr);
+
             Node node = (Node) originInfoPath.evaluate(marcXml, XPathConstants.NODE);
-            if (node == null) {
-                originInfoPath = xPath.compile("m:record/m:datafield[@tag=" + tagValue + "]");
-                node = (Node) originInfoPath.evaluate(marcXml, XPathConstants.NODE);
-            }
+
+//            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
+//            XPathExpression originInfoPath = xPath.compile("m:collection/m:record/m:datafield[@tag=" + tagValue + "]");
+//            Node node = (Node) originInfoPath.evaluate(marcXml, XPathConstants.NODE);
+//            if (node == null) {
+//                originInfoPath = xPath.compile("m:record/m:datafield[@tag=" + tagValue + "]");
+//                node = (Node) originInfoPath.evaluate(marcXml, XPathConstants.NODE);
+//            }
+
             List<String> listOfSubelements = new ArrayList<>();
             if (node != null && node.hasChildNodes()) {
                 NodeList listOfNodes = node.getChildNodes();
@@ -774,13 +779,14 @@ public class CatalogUtils {
         try {
             XPathFactory xPathFactory = ProarcXmlUtils.defaultXPathFactory();
             XPath xPath = xPathFactory.newXPath();
-            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
-            XPathExpression originInfoPath = xPath.compile("m:collection/m:record/m:datafield[@tag=" + tagValue + "]");
+            String expr = "//*[local-name()='record']/*[local-name()='datafield' and @tag='" + tagValue + "']";
+            XPathExpression originInfoPath = xPath.compile(expr);
             node = (Node) originInfoPath.evaluate(marcXml, XPathConstants.NODE);
-            if (node == null) {
-                originInfoPath = xPath.compile("m:record/m:datafield[@tag=" + tagValue + "]");
-                node = (Node) originInfoPath.evaluate(marcXml, XPathConstants.NODE);
-            }
+
+//            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
+//            XPathExpression originInfoPath = xPath.compile("m:collection/m:record/m:datafield[@tag=" + tagValue + "]");
+//            node = (Node) originInfoPath.evaluate(marcXml, XPathConstants.NODE);
+
         } catch (XPathExpressionException e) {
             LOG.warning("Impossible to parse node with tag " + tagValue + " from downloaded marcXml");
             e.printStackTrace();
@@ -794,14 +800,13 @@ public class CatalogUtils {
         try {
             XPathFactory xPathFactory = ProarcXmlUtils.defaultXPathFactory();
             XPath xPath = xPathFactory.newXPath();
-            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
-            String expression = "count(m:collection//m:record//m:datafield[@tag=" + tagValue + "])";
-            counts = (Double) xPath.evaluate(expression, marcXml, XPathConstants.NUMBER);
+//            xPath.setNamespaceContext(new SimpleNamespaceContext().add("m", "http://www.loc.gov/MARC21/slim"));
+//            String expression = "count(m:collection//m:record//m:datafield[@tag=" + tagValue + "])";
+//            counts = (Double) xPath.evaluate(expression, marcXml, XPathConstants.NUMBER);
+            String expr = "count(//*[local-name()='record']/*[local-name()='datafield' and @tag='" + tagValue + "'])";
 
-            if (counts == null) {
-                expression = "count(m:record//m:datafield[@tag=" + tagValue + "])";
-                counts = (Double) xPath.evaluate(expression, marcXml, XPathConstants.NUMBER);
-            }
+            counts = (Double) xPath.evaluate(expr, marcXml, XPathConstants.NUMBER);
+
         } catch (XPathExpressionException e) {
             LOG.warning("Impossible to parse double with tag " + tagValue + " from downloaded marcXml");
             e.printStackTrace();
