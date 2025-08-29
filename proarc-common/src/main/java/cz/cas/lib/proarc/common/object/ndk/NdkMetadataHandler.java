@@ -368,6 +368,15 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                     shelfLocator.setValue(signatura);
                 }
             }
+
+            Set<String> seen = new HashSet<>();
+            defaultMods.getLocation().removeIf(loc -> {
+                if (loc.getShelfLocator() == null || loc.getShelfLocator().isEmpty()) {
+                    return false; // bez shelfLocator neřešíme
+                }
+                String value = loc.getShelfLocator().get(0).getValue();
+                return !seen.add(value); // pokud už jsme ji viděli, smažeme
+            });
         }
     }
 
