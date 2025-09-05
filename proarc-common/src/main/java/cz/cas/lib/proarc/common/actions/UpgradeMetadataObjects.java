@@ -4,6 +4,14 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
@@ -11,25 +19,19 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,9 +43,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cz.cas.lib.proarc.common.actions.ChangeModels.fixNdkPageMods;
+import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
-import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 public class UpgradeMetadataObjects {
 
@@ -138,6 +140,50 @@ public class UpgradeMetadataObjects {
         findChildrens(element, model);
     }
 
+
+    public List<SearchViewItem> findObjectsWithType(String pid, String model, String pageType) throws DigitalObjectException, IOException, FedoraClientException {
+        if (pid != null) {
+            IMetsElement element = getElement(pid);
+            if (element == null) {
+                throw new DigitalObjectException("Process: Update " + model + " - impossimble to get element");
+            }
+            findChildrens(element, model);
+        }
+
+        SearchView search = null;
+        try {
+            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
+                FedoraStorage rstorage = FedoraStorage.getInstance(config);
+                search = rstorage.getSearch(locale);
+            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())){
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                search = akubraStorage.getSearch(locale);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
+            }
+        } catch (IOException e) {
+            throw new DigitalObjectException(model, e);
+        }
+
+        return search.findAdvancedSearchItems(mergePids(pids), pageType, null, null, null, null, MetaModel.MODELS_LEAF, null, null, null, null, "created", "desc", 0, Integer.MAX_VALUE);
+    }
+
+    private String mergePids(List<String> pids) {
+        if (pids.isEmpty()) {
+            return null;
+        }
+        StringBuilder builder = new StringBuilder();
+        boolean isFirst = true;
+        for (String pid : pids) {
+            if (isFirst) {
+                builder.append(pid);
+            } else {
+                builder.append(",").append(pid);
+            }
+        }
+        return builder.toString();
+    }
+
     private void findChildrens(IMetsElement element, String model) throws DigitalObjectException {
         if (element == null) {
             throw new DigitalObjectException("Process: Update " + model + " - impossimble to get element");
@@ -220,5 +266,53 @@ public class UpgradeMetadataObjects {
 
     public int getUpdatedObjects() {
         return updatedObjects;
+    }
+
+
+    public void fixPageType(List<SearchViewItem> items, String oldValue, String newValue) throws DigitalObjectException {
+        for (SearchViewItem item : items) {
+            fixObjectWithPageType(item, oldValue, newValue);
+        }
+        LOG.log(Level.INFO, "INFORMATION: Update finished, updated " + updatedObjects + "/" + items.size() + " object(s).");
+    }
+
+    public void fixObjectWithPageType(SearchViewItem item, String oldValue, String newValue) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        ProArcObject fo = dom.find(item.getPid(), null);
+        DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
+        NdkMapper.Context context = new NdkMapper.Context(handler);
+        NdkMapper mapper = NdkMapper.get(item.getModel());
+        mapper.setModelId(item.getModel());
+
+
+        XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+        ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
+        ModsDefinition mods = modsStreamEditor.read();
+        mods = updatePageType(mods, oldValue, newValue);
+
+        mapper.createMods(mods, context);
+        modsStreamEditor.write(mods, modsStreamEditor.getLastModified(), "Update " + item.getPid() + " - MODS stream");
+
+        OaiDcType dc = mapper.toDc(mods, context);
+        DcStreamEditor dcEditor = handler.objectMetadata();
+        DcStreamEditor.DublinCoreRecord dcr = dcEditor.read();
+        dcr.setDc(dc);
+        dcEditor.write(handler, dcr, "Update " + item.getPid() + " - DC stream");
+
+        fo.setLabel(mapper.toLabel(mods));
+
+        handler.commit();
+        updatedObjects++;
+    }
+
+    private ModsDefinition updatePageType(ModsDefinition mods, String oldValue, String newValue) {
+        for (PartDefinition part : mods.getPart()) {
+            if (part.getType() != null) {
+                if (oldValue.toLowerCase().equals(part.getType().toLowerCase())) {
+                    part.setType(newValue);
+                }
+            }
+        }
+        return mods;
     }
 }

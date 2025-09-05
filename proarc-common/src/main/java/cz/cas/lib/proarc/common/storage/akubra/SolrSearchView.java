@@ -339,7 +339,9 @@ public class SolrSearchView extends SearchView {
     @Override
     public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String parentPid, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
         List<String> queryPids = new ArrayList<>();
-        if (identifier != null && identifier.contains(",")) {
+        if (identifier == null) {
+            queryPids = null;
+        } else if (identifier != null && identifier.contains(",")) {
             queryPids.addAll(Arrays.asList(identifier.split("\\s*,\\s*")));
         } else {
             queryPids.add(identifier);
