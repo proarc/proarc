@@ -4895,6 +4895,37 @@ public class DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.UPDATE_NDK_PAGE + "/" + "pageType")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> updateNdkPageObjectsWithSpecificPageType(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+    ) throws DigitalObjectException, IOException, FedoraClientException {
+
+        String pageType = "flyleaf";
+
+        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+
+        Locale locale = session.getLocale(httpHeaders);
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        List<SearchViewItem> items = upgradeMetadataObjects.findObjectsWithType(pid, MetaModel.MODELS_LEAF, pageType);
+
+        if (isLocked(getAsPidList(items))) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+
+        upgradeMetadataObjects.fixPageType(items, pageType, pageType); // stara hodnota ignoruje velikost pismen, nova je jiz jen jedna podoba zapisu
+        return returnFunctionSuccess();
+    }
+
+    private List<String> getAsPidList(List<SearchViewItem> items) {
+        List<String> pids = new ArrayList<>();
+        for (SearchViewItem item : items) {
+            pids.add(item.getPid());
+        }
+        return pids;
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.UPDATE_OLDPRINT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> updateOldprintPageObjects(

@@ -907,3 +907,16 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 pid=uuid:951ae74c-b743-49bc-b666-9a8ca92dafff
+
+### LOGIN
+POST {{proarcUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### UPDATE PAGE TYPE
+POST {{proarcUrl}}/rest/v2/object/updateNdkPage/pageType
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
