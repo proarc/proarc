@@ -363,20 +363,22 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
 
     private void replaceShelfLocator(ModsDefinition defaultMods, String signatura) {
         if (signatura != null && !signatura.isEmpty()) {
-            for (LocationDefinition loc : defaultMods.getLocation()) {
-                for (StringPlusLanguage shelfLocator : loc.getShelfLocator()) {
-                    shelfLocator.setValue(signatura);
-                }
+            LocationDefinition location = null;
+
+            if (defaultMods.getLocation().size() > 0) {
+                location = defaultMods.getLocation().get(0);
             }
 
-            Set<String> seen = new HashSet<>();
-            defaultMods.getLocation().removeIf(loc -> {
-                if (loc.getShelfLocator() == null || loc.getShelfLocator().isEmpty()) {
-                    return false; // bez shelfLocator neřešíme
-                }
-                String value = loc.getShelfLocator().get(0).getValue();
-                return !seen.add(value); // pokud už jsme ji viděli, smažeme
-            });
+            defaultMods.getLocation().clear();
+
+            if (location == null) {
+                location = new LocationDefinition();
+            }
+            location.getShelfLocator().clear();
+            StringPlusLanguage shelfLocator = new StringPlusLanguage();
+            shelfLocator.setValue(signatura);
+            location.getShelfLocator().add(shelfLocator);
+            defaultMods.getLocation().add(location);
         }
     }
 
