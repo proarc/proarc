@@ -418,7 +418,8 @@ public class ImportResourceV1 {
         BatchViewFilter filterAll = new BatchViewFilter()
                     .setBatchId(batchId)
                     .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
-                    .setCreatorId(user.getId() == 1 ? creatorId : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? creatorId : user.getId()))
+                    .setCreatorId(creatorId)
+                    .setSuperAdminUserIds(getSuperAdminsIds(user.getOrganization()))
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                     .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -436,7 +437,8 @@ public class ImportResourceV1 {
                 .setBatchId(batchId)
                 // admin may see all users; XXX use permissions for this!
                 .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
-                .setCreatorId(user.getId() == 1 ? creatorId : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? creatorId : user.getId()))
+                .setCreatorId(creatorId)
+                .setSuperAdminUserIds(getSuperAdminsIds(user.getOrganization()))
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                 .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -453,6 +455,28 @@ public class ImportResourceV1 {
         int endRow = startRow + batchSize - 1;
         int total = allBatches.size();
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
+    }
+
+    private List<Integer> getSuperAdminsIds(String organization) {
+        UserManager users = UserUtil.getDefaultManger();
+        List<UserProfile> profiles = users.findAll();
+        List<Integer> superAdminIds = new ArrayList<>();
+        if (organization == null || organization.isEmpty()) {
+            for (UserProfile profile : profiles) {
+                if (UserRole.ROLE_SUPERADMIN.equals(profile.getRole())) {
+                    superAdminIds.add(profile.getId());
+                }
+            }
+        } else {
+            for (UserProfile profile : profiles) {
+                if (UserRole.ROLE_SUPERADMIN.equals(profile.getRole())) {
+                    if (organization.equals(profile.getOrganization())) {
+                        superAdminIds.add(profile.getId());
+                    }
+                }
+            }
+        }
+        return superAdminIds;
     }
 
     @GET

@@ -200,6 +200,10 @@ public class WorkflowResourceV1 {
         filter.setDeviceId(deviceId);
         filter.setPid(pid);
         filter.setNote(note);
+
+        if (parentId != null) {
+            filter.setSortBy("id");
+        }
         try {
             List<JobView> jobs;
             jobs = workflowManager.findJob(filter);
