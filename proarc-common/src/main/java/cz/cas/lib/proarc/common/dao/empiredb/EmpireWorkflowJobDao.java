@@ -212,11 +212,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         EmpireUtils.addWhereDate(cmd, tableJob.created, filter.getCreated());
         EmpireUtils.addWhereDate(cmd, tableJob.timestamp, filter.getModified());
 
-        if (filter.getParentId() != null) {
-            EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableJob.id, false);            // u podrizenych zameru se radi novy na konec (nejstarsi nahore dle id)
-        } else {
-            EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableJob.timestamp, true);
-        }
+        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableJob.timestamp, true);
 
         DBReader reader = new DBReader();
         try {
