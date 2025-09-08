@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.dao;
 
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -29,6 +30,7 @@ public class BatchViewFilter {
 
     private Integer userId;
     private Integer creatorId;
+    private List<Integer> superAdminUserIds;
     private Integer batchId;
     private Set<State> state;
     private String filePattern;
@@ -52,6 +54,15 @@ public class BatchViewFilter {
 
     public BatchViewFilter setCreatorId(Integer creatorId) {
         this.creatorId = creatorId;
+        return this;
+    }
+
+    public List<Integer> getSuperAdminUserIds() {
+        return superAdminUserIds;
+    }
+
+    public BatchViewFilter setSuperAdminUserIds(List<Integer> superAdminUserIds) {
+        this.superAdminUserIds = superAdminUserIds;
         return this;
     }
 

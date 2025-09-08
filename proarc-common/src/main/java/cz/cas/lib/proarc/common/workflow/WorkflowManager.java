@@ -530,6 +530,7 @@ public class WorkflowManager {
             // readonly properties
             job.setCreated(old.getCreated());
             job.setProfileName(old.getProfileName());
+            job.setModel(old.getModel());
             jobDao.update(job);
             if (old.getState() != job.getState() && job.isClosed()) {
                 // close all open tasks

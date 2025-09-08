@@ -404,17 +404,22 @@ public class ModsDataHandler {
 
     private void replaceShelfLocator(ModsDefinition defaultMods, String signatura) {
         if (signatura != null && !signatura.isEmpty()) {
-            if (defaultMods.getLocation().isEmpty()) {
-                defaultMods.getLocation().add(new LocationDefinition());
+            LocationDefinition location = null;
+
+            if (defaultMods.getLocation().size() > 0) {
+                location = defaultMods.getLocation().get(0);
             }
-            for (LocationDefinition loc : defaultMods.getLocation()) {
-                if (loc.getShelfLocator().isEmpty()) {
-                    loc.getShelfLocator().add(new StringPlusLanguage());
-                }
-                for (StringPlusLanguage shelfLocator : loc.getShelfLocator()) {
-                    shelfLocator.setValue(signatura);
-                }
+
+            defaultMods.getLocation().clear();
+
+            if (location == null) {
+                location = new LocationDefinition();
             }
+            location.getShelfLocator().clear();
+            StringPlusLanguage shelfLocator = new StringPlusLanguage();
+            shelfLocator.setValue(signatura);
+            location.getShelfLocator().add(shelfLocator);
+            defaultMods.getLocation().add(location);
         }
     }
 
