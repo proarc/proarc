@@ -117,6 +117,7 @@ public class ProarcDatabaseV17 extends DBDatabase {
 
             driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.software, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.itemUpdated, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.updated, script);
 
             LOG.fine(script.toString());
             script.run(driver, conn);
