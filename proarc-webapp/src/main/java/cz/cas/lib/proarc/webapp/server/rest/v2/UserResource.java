@@ -113,7 +113,20 @@ public class UserResource extends UserResourceV1 {
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
             @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
             @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction
+            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction,
+            @FormParam(UserResourceApi.CHANGE_OBJECTS_OWNER_FUNCTION) Boolean changeObjectsOwnerFunction,
+            @FormParam(UserResourceApi.CHANGE_PAGES_FUNCTION) Boolean changePagesFunction,
+            @FormParam(UserResourceApi.DEVICE_FUNCTION) Boolean deviceFunction,
+            @FormParam(UserResourceApi.WF_CREATE_JOB_FUNCTION) Boolean wfCreateJobFunction,
+            @FormParam(UserResourceApi.CREATE_USER_FUNCTION) Boolean createUserFunction,
+            @FormParam(UserResourceApi.UPDATE_USER_FUNCTION) Boolean updateUserFunction,
+            @FormParam(UserResourceApi.UPDATE_USER_PERMISSION_FUNCTION) Boolean updateUserPermissionFunction,
+            @FormParam(UserResourceApi.DELETE_USER_FUNCTION) Boolean deleteUserFunction,
+            @FormParam(UserResourceApi.SOLR_FUNCTION) Boolean solrFunction,
+            @FormParam(UserResourceApi.DELETE_ACTION_FUNCTION) Boolean deleteActionFunction,
+            @FormParam(UserResourceApi.ALL_OBJECTS_FUNCTION) Boolean allObjectsFunction,
+            @FormParam(UserResourceApi.PREPARE_BATCH_FUNCTION) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.SYS_ADMIN_FUNCTION) Boolean sysAdminFunction
     ) {
         Locale locale = session.getLocale(httpHeaders);
         try {
@@ -130,7 +143,7 @@ public class UserResource extends UserResourceV1 {
         }
         try {
             return super.add(userName, passwd, surname, forename, email, organization, role, changeModelFunction,
-                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction, importToCatalogFunction);
+                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction, importToCatalogFunction, changeObjectsOwnerFunction, changePagesFunction, deviceFunction, wfCreateJobFunction, createUserFunction, updateUserFunction, updateUserPermissionFunction, deleteUserFunction, solrFunction, deleteActionFunction, allObjectsFunction, prepareBatchFunction, sysAdminFunction);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -154,7 +167,20 @@ public class UserResource extends UserResourceV1 {
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
             @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
             @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction
+            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction,
+            @FormParam(UserResourceApi.CHANGE_OBJECTS_OWNER_FUNCTION) Boolean changeObjectsOwnerFunction,
+            @FormParam(UserResourceApi.CHANGE_PAGES_FUNCTION) Boolean changePagesFunction,
+            @FormParam(UserResourceApi.DEVICE_FUNCTION) Boolean deviceFunction,
+            @FormParam(UserResourceApi.WF_CREATE_JOB_FUNCTION) Boolean wfCreateJobFunction,
+            @FormParam(UserResourceApi.CREATE_USER_FUNCTION) Boolean createUserFunction,
+            @FormParam(UserResourceApi.UPDATE_USER_FUNCTION) Boolean updateUserFunction,
+            @FormParam(UserResourceApi.UPDATE_USER_PERMISSION_FUNCTION) Boolean updateUserPermissionFunction,
+            @FormParam(UserResourceApi.DELETE_USER_FUNCTION) Boolean deleteUserFunction,
+            @FormParam(UserResourceApi.SOLR_FUNCTION) Boolean solrFunction,
+            @FormParam(UserResourceApi.DELETE_ACTION_FUNCTION) Boolean deleteActionFunction,
+            @FormParam(UserResourceApi.ALL_OBJECTS_FUNCTION) Boolean allObjectsFunction,
+            @FormParam(UserResourceApi.PREPARE_BATCH_FUNCTION) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.SYS_ADMIN_FUNCTION) Boolean sysAdminFunction
     ) {
         try {
             checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN));
@@ -163,7 +189,8 @@ public class UserResource extends UserResourceV1 {
         }
         try {
             return super.update(userId, passwd, surname, forename, email, organization, role, changeModelFunction,
-                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction, importToCatalogFunction);
+                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction, importToCatalogFunction,
+                    changeObjectsOwnerFunction, changePagesFunction, deviceFunction, wfCreateJobFunction, createUserFunction, updateUserFunction, updateUserPermissionFunction, deleteUserFunction, solrFunction, deleteActionFunction, allObjectsFunction, prepareBatchFunction, sysAdminFunction);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

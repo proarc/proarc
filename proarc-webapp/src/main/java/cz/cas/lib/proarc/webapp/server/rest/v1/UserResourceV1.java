@@ -119,7 +119,7 @@ public class UserResourceV1 {
             @QueryParam(UserResourceApi.USER_ID) Integer userId
     ) {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(user, UserRole.PERMISSION_DELETE_USER_FUNCTION);
         Locale locale = session.getLocale(httpHeaders);
 
         if (userId == null) {
@@ -293,7 +293,20 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
             @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
             @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction
+            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction,
+            @FormParam(UserResourceApi.CHANGE_OBJECTS_OWNER_FUNCTION) Boolean changeObjectsOwnerFunction,
+            @FormParam(UserResourceApi.CHANGE_PAGES_FUNCTION) Boolean changePagesFunction,
+            @FormParam(UserResourceApi.DEVICE_FUNCTION) Boolean deviceFunction,
+            @FormParam(UserResourceApi.WF_CREATE_JOB_FUNCTION) Boolean wfCreateJobFunction,
+            @FormParam(UserResourceApi.CREATE_USER_FUNCTION) Boolean createUserFunction,
+            @FormParam(UserResourceApi.UPDATE_USER_FUNCTION) Boolean updateUserFunction,
+            @FormParam(UserResourceApi.UPDATE_USER_PERMISSION_FUNCTION) Boolean updateUserPermissionFunction,
+            @FormParam(UserResourceApi.DELETE_USER_FUNCTION) Boolean deleteUserFunction,
+            @FormParam(UserResourceApi.SOLR_FUNCTION) Boolean solrFunction,
+            @FormParam(UserResourceApi.DELETE_ACTION_FUNCTION) Boolean deleteActionFunction,
+            @FormParam(UserResourceApi.ALL_OBJECTS_FUNCTION) Boolean allObjectsFunction,
+            @FormParam(UserResourceApi.PREPARE_BATCH_FUNCTION) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.SYS_ADMIN_FUNCTION) Boolean sysAdminFunction
             ) {
         Locale locale = session.getLocale(httpHeaders);
         checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN, Permissions.USERS_CREATE);
@@ -324,6 +337,19 @@ public class UserResourceV1 {
         newProfile.setCzidloFunction(czidloFunction);
         newProfile.setWfDeleteJobFunction(wfDeleteJobFunction);
         newProfile.setImportToCatalogFunction(importToCatalogFunction);
+        newProfile.setChangeObjectsOwnerFunction(changeObjectsOwnerFunction);
+        newProfile.setChangePagesFunction(changePagesFunction);
+        newProfile.setDeviceFunction(deviceFunction);
+        newProfile.setWfCreateJobFunction(wfCreateJobFunction);
+        newProfile.setCreateUserFunction(createUserFunction);
+        newProfile.setUpdateUserFunction(updateUserFunction);
+        newProfile.setUpdateUserPermissionFunction(updateUserPermissionFunction);
+        newProfile.setDeleteUserFunction(deleteUserFunction);
+        newProfile.setSolrFunction(solrFunction);
+        newProfile.setDeleteActionFunction(deleteActionFunction);
+        newProfile.setAllObjectsFunction(allObjectsFunction);
+        newProfile.setPrepareBatchFunction(prepareBatchFunction);
+        newProfile.setSysAdminFunction(sysAdminFunction);
         try {
             newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
                     session.getUser().getUserName(), session.asFedoraLog());
@@ -358,7 +384,20 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
             @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
             @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction
+            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction,
+            @FormParam(UserResourceApi.CHANGE_OBJECTS_OWNER_FUNCTION) Boolean changeObjectsOwnerFunction,
+            @FormParam(UserResourceApi.CHANGE_PAGES_FUNCTION) Boolean changePagesFunction,
+            @FormParam(UserResourceApi.DEVICE_FUNCTION) Boolean deviceFunction,
+            @FormParam(UserResourceApi.WF_CREATE_JOB_FUNCTION) Boolean wfCreateJobFunction,
+            @FormParam(UserResourceApi.CREATE_USER_FUNCTION) Boolean createUserFunction,
+            @FormParam(UserResourceApi.UPDATE_USER_FUNCTION) Boolean updateUserFunction,
+            @FormParam(UserResourceApi.UPDATE_USER_PERMISSION_FUNCTION) Boolean updateUserPermissionFunction,
+            @FormParam(UserResourceApi.DELETE_USER_FUNCTION) Boolean deleteUserFunction,
+            @FormParam(UserResourceApi.SOLR_FUNCTION) Boolean solrFunction,
+            @FormParam(UserResourceApi.DELETE_ACTION_FUNCTION) Boolean deleteActionFunction,
+            @FormParam(UserResourceApi.ALL_OBJECTS_FUNCTION) Boolean allObjectsFunction,
+            @FormParam(UserResourceApi.PREPARE_BATCH_FUNCTION) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.SYS_ADMIN_FUNCTION) Boolean sysAdminFunction
             ) {
 
         Locale locale = session.getLocale(httpHeaders);
@@ -394,6 +433,19 @@ public class UserResourceV1 {
             update.setCzidloFunction(czidloFunction);
             update.setWfDeleteJobFunction(wfDeleteJobFunction);
             update.setImportToCatalogFunction(importToCatalogFunction);
+            update.setChangeObjectsOwnerFunction(changeObjectsOwnerFunction);
+            update.setChangePagesFunction(changePagesFunction);
+            update.setDeviceFunction(deviceFunction);
+            update.setWfCreateJobFunction(wfCreateJobFunction);
+            update.setCreateUserFunction(createUserFunction);
+            update.setUpdateUserFunction(updateUserFunction);
+            update.setUpdateUserPermissionFunction(updateUserPermissionFunction);
+            update.setDeleteUserFunction(deleteUserFunction);
+            update.setSolrFunction(solrFunction);
+            update.setDeleteActionFunction(deleteActionFunction);
+            update.setAllObjectsFunction(allObjectsFunction);
+            update.setPrepareBatchFunction(prepareBatchFunction);
+            update.setSysAdminFunction(sysAdminFunction);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Surname_Required")).build();

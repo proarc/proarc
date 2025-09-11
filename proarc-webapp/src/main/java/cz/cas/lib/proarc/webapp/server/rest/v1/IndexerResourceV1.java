@@ -19,7 +19,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.SolrObjectFeeder;
 import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
-import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
@@ -107,7 +106,7 @@ public class IndexerResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> indexObjects () throws SolrServerException, IOException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(user, UserRole.PERMISSION_SOLR_FUNCTION); // TODO ma byt samostatne nebo u sysAdmin Function
 
         if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
@@ -143,7 +142,7 @@ public class IndexerResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> setParentsPid () throws SolrServerException, IOException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(user, UserRole.PERMISSION_SYS_ADMIN_FUNCTION);
 
         if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
@@ -380,7 +379,7 @@ public class IndexerResourceV1 {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
         }
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(user, UserRole.PERMISSION_SOLR_FUNCTION);
 
         LOG.info("Indexing document with pid started");
         return new SmartGwtResponse<>();

@@ -43,7 +43,7 @@ import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
- * Database schema version 17. It adds user permission.
+ * Database schema version 18. It adds user permission.
  *
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
@@ -51,18 +51,19 @@ import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
  * @author Lukas Sykora
  */
 @Deprecated
-public class ProarcDatabaseV17 extends DBDatabase {
+public class ProarcDatabaseV18 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV17.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV18.class.getName());
     /** the schema version */
-    public static final int VERSION = 17;
+    public static final int VERSION = 18;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
     public final BatchItemTable tableBatchItem = new BatchItemTable(this);
     public final UserTable tableUser = new UserTable(this);
     public final UserGroupTable tableUserGroup = new UserGroupTable(this);
+    public final UserSettingTable tableUserSetting = new UserSettingTable(this);
     public final GroupMemberTable tableGroupMember = new GroupMemberTable(this);
     public final GroupPermissionTable tableGroupPermission = new GroupPermissionTable(this);
     public final WorkflowJobTable tableWorkflowJob = new WorkflowJobTable(this);
@@ -79,13 +80,13 @@ public class ProarcDatabaseV17 extends DBDatabase {
     public final DBRelation relationWorkflowMaterialInTask_MaterialId_Fk;
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
 
-    public static int upgradeToVersion18(
-            int currentSchemaVersion,
+    public static int upgradeToVersion19(
+            int currentSchemaVersion, ProarcDatabase schema,
             Connection conn, EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion < VERSION) {
             LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
-            currentSchemaVersion = ProarcDatabaseV16.upgradeToVersion17(currentSchemaVersion, conn, conf);
+            currentSchemaVersion = ProarcDatabaseV17.upgradeToVersion18(currentSchemaVersion, conn, conf);
         }
         if (currentSchemaVersion > VERSION) {
             // ignore higher versions
@@ -93,7 +94,7 @@ public class ProarcDatabaseV17 extends DBDatabase {
         } else if (currentSchemaVersion != VERSION) {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
-        ProarcDatabaseV18 schema = new ProarcDatabaseV18();
+//        ProarcDatabaseV19 schema = new ProarcDatabaseV19();
         try {
             schema.open(conf.getDriver(), conn);
             upgradeDdl(schema, conn);
@@ -107,17 +108,25 @@ public class ProarcDatabaseV17 extends DBDatabase {
         }
     }
 
-    private static void upgradeDdl(ProarcDatabaseV18 schema, Connection conn) throws SQLException {
+    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();
             DBSQLScript script = new DBSQLScript();
 
-            EmpireUtils.addTable(schema.tableUserSetting, driver, script);
-
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.software, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.itemUpdated, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.updated, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.changeObjectsOwnerFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.deviceFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.changePagesFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.wfCreateJobFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.createUserFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.updateUserFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.updateUserPermissionFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.deleteUserFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.solrFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.deleteActionFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.allObjectsFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.prepareBatchFunction, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.sysAdminFunction, script);
 
             LOG.fine(script.toString());
             script.run(driver, conn);
@@ -154,8 +163,11 @@ public class ProarcDatabaseV17 extends DBDatabase {
         public final DBTableColumn parentPid;
         public final DBTableColumn estimateItemNumber;
         public final DBTableColumn create; // date of creation
+        public final DBTableColumn updated; // date of update
         public final DBTableColumn timestamp; // optimistic lock
+        public final DBTableColumn itemUpdated; // date of items update
         public final DBTableColumn device; // digitization device ID (PID)
+        public final DBTableColumn software; // digitization software ID (PID)
         public final DBTableColumn generateIndices;
         public final DBTableColumn log;
         public final DBTableColumn profileId;
@@ -176,11 +188,16 @@ public class ProarcDatabaseV17 extends DBDatabase {
             create = addColumn("CREATE", DataType.DATETIME, 0, true);
             timestamp = addTimestampColumn("TIMESTAMP");
             device = addColumn("DEVICE", DataType.TEXT, 2000, false);
+            software = addColumn("SOFTWARE", DataType.TEXT, 2000, false);
             generateIndices = addColumn("GENERATE_INDICES", DataType.BOOL, 0, false);
             log = addColumn("LOG", DataType.CLOB, 0, false);
             profileId = addColumn("PROFILE_ID", DataType.TEXT, 2000, false);
             priority = addColumn("PRIORITY", DataType.TEXT, 50, false);
             params = addColumn("PARAMS", DataType.TEXT, 10000, false);
+            itemUpdated = addColumn("ITEM_UPDATED", DataType.DATETIME, 0, false);
+            itemUpdated.setBeanPropertyName("itemUpdated");
+            updated = addColumn("UPDATED", DataType.DATETIME, 0, false);
+            updated.setBeanPropertyName("updated");
             setPrimaryKey(id);
             addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
         }
@@ -322,6 +339,28 @@ public class ProarcDatabaseV17 extends DBDatabase {
             setPrimaryKey(id);
             // unique group name
             addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[] { groupname });
+        }
+
+    }
+
+    public static final class UserSettingTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+
+        public final DBTableColumn id;
+        public final DBTableColumn userId;
+        public final DBTableColumn userSetting;
+        public final DBTableColumn timestamp;
+
+        public UserSettingTable(DBDatabase db) {
+            super("PROARC_USER_SETTING", db);
+            id = addSequenceColumn("ID");
+            userId = addColumn("USER_ID", DataType.INTEGER, 0, true);
+            userSetting = addColumn("USER_SETTING", DataType.CLOB, 0, false);
+            timestamp = addTimestampColumn("TIMESTAMP");
+            setPrimaryKey(id);
+            // unique group name
+            addIndex(String.format("%s_%s_IDX", getName(), userId.getName()), true, new DBColumn[] { userId });
         }
 
     }
@@ -577,13 +616,14 @@ public class ProarcDatabaseV17 extends DBDatabase {
         }
     }
 
-    public ProarcDatabaseV17() {
+    public ProarcDatabaseV18() {
         addRelation(tableBatch.userId.referenceOn(tableUser.id));
         addRelation(tableBatchItem.batchId.referenceOn(tableBatch.id));
         // users
         addRelation(tableUser.defaultGroup.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.groupid.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.userid.referenceOn(tableUser.id));
+        addRelation(tableUserSetting.userId.referenceOn(tableUser.id));
         addRelation(tableGroupPermission.groupid.referenceOn(tableUserGroup.id));
         // workflow
         addRelation(tableWorkflowJob.ownerId.referenceOn(tableUser.id));
@@ -600,7 +640,28 @@ public class ProarcDatabaseV17 extends DBDatabase {
                 addRelation(tableWorkflowMaterialInTask.taskId.referenceOn(tableWorkflowTask.id));
     }
 
-    static int schemaExists(ProarcDatabaseV17 db, Connection c) {
+//    void init(EmpireConfiguration conf) throws SQLException {
+//        DBDatabaseDriver drv = conf.getDriver();
+//        Connection conn = conf.getConnection();
+//        open(drv, conn);
+//        try {
+//            int schemaVersion = schemaExists(this, conn);
+//            if (schemaVersion > 0) {
+//                LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
+//                schemaVersion = ProarcDatabaseV17.upgradeToVersion18(
+//                        schemaVersion, this, conn, conf);
+//                if (schemaVersion != VERSION) {
+//                    throw new SQLException("Invalid schema version " + schemaVersion);
+//                }
+//            } else {
+//                createSchema(this, conn);
+//            }
+//        } finally {
+//            conn.close();
+//        }
+//    }
+
+    static int schemaExists(ProarcDatabaseV18 db, Connection c) {
         try {
             DBCommand cmd = db.createCommand();
             cmd.select(db.tableProarcVersion.schemaVersion);
@@ -611,7 +672,7 @@ public class ProarcDatabaseV17 extends DBDatabase {
         }
     }
 
-    private static void createSchema(ProarcDatabaseV17 db, Connection conn) throws SQLException {
+    private static void createSchema(ProarcDatabaseV18 db, Connection conn) throws SQLException {
         if (db.getDriver() instanceof DBDatabaseDriverPostgreSQL) {
             conn.setAutoCommit(true);
         }
@@ -625,7 +686,7 @@ public class ProarcDatabaseV17 extends DBDatabase {
     }
 
     int initVersion(Connection conn, Integer oldVersion) {
-        ProarcDatabaseV17 db = this;
+        ProarcDatabaseV18 db = this;
         DBRecord dbRecord = new DBRecord();
         if (oldVersion != null) {
             dbRecord.init(db.tableProarcVersion, new Integer[] {0}, false);

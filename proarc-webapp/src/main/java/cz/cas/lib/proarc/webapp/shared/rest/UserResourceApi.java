@@ -56,6 +56,19 @@ public final class UserResourceApi {
     public static final String USER_CZIDLO_FUNCTION = "czidloFunction";
     public static final String USER_WF_DELETE_JOB_FUNCTION = "wfDeleteJobFunction";
     public static final String USER_IMPORT_TO_CATALOG_FUNCTION = "importToCatalogFunction";
+    public static final String CHANGE_OBJECTS_OWNER_FUNCTION = "CHANGE_OBJECTS_OWNER_FUNCTION";
+    public static final String CHANGE_PAGES_FUNCTION = "CHANGE_PAGES_FUNCTION";
+    public static final String DEVICE_FUNCTION = "DEVICE_FUNCTION";
+    public static final String WF_CREATE_JOB_FUNCTION = "WF_CREATE_JOB_FUNCTION";
+    public static final String CREATE_USER_FUNCTION = "CREATE_USER_FUNCTION";
+    public static final String UPDATE_USER_FUNCTION = "UPDATE_USER_FUNCTION";
+    public static final String UPDATE_USER_PERMISSION_FUNCTION = "UPDATE_USER_PERMISSION_FUNCTION";
+    public static final String DELETE_USER_FUNCTION = "DELETE_USER_FUNCTION";
+    public static final String SOLR_FUNCTION = "SOLR_FUNCTION";
+    public static final String DELETE_ACTION_FUNCTION = "DELETE_ACTION_FUNCTION";
+    public static final String ALL_OBJECTS_FUNCTION = "ALL_OBJECTS_FUNCTION";
+    public static final String PREPARE_BATCH_FUNCTION = "PREPARE_BATCH_FUNCTION";
+    public static final String SYS_ADMIN_FUNCTION = "SYS_ADMIN_FUNCTION";
     public static final String USER_START_ROW_PARAM = "_startRow";
     public static final String USER_SETTING = "userSetting";
 }

@@ -198,7 +198,7 @@ public class WorkflowResource extends WorkflowResourceV1 {
     public SmartGwtResponse<JobView> deleteObject(
             @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) List<BigDecimal> ids) {
 
-        if (!hasPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {

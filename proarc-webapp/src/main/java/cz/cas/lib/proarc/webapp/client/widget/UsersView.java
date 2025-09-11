@@ -230,6 +230,7 @@ public final class UsersView implements RefreshAction.Refreshable {
         SelectItem role = new SelectItem(UserResourceApi.USER_ROLE);
         role.setCanEdit(admin);
         role.setValueMap(UserRole.getMap());
+
         BooleanItem changeModelFunction = new BooleanItem(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION);
         changeModelFunction.setCanEdit(admin);
         BooleanItem updateModelFunction = new BooleanItem(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION);
@@ -246,6 +247,33 @@ public final class UsersView implements RefreshAction.Refreshable {
         wfDeleteJobFunction.setCanEdit(admin);
         BooleanItem importToCatalogFunction = new BooleanItem(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION);
         importToCatalogFunction.setCanEdit(admin);
+        BooleanItem changeObjectsOwnerFunction = new BooleanItem(UserResourceApi.CHANGE_OBJECTS_OWNER_FUNCTION);
+        changeObjectsOwnerFunction.setCanEdit(admin);
+        BooleanItem changePagesFunction = new BooleanItem(UserResourceApi.CHANGE_PAGES_FUNCTION);
+        changePagesFunction.setCanEdit(admin);
+        BooleanItem deviceFunction = new BooleanItem(UserResourceApi.DEVICE_FUNCTION);
+        deviceFunction.setCanEdit(admin);
+        BooleanItem wfCreateJobFunction = new BooleanItem(UserResourceApi.WF_CREATE_JOB_FUNCTION);
+        wfCreateJobFunction.setCanEdit(admin);
+        BooleanItem createUserFunction = new BooleanItem(UserResourceApi.CREATE_USER_FUNCTION);
+        createUserFunction.setCanEdit(admin);
+        BooleanItem updateUserFunction = new BooleanItem(UserResourceApi.UPDATE_USER_FUNCTION);
+        updateUserFunction.setCanEdit(admin);
+        BooleanItem updateUserPermissionFunction = new BooleanItem(UserResourceApi.UPDATE_USER_PERMISSION_FUNCTION);
+        updateUserPermissionFunction.setCanEdit(admin);
+        BooleanItem deleteUserFunction = new BooleanItem(UserResourceApi.DELETE_USER_FUNCTION);
+        deleteUserFunction.setCanEdit(admin);
+        BooleanItem solrFunction = new BooleanItem(UserResourceApi.SOLR_FUNCTION);
+        solrFunction.setCanEdit(admin);
+        BooleanItem deleteActionFunction = new BooleanItem(UserResourceApi.DELETE_ACTION_FUNCTION);
+        deleteActionFunction.setCanEdit(admin);
+        BooleanItem allObjectsFunction = new BooleanItem(UserResourceApi.ALL_OBJECTS_FUNCTION);
+        allObjectsFunction.setCanEdit(admin);
+        BooleanItem prepareBatchFunction = new BooleanItem(UserResourceApi.PREPARE_BATCH_FUNCTION);
+        prepareBatchFunction.setCanEdit(admin);
+        BooleanItem sysAdminFunction = new BooleanItem(UserResourceApi.SYS_ADMIN_FUNCTION);
+        sysAdminFunction.setCanEdit(admin);
+
         TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
         email.setColSpan("*");
         email.setWidth(300);
@@ -287,7 +315,17 @@ public final class UsersView implements RefreshAction.Refreshable {
         cancel.setStartRow(false);
 
         form.setFields(username, password, forename, surname, email,
-                remoteName, remoteType, organization, role, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction, importToProdFunction, czidloFunctio, wfDeleteJobFunction, importToCatalogFunction,
+                remoteName, remoteType, organization, role, home,
+                new RowSpacerItem(),
+                changeModelFunction, updateModelFunction, changeObjectsOwnerFunction, changePagesFunction, deleteActionFunction, allObjectsFunction, lockObjectFunction, unlockObjectFunction,
+                new RowSpacerItem(),
+                importToProdFunction, czidloFunctio, deviceFunction, prepareBatchFunction, importToCatalogFunction,
+                new RowSpacerItem(),
+                sysAdminFunction, solrFunction,
+                new RowSpacerItem(),
+                createUserFunction, updateUserFunction, updateUserPermissionFunction, deleteUserFunction,
+                new RowSpacerItem(),
+                wfCreateJobFunction, wfDeleteJobFunction,
                 new RowSpacerItem(), submit, cancel);
 
         return form;

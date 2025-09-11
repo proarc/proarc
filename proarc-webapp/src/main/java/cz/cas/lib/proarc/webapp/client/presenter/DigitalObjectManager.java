@@ -509,7 +509,20 @@ public final class DigitalObjectManager {
                         Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION) ||
                         Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION) ||
                         Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION))) {
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_CHANGE_OBJECTS_OWNER_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_DEVICE_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_CHANGE_PAGES_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_WF_CREATE_JOB_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_CREATE_USER_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_UPDATE_USER_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_UPDATE_USER_PERMISSION_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_DELETE_USER_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_SOLR_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_DELETE_ACTION_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_ALL_OBJECTS_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_PREPARE_BATCH_FUNCTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_SYS_ADMIN_FUNCTION))) {
                     return false;
                 } else {
                     Object[] selection = Actions.getSelection(event);

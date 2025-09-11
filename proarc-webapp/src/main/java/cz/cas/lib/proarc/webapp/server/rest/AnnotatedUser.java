@@ -132,6 +132,58 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract Boolean getImportToCatalogFunction();
 
+    @XmlElement(name = UserResourceApi.CHANGE_OBJECTS_OWNER_FUNCTION)
+    @Override
+    public abstract Boolean getChangeObjectsOwnerFunction();
+
+    @XmlElement(name = UserResourceApi.CHANGE_PAGES_FUNCTION)
+    @Override
+    public abstract Boolean getChangePagesFunction();
+
+    @XmlElement(name = UserResourceApi.DEVICE_FUNCTION)
+    @Override
+    public abstract Boolean getDeviceFunction();
+
+    @XmlElement(name = UserResourceApi.WF_CREATE_JOB_FUNCTION)
+    @Override
+    public abstract Boolean getWfCreateJobFunction();
+
+    @XmlElement(name = UserResourceApi.CREATE_USER_FUNCTION)
+    @Override
+    public abstract Boolean getCreateUserFunction();
+
+    @XmlElement(name = UserResourceApi.UPDATE_USER_FUNCTION)
+    @Override
+    public abstract Boolean getUpdateUserFunction();
+
+    @XmlElement(name = UserResourceApi.UPDATE_USER_PERMISSION_FUNCTION)
+    @Override
+    public abstract Boolean getUpdateUserPermissionFunction();
+
+    @XmlElement(name = UserResourceApi.DELETE_USER_FUNCTION)
+    @Override
+    public abstract Boolean getDeleteUserFunction();
+
+    @XmlElement(name = UserResourceApi.SOLR_FUNCTION)
+    @Override
+    public abstract Boolean getSolrFunction();
+
+    @XmlElement(name = UserResourceApi.DELETE_ACTION_FUNCTION)
+    @Override
+    public abstract Boolean getDeleteActionFunction();
+
+    @XmlElement(name = UserResourceApi.ALL_OBJECTS_FUNCTION)
+    @Override
+    public abstract Boolean getAllObjectsFunction();
+
+    @XmlElement(name = UserResourceApi.PREPARE_BATCH_FUNCTION)
+    @Override
+    public abstract Boolean getPrepareBatchFunction();
+
+    @XmlElement(name = UserResourceApi.SYS_ADMIN_FUNCTION)
+    @Override
+    public abstract Boolean getSysAdminFunction();
+
     @XmlTransient
     @Override
     public abstract URI getImportFolder();

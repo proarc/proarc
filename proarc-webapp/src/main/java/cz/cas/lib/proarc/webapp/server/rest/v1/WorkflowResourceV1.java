@@ -452,7 +452,7 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) List<BigDecimal> ids
     ) {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION);
 
         try {
             int pageSize = 100;
