@@ -304,7 +304,7 @@ public class ProarcDatabase extends DBDatabase {
             wfDeleteJobFunction = addColumn("WF_DELETE_JOB_FUNCTION", DataType.BOOL, 0, false);
             importToCatalogFunction = addColumn("IMPORT_TO_CATALOG_FUNCTION", DataType.BOOL, 0, false);
             changeObjectsOwnerFunction = addColumn("CHANGE_OBJECTS_OWNER_FUNCTION", DataType.BOOL, 0, false);
-            deviceFunction = addColumn("CHANGE_OBJECTS_OWNER_FUNCTION", DataType.BOOL, 0, false);
+            deviceFunction = addColumn("DEVICE_FUNCTION", DataType.BOOL, 0, false);
             changePagesFunction = addColumn("CHANGE_PAGES_FUNCTION", DataType.BOOL, 0, false);
             wfCreateJobFunction = addColumn("WF_CREATE_JOB_FUNCTION", DataType.BOOL, 0, false);
             createUserFunction = addColumn("CREATE_USER_FUNCTION", DataType.BOOL, 0, false);

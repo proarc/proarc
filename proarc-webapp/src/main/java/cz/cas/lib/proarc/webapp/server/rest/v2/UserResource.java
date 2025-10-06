@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.user.Permission;
-import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserSetting;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -26,8 +25,6 @@ import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.UserResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
-import java.util.Arrays;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -40,7 +37,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -49,6 +45,7 @@ import javax.ws.rs.core.SecurityContext;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNSUPPORTED_VALUE;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  *
@@ -72,6 +69,10 @@ public class UserResource extends UserResourceV1 {
     public SmartGwtResponse<UserProfile> deleteUser(
             @QueryParam(UserResourceApi.USER_ID) Integer userId
     ) {
+        if (!hasPermission(user, UserRole.PERMISSION_DELETE_USER_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+
         try {
             return super.deleteUser(userId);
         } catch (Throwable t) {
@@ -128,12 +129,10 @@ public class UserResource extends UserResourceV1 {
             @FormParam(UserResourceApi.PREPARE_BATCH_FUNCTION) Boolean prepareBatchFunction,
             @FormParam(UserResourceApi.SYS_ADMIN_FUNCTION) Boolean sysAdminFunction
     ) {
-        Locale locale = session.getLocale(httpHeaders);
-        try {
-            checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN, Permissions.USERS_CREATE);
-        } catch (WebApplicationException e) {
+        if (!hasPermission(user, UserRole.PERMISSION_CREATE_USER_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
+
         if (userName == null) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, UserResourceApi.USER_NAME));
         }
@@ -182,9 +181,7 @@ public class UserResource extends UserResourceV1 {
             @FormParam(UserResourceApi.PREPARE_BATCH_FUNCTION) Boolean prepareBatchFunction,
             @FormParam(UserResourceApi.SYS_ADMIN_FUNCTION) Boolean sysAdminFunction
     ) {
-        try {
-            checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN));
-        } catch (WebApplicationException e) {
+        if (!hasPermission(user, UserRole.PERMISSION_UPDATE_USER_FUNCTION, UserRole.PERMISSION_UPDATE_USER_PERMISSION_FUNCTION)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {

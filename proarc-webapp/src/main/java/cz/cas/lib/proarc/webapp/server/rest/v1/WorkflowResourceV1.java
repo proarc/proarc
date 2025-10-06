@@ -34,7 +34,6 @@ import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException.Validat
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
@@ -120,7 +119,7 @@ public class WorkflowResourceV1 {
     private final WorkflowManager workflowManager;
     private final WorkflowProfiles workflowProfiles;
     private final AppConfiguration appConfig;
-    private final UserProfile user;
+    protected final UserProfile user;
 
     public WorkflowResourceV1(
             @Context HttpHeaders httpHeaders,
@@ -261,6 +260,9 @@ public class WorkflowResourceV1 {
             @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId,
             @FormParam(WorkflowResourceApi.NEWJOB_RDCZID) BigDecimal rdczId
     ) {
+
+        checkPermission(user, UserRole.PERMISSION_WF_CREATE_JOB_FUNCTION);
+
         metadata = "null".equals(metadata) ? null : metadata;
         catalogId = "null".equals(catalogId) ? null : catalogId;
 

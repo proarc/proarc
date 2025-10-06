@@ -188,6 +188,12 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
             @DefaultValue("false") boolean restore
     ) {
+        if (purge || restore) {
+            if (!hasPermission(user, UserRole.PERMISSION_DELETE_ACTION_FUNCTION)) {
+                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+            }
+        }
+
         if (isLocked(pids)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
@@ -225,6 +231,10 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<InternalExternalProcessResult> purgeObjects(
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
             @DefaultValue("deleted") SearchType type) {
+
+        if (!hasPermission(user, UserRole.PERMISSION_DELETE_USER_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         try {
             return super.purgeObjects(type);
         } catch (Throwable t) {
@@ -243,7 +253,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.SEARCH_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.SEARCH_BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM) String phrase,
-            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM) String queryCreator,
+//            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM) String queryCreator,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM) String queryIdentifier,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
@@ -257,7 +267,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM) String sortField
     ) {
         try {
-            return super.search(owner, type, pids, batchId, phrase, queryCreator, queryIdentifier, queryLabel, queryModel,
+            return super.search(owner, type, pids, batchId, phrase, queryIdentifier, queryLabel, queryModel,
                     queryTitle, queryStatus, queryOrganization, queryProcessor, startRow, sort, sortField);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);

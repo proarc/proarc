@@ -31,7 +31,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.Permission;
-import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserSetting;
@@ -52,7 +51,6 @@ import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -94,7 +92,7 @@ public class UserResourceV1 {
     protected final HttpHeaders httpHeaders;
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
-    private final UserProfile user;
+    protected final UserProfile user;
 
     public UserResourceV1(
             @Context HttpServletRequest httpRequest,
@@ -239,7 +237,7 @@ public class UserResourceV1 {
             return new SmartGwtResponse<UserProfile>(found);
         }
         UserProfile user = session.getUser();
-        boolean allowAllOrganization = user.getRole() == null || user.getRole().isEmpty() || UserRole.ROLE_SUPERADMIN.equals(user.getRole());
+        boolean allowAllOrganization = user.hasSysAdminFunction();
         if (!allowAllOrganization) {
             List<UserProfile> findAll = userManager.findMyOrganization(session.getUser().getOrganization());
             List<UserProfile> selectedUsers = new ArrayList<>();
@@ -309,7 +307,7 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.SYS_ADMIN_FUNCTION) Boolean sysAdminFunction
             ) {
         Locale locale = session.getLocale(httpHeaders);
-        checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN, Permissions.USERS_CREATE);
+        checkPermission(user, UserRole.PERMISSION_CREATE_USER_FUNCTION);
         if (userName == null) {
             return SmartGwtResponse.<UserProfile>asError()
                     .error(UserResourceApi.PATH,  ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Required"))
@@ -406,12 +404,12 @@ public class UserResourceV1 {
         UserProfile update = userId == null ? null : userManager.find(userId);
         boolean fullUpdate;
         if (update != null && update.getUserName().equals(sessionUser.getUserName())) {
-            checkAccess(sessionUser, Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), (Permission) null);
+            checkPermission(user, UserRole.PERMISSION_UPDATE_USER_FUNCTION, UserRole.PERMISSION_UPDATE_USER_PERMISSION_FUNCTION);
 //            fullUpdate = grants.contains(Permissions.ADMIN);
             fullUpdate = true;
         } else {
-            checkAccess(sessionUser, Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN);
-            fullUpdate = true;
+            checkPermission(user, UserRole.PERMISSION_UPDATE_USER_FUNCTION, UserRole.PERMISSION_UPDATE_USER_PERMISSION_FUNCTION);
+            fullUpdate = false;
         }
         if (update == null) {
             return SmartGwtResponse.<UserProfile>asError()

@@ -49,7 +49,7 @@ public final class IndexAllObjectsAction extends AbstractAction {
 
     @Override
     public boolean accept(ActionEvent event) {
-        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN))) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.PERMISSION_SOLR_FUNCTION))) {
             return false;
         } else {
             return true;

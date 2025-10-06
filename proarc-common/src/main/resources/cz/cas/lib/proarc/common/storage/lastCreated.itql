@@ -9,7 +9,6 @@ from       <#ri>
 where      $pid     <info:fedora/fedora-system:def/model#hasModel>        $model
 and        $model   <info:fedora/fedora-system:def/model#hasModel>        <info:fedora/model:proarcobject>
 ${MODEL_FILTER}
-${OWNER_FILTER}
 and        $pid     <info:fedora/fedora-system:def/model#createdDate>     $created
 and        $pid     <info:fedora/fedora-system:def/view#lastModifiedDate> $modified
 and        $pid     <info:fedora/fedora-system:def/model#ownerId>         $owner
@@ -19,7 +18,6 @@ and        $pid     <info:fedora/fedora-system:def/model#state>           <info:
 and        $pid     <http://proarc.lib.cas.cz/relations#organization>     $organization
 ${ORGANIZATION}
 and        $pid     <http://proarc.lib.cas.cz/relations#user>     $user
-${USERNAME}
 and        $pid     <http://proarc.lib.cas.cz/relations#status>     $status
 order by   ${ORDERBY}
 offset     ${OFFSET}

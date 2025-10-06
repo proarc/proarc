@@ -64,7 +64,7 @@ public class UserProfile {
     private Boolean deleteUserFunction;
     private Boolean solrFunction;
     private Boolean deleteActionFunction;
-    private Boolean allObjectsFunction;
+    private Boolean allObjectsFunction; // vidi vsechny objekty v obrazovce hledat (bez ohledu na organizaci)
     private Boolean prepareBatchFunction;
     private Boolean sysAdminFunction;
     private Date created;

@@ -48,7 +48,7 @@ public final class UpdateAllObjectsAction extends AbstractAction {
 
     @Override
     public boolean accept(ActionEvent event) {
-        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION))) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION))) {
             return false;
         } else {
             Object[] selection = Actions.getSelection(event);

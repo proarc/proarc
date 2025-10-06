@@ -111,9 +111,6 @@ import cz.cas.lib.proarc.common.urnnbn.UrnNbnService;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.PidResult;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.StatusEntry;
-import cz.cas.lib.proarc.common.user.Group;
-import cz.cas.lib.proarc.common.user.Permissions;
-import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
@@ -243,7 +240,7 @@ public class DigitalObjectResourceV1 {
     private final BatchManager importManager;
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
-    private final UserProfile user;
+    protected final UserProfile user;
     private final SessionContext session;
     private final BatchManager batchManager;
 
@@ -500,7 +497,7 @@ public class DigitalObjectResourceV1 {
     }
 
     public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
-        return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, null, 0, null, null);
+        return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, 0, null, null);
     }
 
 //    @DELETE
@@ -526,7 +523,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.SEARCH_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.SEARCH_BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM) String phrase,
-            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM) String queryCreator,
+//            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM) String queryCreator,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM) String queryIdentifier,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
@@ -551,34 +548,26 @@ public class DigitalObjectResourceV1 {
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
         }
-        String organization = user.getRole() == null || user.getRole().isEmpty() || UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getOrganization();
-        String username = user.getRole() == null
-                || user.getRole().isEmpty()
-                || UserRole.ROLE_SUPERADMIN.equals(user.getRole())
-                || UserRole.ROLE_ADMIN.equals(user.getRole())
-                || !appConfig.getSearchOptions().getSearchFilterProcessor() ? null : user.getUserName();
-
-        Boolean allowAllForProcessor = appConfig.getSearchOptions().getSearchFilterAllowAllForProcessor();
-        Boolean filterWithoutExtension = appConfig.getSearchOptions().getSearchFilterWithoutExtension();
+        String organization = user.hasAllObjectsFunction() ? null : user.getOrganization();
 
         List<SearchViewItem> items;
         int total = 0;
         int page = 20;
         switch (type) {
             case ALPHABETICAL:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension);
-                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
+                total = search.countModels(queryModel, organization);
+                items = search.findAlphabetical(startRow, queryModel, organization, 100, sort.toString());
                 items = sortItems(items, sort);
                 break;
             case LAST_MODIFIED:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension);
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
+                total = search.countModels(queryModel, organization);
+                items = search.findLastModified(startRow, queryModel, organization, 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator).setStatus(queryStatus)
-                        .setHasOwners(filterGroups(user)), "active");
+                        .setOwner(owner).setModel(queryModel).setStatus(queryStatus)
+                        , "active");
                 total = items.size();
                 page = 1;
                 break;
@@ -588,17 +577,7 @@ public class DigitalObjectResourceV1 {
                 page = 1;
                 break;
             case PHRASE:
-                if (session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER)) {
-                    // unsupported type
-                    throw new WebApplicationException(Status.FORBIDDEN);
-                }
-                if (username == null) {
-                    username = queryProcessor;
-                }
-                if (organization == null) {
-                    organization = queryOrganization;
-                }
-                items = search.findPhrase(phrase, null, null, null, queryModel, false, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
+                items = search.findPhrase(phrase, null, null, null, queryModel, sortField, sort.toString(), startRow, 100);
                 total = items.size();
                 page = 1;
                 break;
@@ -608,20 +587,16 @@ public class DigitalObjectResourceV1 {
                 page = 1;
                 break;
             case ORPHAN:
-                if (username == null) {
-                    username = queryProcessor;
-                }
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
                 break;
             case DELETED:
                 items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
-                        .setHasOwners(filterGroups(user)), "deleted");
+                        .setOwner(owner).setModel(queryModel), "deleted");
                 ;
                 total = items.size();
                 page = 1;
@@ -631,21 +606,18 @@ public class DigitalObjectResourceV1 {
                 total = items.size();
                 break;
             case ADVANCED:
-                if (username == null) {
-                    username = queryProcessor;
-                }
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, null);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, null, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }
                 break;
             default:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension);
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
+                total = search.countModels(queryModel, organization);
+                items = search.findLastCreated(startRow, queryModel, organization, 100, sort.toString());
         }
         repairItemsModel(items);
         int count = items.size();
@@ -692,27 +664,6 @@ public class DigitalObjectResourceV1 {
                 item.setStatus(item.getStatus().substring(12));
             }
         }
-    }
-
-    private String filterOwnObjects(UserProfile user) {
-        boolean checkPermission = session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER);
-        return checkPermission ? user.getUserNameAsPid() : null;
-    }
-
-    private Collection<String> filterGroups(UserProfile user) {
-        boolean checkPermission = session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER);
-        if (checkPermission && user.getDefaultGroup() != null) {
-            UserManager userManager = UserUtil.getDefaultManger();
-            // FedoraClient.findObjects() does not support OR operator!
-            // Filter just the default group.
-            Group defGroup = userManager.findGroup(user.getDefaultGroup());
-            if (defGroup != null) {
-                return Collections.singletonList(UserUtil.toGroupPid(defGroup));
-            }
-//            List<Group> groups = userManager.findUserGroups(user.getId());
-//            return UserUtil.toGroupPid(groups);
-        }
-        return Collections.emptyList();
     }
 
     private List<SearchViewItem> searchParent(Integer batchId, List<String> pids, SearchView search)

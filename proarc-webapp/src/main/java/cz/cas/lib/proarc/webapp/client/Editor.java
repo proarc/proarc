@@ -523,7 +523,7 @@ public class Editor implements EntryPoint {
                 ),
                 createTreeNode("Devices", i18n.MainMenu_Devices_Title(), new DeviceManagerPlace()),
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
-                createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin", UserRole.ROLE_SUPERADMIN)),
+                createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
                 createProtectedTreeNode("Console", i18n.MainMenu_Console_Title(), Arrays.asList("proarc.permission.admin")),
                 createTreeNode("About", i18n.AboutWindow_Title())
         };

@@ -109,7 +109,7 @@ public class KrameriusResourceV1 {
     private final AppConfiguration appConfig;
     private final BatchManager batchManager;
     private final HttpHeaders httpHeaders;
-    private final UserProfile user;
+    protected final UserProfile user;
     private final SessionContext session;
 
     public KrameriusResourceV1(

@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.storage.PageView.Item;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.DateTimeParam;
 import cz.cas.lib.proarc.webapp.server.rest.ImportFolder;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
@@ -50,6 +51,8 @@ import javax.ws.rs.core.UriInfo;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  * Resource to handle imports.
@@ -160,6 +163,9 @@ public class ImportResource extends ImportResourceV1 {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
+        if (!hasPermission(user, UserRole.PERMISSION_SYS_ADMIN_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         try {
             return super.deleteBatch(batchId, batchState, profileId, creatorId);
         } catch (Throwable t) {

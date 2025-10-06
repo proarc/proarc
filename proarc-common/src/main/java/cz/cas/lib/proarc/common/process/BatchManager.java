@@ -247,7 +247,7 @@ public class BatchManager {
         }
     }
 
-    public List<BatchView> viewProcessingBatches(BatchViewFilter filter, UserProfile user, String roleUser) {
+    public List<BatchView> viewProcessingBatches(BatchViewFilter filter, UserProfile user) {
         BatchDao dao = daos.createBatch();
         BatchItemDao itemDao = daos.createBatchItem();
         Transaction tx = daos.createTransaction();
@@ -260,13 +260,6 @@ public class BatchManager {
                 batchView.setParentPid("SECRET");
 //                batchView.setProfileId("SECRET");
                 batchView.setLog("SECRET");
-            }
-            if (user.getRole() == null || user.getRole().length() == 0 || user.getRole().equals(roleUser)) {
-                for (BatchView batchView : result) {
-                    batchView.setTitle("SECRET");
-                    batchView.setUserId(0);
-                    batchView.setUserName("SECRET");
-                }
             }
             return result;
         } finally {

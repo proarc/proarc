@@ -46,7 +46,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -62,14 +61,10 @@ import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -96,13 +91,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import org.apache.commons.io.IOUtils;
 
 import static cz.cas.lib.proarc.common.process.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.TMP_DIR_NAME;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_BATCH_CANNOT_BE_STOPED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  * Resource to handle imports.
@@ -129,7 +124,7 @@ public class ImportResourceV1 {
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
 
-    private final UserProfile user;
+    protected final UserProfile user;
     private final SessionContext session;
 
     public ImportResourceV1(
@@ -393,7 +388,7 @@ public class ImportResourceV1 {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
-        checkPermission(user, UserRole.PERMISSION_DELETE_ACTION_FUNCTION); //TODO nemelo by byt samostatne opravneni?
+        checkPermission(user, UserRole.PERMISSION_SYS_ADMIN_FUNCTION);
 
         if (batchId == null && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing values in parameters.");
@@ -461,9 +456,8 @@ public class ImportResourceV1 {
         }
         BatchViewFilter filterAll = new BatchViewFilter()
                     .setBatchId(batchId)
-                    .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
+//                    .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                     .setCreatorId(creatorId)
-                    .setSuperAdminUserIds(getSuperAdminsIds(user.getOrganization()))
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                     .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -484,9 +478,8 @@ public class ImportResourceV1 {
         BatchViewFilter filter = new BatchViewFilter()
                 .setBatchId(batchId)
                 // admin may see all users; XXX use permissions for this!
-                .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
+//                .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                 .setCreatorId(creatorId)
-                .setSuperAdminUserIds(getSuperAdminsIds(user.getOrganization()))
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                 .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -509,28 +502,6 @@ public class ImportResourceV1 {
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
     }
 
-    private List<Integer> getSuperAdminsIds(String organization) {
-        UserManager users = UserUtil.getDefaultManger();
-        List<UserProfile> profiles = users.findAll();
-        List<Integer> superAdminIds = new ArrayList<>();
-        if (organization == null || organization.isEmpty()) {
-            for (UserProfile profile : profiles) {
-                if (UserRole.ROLE_SUPERADMIN.equals(profile.getRole())) {
-                    superAdminIds.add(profile.getId());
-                }
-            }
-        } else {
-            for (UserProfile profile : profiles) {
-                if (UserRole.ROLE_SUPERADMIN.equals(profile.getRole())) {
-                    if (organization.equals(profile.getOrganization())) {
-                        superAdminIds.add(profile.getId());
-                    }
-                }
-            }
-        }
-        return superAdminIds;
-    }
-
     @GET
     @Path(ImportResourceApi.BATCHES_IN_PROCESS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
@@ -546,7 +517,7 @@ public class ImportResourceV1 {
                 .setMaxCount(1000)
                 .setSortBy("id");
 
-        List<BatchView> loadingBatches = importManager.viewProcessingBatches(filterAll, user, UserRole.ROLE_USER);
+        List<BatchView> loadingBatches = importManager.viewProcessingBatches(filterAll, user);
 
         int endRow = 0 + loadingBatches.size() - 1;
         int total = loadingBatches.size();
@@ -569,7 +540,7 @@ public class ImportResourceV1 {
 //            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_USER_WITHOUT_ORGANIZATION, user.getUserName()));
 //        }
         if (Batch.State.LOADING.equals(batch.getState())) {
-            if (!(session.checkPermission(Permissions.ADMIN) || session.checkRole(UserRole.ROLE_SUPERADMIN) || isBatchOwner(batch))) {
+            if (!(hasPermission(user, UserRole.PERMISSION_PREPARE_BATCH_FUNCTION) || isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
@@ -577,14 +548,7 @@ public class ImportResourceV1 {
             BatchView batchView = importManager.viewBatch(batch.getId());
             return new SmartGwtResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORTING.equals(batch.getState())) {
-            if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
-                // role superadmin is allowed to stop all batches
-            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOwner(batch)) {
-//            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) { // zmena na zaklade pozadavku z issue client:453
-                // role admin is allowed to stop all batches or their organization
-            } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
-                // role user is only allowed to stop their own batches
-            } else {
+            if (!(isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
@@ -592,14 +556,7 @@ public class ImportResourceV1 {
             BatchView batchView = importManager.viewBatch(batch.getId());
             return new SmartGwtResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORT_PLANNED.equals(batch.getState())) {
-            if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
-                // role superadmin is allowed to stop all batches
-            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOwner(batch)) {
-//            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) { // zmena na zaklade pozadavku z issue client:453
-                // role admin is allowed to stop all batches or their organization
-            } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
-                // role user is only allowed to stop their own batches
-            } else {
+            if (!(isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
@@ -647,36 +604,6 @@ public class ImportResourceV1 {
         if (state == Batch.State.INGESTING) {
             // ingest or reingest for INGESTING_FAILED
             batch.getFolder();
-
-            if (user.getId() != batch.getUserId()) {
-                // batch was imported by different user (store metadata editor userid instead)
-                File batchDir = new File(appConfig.getDefaultUsersHome(), batch.getFolder() + "/" + TMP_DIR_NAME);
-                File [] batchFiles = batchDir.listFiles((dir, name) -> name.endsWith(".foxml") && !name.startsWith(".proarc"));
-
-                if (batchFiles == null) {
-                    LOG.log(Level.INFO, "BatchFiles is null, trying to get batchFiles again. BatchId: "
-                            + batchId + ", parentPid: " + parentPid + ", profileId: " + profileId + ", state: "
-                            + state.toString() + " batchDir: " + batchDir + ".");
-
-                    FilenameFilter filter = new FilenameFilter() {
-                        @Override
-                        public boolean accept(File dir, String name) {
-                            return  (name.endsWith(".foxml") && !name.startsWith(".proarc"));
-                        }
-                    };
-
-                    batchFiles = batchDir.listFiles(filter);
-                }
-
-                for (File batchFile : batchFiles) {
-                    String fileContents = IOUtils.toString(new FileInputStream(batchFile), Charset.defaultCharset());
-                    fileContents = fileContents.replaceAll(
-                            "<property NAME=\"info:fedora/fedora-system:def/model#ownerId\" VALUE=\"" + "[^/]*" + "\"/>",
-                            "<property NAME=\"info:fedora/fedora-system:def/model#ownerId\" VALUE=\"" + user.getUserName() + "\"/>"
-                    );
-                    IOUtils.write(fileContents, new FileOutputStream(batchFile), Charset.defaultCharset());
-                }
-            }
             UserManager users = UserUtil.getDefaultManger();
             UserProfile user = users.find(batch.getUserId());
             File importFolder = importManager.resolveBatchFile(batch.getFolder());

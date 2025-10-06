@@ -32,8 +32,6 @@ public class UserRole {
     public static final String PERMISSION_PREPARE_BATCH_FUNCTION = "prepareBatchFunction";
     public static final String PERMISSION_SYS_ADMIN_FUNCTION = "sysAdminFunction";
 
-    //TODO
-
     public static LinkedHashMap<String, String> getMap() {
         LinkedHashMap<String, String> valueMap = new LinkedHashMap();
         valueMap.put(ROLE_SUPERADMIN, "Super Admin");

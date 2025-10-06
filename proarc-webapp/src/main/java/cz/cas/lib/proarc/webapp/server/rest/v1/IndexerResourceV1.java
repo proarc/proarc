@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
+import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -64,7 +66,7 @@ public class IndexerResourceV1 {
     private final AkubraConfiguration akubraConfiguration;
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
-    private final UserProfile user;
+    protected final UserProfile user;
     private final SessionContext session;
     private final BatchManager importManager;
 
@@ -106,7 +108,7 @@ public class IndexerResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> indexObjects () throws SolrServerException, IOException {
 
-        checkPermission(user, UserRole.PERMISSION_SOLR_FUNCTION); // TODO ma byt samostatne nebo u sysAdmin Function
+        checkPermission(user,  UserRole.PERMISSION_SOLR_FUNCTION, UserRole.PERMISSION_SYS_ADMIN_FUNCTION);
 
         if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
@@ -383,5 +385,11 @@ public class IndexerResourceV1 {
 
         LOG.info("Indexing document with pid started");
         return new SmartGwtResponse<>();
+    }
+
+    protected String returnLocalizedMessage(String key, Object... arguments) {
+        Locale locale = session.getLocale(httpHeaders);
+        ServerMessages msgs = ServerMessages.get(locale);
+        return msgs.getFormattedMessage(key, arguments);
     }
 }

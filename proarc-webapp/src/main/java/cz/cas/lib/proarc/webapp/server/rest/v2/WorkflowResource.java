@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -139,6 +138,10 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId,
             @FormParam(WorkflowResourceApi.NEWJOB_RDCZID) BigDecimal rdczId
     ) {
+        if (!hasPermission(user, UserRole.PERMISSION_WF_CREATE_JOB_FUNCTION)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+
         try {
             return super.addJob(profileName, model, metadata, catalogId, parentId, rdczId);
         } catch (Throwable t) {

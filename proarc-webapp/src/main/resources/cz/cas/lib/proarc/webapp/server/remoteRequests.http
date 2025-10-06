@@ -59,7 +59,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 Connection: keep-alive
 
-{"defid":"import","params": {"inputDataDir":"/proarc-export/k4_fe91d1d0-fc5c-4ea7-9300-3504922a08d4","startIndexer": true, "uddateExisting": true}}
+{"defid":"import","params": {"inputDataDir":"/proarc-export/k4_9ba0c895-4645-41f0-8cd6-f13cbc69aca8","startIndexer": true, "uddateExisting": true}}
 
 ### GET IMAGE
 GET {{url}}/search/iiif/{{uuid}}/full/max/0/default.jpg
@@ -74,7 +74,7 @@ GET {{url}}/search/api/admin/v7.0/processes/by_process_uuid/6c83855c-0db5-4040-a
 Keep-Alive: timeout=600, max=1000
 Connection: Keep-Alive, Upgrade
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: {{token}}
 
 ### LOGIN
 POST {{proarcRemoteUrl}}/proarclogin
@@ -91,14 +91,37 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 &pid=uuid:f7e18b00-8e1a-424c-be31-1f436f812340&catalogId=oaicmh
 
 
-### GET KRAMERIUS TOKEN
-POST https://openid.idu.cz/auth/realms/kramerius/protocol/openid-connect/token
+### GET KRAMERIUS TOKEN for user proarcImport
+POST https://sso.tuke.sk/realms/TUKE/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 Keep-Alive: timeout=60, max=100
 Connection: Keep-Alive, Upgrade
 
-username=proarcimport&password=importProArc&client_id=krameriusClient&client_secret=IIj02Id5p1KQrfZHkNSkN3GkX3Vrawel&grant_type=password
+username=proarcImport&password=n7KUG!4uBWoxHh@ojJrJ&client_id=kramerius.tuke.sk&client_secret=YtCAFQkCJvAJ3eFWZGbnh3s9azSvSqBX&grant_type=password
 
 
+### GET KRAMERIUS TOKEN for user krameriusAdmin
+POST https://sso.tuke.sk/realms/TUKE/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+Keep-Alive: timeout=60, max=100
+Connection: Keep-Alive, Upgrade
+
+username=krameriusAdmin&password=qE3PoJfAz97iEQbaNW2C&client_id=kramerius.tuke.sk&client_secret=YtCAFQkCJvAJ3eFWZGbnh3s9azSvSqBX&grant_type=password
+
+
+
+###
+POST http://10.21.149.30/api/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username=proarc&j_password=Cvticvticvti123%2B
+
+###
+POST http://ekniznice-proarc.cvtisr.sk/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username=proarc&j_password=Cvticvticvti123%2Bk
 
 

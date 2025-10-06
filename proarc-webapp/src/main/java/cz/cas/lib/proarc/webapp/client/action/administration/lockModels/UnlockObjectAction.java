@@ -58,7 +58,6 @@ public class UnlockObjectAction extends AbstractAction {
     @Override
     public boolean accept(ActionEvent event) {
         if (!(Editor.getInstance().hasPermission("proarc.permission.admin") ||
-                Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) ||
                 Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION))) {
             return false;
         }

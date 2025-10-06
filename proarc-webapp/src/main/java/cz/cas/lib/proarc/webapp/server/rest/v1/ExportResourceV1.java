@@ -40,7 +40,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
@@ -206,7 +205,7 @@ public class ExportResourceV1 {
     public SmartGwtResponse<BatchView> listProcessingBatches(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState
 
-    ) throws IOException {
+    ) {
         if (batchState.isEmpty()) {
             batchState.add(Batch.State.EXPORTING);
             batchState.add(Batch.State.EXPORT_PLANNED);
@@ -217,7 +216,7 @@ public class ExportResourceV1 {
                 .setMaxCount(1000)
                 .setSortBy("id");
 
-        List<BatchView> plannedBatches = batchManager.viewProcessingBatches(filterAll, user, UserRole.ROLE_USER);
+        List<BatchView> plannedBatches = batchManager.viewProcessingBatches(filterAll, user);
 
         int endRow = 0 + plannedBatches.size() - 1;
         int total = plannedBatches.size();
