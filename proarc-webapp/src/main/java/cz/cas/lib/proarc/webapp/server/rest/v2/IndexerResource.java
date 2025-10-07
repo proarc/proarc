@@ -58,7 +58,7 @@ public class IndexerResource extends IndexerResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> indexObjects () {
 
-        if (!hasPermission(user, UserRole.PERMISSION_SOLR_FUNCTION, UserRole.PERMISSION_SYS_ADMIN_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_SOLR, UserRole.PERMISSION_FUNCTION_SYS_ADMIN)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
@@ -75,7 +75,7 @@ public class IndexerResource extends IndexerResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> setParentsPid () {
 
-        if (!hasPermission(user, UserRole.PERMISSION_SYS_ADMIN_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
@@ -93,7 +93,7 @@ public class IndexerResource extends IndexerResourceV1 {
     public SmartGwtResponse<SearchViewItem> indexDocument (
             @FormParam(IndexerResourceApi.DIGITALOBJECT_PID) String pid
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_SOLR_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_SOLR)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 

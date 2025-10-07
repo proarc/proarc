@@ -60,7 +60,6 @@ public class UserProfile {
     private Boolean wfCreateJobFunction;
     private Boolean createUserFunction;
     private Boolean updateUserFunction;
-    private Boolean updateUserPermissionFunction;
     private Boolean deleteUserFunction;
     private Boolean solrFunction;
     private Boolean deleteActionFunction;
@@ -219,14 +218,6 @@ public class UserProfile {
 
     public void setOrganization(String organization) {
         this.organization = organization;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 
     public String getSurname() {
@@ -443,18 +434,6 @@ public class UserProfile {
 
     public void setUpdateUserFunction(Boolean updateUserFunction) {
         this.updateUserFunction = updateUserFunction;
-    }
-
-    public Boolean getUpdateUserPermissionFunction() {
-        return updateUserPermissionFunction;
-    }
-
-    public Boolean hasUpdateUserPermissionFunction() {
-        return Boolean.TRUE.equals(updateUserPermissionFunction);
-    }
-
-    public void setUpdateUserPermissionFunction(Boolean updateUserPermissionFunction) {
-        this.updateUserPermissionFunction = updateUserPermissionFunction;
     }
 
     public Boolean getDeleteUserFunction() {

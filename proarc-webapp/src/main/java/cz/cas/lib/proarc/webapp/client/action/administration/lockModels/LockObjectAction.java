@@ -58,7 +58,7 @@ public class LockObjectAction extends AbstractAction {
     @Override
     public boolean accept(ActionEvent event) {
         if (!(Editor.getInstance().hasPermission("proarc.permission.admin") ||
-                Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION))) {
+                Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_LOCK_OBJECT))) {
             return false;
         }
         Object[] selection = Actions.getSelection(event);

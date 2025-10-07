@@ -72,7 +72,7 @@ public class SoftwareResource extends SoftwareResourceV1 {
     public SmartGwtResponse<Software> deleteSoftware(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
             ) {
-        if (!hasPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
@@ -141,7 +141,7 @@ public class SoftwareResource extends SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
-        if (!hasPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
@@ -162,7 +162,7 @@ public class SoftwareResource extends SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
-        if (!hasPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {

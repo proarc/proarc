@@ -74,10 +74,9 @@ public final class AtmEditor {
      * @param softwareId software ID to update. Use {@link #NULL} for clearing
      * @param organization  ID to update. Use {@link #NULL} for clearing
      * @param message audit message
-     * @param role
      * @throws DigitalObjectException
      */
-    public void write(String deviceId, String softwareId, String organization, String user, String status, String donator, String archivalCopiesPath, String message, String role) throws DigitalObjectException {
+    public void write(String deviceId, String softwareId, String organization, String user, String status, String donator, String archivalCopiesPath, String message) throws DigitalObjectException {
         boolean changedUser = false;
         RelationEditor relationEditor = new RelationEditor(fobject);
         boolean write = false;
@@ -104,9 +103,9 @@ public final class AtmEditor {
             String oldVal = relationEditor.getUser();
             String newVal = NULL.equals(user) ? null : user;
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
-                if ("user".equals(role)) {
-                    throw new DigitalObjectException(fobject.getPid(), "Nemáte právo měnit zpracovatele záznamu.");
-                }
+//                if ("user".equals(role)) {
+//                    throw new DigitalObjectException(fobject.getPid(), "Nemáte právo měnit zpracovatele záznamu.");
+//                }
                 relationEditor.setUser(user);
                 changedUser = true;
                 write = true;
@@ -116,9 +115,9 @@ public final class AtmEditor {
             String oldVal = relationEditor.getOrganization();
             String newVal = NULL.equals(organization) ? null : organization;
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
-                if ("admin".equals(role) || "user".equals(role)) {
-                    throw new DigitalObjectException(fobject.getPid(), "Nemáte právo měnit organizaci záznamu.");
-                }
+//                if ("admin".equals(role) || "user".equals(role)) {
+//                    throw new DigitalObjectException(fobject.getPid(), "Nemáte právo měnit organizaci záznamu.");
+//                }
                 relationEditor.setOrganization(organization);
                 write = true;
             }

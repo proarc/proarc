@@ -116,7 +116,7 @@ public class SoftwareResourceV1 {
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
             ) throws SoftwareException {
 
-        checkPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
         try {
             boolean deleted = devRepo.deleteSoftware(id, session.asFedoraLog());
@@ -208,7 +208,7 @@ public class SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
 
-        checkPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
 
         try {
@@ -256,7 +256,7 @@ public class SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) throws SoftwareException {
 
-        checkPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing software!");

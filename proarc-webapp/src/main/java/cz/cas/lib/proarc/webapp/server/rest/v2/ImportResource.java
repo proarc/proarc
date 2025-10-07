@@ -163,7 +163,7 @@ public class ImportResource extends ImportResourceV1 {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_SYS_ADMIN_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {

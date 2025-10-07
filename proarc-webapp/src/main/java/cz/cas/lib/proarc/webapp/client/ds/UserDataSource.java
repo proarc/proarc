@@ -31,7 +31,6 @@ import com.smartgwt.client.widgets.form.fields.StaticTextItem;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.ClientUtils;
 import cz.cas.lib.proarc.webapp.client.widget.Organization;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 
 /**
@@ -45,29 +44,27 @@ public final class UserDataSource extends ProarcDataSource {
     public static final String FIELD_ID = UserResourceApi.USER_ID;
     public static final String FIELD_USERNAME = UserResourceApi.USER_NAME;
     public static final String FIELD_PASSWORD = UserResourceApi.USER_PASSWORD;
-    public static final String FIELD_ROLE = UserResourceApi.USER_ROLE;
     public static final String FIELD_WHOAMI = UserResourceApi.USER_WHOAMI_PARAM;
-    public static final String FIELD_CHANGE_MODEL_FUNCTION = UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION;
-    public static final String FIELD_UPDATE_MODEL_FUNCTION = UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION;
-    public static final String FIELD_LOCK_OBJECT_FUNCTION = UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION;
-    public static final String FIELD_UNLOCK_OBJECT_FUNCTION = UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION;
-    public static final String FIELD_IMPORT_TO_PROD_FUNCTION = UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION;
-    public static final String FIELD_CZIDLO_FUNCTION = UserResourceApi.USER_CZIDLO_FUNCTION;
-    public static final String FIELD_WF_DELETE_JOB_FUNCTION = UserResourceApi.USER_WF_DELETE_JOB_FUNCTION;
-    public static final String FIELD_IMPORT_TO_CATALOG_FUNCTION = UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION;
-    public static final String FIELD_CHANGE_OBJECTS_OWNER_FUNCTION = UserResourceApi.CHANGE_OBJECTS_OWNER_FUNCTION;
-    public static final String FIELD_CHANGE_PAGES_FUNCTION = UserResourceApi.CHANGE_PAGES_FUNCTION;
-    public static final String FIELD_DEVICE_FUNCTION = UserResourceApi.DEVICE_FUNCTION;
-    public static final String FIELD_WF_CREATE_JOB_FUNCTION = UserResourceApi.WF_CREATE_JOB_FUNCTION;
-    public static final String FIELD_CREATE_USER_FUNCTION = UserResourceApi.CREATE_USER_FUNCTION;
-    public static final String FIELD_UPDATE_USER_FUNCTION = UserResourceApi.UPDATE_USER_FUNCTION;
-    public static final String FIELD_UPDATE_USER_PERMISSION_FUNCTION = UserResourceApi.UPDATE_USER_PERMISSION_FUNCTION;
-    public static final String FIELD_DELETE_USER_FUNCTION = UserResourceApi.DELETE_USER_FUNCTION;
-    public static final String FIELD_SOLR_FUNCTION = UserResourceApi.SOLR_FUNCTION;
-    public static final String FIELD_DELETE_ACTION_FUNCTION = UserResourceApi.DELETE_ACTION_FUNCTION;
-    public static final String FIELD_ALL_OBJECTS_FUNCTION = UserResourceApi.ALL_OBJECTS_FUNCTION;
-    public static final String FIELD_PREPARE_BATCH_FUNCTION = UserResourceApi.PREPARE_BATCH_FUNCTION;
-    public static final String FIELD_SYS_ADMIN_FUNCTION = UserResourceApi.SYS_ADMIN_FUNCTION;
+    public static final String FIELD_FUNCTION_CHANGE_MODEL = UserResourceApi.FUNCTION_CHANGE_MODEL;
+    public static final String FIELD_FUNCTION_UPDATE_MODEL = UserResourceApi.FUNCTION_UPDATE_MODEL;
+    public static final String FIELD_FUNCTION_LOCK_OBJECT = UserResourceApi.FUNCTION_LOCK_OBJECT;
+    public static final String FIELD_FUNCTION_UNLOCK_OBJECT = UserResourceApi.FUNCTION_UNLOCK_OBJECT;
+    public static final String FIELD_FUNCTION_IMPORT_TO_PROD = UserResourceApi.FUNCTION_IMPORT_TO_PROD;
+    public static final String FIELD_FUNCTION_CZIDLO = UserResourceApi.FUNCTION_CZIDLO;
+    public static final String FIELD_FUNCTION_WF_DELETE_JOB = UserResourceApi.FUNCTION_WF_DELETE_JOB;
+    public static final String FIELD_FUNCTION_IMPORT_TO_CATALOG = UserResourceApi.FUNCTION_IMPORT_TO_CATALOG;
+    public static final String FIELD_FUNCTION_CHANGE_OBJECTS_OWNER = UserResourceApi.FUNCTION_CHANGE_OBJECTS_OWNER;
+    public static final String FIELD_FUNCTION_CHANGE_PAGES = UserResourceApi.FUNCTION_CHANGE_PAGES;
+    public static final String FIELD_FUNCTION_DEVICE = UserResourceApi.FUNCTION_DEVICE;
+    public static final String FIELD_FUNCTION_WF_CREATE_JOB = UserResourceApi.FUNCTION_WF_CREATE_JOB;
+    public static final String FIELD_FUNCTION_CREATE_USER = UserResourceApi.FUNCTION_CREATE_USER;
+    public static final String FIELD_FUNCTION_UPDATE_USER = UserResourceApi.FUNCTION_UPDATE_USER;
+    public static final String FIELD_FUNCTION_DELETE_USER = UserResourceApi.FUNCTION_DELETE_USER;
+    public static final String FIELD_FUNCTION_SOLR = UserResourceApi.FUNCTION_SOLR;
+    public static final String FIELD_FUNCTION_DELETE_ACTION = UserResourceApi.FUNCTION_DELETE_ACTION;
+    public static final String FIELD_FUNCTION_ALL_OBJECTS = UserResourceApi.FUNCTION_ALL_OBJECTS;
+    public static final String FIELD_FUNCTION_PREPARE_BATCH = UserResourceApi.FUNCTION_PREPARE_BATCH;
+    public static final String FIELD_FUNCTION_SYS_ADMIN = UserResourceApi.FUNCTION_SYS_ADMIN;
 
     private static UserDataSource INSTANCE;
 
@@ -107,72 +104,64 @@ public final class UserDataSource extends ProarcDataSource {
         organization.setValueMap(Organization.getMap());
         organization.setReadOnlyEditorProperties(new StaticTextItem());
 
-        DataSourceTextField role = new DataSourceTextField(FIELD_ROLE);
-        role.setTitle(i18n.UsersView_ListHeader_Role_Title());
-        role.setValueMap(UserRole.getMap());
-        role.setReadOnlyEditorProperties(new StaticTextItem());
-
-        DataSourceBooleanField changeModelFunction = new DataSourceBooleanField(FIELD_CHANGE_MODEL_FUNCTION);
+        DataSourceBooleanField changeModelFunction = new DataSourceBooleanField(FIELD_FUNCTION_CHANGE_MODEL);
         changeModelFunction.setTitle(i18n.UsersView_ListHeader_ChangeModelFunction_Title());
 
-        DataSourceBooleanField updateModelFunction = new DataSourceBooleanField(FIELD_UPDATE_MODEL_FUNCTION);
+        DataSourceBooleanField updateModelFunction = new DataSourceBooleanField(FIELD_FUNCTION_UPDATE_MODEL);
         updateModelFunction.setTitle(i18n.UsersView_ListHeader_UpdateModelFunction_Title());
 
-        DataSourceBooleanField lockObjectFunction = new DataSourceBooleanField(FIELD_LOCK_OBJECT_FUNCTION);
+        DataSourceBooleanField lockObjectFunction = new DataSourceBooleanField(FIELD_FUNCTION_LOCK_OBJECT);
         lockObjectFunction.setTitle(i18n.UsersView_ListHeader_LockObjectFunction_Title());
 
-        DataSourceBooleanField unlockObjectFunction = new DataSourceBooleanField(FIELD_UNLOCK_OBJECT_FUNCTION);
+        DataSourceBooleanField unlockObjectFunction = new DataSourceBooleanField(FIELD_FUNCTION_UNLOCK_OBJECT);
         unlockObjectFunction.setTitle(i18n.UsersView_ListHeader_UnlockObjectFunction_Title());
 
-        DataSourceBooleanField importToProdFunction = new DataSourceBooleanField(FIELD_IMPORT_TO_PROD_FUNCTION);
+        DataSourceBooleanField importToProdFunction = new DataSourceBooleanField(FIELD_FUNCTION_IMPORT_TO_PROD);
         importToProdFunction.setTitle(i18n.UsersView_ListHeader_ImportToProdFunction_Title());
 
-        DataSourceBooleanField czidloFunction = new DataSourceBooleanField(FIELD_CZIDLO_FUNCTION);
+        DataSourceBooleanField czidloFunction = new DataSourceBooleanField(FIELD_FUNCTION_CZIDLO);
         czidloFunction.setTitle(i18n.UsersView_ListHeader_CzidloFunction_Title());
 
-        DataSourceBooleanField wfDeleteJobFunction = new DataSourceBooleanField(FIELD_WF_DELETE_JOB_FUNCTION);
+        DataSourceBooleanField wfDeleteJobFunction = new DataSourceBooleanField(FIELD_FUNCTION_WF_DELETE_JOB);
         wfDeleteJobFunction.setTitle(i18n.UsersView_ListHeader_WorkFlow_JobDelete_Title());
 
-        DataSourceBooleanField importToCatalogFunction = new DataSourceBooleanField(FIELD_IMPORT_TO_CATALOG_FUNCTION);
+        DataSourceBooleanField importToCatalogFunction = new DataSourceBooleanField(FIELD_FUNCTION_IMPORT_TO_CATALOG);
         importToCatalogFunction.setTitle(i18n.UsersView_ListHeader_ImportToCatalogFunction_Title());
 
-        DataSourceBooleanField changeObjectsOwnerFunction = new DataSourceBooleanField(FIELD_CHANGE_OBJECTS_OWNER_FUNCTION);
+        DataSourceBooleanField changeObjectsOwnerFunction = new DataSourceBooleanField(FIELD_FUNCTION_CHANGE_OBJECTS_OWNER);
         changeObjectsOwnerFunction.setTitle(i18n.UsersView_ListHeader_ChangeObjectsOwnerFunction_Title());
 
-        DataSourceBooleanField changePagesFunction = new DataSourceBooleanField(FIELD_CHANGE_PAGES_FUNCTION);
+        DataSourceBooleanField changePagesFunction = new DataSourceBooleanField(FIELD_FUNCTION_CHANGE_PAGES);
         changePagesFunction.setTitle(i18n.UsersView_ListHeader_ChangePagesFunction_Title());
 
-        DataSourceBooleanField deviceFunction = new DataSourceBooleanField(FIELD_DEVICE_FUNCTION);
+        DataSourceBooleanField deviceFunction = new DataSourceBooleanField(FIELD_FUNCTION_DEVICE);
         deviceFunction.setTitle(i18n.UsersView_ListHeader_DeviceFunction_Title());
 
-        DataSourceBooleanField wfCreateJobFunction = new DataSourceBooleanField(FIELD_WF_CREATE_JOB_FUNCTION);
+        DataSourceBooleanField wfCreateJobFunction = new DataSourceBooleanField(FIELD_FUNCTION_WF_CREATE_JOB);
         wfCreateJobFunction.setTitle(i18n.UsersView_ListHeader_WfCreateJobFunction_Title());
 
-        DataSourceBooleanField createUserFunction = new DataSourceBooleanField(FIELD_CREATE_USER_FUNCTION);
+        DataSourceBooleanField createUserFunction = new DataSourceBooleanField(FIELD_FUNCTION_CREATE_USER);
         createUserFunction.setTitle(i18n.UsersView_ListHeader_CreateUserFunction_Title());
 
-        DataSourceBooleanField updateUserFunction = new DataSourceBooleanField(FIELD_UPDATE_USER_FUNCTION);
+        DataSourceBooleanField updateUserFunction = new DataSourceBooleanField(FIELD_FUNCTION_UPDATE_USER);
         updateUserFunction.setTitle(i18n.UsersView_ListHeader_UpdateUserFunction_Title());
 
-        DataSourceBooleanField updateUserPermissionFunction = new DataSourceBooleanField(FIELD_UPDATE_USER_PERMISSION_FUNCTION);
-        updateUserPermissionFunction.setTitle(i18n.UsersView_ListHeader_UpdateUserPermissionFunction_Title());
-
-        DataSourceBooleanField deleteUserFunction = new DataSourceBooleanField(FIELD_DELETE_USER_FUNCTION);
+        DataSourceBooleanField deleteUserFunction = new DataSourceBooleanField(FIELD_FUNCTION_DELETE_USER);
         deleteUserFunction.setTitle(i18n.UsersView_ListHeader_DeleteUserFunction_Title());
 
-        DataSourceBooleanField solrFunction = new DataSourceBooleanField(FIELD_SOLR_FUNCTION);
+        DataSourceBooleanField solrFunction = new DataSourceBooleanField(FIELD_FUNCTION_SOLR);
         solrFunction.setTitle(i18n.UsersView_ListHeader_SolrFunction_Title());
 
-        DataSourceBooleanField deleteActionFunction = new DataSourceBooleanField(FIELD_DELETE_ACTION_FUNCTION);
+        DataSourceBooleanField deleteActionFunction = new DataSourceBooleanField(FIELD_FUNCTION_DELETE_ACTION);
         deleteActionFunction.setTitle(i18n.UsersView_ListHeader_DeleteActionFunction_Title());
 
-        DataSourceBooleanField allObjectsFunction = new DataSourceBooleanField(FIELD_ALL_OBJECTS_FUNCTION);
+        DataSourceBooleanField allObjectsFunction = new DataSourceBooleanField(FIELD_FUNCTION_ALL_OBJECTS);
         allObjectsFunction.setTitle(i18n.UsersView_ListHeader_AllObjectsFunction_Title());
 
-        DataSourceBooleanField prepareBatchFunction = new DataSourceBooleanField(FIELD_PREPARE_BATCH_FUNCTION);
+        DataSourceBooleanField prepareBatchFunction = new DataSourceBooleanField(FIELD_FUNCTION_PREPARE_BATCH);
         prepareBatchFunction.setTitle(i18n.UsersView_ListHeader_PrepareBatchFunction_Title());
 
-        DataSourceBooleanField sysAdminFunction = new DataSourceBooleanField(FIELD_SYS_ADMIN_FUNCTION);
+        DataSourceBooleanField sysAdminFunction = new DataSourceBooleanField(FIELD_FUNCTION_SYS_ADMIN);
         sysAdminFunction.setTitle(i18n.UsersView_ListHeader_SysAdminFunction_Title());
 
         DataSourceTextField email = new DataSourceTextField(UserResourceApi.USER_EMAIL);
@@ -199,9 +188,9 @@ public final class UserDataSource extends ProarcDataSource {
         remoteType.setCanEdit(false);
         remoteType.setHidden(true);
 
-        setFields(userId, userName, passwd, surname, forename, organization, role, email, created, remoteName,
+        setFields(userId, userName, passwd, surname, forename, organization, email, created, remoteName,
                 remoteType, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction, importToProdFunction, czidloFunction, wfDeleteJobFunction, importToCatalogFunction,
-                changeObjectsOwnerFunction, changePagesFunction, deviceFunction, wfCreateJobFunction, createUserFunction, updateUserFunction, updateUserPermissionFunction, deleteUserFunction, solrFunction, deleteActionFunction, allObjectsFunction, prepareBatchFunction, sysAdminFunction);
+                changeObjectsOwnerFunction, changePagesFunction, deviceFunction, wfCreateJobFunction, createUserFunction, updateUserFunction, deleteUserFunction, solrFunction, deleteActionFunction, allObjectsFunction, prepareBatchFunction, sysAdminFunction);
 
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));

@@ -723,12 +723,8 @@ public class DigitalObjectManager {
             if (appConfig != null) {
                 defaultProcessor = appConfig.getImportConfiguration().getDefaultProcessor();
             }
+            relations.setUser(defaultProcessor);
 
-            if ("user".equals(user.getRole())) {
-                relations.setUser(user.getUserName());
-            } else {
-                relations.setUser(defaultProcessor);
-            }
             if (getUserGroup() != null) {
                 String grpPid = getUserGroup().getName();
                 relations.setOwners(Collections.singletonList(grpPid));

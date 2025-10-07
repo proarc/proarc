@@ -54,7 +54,7 @@ public final class RestoreAction extends AbstractAction {
 
     @Override
     public boolean accept(ActionEvent event) {
-        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_RESTORE_OBJECTS_FUNCTION))) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_RESTORE_OBJECTS))) {
             //if (!Editor.getInstance().hasPermission("proarc.permission.admin") || !Editor.getInstance().hasPermission("superAdmin") || !Editor.getInstance().hasPermission("test")) {
             return false;
         } else {

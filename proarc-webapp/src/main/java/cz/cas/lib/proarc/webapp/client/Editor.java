@@ -209,7 +209,6 @@ public class Editor implements EntryPoint {
         UserDataSource.getInstance().fetchData(new Criteria(UserDataSource.FIELD_WHOAMI, "true"), new DSCallback() {
             @Override
             public void execute(DSResponse response, Object rawData, DSRequest request) {
-                String role = "none";
                 String permissionRunChangeFunction = "none";
                 String permissionRunUpdateFunction = "none";
                 String permissionRunLockFunction = "none";
@@ -217,13 +216,13 @@ public class Editor implements EntryPoint {
                 String permissionCzidloFunction = "none";
                 String permissionWfDeleteJobFunction = "none";
                 String permissionImportToCatalogFunction = "none";
+                String permissionImportToProdFunction = "none";
                 String permissionChangeObjectsOwnerFunction = "none";
                 String permissionChangePagesFunction = "none";
                 String permissionDeviceFunction = "none";
                 String permissionWfCreateJobFunction = "none";
                 String permissionCreateUserFunction = "none";
                 String permissionUpdateUserFunction = "none";
-                String permissionUpdateUserPermissionFunction = "none";
                 String permissionDeleteUserFunction = "none";
                 String permissionSolrFunction = "none";
                 String permissionDeleteActionFunction = "none";
@@ -233,51 +232,48 @@ public class Editor implements EntryPoint {
                 if (RestConfig.isStatusOk(response)) {
                     Record[] data = response.getData();
                     if (data.length > 0) {
-                        role = data[0].getAttribute(UserDataSource.FIELD_ROLE);
-                        permissionRunChangeFunction = data[0].getAttribute(UserDataSource.FIELD_CHANGE_MODEL_FUNCTION);
-                        permissionRunUpdateFunction = data[0].getAttribute(UserDataSource.FIELD_UPDATE_MODEL_FUNCTION);
-                        permissionRunLockFunction = data[0].getAttribute(UserDataSource.FIELD_LOCK_OBJECT_FUNCTION);
-                        permissionRunUnlockFunction = data[0].getAttribute(UserDataSource.FIELD_UNLOCK_OBJECT_FUNCTION);
-                        permissionRunChangeFunction = data[0].getAttribute(UserDataSource.FIELD_IMPORT_TO_PROD_FUNCTION);
-                        permissionCzidloFunction = data[0].getAttribute(UserDataSource.FIELD_CZIDLO_FUNCTION);
-                        permissionWfDeleteJobFunction = data[0].getAttribute(UserDataSource.FIELD_WF_DELETE_JOB_FUNCTION);
-                        permissionImportToCatalogFunction = data[0].getAttribute(UserDataSource.FIELD_IMPORT_TO_CATALOG_FUNCTION);
-                        permissionChangeObjectsOwnerFunction = data[0].getAttribute(UserDataSource.FIELD_CHANGE_OBJECTS_OWNER_FUNCTION);
-                        permissionChangePagesFunction = data[0].getAttribute(UserDataSource.FIELD_CHANGE_PAGES_FUNCTION);
-                        permissionDeviceFunction = data[0].getAttribute(UserDataSource.FIELD_DEVICE_FUNCTION);
-                        permissionWfCreateJobFunction = data[0].getAttribute(UserDataSource.FIELD_WF_CREATE_JOB_FUNCTION);
-                        permissionCreateUserFunction = data[0].getAttribute(UserDataSource.FIELD_CREATE_USER_FUNCTION);
-                        permissionUpdateUserFunction = data[0].getAttribute(UserDataSource.FIELD_UPDATE_USER_FUNCTION);
-                        permissionUpdateUserPermissionFunction = data[0].getAttribute(UserDataSource.FIELD_UPDATE_USER_PERMISSION_FUNCTION);
-                        permissionDeleteUserFunction = data[0].getAttribute(UserDataSource.FIELD_DELETE_USER_FUNCTION);
-                        permissionSolrFunction = data[0].getAttribute(UserDataSource.FIELD_SOLR_FUNCTION);
-                        permissionDeleteActionFunction = data[0].getAttribute(UserDataSource.FIELD_DELETE_ACTION_FUNCTION);
-                        permissionAllObjectsFunction = data[0].getAttribute(UserDataSource.FIELD_ALL_OBJECTS_FUNCTION);
-                        permissionPrepareBatchFunction = data[0].getAttribute(UserDataSource.FIELD_PREPARE_BATCH_FUNCTION);
-                        permissionSysAdminFunction = data[0].getAttribute(UserDataSource.FIELD_SYS_ADMIN_FUNCTION);
+                        permissionRunChangeFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_CHANGE_MODEL);
+                        permissionRunUpdateFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_UPDATE_MODEL);
+                        permissionRunLockFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_LOCK_OBJECT);
+                        permissionRunUnlockFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_UNLOCK_OBJECT);
+                        permissionImportToProdFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_IMPORT_TO_PROD);
+                        permissionCzidloFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_CZIDLO);
+                        permissionWfDeleteJobFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_WF_DELETE_JOB);
+                        permissionImportToCatalogFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_IMPORT_TO_CATALOG);
+                        permissionChangeObjectsOwnerFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_CHANGE_OBJECTS_OWNER);
+                        permissionChangePagesFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_CHANGE_PAGES);
+                        permissionDeviceFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_DEVICE);
+                        permissionWfCreateJobFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_WF_CREATE_JOB);
+                        permissionCreateUserFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_CREATE_USER);
+                        permissionUpdateUserFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_UPDATE_USER);
+                        permissionDeleteUserFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_DELETE_USER);
+                        permissionSolrFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_SOLR);
+                        permissionDeleteActionFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_DELETE_ACTION);
+                        permissionAllObjectsFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_ALL_OBJECTS);
+                        permissionPrepareBatchFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_PREPARE_BATCH);
+                        permissionSysAdminFunction = data[0].getAttribute(UserDataSource.FIELD_FUNCTION_SYS_ADMIN);
                     }
                     permissions.clear();
-                    permissions.add(role);
-                    permissions.add("true".equals(permissionRunChangeFunction) ? UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION : "none");
-                    permissions.add("true".equals(permissionRunUpdateFunction) ? UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION : "none");
-                    permissions.add("true".equals(permissionRunLockFunction) ? UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION : "none");
-                    permissions.add("true".equals(permissionRunUnlockFunction) ? UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION : "none");
-                    permissions.add("true".equals(permissionCzidloFunction) ? UserRole.PERMISSION_CZIDLO_FUNCTION : "none");
-                    permissions.add("true".equals(permissionWfDeleteJobFunction) ? UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION : "none");
-                    permissions.add("true".equals(permissionImportToCatalogFunction) ? UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION : "none");
-                    permissions.add("true".equals(permissionChangeObjectsOwnerFunction) ? UserRole.PERMISSION_CHANGE_OBJECTS_OWNER_FUNCTION : "none");
-                    permissions.add("true".equals(permissionChangePagesFunction) ? UserRole.PERMISSION_CHANGE_PAGES_FUNCTION : "none");
-                    permissions.add("true".equals(permissionDeviceFunction) ? UserRole.PERMISSION_DEVICE_FUNCTION : "none");
-                    permissions.add("true".equals(permissionWfCreateJobFunction) ? UserRole.PERMISSION_WF_CREATE_JOB_FUNCTION : "none");
-                    permissions.add("true".equals(permissionCreateUserFunction) ? UserRole.PERMISSION_CREATE_USER_FUNCTION : "none");
-                    permissions.add("true".equals(permissionUpdateUserFunction) ? UserRole.PERMISSION_UPDATE_USER_FUNCTION : "none");
-                    permissions.add("true".equals(permissionUpdateUserPermissionFunction) ? UserRole.PERMISSION_UPDATE_USER_PERMISSION_FUNCTION : "none");
-                    permissions.add("true".equals(permissionDeleteUserFunction) ? UserRole.PERMISSION_DELETE_USER_FUNCTION : "none");
-                    permissions.add("true".equals(permissionSolrFunction) ? UserRole.PERMISSION_SOLR_FUNCTION : "none");
-                    permissions.add("true".equals(permissionDeleteActionFunction) ? UserRole.PERMISSION_DELETE_ACTION_FUNCTION : "none");
-                    permissions.add("true".equals(permissionAllObjectsFunction) ? UserRole.PERMISSION_ALL_OBJECTS_FUNCTION : "none");
-                    permissions.add("true".equals(permissionPrepareBatchFunction) ? UserRole.PERMISSION_PREPARE_BATCH_FUNCTION : "none");
-                    permissions.add("true".equals(permissionSysAdminFunction) ? UserRole.PERMISSION_SYS_ADMIN_FUNCTION : "none");
+                    permissions.add("true".equals(permissionRunChangeFunction) ? UserRole.PERMISSION_FUNCTION_CHANGE_MODEL : "none");
+                    permissions.add("true".equals(permissionRunUpdateFunction) ? UserRole.PERMISSION_FUNCTION_UPDATE_MODEL : "none");
+                    permissions.add("true".equals(permissionRunLockFunction) ? UserRole.PERMISSION_FUNCTION_LOCK_OBJECT : "none");
+                    permissions.add("true".equals(permissionRunUnlockFunction) ? UserRole.PERMISSION_FUNCTION_UNLOCK_OBJECT : "none");
+                    permissions.add("true".equals(permissionCzidloFunction) ? UserRole.PERMISSION_FUNCTION_CZIDLO : "none");
+                    permissions.add("true".equals(permissionWfDeleteJobFunction) ? UserRole.PERMISSION_FUNCTION_WF_DELETE_JOB : "none");
+                    permissions.add("true".equals(permissionImportToProdFunction) ? UserRole.PERMISSION_FUNCTION_IMPORT_TO_PROD : "none");
+                    permissions.add("true".equals(permissionImportToCatalogFunction) ? UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG : "none");
+                    permissions.add("true".equals(permissionChangeObjectsOwnerFunction) ? UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER : "none");
+                    permissions.add("true".equals(permissionChangePagesFunction) ? UserRole.PERMISSION_FUNCTION_CHANGE_PAGES : "none");
+                    permissions.add("true".equals(permissionDeviceFunction) ? UserRole.PERMISSION_FUNCTION_DEVICE : "none");
+                    permissions.add("true".equals(permissionWfCreateJobFunction) ? UserRole.PERMISSION_FUNCTION_WF_CREATE_JOB : "none");
+                    permissions.add("true".equals(permissionCreateUserFunction) ? UserRole.PERMISSION_FUNCTION_CREATE_USER : "none");
+                    permissions.add("true".equals(permissionUpdateUserFunction) ? UserRole.PERMISSION_FUNCTION_UPDATE_USER : "none");
+                    permissions.add("true".equals(permissionDeleteUserFunction) ? UserRole.PERMISSION_FUNCTION_DELETE_USER : "none");
+                    permissions.add("true".equals(permissionSolrFunction) ? UserRole.PERMISSION_FUNCTION_SOLR : "none");
+                    permissions.add("true".equals(permissionDeleteActionFunction) ? UserRole.PERMISSION_FUNCTION_DELETE_ACTION : "none");
+                    permissions.add("true".equals(permissionAllObjectsFunction) ? UserRole.PERMISSION_FUNCTION_ALL_OBJECTS : "none");
+                    permissions.add("true".equals(permissionPrepareBatchFunction) ? UserRole.PERMISSION_FUNCTION_PREPARE_BATCH : "none");
+                    permissions.add("true".equals(permissionSysAdminFunction) ? UserRole.PERMISSION_FUNCTION_SYS_ADMIN : "none");
                     sweepTask.release();
                 }
             }
@@ -523,8 +519,8 @@ public class Editor implements EntryPoint {
                 ),
                 createTreeNode("Devices", i18n.MainMenu_Devices_Title(), new DeviceManagerPlace()),
 //                createTreeNode("Statistics", i18n.MainMenu_Statistics_Title()),
-                createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin")),
-                createProtectedTreeNode("Console", i18n.MainMenu_Console_Title(), Arrays.asList("proarc.permission.admin")),
+                createProtectedTreeNode("Users", i18n.MainMenu_Users_Title(), new UsersPlace(), Arrays.asList("proarc.permission.admin", UserRole.PERMISSION_FUNCTION_CREATE_USER, UserRole.PERMISSION_FUNCTION_DELETE_USER, UserRole.PERMISSION_FUNCTION_UPDATE_USER)),
+                createProtectedTreeNode("Console", i18n.MainMenu_Console_Title(), Arrays.asList("proarc.permission.admin", UserRole.PERMISSION_FUNCTION_SYS_ADMIN)),
                 createTreeNode("About", i18n.AboutWindow_Title())
         };
         trees = reduce(trees);

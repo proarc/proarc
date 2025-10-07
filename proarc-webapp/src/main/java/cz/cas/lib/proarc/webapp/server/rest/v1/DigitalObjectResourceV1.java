@@ -424,7 +424,7 @@ public class DigitalObjectResourceV1 {
         }
 
         if (purge || restore) {
-            checkPermission(user, UserRole.PERMISSION_DELETE_ACTION_FUNCTION);
+            checkPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_ACTION);
         }
 
         AkubraStorage storage = null;
@@ -481,7 +481,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
             @DefaultValue("deleted") SearchType type) throws DigitalObjectException, IOException, FedoraClientException {
 
-        checkPermission(user, UserRole.PERMISSION_DELETE_ACTION_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_ACTION);
 
         BatchParams params = new BatchParams();
         params.setType(type.name());
@@ -2645,7 +2645,7 @@ public class DigitalObjectResourceV1 {
         for (String pid : pids) {
             ProArcObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, softwareId, organization, userName, status, donator, archivalCopiesPath, session.asFedoraLog(), user.getRole());
+            editor.write(deviceId, softwareId, organization, userName, status, donator, archivalCopiesPath, session.asFedoraLog());
             fobject.flush();
             if (!(model != null && model.length() > 0 && model.contains("page"))) {
                 editor.setChild(pid, organization, userName, status, donator, appConfig, akubraConfiguration, search, session.asFedoraLog());
@@ -2714,7 +2714,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
 
-        checkPermission(user, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2749,7 +2749,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
 
-        checkPermission(user, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
 
         if (isLocked(pids)) {
@@ -2800,7 +2800,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(user, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
         List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
         if (urnNbnValue != null && !urnNbnValue.isEmpty()) {
@@ -2847,7 +2847,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(user, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2899,7 +2899,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(user, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
         if (isLocked(pids)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2962,7 +2962,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_LOCK_OBJECT);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -2988,7 +2988,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UNLOCK_OBJECT);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3054,7 +3054,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3089,7 +3089,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3121,7 +3121,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3153,7 +3153,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3185,7 +3185,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3217,7 +3217,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3249,7 +3249,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3282,7 +3282,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3315,7 +3315,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3348,7 +3348,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3380,7 +3380,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3412,7 +3412,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3445,7 +3445,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3478,7 +3478,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3511,7 +3511,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3544,7 +3544,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3577,7 +3577,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3610,7 +3610,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3643,7 +3643,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3676,7 +3676,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3709,7 +3709,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3742,7 +3742,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3775,7 +3775,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3808,7 +3808,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3842,7 +3842,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3875,7 +3875,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3908,7 +3908,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3941,7 +3941,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3974,7 +3974,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4007,7 +4007,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4040,7 +4040,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4073,7 +4073,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4106,7 +4106,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4139,7 +4139,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4172,7 +4172,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4205,7 +4205,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4238,7 +4238,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4271,7 +4271,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4304,7 +4304,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4337,7 +4337,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4370,7 +4370,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4403,7 +4403,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4436,7 +4436,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4469,7 +4469,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4502,7 +4502,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4535,7 +4535,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4568,7 +4568,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4601,7 +4601,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4634,7 +4634,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4667,7 +4667,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4700,7 +4700,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4789,7 +4789,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException, IOException, FedoraClientException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS);
 
 
         Locale locale = session.getLocale(httpHeaders);
@@ -4809,7 +4809,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
@@ -4831,7 +4831,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
@@ -4854,7 +4854,7 @@ public class DigitalObjectResourceV1 {
 
         String pageType = "flyleaf";
 
-        checkPermission(user, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
@@ -4884,7 +4884,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
@@ -4905,7 +4905,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
     ) throws DigitalObjectException, JSONException, IOException {
-        checkPermission(user, UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG);
 
         CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
 
@@ -4951,7 +4951,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner
     ) throws IOException, FedoraClientException, DigitalObjectException, WorkflowException {
         Locale locale = session.getLocale(httpHeaders);
-        checkPermission(user, UserRole.PERMISSION_CHANGE_OBJECTS_OWNER_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER);
 
         UserProfile oldUser = null;
         UserProfile newUser = null;

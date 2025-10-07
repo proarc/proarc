@@ -388,7 +388,7 @@ public class ImportResourceV1 {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
-        checkPermission(user, UserRole.PERMISSION_SYS_ADMIN_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN);
 
         if (batchId == null && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing values in parameters.");
@@ -456,7 +456,6 @@ public class ImportResourceV1 {
         }
         BatchViewFilter filterAll = new BatchViewFilter()
                     .setBatchId(batchId)
-//                    .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                     .setCreatorId(creatorId)
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
@@ -477,8 +476,6 @@ public class ImportResourceV1 {
 
         BatchViewFilter filter = new BatchViewFilter()
                 .setBatchId(batchId)
-                // admin may see all users; XXX use permissions for this!
-//                .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                 .setCreatorId(creatorId)
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
@@ -535,13 +532,9 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        // zruseno na zaklade pozadavku z issue client:453
-//        if (!session.checkRole(UserRole.ROLE_SUPERADMIN) && user.getOrganization() == null) {
-//            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_USER_WITHOUT_ORGANIZATION, user.getUserName()));
-//        }
         if (Batch.State.LOADING.equals(batch.getState())) {
-            if (!(hasPermission(user, UserRole.PERMISSION_PREPARE_BATCH_FUNCTION) || isBatchOwner(batch))) {
-                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
+            if (!(hasPermission(user, UserRole.PERMISSION_FUNCTION_PREPARE_BATCH) || isBatchOwner(batch))) {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - permission prepareBatchFunction.");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
@@ -549,7 +542,7 @@ public class ImportResourceV1 {
             return new SmartGwtResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORTING.equals(batch.getState())) {
             if (!(isBatchOwner(batch))) {
-                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
+                LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ExportProcess.stopExportingBatch(batch, importManager, appConfig, akubraConfiguration);
@@ -557,7 +550,7 @@ public class ImportResourceV1 {
             return new SmartGwtResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORT_PLANNED.equals(batch.getState())) {
             if (!(isBatchOwner(batch))) {
-                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
+                LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ExportProcess.cancelPlannedBatch(batch, importManager, appConfig, akubraConfiguration);

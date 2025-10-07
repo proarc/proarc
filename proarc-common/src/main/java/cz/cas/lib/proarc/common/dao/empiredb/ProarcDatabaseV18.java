@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.empire.data.DataMode;
@@ -120,7 +121,6 @@ public class ProarcDatabaseV18 extends DBDatabase {
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.wfCreateJobFunction, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.createUserFunction, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.updateUserFunction, script);
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.updateUserPermissionFunction, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.deleteUserFunction, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.solrFunction, script);
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.deleteActionFunction, script);
@@ -130,6 +130,14 @@ public class ProarcDatabaseV18 extends DBDatabase {
 
             LOG.fine(script.toString());
             script.run(driver, conn);
+
+            Statement statement = conn.createStatement();
+            statement.addBatch("UPDATE proarc_users SET change_model_function = FALSE, update_model_function = FALSE, lock_object_function = FALSE, unlock_object_function = FALSE, czidlo_function = FALSE,  import_to_catalog_function = FALSE, change_objects_owner_function = FALSE, device_function = FALSE, change_pages_function = FALSE, wf_create_job_function = FALSE, create_user_function = FALSE, update_user_function = FALSE, update_user_permission_function = FALSE, delete_user_function = FALSE, solr_function = FALSE, delete_action_function = FALSE, all_objects_function = FALSE, prepare_batch_function = FALSE, sys_admin_function = FALSE, import_to_prod_function = FALSE, wf_delete_job_function = FALSE;");
+            statement.addBatch("UPDATE proarc_users SET change_model_function = TRUE, update_model_function = TRUE, lock_object_function = TRUE, unlock_object_function = TRUE, czidlo_function = TRUE, import_to_catalog_function = TRUE, change_objects_owner_function = TRUE, device_function = TRUE, change_pages_function = TRUE, wf_create_job_function = TRUE WHERE role = 'admin';");
+            statement.addBatch("UPDATE proarc_users SET change_model_function = TRUE, update_model_function = TRUE, lock_object_function = TRUE, unlock_object_function = TRUE, czidlo_function = TRUE, import_to_catalog_function = TRUE, change_objects_owner_function = TRUE, device_function = TRUE, change_pages_function = TRUE, wf_create_job_function = TRUE, create_user_function = TRUE, update_user_function = TRUE, update_user_permission_function = TRUE, delete_user_function = TRUE, solr_function = TRUE, delete_action_function = TRUE, all_objects_function = TRUE, prepare_batch_function = TRUE, sys_admin_function = TRUE, import_to_prod_function = TRUE, wf_delete_job_function = TRUE WHERE role = 'superAdmin';");
+            LOG.fine(statement.toString());
+            statement.executeBatch();
+
         } finally {
             conn.setAutoCommit(false);
         }

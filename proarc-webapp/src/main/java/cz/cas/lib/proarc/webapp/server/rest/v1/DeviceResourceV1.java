@@ -113,7 +113,7 @@ public class DeviceResourceV1 {
             @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id
             ) throws DeviceException {
 
-        checkPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
         try {
             boolean deleted = devRepo.deleteDevice(id, session.asFedoraLog());
@@ -173,7 +173,7 @@ public class DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
             ) {
 
-        checkPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
         try {
             String owner = session.getUser().getUserName();
@@ -196,7 +196,7 @@ public class DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
             ) throws IOException, DeviceException {
 
-        checkPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing device!");

@@ -86,7 +86,5 @@ public interface UserManager {
 
     UserSetting updateUserSetting(UserSetting userSetting);
 
-    String findUserRole(int id);
-
     void deleteUser(Integer userId);
 }

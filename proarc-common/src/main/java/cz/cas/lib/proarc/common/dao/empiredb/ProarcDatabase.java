@@ -239,7 +239,6 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn lastLogin;
         public final DBTableColumn home;
         public final DBTableColumn organization;
-        public final DBTableColumn role;
         /** group to use as owner for newly created objects */
         public final DBTableColumn defaultGroup;
         /** group that can contain single member; it can hold overridden permissions */
@@ -263,7 +262,6 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn wfCreateJobFunction;
         public final DBTableColumn createUserFunction;
         public final DBTableColumn updateUserFunction;
-        public final DBTableColumn updateUserPermissionFunction;
         public final DBTableColumn deleteUserFunction;
         public final DBTableColumn solrFunction;
         public final DBTableColumn deleteActionFunction;
@@ -294,7 +292,6 @@ public class ProarcDatabase extends DBDatabase {
             remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
             timestamp = addTimestampColumn("TIMESTAMP");
             organization = addColumn("ORGANIZATION", DataType.TEXT, 100, false);
-            role = addColumn("ROLE", DataType.TEXT, 100, false);
             changeModelFunction = addColumn("CHANGE_MODEL_FUNCTION", DataType.BOOL, 0, false);
             updateModelFunction = addColumn("UPDATE_MODEL_FUNCTION", DataType.BOOL, 0, false);
             lockObjectFunction = addColumn("LOCK_OBJECT_FUNCTION", DataType.BOOL, 0, false);
@@ -309,7 +306,6 @@ public class ProarcDatabase extends DBDatabase {
             wfCreateJobFunction = addColumn("WF_CREATE_JOB_FUNCTION", DataType.BOOL, 0, false);
             createUserFunction = addColumn("CREATE_USER_FUNCTION", DataType.BOOL, 0, false);
             updateUserFunction = addColumn("UPDATE_USER_FUNCTION", DataType.BOOL, 0, false);
-            updateUserPermissionFunction = addColumn("UPDATE_USER_PERMISSION_FUNCTION", DataType.BOOL, 0, false);
             deleteUserFunction = addColumn("DELETE_USER_FUNCTION", DataType.BOOL, 0, false);
             solrFunction = addColumn("SOLR_FUNCTION", DataType.BOOL, 0, false);
             deleteActionFunction = addColumn("DELETE_ACTION_FUNCTION", DataType.BOOL, 0, false);

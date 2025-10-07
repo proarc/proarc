@@ -71,7 +71,7 @@ public class DeviceResource extends DeviceResourceV1 {
     public SmartGwtResponse<Device> deleteDevice(
             @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id
             ) {
-        if (!hasPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
@@ -107,7 +107,7 @@ public class DeviceResource extends DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
             ) {
-        if (!hasPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
@@ -129,7 +129,7 @@ public class DeviceResource extends DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
             ) {
-        if (!hasPermission(user, UserRole.PERMISSION_DEVICE_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {

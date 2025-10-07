@@ -108,7 +108,7 @@ public class IndexerResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> indexObjects () throws SolrServerException, IOException {
 
-        checkPermission(user,  UserRole.PERMISSION_SOLR_FUNCTION, UserRole.PERMISSION_SYS_ADMIN_FUNCTION);
+        checkPermission(user,  UserRole.PERMISSION_FUNCTION_SOLR, UserRole.PERMISSION_FUNCTION_SYS_ADMIN);
 
         if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
@@ -144,7 +144,7 @@ public class IndexerResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> setParentsPid () throws SolrServerException, IOException {
 
-        checkPermission(user, UserRole.PERMISSION_SYS_ADMIN_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN);
 
         if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
@@ -381,7 +381,7 @@ public class IndexerResourceV1 {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
         }
 
-        checkPermission(user, UserRole.PERMISSION_SOLR_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_SOLR);
 
         LOG.info("Indexing document with pid started");
         return new SmartGwtResponse<>();

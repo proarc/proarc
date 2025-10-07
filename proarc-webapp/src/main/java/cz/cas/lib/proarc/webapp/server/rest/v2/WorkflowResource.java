@@ -138,7 +138,7 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId,
             @FormParam(WorkflowResourceApi.NEWJOB_RDCZID) BigDecimal rdczId
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_WF_CREATE_JOB_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_WF_CREATE_JOB)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
@@ -201,7 +201,7 @@ public class WorkflowResource extends WorkflowResourceV1 {
     public SmartGwtResponse<JobView> deleteObject(
             @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) List<BigDecimal> ids) {
 
-        if (!hasPermission(user, UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION)) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_WF_DELETE_JOB)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {

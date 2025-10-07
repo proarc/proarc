@@ -20,9 +20,7 @@ import com.smartgwt.client.data.DSCallback;
 import com.smartgwt.client.data.DSRequest;
 import com.smartgwt.client.data.DSResponse;
 import com.smartgwt.client.data.Record;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
-import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.webapp.client.ClientMessages;
 import cz.cas.lib.proarc.webapp.client.Editor;
 import cz.cas.lib.proarc.webapp.client.action.AbstractAction;
@@ -33,8 +31,6 @@ import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.ds.UpdateObjectDataSource;
 import cz.cas.lib.proarc.webapp.client.widget.StatusView;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-
-import static cz.cas.lib.proarc.common.process.export.mets.Const.FEDORAPREFIX;
 
 /**
  * Update Ndk Page
@@ -58,7 +54,7 @@ public class UpdateOldprintPageAction extends AbstractAction {
 
     @Override
     public boolean accept(ActionEvent event) {
-        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION))) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_UPDATE_MODEL))) {
             return false;
         }
         Object[] selection = Actions.getSelection(event);

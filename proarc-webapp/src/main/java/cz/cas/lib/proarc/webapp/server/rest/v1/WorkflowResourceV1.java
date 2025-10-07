@@ -261,7 +261,7 @@ public class WorkflowResourceV1 {
             @FormParam(WorkflowResourceApi.NEWJOB_RDCZID) BigDecimal rdczId
     ) {
 
-        checkPermission(user, UserRole.PERMISSION_WF_CREATE_JOB_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_WF_CREATE_JOB);
 
         metadata = "null".equals(metadata) ? null : metadata;
         catalogId = "null".equals(catalogId) ? null : catalogId;
@@ -454,7 +454,7 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) List<BigDecimal> ids
     ) {
 
-        checkPermission(user, UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_WF_DELETE_JOB);
 
         try {
             int pageSize = 100;

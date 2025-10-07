@@ -19,67 +19,64 @@ public class UserPermission {
 
     private static boolean hasAttribute(UserProfile user, String[] attributes) {
         for (String attribute : attributes) {
-            if (UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasLockObjectFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_LOCK_OBJECT.equals(attribute) && Boolean.TRUE.equals(user.hasLockObjectFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasUnlockObjectFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_UNLOCK_OBJECT.equals(attribute) && Boolean.TRUE.equals(user.hasUnlockObjectFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasUpdateModelFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_UPDATE_MODEL.equals(attribute) && Boolean.TRUE.equals(user.hasUpdateModelFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasChangeModelFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_CHANGE_MODEL.equals(attribute) && Boolean.TRUE.equals(user.hasChangeModelFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_IMPORT_TO_PROD_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasPermissionToImportToProdFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_IMPORT_TO_PROD.equals(attribute) && Boolean.TRUE.equals(user.hasPermissionToImportToProdFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_CZIDLO_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasCzidloFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_CZIDLO.equals(attribute) && Boolean.TRUE.equals(user.hasCzidloFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_WF_DELETE_JOB_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasWfDeleteJobFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_WF_DELETE_JOB.equals(attribute) && Boolean.TRUE.equals(user.hasWfDeleteJobFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasImportToCatalogFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG.equals(attribute) && Boolean.TRUE.equals(user.hasImportToCatalogFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_CHANGE_OBJECTS_OWNER_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasChangeObjectsOwnerFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER.equals(attribute) && Boolean.TRUE.equals(user.hasChangeObjectsOwnerFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_CHANGE_PAGES_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasChangePagesFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_CHANGE_PAGES.equals(attribute) && Boolean.TRUE.equals(user.hasChangePagesFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_DEVICE_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasDeviceFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_DEVICE.equals(attribute) && Boolean.TRUE.equals(user.hasDeviceFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_WF_CREATE_JOB_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasWfCreateJobFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_WF_CREATE_JOB.equals(attribute) && Boolean.TRUE.equals(user.hasWfCreateJobFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_CREATE_USER_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasCreateUserFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_CREATE_USER.equals(attribute) && Boolean.TRUE.equals(user.hasCreateUserFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_UPDATE_USER_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasUpdateUserFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_UPDATE_USER.equals(attribute) && Boolean.TRUE.equals(user.hasUpdateUserFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_UPDATE_USER_PERMISSION_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasUpdateUserPermissionFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_DELETE_USER.equals(attribute) && Boolean.TRUE.equals(user.hasDeleteUserFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_DELETE_USER_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasDeleteUserFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_SOLR.equals(attribute) && Boolean.TRUE.equals(user.hasSolrFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_SOLR_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasSolrFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_DELETE_ACTION.equals(attribute) && Boolean.TRUE.equals(user.hasDeleteActionFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_DELETE_ACTION_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasDeleteActionFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_ALL_OBJECTS.equals(attribute) && Boolean.TRUE.equals(user.hasAllObjectsFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_ALL_OBJECTS_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasAllObjectsFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_PREPARE_BATCH.equals(attribute) && Boolean.TRUE.equals(user.hasPrepareBatchFunction())) {
                 return true;
             }
-            if (UserRole.PERMISSION_PREPARE_BATCH_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasPrepareBatchFunction())) {
-                return true;
-            }
-            if (UserRole.PERMISSION_SYS_ADMIN_FUNCTION.equals(attribute) && Boolean.TRUE.equals(user.hasSysAdminFunction())) {
+            if (UserRole.PERMISSION_FUNCTION_SYS_ADMIN.equals(attribute) && Boolean.TRUE.equals(user.hasSysAdminFunction())) {
                 return true;
             }
         }
