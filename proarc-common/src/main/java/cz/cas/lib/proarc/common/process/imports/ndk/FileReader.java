@@ -951,7 +951,7 @@ public class FileReader {
                 }
             }
         }
-        if (identifierValue != null) {
+        if (identifierValue != null && identifierValue.contains("/")) {
             return identifierValue.substring(identifierValue.lastIndexOf("/") + 1);
         }
         if (mix.getBasicDigitalObjectInformation() != null &&
