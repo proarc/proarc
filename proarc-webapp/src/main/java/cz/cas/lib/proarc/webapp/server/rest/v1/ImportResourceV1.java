@@ -614,6 +614,19 @@ public class ImportResourceV1 {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
         } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED || state == Batch.State.LOADING_CONFLICT) {
+            Integer userId = batch.getUserId();
+            if (userId != null) {
+                if (userId != user.getId()) {
+                    UserManager userManager = UserUtil.getDefaultManger();
+                    UserProfile userProfile = userManager.find(userId);
+                    if (userProfile == null) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                    if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                }
+            }
             Batch.State realState = batch.getState();
             batch.setProfileId(profileId);
             importManager.update(batch);
@@ -673,6 +686,21 @@ public class ImportResourceV1 {
                 String message =ServerMessages.get(locale).ImportResource_Batch_WrongProfileId_Msg();
                 return SmartGwtResponse.asError(message);
             }
+
+            Integer userId = batch.getUserId();
+            if (userId != null) {
+                if (userId != user.getId()) {
+                    UserManager userManager = UserUtil.getDefaultManger();
+                    UserProfile userProfile = userManager.find(userId);
+                    if (userProfile == null) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                    if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                }
+            }
+
             try {
                 imports = listLoadedItems
                         ? importManager.findLoadedObjects(batch)

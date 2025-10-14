@@ -143,7 +143,7 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
         if (organization != null) {
             cmd.where(table.organization.is(organization));
         }
-        cmd.orderBy(table.surname);
+        cmd.orderBy(table.username);
         beans.fetch(getConnection());
         return Collections.unmodifiableList(beans);
     }

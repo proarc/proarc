@@ -75,6 +75,7 @@ import javax.ws.rs.core.SecurityContext;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNKNOWN_USER;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  *
@@ -394,14 +395,11 @@ public class UserResourceV1 {
         UserProfile sessionUser = session.getUser();
         // check for admin or the same user
         UserProfile update = userId == null ? null : userManager.find(userId);
-        boolean fullUpdate;
-        if (update != null && update.getUserName().equals(sessionUser.getUserName())) {
-            checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_USER);
-//            fullUpdate = grants.contains(Permissions.ADMIN);
-            fullUpdate = true;
-        } else {
-            checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_USER);
-            fullUpdate = false;
+        boolean fullUpdate = false;
+        if (update != null) {
+            if (hasPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_USER)) {
+                fullUpdate = true;
+            }
         }
         if (update == null) {
             return SmartGwtResponse.<UserProfile>asError()
