@@ -100,4 +100,8 @@ public abstract class AnnotatedBatchView extends BatchView {
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_UPDATED)
     @Override
     public abstract Timestamp getUpdated();
+
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PARAMETERS)
+    @Override
+    public abstract String getParameters();
 }

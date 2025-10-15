@@ -41,6 +41,7 @@ public class BatchView {
     private Integer pageCount;
     private Integer estimateItemNumber;
     private String priority;
+    private String parameters;
 
     public Integer getId() {
         return id;
@@ -175,6 +176,14 @@ public class BatchView {
 
     public void setUpdated(Timestamp updated) {
         this.updated = updated;
+    }
+
+    public String getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(String parameters) {
+        this.parameters = parameters;
     }
 
     @Override

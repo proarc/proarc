@@ -59,6 +59,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
     public static final String FIELD_LOG = ImportResourceApi.IMPORT_BATCH_FAILURE;
     public static final String FIELD_PROFILE_ID = ImportResourceApi.IMPORT_BATCH_PROFILE;
     public static final String FIELD_PRIORITY = ImportResourceApi.IMPORT_BATCH_PRIORITY;
+    public static final String FIELD_PARAMETERS = ImportResourceApi.IMPORT_BATCH_PARAMETERS;
 
     public static final String FIELD_DEVICE = ImportResourceApi.NEWBATCH_DEVICE_PARAM;
     public static final String FIELD_INDICES = ImportResourceApi.NEWBATCH_INDICES_PARAM;
@@ -74,6 +75,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         id.setPrimaryKey(true);
 
         DataSourceTextField description = new DataSourceTextField(FIELD_DESCRIPTION);
+        DataSourceTextField parameters = new DataSourceTextField(FIELD_PARAMETERS);
 
         DataSourceTextField user = new DataSourceTextField(FIELD_USER_DISPLAYNAME);
 
@@ -186,7 +188,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 
         DataSourceTextField log = new DataSourceTextField(FIELD_LOG);
 
-        setFields(id, description, userId, user, create, updated, itemUpdated, timestamp, state, parent, log, profileId, priority);
+        setFields(id, description, userId, user, create, updated, itemUpdated, timestamp, state, parent, log, profileId, priority, parameters);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
@@ -350,6 +352,10 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 
         public String getLog() {
             return delegate.getAttribute(FIELD_LOG);
+        }
+
+        public String getParameters() {
+            return delegate.getAttribute(FIELD_PARAMETERS);
         }
 
         public Record getDelegate() {

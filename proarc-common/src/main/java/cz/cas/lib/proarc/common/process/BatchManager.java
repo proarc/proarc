@@ -209,6 +209,11 @@ public class BatchManager {
         try {
             List<BatchView> result = dao.view(filter);
             Set<Batch.State> state = filter.getState();
+            for (BatchView bv : result) {
+                Batch batchOriginal = get(bv.getId());
+                BatchParams params = batchOriginal.getParamsAsObject();
+                bv.setParameters(getImportantParams(params, bv.getProfileId()));
+            }
             if (state != null && !state.contains(Batch.State.INGESTING_FAILED)) {
                 return result;
             }
@@ -245,6 +250,57 @@ public class BatchManager {
         } finally {
             tx.close();
         }
+    }
+
+    private String getImportantParams(BatchParams params, String profileId) {
+        if (params == null || profileId == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (profileId.startsWith("exportProfile") || profileId.startsWith("uploadProfile")) {
+            if (params.getTypeOfPackage() != null && !params.getTypeOfPackage().isEmpty()) {
+                sb.append("Typ exportu: ").append(params.getTypeOfPackage()).append("\n");
+            }
+            if (params.getKrameriusInstanceId() != null && !params.getKrameriusInstanceId().isEmpty()) {
+                sb.append("Instance Krameria: ").append(params.getKrameriusInstanceId()).append("\n");
+            }
+            if (params.getPolicy() != null && !params.getPolicy().isEmpty()) {
+                sb.append("Příznak: ").append(params.getPolicy()).append("\n");
+            }
+            if (params.getLicense() != null && !params.getLicense().isEmpty()) {
+                sb.append("Licence: ").append(params.getLicense()).append("\n");
+            }
+            if (params.isIgnoreMissingUrnNbn() != null) {
+                sb.append("Ignorace chybějícího URN:NBN: ").append(getBooleanAs(params.isIgnoreMissingUrnNbn())).append("\n");
+            }
+            if (params.isBagit() != null) {
+                sb.append("Bagit export: ").append(getBooleanAs(params.isBagit())).append("\n");
+            }
+            if (params.isLtpCesnet() != null) {
+                sb.append("Nahrání do LTP Cesnet: ").append(getBooleanAs(params.isLtpCesnet())).append("\n");
+            }
+            if (params.getExtendedArchivePackage() != null) {
+                sb.append("Rozšířený archivní balík: ").append(getBooleanAs(params.getExtendedArchivePackage())).append("\n");
+            }
+            if (params.getNoTifAvailableMessage() != null && !params.getNoTifAvailableMessage().isEmpty()) {
+                sb.append("Zpráva (tiff není k dispozici): ").append(params.getNoTifAvailableMessage()).append("\n");
+            }
+        } else if (profileId.startsWith("internalProfile")) {
+            if (params.isPurge() != null) {
+                sb.append("Trvalé smazání objektů: ").append(getBooleanAs(params.isPurge())).append("\n");
+            }
+            if (params.isRestore() != null) {
+                sb.append("Obnova objektů: ").append(getBooleanAs(params.isRestore())).append("\n");
+            }
+        }
+        if (params.getPids() != null && !params.getPids().isEmpty()) {
+            sb.append("PIDs: ").append(params.getPids()).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String getBooleanAs(Boolean booleanValue) {
+        return Boolean.TRUE.equals(booleanValue) ? "Ano" : "Ne";
     }
 
     public List<BatchView> viewProcessingBatches(BatchViewFilter filter, UserProfile user) {
