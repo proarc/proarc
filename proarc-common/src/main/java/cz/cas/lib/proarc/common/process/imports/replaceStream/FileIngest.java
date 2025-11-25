@@ -114,7 +114,7 @@ public class FileIngest {
                 editor = new BinaryEditor(fo, FoxmlUtils.managedProfile(BinaryEditor.NDK_ARCHIVAL_ID, mime, BinaryEditor.NDK_ARCHIVAL_LABEL));
             }
             editor.write(file, editor.getLastModified(), null);
-            MixEditor mixEditor = MixEditor.raw(fo);
+            MixEditor mixEditor = MixEditor.ndkArchival(fo);
             mixEditor.write(file, context.getJhoveContext(), mixEditor.getLastModified(), null);
             return true;
         } else if (BinaryEditor.NDK_USER_ID.equals(dsId)) {
