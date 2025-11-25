@@ -288,7 +288,11 @@ public class NdkEntityFactory {
         if (eBorn) {
             digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setPreccessor(urnNbnValue).build();
         } else{
-            digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setMix(mix).setPreccessor(urnNbnValue).build();
+            if (mix == null && "soundrecording".equals(documentType)) {
+                digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setPreccessor(urnNbnValue).build();
+            } else {
+                digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setMix(mix).setPreccessor(urnNbnValue).build();
+            }
         }
         imp.setDigitalDocument(digitalDocument);
         debugXml(imp);

@@ -73,7 +73,7 @@ public class ValidationProcess {
             NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
             OldPrintPlugin.MODEL_CONVOLUTTE, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_SUPPLEMENT,
             OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_SHEETMUSIC,
-            NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
+//            NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
             CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, GraphicPlugin.MODEL_GRAPHIC,
             ChroniclePlugin.MODEL_CHRONICLEVOLUME, ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT
     ));
@@ -250,9 +250,11 @@ public class ValidationProcess {
         }
 
         // urnnbn validace jako posledni
-        if (REQUIRED_URNNBN_MODELS.contains(model) && !ArchiveObjectProcessor.containUrnNbn(mods.getIdentifier())) {
-            if (!((NdkPlugin.MODEL_PERIODICALISSUE.equals(model) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model)) && containsBdmArticle(children))) {
-                result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní identifikátor URN:NBN.", Level.SEVERE));
+        if (appConfig.isUrnNbnRequired()) {
+            if (REQUIRED_URNNBN_MODELS.contains(model) && !ArchiveObjectProcessor.containUrnNbn(mods.getIdentifier())) {
+                if (!((NdkPlugin.MODEL_PERIODICALISSUE.equals(model) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model)) && containsBdmArticle(children))) {
+                    result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní identifikátor URN:NBN.", Level.SEVERE));
+                }
             }
         }
     }

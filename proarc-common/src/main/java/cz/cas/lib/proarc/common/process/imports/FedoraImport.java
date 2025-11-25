@@ -446,8 +446,9 @@ public final class FedoraImport {
         List<BatchItemObject> batchItems = ibm.findBatchObjects(batch.getId(), null);
         ArrayList<Hierarchy> songsPid = new ArrayList<>();
         ArrayList<ArrayList<Hierarchy>> tracksPid = new ArrayList<>();
+        ArrayList<Hierarchy> supplementsPid = new ArrayList<>();
 
-        boolean hierarchyCreated = ImportUtils.createPidHierarchy(batchItems, documentPid, songsPid, tracksPid, pids);
+        boolean hierarchyCreated = ImportUtils.createPidHierarchy(batchItems, documentPid, songsPid, tracksPid, supplementsPid, pids);
 
         if (!hierarchyCreated) {
             return;

@@ -1044,12 +1044,12 @@ public class MetsUtils {
      * @return
      * @throws MetsExportException
      */
-    public static String getPackageID(IMetsElement element, boolean ignoreValidation) throws MetsExportException {
+    public static String getPackageID(IMetsElement element, boolean ignoreMissingUrnNbn) throws MetsExportException {
         Map<String, String> identifiersMap = element.getModsIdentifiers();
         if (identifiersMap.containsKey(Const.URNNBN)) {
             String urnnbn = identifiersMap.get(Const.URNNBN);
             return urnnbn.substring(urnnbn.lastIndexOf(":") + 1);
-        } else if (element.getMetsContext().isAllowMissingURNNBN() || isChroniclePlugin(element)) {
+        } else if (element.getMetsContext().isAllowMissingURNNBN() || isChroniclePlugin(element) || isOldPrintPlugin(element)) {
             // if missing URNNBN is allowed, then try to use UUID - otherwise
             // throw an exception
             element.getMetsContext().getMetsExportException().addException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
@@ -1058,15 +1058,11 @@ public class MetsUtils {
             } else {
                 throw new MetsExportException(element.getOriginalPid(), "Unable to find identifier URNNBN and UUID is missing", false, null);
             }
-        } if (isOldPrintPlugin(element)) {
-            if (ignoreValidation) {
-                if (identifiersMap.containsKey(Const.UUID)) {
-                    return identifiersMap.get(Const.UUID);
-                } else {
-                    throw new MetsExportException(element.getOriginalPid(), "Unable to find identifier UUID is missing", false, null);
-                }
+        } if (ignoreMissingUrnNbn) {
+            if (identifiersMap.containsKey(Const.UUID)) {
+                return identifiersMap.get(Const.UUID);
             } else {
-                throw new MetsExportException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
+                throw new MetsExportException(element.getOriginalPid(), "Unable to find identifier UUID is missing", false, null);
             }
         } else {
             // URNNBN is mandatory

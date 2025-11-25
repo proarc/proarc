@@ -16,14 +16,7 @@
  */
 package cz.cas.lib.proarc.common.urnnbn;
 
-import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
-import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
-import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.MixEditor;
+
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -33,10 +26,18 @@ import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.VisitorException;
 import cz.cas.lib.proarc.common.object.ndk.DefaultNdkVisitor;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.MixEditor;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.Status;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixType;
@@ -294,7 +295,9 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     public Void visitNdkMonographSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
         if (registeringObject != null) {
             if (!(NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(registeringObject.getModelId())
-                    || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(registeringObject.getModelId()))) {
+                    || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(registeringObject.getModelId())
+                    || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(registeringObject.getModelId())
+                    || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(registeringObject.getModelId()))) {
                 // supplement under monograph volume - ignore
                 // invalid hierarchy
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -516,12 +519,30 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            return processNdkMusicDocument(elm, p);
+            MixType mixType = getMixType(elm, p);
+            return processOtherEntity(elm, "soundrecording", p, mixType);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {
             registeringObject = null;
         }
+    }
+
+    private MixType getMixType(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException, DigitalObjectException { // jen u zvukoveho dokumentu a fonovalecku, resi se zanoreni stranek pod prilohu
+        try {
+            visitChildrenOnlyIf(elm, p, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
+        } catch (StopOnFirstMixException ex) {
+            return ex.getMix();
+        }
+
+        List<DigitalObjectElement> children = getCrawler().getChildren(elm.getPid());
+        for (DigitalObjectElement child : children) {
+            MixType mixType = getMixType(child, p);
+            if (mixType != null) {
+                return mixType;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -664,7 +685,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         return null;
     }
 
-    private Void processNdkMusicDocument(DigitalObjectElement elm, UrnNbnContext p) throws DigitalObjectException {
+    private Void processNdkMusicDocument(DigitalObjectElement elm, String entityType, UrnNbnContext p) throws DigitalObjectException {
         final DigitalObjectHandler handler = elm.getHandler();
         final MetadataHandler<ModsDefinition> modsHandler = handler.<ModsDefinition>metadata();
         final DescriptionMetadata<ModsDefinition> documentDescription = modsHandler.getMetadata();
@@ -678,7 +699,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             try {
                 Import document;
                 ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
-                document = resolverEntities.createMusicDocumentImport(documentMods, xmlHandler, null);
+                document = resolverEntities.createOtherEntityImport(documentMods, entityType, null, xmlHandler, false, null);
                 if (!validateEntity(xmlHandler, elm, p)) {
                     return null;
                 }
@@ -706,7 +727,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             try {
                 Import document;
                 ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
-                document = resolverEntities.createMusicDocumentImport(documentMods, xmlHandler, urnnbnOldValue);
+                document = resolverEntities.createOtherEntityImport(documentMods, entityType, null, xmlHandler, false, urnnbnOldValue);
                 if (!validateEntity(xmlHandler, elm, p)) {
                     return null;
                 }
@@ -734,7 +755,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             try {
                 Import document;
                 ValidationErrorHandler xmlHandler = new ValidationErrorHandler();
-                document = resolverEntities.createMusicDocumentImport(documentMods, xmlHandler, null);
+                document = resolverEntities.createOtherEntityImport(documentMods, entityType, null, xmlHandler, false, null);
                 if (!validateEntity(xmlHandler, elm, p)) {
                     return null;
                 }
@@ -1603,9 +1624,11 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return null;
             }
             if (mix == null) {
-                mix = searchMix(elm, p);
-                if (mix == null) {
-                    return null;
+                if (!"soundrecording".equals(entityType)) {
+                    mix = searchMix(elm, p);
+                    if (mix == null) {
+                        return null;
+                    }
                 }
             }
 
