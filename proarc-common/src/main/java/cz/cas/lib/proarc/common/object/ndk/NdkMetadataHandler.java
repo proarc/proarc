@@ -903,6 +903,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             oldMods = editor.read();
         }
         Context context = new Context(handler);
+        context.setOperation(typeRecord);
 
         if (OPERATION_VALIDATE.equals(typeRecord)) {
             checkBeforeWrite(false, mods, oldMods, options.isIgnoreValidation(), false, modelId, context);
