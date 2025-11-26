@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -168,7 +169,7 @@ public abstract class NdkMapper {
             checkUuidIdentifier(mods, ctx.getPid());
         }
         fillLocation(mods);
-        fillRecordInfo(mods);
+        fillRecordInfo(mods, ctx.getOperation());
     }
 
     private void checkUuidIdentifier(ModsDefinition mods, String pid) {
@@ -449,12 +450,14 @@ public abstract class NdkMapper {
         private DigitalObjectHandler handler;
         private String pid;
         private String parentModel = null;
+        private String operation;
 
         public Context(DigitalObjectHandler handler) throws DigitalObjectException {
             this.handler = handler;
             if (handler.getParameterParent() != null && handler.getParameterParent().getModel() != null) {
                 this.parentModel = handler.getParameterParent().getModel().getPid();
             }
+            this.operation = NdkMetadataHandler.OPERATION_UPDATE;
         }
 
         /**
@@ -482,6 +485,14 @@ public abstract class NdkMapper {
             } catch (DigitalObjectException e) {
                 return null;
             }
+        }
+
+        public String getOperation() {
+            return operation;
+        }
+
+        public void setOperation(String operation) {
+            this.operation = operation;
         }
 
         public DigitalObjectHandler getHandler() {

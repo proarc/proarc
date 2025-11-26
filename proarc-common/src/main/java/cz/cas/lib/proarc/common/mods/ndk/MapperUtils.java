@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.mods.ndk;
 
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.mods.AbstractDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
@@ -44,6 +45,9 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -186,19 +190,26 @@ public final class MapperUtils {
 //        }
     }
 
-    public static void fillRecordInfo(ModsDefinition mods) {
+    public static void fillRecordInfo(ModsDefinition mods, String operation) {
         Date now = new Date();
         List<RecordInfoDefinition> recordInfos = mods.getRecordInfo();
         if (recordInfos.isEmpty()) {
             recordInfos.add(new RecordInfoDefinition());
         }
         RecordInfoDefinition recordInfo = recordInfos.get(0);
+
         // mods/recordInfo/recordCreationDate@encoding="iso8601"
         List<DateDefinition> recordCreationDates = recordInfo.getRecordCreationDate();
         DateDefinition creationDate = null;
         for (DateDefinition date : recordCreationDates) {
             if ("iso8601".equals(date.getEncoding())) {
                 creationDate = date;
+            } else if ("marc".equals(date.getEncoding())) {
+                creationDate = new DateDefinition();
+                creationDate.setValue(parseMarcDate(date.getValue()));
+                creationDate.setEncoding("iso8601");
+                recordCreationDates.clear();
+                recordCreationDates.add(creationDate);
             }
         }
         // mods/recordInfo/recordCreationDate=now if missing
@@ -211,14 +222,35 @@ public final class MapperUtils {
             creationDate.setValue(DATETIME_ISO8601.format(now));
             recordCreationDates.add(creationDate);
         }
+
+
         // mods/recordInfo/recordChangeDate@encoding="iso8601"
         // mods/recordInfo/recordChangeDate=now
         List<DateDefinition> recordChangeDates = recordInfo.getRecordChangeDate();
-        recordChangeDates.clear();
-        DateDefinition changeDate = new DateDefinition();
-        changeDate.setEncoding("iso8601");
-        changeDate.setValue(DATETIME_ISO8601.format(now));
-        recordChangeDates.add(changeDate);
+        DateDefinition changeDate = null;
+        if (NdkMetadataHandler.OPERATION_NEW.equals(operation)) {
+            for (DateDefinition date : recordChangeDates) {
+                if ("iso8601".equals(date.getEncoding())) {
+                    changeDate = date;
+                } else if ("marc".equals(date.getEncoding())) {
+                    changeDate = new DateDefinition();
+                    changeDate.setValue(parseMarcDate(date.getValue()));
+                    changeDate.setEncoding("iso8601");
+                    recordChangeDates.clear();
+                    recordChangeDates.add(changeDate);
+                }
+            }
+        }
+        // mods/recordInfo/recordChangeDate=now if missing
+        if (changeDate == null) {
+            // remove dates with other encodings
+            recordChangeDates.clear();
+            changeDate = new DateDefinition();
+            changeDate.setEncoding("iso8601");
+            changeDate.setValue(DATETIME_ISO8601.format(now));
+            recordChangeDates.add(changeDate);
+        }
+
         // mods/recordInfo/recordContentSource@authority="marcorg"
         for (StringPlusLanguagePlusAuthority contentSource : recordInfo.getRecordContentSource()) {
             if (contentSource.getAuthority() == null) {
@@ -232,6 +264,23 @@ public final class MapperUtils {
             recordInfo.getRecordInfoNote().add(note);
             recordInfo.getRecordOrigin().get(0).setValue("machine generated");
         }
+    }
+
+    public static String parseMarcDate(String marc) {
+        if (marc == null || marc.length() != 6) {
+            throw new IllegalArgumentException("Invalid MARC date format");
+        }
+
+        int yy = Integer.parseInt(marc.substring(0, 2));
+        int mm = Integer.parseInt(marc.substring(2, 4));
+        int dd = Integer.parseInt(marc.substring(4, 6));
+
+        int year = (yy < 60) ? (2000 + yy) : (1900 + yy);
+
+        LocalDate date = LocalDate.of(year, mm, dd);
+        LocalDateTime dateTime = date.atStartOfDay();
+
+        return dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss"));
     }
 
     public static void fillLocation(ModsDefinition mods) {

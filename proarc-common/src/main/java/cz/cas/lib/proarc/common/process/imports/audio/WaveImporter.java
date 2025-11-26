@@ -214,7 +214,8 @@ public class WaveImporter implements ImageImporter {
             // requires RELS-EXT model in place
             // creates MODS + DC + LABEL
             PageViewHandler pvHandler = (PageViewHandler) mHandler;
-            String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
+//            String pageIndex = ctx.isGenerateIndices() ? String.valueOf(ctx.getConsumedFileCounter() + 1) : null;
+            String pageIndex = "1"; // kazda strana musi byt samostatne, proto vzdy index 1!
             PageViewItem page = new PageViewItem();
             page.setPageIndex(pageIndex);
             pvHandler.setPage(page, null);

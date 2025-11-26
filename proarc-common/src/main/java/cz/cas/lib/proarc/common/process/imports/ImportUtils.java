@@ -14,7 +14,7 @@ public class ImportUtils {
 
     private static final Logger LOG = Logger.getLogger(ImportUtils.class.getName());
 
-    public static boolean createPidHierarchy(List<BatchManager.BatchItemObject> batchItems, String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, List<String> pids) {
+    public static boolean createPidHierarchy(List<BatchManager.BatchItemObject> batchItems, String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, List<Hierarchy> supplementsPid, List<String> pids) {
         pids.clear();
         String pid = "";
 
@@ -59,6 +59,11 @@ public class ImportUtils {
                         return false;
                     }
                 } else {
+                    if (supplementsPid.isEmpty()) {
+                        pid = FoxmlUtils.createPid();
+                        Hierarchy supplementHierarchy = new Hierarchy(pid, null);
+                        supplementsPid.add(supplementHierarchy);
+                    }
                     pids.add(batchItem.getPid());
                     continue;
                 }

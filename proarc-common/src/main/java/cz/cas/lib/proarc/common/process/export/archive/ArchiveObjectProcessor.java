@@ -235,9 +235,11 @@ public class ArchiveObjectProcessor {
         ModsDefinition mods = modsStreamEditorNew.read();
         RelationEditor relationEditor = new RelationEditor(foNew);
         String model = relationEditor.getModel();
-        if (ARCHIVE_VALIDATION_MODELS.contains(model) && !containUrnNbn(mods.getIdentifier())) {
-            if (!(isOldPrintPlugin(model) && ignoreMissingUrnNbn)) {
-                throw new MetsExportException(pid, "URNNBN identifier is missing", true, null);
+        if (appConfig.isUrnNbnRequired()) {
+            if (ARCHIVE_VALIDATION_MODELS.contains(model) && !containUrnNbn(mods.getIdentifier())) {
+                if (!(isOldPrintPlugin(model) && ignoreMissingUrnNbn)) {
+                    throw new MetsExportException(pid, "URNNBN identifier is missing", true, null);
+                }
             }
         }
     }

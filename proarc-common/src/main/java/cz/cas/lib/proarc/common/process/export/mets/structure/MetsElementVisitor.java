@@ -2060,7 +2060,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         structLinkMapping.pageOrder = pageDiv.getORDER();
         pageOrderToDivMap.put(structLinkMapping, ID);
         for (IMetsElement sourceElement : sourceElements) {
-            addMappingPageStruct(structLinkMapping, transformSupplementId(sourceElement.getModsElementID()));
+            addMappingPageStruct(structLinkMapping, sourceElement.getModsElementID());
         }
     }
 
