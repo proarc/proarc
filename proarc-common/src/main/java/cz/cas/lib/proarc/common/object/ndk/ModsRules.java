@@ -73,7 +73,7 @@ public class ModsRules {
     public static final Set<String> PAGE_PART_TYPE = new HashSet<>(Arrays.asList("cover", "frontCover", "backCover", "appendix", "errata", "frontispiece", "spine", "impressum", "normalPage", "edge", "imprimatur", "blank", "jacket", "Jacket", "frontEndPaper",
             "backEndPaper", "frontEndSheet", "backEndSheet", "frontJacket", "listOfIllustrations", "listOfMaps", "listOfTables", "colophon", "titlePage", "flyleaf",
             "bibliography", "dedication", "afterword", "illustration", "advertisement", "map", "sheetMusic", "tableOfContents", "preface", "index", "table", "introduction", "conclusion",
-            "imgDisc", "manuscriptNotes"));
+            "imgDisc", "manuscriptNotes", "calibrationTable"));
 
     private ModsRules() {}
 
