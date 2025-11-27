@@ -449,7 +449,8 @@ public final class AkubraImport {
         if (ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT.equals(batch.getProfileId()) &&
                 importProfile.getCreateModelsHierarchy()) {
             createHierarchy(batch, pids, parent, message);
-        } else if (pids.size()!= 0){
+        }
+        if (pids.size()!= 0){
             setParent(parent, pids, message);
         }
     }
@@ -469,20 +470,23 @@ public final class AkubraImport {
         ArrayList<Hierarchy> songsPid = new ArrayList<>();
         ArrayList<ArrayList<Hierarchy>> tracksPid = new ArrayList<>();
         ArrayList<Hierarchy> supplementsPid = new ArrayList<>();
+        ArrayList<String> pagePids = new ArrayList<>();
 
-        boolean hierarchyCreated = createPidHierarchy(batchItems, documentPid, songsPid, tracksPid, supplementsPid, pids);
+        boolean hierarchyCreated = createPidHierarchy(batchItems, documentPid, songsPid, tracksPid, supplementsPid, pagePids, pids);
 
-        if (!hierarchyCreated) {
-            return;
-        }
         try {
+            if (!hierarchyCreated) {
+                setParent(documentPid, pids, message);
+                return;
+            }
+
             if (tracksPid.size() == 0) {
                 createModels(documentPid, songsPid, message);
             } else if (tracksPid.size() != 0) {
                 createModels(documentPid, songsPid, tracksPid, message);
             }
-            if (pids.size() != 0) {
-                createModelsSupplement(documentPid, supplementsPid, pids, message);
+            if (!pagePids.isEmpty()) {
+                createModelsSupplement(documentPid, supplementsPid, pagePids, message);
             }
         } catch (DigitalObjectException ex) {
             LOG.log(Level.WARNING, "Nepodarilo se automaticky vytvorit hierarchii objektu, protoze se nepodarilo vytvorit objekt " + ex.getPid());
