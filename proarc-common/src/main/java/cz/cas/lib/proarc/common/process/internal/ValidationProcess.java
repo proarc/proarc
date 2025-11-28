@@ -261,21 +261,25 @@ public class ValidationProcess {
 
     private void validateDateIssued(SearchViewItem item, ModsDefinition mods, SearchViewItem parentItem, Result result) {
         String dateIssued = getDateIssued(mods);
-        if (parentItem != null && NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentItem.getModel())) {
-            try {
-                ModsDefinition parentMods = getMods(parentItem.getPid());
-                String parentDateIssued = getDateIssued(parentMods);
-                if (dateIssued.contains(".")) {
-                    dateIssued = dateIssued.substring(dateIssued.lastIndexOf(".") + 1);
+        if (dateIssued == null || dateIssued.isEmpty()) {
+            result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá vyplněno dateIssued/datum vydání.", Level.WARNING));
+        } else {
+            if (parentItem != null && NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentItem.getModel())) {
+                try {
+                    ModsDefinition parentMods = getMods(parentItem.getPid());
+                    String parentDateIssued = getDateIssued(parentMods);
+                    if (dateIssued.contains(".")) {
+                        dateIssued = dateIssued.substring(dateIssued.lastIndexOf(".") + 1);
+                    }
+                    if (parentDateIssued == null || parentDateIssued.isEmpty()) {
+                        result.getValidationResults().add(new ValidationResult(parentItem.getPid(), "Nadřazený objekt neobsahuje date Issued (" + parentDateIssued + ").", Level.WARNING));
+                    }
+                    if (parentDateIssued != null && !parentDateIssued.equals(dateIssued)) {
+                        result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní dateIssued vůči svému nadřazenému objektu (" + parentDateIssued + ":" + dateIssued + ").", Level.WARNING));
+                    }
+                } catch (DigitalObjectException ex) {
+                    result.getValidationResults().add(new ValidationResult(item.getPid(), "Nepodařilo se načíst MODS.", Level.SEVERE, ex));
                 }
-                if (parentDateIssued == null || parentDateIssued.isEmpty()) {
-                    result.getValidationResults().add(new ValidationResult(parentItem.getPid(), "Nadřazený objekt neobsahuje date Issued (" + parentDateIssued + ").", Level.WARNING));
-                }
-                if (parentDateIssued != null && !parentDateIssued.equals(dateIssued)) {
-                    result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní dateIssued vůči svému nadřazenému objektu (" + parentDateIssued + ":" + dateIssued + ").", Level.WARNING));
-                }
-            } catch (DigitalObjectException ex) {
-                result.getValidationResults().add(new ValidationResult(item.getPid(), "Nepodařilo se načíst MODS.", Level.SEVERE, ex));
             }
         }
     }
