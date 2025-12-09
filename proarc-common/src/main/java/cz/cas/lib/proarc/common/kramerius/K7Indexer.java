@@ -49,7 +49,7 @@ public class K7Indexer {
         String urlUploadStream = getUrlIndex(instance);
         LOGGER.info(String.format("Trying to index %s of %s.", pid, instance.getUrl()));
 
-        String json = "{\"defid\": \"new_indexer_index_object\", \"params\": { \"type\": \"OBJECT\", \"pid\": \"" + pid + "\", \"ignoreInconsistentObjects\": true } }";
+        String json = "{\"defid\": \"new_indexer_index_object\", \"params\": { \"type\": \"TREE_AND_FOSTER_TREES\", \"pid\": \"" + pid + "\", \"ignoreInconsistentObjects\": true } }";
 
         LOGGER.info("Trying to create new Kramerius process " + json + ".");
 

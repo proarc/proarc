@@ -38,9 +38,9 @@ public class K7Uploader {
         this.instance = instance;
     }
 
-    public void uploadModsXml(String pid, String xml) throws IOException, DigitalObjectException, JSONException {
+    public void uploadXml(String pid, String xml, String streamId) throws IOException, DigitalObjectException, JSONException {
         if (xml == null || xml.isEmpty()) {
-            throw new DigitalObjectException(pid, "Mods to upload is null or empty");
+            throw new DigitalObjectException(pid, streamId + " to upload is null or empty");
         }
         if (pid == null || pid.isEmpty()) {
             throw new DigitalObjectException(pid, "PID to update is null or empty");
@@ -49,7 +49,7 @@ public class K7Uploader {
         K7Authenticator authenticator = new K7Authenticator(instance);
         String token = authenticator.authenticate();
 
-        uploadStream(instance, token, pid, ModsStreamEditor.DATASTREAM_ID, xml);
+        uploadStream(instance, token, pid, streamId, xml);
     }
 
     private void uploadStream(KrameriusOptions.KrameriusInstance instance, String token, String pid, String streamId, String content) throws IOException {

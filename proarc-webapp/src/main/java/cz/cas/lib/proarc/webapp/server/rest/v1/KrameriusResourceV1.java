@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.kramerius.K7Authenticator;
 import cz.cas.lib.proarc.common.kramerius.K7Downloader;
 import cz.cas.lib.proarc.common.kramerius.K7Indexer;
@@ -30,6 +31,7 @@ import cz.cas.lib.proarc.common.kramerius.KDataHandler;
 import cz.cas.lib.proarc.common.kramerius.KImporter;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
@@ -487,19 +489,26 @@ public class KrameriusResourceV1 {
             krameriusVersion = krameriusVersion.replaceAll("[^0-9]", "");
             KUtils.ImportState  state = null;
             if (krameriusVersion.startsWith("7")) {
-                DescriptionMetadata<String> metadata = dataHandler.getDescriptionMetadata(pid, krameriusInstanceId);
-                if (metadata != null && metadata.getData() != null) {
-                    String modsXml = metadata.getData();
-                    if (!modsXml.contains("modsCollection")) {
-                        modsXml = modsXml.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
-                        modsXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><mods:modsCollection xmlns:mods=\"http://www.loc.gov/mods/v3\" xmlns:mets=\"http://www.loc.gov/METS/\" xmlns:foxml=\"info:fedora/fedora-system:def/foxml#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" + modsXml + "</mods:modsCollection>";
-                    }
-                    K7Uploader k7Uploader = new K7Uploader(appConfig, instance);
-                    k7Uploader.uploadModsXml(pid, modsXml);
+                DigitalObjectHandler handler = KUtils.findHandler(pid, krameriusImportInstanceId);
+                ProArcObject object = handler.getFedoraObject();
+                ModsStreamEditor modsStreamEditor = new ModsStreamEditor(object);
+                String modsXml = modsStreamEditor.readAsString();
 
-                    K7Indexer k7Indexer = new K7Indexer(appConfig, instance);
-                    state = k7Indexer.indexDocument(pid);
+                DcStreamEditor dcStreamEditor = new DcStreamEditor(object);
+                String dcXml = dcStreamEditor.readAsString();
+
+                if (!modsXml.contains("modsCollection")) {
+                    modsXml = modsXml.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
+                    modsXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><mods:modsCollection xmlns:mods=\"http://www.loc.gov/mods/v3\" xmlns:mets=\"http://www.loc.gov/METS/\" xmlns:foxml=\"info:fedora/fedora-system:def/foxml#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" + modsXml + "</mods:modsCollection>";
                 }
+
+                K7Uploader k7Uploader = new K7Uploader(appConfig, instance);
+                k7Uploader.uploadXml(pid, modsXml, ModsStreamEditor.DATASTREAM_ID);
+                k7Uploader.uploadXml(pid, dcXml, DcStreamEditor.DATASTREAM_ID);
+
+                K7Indexer k7Indexer = new K7Indexer(appConfig, instance);
+                state = k7Indexer.indexDocument(pid);
+
             } else {
                 File sourceFile = dataHandler.getSourceFile(pid, krameriusInstanceId);
                 if (sourceFile == null || !sourceFile.exists()) {
