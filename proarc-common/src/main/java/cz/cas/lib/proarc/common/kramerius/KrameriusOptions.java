@@ -211,6 +211,8 @@ public class KrameriusOptions {
         static final String PROPERTY_URL_DOWNLOAD_FOXML = "urlDownloadFoxml";
         static final String PROPERTY_URL_IMAGE = "urlImage";
         static final String PROPERTY_URL_LICENSE = "urlLicense";
+        static final String PROPERTY_URL_UPLOAD_STREAM = "urlUploadStream";
+        static final String PROPERTY_URL_INDEX = "urlProcesses";
         static final String PROPERTY_USERNAME = "username";
         static final String PROPERTY_PASSWORD = "passwd";
         static final String PROPERTY_CLIENT_ID = "clientId";
@@ -304,6 +306,22 @@ public class KrameriusOptions {
 
         public String getUrlLicense() {
             return config.getString(PROPERTY_URL_LICENSE);
+        }
+
+        public String getUrlUploadStream() {
+            String urlUploadStram = config.getString(PROPERTY_URL_UPLOAD_STREAM);
+            if (urlUploadStram == null || urlUploadStram.isEmpty()) {
+                return "/search/api/admin/v7.0/items/";
+            }
+            return urlUploadStram;
+        }
+
+        public String getUrlIndex() {
+            String urlIndex = config.getString(PROPERTY_URL_INDEX);
+            if (urlIndex == null || urlIndex.isEmpty()) {
+                return "/search/api/admin/v7.0/processes/";
+            }
+            return urlIndex;
         }
 
         public String getUrlStateQuery() {

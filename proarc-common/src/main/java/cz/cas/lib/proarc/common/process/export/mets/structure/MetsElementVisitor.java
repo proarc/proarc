@@ -2727,9 +2727,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
 
         DivType divType = new DivType();
-        divType.setID(metsElement.getElementID());
+        divType.setID(transformSupplementId(metsElement.getElementID()));
         divType.setLabel3(metsElement.getMetsContext().getRootElement().getLabel());
-        divType.setTYPE(Const.typeNameMap.get(metsElement.getElementType()));
+        divType.setTYPE(transformSupplement(Const.typeNameMap.get(metsElement.getElementType())));
         divType.getDMDID().add(metsElement.getModsMetsElement());
         logicalDiv.getDiv().add(divType);
         int pageIndex = 1;

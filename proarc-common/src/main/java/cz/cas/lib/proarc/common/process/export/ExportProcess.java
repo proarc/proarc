@@ -747,6 +747,7 @@ public final class ExportProcess implements Runnable {
                 return null;
             }
         } catch (Throwable t) {
+            t.printStackTrace();
             IOException ex = new IOException(t.getMessage(), t);
             return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
         }

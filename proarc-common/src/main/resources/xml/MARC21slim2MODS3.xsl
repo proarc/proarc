@@ -300,7 +300,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:for-each>
         <xsl:for-each select="marc:datafield[@tag='711'][not(marc:subfield[@code='t'])]">
             <name type="conference">
-                <xsl:call-template name="nameACDEQ"/>
+                <xsl:call-template name="nameACDENQ"/>
                 <xsl:call-template name="role"/>
             </name>
         </xsl:for-each>
@@ -3390,10 +3390,10 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         <xsl:call-template name="termsOfAddress"/>
         <xsl:call-template name="nameDate"/>
     </xsl:template>
-    <xsl:template name="nameACDEQ">
+    <xsl:template name="nameACDENQ">
         <namePart>
             <xsl:call-template name="subfieldSelect">
-                <xsl:with-param name="codes">acdeq</xsl:with-param>
+                <xsl:with-param name="codes">acdenq</xsl:with-param>
             </xsl:call-template>
         </namePart>
     </xsl:template>
@@ -4869,7 +4869,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <xsl:text>1</xsl:text>
                 </xsl:attribute>
             </xsl:if>
-            <xsl:call-template name="nameACDEQ"/>
+            <xsl:call-template name="nameACDENQ"/>
             <xsl:call-template name="role"/>
             <xsl:call-template name="nameIdentifier"/>
             <xsl:call-template name="roleSpecification"/>
@@ -4918,7 +4918,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
     <xsl:template name="createNameFrom711">
         <name type="conference">
             <xsl:call-template name="xxx880"/>
-            <xsl:call-template name="nameACDEQ"/>
+            <xsl:call-template name="nameACDENQ"/>
             <xsl:call-template name="role"/>
             <xsl:call-template name="nameIdentifier"/>
             <xsl:call-template name="roleSpecification"/>

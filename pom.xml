@@ -86,7 +86,7 @@
         <repository>
             <id>geosdi</id>
             <name>geoSDI Repository</name>
-            <url>http://repo.geosdi.org</url>
+            <url>https://repo.geosdi.org</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
