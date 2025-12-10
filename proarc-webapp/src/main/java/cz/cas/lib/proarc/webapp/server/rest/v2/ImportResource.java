@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1;
 import cz.cas.lib.proarc.webapp.server.rest.v1.ImportResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -155,13 +156,13 @@ public class ImportResource extends ImportResourceV1 {
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public SmartGwtResponse<BatchView> deleteBatch(
-            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) List<Integer> batchIds,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
         try {
-            return super.deleteBatch(batchId, batchState, profileId, creatorId);
+            return super.deleteBatch(batchIds, batchState, profileId, creatorId);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

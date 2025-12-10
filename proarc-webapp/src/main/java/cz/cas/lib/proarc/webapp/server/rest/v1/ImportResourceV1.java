@@ -388,19 +388,19 @@ public class ImportResourceV1 {
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public SmartGwtResponse<BatchView> deleteBatch(
-            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) List<Integer> batchIds,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
         checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
 
-        if (batchId == null && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
+        if (batchIds == null && batchIds.isEmpty() && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing values in parameters.");
         }
 
         BatchViewFilter filterAll = new BatchViewFilter()
-                .setBatchId(batchId)
+                .setBatchIds(batchIds)
                 .setUserId(creatorId)
                 .setCreatorId(creatorId)
                 .setState(batchState)
@@ -460,7 +460,7 @@ public class ImportResourceV1 {
             size = 100;
         }
         BatchViewFilter filterAll = new BatchViewFilter()
-                    .setBatchId(batchId)
+                    .setBatchIds(Collections.singletonList(batchId))
                     .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                     .setCreatorId(creatorId)
                     .setSuperAdminUserIds(getSuperAdminsIds(user.getOrganization()))
@@ -482,7 +482,7 @@ public class ImportResourceV1 {
 
 
         BatchViewFilter filter = new BatchViewFilter()
-                .setBatchId(batchId)
+                .setBatchIds(Collections.singletonList(batchId))
                 // admin may see all users; XXX use permissions for this!
                 .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                 .setCreatorId(creatorId)

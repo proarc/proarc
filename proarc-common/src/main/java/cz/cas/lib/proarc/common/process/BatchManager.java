@@ -196,7 +196,7 @@ public class BatchManager {
     }
 
     public BatchView viewBatch(int batchId) {
-        List<BatchView> view = viewBatch(new BatchViewFilter().setBatchId(batchId).setOffset(0).setMaxCount(1));
+        List<BatchView> view = viewBatch(new BatchViewFilter().setBatchIds(Collections.singletonList(batchId)).setOffset(0).setMaxCount(1));
         return view.get(0);
     }
 
