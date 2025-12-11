@@ -232,7 +232,15 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             }
         }
         if (filter.getBatchIds() != null && !filter.getBatchIds().isEmpty()) {
-            cmd.where(table.id.in(filter.getBatchIds()));
+            List<Integer> batchIds = new ArrayList<>();
+            for (Integer batchId : filter.getBatchIds()) {
+                if (batchId != null && batchId > 0) {
+                    batchIds.add(batchId);
+                }
+            }
+            if (!batchIds.isEmpty()) {
+                cmd.where(table.id.in(batchIds));
+            }
         }
         if (filter.getState() != null && !filter.getState().isEmpty()) {
             cmd.where(table.state.in(filter.getState()));

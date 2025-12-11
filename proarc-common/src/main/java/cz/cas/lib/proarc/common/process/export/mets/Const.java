@@ -37,6 +37,9 @@ import java.util.Map;
  *
  */
 public class Const {
+
+    public final static String EMPTY_VALUE = "[empty]";
+
     public final static String FEDORAPREFIX = "info:fedora/";
     public static HashMap<String, List<String>> streamMapping;
     public static HashMap<String, List<String>> audioStremMapping;

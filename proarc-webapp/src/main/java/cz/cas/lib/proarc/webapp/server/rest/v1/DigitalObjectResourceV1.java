@@ -1401,7 +1401,8 @@ public class DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> updateDescriptionMetadataObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
-            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla
     ) throws DigitalObjectException, IOException, FedoraClientException {
 
         LOG.fine(String.format("pids: %s", pids.toArray()));
@@ -1418,7 +1419,7 @@ public class DigitalObjectResourceV1 {
         UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, session.getLocale(httpHeaders));
         updateObjects.createListOfPids(pids);
         updateObjects.createPartNumber(partNumber);
-        updateObjects.updateObjects(signatura);
+        updateObjects.updateObjects(signatura, sigla);
         return returnFunctionSuccess();
     }
 
