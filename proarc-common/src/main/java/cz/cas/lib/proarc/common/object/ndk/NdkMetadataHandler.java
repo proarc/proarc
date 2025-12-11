@@ -498,6 +498,8 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             checkBeforeWrite(false, mods, oldMods, options.isIgnoreValidation(), false, modelId, context);
         } else if (!(OPERATION_NEW.equals(typeRecord) || OPERATION_URNNBN.equals(typeRecord))) {
             checkBeforeWrite(false, mods, oldMods, options.isIgnoreValidation(), false, modelId, context);
+        } else if (OPERATION_NEW.equals(typeRecord)) {
+            checkBeforeCreate(mods, modelId, context);
         }
         NdkMapper mapper = mapperFactory.get(modelId);
         mapper.setModelId(modelId);
@@ -519,6 +521,16 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         // Label
         String label = mapper.toLabel(mods);
         fobject.setLabel(label);
+    }
+
+    private void checkBeforeCreate(ModsDefinition mods, String modelId, Context context) throws DigitalObjectValidationException {
+        DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
+                DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
+        ModsRules modsRules = new ModsRules(modelId, mods, ex, context, appConfiguration);
+        modsRules.checkDateIssued(mods, modelId);
+        if (!ex.getValidations().isEmpty()) {
+            throw ex;
+        }
     }
 
     protected final DigitalObjectHandler findEnclosingObject(

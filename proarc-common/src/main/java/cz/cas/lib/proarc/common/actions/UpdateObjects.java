@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.SearchView;
@@ -50,6 +51,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+
+import static cz.cas.lib.proarc.common.object.ndk.ModsRules.ERR_NDK_PHYSICALLOCATION_SIGLA;
 
 /**
  * @author Lukas Sykora
@@ -123,6 +126,18 @@ public class UpdateObjects {
     public void updateObjects(String signatura, String sigla) throws DigitalObjectException {
         this.signaturaValue = signatura;
         this.siglaValue = sigla;
+        if (updatedPids!= null && !updatedPids.isEmpty()) {
+            if (sigla != null && !sigla.isEmpty()) {
+                List<String> accepted = appConfig.getModsOptions().getAcceptableSiglaId();
+                if (!accepted.contains(sigla)) {
+                    DigitalObjectValidationException ex = new DigitalObjectValidationException(updatedPids.get(0), null,
+                            ModsStreamEditor.DATASTREAM_ID, "MODS validation", null);
+                    ex.addValidation("MODS rules", ERR_NDK_PHYSICALLOCATION_SIGLA, false, sigla);
+                    throw ex;
+                }
+            }
+        }
+
         for (String pid : updatedPids) {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
             ProArcObject fo = dom.find(pid, null);

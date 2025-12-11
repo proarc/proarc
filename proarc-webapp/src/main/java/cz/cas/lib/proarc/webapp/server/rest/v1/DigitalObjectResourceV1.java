@@ -1419,8 +1419,15 @@ public class DigitalObjectResourceV1 {
         UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, session.getLocale(httpHeaders));
         updateObjects.createListOfPids(pids);
         updateObjects.createPartNumber(partNumber);
-        updateObjects.updateObjects(signatura, sigla);
-        return returnFunctionSuccess();
+        try {
+            updateObjects.updateObjects(signatura, sigla);
+            return returnFunctionSuccess();
+        } catch (DigitalObjectValidationException ex) {
+            return toValidationError(ex, session.getLocale(httpHeaders));
+        } catch (DigitalObjectException ex) {
+            return SmartGwtResponse.asError(ex);
+        }
+
     }
 
     @POST
