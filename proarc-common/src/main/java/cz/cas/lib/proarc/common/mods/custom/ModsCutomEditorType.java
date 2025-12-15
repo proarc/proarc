@@ -29,5 +29,6 @@ public final class ModsCutomEditorType {
     public static final String EDITOR_PERIODICAL = "proarc.mods.PeriodicalForm";
     public static final String EDITOR_PERIODICAL_ISSUE = "proarc.mods.PeriodicalIssueForm";
     public static final String EDITOR_PAGE = "proarc.mods.PageForm";
+    public static final String EDITOR_OTHER_MODELS = "proarc.mods.otherModelForm";
 
 }

@@ -16,23 +16,18 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import org.apache.commons.configuration.Configuration;
+
+import java.util.*;
 
 /**
  * Settings for Kramerius4 export.
@@ -127,35 +122,35 @@ public final class Kramerius4ExportOptions {
     // NDK to K4 model mapping
     private Map<String, String> modelMap = new HashMap<String, String>() {
         {
-            put(NdkPlugin.MODEL_NDK_PAGE, "model:page");
+            put(NdkPlugin.MODEL_NDK_PAGE, K4Plugin.MODEL_PAGE);
             put(NdkPlugin.MODEL_ARTICLE, "model:article");
             put(NdkEbornPlugin.MODEL_EARTICLE, "model:article");
             put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
             put(NdkPlugin.MODEL_GRAPHIC, "model:graphic");
-            put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
-            put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "model:monograph");
+            put(NdkPlugin.MODEL_MONOGRAPHTITLE, K4Plugin.MODEL_MONOGRAPH);
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, K4Plugin.MODEL_MONOGRAPH);
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
             put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "model:supplement");
-            put(NdkPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
-            put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
-            put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "model:monograph");
-            put(NdkPlugin.MODEL_PERIODICAL, "model:periodical");
-            put(NdkEbornPlugin.MODEL_EPERIODICAL, "model:periodical");
-            put(NdkPlugin.MODEL_PERIODICALISSUE, "model:periodicalitem");
-            put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "model:periodicalitem");
+            put(NdkPlugin.MODEL_MONOGRAPHUNIT, K4Plugin.MODEL_MONOGRAPHUNIT);
+            put(NdkPlugin.MODEL_MONOGRAPHVOLUME, K4Plugin.MODEL_MONOGRAPH);
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, K4Plugin.MODEL_MONOGRAPH);
+            put(NdkPlugin.MODEL_PERIODICAL, K4Plugin.MODEL_PERIODICAL);
+            put(NdkEbornPlugin.MODEL_EPERIODICAL, K4Plugin.MODEL_PERIODICAL);
+            put(NdkPlugin.MODEL_PERIODICALISSUE, K4Plugin.MODEL_PERIODICALITEM);
+            put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, K4Plugin.MODEL_PERIODICALITEM);
             put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "model:supplement");
             put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, "model:supplement");
-            put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
-            put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "model:periodicalvolume");
+            put(NdkPlugin.MODEL_PERIODICALVOLUME, K4Plugin.MODEL_PERIODICALVOLUME);
+            put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, K4Plugin.MODEL_PERIODICALVOLUME);
             put(NdkPlugin.MODEL_PICTURE, "model:picture");
             put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
             put(NdkPlugin.MODEL_CHAPTER, "model:internalpart");
             put(BornDigitalModsPlugin.MODEL_ARTICLE, "model:article");
-            put(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
+            put(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, K4Plugin.MODEL_MONOGRAPH);
             put(OldPrintPlugin.MODEL_SUPPLEMENT, "model:supplement");
-            put(OldPrintPlugin.MODEL_PAGE, "model:page");
-            put(OldPrintPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
-            put(OldPrintPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
+            put(OldPrintPlugin.MODEL_PAGE, K4Plugin.MODEL_PAGE);
+            put(OldPrintPlugin.MODEL_MONOGRAPHTITLE, K4Plugin.MODEL_MONOGRAPH);
+            put(OldPrintPlugin.MODEL_MONOGRAPHUNIT, K4Plugin.MODEL_MONOGRAPHUNIT);
             put(OldPrintPlugin.MODEL_CHAPTER, "model:internalpart");
             put(OldPrintPlugin.MODEL_GRAPHICS, "model:graphic");
             put(OldPrintPlugin.MODEL_CARTOGRAPHIC, "model:map");
@@ -175,15 +170,15 @@ public final class Kramerius4ExportOptions {
     // K4 to NDK model mapping
     private Map<String, String> reverseModelMap = new HashMap<String, String>() {
         {
-            put("model:page", NdkPlugin.MODEL_PAGE);
+            put(K4Plugin.MODEL_PAGE, NdkPlugin.MODEL_PAGE);
             put("model:article", NdkPlugin.MODEL_ARTICLE);
             put("model:map", NdkPlugin.MODEL_CARTOGRAPHIC);
             put("model:supplement", NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
-            put("model:monograph", NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            put("model:monographunit", NdkPlugin.MODEL_MONOGRAPHUNIT);
-            put("model:periodical", NdkPlugin.MODEL_PERIODICAL);
-            put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
-            put("model:periodicalvolume", NdkPlugin.MODEL_PERIODICALVOLUME);
+            put(K4Plugin.MODEL_MONOGRAPH, NdkPlugin.MODEL_MONOGRAPHVOLUME);
+            put(K4Plugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHUNIT);
+            put(K4Plugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICAL);
+            put(K4Plugin.MODEL_PERIODICALITEM, NdkPlugin.MODEL_PERIODICALISSUE);
+            put(K4Plugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALVOLUME);
             put("model:picture", NdkPlugin.MODEL_PICTURE);
             put("model:sheetmusic", NdkPlugin.MODEL_SHEETMUSIC);
             put("model:internalpart", NdkPlugin.MODEL_CHAPTER);

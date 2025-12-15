@@ -18,11 +18,13 @@ package cz.cas.lib.proarc.common.mods.custom;
 
 import cz.cas.lib.proarc.common.mods.custom.MonographMapper.Monograph;
 import cz.cas.lib.proarc.common.mods.custom.MonographUnitMapper.MonographUnit;
+import cz.cas.lib.proarc.common.mods.custom.OtherModelsMapper.OtherModels;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalIssueMapper.PeriodicalIssue;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalMapper.Periodical;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalVolumeMapper.PeriodicalVolume;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,6 +45,7 @@ public final class Mapping {
         addModel(ModsCutomEditorType.EDITOR_PERIODICAL_ISSUE, new PeriodicalIssueMapper(), PeriodicalIssue.class);
         addModel(ModsCutomEditorType.EDITOR_MONOGRAPH, new MonographMapper(), Monograph.class);
         addModel(ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT, new MonographUnitMapper(), MonographUnit.class);
+        addModel(ModsCutomEditorType.EDITOR_OTHER_MODELS, new OtherModelsMapper(), OtherModels.class);
     }
 
     private static <T> void addModel(String mapperId, Mapper<T> mapper, Class<T> type) {

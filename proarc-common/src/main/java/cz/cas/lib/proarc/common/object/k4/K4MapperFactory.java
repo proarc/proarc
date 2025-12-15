@@ -40,6 +40,17 @@ public class K4MapperFactory extends NdkMapperFactory {
         mappers.put(K4Plugin.MODEL_PERIODICALITEM, K4Mapper::new);
         mappers.put(K4Plugin.MODEL_MONOGRAPH, K4Mapper::new);
         mappers.put(K4Plugin.MODEL_MONOGRAPHUNIT, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_ARTICLE, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_MAP, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_SUPPLEMENT, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_PICTURE, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_SHEETMUSIC, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_INTERNALPART, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_CONVOLUTE, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_GRAPHIC, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_SOUNDRECORDING, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_SOUNDUNIT, K4Mapper::new);
+        mappers.put(K4Plugin.MODEL_TRACK, K4Mapper::new);
     }
 
     @Override

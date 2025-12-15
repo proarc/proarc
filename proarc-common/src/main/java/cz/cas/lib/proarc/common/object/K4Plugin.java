@@ -18,15 +18,6 @@ package cz.cas.lib.proarc.common.object;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.process.export.mets.Const;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
-import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
-import cz.cas.lib.proarc.common.storage.SearchView.HasSearchViewHandler;
-import cz.cas.lib.proarc.common.storage.SearchView.SearchViewHandler;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -41,17 +32,19 @@ import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin.NdkSearchViewHandler;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.SearchView.HasSearchViewHandler;
+import cz.cas.lib.proarc.common.storage.SearchView.SearchViewHandler;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -76,6 +69,17 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
     public static final String MODEL_PERIODICAL="model:periodical";
     public static final String MODEL_PERIODICALITEM="model:periodicalitem";
     public static final String MODEL_PERIODICALVOLUME="model:periodicalvolume";
+    public static final String MODEL_ARTICLE = "model:article";
+    public static final String MODEL_MAP = "model:map";
+    public static final String MODEL_SUPPLEMENT = "model:supplement";
+    public static final String MODEL_PICTURE = "model:picture";
+    public static final String MODEL_SHEETMUSIC = "model:sheetmusic";
+    public static final String MODEL_INTERNALPART = "model:internalpart";
+    public static final String MODEL_GRAPHIC = "model:graphic";
+    public static final String MODEL_CONVOLUTE = "model:convolute";
+    public static final String MODEL_SOUNDRECORDING = "model:soundrecording";
+    public static final String MODEL_SOUNDUNIT = "model:soundunit";
+    public static final String MODEL_TRACK = "model:track";
 
     public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
         put(FEDORAPREFIX + MODEL_MONOGRAPH, Const.MONOGRAPH_UNIT);
@@ -84,6 +88,15 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         put(FEDORAPREFIX + MODEL_PERIODICAL, Const.PERIODICAL_TITLE);
         put(FEDORAPREFIX + MODEL_PERIODICALVOLUME, Const.PERIODICAL_VOLUME);
         put(FEDORAPREFIX + MODEL_PERIODICALITEM, Const.ISSUE);
+        put(FEDORAPREFIX + MODEL_ARTICLE, Const.ARTICLE);
+        put(FEDORAPREFIX + MODEL_MAP, Const.MONOGRAPH_UNIT);
+        put(MODEL_SUPPLEMENT, Const.SUPPLEMENT);
+        put(FEDORAPREFIX + MODEL_PICTURE, Const.PICTURE);
+        put(FEDORAPREFIX + MODEL_SHEETMUSIC, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + MODEL_INTERNALPART, Const.CHAPTER);
+        put(FEDORAPREFIX + MODEL_CONVOLUTE, Const.MONOGRAPH_MULTIPART);
+        put(FEDORAPREFIX + MODEL_GRAPHIC, Const.GRAPHIC);
+        put(FEDORAPREFIX + MODEL_SOUNDRECORDING, Const.SOUND_RECORDING);
     }});
 
     @Override
@@ -143,6 +156,116 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 Arrays.asList(new ElementType("K4 Monograph Unit", "en"), new ElementType("K4 Monografie - volná část", "cs")),
                 ModsConstants.NS,
                 ModsCutomEditorType.EDITOR_MONOGRAPH_UNIT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_ARTICLE, null, null,
+                Arrays.asList(new ElementType("K4 Article", "en"), new ElementType("K4 Článek", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_MAP, null, null,
+                Arrays.asList(new ElementType("K4 Map", "en"), new ElementType("K4 Mapa", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_SUPPLEMENT, null, null,
+                Arrays.asList(new ElementType("K4 Supplement", "en"), new ElementType("K4 Příloha", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_PICTURE, null, null,
+                Arrays.asList(new ElementType("K4 Obraz", "en"), new ElementType("K4 Obraz", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_SHEETMUSIC, null, null,
+                Arrays.asList(new ElementType("K4 Sheetmusic", "en"), new ElementType("K4 Hudebnina", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_INTERNALPART, null, null,
+                Arrays.asList(new ElementType("K4 Internal Part", "en"), new ElementType("K4 Vnitřní část", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_GRAPHIC, null, null,
+                Arrays.asList(new ElementType("K4 Grafics", "en"), new ElementType("K4 Grafika", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_CONVOLUTE, null, null,
+                Arrays.asList(new ElementType("K4 Convolute", "en"), new ElementType("K4 Konvolut", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_SOUNDRECORDING, null, null,
+                Arrays.asList(new ElementType("K4 Soundrecording", "en"), new ElementType("K4 Zvukový dokument", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_SOUNDUNIT, null, null,
+                Arrays.asList(new ElementType("K4 Sound unit", "en"), new ElementType("K4 Zvuková jednotka", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+                ));
+        models.add(new MetaModel(
+                MODEL_TRACK, null, null,
+                Arrays.asList(new ElementType("K4 Track", "en"), new ElementType("K4 Track", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_OTHER_MODELS,
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,

@@ -17,10 +17,6 @@
 package cz.cas.lib.proarc.common.mods.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -31,40 +27,21 @@ import cz.cas.lib.proarc.common.object.emods.BornDigitalModsMapperFactory;
 import cz.cas.lib.proarc.common.object.graphic.GraphicMapperFactory;
 import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.k4.K4MapperFactory;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.*;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintMapperFactory;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
-import cz.cas.lib.proarc.mods.ClassificationDefinition;
-import cz.cas.lib.proarc.mods.DetailDefinition;
-import cz.cas.lib.proarc.mods.ExtentDefinition;
-import cz.cas.lib.proarc.mods.GenreDefinition;
-import cz.cas.lib.proarc.mods.IdentifierDefinition;
-import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.NoteDefinition;
-import cz.cas.lib.proarc.mods.PartDefinition;
-import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
-import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
-import cz.cas.lib.proarc.mods.StringPlusLanguage;
-import cz.cas.lib.proarc.mods.TitleInfoDefinition;
-import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.mods.*;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.empire.commons.StringUtils;
 
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLocation;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
+import java.io.IOException;
+import java.util.*;
+
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
 
 /**
  * Subclass to implement transformations of MODS data in NDK flavor
@@ -144,11 +121,14 @@ public abstract class NdkMapper {
 
     public static boolean isK4Model(String modelId) {
         return modelId != null &&
-                (modelId.equals(K4Plugin.MODEL_MONOGRAPH) ||
-                        modelId.equals(K4Plugin.MODEL_MONOGRAPHUNIT) ||
-                        modelId.equals(K4Plugin.MODEL_PERIODICAL) ||
-                        modelId.equals(K4Plugin.MODEL_PERIODICALVOLUME) ||
-                        modelId.equals(K4Plugin.MODEL_PERIODICALITEM));
+                (modelId.equals(K4Plugin.MODEL_MONOGRAPH) || modelId.equals(K4Plugin.MODEL_MONOGRAPHUNIT) ||
+                        modelId.equals(K4Plugin.MODEL_PERIODICAL) || modelId.equals(K4Plugin.MODEL_PERIODICALVOLUME) ||
+                        modelId.equals(K4Plugin.MODEL_PERIODICALITEM) || modelId.equals(K4Plugin.MODEL_ARTICLE) ||
+                        modelId.equals(K4Plugin.MODEL_MAP) || modelId.equals(K4Plugin.MODEL_SUPPLEMENT) ||
+                        modelId.equals(K4Plugin.MODEL_PICTURE) || modelId.equals(K4Plugin.MODEL_SHEETMUSIC) ||
+                        modelId.equals(K4Plugin.MODEL_INTERNALPART) || modelId.equals(K4Plugin.MODEL_GRAPHIC) ||
+                        modelId.equals(K4Plugin.MODEL_CONVOLUTE) || modelId.equals(K4Plugin.MODEL_SOUNDRECORDING) ||
+                        modelId.equals(K4Plugin.MODEL_SOUNDUNIT) || modelId.equals(K4Plugin.MODEL_TRACK));
     }
 
     public String getModelId() {
