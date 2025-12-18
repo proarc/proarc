@@ -17,19 +17,8 @@
 package cz.cas.lib.proarc.common.urnnbn;
 
 
-import cz.cas.lib.proarc.common.object.DescriptionMetadata;
-import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
-import cz.cas.lib.proarc.common.object.DigitalObjectElement;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DisseminationHandler;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.VisitorException;
-import cz.cas.lib.proarc.common.object.ndk.DefaultNdkVisitor;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.*;
+import cz.cas.lib.proarc.common.object.ndk.*;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
@@ -50,20 +39,15 @@ import cz.cas.lib.proarc.urnnbn.model.registration.Import;
 import cz.cas.lib.proarc.urnnbn.model.response.ErrorType;
 import cz.cas.lib.proarc.urnnbn.model.response.RegistrarScopeIdentifier;
 import cz.cas.lib.proarc.urnnbn.model.response.UrnNbn;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.ws.rs.core.Response;
 import org.apache.commons.io.FileUtils;
 import org.xml.sax.SAXException;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.InputStream;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Walks down the NDK hierarchy and registers missing URN:NBN with {@link ResolverClient}.
@@ -319,6 +303,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         if (registeringObject != null) {
             if (!(NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(registeringObject.getModelId())
                     || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(registeringObject.getModelId())
+                    || NdkPlugin.MODEL_SHEETMUSIC.equals(registeringObject.getModelId())
                     || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(registeringObject.getModelId())
                     || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(registeringObject.getModelId()))) {
                 // supplement under monograph volume - ignore
