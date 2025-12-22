@@ -72,10 +72,6 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract String getOrganization();
 
-    @XmlElement(name = UserResourceApi.USER_ROLE)
-    @Override
-    public abstract String getRole();
-
     @XmlElement(name = UserResourceApi.USER_SURNAME)
     @Override
     public abstract String getSurname();
@@ -100,37 +96,85 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract Timestamp getTimestamp();
 
-    @XmlElement(name = UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION)
+    @XmlElement(name = UserResourceApi.FUNCTION_CHANGE_MODEL)
     @Override
     public abstract Boolean getChangeModelFunction();
 
-    @XmlElement(name = UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION)
+    @XmlElement(name = UserResourceApi.FUNCTION_UPDATE_MODEL)
     @Override
     public abstract Boolean getUpdateModelFunction();
 
-    @XmlElement(name = UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION)
+    @XmlElement(name = UserResourceApi.FUNCTION_LOCK_OBJECT)
     @Override
     public abstract Boolean getLockObjectFunction();
 
-    @XmlElement(name = UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION)
+    @XmlElement(name = UserResourceApi.FUNCTION_UNLOCK_OBJECT)
     @Override
     public abstract Boolean getUnlockObjectFunction();
 
-    @XmlElement(name = UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION)
+    @XmlElement(name = UserResourceApi.FUNCTION_IMPORT_TO_PROD)
     @Override
     public abstract Boolean getImportToProdFunction();
 
-    @XmlElement(name = UserResourceApi.USER_CZIDLO_FUNCTION)
+    @XmlElement(name = UserResourceApi.FUNCTION_CZIDLO)
     @Override
     public abstract Boolean getCzidloFunction();
 
-    @XmlElement(name = UserResourceApi.USER_WF_DELETE_JOB_FUNCTION)
+    @XmlElement(name = UserResourceApi.FUNCTION_WF_DELETE_JOB)
     @Override
     public abstract Boolean getWfDeleteJobFunction();
 
-    @XmlElement(name = UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION)
+    @XmlElement(name = UserResourceApi.FUNCTION_IMPORT_TO_CATALOG)
     @Override
     public abstract Boolean getImportToCatalogFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_CHANGE_OBJECTS_OWNER)
+    @Override
+    public abstract Boolean getChangeObjectsOwnerFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_CHANGE_PAGES)
+    @Override
+    public abstract Boolean getChangePagesFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_DEVICE)
+    @Override
+    public abstract Boolean getDeviceFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_WF_CREATE_JOB)
+    @Override
+    public abstract Boolean getWfCreateJobFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_CREATE_USER)
+    @Override
+    public abstract Boolean getCreateUserFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_UPDATE_USER)
+    @Override
+    public abstract Boolean getUpdateUserFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_DELETE_USER)
+    @Override
+    public abstract Boolean getDeleteUserFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_SOLR)
+    @Override
+    public abstract Boolean getSolrFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_DELETE_ACTION)
+    @Override
+    public abstract Boolean getDeleteActionFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_ALL_OBJECTS)
+    @Override
+    public abstract Boolean getAllObjectsFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_PREPARE_BATCH)
+    @Override
+    public abstract Boolean getPrepareBatchFunction();
+
+    @XmlElement(name = UserResourceApi.FUNCTION_SYS_ADMIN)
+    @Override
+    public abstract Boolean getSysAdminFunction();
 
     @XmlTransient
     @Override

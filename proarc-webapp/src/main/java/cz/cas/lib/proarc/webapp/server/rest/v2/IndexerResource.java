@@ -20,6 +20,7 @@ import com.google.gwt.http.client.Request;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.IndexerResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
@@ -35,6 +36,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 @Path(RestConfig.URL_API_VERSION_2 + "/" + IndexerResourceApi.PATH)
 public class IndexerResource extends IndexerResourceV1 {
@@ -53,6 +57,11 @@ public class IndexerResource extends IndexerResourceV1 {
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> indexObjects () {
+
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_SOLR, UserRole.PERMISSION_FUNCTION_SYS_ADMIN)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+
         try {
             return super.indexObjects();
         } catch (Throwable t) {
@@ -65,6 +74,10 @@ public class IndexerResource extends IndexerResourceV1 {
     @Path(IndexerResourceApi.INDEX_PARENT_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<SearchViewItem> setParentsPid () {
+
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
 
         try {
             return super.setParentsPid();
@@ -80,6 +93,10 @@ public class IndexerResource extends IndexerResourceV1 {
     public SmartGwtResponse<SearchViewItem> indexDocument (
             @FormParam(IndexerResourceApi.DIGITALOBJECT_PID) String pid
     ) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_SOLR)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+
         try {
             return super.indexDocument(pid);
         } catch (Throwable t) {

@@ -504,12 +504,23 @@ public final class DigitalObjectManager {
             @Override
             public boolean accept(ActionEvent event) {
                 if (!(Editor.getInstance().hasPermission("proarc.permission.admin") ||
-                        Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION))) {
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_CHANGE_MODEL) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_UPDATE_MODEL) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_LOCK_OBJECT) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_UNLOCK_OBJECT) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_DEVICE) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_CHANGE_PAGES) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_WF_CREATE_JOB) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_CREATE_USER) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_UPDATE_USER) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_DELETE_USER) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_SOLR) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_DELETE_ACTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_ALL_OBJECTS) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_PREPARE_BATCH) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_SYS_ADMIN))) {
                     return false;
                 } else {
                     Object[] selection = Actions.getSelection(event);

@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.DeviceResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
@@ -42,6 +43,8 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  * Resource to manage devices producing digital objects.
@@ -68,6 +71,9 @@ public class DeviceResource extends DeviceResourceV1 {
     public SmartGwtResponse<Device> deleteDevice(
             @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id
             ) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         try {
             return super.deleteDevice(id);
         } catch (Throwable t) {
@@ -101,6 +107,9 @@ public class DeviceResource extends DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
             ) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         try {
             return super.newDevice(id, label, model, description, premis, timestamp, audiotimestamp);
         } catch (Throwable t) {
@@ -120,6 +129,9 @@ public class DeviceResource extends DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
             ) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DeviceResourceApi.DEVICE_ITEM_ID, DeviceResourceApi.DEVICE_ITEM_MODEL));
         }

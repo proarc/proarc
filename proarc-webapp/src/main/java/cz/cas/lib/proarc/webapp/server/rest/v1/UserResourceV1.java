@@ -31,7 +31,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.Permission;
-import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserSetting;
@@ -52,7 +51,6 @@ import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -69,16 +67,15 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNKNOWN_USER;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  *
@@ -94,7 +91,7 @@ public class UserResourceV1 {
     protected final HttpHeaders httpHeaders;
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
-    private final UserProfile user;
+    protected final UserProfile user;
 
     public UserResourceV1(
             @Context HttpServletRequest httpRequest,
@@ -119,7 +116,7 @@ public class UserResourceV1 {
             @QueryParam(UserResourceApi.USER_ID) Integer userId
     ) {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_USER);
         Locale locale = session.getLocale(httpHeaders);
 
         if (userId == null) {
@@ -239,7 +236,7 @@ public class UserResourceV1 {
             return new SmartGwtResponse<UserProfile>(found);
         }
         UserProfile user = session.getUser();
-        boolean allowAllOrganization = user.getRole() == null || user.getRole().isEmpty() || UserRole.ROLE_SUPERADMIN.equals(user.getRole());
+        boolean allowAllOrganization = user.hasSysAdminFunction();
         if (!allowAllOrganization) {
             List<UserProfile> findAll = userManager.findMyOrganization(session.getUser().getOrganization());
             List<UserProfile> selectedUsers = new ArrayList<>();
@@ -285,18 +282,29 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.USER_FORENAME) String forename,
             @FormParam(UserResourceApi.USER_EMAIL) String email,
             @FormParam(UserResourceApi.USER_ORGANIZATION) String organization,
-            @FormParam(UserResourceApi.USER_ROLE) String role,
-            @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction,
-            @FormParam(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION) Boolean updateModelFunction,
-            @FormParam(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION) Boolean lockObjectFuction,
-            @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
-            @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
-            @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction
+            @FormParam(UserResourceApi.FUNCTION_CHANGE_MODEL) Boolean changeModelFunction,
+            @FormParam(UserResourceApi.FUNCTION_UPDATE_MODEL) Boolean updateModelFunction,
+            @FormParam(UserResourceApi.FUNCTION_LOCK_OBJECT) Boolean lockObjectFuction,
+            @FormParam(UserResourceApi.FUNCTION_UNLOCK_OBJECT) Boolean unlockObjectFuction,
+            @FormParam(UserResourceApi.FUNCTION_IMPORT_TO_PROD) Boolean importToProdFunction,
+            @FormParam(UserResourceApi.FUNCTION_CZIDLO) Boolean czidloFunction,
+            @FormParam(UserResourceApi.FUNCTION_WF_DELETE_JOB) Boolean wfDeleteJobFunction,
+            @FormParam(UserResourceApi.FUNCTION_IMPORT_TO_CATALOG) Boolean importToCatalogFunction,
+            @FormParam(UserResourceApi.FUNCTION_CHANGE_OBJECTS_OWNER) Boolean changeObjectsOwnerFunction,
+            @FormParam(UserResourceApi.FUNCTION_CHANGE_PAGES) Boolean changePagesFunction,
+            @FormParam(UserResourceApi.FUNCTION_DEVICE) Boolean deviceFunction,
+            @FormParam(UserResourceApi.FUNCTION_WF_CREATE_JOB) Boolean wfCreateJobFunction,
+            @FormParam(UserResourceApi.FUNCTION_CREATE_USER) Boolean createUserFunction,
+            @FormParam(UserResourceApi.FUNCTION_UPDATE_USER) Boolean updateUserFunction,
+            @FormParam(UserResourceApi.FUNCTION_DELETE_USER) Boolean deleteUserFunction,
+            @FormParam(UserResourceApi.FUNCTION_SOLR) Boolean solrFunction,
+            @FormParam(UserResourceApi.FUNCTION_DELETE_ACTION) Boolean deleteActionFunction,
+            @FormParam(UserResourceApi.FUNCTION_ALL_OBJECTS) Boolean allObjectsFunction,
+            @FormParam(UserResourceApi.FUNCTION_PREPARE_BATCH) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.FUNCTION_SYS_ADMIN) Boolean sysAdminFunction
             ) {
         Locale locale = session.getLocale(httpHeaders);
-        checkAccess(session.getUser(), Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN, Permissions.USERS_CREATE);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CREATE_USER);
         if (userName == null) {
             return SmartGwtResponse.<UserProfile>asError()
                     .error(UserResourceApi.PATH,  ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Required"))
@@ -315,7 +323,6 @@ public class UserResourceV1 {
         newProfile.setUserName(userName);
         newProfile.setUserPassword(passwd);
         newProfile.setOrganization(organization);
-        newProfile.setRole(role);
         newProfile.setChangeModelFunction(changeModelFunction);
         newProfile.setUpdateModelFunction(updateModelFunction);
         newProfile.setLockObjectFunction(lockObjectFuction);
@@ -324,6 +331,18 @@ public class UserResourceV1 {
         newProfile.setCzidloFunction(czidloFunction);
         newProfile.setWfDeleteJobFunction(wfDeleteJobFunction);
         newProfile.setImportToCatalogFunction(importToCatalogFunction);
+        newProfile.setChangeObjectsOwnerFunction(changeObjectsOwnerFunction);
+        newProfile.setChangePagesFunction(changePagesFunction);
+        newProfile.setDeviceFunction(deviceFunction);
+        newProfile.setWfCreateJobFunction(wfCreateJobFunction);
+        newProfile.setCreateUserFunction(createUserFunction);
+        newProfile.setUpdateUserFunction(updateUserFunction);
+        newProfile.setDeleteUserFunction(deleteUserFunction);
+        newProfile.setSolrFunction(solrFunction);
+        newProfile.setDeleteActionFunction(deleteActionFunction);
+        newProfile.setAllObjectsFunction(allObjectsFunction);
+        newProfile.setPrepareBatchFunction(prepareBatchFunction);
+        newProfile.setSysAdminFunction(sysAdminFunction);
         try {
             newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
                     session.getUser().getUserName(), session.asFedoraLog());
@@ -350,29 +369,37 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.USER_FORENAME) String forename,
             @FormParam(UserResourceApi.USER_EMAIL) String email,
             @FormParam(UserResourceApi.USER_ORGANIZATION) String organization,
-            @FormParam(UserResourceApi.USER_ROLE) String role,
-            @FormParam(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION) Boolean changeModelFunction,
-            @FormParam(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION) Boolean updateModelFunction,
-            @FormParam(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION) Boolean lockObjectFuction,
-            @FormParam(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION) Boolean unlockObjectFuction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION) Boolean importToProdFunction,
-            @FormParam(UserResourceApi.USER_CZIDLO_FUNCTION) Boolean czidloFunction,
-            @FormParam(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION) Boolean wfDeleteJobFunction,
-            @FormParam(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION) Boolean importToCatalogFunction
+            @FormParam(UserResourceApi.FUNCTION_CHANGE_MODEL) Boolean changeModelFunction,
+            @FormParam(UserResourceApi.FUNCTION_UPDATE_MODEL) Boolean updateModelFunction,
+            @FormParam(UserResourceApi.FUNCTION_LOCK_OBJECT) Boolean lockObjectFuction,
+            @FormParam(UserResourceApi.FUNCTION_UNLOCK_OBJECT) Boolean unlockObjectFuction,
+            @FormParam(UserResourceApi.FUNCTION_IMPORT_TO_PROD) Boolean importToProdFunction,
+            @FormParam(UserResourceApi.FUNCTION_CZIDLO) Boolean czidloFunction,
+            @FormParam(UserResourceApi.FUNCTION_WF_DELETE_JOB) Boolean wfDeleteJobFunction,
+            @FormParam(UserResourceApi.FUNCTION_IMPORT_TO_CATALOG) Boolean importToCatalogFunction,
+            @FormParam(UserResourceApi.FUNCTION_CHANGE_OBJECTS_OWNER) Boolean changeObjectsOwnerFunction,
+            @FormParam(UserResourceApi.FUNCTION_CHANGE_PAGES) Boolean changePagesFunction,
+            @FormParam(UserResourceApi.FUNCTION_DEVICE) Boolean deviceFunction,
+            @FormParam(UserResourceApi.FUNCTION_WF_CREATE_JOB) Boolean wfCreateJobFunction,
+            @FormParam(UserResourceApi.FUNCTION_CREATE_USER) Boolean createUserFunction,
+            @FormParam(UserResourceApi.FUNCTION_UPDATE_USER) Boolean updateUserFunction,
+            @FormParam(UserResourceApi.FUNCTION_DELETE_USER) Boolean deleteUserFunction,
+            @FormParam(UserResourceApi.FUNCTION_SOLR) Boolean solrFunction,
+            @FormParam(UserResourceApi.FUNCTION_DELETE_ACTION) Boolean deleteActionFunction,
+            @FormParam(UserResourceApi.FUNCTION_ALL_OBJECTS) Boolean allObjectsFunction,
+            @FormParam(UserResourceApi.FUNCTION_PREPARE_BATCH) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.FUNCTION_SYS_ADMIN) Boolean sysAdminFunction
             ) {
 
         Locale locale = session.getLocale(httpHeaders);
         UserProfile sessionUser = session.getUser();
         // check for admin or the same user
         UserProfile update = userId == null ? null : userManager.find(userId);
-        boolean fullUpdate;
-        if (update != null && update.getUserName().equals(sessionUser.getUserName())) {
-            checkAccess(sessionUser, Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), (Permission) null);
-//            fullUpdate = grants.contains(Permissions.ADMIN);
-            fullUpdate = true;
-        } else {
-            checkAccess(sessionUser, Arrays.asList(UserRole.ROLE_SUPERADMIN, UserRole.ROLE_ADMIN), Permissions.ADMIN);
-            fullUpdate = true;
+        boolean fullUpdate = false;
+        if (update != null) {
+            if (hasPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_USER)) {
+                fullUpdate = true;
+            }
         }
         if (update == null) {
             return SmartGwtResponse.<UserProfile>asError()
@@ -385,7 +412,6 @@ public class UserResourceV1 {
             update.setEmail(email);
             update.setForename(forename);
             update.setOrganization(organization);
-            update.setRole(role);
             update.setChangeModelFunction(changeModelFunction);
             update.setUpdateModelFunction(updateModelFunction);
             update.setLockObjectFunction(lockObjectFuction);
@@ -394,6 +420,18 @@ public class UserResourceV1 {
             update.setCzidloFunction(czidloFunction);
             update.setWfDeleteJobFunction(wfDeleteJobFunction);
             update.setImportToCatalogFunction(importToCatalogFunction);
+            update.setChangeObjectsOwnerFunction(changeObjectsOwnerFunction);
+            update.setChangePagesFunction(changePagesFunction);
+            update.setDeviceFunction(deviceFunction);
+            update.setWfCreateJobFunction(wfCreateJobFunction);
+            update.setCreateUserFunction(createUserFunction);
+            update.setUpdateUserFunction(updateUserFunction);
+            update.setDeleteUserFunction(deleteUserFunction);
+            update.setSolrFunction(solrFunction);
+            update.setDeleteActionFunction(deleteActionFunction);
+            update.setAllObjectsFunction(allObjectsFunction);
+            update.setPrepareBatchFunction(prepareBatchFunction);
+            update.setSysAdminFunction(sysAdminFunction);
             if (surname == null || surname.isEmpty()) {
                 return SmartGwtResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Surname_Required")).build();
@@ -476,24 +514,6 @@ public class UserResourceV1 {
 
         settings = userManager.getUserSetting(userId);
         return new SmartGwtResponse<UserSetting>(settings);
-    }
-
-    protected String checkAccess(UserProfile user, List<String> requiredRoles, Permission... permissions) {
-        if (user != null) {
-            Set<Permission> grants = userManager.findUserPermissions(user.getId());
-            for (Permission permission : permissions) {
-                if (permission == null || grants.contains(permission)) {
-                    return grants.toString();
-                }
-            }
-            String role = userManager.findUserRole(user.getId());
-            for (String requiredRole : requiredRoles) {
-                if (requiredRole.equals(role)) {
-                    return role;
-                }
-            }
-        }
-        throw new WebApplicationException(Response.Status.FORBIDDEN);
     }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {

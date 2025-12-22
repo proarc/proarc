@@ -220,7 +220,7 @@ public class DeleteProcess {
             List<SearchViewItem> items = new ArrayList<>();
             switch (type.toLowerCase()) {
                 case "orphan":
-                    items = search.findAdvancedSearchItems(null, null, null, null, null, null, MetaModel.MODELS_LEAF, null, false, false, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
+                    items = search.findAdvancedSearchItems(null, null, null, null, null, null, MetaModel.MODELS_LEAF, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
                     break;
                 case "deleted":
                     items = search.findQuery(new SearchViewQuery(), "deleted");

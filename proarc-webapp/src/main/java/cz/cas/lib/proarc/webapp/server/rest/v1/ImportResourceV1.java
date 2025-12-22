@@ -21,15 +21,23 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
-import cz.cas.lib.proarc.common.dao.*;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchParams;
+import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dao.BatchViewFilter;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
 import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.process.export.ExportProcess;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.process.imports.*;
+import cz.cas.lib.proarc.common.process.imports.FedoraImport;
+import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
+import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner.Folder;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.PageView;
 import cz.cas.lib.proarc.common.storage.PageView.Item;
@@ -38,36 +46,58 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
-import cz.cas.lib.proarc.webapp.server.rest.*;
+import cz.cas.lib.proarc.webapp.server.rest.DateTimeParam;
+import cz.cas.lib.proarc.webapp.server.rest.ImportFolder;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
+import cz.cas.lib.proarc.webapp.server.rest.ProfileStates;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
+import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import org.apache.commons.io.IOUtils;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.Status;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 import static cz.cas.lib.proarc.common.process.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.TMP_DIR_NAME;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_BATCH_CANNOT_BE_STOPED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  * Resource to handle imports.
@@ -94,7 +124,7 @@ public class ImportResourceV1 {
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
 
-    private final UserProfile user;
+    protected final UserProfile user;
     private final SessionContext session;
 
     public ImportResourceV1(
@@ -360,7 +390,7 @@ public class ImportResourceV1 {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN);
 
         if (batchIds == null && batchIds.isEmpty() && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing values in parameters.");
@@ -428,9 +458,7 @@ public class ImportResourceV1 {
         }
         BatchViewFilter filterAll = new BatchViewFilter()
                     .setBatchIds(Collections.singletonList(batchId))
-                    .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                     .setCreatorId(creatorId)
-                    .setSuperAdminUserIds(getSuperAdminsIds(user.getOrganization()))
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                     .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -450,10 +478,7 @@ public class ImportResourceV1 {
 
         BatchViewFilter filter = new BatchViewFilter()
                 .setBatchIds(Collections.singletonList(batchId))
-                // admin may see all users; XXX use permissions for this!
-                .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
                 .setCreatorId(creatorId)
-                .setSuperAdminUserIds(getSuperAdminsIds(user.getOrganization()))
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                 .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
@@ -476,28 +501,6 @@ public class ImportResourceV1 {
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
     }
 
-    private List<Integer> getSuperAdminsIds(String organization) {
-        UserManager users = UserUtil.getDefaultManger();
-        List<UserProfile> profiles = users.findAll();
-        List<Integer> superAdminIds = new ArrayList<>();
-        if (organization == null || organization.isEmpty()) {
-            for (UserProfile profile : profiles) {
-                if (UserRole.ROLE_SUPERADMIN.equals(profile.getRole())) {
-                    superAdminIds.add(profile.getId());
-                }
-            }
-        } else {
-            for (UserProfile profile : profiles) {
-                if (UserRole.ROLE_SUPERADMIN.equals(profile.getRole())) {
-                    if (organization.equals(profile.getOrganization())) {
-                        superAdminIds.add(profile.getId());
-                    }
-                }
-            }
-        }
-        return superAdminIds;
-    }
-
     @GET
     @Path(ImportResourceApi.BATCHES_IN_PROCESS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
@@ -513,7 +516,7 @@ public class ImportResourceV1 {
                 .setMaxCount(1000)
                 .setSortBy("id");
 
-        List<BatchView> loadingBatches = importManager.viewProcessingBatches(filterAll, user, UserRole.ROLE_USER);
+        List<BatchView> loadingBatches = importManager.viewProcessingBatches(filterAll, user);
 
         int endRow = 0 + loadingBatches.size() - 1;
         int total = loadingBatches.size();
@@ -531,43 +534,25 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        // zruseno na zaklade pozadavku z issue client:453
-//        if (!session.checkRole(UserRole.ROLE_SUPERADMIN) && user.getOrganization() == null) {
-//            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_USER_WITHOUT_ORGANIZATION, user.getUserName()));
-//        }
         if (Batch.State.LOADING.equals(batch.getState())) {
-            if (!(session.checkPermission(Permissions.ADMIN) || session.checkRole(UserRole.ROLE_SUPERADMIN) || isBatchOwner(batch))) {
-                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
+            if (!(hasPermission(user, UserRole.PERMISSION_FUNCTION_PREPARE_BATCH) || isBatchOwner(batch))) {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - permission prepareBatchFunction.");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
             BatchView batchView = importManager.viewBatch(batch.getId());
             return new SmartGwtResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORTING.equals(batch.getState())) {
-            if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
-                // role superadmin is allowed to stop all batches
-            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOwner(batch)) {
-//            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) { // zmena na zaklade pozadavku z issue client:453
-                // role admin is allowed to stop all batches or their organization
-            } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
-                // role user is only allowed to stop their own batches
-            } else {
-                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
+            if (!(isBatchOwner(batch))) {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ExportProcess.stopExportingBatch(batch, importManager, appConfig, akubraConfiguration);
             BatchView batchView = importManager.viewBatch(batch.getId());
             return new SmartGwtResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORT_PLANNED.equals(batch.getState())) {
-            if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
-                // role superadmin is allowed to stop all batches
-            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOwner(batch)) {
-//            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) { // zmena na zaklade pozadavku z issue client:453
-                // role admin is allowed to stop all batches or their organization
-            } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
-                // role user is only allowed to stop their own batches
-            } else {
-                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
+            if (!(isBatchOwner(batch))) {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ExportProcess.cancelPlannedBatch(batch, importManager, appConfig, akubraConfiguration);
@@ -614,36 +599,6 @@ public class ImportResourceV1 {
         if (state == Batch.State.INGESTING) {
             // ingest or reingest for INGESTING_FAILED
             batch.getFolder();
-
-            if (user.getId() != batch.getUserId()) {
-                // batch was imported by different user (store metadata editor userid instead)
-                File batchDir = new File(appConfig.getDefaultUsersHome(), batch.getFolder() + "/" + TMP_DIR_NAME);
-                File [] batchFiles = batchDir.listFiles((dir, name) -> name.endsWith(".foxml") && !name.startsWith(".proarc"));
-
-                if (batchFiles == null) {
-                    LOG.log(Level.INFO, "BatchFiles is null, trying to get batchFiles again. BatchId: "
-                            + batchId + ", parentPid: " + parentPid + ", profileId: " + profileId + ", state: "
-                            + state.toString() + " batchDir: " + batchDir + ".");
-
-                    FilenameFilter filter = new FilenameFilter() {
-                        @Override
-                        public boolean accept(File dir, String name) {
-                            return  (name.endsWith(".foxml") && !name.startsWith(".proarc"));
-                        }
-                    };
-
-                    batchFiles = batchDir.listFiles(filter);
-                }
-
-                for (File batchFile : batchFiles) {
-                    String fileContents = IOUtils.toString(new FileInputStream(batchFile), Charset.defaultCharset());
-                    fileContents = fileContents.replaceAll(
-                            "<property NAME=\"info:fedora/fedora-system:def/model#ownerId\" VALUE=\"" + "[^/]*" + "\"/>",
-                            "<property NAME=\"info:fedora/fedora-system:def/model#ownerId\" VALUE=\"" + user.getUserName() + "\"/>"
-                    );
-                    IOUtils.write(fileContents, new FileOutputStream(batchFile), Charset.defaultCharset());
-                }
-            }
             UserManager users = UserUtil.getDefaultManger();
             UserProfile user = users.find(batch.getUserId());
             File importFolder = importManager.resolveBatchFile(batch.getFolder());
@@ -661,6 +616,19 @@ public class ImportResourceV1 {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
         } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED || state == Batch.State.LOADING_CONFLICT) {
+            Integer userId = batch.getUserId();
+            if (userId != null) {
+                if (userId != user.getId()) {
+                    UserManager userManager = UserUtil.getDefaultManger();
+                    UserProfile userProfile = userManager.find(userId);
+                    if (userProfile == null) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                    if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                }
+            }
             Batch.State realState = batch.getState();
             batch.setProfileId(profileId);
             importManager.update(batch);
@@ -720,6 +688,21 @@ public class ImportResourceV1 {
                 String message =ServerMessages.get(locale).ImportResource_Batch_WrongProfileId_Msg();
                 return SmartGwtResponse.asError(message);
             }
+
+            Integer userId = batch.getUserId();
+            if (userId != null) {
+                if (userId != user.getId()) {
+                    UserManager userManager = UserUtil.getDefaultManger();
+                    UserProfile userProfile = userManager.find(userId);
+                    if (userProfile == null) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                    if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                }
+            }
+
             try {
                 imports = listLoadedItems
                         ? importManager.findLoadedObjects(batch)

@@ -411,19 +411,6 @@ final class UserManagerSql implements UserManager {
     }
 
     @Override
-    public String findUserRole(int userId) {
-        Transaction tx = daos.createTransaction();
-        UserDao users = daos.createUser();
-        users.setTransaction(tx);
-        try {
-            UserProfile user = filter(users.find(userId));
-            return user.getRole();
-        } finally {
-            tx.close();
-        }
-    }
-
-    @Override
     public void setPermissions(int groupId, Permission... permissions) {
         if (permissions == null || permissions.length == 0) {
             throw new IllegalStateException("permissions");

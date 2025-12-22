@@ -30,7 +30,6 @@ public class BatchViewFilter {
 
     private Integer userId;
     private Integer creatorId;
-    private List<Integer> superAdminUserIds;
     private List<Integer> batchIds;
     private Set<State> state;
     private String filePattern;
@@ -54,15 +53,6 @@ public class BatchViewFilter {
 
     public BatchViewFilter setCreatorId(Integer creatorId) {
         this.creatorId = creatorId;
-        return this;
-    }
-
-    public List<Integer> getSuperAdminUserIds() {
-        return superAdminUserIds;
-    }
-
-    public BatchViewFilter setSuperAdminUserIds(List<Integer> superAdminUserIds) {
-        this.superAdminUserIds = superAdminUserIds;
         return this;
     }
 

@@ -30,8 +30,10 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
@@ -64,6 +66,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.transform.stream.StreamSource;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_SOFTWARE_IN_USE;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 
 /**
  * Resource to manage softwares producing digital objects.
@@ -81,6 +84,7 @@ public class SoftwareResourceV1 {
     private final HttpHeaders httpHeaders;
     private final SessionContext session;
     private final SoftwareRepository devRepo;
+    protected final UserProfile user;
 
     public SoftwareResourceV1(
             @Context Request request,
@@ -94,6 +98,7 @@ public class SoftwareResourceV1 {
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         this.session = SessionContext.from(httpRequest);
+        this.user = session.getUser();
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
             this.devRepo = new SoftwareRepository(FedoraStorage.getInstance(appConfig));
             this.akubraConfiguration = null;
@@ -110,6 +115,8 @@ public class SoftwareResourceV1 {
     public SmartGwtResponse<Software> deleteSoftware(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
             ) throws SoftwareException {
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
         try {
             boolean deleted = devRepo.deleteSoftware(id, session.asFedoraLog());
@@ -200,6 +207,10 @@ public class SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
+
+
         try {
             String owner = session.getUser().getUserName();
             Software software = devRepo.addSoftware(owner, model, label == null || label.isEmpty() ? "?" : label, session.asFedoraLog());
@@ -244,6 +255,8 @@ public class SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) throws SoftwareException {
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing software!");

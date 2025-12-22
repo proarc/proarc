@@ -142,10 +142,7 @@ public class SolrUtils {
         return getListFilterQuery(models, FIELD_MODEL);
     }
 
-    public static String getUserQuery(List<String> usernames, Boolean allowAllForUser) {
-        if (allowAllForUser == Boolean.TRUE) {
-            return null;
-        }
+    public static String getUserQuery(List<String> usernames) {
         return getListFilterQuery(usernames, FIELD_USER);
     }
 

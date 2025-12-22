@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.software.Software;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.SoftwareResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.SoftwareResourceApi;
@@ -43,6 +44,8 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  * Resource to manage software producing digital objects.
@@ -69,6 +72,10 @@ public class SoftwareResource extends SoftwareResourceV1 {
     public SmartGwtResponse<Software> deleteSoftware(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
             ) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+
         try {
             return super.deleteSoftware(id);
         } catch (Throwable t) {
@@ -134,6 +141,9 @@ public class SoftwareResource extends SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         try {
             return super.newSoftware(label, model, setOfIds, type, description, timestamp);
         } catch (Throwable t) {
@@ -152,6 +162,9 @@ public class SoftwareResource extends SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
+        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, SoftwareResourceApi.SOFTWARE_ITEM_ID, SoftwareResourceApi.SOFTWARE_ITEM_MODEL));
         }

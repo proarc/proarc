@@ -218,18 +218,6 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         cmd.join(table.userId, ut.id);
         if (filter.getCreatorId() != null) {
             cmd.where(ut.id.is(filter.getCreatorId()));
-        } else {
-            if (filter.getUserId() != null) {
-                if (filter.getSuperAdminUserIds() == null) {
-                    cmd.where(ut.id.in(new Integer[]{1, filter.getUserId()}));
-                } else {
-                    List<Integer> superAdminIds = filter.getSuperAdminUserIds();
-                    superAdminIds.add(1);
-                    superAdminIds.add(filter.getUserId());
-                    cmd.where(ut.id.in(superAdminIds));
-                }
-                //cmd.where(ut.id.is(filter.getUserId()));
-            }
         }
         if (filter.getBatchIds() != null && !filter.getBatchIds().isEmpty()) {
             List<Integer> batchIds = new ArrayList<>();

@@ -35,7 +35,6 @@ import com.smartgwt.client.widgets.form.fields.ComboBoxItem;
 import com.smartgwt.client.widgets.form.fields.FormItem;
 import com.smartgwt.client.widgets.form.fields.PasswordItem;
 import com.smartgwt.client.widgets.form.fields.RowSpacerItem;
-import com.smartgwt.client.widgets.form.fields.SelectItem;
 import com.smartgwt.client.widgets.form.fields.SubmitItem;
 import com.smartgwt.client.widgets.form.fields.TextItem;
 import com.smartgwt.client.widgets.form.validator.LengthRangeValidator;
@@ -227,25 +226,48 @@ public final class UsersView implements RefreshAction.Refreshable {
         ComboBoxItem organization = new ComboBoxItem(UserResourceApi.USER_ORGANIZATION);
         organization.setCanEdit(admin);
         organization.setValueMap(Organization.getMap());
-        SelectItem role = new SelectItem(UserResourceApi.USER_ROLE);
-        role.setCanEdit(admin);
-        role.setValueMap(UserRole.getMap());
-        BooleanItem changeModelFunction = new BooleanItem(UserResourceApi.USER_RUN_CHANGE_MODEL_FUNCTION);
+
+        BooleanItem changeModelFunction = new BooleanItem(UserResourceApi.FUNCTION_CHANGE_MODEL);
         changeModelFunction.setCanEdit(admin);
-        BooleanItem updateModelFunction = new BooleanItem(UserResourceApi.USER_RUN_UPDATE_MODEL_FUNCTION);
+        BooleanItem updateModelFunction = new BooleanItem(UserResourceApi.FUNCTION_UPDATE_MODEL);
         updateModelFunction.setCanEdit(admin);
-        BooleanItem lockObjectFunction = new BooleanItem(UserResourceApi.USER_RUN_LOCK_OBJECT_FUNCTION);
+        BooleanItem lockObjectFunction = new BooleanItem(UserResourceApi.FUNCTION_LOCK_OBJECT);
         lockObjectFunction.setCanEdit(admin);
-        BooleanItem unlockObjectFunction = new BooleanItem(UserResourceApi.USER_RUN_UNLOCK_OBJECT_FUNCTION);
+        BooleanItem unlockObjectFunction = new BooleanItem(UserResourceApi.FUNCTION_UNLOCK_OBJECT);
         unlockObjectFunction.setCanEdit(admin);
-        BooleanItem importToProdFunction = new BooleanItem(UserResourceApi.USER_IMPORT_TO_PROD_FUNCTION);
+        BooleanItem importToProdFunction = new BooleanItem(UserResourceApi.FUNCTION_IMPORT_TO_PROD);
         importToProdFunction.setCanEdit(admin);
-        BooleanItem czidloFunctio = new BooleanItem(UserResourceApi.USER_CZIDLO_FUNCTION);
+        BooleanItem czidloFunctio = new BooleanItem(UserResourceApi.FUNCTION_CZIDLO);
         czidloFunctio.setCanEdit(admin);
-        BooleanItem wfDeleteJobFunction = new BooleanItem(UserResourceApi.USER_WF_DELETE_JOB_FUNCTION);
+        BooleanItem wfDeleteJobFunction = new BooleanItem(UserResourceApi.FUNCTION_WF_DELETE_JOB);
         wfDeleteJobFunction.setCanEdit(admin);
-        BooleanItem importToCatalogFunction = new BooleanItem(UserResourceApi.USER_IMPORT_TO_CATALOG_FUNCTION);
+        BooleanItem importToCatalogFunction = new BooleanItem(UserResourceApi.FUNCTION_IMPORT_TO_CATALOG);
         importToCatalogFunction.setCanEdit(admin);
+        BooleanItem changeObjectsOwnerFunction = new BooleanItem(UserResourceApi.FUNCTION_CHANGE_OBJECTS_OWNER);
+        changeObjectsOwnerFunction.setCanEdit(admin);
+        BooleanItem changePagesFunction = new BooleanItem(UserResourceApi.FUNCTION_CHANGE_PAGES);
+        changePagesFunction.setCanEdit(admin);
+        BooleanItem deviceFunction = new BooleanItem(UserResourceApi.FUNCTION_DEVICE);
+        deviceFunction.setCanEdit(admin);
+        BooleanItem wfCreateJobFunction = new BooleanItem(UserResourceApi.FUNCTION_WF_CREATE_JOB);
+        wfCreateJobFunction.setCanEdit(admin);
+        BooleanItem createUserFunction = new BooleanItem(UserResourceApi.FUNCTION_CREATE_USER);
+        createUserFunction.setCanEdit(admin);
+        BooleanItem updateUserFunction = new BooleanItem(UserResourceApi.FUNCTION_UPDATE_USER);
+        updateUserFunction.setCanEdit(admin);
+        BooleanItem deleteUserFunction = new BooleanItem(UserResourceApi.FUNCTION_DELETE_USER);
+        deleteUserFunction.setCanEdit(admin);
+        BooleanItem solrFunction = new BooleanItem(UserResourceApi.FUNCTION_SOLR);
+        solrFunction.setCanEdit(admin);
+        BooleanItem deleteActionFunction = new BooleanItem(UserResourceApi.FUNCTION_DELETE_ACTION);
+        deleteActionFunction.setCanEdit(admin);
+        BooleanItem allObjectsFunction = new BooleanItem(UserResourceApi.FUNCTION_ALL_OBJECTS);
+        allObjectsFunction.setCanEdit(admin);
+        BooleanItem prepareBatchFunction = new BooleanItem(UserResourceApi.FUNCTION_PREPARE_BATCH);
+        prepareBatchFunction.setCanEdit(admin);
+        BooleanItem sysAdminFunction = new BooleanItem(UserResourceApi.FUNCTION_SYS_ADMIN);
+        sysAdminFunction.setCanEdit(admin);
+
         TextItem email = new TextItem(UserResourceApi.USER_EMAIL);
         email.setColSpan("*");
         email.setWidth(300);
@@ -287,7 +309,17 @@ public final class UsersView implements RefreshAction.Refreshable {
         cancel.setStartRow(false);
 
         form.setFields(username, password, forename, surname, email,
-                remoteName, remoteType, organization, role, home, changeModelFunction, updateModelFunction, lockObjectFunction, unlockObjectFunction, importToProdFunction, czidloFunctio, wfDeleteJobFunction, importToCatalogFunction,
+                remoteName, remoteType, organization, home,
+                new RowSpacerItem(),
+                changeModelFunction, updateModelFunction, changeObjectsOwnerFunction, changePagesFunction, deleteActionFunction, allObjectsFunction, lockObjectFunction, unlockObjectFunction,
+                new RowSpacerItem(),
+                importToProdFunction, czidloFunctio, deviceFunction, prepareBatchFunction, importToCatalogFunction,
+                new RowSpacerItem(),
+                sysAdminFunction, solrFunction,
+                new RowSpacerItem(),
+                createUserFunction, updateUserFunction, deleteUserFunction,
+                new RowSpacerItem(),
+                wfCreateJobFunction, wfDeleteJobFunction,
                 new RowSpacerItem(), submit, cancel);
 
         return form;
