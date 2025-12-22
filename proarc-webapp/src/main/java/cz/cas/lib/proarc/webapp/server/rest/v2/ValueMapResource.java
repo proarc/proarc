@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v2;
 
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.ValueMapResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,6 +30,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Provides value maps used by form pick lists.
@@ -44,7 +46,7 @@ public class ValueMapResource extends ValueMapResourceV1 {
     public ValueMapResource(
             @Context HttpHeaders httpHeaders,
             @Context HttpServletRequest httpRequest
-    ) {
+    ) throws AppConfigurationException {
     super(httpHeaders, httpRequest);
     }
 
@@ -58,4 +60,17 @@ public class ValueMapResource extends ValueMapResourceV1 {
             return SmartGwtResponse.asError(t);
         }
     }
+
+    @GET
+    @Path(ValueMapResourceApi.PERO_OCR_ENGINE)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ValueMap> getPeroOcrEngines() {
+        try {
+            return super.getPeroOcrEngines();
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return SmartGwtResponse.asError(t);
+        }
+    }
+
 }

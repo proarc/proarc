@@ -144,7 +144,7 @@ public final class InternalExternalProcess implements Runnable {
     private Batch peroProcess(Batch batch, BatchParams params) {
         try {
             PeroProcess peroProcess = new PeroProcess(config, akubraConfiguration);
-            PeroProcess.Result result = peroProcess.generateAlto(params.getPids(), options.getFolder());
+            PeroProcess.Result result = peroProcess.generateAlto(params.getPids(), options.getFolder(), params.getPeroOcrEngine());
             if (result.getException() != null) {
                 batch = finishedExternalWithError(this.batchManager, batch, batch.getFolder(), result.getException());
                 throw result.getException();
