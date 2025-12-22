@@ -85,10 +85,10 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
             String device, String software, boolean generateIndices, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata,
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine,
             ImportProfile profile, AppConfiguration config
             ) throws IOException {
-        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, profile, config);
+        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, profile, config);
     }
 
     /**
@@ -99,13 +99,13 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
             String device, String software, boolean generateIndices, boolean generatePageNumber, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata, ImportProfile profile, AppConfiguration config
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, ImportProfile profile, AppConfiguration config
             ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device, software,
                 generateIndices, generatePageNumber, user, profile, priority, useNewMetadata, useOriginalMetadata);
         ImportProcess process = new ImportProcess(options, batchManager, config);
-        process.prepare(description, user);
+        process.prepare(description, user, peroOcrEngine);
         return process;
     }
 
@@ -186,7 +186,7 @@ public final class ImportProcess implements Runnable {
         return profile;
     }
 
-    private void prepare(String description, UserProfile user) throws IOException {
+    private void prepare(String description, UserProfile user, Integer peroOcrEngine) throws IOException {
         // validate import folder
         File importFolder = importConfig.getImportFolder();
         ImportFileScanner.validateImportFolder(importFolder);
@@ -207,6 +207,7 @@ public final class ImportProcess implements Runnable {
                     description,
                     user,
                     estimateItemNumber,
+                    peroOcrEngine,
                     importConfig);
             importConfig.setBatch(batch);
             transactionFailed = false;

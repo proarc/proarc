@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,6 +53,27 @@ public class FileIngest {
             ingestImp(file, context);
         } catch (Exception ex) {
             throw new IllegalStateException(file.getAbsolutePath(), ex);
+        }
+    }
+
+    public void replaceDevice(String pid, ImportProcess.ImportOptions context) {
+        try {
+            ProArcObject fo = null;
+            if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
+                fo = iSession.getRemotes().find(pid);
+            } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                fo = iSession.getAkubraStorage().find(pid);
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
+            }
+
+            RelationEditor relationEditor = new RelationEditor(fo);
+            relationEditor.setDevice(context.getDevice());
+            relationEditor.write(relationEditor.getLastModified(), "Update device from replace stream import.");
+
+            fo.flush();
+        } catch (Exception ex) {
+            throw new IllegalStateException(pid, ex);
         }
     }
 
@@ -114,7 +136,7 @@ public class FileIngest {
                 editor = new BinaryEditor(fo, FoxmlUtils.managedProfile(BinaryEditor.NDK_ARCHIVAL_ID, mime, BinaryEditor.NDK_ARCHIVAL_LABEL));
             }
             editor.write(file, editor.getLastModified(), null);
-            MixEditor mixEditor = MixEditor.raw(fo);
+            MixEditor mixEditor = MixEditor.ndkArchival(fo);
             mixEditor.write(file, context.getJhoveContext(), mixEditor.getLastModified(), null);
             return true;
         } else if (BinaryEditor.NDK_USER_ID.equals(dsId)) {

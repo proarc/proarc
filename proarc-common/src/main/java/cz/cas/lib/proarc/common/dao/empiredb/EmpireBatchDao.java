@@ -199,7 +199,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public List<BatchView> view(Integer userId, Integer batchId, Set<State> state,
             Timestamp from, Timestamp to, int offset, int maxCount, String sortBy) {
 
-        return view(new BatchViewFilter().setUserId(userId).setBatchId(batchId)
+        return view(new BatchViewFilter().setUserId(userId).setBatchIds(Collections.singletonList(batchId))
                 .setState(state).setCreatedFrom(from).setCreatedTo(to)
                 .setOffset(offset).setMaxCount(maxCount).setSortBy(sortBy));
     }
@@ -219,8 +219,16 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         if (filter.getCreatorId() != null) {
             cmd.where(ut.id.is(filter.getCreatorId()));
         }
-        if (filter.getBatchId() != null) {
-            cmd.where(table.id.is(filter.getBatchId()));
+        if (filter.getBatchIds() != null && !filter.getBatchIds().isEmpty()) {
+            List<Integer> batchIds = new ArrayList<>();
+            for (Integer batchId : filter.getBatchIds()) {
+                if (batchId != null && batchId > 0) {
+                    batchIds.add(batchId);
+                }
+            }
+            if (!batchIds.isEmpty()) {
+                cmd.where(table.id.in(batchIds));
+            }
         }
         if (filter.getState() != null && !filter.getState().isEmpty()) {
             cmd.where(table.state.in(filter.getState()));

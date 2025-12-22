@@ -5,6 +5,11 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
 
+### GET value map
+GET {{proarcUrl}}/rest/v2/valuemap/pero
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
 ###
 
 GET {{proarcUrl}}/rest/v2/object/streamprofile?pid=uuid%3A3aa95cfd-ec72-4f44-8e78-21edb336cb8f
@@ -216,6 +221,12 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+###
+
+DELETE {{proarcUrl}}/rest/v2/import/batch?id=53&id=55&id=57&id=57
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
 ###
 

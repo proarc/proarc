@@ -17,13 +17,13 @@
 
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.StringEditor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +37,9 @@ import java.util.Map;
  *
  */
 public class Const {
+
+    public final static String EMPTY_VALUE = "[empty]";
+
     public final static String FEDORAPREFIX = "info:fedora/";
     public static HashMap<String, List<String>> streamMapping;
     public static HashMap<String, List<String>> audioStremMapping;

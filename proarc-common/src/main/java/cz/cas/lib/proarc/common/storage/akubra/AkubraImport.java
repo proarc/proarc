@@ -31,6 +31,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
@@ -493,17 +494,24 @@ public final class AkubraImport {
         List<BatchItemObject> batchItems = ibm.findBatchObjects(batch.getId(), null);
         ArrayList<Hierarchy> songsPid = new ArrayList<>();
         ArrayList<ArrayList<Hierarchy>> tracksPid = new ArrayList<>();
+        ArrayList<Hierarchy> supplementsPid = new ArrayList<>();
+        ArrayList<String> pagePids = new ArrayList<>();
 
-        boolean hierarchyCreated = createPidHierarchy(batchItems, documentPid, songsPid, tracksPid, pids);
+        boolean hierarchyCreated = createPidHierarchy(batchItems, documentPid, songsPid, tracksPid, supplementsPid, pagePids, pids);
 
-        if (!hierarchyCreated) {
-            return;
-        }
         try {
+            if (!hierarchyCreated) {
+                setParent(documentPid, pids, message);
+                return;
+            }
+
             if (tracksPid.size() == 0) {
                 createModels(documentPid, songsPid, message);
             } else if (tracksPid.size() != 0) {
                 createModels(documentPid, songsPid, tracksPid, message);
+            }
+            if (!pagePids.isEmpty()) {
+                createModelsSupplement(documentPid, supplementsPid, pagePids, message);
             }
         } catch (DigitalObjectException ex) {
             LOG.log(Level.WARNING, "Nepodarilo se automaticky vytvorit hierarchii objektu, protoze se nepodarilo vytvorit objekt " + ex.getPid());
@@ -511,6 +519,22 @@ public final class AkubraImport {
         }
         return;
     }
+
+    private void createModelsSupplement(String documentPid, ArrayList<Hierarchy> supplementsPid, List<String> pids, String message) throws DigitalObjectException {
+        if (pids != null && !pids.isEmpty()) {
+            DigitalObjectManager dom = DigitalObjectManager.getDefault();
+            String pid = "";
+            for (Hierarchy supplement : supplementsPid) {
+                if (pid != supplement.getParent()) {
+                    pid = supplement.getParent();
+                    DigitalObjectManager.CreateHandler supplementHandler = dom.create(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, pid, documentPid, user, null, "create new object with pid: " + supplementsPid.get(0));
+                    supplementHandler.create();
+                }
+                setParent(supplement.getParent(), pids, message);
+            }
+        }
+    }
+
 
     private void createModels(String documentPid, ArrayList<Hierarchy> songsPid, String message)  throws  DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();

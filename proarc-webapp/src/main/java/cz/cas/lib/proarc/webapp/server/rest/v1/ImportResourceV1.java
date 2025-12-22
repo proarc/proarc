@@ -246,7 +246,8 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine
             ) throws URISyntaxException, IOException {
         
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}, software: {3}",
@@ -265,7 +266,7 @@ public class ImportResourceV1 {
             for (File importFile : folder.listFiles()) {
                 if (importFile.exists() && importFile.isDirectory()) {
                     ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
-                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, appConfig.getImportConfiguration(profile), appConfig);
+                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, appConfig.getImportConfiguration(profile), appConfig);
                     ImportDispatcher.getDefault().addImport(process);
                     listBatches.add(process.getBatch());
                 }
@@ -273,7 +274,7 @@ public class ImportResourceV1 {
             return new SmartGwtResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, appConfig.getImportConfiguration(profile), appConfig);
+                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
             return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -296,7 +297,7 @@ public class ImportResourceV1 {
         File importFolder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, ConfigurationProfile.GENERATE_ALTO_OCR);
         ImportProcess process = ImportProcess.prepare(importFolder, folderPath, user,
-                importManager, null, null, false, null, false, false, appConfig.getImportConfiguration(profile), appConfig);
+                importManager, null, null, false, null, false, false, null, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -314,7 +315,8 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -334,7 +336,7 @@ public class ImportResourceV1 {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, appConfig.getImportConfiguration(profile), appConfig);
+                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {
@@ -383,19 +385,19 @@ public class ImportResourceV1 {
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public SmartGwtResponse<BatchView> deleteBatch(
-            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) List<Integer> batchIds,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
         checkPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN);
 
-        if (batchId == null && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
+        if (batchIds == null && batchIds.isEmpty() && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing values in parameters.");
         }
 
         BatchViewFilter filterAll = new BatchViewFilter()
-                .setBatchId(batchId)
+                .setBatchIds(batchIds)
                 .setUserId(creatorId)
                 .setCreatorId(creatorId)
                 .setState(batchState)
@@ -455,7 +457,7 @@ public class ImportResourceV1 {
             size = 100;
         }
         BatchViewFilter filterAll = new BatchViewFilter()
-                    .setBatchId(batchId)
+                    .setBatchIds(Collections.singletonList(batchId))
                     .setCreatorId(creatorId)
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
@@ -475,7 +477,7 @@ public class ImportResourceV1 {
 
 
         BatchViewFilter filter = new BatchViewFilter()
-                .setBatchId(batchId)
+                .setBatchIds(Collections.singletonList(batchId))
                 .setCreatorId(creatorId)
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())

@@ -93,7 +93,7 @@ public class K7Importer {
                         LOG.warning("Created Kramerius import success, but ProArc does not get id of this process, so state is unknown.");
                         throw new IOException("Created Kramerius import success, but ProArc does not get id of this process, so state is unknown.");
                     }
-                    KUtils.ImportState state = getState(processUuid, token);
+                    KUtils.ImportState state = getState(processUuid, token, instance);
                     LOG.info("Requesting Kramerius import success, server response is (process: " + state.getProcessState() + ", batch: " + state.getBatchState() + ").");
                     return state;
                 } else {
@@ -117,7 +117,7 @@ public class K7Importer {
         return "PUBLIC".equalsIgnoreCase(policy) ? "PUBLIC" : "PRIVATE";
     }
 
-    private KUtils.ImportState getState(String processUuid, String token) throws IOException, InterruptedException, JSONException {
+    public static KUtils.ImportState getState(String processUuid, String token, KrameriusOptions.KrameriusInstance instance) throws IOException, InterruptedException, JSONException {
 
         String processQueryUrl = instance.getUrl() + instance.getUrlStateQuery() + processUuid;
         LOG.info("Trying to get Kramerius process status " + processQueryUrl);

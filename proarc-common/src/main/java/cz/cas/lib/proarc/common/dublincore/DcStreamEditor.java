@@ -78,6 +78,20 @@ public final class DcStreamEditor {
         return new DublinCoreRecord(dc, editor.getLastModified(), object.getPid());
     }
 
+    public String readAsString() throws DigitalObjectException {
+        Source src = editor.read();
+        OaiDcType dc;
+        if (src != null) {
+            dc = DcUtils.unmarshal(src, OaiDcType.class);
+        } else {
+            dc = new OaiDcType();
+        }
+        if (dc != null) {
+            return DcUtils.toXml(dc, true);
+        }
+        return null;
+    }
+
     public void write(DigitalObjectHandler handler, DublinCoreRecord record, String message) throws DigitalObjectException {
         addDigitalObjectMetadata(handler, record.getDc());
         write(record, message);

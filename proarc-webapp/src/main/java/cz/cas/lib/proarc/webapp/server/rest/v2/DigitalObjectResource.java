@@ -603,14 +603,15 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     public SmartGwtResponse<SearchViewItem> updateDescriptionMetadataObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
-            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla
     ) {
 
         if (pids == null || pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
-            return super.updateDescriptionMetadataObjects(pids, partNumber, signatura);
+            return super.updateDescriptionMetadataObjects(pids, partNumber, signatura, sigla);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());

@@ -92,6 +92,7 @@ public final class AppConfiguration {
     private static final String PROPERTY_FEDORA_CLIENT_USERNAME = "fedora.client.username";
     private static final String PROPERTY_USERS_HOME = "proarc.users.home";
     private static final String PROPERTY_STORAGE = "proarc.storage";
+    private static final String PROPERTY_STATE_LOCATION = "proarc.app.state";
     private static final String PROPERTY_SESSION_TIMEOUT = "proarc.sessionTimeout";
     public static final String EXPORT_KWIS_POST_PROCESSOR = "export.export_post_processor.processor";
     public static final String EXPORT_BAGIT_POST_PROCESSOR = "export.bagit_post_processor.processor";
@@ -145,6 +146,19 @@ public final class AppConfiguration {
             throw new IllegalStateException("Unsupported value " + config.getString(PROPERTY_STORAGE) + " in element " + PROPERTY_STORAGE);
         }
         return storage;
+    }
+
+    public String getStateLocation() {
+        String stateLocation = config.getString(PROPERTY_STATE_LOCATION);
+        if (stateLocation == null) {
+            return "CZ";
+        }
+        return stateLocation;
+    }
+
+    public Boolean isUrnNbnRequired() {
+        String state = getStateLocation();
+        return "CZ".equalsIgnoreCase(state);
     }
 
     public Configuration getExportPostProcessor() {

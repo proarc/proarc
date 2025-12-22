@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.webapp.server.rest.v1.ValueMapResourceV1;
 public class ValueMapResourceApi {
 
     public static final String PATH = "valuemap";
+    public static final String PERO_OCR_ENGINE = "pero";
 
     public static final String RESULT_MAPID = "mapId";
     public static final String RESULT_VALUES = "values";
