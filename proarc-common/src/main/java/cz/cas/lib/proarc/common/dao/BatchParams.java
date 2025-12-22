@@ -1,11 +1,7 @@
 package cz.cas.lib.proarc.common.dao;
 
+import javax.xml.bind.annotation.*;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement(name = "params")
 @XmlAccessorType(XmlAccessType.PROPERTY)
@@ -31,6 +27,7 @@ public class BatchParams {
     private Boolean purge;
     private Boolean restore;
     private String type;
+    private Integer peroOcrEngine;
 
     public BatchParams() {}
 
@@ -284,5 +281,14 @@ public class BatchParams {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    @XmlElement(name = "peroOcrEngine")
+    public Integer getPeroOcrEngine() {
+        return (peroOcrEngine == null || peroOcrEngine < 1) ? 1 : peroOcrEngine;
+    }
+
+    public void setPeroOcrEngine(Integer peroOcrEngine) {
+        this.peroOcrEngine = peroOcrEngine;
     }
 }

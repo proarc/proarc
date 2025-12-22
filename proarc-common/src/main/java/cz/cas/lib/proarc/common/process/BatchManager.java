@@ -18,18 +18,10 @@ package cz.cas.lib.proarc.common.process;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
-import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.*;
 import cz.cas.lib.proarc.common.dao.Batch.State;
-import cz.cas.lib.proarc.common.dao.BatchDao;
-import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
-import cz.cas.lib.proarc.common.dao.BatchItemDao;
-import cz.cas.lib.proarc.common.dao.BatchParams;
-import cz.cas.lib.proarc.common.dao.BatchView;
-import cz.cas.lib.proarc.common.dao.BatchViewFilter;
-import cz.cas.lib.proarc.common.dao.DaoFactory;
-import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportFolderStatus;
@@ -40,21 +32,14 @@ import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+
+import javax.xml.bind.JAXB;
+import java.io.*;
 import java.net.URI;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXB;
 
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.getTargetFolder;
 
@@ -274,7 +259,7 @@ public class BatchManager {
         }
     }
 
-    public Batch add(File folder, String title, UserProfile user, int itemNumber, ImportProcess.ImportOptions options) {
+    public Batch add(File folder, String title, UserProfile user, int itemNumber, Integer peroOcrEngine, ImportProcess.ImportOptions options) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(options.getDevice());
@@ -290,6 +275,11 @@ public class BatchManager {
         batch.setTitle(title);
         batch.setUserId(user.getId());
         batch.setProfileId(options.getConfig().getProfileId());
+
+        BatchParams params = new BatchParams();
+        params.setPeroOcrEngine(peroOcrEngine);
+        batch.setParamsFromObject(params);
+
         Batch updated = update(batch);
         updateFolderStatus(updated);
         return updated;
