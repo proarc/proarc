@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,10 +66,12 @@ public class ReplaceStreamImport implements ImportHandler {
         batch.setState(Batch.State.INGESTING);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         iSession.getImportManager().update(batch);
+        HashSet<String> uuids = new HashSet<>();
 
         try {
             List<File> importFiles = ReplaceStreamScanner.findFile(importConfig.getImportFolder());
             for (File file : importFiles) {
+                uuids.add(FileReader.getPid(file));
                 if (Thread.interrupted()) {
                     throw new InterruptedException();
                 }
@@ -76,10 +79,17 @@ public class ReplaceStreamImport implements ImportHandler {
             }
             importFiles = ReplaceStreamScanner.findFile(importConfig.getTargetFolder());
             for (File file : importFiles) {
+                uuids.add(FileReader.getPid(file));
                 if (Thread.interrupted()) {
                     throw new InterruptedException();
                 }
                 ingestFile(file, importConfig);
+            }
+
+            if (importConfig.getDevice() != null && !importConfig.getDevice().isEmpty()) {
+                for (String uuid : uuids) {
+                    replaceDevice(uuid, importConfig);
+                }
             }
             batch.setState(Batch.State.INGESTED);
             batch.setUpdated(new Timestamp(System.currentTimeMillis()));
@@ -93,6 +103,11 @@ public class ReplaceStreamImport implements ImportHandler {
             iSession.getImportManager().update(batch);
         }
 
+    }
+
+    private void replaceDevice(String uuid, ImportProcess.ImportOptions importConfig) {
+        FileIngest ingest = new FileIngest(iSession);
+        ingest.replaceDevice(uuid, importConfig);
     }
 
     private void ingestFile(File file, ImportProcess.ImportOptions importConfig) {

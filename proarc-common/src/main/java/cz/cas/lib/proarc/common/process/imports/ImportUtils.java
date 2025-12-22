@@ -1,7 +1,18 @@
 package cz.cas.lib.proarc.common.process.imports;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,7 +25,7 @@ public class ImportUtils {
 
     private static final Logger LOG = Logger.getLogger(ImportUtils.class.getName());
 
-    public static boolean createPidHierarchy(List<BatchManager.BatchItemObject> batchItems, String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, List<String> pids) {
+    public static boolean createPidHierarchy(List<BatchManager.BatchItemObject> batchItems, String documentPid, ArrayList<Hierarchy> songsPid, ArrayList<ArrayList<Hierarchy>> tracksPid, List<Hierarchy> supplementsPid, List<String> pagePids, List<String> pids) {
         pids.clear();
         String pid = "";
 
@@ -59,15 +70,52 @@ public class ImportUtils {
                         return false;
                     }
                 } else {
-                    pids.add(batchItem.getPid());
+                    if (supplementsPid.isEmpty()) {
+                        pid = FoxmlUtils.createPid();
+                        Hierarchy supplementHierarchy = new Hierarchy(pid, null);
+                        supplementsPid.add(supplementHierarchy);
+                    }
+                    pagePids.add(batchItem.getPid());
                     continue;
                 }
             } catch (Exception ex) {
-                pids.add(batchItem.getPid());
-                continue;
+                if (isPage(batchItem)) {
+                    if (supplementsPid.isEmpty()) {
+                        pid = FoxmlUtils.createPid();
+                        Hierarchy supplementHierarchy = new Hierarchy(pid, null);
+                        supplementsPid.add(supplementHierarchy);
+                    }
+                    pagePids.add(batchItem.getPid());
+                    continue;
+                } else {
+                    pids.add(batchItem.getPid());
+                    continue;
+                }
             }
         }
         return true;
+    }
+
+    private static boolean isPage(BatchManager.BatchItemObject item) {
+        try {
+            ProArcObject object = null;
+            AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
+            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
+                object = rstorage.find(item.getPid());
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
+                AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
+                object = akubraStorage.find(item.getPid());
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+            }
+            RelationEditor localRelEditor = new RelationEditor(object);
+            String modelId = localRelEditor.getModel();
+            return NdkPlugin.MODEL_PAGE.equals(modelId) || NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static List<BatchManager.BatchItemObject> sortBatchItems(List<BatchManager.BatchItemObject> batchItems) {

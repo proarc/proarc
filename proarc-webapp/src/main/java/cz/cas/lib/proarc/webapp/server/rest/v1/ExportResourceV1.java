@@ -428,7 +428,11 @@ public class ExportResourceV1 {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
         }
         try {
-            ExportUtils.missingUrnNbn(pids, ignoreMissingUrnNbn, appConfig, akubraConfiguration);
+            if (appConfig.isUrnNbnRequired()) {
+                ExportUtils.missingUrnNbn(pids, ignoreMissingUrnNbn, appConfig, akubraConfiguration);
+            } else {
+                ignoreMissingUrnNbn = true;
+            }
         } catch (MetsExportException ex) {
             ExportResult result = new ExportResult(ex.getExceptions());
             result.setIgnoreMissingUrnNbn(true);
@@ -528,7 +532,11 @@ public class ExportResourceV1 {
         }
 
         try {
-            ExportUtils.missingUrnNbn(pids, ignoreMissingUrnNbn, appConfig, akubraConfiguration);
+            if (appConfig.isUrnNbnRequired()) {
+                ExportUtils.missingUrnNbn(pids, ignoreMissingUrnNbn, appConfig, akubraConfiguration);
+            } else {
+                ignoreMissingUrnNbn = true;
+            }
         } catch (MetsExportException ex) {
             ExportResult result = new ExportResult(ex.getExceptions());
             result.setIgnoreMissingUrnNbn(true);

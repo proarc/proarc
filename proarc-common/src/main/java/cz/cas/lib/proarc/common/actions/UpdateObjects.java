@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.SearchView;
@@ -41,6 +42,7 @@ import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
@@ -49,6 +51,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+
+import static cz.cas.lib.proarc.common.object.ndk.ModsRules.ERR_NDK_PHYSICALLOCATION_SIGLA;
 
 /**
  * @author Lukas Sykora
@@ -62,6 +66,7 @@ public class UpdateObjects {
     private List<String> updatedPids;
     private Integer partNumberValue;
     private String signaturaValue;
+    private String siglaValue;
 
     public UpdateObjects(AppConfiguration appConfig, AkubraConfiguration akubraConfig, Locale locale) {
         this.appConfig = appConfig;
@@ -118,8 +123,21 @@ public class UpdateObjects {
         }
     }
 
-    public void updateObjects(String signatura) throws DigitalObjectException {
+    public void updateObjects(String signatura, String sigla) throws DigitalObjectException {
         this.signaturaValue = signatura;
+        this.siglaValue = sigla;
+        if (updatedPids!= null && !updatedPids.isEmpty()) {
+            if (sigla != null && !sigla.isEmpty()) {
+                List<String> accepted = appConfig.getModsOptions().getAcceptableSiglaId();
+                if (!accepted.contains(sigla)) {
+                    DigitalObjectValidationException ex = new DigitalObjectValidationException(updatedPids.get(0), null,
+                            ModsStreamEditor.DATASTREAM_ID, "MODS validation", null);
+                    ex.addValidation("MODS rules", ERR_NDK_PHYSICALLOCATION_SIGLA, false, sigla);
+                    throw ex;
+                }
+            }
+        }
+
         for (String pid : updatedPids) {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
             ProArcObject fo = dom.find(pid, null);
@@ -153,16 +171,16 @@ public class UpdateObjects {
 
     private void updateMods(ModsDefinition mods, String model) throws DigitalObjectException {
         if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model)) {
-            setSignatura(mods);
+            setSiglaAndSignatura(mods);
             setPartNumber(mods);
         } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(model)) {
-            setSignatura(mods);
+            setSiglaAndSignatura(mods);
             setPartNumber(mods);
         } else if (NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(model)) {
-            setSignatura(mods);
+            setSiglaAndSignatura(mods);
             setPartNumber(mods);
         } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(model)) {
-            setSignatura(mods);
+            setSiglaAndSignatura(mods);
             setPartNumber(mods);
         } else {
             throw new DigitalObjectException("Unsupported model: " + model);
@@ -171,6 +189,8 @@ public class UpdateObjects {
 
     private void setPartNumber(ModsDefinition mods) {
         if (this.partNumberValue == null) {
+            return;
+        } else if (this.partNumberValue == -1) {
             if (mods.getTitleInfo().isEmpty()) {
                 mods.getTitleInfo().add(new TitleInfoDefinition());
             }
@@ -198,18 +218,34 @@ public class UpdateObjects {
         }
     }
 
-    private void setSignatura(ModsDefinition mods) {
-        if (this.signaturaValue != null) {
+    private void setSiglaAndSignatura(ModsDefinition mods) {
+        if (this.siglaValue != null || this.signaturaValue != null) {
             if (mods.getLocation().isEmpty()) {
                 mods.getLocation().add(new LocationDefinition());
             }
             for (LocationDefinition location : mods.getLocation()) {
-                if (location.getShelfLocator().isEmpty()) {
-                    location.getShelfLocator().add(new StringPlusLanguage());
+                if (this.siglaValue != null) {
+                    if (location.getPhysicalLocation().isEmpty()) {
+                        location.getPhysicalLocation().add(new PhysicalLocationDefinition());
+                    }
+                    for (PhysicalLocationDefinition physicalLocation : location.getPhysicalLocation()) {
+                        physicalLocation.setValue(this.siglaValue);
+                        physicalLocation.setAuthority("siglaADR");
+                    }
                 }
-                for (StringPlusLanguage shelfLocator : location.getShelfLocator()) {
+                if (this.signaturaValue != null) {
+                    if (location.getShelfLocator().isEmpty()) {
+                        location.getShelfLocator().add(new StringPlusLanguage());
+                    }
+                    for (StringPlusLanguage shelfLocator : location.getShelfLocator()) {
                         shelfLocator.setValue(this.signaturaValue);
+                    }
                 }
+            }
+            if (mods.getLocation().size() > 0) {
+                LocationDefinition location = mods.getLocation().get(0);
+                mods.getLocation().clear();
+                mods.getLocation().add(location);
             }
         }
     }

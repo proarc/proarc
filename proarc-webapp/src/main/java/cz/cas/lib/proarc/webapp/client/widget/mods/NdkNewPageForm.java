@@ -218,7 +218,7 @@ public class NdkNewPageForm {
                 .addMapValue("spine", "H\u0159bet (Spine)")
                 .addMapValue("illustration", "Ilustrace (Illustration)")
                 .addMapValue("impressum", "Impressum (Impressum)")
-//                .addMapValue("calibrationTable", "Kalibrační tabulka (CalibrationTable)")
+                .addMapValue("calibrationTable", "Kalibrační tabulka (CalibrationTable)")
                 .addMapValue("map", "Mapa (Map)")
 //                .addMapValue("bibliographicalPortrait", "Medailonek (BibliographicalPortrait)")
                 .addMapValue("normalPage", "Norm\u00e1ln\u00ed strana (NormalPage)")

@@ -10,41 +10,20 @@ import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
-import cz.cas.lib.proarc.common.object.ndk.ModsRules;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.object.ndk.RdaRules;
+import cz.cas.lib.proarc.common.object.ndk.*;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveObjectProcessor;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.SearchViewItem;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
-import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
+import cz.cas.lib.proarc.common.storage.*;
+import cz.cas.lib.proarc.common.storage.akubra.*;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 
 import static cz.cas.lib.proarc.common.object.ndk.ModsRules.PAGE_PART_TYPE;
 
@@ -75,7 +54,7 @@ public class ValidationProcess {
             NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
             OldPrintPlugin.MODEL_CONVOLUTTE, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_SUPPLEMENT,
             OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_SHEETMUSIC,
-            NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
+//            NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
             CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, GraphicPlugin.MODEL_GRAPHIC,
             ChroniclePlugin.MODEL_CHRONICLEVOLUME, ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT
     ));
@@ -248,34 +227,72 @@ public class ValidationProcess {
 
         // validace potomku
         for (SearchViewItem child : children) {
-            validatePid(child, result, item, type);
+            if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(child.getModel()) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(child.getModel())) {
+                int indexPageValue = this.indexPageValue;
+                boolean reprePageValue = this.reprePageValue;
+                String positionPageValue = this.positionPageValue;
+                int pageTypeConver = pageTypeMap.get("cover");
+                int pageTypeFrontCover = pageTypeMap.get("frontCover");
+                int pageTypeBackCover = pageTypeMap.get("backCover");
+                int pageTypeSpine = pageTypeMap.get("spine");
+                int pageTypeJacket = pageTypeMap.get("jacket");
+                int pageTypeFrontEndPaper = pageTypeMap.get("frontEndPaper");
+                int pageTypeBackEndPaper = pageTypeMap.get("backEndPaper");
+                int pageTypeFrontJacket = pageTypeMap.get("frontJacket");
+                int pageTypeTitlePage = pageTypeMap.get("titlePage");
+
+                validatePid(child, result, item, type);
+
+                this.indexPageValue = indexPageValue;
+                this.reprePageValue = reprePageValue;
+                this.positionPageValue = positionPageValue;
+                pageTypeMap.put("cover", pageTypeConver);
+                pageTypeMap.put("frontCover", pageTypeFrontCover);
+                pageTypeMap.put("backCover", pageTypeBackCover);
+                pageTypeMap.put("spine", pageTypeSpine);
+                pageTypeMap.put("jacket", pageTypeJacket);
+                pageTypeMap.put("frontEndPaper", pageTypeFrontEndPaper);
+                pageTypeMap.put("backEndPaper", pageTypeBackEndPaper);
+                pageTypeMap.put("frontJacket", pageTypeFrontJacket);
+                pageTypeMap.put("titlePage", pageTypeTitlePage);
+
+
+            } else {
+                validatePid(child, result, item, type);
+            }
         }
 
         // urnnbn validace jako posledni
-        if (REQUIRED_URNNBN_MODELS.contains(model) && !ArchiveObjectProcessor.containUrnNbn(mods.getIdentifier())) {
-            if (!((NdkPlugin.MODEL_PERIODICALISSUE.equals(model) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model)) && containsBdmArticle(children))) {
-                result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní identifikátor URN:NBN.", Level.SEVERE));
+        if (appConfig.isUrnNbnRequired()) {
+            if (REQUIRED_URNNBN_MODELS.contains(model) && !ArchiveObjectProcessor.containUrnNbn(mods.getIdentifier())) {
+                if (!((NdkPlugin.MODEL_PERIODICALISSUE.equals(model) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model)) && containsBdmArticle(children))) {
+                    result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní identifikátor URN:NBN.", Level.SEVERE));
+                }
             }
         }
     }
 
     private void validateDateIssued(SearchViewItem item, ModsDefinition mods, SearchViewItem parentItem, Result result) {
         String dateIssued = getDateIssued(mods);
-        if (parentItem != null && NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentItem.getModel())) {
-            try {
-                ModsDefinition parentMods = getMods(parentItem.getPid());
-                String parentDateIssued = getDateIssued(parentMods);
-                if (dateIssued.contains(".")) {
-                    dateIssued = dateIssued.substring(dateIssued.lastIndexOf(".") + 1);
+        if (dateIssued == null || dateIssued.isEmpty()) {
+            result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá vyplněno dateIssued/datum vydání.", Level.WARNING));
+        } else {
+            if (parentItem != null && NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentItem.getModel())) {
+                try {
+                    ModsDefinition parentMods = getMods(parentItem.getPid());
+                    String parentDateIssued = getDateIssued(parentMods);
+                    if (dateIssued.contains(".")) {
+                        dateIssued = dateIssued.substring(dateIssued.lastIndexOf(".") + 1);
+                    }
+                    if (parentDateIssued == null || parentDateIssued.isEmpty()) {
+                        result.getValidationResults().add(new ValidationResult(parentItem.getPid(), "Nadřazený objekt neobsahuje date Issued (" + parentDateIssued + ").", Level.WARNING));
+                    }
+                    if (parentDateIssued != null && !parentDateIssued.equals(dateIssued)) {
+                        result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní dateIssued vůči svému nadřazenému objektu (" + parentDateIssued + ":" + dateIssued + ").", Level.WARNING));
+                    }
+                } catch (DigitalObjectException ex) {
+                    result.getValidationResults().add(new ValidationResult(item.getPid(), "Nepodařilo se načíst MODS.", Level.SEVERE, ex));
                 }
-                if (parentDateIssued == null || parentDateIssued.isEmpty()) {
-                    result.getValidationResults().add(new ValidationResult(parentItem.getPid(), "Nadřazený objekt neobsahuje date Issued (" + parentDateIssued + ").", Level.WARNING));
-                }
-                if (parentDateIssued != null && !parentDateIssued.equals(dateIssued)) {
-                    result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní dateIssued vůči svému nadřazenému objektu (" + parentDateIssued + ":" + dateIssued + ").", Level.WARNING));
-                }
-            } catch (DigitalObjectException ex) {
-                result.getValidationResults().add(new ValidationResult(item.getPid(), "Nepodařilo se načíst MODS.", Level.SEVERE, ex));
             }
         }
     }

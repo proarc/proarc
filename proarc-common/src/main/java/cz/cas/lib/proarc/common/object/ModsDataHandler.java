@@ -150,6 +150,18 @@ public class ModsDataHandler {
                 defaultMods.getSubject().addAll(titleMods.getSubject());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
+            titleMods = findEnclosingObject(NdkPlugin.MODEL_SHEETMUSIC, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            if (titleMods != null) {
+                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+                defaultMods.getName().addAll(titleMods.getName());
+                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
+                defaultMods.getNote().addAll(titleMods.getNote());
+                defaultMods.getSubject().addAll(titleMods.getSubject());
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            }
         } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
             // issue 241
             ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);

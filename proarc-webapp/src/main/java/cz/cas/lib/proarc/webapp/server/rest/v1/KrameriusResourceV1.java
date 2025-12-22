@@ -22,21 +22,16 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.kramerius.K7Authenticator;
 import cz.cas.lib.proarc.common.kramerius.K7Downloader;
+import cz.cas.lib.proarc.common.kramerius.K7Indexer;
+import cz.cas.lib.proarc.common.kramerius.K7Uploader;
 import cz.cas.lib.proarc.common.kramerius.KDataHandler;
 import cz.cas.lib.proarc.common.kramerius.KImporter;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
@@ -46,6 +41,15 @@ import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -478,22 +482,51 @@ public class KrameriusResourceV1 {
 
         KDataHandler dataHandler = new KDataHandler(appConfig);
         try {
-            File sourceFile = dataHandler.getSourceFile(pid, krameriusInstanceId);
-            if (sourceFile == null || !sourceFile.exists()) {
-                throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_SourceFileDooesntExists", pid, getExpectedSourcePath(appConfig, krameriusInstanceId, pid)));
+            String krameriusVersion = instance.getVersion();
+            if (krameriusVersion == null || krameriusVersion.isEmpty()) {
+                LOG.severe("Kramerius have to set field \"version\".");
             }
-            File destinationFile = dataHandler.getDestinationFile(pid, instance);
-            if (destinationFile == null || !destinationFile.exists()) {
-                throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_DestinationFileDooesntExists", pid, getExpectedDestinationPath(instance, pid)));
-            }
-            if (!FileUtils.copy(sourceFile, destinationFile)) {
-                throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_CantCopyContent", sourceFile.getAbsolutePath(), destinationFile.getAbsolutePath()));
-            }
-            KImporter kImporter = new KImporter(appConfig, instance);
-            KUtils.ImportState state = kImporter.importToKramerius(destinationFile.getParentFile(), true, KUtils.EXPORT_KRAMERIUS, params.getPolicy(), params.getLicense());
-            if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
-                if (instance.deleteAfterImport()) {
-                    MetsUtils.deleteFolder(destinationFile.getParentFile());
+            krameriusVersion = krameriusVersion.replaceAll("[^0-9]", "");
+            KUtils.ImportState  state = null;
+            if (krameriusVersion.startsWith("7")) {
+                DigitalObjectHandler handler = KUtils.findHandler(pid, krameriusImportInstanceId);
+                ProArcObject object = handler.getFedoraObject();
+                ModsStreamEditor modsStreamEditor = new ModsStreamEditor(object);
+                String modsXml = modsStreamEditor.readAsString();
+
+                DcStreamEditor dcStreamEditor = new DcStreamEditor(object);
+                String dcXml = dcStreamEditor.readAsString();
+
+                if (!modsXml.contains("modsCollection")) {
+                    modsXml = modsXml.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
+                    modsXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><mods:modsCollection xmlns:mods=\"http://www.loc.gov/mods/v3\" xmlns:mets=\"http://www.loc.gov/METS/\" xmlns:foxml=\"info:fedora/fedora-system:def/foxml#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" + modsXml + "</mods:modsCollection>";
+                }
+
+                K7Uploader k7Uploader = new K7Uploader(appConfig, instance);
+                k7Uploader.uploadXml(pid, modsXml, ModsStreamEditor.DATASTREAM_ID);
+                k7Uploader.uploadXml(pid, dcXml, DcStreamEditor.DATASTREAM_ID);
+
+                K7Indexer k7Indexer = new K7Indexer(appConfig, instance);
+                state = k7Indexer.indexDocument(pid);
+
+            } else {
+                File sourceFile = dataHandler.getSourceFile(pid, krameriusInstanceId);
+                if (sourceFile == null || !sourceFile.exists()) {
+                    throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_SourceFileDooesntExists", pid, getExpectedSourcePath(appConfig, krameriusInstanceId, pid)));
+                }
+                File destinationFile = dataHandler.getDestinationFile(pid, instance);
+                if (destinationFile == null || !destinationFile.exists()) {
+                    throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_DestinationFileDooesntExists", pid, getExpectedDestinationPath(instance, pid)));
+                }
+                if (!FileUtils.copy(sourceFile, destinationFile)) {
+                    throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_CantCopyContent", sourceFile.getAbsolutePath(), destinationFile.getAbsolutePath()));
+                }
+                KImporter kImporter = new KImporter(appConfig, instance);
+                state = kImporter.importToKramerius(destinationFile.getParentFile(), true, KUtils.EXPORT_KRAMERIUS, params.getPolicy(), params.getLicense());
+                if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
+                    if (instance.deleteAfterImport()) {
+                        MetsUtils.deleteFolder(destinationFile.getParentFile());
+                    }
                 }
             }
             switch (state.getBatchState()) {

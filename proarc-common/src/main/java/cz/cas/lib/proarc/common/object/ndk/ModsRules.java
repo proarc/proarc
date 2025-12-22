@@ -73,7 +73,7 @@ public class ModsRules {
     public static final Set<String> PAGE_PART_TYPE = new HashSet<>(Arrays.asList("cover", "frontCover", "backCover", "appendix", "errata", "frontispiece", "spine", "impressum", "normalPage", "edge", "imprimatur", "blank", "jacket", "Jacket", "frontEndPaper",
             "backEndPaper", "frontEndSheet", "backEndSheet", "frontJacket", "listOfIllustrations", "listOfMaps", "listOfTables", "colophon", "titlePage", "flyleaf",
             "bibliography", "dedication", "afterword", "illustration", "advertisement", "map", "sheetMusic", "tableOfContents", "preface", "index", "table", "introduction", "conclusion",
-            "imgDisc", "manuscriptNotes"));
+            "imgDisc", "manuscriptNotes", "calibrationTable", "fragmentsOfBookbinding", "scaleReference"));
 
     private ModsRules() {}
 
@@ -230,9 +230,24 @@ public class ModsRules {
             return;
         }
         String parentDate = getDateIssued(parentMods);
-        if (parentDate != null) {
-            if (!value.contains(parentDate)) {
-                exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+        if (parentDate != null && parentDate.length() == 4) {
+            try {
+                int parentDateYear = Integer.parseInt(parentDate);
+                if (!(value.contains(parentDate) || value.contains(String.valueOf(parentDateYear - 1)) || value.contains(String.valueOf(parentDateYear + 1)))) {
+                    exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+                }
+            } catch (NumberFormatException e) {
+                if (parentDate != null) {
+                    if (!value.contains(parentDate)) {
+                        exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+                    }
+                }
+            }
+        } else if (parentDate != null){
+            if (parentDate != null) {
+                if (!value.contains(parentDate)) {
+                    exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+                }
             }
         }
     }

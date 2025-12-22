@@ -27,25 +27,24 @@ import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
 import cz.cas.lib.proarc.common.process.external.KakaduCompress;
-import cz.cas.lib.proarc.common.process.external.OcrGenerator;
+import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
 import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.*;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.storage.MixEditor;
 import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
 import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
-import java.awt.Graphics2D;
+import org.apache.commons.configuration.Configuration;
+import org.codehaus.jettison.json.JSONException;
+
+import javax.imageio.stream.FileImageOutputStream;
+import javax.ws.rs.core.MediaType;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -55,9 +54,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.stream.FileImageOutputStream;
-import javax.ws.rs.core.MediaType;
-import org.apache.commons.configuration.Configuration;
 
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
@@ -210,7 +206,7 @@ public class TiffImporter implements ImageImporter {
         if ((ocrEntry == null || altoEntry == null) && requiredDatastreamId.contains(StringEditor.OCR_ALTO_GEN_ID)) {
             generateOCR(tiff, options);
 
-            File[] ocrFiles = OcrGenerator.getOcrFiles(tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
+            File[] ocrFiles = PeroOcrProcessor.getOcrFiles(tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
 
             ocrEntry = new FileEntry(ocrFiles[0]);
             altoEntry = new FileEntry(ocrFiles[1]);
@@ -257,21 +253,22 @@ public class TiffImporter implements ImageImporter {
     }
 
     private void generateOCR(File tiff, ImportOptions options) throws IOException{
-        ImportProfile config = options.getConfig();
-
-        ExternalProcess process = new OcrGenerator(config.getOcrGenProcessor(), tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
-
-        if (process != null) {
-            process.run();
-
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                throw new IOException("Interupted process generating OCR for " + tiff.getName() + " failed.");
+        Integer peroOcrEngine = null;
+        try {
+            peroOcrEngine = options.getBatch().getParamsAsObject().getPeroOcrEngine();
+        } catch (NullPointerException e) {
+            peroOcrEngine = 1;
+        }
+        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(options.getConfig().getOcrGenProcessor(), peroOcrEngine);
+        try {
+            boolean processed = ocrProcessor.generate(tiff, ".txt", ".xml");
+            if (processed) {
+                LOG.info("OCR GENERATED SUCCESSFULLY for " +  tiff.getAbsolutePath());
             }
-            if (!process.isOk()) {
-                throw new IOException("Generating OCR for " + tiff.getName() + " failed. \n " + process.getFullOutput());
-            }
+        } catch (JSONException ex) {
+            LOG.severe("Generating OCR for " + tiff.getName() + " failed.");
+            ex.printStackTrace();
+            throw new IOException(ex);
         }
     }
 
