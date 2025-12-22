@@ -17,7 +17,14 @@ public class GeneratorAltoOcr implements ImportHandler {
 
     @Override
     public int estimateItemNumber(ImportProcess.ImportOptions importConfig) throws IOException {
-        return 1;
+        File importFolder = importConfig.getImportFolder();
+        int size = 0;
+        for (File file : importFolder.listFiles()) {
+            if (file.isFile() && file.getName().endsWith(".tif") || file.getName().endsWith(".jpg") || file.getName().endsWith(".jpeg")) {
+                size++;
+            }
+        }
+        return size;
     }
 
     @Override
