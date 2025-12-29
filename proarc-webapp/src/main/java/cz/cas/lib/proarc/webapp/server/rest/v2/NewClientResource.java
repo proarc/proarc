@@ -40,12 +40,11 @@ import javax.ws.rs.core.UriInfo;
  *
  * @author Lukáš Sýkora
  */
-@Deprecated
 @Path(RestConfig.URL_API_VERSION_2 + "/" + NewClientResourceApi.PATH)
 
 public class NewClientResource extends NewClientResourceV1 {
 
-    private static final Logger LOG = Logger.getLogger(DeviceResource.class.getName());
+    private static final Logger LOG = Logger.getLogger(NewClientResource.class.getName());
 
     public NewClientResource(
             @Context Request request,

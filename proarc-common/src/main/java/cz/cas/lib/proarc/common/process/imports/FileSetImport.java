@@ -53,6 +53,7 @@ import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -106,6 +107,9 @@ public class FileSetImport implements ImportHandler {
     public void start(ImportProcess.ImportOptions importConfig, BatchManager batchManager, AppConfiguration configuration) throws Exception {
         File importFolder = importConfig.getImportFolder();
         Batch batch = importConfig.getBatch();
+        batch.setState(Batch.State.LOADING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
+        batch = batchManager.update(batch);
         ImportFileScanner scanner = new ImportFileScanner();
         List<File> files = scanner.findDigitalContent(importFolder);
         List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
@@ -391,6 +395,7 @@ public class FileSetImport implements ImportHandler {
                 if (item != null) {
                     if (ObjectState.LOADING_FAILED == item.getState()) {
                         batch.setState(Batch.State.LOADING_FAILED);
+                        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                         batch.setLog(item.getFile() + "\n" + item.getLog());
                         return;
                     }

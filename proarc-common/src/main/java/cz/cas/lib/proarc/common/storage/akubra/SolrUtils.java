@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 
@@ -28,6 +29,7 @@ public class SolrUtils {
     public enum QueryOperator {AND, OR};
 
     public static final String FIELD_PID = "pid";
+    public static final String FIELD_PARENT_PID = "parentPid";
     public static final String FIELD_MODEL = "model";
     public static final String FIELD_OWNER = "owner";
     public static final String FIELD_LABEL = "label";
@@ -44,6 +46,7 @@ public class SolrUtils {
     public static final String FIELD_EXPORT_CROSSREF = "crossrefExport";
     public static final String FIELD_LOCKED = "isLocked";
     public static final String FIELD_DEVICE = "device";
+    public static final String FIELD_SOFTWARE = "software";
     public static final String FIELD_MEMBERS = "members";
     public static final String FIELD_SOURCE = "source";
     public static final String FIELD_PAGE_INDEX = "pageIndex";
@@ -68,6 +71,8 @@ public class SolrUtils {
     public static final String VALIDATION_STATUS_OK = "OK";
     public static final String VALIDATION_STATUS_ERROR = "ERROR";
     public static final String VALIDATION_STATUS_UNKNOWN = "UNKNOWN";
+
+    public static final String PROPERTY_PARENTPID_NO_PARENT = "NO_PARENT";
 
     public static StringBuilder appendAndValue(StringBuilder queryBuilder, String value) {
         return appendValue(queryBuilder, value, QueryOperator.AND.name());
@@ -122,17 +127,22 @@ public class SolrUtils {
     }
 
     public static String getPidsQuery(List<String> pids) {
-        return getListFilterQuery(pids, FIELD_PID);
+        return getListFilterQuery(pids.stream()
+                .map(s -> s.startsWith("uuid:") ? s : null) // ochrana proti jiným stringům nez uuid
+                .collect(Collectors.toList()), FIELD_PID);
+    }
+
+    public static String getIdentifiersQuery(List<String> pids) {
+        return getListFilterQuery(pids.stream()
+                .map(s -> s.startsWith("uuid:") ? null : s) // ochrana proti jiným stringům nez uuid
+                .collect(Collectors.toList()), FIELD_IDENTIFIRES);
     }
 
     public static String getModelQuery(List<String> models) {
         return getListFilterQuery(models, FIELD_MODEL);
     }
 
-    public static String getUserQuery(List<String> usernames, Boolean allowAllForUser) {
-        if (allowAllForUser == Boolean.TRUE) {
-            return null;
-        }
+    public static String getUserQuery(List<String> usernames) {
         return getListFilterQuery(usernames, FIELD_USER);
     }
 
@@ -213,6 +223,7 @@ public class SolrUtils {
 
         item.setPid(getString(solrDocument, FIELD_PID));
         item.setModel(getString(solrDocument, FIELD_MODEL));
+        item.setParentPid(getString(solrDocument, FIELD_PARENT_PID));
         item.setOwner(getString(solrDocument, FIELD_OWNER));
         item.setLabel(getString(solrDocument, FIELD_LABEL));
         item.setState(getString(solrDocument, FIELD_STATE));

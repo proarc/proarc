@@ -50,6 +50,7 @@ public final class JacksonProvider implements ContextResolver<ObjectMapper> {
         registerAnnotatedSuperclass(AnnotatedConfigurationProfile.class);
         registerAnnotatedSuperclass(AnnotatedDescriptionMetadata.class);
         registerAnnotatedSuperclass(AnnotatedDevice.class);
+        registerAnnotatedSuperclass(AnnotatedSoftware.class);
         registerAnnotatedSuperclass(AnnotatedApplicationInfo.class);
         registerAnnotatedSuperclass(AnnotatedDublinCoreRecord.class);
 //        registerAnnotatedSuperclass(AnnotatedMetaModel.class);
@@ -58,6 +59,7 @@ public final class JacksonProvider implements ContextResolver<ObjectMapper> {
         registerAnnotatedSuperclass(AnnotatedSmartGwtResponse.class);
         registerAnnotatedSuperclass(AnnotatedStringRecord.class);
         registerAnnotatedSuperclass(AnnotatedUser.class);
+        registerAnnotatedSuperclass(AnnotatedUserSetting.class);
         registerAnnotatedSuperclass(AnnotatedValueMap.class);
 
         registerAnnotatedSuperclass(AnnotatedMods.class);

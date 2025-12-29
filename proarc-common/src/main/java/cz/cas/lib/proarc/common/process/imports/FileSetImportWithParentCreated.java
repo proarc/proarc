@@ -56,6 +56,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
@@ -122,6 +123,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
                     if (pid != null) {
                         batch.setParentPid(pid);
                         batch.setState(Batch.State.LOADED);
+                        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                         batchManager.update(batch);
                         if (Storage.FEDORA.equals(configuration.getTypeOfStorage())) {
                             batch = new FedoraImport(configuration, FedoraStorage.getInstance(configuration), batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");

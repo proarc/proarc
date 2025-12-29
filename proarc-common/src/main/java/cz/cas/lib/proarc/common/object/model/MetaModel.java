@@ -33,6 +33,8 @@ import java.util.Set;
  */
 public class MetaModel {
 
+    public static final String MODELS_LEAF = "LEAF";
+
     private String pid;
     private Boolean root;
     private Boolean leaf;

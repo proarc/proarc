@@ -18,17 +18,14 @@ package cz.cas.lib.proarc.common.mods.ndk.eborn;
 
 import cz.cas.lib.proarc.common.mods.ndk.MapperUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMonographVolumeMapper;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
-
 import java.util.List;
 
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addDigitalOrigin;
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addElementType;
 
 public class NdkEMonographVolumeMapper extends NdkMonographVolumeMapper {
 
@@ -55,13 +52,6 @@ public class NdkEMonographVolumeMapper extends NdkMonographVolumeMapper {
         OaiDcType dc = super.createDc(mods, ctx);
         for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
             addDigitalOrigin(dc.getDescriptions(), physicalDescription.getDigitalOrigin());
-        }
-
-        dc.getTypes().clear();
-        if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(ctx.getParentModel())) {
-            addElementType(dc.getTypes(), getDcType());
-        } else if (NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(getModelId())) {
-            addElementType(dc.getTypes(), "model:electronicmonograph");
         }
         return dc;
     }

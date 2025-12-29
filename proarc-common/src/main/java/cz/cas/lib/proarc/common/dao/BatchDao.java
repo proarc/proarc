@@ -50,6 +50,8 @@ public interface BatchDao extends Dao {
 
     List<Batch> findLoadingBatches();
 
+    List<Batch> findWaitingImportBatches();
+
     List<Batch> findExportingBatches();
 
     List<Batch> findWaitingExportBatches();
@@ -62,5 +64,7 @@ public interface BatchDao extends Dao {
     List<Batch> findIntenalRunningBatches();
 
     List<Batch> findBatch(String pid, String processProfile, State state);
+
+    void removeBatch(int batchId);
 
 }

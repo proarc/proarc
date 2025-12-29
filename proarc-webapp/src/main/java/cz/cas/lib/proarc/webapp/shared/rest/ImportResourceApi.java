@@ -40,6 +40,7 @@ public final class ImportResourceApi {
     public static final String BATCHES_IN_PROCESS_PATH = "processingBatches";
     public static final String BATCH_STOP_PATH = "batchStopped";
     public static final String NEWBATCH_DEVICE_PARAM = "device";
+    public static final String NEWBATCH_SOFTWARE_PARAM = "software";
     public static final String NEWBATCH_INDICES_PARAM = "indices";
 
     public static final String BATCH_GENERATE_PATH = "generate";
@@ -56,6 +57,12 @@ public final class ImportResourceApi {
     public static final String IMPORT_BATCH_TIMESTAMP = "timestamp";
     public static final String IMPORT_BATCH_MODIFIED_FROM = "modifiedFrom";
     public static final String IMPORT_BATCH_MODIFIED_TO = "modifiedTo";
+    public static final String IMPORT_BATCH_UPDATED = "updated";
+    public static final String IMPORT_BATCH_UPDATED_FROM = "updatedFrom";
+    public static final String IMPORT_BATCH_UPDATED_TO = "updatedTo";
+    public static final String IMPORT_BATCH_ITEM_UPDATED = "itemUpdated";
+    public static final String IMPORT_BATCH_ITEM_UPDATED_FROM = "itemUpdatedFrom";
+    public static final String IMPORT_BATCH_ITEM_UPDATED_TO = "itemUpdatedTo";
     public static final String IMPORT_BATCH_USERID = "userId";
     public static final String IMPORT_BATCH_USER = "user";
     public static final String IMPORT_BATCH_STATE = "state";
@@ -67,9 +74,12 @@ public final class ImportResourceApi {
     public static final String IMPORT_BATCH_PRIORITY = "priority";
     public static final String IMPORT_BATCH_USE_NEW_METADATA = "useNewMetadata";
     public static final String IMPORT_BATCH_USE_ORIGINAL_METADATA = "useOriginalMetadata";
+    public static final String IMPORT_BATCH_PERO_OCR_ENGINE = "peroOcrEngine";
+    public static final String IMPORT_BATCH_PARAMETERS = "parameters";
     public static final String IMPORT_BATCH_PAGECOUNT = "pageCount";
     public static final String IMPORT_START_ROW_PARAM = "_startRow";
     public static final String IMPORT_FUNCTION_UNLOCK_FOLDER = "unlockFolder";
+    public static final String BATCH_NIGHT_ONLY = "nightOnly";
 
     // resource /import/batch/item
     public static final String BATCHITEM_PATH = "item";

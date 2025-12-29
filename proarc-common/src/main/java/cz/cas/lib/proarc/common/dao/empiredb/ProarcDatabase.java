@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Lukas Sykora
+ * Copyright (C) 2025 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
- * Database schema version 14. It adds user permission.
+ * Database schema version 20. It adds scheduled batch.
  *
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
@@ -54,13 +54,14 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 17;
+    public static final int VERSION = 20;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
     public final BatchItemTable tableBatchItem = new BatchItemTable(this);
     public final UserTable tableUser = new UserTable(this);
     public final UserGroupTable tableUserGroup = new UserGroupTable(this);
+    public final UserSettingTable tableUserSetting = new UserSettingTable(this);
     public final GroupMemberTable tableGroupMember = new GroupMemberTable(this);
     public final GroupPermissionTable tableGroupPermission = new GroupPermissionTable(this);
     public final WorkflowJobTable tableWorkflowJob = new WorkflowJobTable(this);
@@ -76,6 +77,49 @@ public class ProarcDatabase extends DBDatabase {
     public final DBRelation relationWorkflowJob_ParentId_Fk;
     public final DBRelation relationWorkflowMaterialInTask_MaterialId_Fk;
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
+
+//    public static int upgradeToVersionXX(
+//            int currentSchemaVersion, ProarcDatabase schema,
+//            Connection conn, EmpireConfiguration conf) throws SQLException {
+//
+//        if (currentSchemaVersion < VERSION) {
+//            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
+//            currentSchemaVersion = ProarcDatabaseVXX.upgradeToVersionXX+1(currentSchemaVersion, conn, conf);
+//        }
+//        if (currentSchemaVersion > VERSION) {
+//            // ignore higher versions
+//            return currentSchemaVersion;
+//        } else if (currentSchemaVersion != VERSION) {
+//            throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
+//        }
+////        ProarcDatabaseVXX schema = new ProarcDatabaseVXX();
+//        try {
+//            schema.open(conf.getDriver(), conn);
+//            upgradeDdl(schema, conn);
+//            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
+//            int schemaVersion = schema.initVersion(conn, VERSION);
+//
+//            conn.commit();
+//            return schemaVersion;
+//        } finally {
+////            schema.close(conn);
+//        }
+//    }
+//
+//    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+//        try {
+//            conn.setAutoCommit(true);
+//            DBDatabaseDriver driver = schema.getDriver();
+//            DBSQLScript script = new DBSQLScript();
+//
+//            // TO-DO
+//
+//            LOG.fine(script.toString());
+//            script.run(driver, conn);
+//        } finally {
+//            conn.setAutoCommit(false);
+//        }
+//    }
 
     public static class ProarcVersionTable extends DBTable {
 
@@ -105,12 +149,16 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn parentPid;
         public final DBTableColumn estimateItemNumber;
         public final DBTableColumn create; // date of creation
+        public final DBTableColumn updated; // date of update
         public final DBTableColumn timestamp; // optimistic lock
+        public final DBTableColumn itemUpdated; // date of items update
         public final DBTableColumn device; // digitization device ID (PID)
+        public final DBTableColumn software; // digitization software ID (PID)
         public final DBTableColumn generateIndices;
         public final DBTableColumn log;
         public final DBTableColumn profileId;
         public final DBTableColumn priority;
+        public final DBTableColumn nightOnly;
         public final DBTableColumn params;
 
         public BatchTable(DBDatabase db) {
@@ -127,11 +175,18 @@ public class ProarcDatabase extends DBDatabase {
             create = addColumn("CREATE", DataType.DATETIME, 0, true);
             timestamp = addTimestampColumn("TIMESTAMP");
             device = addColumn("DEVICE", DataType.TEXT, 2000, false);
+            software = addColumn("SOFTWARE", DataType.TEXT, 2000, false);
             generateIndices = addColumn("GENERATE_INDICES", DataType.BOOL, 0, false);
             log = addColumn("LOG", DataType.CLOB, 0, false);
             profileId = addColumn("PROFILE_ID", DataType.TEXT, 2000, false);
             priority = addColumn("PRIORITY", DataType.TEXT, 50, false);
             params = addColumn("PARAMS", DataType.TEXT, 10000, false);
+            itemUpdated = addColumn("ITEM_UPDATED", DataType.DATETIME, 0, false);
+            itemUpdated.setBeanPropertyName("itemUpdated");
+            updated = addColumn("UPDATED", DataType.DATETIME, 0, false);
+            updated.setBeanPropertyName("updated");
+            nightOnly = addColumn("NIGHT_ONLY", DataType.BOOL, 0, false);
+
             setPrimaryKey(id);
             addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
         }
@@ -187,7 +242,6 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn lastLogin;
         public final DBTableColumn home;
         public final DBTableColumn organization;
-        public final DBTableColumn role;
         /** group to use as owner for newly created objects */
         public final DBTableColumn defaultGroup;
         /** group that can contain single member; it can hold overridden permissions */
@@ -205,6 +259,18 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn czidloFunction;
         public final DBTableColumn wfDeleteJobFunction;
         public final DBTableColumn importToCatalogFunction;
+        public final DBTableColumn changeObjectsOwnerFunction;
+        public final DBTableColumn deviceFunction;
+        public final DBTableColumn changePagesFunction;
+        public final DBTableColumn wfCreateJobFunction;
+        public final DBTableColumn createUserFunction;
+        public final DBTableColumn updateUserFunction;
+        public final DBTableColumn deleteUserFunction;
+        public final DBTableColumn solrFunction;
+        public final DBTableColumn deleteActionFunction;
+        public final DBTableColumn allObjectsFunction;
+        public final DBTableColumn prepareBatchFunction;
+        public final DBTableColumn sysAdminFunction;
 
         public UserTable(DBDatabase db) {
             super("PROARC_USERS", db);
@@ -229,7 +295,6 @@ public class ProarcDatabase extends DBDatabase {
             remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
             timestamp = addTimestampColumn("TIMESTAMP");
             organization = addColumn("ORGANIZATION", DataType.TEXT, 100, false);
-            role = addColumn("ROLE", DataType.TEXT, 100, false);
             changeModelFunction = addColumn("CHANGE_MODEL_FUNCTION", DataType.BOOL, 0, false);
             updateModelFunction = addColumn("UPDATE_MODEL_FUNCTION", DataType.BOOL, 0, false);
             lockObjectFunction = addColumn("LOCK_OBJECT_FUNCTION", DataType.BOOL, 0, false);
@@ -238,6 +303,18 @@ public class ProarcDatabase extends DBDatabase {
             czidloFunction = addColumn("CZIDLO_FUNCTION", DataType.BOOL, 0, false);
             wfDeleteJobFunction = addColumn("WF_DELETE_JOB_FUNCTION", DataType.BOOL, 0, false);
             importToCatalogFunction = addColumn("IMPORT_TO_CATALOG_FUNCTION", DataType.BOOL, 0, false);
+            changeObjectsOwnerFunction = addColumn("CHANGE_OBJECTS_OWNER_FUNCTION", DataType.BOOL, 0, false);
+            deviceFunction = addColumn("DEVICE_FUNCTION", DataType.BOOL, 0, false);
+            changePagesFunction = addColumn("CHANGE_PAGES_FUNCTION", DataType.BOOL, 0, false);
+            wfCreateJobFunction = addColumn("WF_CREATE_JOB_FUNCTION", DataType.BOOL, 0, false);
+            createUserFunction = addColumn("CREATE_USER_FUNCTION", DataType.BOOL, 0, false);
+            updateUserFunction = addColumn("UPDATE_USER_FUNCTION", DataType.BOOL, 0, false);
+            deleteUserFunction = addColumn("DELETE_USER_FUNCTION", DataType.BOOL, 0, false);
+            solrFunction = addColumn("SOLR_FUNCTION", DataType.BOOL, 0, false);
+            deleteActionFunction = addColumn("DELETE_ACTION_FUNCTION", DataType.BOOL, 0, false);
+            allObjectsFunction = addColumn("ALL_OBJECTS_FUNCTION", DataType.BOOL, 0, false);
+            prepareBatchFunction = addColumn("PREPARE_BATCH_FUNCTION", DataType.BOOL, 0, false);
+            sysAdminFunction = addColumn("SYS_ADMIN_FUNCTION", DataType.BOOL, 0, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
@@ -273,6 +350,28 @@ public class ProarcDatabase extends DBDatabase {
             setPrimaryKey(id);
             // unique group name
             addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[] { groupname });
+        }
+
+    }
+
+    public static final class UserSettingTable extends EnhancedDBTable {
+
+        private static final long serialVersionUID = 1L;
+
+        public final DBTableColumn id;
+        public final DBTableColumn userId;
+        public final DBTableColumn userSetting;
+        public final DBTableColumn timestamp;
+
+        public UserSettingTable(DBDatabase db) {
+            super("PROARC_USER_SETTING", db);
+            id = addSequenceColumn("ID");
+            userId = addColumn("USER_ID", DataType.INTEGER, 0, true);
+            userSetting = addColumn("USER_SETTING", DataType.CLOB, 0, false);
+            timestamp = addTimestampColumn("TIMESTAMP");
+            setPrimaryKey(id);
+            // unique group name
+            addIndex(String.format("%s_%s_IDX", getName(), userId.getName()), true, new DBColumn[] { userId });
         }
 
     }
@@ -535,6 +634,7 @@ public class ProarcDatabase extends DBDatabase {
         addRelation(tableUser.defaultGroup.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.groupid.referenceOn(tableUserGroup.id));
         addRelation(tableGroupMember.userid.referenceOn(tableUser.id));
+        addRelation(tableUserSetting.userId.referenceOn(tableUser.id));
         addRelation(tableGroupPermission.groupid.referenceOn(tableUserGroup.id));
         // workflow
         addRelation(tableWorkflowJob.ownerId.referenceOn(tableUser.id));
@@ -559,7 +659,7 @@ public class ProarcDatabase extends DBDatabase {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
                 LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
-                schemaVersion = ProarcDatabaseV16.upgradeToVersion17(
+                schemaVersion = ProarcDatabaseV19.upgradeToVersion20(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);

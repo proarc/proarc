@@ -6,12 +6,13 @@ import java.util.Collections;
 public class SearchViewQuery {
 
     private String title;
-    private String creator;
+    private String processor;
     private String label;
     private String identifier;
     private String owner;
     private String model;
     private String status;
+    private String parentPid;
     private Collection<String> hasOwners;
 
     public String getOrganization() {
@@ -34,12 +35,12 @@ public class SearchViewQuery {
         return this;
     }
 
-    public String getCreator() {
-        return creator;
+    public String getProcessor() {
+        return processor;
     }
 
-    public SearchViewQuery setCreator(String creator) {
-        this.creator = creator;
+    public SearchViewQuery setProcessor(String processor) {
+        this.processor = processor;
         return this;
     }
 
@@ -97,4 +98,13 @@ public class SearchViewQuery {
         return this;
     }
 
+
+    public String getParentPid() {
+        return parentPid;
+    }
+
+    public SearchViewQuery setParentPid(String parentPid) {
+        this.parentPid = parentPid;
+        return this;
+    }
 }

@@ -181,6 +181,20 @@ public final class NdkChapterForm {
                     .addMapValue("article", "článek")
                     .addMapValue("index", "rejstřík")
                     .addMapValue("unspecified", "nespecifikován")
+                    .addMapValue("annotation", "anotace")
+                    .addMapValue("afterword", "doslov")
+                    .addMapValue("bibliographicalPortrait", "medailonek")
+                    .addMapValue("obituary", "nekrolog")
+                    .addMapValue("sheetMusic", "notový zápis")
+                    .addMapValue("tableOfContents", "obsah")
+                    .addMapValue("contributors", "přispěvatelé")
+                    .addMapValue("summary", "resumé")
+                    .addMapValue("interview", "rozhovor")
+                    .addMapValue("study", "studie")
+                    .addMapValue("technicalPlanScheme", "technický plán/schéma")
+                    .addMapValue("conclusion", "závěr")
+                    .addMapValue("otherNote", "jiná poznámka")
+                    .addMapValue("subchapter", "podkapitola")
                 .createField()) // @type
                 // stringPlusLanguagePlusAuthority: authorityAttributeGroup
                 // stringPlusLanguage: @lang, @xmlLang, @script, @transliteration

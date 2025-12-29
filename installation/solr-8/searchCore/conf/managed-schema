@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema name="searchCore" version="6.0">
-    <!-- log: pridani pole partNumber -->
-    <!-- log: pridani pole identifiers -->
+<!-- This schema is designed for Solr 8.x -->
+<schema name="searchCore" version="7.0">
+    <!-- log: pridani pole software -->
+    <!-- log: pridani pole parentPid -->
 
 
     <uniqueKey>pid</uniqueKey>
@@ -67,6 +68,7 @@
     <field name="created" type="pdate"/>
     <field name="crossrefExport" type="string"/>
     <field name="device" type="text_general" docValues="false"/>
+    <field name="software" type="text_general" docValues="false"/>
     <field name="fulltext" type="text_cz" multiValued="true" docValues="false"/>
     <field name="isLocked" type="boolean" docValues="false"/>
     <field name="krameriusExport" type="string"/>
@@ -79,6 +81,7 @@
     <field name="organization" type="string"/>
     <field name="owner" type="string"/>
     <field name="pid" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
+    <field name="parentPid" type="string" multiValued="false"/>
     <field name="source" type="string"/>
     <field name="state" type="string"/>
     <field name="status" type="string"/>

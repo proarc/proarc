@@ -80,7 +80,11 @@ public interface UserManager {
 
     Set<Permission> findUserPermissions(int userId);
 
-    String findUserRole(int id);
+    List<UserSetting> getUserSetting(Integer userId);
+
+    UserSetting addUserSetting(UserSetting userSetting);
+
+    UserSetting updateUserSetting(UserSetting userSetting);
 
     void deleteUser(Integer userId);
 }

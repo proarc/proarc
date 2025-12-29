@@ -16,6 +16,7 @@ import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
+import cz.cas.lib.proarc.common.software.SoftwareRepository;
 import cz.cas.lib.proarc.common.storage.AbstractProArcObject;
 import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -186,11 +187,11 @@ public class AkubraStorage {
         }
     }
 
-    public void ingest(LocalObject object, String ingestUser) throws DigitalObjectException, DigitalObjectExistException {
-        ingest(object, ingestUser, "Ingested locally");
+    public void ingest(LocalObject object, String parentPid, String ingestUser) throws DigitalObjectException, DigitalObjectExistException {
+        ingest(object, parentPid, ingestUser, "Ingested locally");
     }
 
-    public void ingest(LocalObject object, String ingestUser, String log) throws DigitalObjectException, DigitalObjectExistException {
+    public void ingest(LocalObject object, String parentPid, String ingestUser, String log) throws DigitalObjectException, DigitalObjectExistException {
         if (ingestUser == null || ingestUser.isEmpty()) {
             throw new IllegalArgumentException("ingestUser");
         }
@@ -215,7 +216,7 @@ public class AkubraStorage {
             InputStream inputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
             this.manager.addOrReplaceObject(object.getPid(), inputStream);
             indexDocument(object);
-
+            indexParentPid(object.getPid(), parentPid);
             LOG.log(Level.FINE, "Object with PID {0} added to repository.", object.getPid());
         } catch (TransformerException | URISyntaxException | LowlevelStorageException | IOException e) {
             throw new DigitalObjectException(object.getPid(), "Error during adding new object", e);
@@ -323,8 +324,11 @@ public class AkubraStorage {
             if (pid.startsWith("device:")) {
                 this.solrObjectFeeder.feedDescriptionDevice(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
+            } else if (pid.startsWith(SoftwareRepository.SOFTWARE_ID_PREFIX)) {
+                this.solrObjectFeeder.feedDescriptionSoftware(dObject, aObject, true);
+                this.solrLoggingFeeder.feedIngestLog(pid, owner);
             } else {
-                this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
+                this.solrObjectFeeder.updateDescriptionDocument(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
                 SolrUtils.indexParentResult(this.getSearch(), this.getSolrObjectFeeder(), pid);
             }
@@ -332,8 +336,12 @@ public class AkubraStorage {
             if (DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId)) {
                 this.solrObjectFeeder.feedDescriptionDevice(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
+            } else if (SoftwareRepository.METAMODEL_AGENT_ID.equals(modelId) || SoftwareRepository.METAMODEL_EVENT_ID.equals(modelId) ||
+                    SoftwareRepository.METAMODEL_OBJECT_ID.equals(modelId) || SoftwareRepository.METAMODEL_SET_ID.equals(modelId)) {
+                this.solrObjectFeeder.feedDescriptionSoftware(dObject, aObject, true);
+                this.solrLoggingFeeder.feedIngestLog(pid, owner);
             } else {
-                this.solrObjectFeeder.feedDescriptionDocument(dObject, aObject, true);
+                this.solrObjectFeeder.updateDescriptionDocument(dObject, aObject, true);
                 this.solrLoggingFeeder.feedIngestLog(pid, owner);
                 SolrUtils.indexParentResult(this.getSearch(), this.getSolrObjectFeeder(), pid);
             }
@@ -342,6 +350,14 @@ public class AkubraStorage {
 
     public void indexDocument(LocalObject object) throws IOException, DigitalObjectException {
         indexDocument(object.getPid(), object.getModel(), object.getOwner());
+    }
+
+    public void indexParentPid(String pid, String parentPid) throws DigitalObjectException {
+        this.solrObjectFeeder.feedParentPid(pid, parentPid, true);
+    }
+
+    public void indexObjectStatus(String pid, String status) throws DigitalObjectException {
+        this.solrObjectFeeder.feedObjectStatus(pid, status, true);
     }
 
     public void indexValidationResult(Batch batch) throws DigitalObjectException {
@@ -439,8 +455,11 @@ public class AkubraStorage {
                     //this.manager.commit(object, null);
                     if (DeviceRepository.METAMODEL_ID.equals(this.modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(this.modelId)) {
                         this.objectFeeder.feedDescriptionDevice(object, this, true);
+                    } else if (SoftwareRepository.METAMODEL_AGENT_ID.equals(this.modelId) || SoftwareRepository.METAMODEL_EVENT_ID.equals(this.modelId) ||
+                            SoftwareRepository.METAMODEL_OBJECT_ID.equals(this.modelId) || SoftwareRepository.METAMODEL_SET_ID.equals(this.modelId)) {
+                        this.objectFeeder.feedDescriptionSoftware(object, this, true);
                     } else {
-                        this.objectFeeder.feedDescriptionDocument(object, this, true);
+                        this.objectFeeder.updateDescriptionDocument(object, this, true);
                         if (indexHierarchical) {
                             SolrUtils.indexParentResult(solrSearchView, objectFeeder, object.getPID());
                         }
@@ -534,7 +553,8 @@ public class AkubraStorage {
                     InputStream inputStream = this.manager.marshallObject(object);
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
-                    this.objectFeeder.feedDescriptionDocument(object, this, true);
+                    this.objectFeeder.updateDescriptionDocument(object, this, true);
+                    this.objectFeeder.feedParentPid(object.getPID(), SolrUtils.PROPERTY_PARENTPID_NO_PARENT, true);
                     this.objectFeeder.commit();
                     this.loggingFeeder.feedDeleteLog(getPid(), logMessage);
                 }
@@ -554,7 +574,8 @@ public class AkubraStorage {
                     InputStream inputStream = this.manager.marshallObject(object);
                     this.manager.addOrReplaceObject(object.getPID(), inputStream);
                     //this.manager.commit(object, null);
-                    this.objectFeeder.feedDescriptionDocument(object, this, true);
+                    this.objectFeeder.updateDescriptionDocument(object, this, true);
+                    this.objectFeeder.feedParentPid(object.getPID(), SolrUtils.PROPERTY_PARENTPID_NO_PARENT, true);
                     this.objectFeeder.commit();
                     this.loggingFeeder.feedRestoreLog(getPid(), logMessage);
                 }
@@ -793,8 +814,8 @@ public class AkubraStorage {
                 missingDataStream = false;
                 modified = false;
                 DigitalObject digitalObject = this.manager.readObjectFromStorage(this.object.getPid());
-                if (!(ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId) || DeviceRepository.DESCRIPTION_DS_ID.equals(dsId) || DeviceRepository.AUDIODESCRIPTION_DS_ID.equals(dsId))) {
-                    this.solrObjectFeeder.feedDescriptionDocument(digitalObject, this.object, true);
+                if (!(ModsStreamEditor.DATASTREAM_ID.equals(dsId) || DcStreamEditor.DATASTREAM_ID.equals(dsId) || DeviceRepository.DESCRIPTION_DS_ID.equals(dsId) || DeviceRepository.AUDIODESCRIPTION_DS_ID.equals(dsId)) && !this.object.getPid().startsWith("software")) {
+                    this.solrObjectFeeder.updateDescriptionDocument(digitalObject, this.object, true);
                 }
                 profile = AkubraUtils.createDatastremProfile(digitalObject, dsId);
                 lastModified = AkubraUtils.getLastModified(digitalObject, dsId);

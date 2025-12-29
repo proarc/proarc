@@ -30,8 +30,10 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
+import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
@@ -61,6 +63,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import static cz.cas.lib.proarc.common.device.DeviceRepository.getModelLabel;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 
 /**
  * Resource to manage devices producing digital objects.
@@ -78,6 +81,7 @@ public class DeviceResourceV1 {
     private final HttpHeaders httpHeaders;
     private final SessionContext session;
     private final DeviceRepository devRepo;
+    protected final UserProfile user;
 
     public DeviceResourceV1(
             @Context Request request,
@@ -91,6 +95,7 @@ public class DeviceResourceV1 {
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         this.session = SessionContext.from(httpRequest);
+        this.user = session.getUser();
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
             this.devRepo = new DeviceRepository(FedoraStorage.getInstance(appConfig));
             this.akubraConfiguration = null;
@@ -107,6 +112,8 @@ public class DeviceResourceV1 {
     public SmartGwtResponse<Device> deleteDevice(
             @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id
             ) throws DeviceException {
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
         try {
             boolean deleted = devRepo.deleteDevice(id, session.asFedoraLog());
@@ -165,6 +172,9 @@ public class DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
             ) {
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
+
         try {
             String owner = session.getUser().getUserName();
             Device device = devRepo.addDevice(owner, model, "?", session.asFedoraLog());
@@ -185,6 +195,8 @@ public class DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
             ) throws IOException, DeviceException {
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing device!");

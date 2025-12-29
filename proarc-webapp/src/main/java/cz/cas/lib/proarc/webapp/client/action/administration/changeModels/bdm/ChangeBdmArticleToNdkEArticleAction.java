@@ -58,7 +58,7 @@ public class ChangeBdmArticleToNdkEArticleAction extends AbstractAction {
 
     @Override
     public boolean accept(ActionEvent event) {
-        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) || Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION))) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_CHANGE_MODEL))) {
             return false;
         }
         Object[] selection = Actions.getSelection(event);

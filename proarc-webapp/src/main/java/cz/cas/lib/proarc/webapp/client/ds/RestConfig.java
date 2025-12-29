@@ -35,6 +35,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.NewClientResourceApi;
+import cz.cas.lib.proarc.webapp.shared.rest.SoftwareResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UrnNbnResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
@@ -122,6 +123,8 @@ public final class RestConfig {
     public static final String URL_CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME);
     public static final String URL_CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE);
     public static final String URL_CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_UNIT = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_UNIT);
+    public static final String URL_CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT);
+    public static final String URL_CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME);
     public static final String URL_CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE);
     public static final String URL_CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE);
     public static final String URL_CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME = path(URL_DIGOBJECT, DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME);
@@ -191,6 +194,8 @@ public final class RestConfig {
     public static final String URL_EXPORT_KWIS = path(
             URL_EXPORT, ExportResourceApi.KWIS_PATH);
     public static final String URL_DEVICE = path(URL_ROOT, DeviceResourceApi.PATH);
+    public static final String URL_SOFTWARE = path(URL_ROOT, SoftwareResourceApi.PATH);
+    public static final String URL_SOFTWARE_SET = path(URL_SOFTWARE, SoftwareResourceApi.PATH_SET);
     public static final String URL_APPLICATION_INFO = path(URL_ROOT, ApplicationResourceApi.PATH);
     public static final String URL_VALUEMAP = path(URL_ROOT, ValueMapResourceApi.PATH);
     public static final String URL_CONFIGPROFILE = path(URL_ROOT, ConfigurationProfileResourceApi.PATH);

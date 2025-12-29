@@ -124,7 +124,7 @@ public final class DigitalObjectDataSource extends ProarcDataSource {
     }
 
     public static DynamicForm createDeleteOptionsForm() {
-        if (!(Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN))) {
+        if (!(Editor.getInstance().hasPermission("proarc.permission.admin"))) {
             return null;
         }
         ClientMessages i18n = GWT.create(ClientMessages.class);

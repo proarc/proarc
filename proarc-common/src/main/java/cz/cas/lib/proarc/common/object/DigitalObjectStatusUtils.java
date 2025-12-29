@@ -16,6 +16,7 @@ public class DigitalObjectStatusUtils {
     public static final String STATUS_PROCESSING = "processing";
     public static final String STATUS_DESCRIBED = "described";
     public static final String STATUS_EXPORTED = "exported";
+    public static final String STATUS_TO_DELETE = "toDelete";
 
     static final Set<String> VALID_VALUES = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(STATUS_NEW, STATUS_ASSIGN, STATUS_CONNECTED, STATUS_DESCRIBED, STATUS_PROCESSING, STATUS_EXPORTED)));

@@ -50,6 +50,7 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
@@ -118,6 +119,7 @@ import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNIN
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin.isNdkAudioModel;
+import static cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor.updateModsNeeded;
 
 /**
  * Exports digital object and transforms its data streams to Kramerius4 format.
@@ -158,6 +160,7 @@ public final class Kramerius4Export {
 
     private final String policy;
     private final String license;
+    private String mainObjectModel;
 
     private String exportPageContext;
 
@@ -548,6 +551,9 @@ public final class Kramerius4Export {
                 if (NdkAudioPlugin.MODEL_PAGE.equals(editor.getModel())) {  // ndk audio page se nexportuje ale jeho streamy se priradi k urovni vyse
                     return;
                 }
+                if (mainObjectModel == null || mainObjectModel.isEmpty()) {
+                    mainObjectModel = editor.getModel();
+                }
                 FedoraClient client = robject.getClient();
                 dobj = FedoraClient.export(object.getPid()).context(exportPageContext == null ? "archive" : exportPageContext)
                         .format("info:fedora/fedora-system:FOXML-1.1")
@@ -559,6 +565,9 @@ public final class Kramerius4Export {
                 if (NdkAudioPlugin.MODEL_PAGE.equals(editor.getModel())) {  // ndk audio page se nexportuje ale jeho streamy se priradi k urovni vyse
                     return;
                 }
+                if (mainObjectModel == null || mainObjectModel.isEmpty()) {
+                    mainObjectModel = editor.getModel();
+                }
                 dobj = AkubraUtils.getDigitalObjectToExport(aobject.getManager(), object.getPid());
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
@@ -568,6 +577,7 @@ public final class Kramerius4Export {
             local = replaceObjectOwnerId(local);
             validate(object.getPid(), object.getParentPid());
             RelationEditor editor = new RelationEditor(local);
+//            updateModsIfNeeded(local, editor.getModel());
             if (NdkAudioPlugin.MODEL_PAGE.equals(editor.getModel())) { // ndk audio page se nexportuje ale jeho streamy se priradi k urovni vyse
                 return;
             }
@@ -591,6 +601,23 @@ public final class Kramerius4Export {
             local.flush();
         } catch (DigitalObjectException | FedoraClientException | JAXBException | IOException ex) {
             throw new IllegalStateException(object.getPid(), ex);
+        }
+    }
+
+    private void updateModsIfNeeded(LocalObject lObj, String modelId) throws DigitalObjectException {
+        try {
+            boolean updateModsNeeded = updateModsNeeded(modelId, mainObjectModel);
+            if (updateModsNeeded) {
+                ModsStreamEditor modsEditor = new ModsStreamEditor(lObj);
+                ModsDefinition mods = modsEditor.read();
+
+                mods = MetsElementVisitor.updateModsIfNeeded(mods, mainObjectModel);
+
+                modsEditor.write(mods, modsEditor.getLastModified(), "Update Mods before export");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new DigitalObjectException(lObj.getPid(), e.getMessage());
         }
     }
 
@@ -863,11 +890,12 @@ public final class Kramerius4Export {
         }
     }
 
-    private void exportDatastreams(LocalObject local, RelationEditor editor,  boolean hasParent, MissingObject missingObject) {
+    private void exportDatastreams(LocalObject local, RelationEditor editor,  boolean hasParent, MissingObject missingObject) throws DigitalObjectException {
         DigitalObject dobj = local.getDigitalObject();
         // XXX replace DS only for other than image/* MIMEs?
         DatastreamType fullDs = FoxmlUtils.findDatastream(dobj, BinaryEditor.FULL_ID);
         DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
+        updateModsIfNeeded(local, editor.getModel());
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
             if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
@@ -886,9 +914,10 @@ public final class Kramerius4Export {
         }
     }
 
-    private void exportParentDatastreams(LocalObject local, Collection<String> includeChildPids, boolean hasParent) {
+    private void exportParentDatastreams(LocalObject local, Collection<String> includeChildPids, boolean hasParent) throws DigitalObjectException {
         DigitalObject dobj = local.getDigitalObject();
         RelationEditor editor = new RelationEditor(local);
+        updateModsIfNeeded(local, editor.getModel());
         for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
             DatastreamType datastream = it.next();
             if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
@@ -1095,6 +1124,7 @@ public final class Kramerius4Export {
             setDonator(relations, doc, editor);
 
             editor.setDevice(null);
+            editor.setSoftware(null);
             editor.setExportResult(null);
             editor.setKrameriusExportResult(null);
             editor.setArchiveExportResult(null);

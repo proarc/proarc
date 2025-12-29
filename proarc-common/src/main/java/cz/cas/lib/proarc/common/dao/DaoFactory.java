@@ -32,6 +32,8 @@ public interface DaoFactory {
 
     GroupDao createUserGroup();
 
+    UserSettingDao createUserSettingDao();
+
     WorkflowJobDao createWorkflowJobDao();
 
     WorkflowMaterialDao createWorkflowMaterialDao();

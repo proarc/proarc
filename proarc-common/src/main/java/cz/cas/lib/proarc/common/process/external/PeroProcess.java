@@ -20,20 +20,19 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.SearchView;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.export.DataStreamExport;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.storage.*;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import org.codehaus.jettison.json.JSONException;
+
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXBException;
+import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,9 +41,6 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBException;
-import javax.xml.transform.TransformerException;
 
 public class PeroProcess {
 
@@ -67,15 +63,15 @@ public class PeroProcess {
         }
     }
 
-    public Result generateAlto(List<String> pids, File folder) {
+    public Result generateAlto(List<String> pids, File folder, Integer peroOcrEngine) {
         Result result = new Result();
         try {
             if ((pids == null || pids.isEmpty()) && (folder == null || !folder.exists())) {
                 throw new IllegalArgumentException("Missing required parameters");
             } else if (folder != null && folder.exists()) {
-                generateMultipleAlto(folder);
+                generateMultipleAlto(folder, peroOcrEngine);
             } else if (pids != null && !pids.isEmpty()) {
-                generateSingleAlto(pids);
+                generateSingleAlto(pids, peroOcrEngine);
             }
         } catch (Exception ex) {
             result.setException(ex);
@@ -84,19 +80,19 @@ public class PeroProcess {
         }
     }
 
-    private void generateMultipleAlto(File folder) throws IOException {
+    private void generateMultipleAlto(File folder, Integer peroOcrEngine) throws IOException {
         if (folder == null || !folder.exists() || !folder.canRead() || !folder.canWrite()) {
             throw new IOException("It is not possiblke to access " + (folder == null ? null : folder.getAbsolutePath()));
         }
         for (File file : folder.listFiles()) {
             if (file.getName().endsWith("tiff") || file.getName().endsWith("tif") || file.getName().endsWith("jpg")) {
                 File imgFile = file;
-                generateOCR(imgFile);
+                generateOCR(imgFile, peroOcrEngine);
             }
         }
     }
 
-    private void generateSingleAlto(List<String> pids) throws JAXBException, IOException, TransformerException, FedoraClientException, InterruptedException, DigitalObjectException {
+    private void generateSingleAlto(List<String> pids, Integer peroOcrEngine) throws JAXBException, IOException, TransformerException, FedoraClientException, InterruptedException, DigitalObjectException {
         for (String pid : pids) {
             ProArcObject object = null;
             InputStream inputStream = null;
@@ -149,7 +145,7 @@ public class PeroProcess {
                 }
                 File ocrFile = new File(pidFolder, createFileName(object.getPid(), "txt"));
                 File altoFile = new File(pidFolder, createFileName(object.getPid(), "xml"));
-                generateOCR(jpgFile);
+                generateOCR(jpgFile, peroOcrEngine);
                 int i = 0;
                 while (!altoFile.exists()) {
                     if (i > 25) {
@@ -179,17 +175,28 @@ public class PeroProcess {
         }
     }
 
-    private void generateOCR(File jpgFile) throws IOException {
-
-        ExternalProcess process = new OcrGenerator(config.getImportConfiguration().getOcrGenProcessor(), jpgFile, ".txt", ".xml");
-
-        if (process != null) {
-            process.run();
-
-            if (!process.isOk()) {
-                throw new IOException("Generating OCR for " + jpgFile.getName() + " failed. \n " + process.getFullOutput());
+    private void generateOCR(File jpgFile, Integer peroOcrEngine) throws IOException {
+        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(config.getImportConfiguration().getOcrGenProcessor(), peroOcrEngine);
+        try {
+            boolean processed = ocrProcessor.generate(jpgFile, ".txt", ".xml");
+            if (processed) {
+                LOG.info("OCR GENERATED SUCCESSFULLY for " +  jpgFile.getAbsolutePath());
             }
+        } catch (JSONException ex) {
+            LOG.severe("Generating OCR for " + jpgFile.getName() + " failed.");
+            ex.printStackTrace();
+            throw new IOException(ex);
         }
+
+//        ExternalProcess process = new OcrGenerator(config.getImportConfiguration().getOcrGenProcessor(), jpgFile, ".txt", ".xml");
+//
+//        if (process != null) {
+//            process.run();
+//
+//            if (!process.isOk()) {
+//                throw new IOException("Generating OCR for " + jpgFile.getName() + " failed. \n " + process.getFullOutput());
+//            }
+//        }
     }
 
     private String createFileName(String pid, String dsId) {

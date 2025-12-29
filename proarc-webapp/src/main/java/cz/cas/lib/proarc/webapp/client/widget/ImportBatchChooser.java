@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.client.widget;
 
-import com.smartgwt.client.data.Criteria;
 import com.smartgwt.client.data.Record;
 import com.smartgwt.client.data.RecordList;
 import com.smartgwt.client.types.Alignment;
@@ -68,6 +67,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
     private ImportBatchChooserHandler handler;
     private final ListGrid lGridBatches;
     private final DynamicForm logForm;
+    private final DynamicForm parametersForm;
     private final ClientMessages i18n;
     private final ActionSource actionSource;
     private Action resumeAction;
@@ -89,11 +89,13 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         ToolStrip toolbar = createToolbar();
 
         logForm = createLogForm();
+        parametersForm = createParametersForm();
 
         VLayout innerLayout = new VLayout();
         innerLayout.setMargin(4);
         innerLayout.addMember(lGridBatches);
         innerLayout.addMember(logForm);
+        innerLayout.addMember(parametersForm);
 
         setMembers(toolbar, innerLayout);
     }
@@ -128,6 +130,26 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfDate.setFilterEditorProperties(dateRangeItem);
         lgfDate.setCanFilter(true);
 
+        ListGridField lgfUpdated = new ListGridField(ImportBatchDataSource.FIELD_UPDATED,
+                i18n.ImportBatchDataSource_ImportUpdatedFieldTitle());
+        lgfUpdated.setWidth(120);
+        lgfUpdated.setAlign(Alignment.CENTER);
+        lgfUpdated.setCanSort(true);
+        MiniDateRangeItem updatedRangeItem = new MiniDateRangeItem();
+        updatedRangeItem.setAttribute("allowRelativeDates", false);
+        lgfUpdated.setFilterEditorProperties(updatedRangeItem);
+        lgfUpdated.setCanFilter(true);
+
+        ListGridField lgfItemUpdated = new ListGridField(ImportBatchDataSource.FIELD_ITEM_UPDATED,
+                i18n.ImportBatchDataSource_ImportItemUpdatedFieldTitle());
+        lgfItemUpdated.setWidth(120);
+        lgfItemUpdated.setAlign(Alignment.CENTER);
+        lgfItemUpdated.setCanSort(true);
+        MiniDateRangeItem itemUpdatedRangeItem = new MiniDateRangeItem();
+        itemUpdatedRangeItem.setAttribute("allowRelativeDates", false);
+        lgfItemUpdated.setFilterEditorProperties(itemUpdatedRangeItem);
+        lgfItemUpdated.setCanFilter(true);
+
         ListGridField lgfModified = new ListGridField(ImportBatchDataSource.FIELD_TIMESTAMP,
                 i18n.ImportBatchDataSource_ImportModifiedFieldTitle());
         lgfModified.setWidth(120);
@@ -161,7 +183,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         lgfPriority.setCanSort(true);
         lgfPriority.setCanFilter(true);
 
-        lg.setFields(lgfFolder, lgfDate, lgfModified, lgfImported, lgfUser, lgfProfile, lgfPriority);
+        lg.setFields(lgfFolder, lgfDate, lgfUpdated, lgfItemUpdated, lgfModified, lgfImported, lgfUser, lgfProfile, lgfPriority);
 
         lg.addSelectionUpdatedHandler(new SelectionUpdatedHandler() {
 
@@ -170,9 +192,9 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
                 updateOnSelection();
             }
         });
-        Criteria filter = new Criteria();
-        filter.addCriteria(lgfImported.getName(), ImportBatchDataSource.State.LOADED.toString());
-        lg.setInitialCriteria(filter);
+//        Criteria filter = new Criteria();
+//        filter.addCriteria(lgfImported.getName(), ImportBatchDataSource.State.LOADED.toString());
+//        lg.setInitialCriteria(filter);
         lg.setSortField(lgfModified.getName());
         lg.setSortDirection(SortDirection.DESCENDING);
         lg.addDataArrivedHandler(new DataArrivedHandler() {
@@ -250,11 +272,23 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         }
     }
 
+    private void showParameters(BatchRecord batch) {
+        if (batch != null) {
+            parametersForm.editRecord(batch.getDelegate());
+            String parameters = batch.getParameters();
+            parametersForm.setVisible(parameters != null && !parameters.isEmpty());
+        } else {
+            parametersForm.clearValues();
+            parametersForm.hide();
+        }
+    }
+
     private void updateOnSelection() {
         actionSource.fireEvent();
         BatchRecord r = getSelectedBatch();
         lastSelection = r;
         showLog(r);
+        showParameters(r);
     }
 
     private ToolStrip createToolbar() {
@@ -346,6 +380,23 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         return form;
     }
 
+    private DynamicForm createParametersForm() {
+        DynamicForm form = new DynamicForm();
+        form.setBrowserSpellCheck(false);
+        form.setCanEdit(false);
+        form.setWidth100();
+        form.setHeight("40%");
+        TextAreaItem textAreaItem = new TextAreaItem(ImportBatchDataSource.FIELD_PARAMETERS);
+        textAreaItem.setColSpan("*");
+        textAreaItem.setHeight("*");
+        textAreaItem.setWrap(TextAreaWrap.OFF);
+        textAreaItem.setShowTitle(false);
+        textAreaItem.setWidth("*");
+        textAreaItem.setCanEdit(false);
+        form.setItems(textAreaItem);
+        return form;
+    }
+
     public interface ImportBatchChooserHandler {
         void itemSelected();
         void itemReset();
@@ -427,7 +478,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         @Override
         public boolean accept(ActionEvent event) {
             BatchRecord batch = getSelectedBatch();
-            return batch != null && batch.getParentPid() != null && !batch.isKrameirus() && !batch.isReplaceStream();
+            return batch != null && batch.getParentPid() != null && !batch.isReplaceStream();
         }
 
         @Override

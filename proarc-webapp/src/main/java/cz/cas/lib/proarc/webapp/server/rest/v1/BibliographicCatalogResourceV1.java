@@ -206,32 +206,4 @@ public class BibliographicCatalogResourceV1 {
         }
 
     }
-
-//    @XmlRootElement
-//    @XmlAccessorType(XmlAccessType.FIELD)
-//    public static class Criterion {
-//
-//        private String operator;
-//        private String fieldName;
-//        private String value;
-//
-//        public Criterion() {
-//        }
-//
-//        public String getFieldName() {
-//            return fieldName;
-//        }
-//
-//        public String getValue() {
-//            return value;
-//        }
-//
-//        @Override
-//        public String toString() {
-//            return String.format("Criterion[operator: %s, fieldName: %s, value: %s]",
-//                    operator, fieldName, value);
-//        }
-//
-//    }
-
 }

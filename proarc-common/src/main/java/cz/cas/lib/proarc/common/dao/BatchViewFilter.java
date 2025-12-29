@@ -30,12 +30,15 @@ public class BatchViewFilter {
 
     private Integer userId;
     private Integer creatorId;
-    private List<Integer> superAdminUserIds;
-    private Integer batchId;
+    private List<Integer> batchIds;
     private Set<State> state;
     private String filePattern;
     private Timestamp createdFrom;
     private Timestamp createdTo;
+    private Timestamp updatedFrom;
+    private Timestamp updatedTo;
+    private Timestamp itemUpdatedFrom;
+    private Timestamp itemUpdatedTo;
     private Timestamp modifiedFrom;
     private Timestamp modifiedTo;
     private String profile;
@@ -53,21 +56,12 @@ public class BatchViewFilter {
         return this;
     }
 
-    public List<Integer> getSuperAdminUserIds() {
-        return superAdminUserIds;
-    }
-
-    public BatchViewFilter setSuperAdminUserIds(List<Integer> superAdminUserIds) {
-        this.superAdminUserIds = superAdminUserIds;
-        return this;
-    }
-
     public Integer getUserId() {
         return userId;
     }
 
-    public Integer getBatchId() {
-        return batchId;
+    public List<Integer> getBatchIds() {
+        return batchIds;
     }
 
     public Set<State> getState() {
@@ -84,6 +78,22 @@ public class BatchViewFilter {
 
     public Timestamp getCreatedTo() {
         return createdTo;
+    }
+
+    public Timestamp getUpdatedFrom() {
+        return updatedFrom;
+    }
+
+    public Timestamp getUpdatedTo() {
+        return updatedTo;
+    }
+
+    public Timestamp getItemUpdatedFrom() {
+        return itemUpdatedFrom;
+    }
+
+    public Timestamp getItemUpdatedTo() {
+        return itemUpdatedTo;
     }
 
     public Timestamp getModifiedFrom() {
@@ -111,8 +121,8 @@ public class BatchViewFilter {
         return this;
     }
 
-    public BatchViewFilter setBatchId(Integer batchId) {
-        this.batchId = batchId;
+    public BatchViewFilter setBatchIds(List<Integer> batchIds) {
+        this.batchIds = batchIds;
         return this;
     }
 
@@ -136,6 +146,26 @@ public class BatchViewFilter {
 
     public BatchViewFilter setCreatedTo(Timestamp createdTo) {
         this.createdTo = createdTo;
+        return this;
+    }
+
+    public BatchViewFilter setUpdatedFrom(Timestamp updatedFrom) {
+        this.updatedFrom = updatedFrom;
+        return this;
+    }
+
+    public BatchViewFilter setUpdatedTo(Timestamp updatedTo) {
+        this.updatedTo = updatedTo;
+        return this;
+    }
+
+    public BatchViewFilter setItemUpdatedFrom(Timestamp itemUpdatedFrom) {
+        this.itemUpdatedFrom = itemUpdatedFrom;
+        return this;
+    }
+
+    public BatchViewFilter setItemUpdatedTo(Timestamp itemUpdatedTo) {
+        this.itemUpdatedTo = itemUpdatedTo;
         return this;
     }
 

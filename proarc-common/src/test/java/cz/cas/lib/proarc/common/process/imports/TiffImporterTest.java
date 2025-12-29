@@ -175,7 +175,7 @@ public class TiffImporterTest {
         assertNotNull(mimetype);
 
         ImportOptions ctx = new ImportOptions(tiff1.getParentFile(),
-                "scanner:scanner1", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
+                "scanner:scanner1", "software:objectSet",true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);
@@ -249,7 +249,7 @@ public class TiffImporterTest {
         assertNotNull(mimetype);
 
         ImportOptions ctx = new ImportOptions(tiff1.getParentFile(),
-                "scanner:scanner1", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
+                "scanner:scanner1", "software:objectSet",true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);

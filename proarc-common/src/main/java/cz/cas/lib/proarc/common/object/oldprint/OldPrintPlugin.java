@@ -294,64 +294,6 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         return new NdkMetadataHandler(handler, new OldPrintMapperFactory()) {
 
             @Override
-            protected ModsDefinition createDefault(String modelId) throws DigitalObjectException {
-                ModsDefinition defaultMods = super.createDefault(modelId);
-                DigitalObjectHandler parent = handler.getParameterParent();
-                if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
-                    // issue 329
-                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-                    if (title != null) {
-                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                        inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
-                        defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                        inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-//                        inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
-                        inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
-                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                    }
-                    title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHUNIT);
-                    if (title != null) {
-                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                        inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
-                        defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                        inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-//                        inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
-                        inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
-                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                    }
-                } else if (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
-                    //issue 540
-                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHTITLE);
-                    if (title != null) {
-                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                        defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
-                        defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
-                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                    }
-                } else if (OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
-                    // issue 241
-                    DigitalObjectHandler title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-                    if (title != null) {
-                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                        defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                        inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-                        inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
-                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                    }
-                    title = findEnclosingObject(parent, OldPrintPlugin.MODEL_MONOGRAPHUNIT);
-                    if (title != null) {
-                        ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                        defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                        inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-                        inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
-                        inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                    }
-                }
-
-                return defaultMods;
-            }
-
-            @Override
             public PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException {
                 String modelId = handler.relations().getModel();
                 if (modelId.equals(MODEL_PAGE)) {

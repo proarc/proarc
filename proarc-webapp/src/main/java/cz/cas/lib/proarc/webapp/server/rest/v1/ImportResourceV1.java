@@ -46,7 +46,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.user.Permissions;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -62,14 +61,11 @@ import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -95,12 +91,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import org.apache.commons.io.IOUtils;
 
 import static cz.cas.lib.proarc.common.process.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.TMP_DIR_NAME;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_BATCH_CANNOT_BE_STOPED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  * Resource to handle imports.
@@ -127,7 +124,7 @@ public class ImportResourceV1 {
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
 
-    private final UserProfile user;
+    protected final UserProfile user;
     private final SessionContext session;
 
     public ImportResourceV1(
@@ -225,9 +222,11 @@ public class ImportResourceV1 {
             states.add(new ProfileStates(ConfigurationProfile.DEFAULT_NDK_IMPORT, subfolder.getStatusNdk(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusK4(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonographTitle(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.STT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusStt(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEMonograph(appConfig).name()));
+            states.add(new ProfileStates(ConfigurationProfile.NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEMonographTitle(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEPeriodical(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.REPLACE_STREAM_IMPORT, subfolder.getStatusReplaceStream(appConfig).name()));
             states.add(new ProfileStates(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, subfolder.getStatusSoundrecording(appConfig).name()));
@@ -242,15 +241,18 @@ public class ImportResourceV1 {
     public SmartGwtResponse<BatchView> newBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
+            @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws URISyntaxException, IOException {
         
-        LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
-                new Object[] {path, indices, device});
+        LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}, software: {3}",
+                new Object[] {path, indices, device, software});
         String folderPath = validateParentPath(path);
         URI userRoot = user.getImportFolder();
         URI folderUri = (folderPath != null)
@@ -265,7 +267,7 @@ public class ImportResourceV1 {
             for (File importFile : folder.listFiles()) {
                 if (importFile.exists() && importFile.isDirectory()) {
                     ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
-                            importManager, device, indices, true, priority, useNewMetadata, useOriginalMetadata, appConfig.getImportConfiguration(profile), appConfig);
+                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
                     ImportDispatcher.getDefault().addImport(process);
                     listBatches.add(process.getBatch());
                 }
@@ -273,7 +275,7 @@ public class ImportResourceV1 {
             return new SmartGwtResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                    importManager, device, indices, priority, useNewMetadata, useOriginalMetadata, appConfig.getImportConfiguration(profile), appConfig);
+                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
             return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -296,7 +298,7 @@ public class ImportResourceV1 {
         File importFolder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, ConfigurationProfile.GENERATE_ALTO_OCR);
         ImportProcess process = ImportProcess.prepare(importFolder, folderPath, user,
-                importManager, null, false, null, false, false, appConfig.getImportConfiguration(profile), appConfig);
+                importManager, null, null, false, null, false, false, null, false, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -309,11 +311,14 @@ public class ImportResourceV1 {
     public SmartGwtResponse<BatchView> newBatches(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
+            @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
             @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
+            @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -333,7 +338,7 @@ public class ImportResourceV1 {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, indices, priority, useNewMetadata, useOriginalMetadata, appConfig.getImportConfiguration(profile), appConfig);
+                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {
@@ -378,6 +383,40 @@ public class ImportResourceV1 {
         return value;
     }
 
+    @DELETE
+    @Path(ImportResourceApi.BATCH_PATH)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<BatchView> deleteBatch(
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) List<Integer> batchIds,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
+    ) {
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN);
+
+        if (batchIds == null && batchIds.isEmpty() && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing values in parameters.");
+        }
+
+        BatchViewFilter filterAll = new BatchViewFilter()
+                .setBatchIds(batchIds)
+                .setUserId(creatorId)
+                .setCreatorId(creatorId)
+                .setState(batchState)
+                .setProfile(profileId)
+                .setMaxCount(100000)
+                .setSortBy("id");
+        List<BatchView> batches2Delete = importManager.viewBatch(filterAll);
+
+        for (BatchView batch2Delete : batches2Delete) {
+            importManager.deleteBatch(batch2Delete.getId());
+        }
+        int batchSize = batches2Delete.size();
+        int endRow = batchSize - 1;
+        int total = batches2Delete.size();
+        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, batches2Delete);
+    }
+
     /**
      * Gets list of batch imports. DateTime format is ISO 8601.
      * 
@@ -401,6 +440,10 @@ public class ImportResourceV1 {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_FROM) DateTimeParam createFrom,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_TO) DateTimeParam createTo,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_UPDATED_FROM) DateTimeParam updatedFrom,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_UPDATED_TO) DateTimeParam updatedTo,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED_FROM) DateTimeParam itemUpdatedFrom,
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED_TO) DateTimeParam itemUpdatedTo,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_FROM) DateTimeParam modifiedFrom,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_MODIFIED_TO) DateTimeParam modifiedTo,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_DESCRIPTION) String filePattern,
@@ -416,13 +459,15 @@ public class ImportResourceV1 {
             size = 100;
         }
         BatchViewFilter filterAll = new BatchViewFilter()
-                    .setBatchId(batchId)
-                    .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
+                    .setBatchIds(Collections.singletonList(batchId))
                     .setCreatorId(creatorId)
-                    .setSuperAdminUserIds(getSuperAdminsIds(user.getOrganization()))
                     .setState(batchState)
                     .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                     .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
+                    .setUpdatedFrom(updatedFrom == null ? null : updatedFrom.toTimestamp())
+                    .setUpdatedTo(updatedTo == null ? null : updatedTo.toTimestamp())
+                    .setItemUpdatedFrom(itemUpdatedFrom == null ? null : itemUpdatedFrom.toTimestamp())
+                    .setItemUpdatedTo(itemUpdatedTo == null ? null : itemUpdatedTo.toTimestamp())
                     .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
                     .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                     .setFilePattern(filePattern)
@@ -434,14 +479,15 @@ public class ImportResourceV1 {
 
 
         BatchViewFilter filter = new BatchViewFilter()
-                .setBatchId(batchId)
-                // admin may see all users; XXX use permissions for this!
-                .setUserId(user.getId() == 1 ? null : (UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getId()))
+                .setBatchIds(Collections.singletonList(batchId))
                 .setCreatorId(creatorId)
-                .setSuperAdminUserIds(getSuperAdminsIds(user.getOrganization()))
                 .setState(batchState)
                 .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
                 .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
+                .setUpdatedFrom(updatedFrom == null ? null : updatedFrom.toTimestamp())
+                .setUpdatedTo(updatedTo == null ? null : updatedTo.toTimestamp())
+                .setItemUpdatedFrom(itemUpdatedFrom == null ? null : itemUpdatedFrom.toTimestamp())
+                .setItemUpdatedTo(itemUpdatedTo == null ? null : itemUpdatedTo.toTimestamp())
                 .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
                 .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
                 .setFilePattern(filePattern)
@@ -457,28 +503,6 @@ public class ImportResourceV1 {
         return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
     }
 
-    private List<Integer> getSuperAdminsIds(String organization) {
-        UserManager users = UserUtil.getDefaultManger();
-        List<UserProfile> profiles = users.findAll();
-        List<Integer> superAdminIds = new ArrayList<>();
-        if (organization == null || organization.isEmpty()) {
-            for (UserProfile profile : profiles) {
-                if (UserRole.ROLE_SUPERADMIN.equals(profile.getRole())) {
-                    superAdminIds.add(profile.getId());
-                }
-            }
-        } else {
-            for (UserProfile profile : profiles) {
-                if (UserRole.ROLE_SUPERADMIN.equals(profile.getRole())) {
-                    if (organization.equals(profile.getOrganization())) {
-                        superAdminIds.add(profile.getId());
-                    }
-                }
-            }
-        }
-        return superAdminIds;
-    }
-
     @GET
     @Path(ImportResourceApi.BATCHES_IN_PROCESS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
@@ -488,13 +512,14 @@ public class ImportResourceV1 {
     ) throws IOException {
         if (batchState.isEmpty()) {
             batchState.add(Batch.State.LOADING);
+            batchState.add(Batch.State.IMPORT_PLANNED);
         }
         BatchViewFilter filterAll = new BatchViewFilter()
                 .setState(batchState)
                 .setMaxCount(1000)
                 .setSortBy("id");
 
-        List<BatchView> loadingBatches = importManager.viewProcessingBatches(filterAll, user, UserRole.ROLE_USER);
+        List<BatchView> loadingBatches = importManager.viewProcessingBatches(filterAll, user);
 
         int endRow = 0 + loadingBatches.size() - 1;
         int total = loadingBatches.size();
@@ -512,43 +537,25 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        // zruseno na zaklade pozadavku z issue client:453
-//        if (!session.checkRole(UserRole.ROLE_SUPERADMIN) && user.getOrganization() == null) {
-//            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_USER_WITHOUT_ORGANIZATION, user.getUserName()));
-//        }
-        if (Batch.State.LOADING.equals(batch.getState())) {
-            if (!(session.checkPermission(Permissions.ADMIN) || session.checkRole(UserRole.ROLE_SUPERADMIN) || isBatchOwner(batch))) {
-                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole());
+        if (Batch.State.LOADING.equals(batch.getState()) || Batch.State.IMPORT_PLANNED.equals(batch.getState())) {
+            if (!(hasPermission(user, UserRole.PERMISSION_FUNCTION_PREPARE_BATCH) || isBatchOwner(batch))) {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - permission prepareBatchFunction.");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
             BatchView batchView = importManager.viewBatch(batch.getId());
             return new SmartGwtResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORTING.equals(batch.getState())) {
-            if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
-                // role superadmin is allowed to stop all batches
-            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOwner(batch)) {
-//            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) { // zmena na zaklade pozadavku z issue client:453
-                // role admin is allowed to stop all batches or their organization
-            } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
-                // role user is only allowed to stop their own batches
-            } else {
-                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
+            if (!(isBatchOwner(batch))) {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ExportProcess.stopExportingBatch(batch, importManager, appConfig, akubraConfiguration);
             BatchView batchView = importManager.viewBatch(batch.getId());
             return new SmartGwtResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORT_PLANNED.equals(batch.getState())) {
-            if (session.checkRole(UserRole.ROLE_SUPERADMIN)) {
-                // role superadmin is allowed to stop all batches
-            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOwner(batch)) {
-//            } else if (session.checkRole(UserRole.ROLE_ADMIN) && isBatchOrganization(batch)) { // zmena na zaklade pozadavku z issue client:453
-                // role admin is allowed to stop all batches or their organization
-            } else if (session.checkRole(UserRole.ROLE_USER) && isBatchOwner(batch)) {
-                // role user is only allowed to stop their own batches
-            } else {
-                LOG.info("User " + user + " (id:" + user.getId() + ") - role " + user.getRole() + " cannot stop batch");
+            if (!(isBatchOwner(batch))) {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ExportProcess.cancelPlannedBatch(batch, importManager, appConfig, akubraConfiguration);
@@ -595,36 +602,6 @@ public class ImportResourceV1 {
         if (state == Batch.State.INGESTING) {
             // ingest or reingest for INGESTING_FAILED
             batch.getFolder();
-
-            if (user.getId() != batch.getUserId()) {
-                // batch was imported by different user (store metadata editor userid instead)
-                File batchDir = new File(appConfig.getDefaultUsersHome(), batch.getFolder() + "/" + TMP_DIR_NAME);
-                File [] batchFiles = batchDir.listFiles((dir, name) -> name.endsWith(".foxml") && !name.startsWith(".proarc"));
-
-                if (batchFiles == null) {
-                    LOG.log(Level.INFO, "BatchFiles is null, trying to get batchFiles again. BatchId: "
-                            + batchId + ", parentPid: " + parentPid + ", profileId: " + profileId + ", state: "
-                            + state.toString() + " batchDir: " + batchDir + ".");
-
-                    FilenameFilter filter = new FilenameFilter() {
-                        @Override
-                        public boolean accept(File dir, String name) {
-                            return  (name.endsWith(".foxml") && !name.startsWith(".proarc"));
-                        }
-                    };
-
-                    batchFiles = batchDir.listFiles(filter);
-                }
-
-                for (File batchFile : batchFiles) {
-                    String fileContents = IOUtils.toString(new FileInputStream(batchFile), Charset.defaultCharset());
-                    fileContents = fileContents.replaceAll(
-                            "<property NAME=\"info:fedora/fedora-system:def/model#ownerId\" VALUE=\"" + "[^/]*" + "\"/>",
-                            "<property NAME=\"info:fedora/fedora-system:def/model#ownerId\" VALUE=\"" + user.getUserName() + "\"/>"
-                    );
-                    IOUtils.write(fileContents, new FileOutputStream(batchFile), Charset.defaultCharset());
-                }
-            }
             UserManager users = UserUtil.getDefaultManger();
             UserProfile user = users.find(batch.getUserId());
             File importFolder = importManager.resolveBatchFile(batch.getFolder());
@@ -642,6 +619,19 @@ public class ImportResourceV1 {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
         } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED || state == Batch.State.LOADING_CONFLICT) {
+            Integer userId = batch.getUserId();
+            if (userId != null) {
+                if (userId != user.getId()) {
+                    UserManager userManager = UserUtil.getDefaultManger();
+                    UserProfile userProfile = userManager.find(userId);
+                    if (userProfile == null) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                    if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                }
+            }
             Batch.State realState = batch.getState();
             batch.setProfileId(profileId);
             importManager.update(batch);
@@ -657,6 +647,7 @@ public class ImportResourceV1 {
                 ImportDispatcher.getDefault().addImport(resume);
             } catch (IllegalStateException ex) {
                 batch.setState(Batch.State.LOADING_FAILED);
+                batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                 importManager.update(batch);
                 throw ex;
             }
@@ -692,7 +683,7 @@ public class ImportResourceV1 {
                 throw RestException.plainText(Status.BAD_REQUEST,
                         ServerMessages.get(locale).ImportResource_BatchLoadingFailed_Msg());
             }
-            if (!(batch.getState() == Batch.State.LOADED || batch.getState() == Batch.State.LOADING)) {
+            if (!(batch.getState() == Batch.State.LOADED || batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED)) {
                 String message = ServerMessages.get(locale).ImportResource_BatchNotLoaded_Msg();
                 return SmartGwtResponse.asError(message);
             }
@@ -700,6 +691,21 @@ public class ImportResourceV1 {
                 String message =ServerMessages.get(locale).ImportResource_Batch_WrongProfileId_Msg();
                 return SmartGwtResponse.asError(message);
             }
+
+            Integer userId = batch.getUserId();
+            if (userId != null) {
+                if (userId != user.getId()) {
+                    UserManager userManager = UserUtil.getDefaultManger();
+                    UserProfile userProfile = userManager.find(userId);
+                    if (userProfile == null) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                    if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
+                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                    }
+                }
+            }
+
             try {
                 imports = listLoadedItems
                         ? importManager.findLoadedObjects(batch)
@@ -723,14 +729,14 @@ public class ImportResourceV1 {
         }
 
         int totalImports = imports.size();
-        if (listLoadedItems && batch.getState() == Batch.State.LOADING
+        if (listLoadedItems && (batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED)
                 && totalImports > 0 && totalImports >= batch.getEstimateItemNumber()) {
 
             // #fix a situation when all items are already loaded but the batch has not been closed yet.
             --totalImports;
             imports.subList(0, totalImports);
         }
-        int totalRows = (batch.getState() == Batch.State.LOADING) ? batch.getEstimateItemNumber(): totalImports;
+        int totalRows = (batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED) ? batch.getEstimateItemNumber(): totalImports;
 
         if (totalImports == 0 || startRow >= totalImports) {
             return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, startRow, totalRows, null);
@@ -860,7 +866,8 @@ public class ImportResourceV1 {
     @Path(ImportResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DigitalObjectResourceV1.InternalExternalProcessResult> generateAlto(
-            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException, URISyntaxException {
         if (path == null || path.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "missing values in parameter \"folderPath\".");
@@ -874,7 +881,7 @@ public class ImportResourceV1 {
         File folder = new File(folderUri);
 
         BatchParams params = new BatchParams(Collections.singletonList(folderPath));
-        Batch batch = BatchUtils.addNewExternalBatch(this.importManager, folderPath, user, Batch.EXTERNAL_PERO, params);
+        Batch batch = BatchUtils.addNewExternalBatch(this.importManager, folderPath, user, Batch.EXTERNAL_PERO, isNightOnly, params);
 
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, importManager, user, session.asFedoraLog(), session.getLocale(httpHeaders), folder);
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);

@@ -25,9 +25,14 @@ import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.configuration.Configuration;
-
-import java.util.*;
 
 /**
  * Settings for Kramerius4 export.
@@ -108,6 +113,7 @@ public final class Kramerius4ExportOptions {
             put(NdkEbornPlugin.MODEL_EARTICLE, "hasIntCompPart");
             put(NdkEbornPlugin.MODEL_ECHAPTER, "hasIntCompPart");
             put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "hasUnit");
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, "hasUnit");
             put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "hasIntCompPart");
             put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "hasItem");
             put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "hasVolume");
@@ -132,6 +138,7 @@ public final class Kramerius4ExportOptions {
             put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
             put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "model:supplement");
             put(NdkPlugin.MODEL_MONOGRAPHUNIT, K4Plugin.MODEL_MONOGRAPHUNIT);
+            put(NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, "model:monographunit");
             put(NdkPlugin.MODEL_MONOGRAPHVOLUME, K4Plugin.MODEL_MONOGRAPH);
             put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, K4Plugin.MODEL_MONOGRAPH);
             put(NdkPlugin.MODEL_PERIODICAL, K4Plugin.MODEL_PERIODICAL);

@@ -78,6 +78,7 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
     private static final String FILTER_PHRASE = SearchType.PHRASE.toString();
     private static final String FILTER_QUERY = SearchType.QUERY.toString();
     private static final String FILTER_DELETED = SearchType.DELETED.toString();
+    private static final String FILTER_ORPHAN = SearchType.ORPHAN.toString();
     private static final String FILTER_ALPHABETICAL = SearchType.ALPHABETICAL.toString();
     private static final String FILTER_ADVANCED = SearchType.ADVANCED.toString();
 
@@ -293,8 +294,9 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
         filterMap.put(FILTER_LAST_MODIFIED, i18n.DigitalObjectSearchView_FilterGroupLastModified_Title());
         filterMap.put(FILTER_PHRASE, i18n.DigitalObjectSearchView_FilterGroupPhrase_Title());
         filterMap.put(FILTER_QUERY, i18n.DigitalObjectSearchView_FilterGroupAdvanced_Title());
-        if (Editor.getInstance().hasPermission("proarc.permission.admin") || Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN)) {
+        if (Editor.getInstance().hasPermission("proarc.permission.admin")) {
             filterMap.put(FILTER_DELETED, i18n.DigitalObjectSearchView_FilterGroupDeleted_Title());
+            filterMap.put(FILTER_ORPHAN, i18n.DigitalObjectSearchView_FilterGroupOrphan_Title());
         }
         filterMap.put(FILTER_ADVANCED, i18n.DigitalObjectSearchView_FilterGroupAdvancedSearch_Title());
         filterType.setValueMap(filterMap);
@@ -302,11 +304,11 @@ public final class DigitalObjectSearchView implements Selectable<Record>, Refres
 
         FormItemIfFunction showIfQuery = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED);
         FormItemIfFunction showIfPhrase = new StringMatchFunction(filterType, FILTER_PHRASE);
-        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE);
-        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE);
-        FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_ADVANCED);
-        FormItemIfFunction showSortField = new StringMatchFunction(filterType, FILTER_PHRASE, FILTER_ADVANCED);
-        FormItemIfFunction showIfQueryOrAdvanced = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED, FILTER_ADVANCED);
+        FormItemIfFunction showIfCreatedModifiedQuery = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_QUERY, FILTER_DELETED, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE, FILTER_ORPHAN);
+        FormItemIfFunction showIfAplhabetical = new StringMatchFunction(filterType, FILTER_LAST_CREATED, FILTER_LAST_MODIFIED, FILTER_ALPHABETICAL, FILTER_ADVANCED, FILTER_PHRASE, FILTER_ORPHAN);
+        FormItemIfFunction showIfAdvanced = new StringMatchFunction(filterType, FILTER_ADVANCED, FILTER_ORPHAN);
+        FormItemIfFunction showSortField = new StringMatchFunction(filterType, FILTER_PHRASE, FILTER_ADVANCED, FILTER_ORPHAN);
+        FormItemIfFunction showIfQueryOrAdvanced = new StringMatchFunction(filterType, FILTER_QUERY, FILTER_DELETED, FILTER_ORPHAN, FILTER_ADVANCED);
 
         final TextItem phrase = createAdvancedItem(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM,
                 i18n.DigitalObjectSearchView_FilterPhrase_Title(), showIfPhrase);

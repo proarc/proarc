@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Solr managed schema - automatically generated - DO NOT EDIT -->
+<!-- This schema is designed for Solr 9.x -->
 <schema name="loggingCore" version="2.0">
     
 	

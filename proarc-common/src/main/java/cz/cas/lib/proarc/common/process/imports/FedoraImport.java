@@ -62,6 +62,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -107,6 +108,7 @@ public final class FedoraImport {
             throw new IllegalStateException("Invalid batch state: " + batch);
         }
         batch.setState(Batch.State.INGESTING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch = ibm.update(batch);
         String parentPid = batch.getParentPid();
         long startTime = System.currentTimeMillis();
@@ -115,6 +117,7 @@ public final class FedoraImport {
             boolean itemFailed = importItems(batch, importer, ingestedPids, repair);
             addParentMembers(batch, parentPid, ingestedPids, message);
             batch.setState(itemFailed ? Batch.State.INGESTING_FAILED : Batch.State.INGESTED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             if (Batch.State.INGESTED.equals(batch.getState())) {
                 deleteImportFolder(batch);
             }
@@ -129,6 +132,7 @@ public final class FedoraImport {
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
             batch.setState(Batch.State.INGESTING_FAILED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch.setLog(BatchManager.toString(t));
         } finally {
             batch = ibm.update(batch);
