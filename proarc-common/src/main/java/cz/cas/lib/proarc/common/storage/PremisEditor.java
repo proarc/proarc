@@ -17,8 +17,6 @@
 package cz.cas.lib.proarc.common.storage;
 
 
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-
 import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
@@ -69,17 +67,22 @@ import cz.cas.lib.proarc.premis.ObjectFactory;
 import cz.cas.lib.proarc.premis.ObjectIdentifierComplexType;
 import cz.cas.lib.proarc.premis.OriginalNameComplexType;
 import cz.cas.lib.proarc.premis.PremisComplexType;
+import cz.cas.lib.proarc.premis.PremisUtils;
 import cz.cas.lib.proarc.premis.PreservationLevelComplexType;
 import cz.cas.lib.proarc.premis.RelatedEventIdentificationComplexType;
 import cz.cas.lib.proarc.premis.RelatedObjectIdentificationComplexType;
 import cz.cas.lib.proarc.premis.RelationshipComplexType;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
@@ -87,7 +90,13 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -95,6 +104,8 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
@@ -220,22 +231,169 @@ public class PremisEditor {
         return;
     }
 
+    public void regenerate(ProArcObject object, AppConfiguration config, AkubraConfiguration akubraConfig) throws DigitalObjectException {
+        try {
+            MetsElement metsElement = getElement(object.getPid(), config, akubraConfig);
+
+            Mets mets = MetsElementVisitor.getSoftwareMets(metsElement);
+            HashMap<String, FileMD5Info> md5InfosMap = createMd5InfoMap(metsElement);
+            if (mets != null) {
+                String metsValue = MetsUtils.toXml(mets, true);
+                mets = fillValues(metsValue, metsElement, md5InfosMap);
+            } else {
+                mets = new Mets();
+                AmdSecType amdSec = new AmdSecType();
+                amdSec.setID(metsElement.getElementID());
+                mets.getAmdSec().add(amdSec);
+                Mets deviceMets = MetsElementVisitor.getScannerMets(metsElement);
+                addPremisToAmdSec(config.getNdkExportOptions(), amdSec, md5InfosMap, metsElement, null, deviceMets, null);
+            }
+
+            if (mets != null) {
+                write(mets, editor.getLastModified(), "Regenerate mets.");
+                object.flush();
+            }
+        } catch (Exception e) {
+            throw new DigitalObjectException(object.getPid(), "Nepodarilo se vytvorit Technicka metadata.");
+        }
+    }
+
     public Mets generate(ProArcObject fobject, AppConfiguration config, AkubraConfiguration akubraConfiguration, String importFile) throws DigitalObjectException {
         try {
             MetsElement metsElement = getElement(fobject.getPid(), config, akubraConfiguration);
 
+
             Mets amdSecMets = new Mets();
             AmdSecType amdSec = new AmdSecType();
-            amdSec.setID(metsElement.getElementID());
-            amdSecMets.getAmdSec().add(amdSec);
 
             Mets deviceMets = MetsElementVisitor.getScannerMets(metsElement);
             HashMap<String, FileMD5Info> md5InfosMap = createMd5InfoMap(metsElement);
-            addPremisToAmdSec(config.getNdkExportOptions(), amdSec, md5InfosMap, metsElement, null, deviceMets, null);
+
+            amdSec = generate(metsElement, config.getNdkExportOptions(), amdSec, md5InfosMap, null, deviceMets, null);
+            amdSec.setID(metsElement.getElementID());
+            amdSecMets.getAmdSec().add(amdSec);
             return amdSecMets;
         } catch (Exception e) {
             throw new DigitalObjectException(fobject.getPid(), "Nepodarilo se vytvorit Technicka metadata");
         }
+    }
+
+    public AmdSecType generate(IMetsElement metsElement, NdkExportOptions exportOptions, AmdSecType amdSec, HashMap<String, FileMD5Info> md5InfosMap, HashMap<String, MetsType.FileSec.FileGrp> amdSecFileGrpMap, Mets metsDevice, Mix mixDevice) throws DigitalObjectException {
+        try {
+            Mets softwareMets = MetsElementVisitor.getSoftwareMets(metsElement);
+            if (softwareMets != null) {
+                String metsValue = MetsUtils.toXml(softwareMets, true);
+                softwareMets = fillValues(metsValue, metsElement, md5InfosMap);
+//                return softwareMets.getAmdSec().get(0);
+                for (AmdSecType amdSecType : softwareMets.getAmdSec()) {
+                    amdSec.getDigiprovMD().addAll(amdSecType.getDigiprovMD());
+                    amdSec.getRightsMD().addAll(amdSecType.getRightsMD());
+                    amdSec.getSourceMD().addAll(amdSecType.getSourceMD());
+                    amdSec.getTechMD().addAll(amdSecType.getTechMD());
+                }
+                return amdSec;
+            }
+            addPremisToAmdSec(exportOptions, amdSec, md5InfosMap, metsElement, amdSecFileGrpMap, metsDevice, mixDevice);
+            return amdSec;
+        } catch (Exception e) {
+            throw new DigitalObjectException(metsElement.getOriginalPid(), "Nepodarilo se vytvorit Technicka metadata");
+        }
+    }
+
+    public Mets fillValues(String metsValue, IMetsElement metsElement, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
+        if (metsValue == null || metsValue.isEmpty()) {
+            return new Mets();
+        }
+        if (metsValue.contains("${{uuid}}")) {
+            metsValue = metsValue.replaceAll("\\$\\{\\{uuid\\}\\}", Const.FEDORAPREFIX + metsElement.getOriginalPid());
+        }
+        if (metsValue.contains("${{proarcVersion}}")) {
+            metsValue = metsValue.replaceAll("\\$\\{\\{proarcVersion\\}\\}", metsElement.getMetsContext().getOptions().getVersion());
+        }
+        if (metsValue.contains("${{proarcTimestamp}}")) {
+            metsValue = metsValue.replaceAll("\\$\\{\\{proarcTimestamp\\}\\}", MetsUtils.getCurrentDate().toXMLFormat());
+        }
+        if (metsValue.contains("${{timestamp}}")) {
+            metsValue = metsValue.replaceAll("\\$\\{\\{timestamp\\}\\}", MetsUtils.getCurrentDate().toXMLFormat());
+        }
+
+
+        String originalFile = MetsUtils.xPathEvaluateString(metsElement.getRelsExt(), "*[local-name()='RDF']/*[local-name()='Description']/*[local-name()='importFile']");
+        if (originalFile != null) {
+            originalFile = originalFile.substring(0, originalFile.indexOf("."));
+            if (metsValue.contains("${{filenameAlto}}")) {
+                metsValue = metsValue.replaceAll("\\$\\{\\{filenameAlto\\}\\}", originalFile + ".xml");
+            }
+            if (metsValue.contains("${{filenameTif}}")) {
+                metsValue = metsValue.replaceAll("\\$\\{\\{filenameTif\\}\\}", originalFile + ".tif");
+            }
+            if (metsValue.contains("${{filenameNdkArchival}}")) {
+                metsValue = metsValue.replaceAll("\\$\\{\\{filenameNdkArchival\\}\\}", originalFile + ".jp2");
+            }
+        }
+
+        metsValue = insertFileSize(metsValue, md5InfosMap);
+
+        Mets mets = MetsUtils.unmarshalMets(new StreamSource(new StringReader(metsValue)));
+        return mets;
+    }
+
+    private String insertFileSize(String metsValue, HashMap<String, FileMD5Info> md5InfosMap) {
+        try {
+            Map<String, Long> formatSize = new HashMap<>();
+            formatSize.put("image/tiff", getFileSize(md5InfosMap, Const.RAW_GRP_ID));
+            formatSize.put("image/jp2", getFileSize(md5InfosMap, Const.MC_GRP_ID));
+            formatSize.put("text/xml", getFileSize(md5InfosMap, Const.ALTO_GRP_ID));
+
+            // Načtení XML do Document objektu
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(new ByteArrayInputStream(metsValue.getBytes()));
+
+            // Najdeme všechny <premis:objectCharacteristics>
+            NodeList characteristicsList = document.getElementsByTagNameNS(PremisUtils.NS, "objectCharacteristics");
+
+            for (int i = 0; i < characteristicsList.getLength(); i++) {
+                Element objectCharacteristics = (Element) characteristicsList.item(i);
+
+                // Najdeme odpovídající <premis:formatName>
+                NodeList formatNames = objectCharacteristics.getElementsByTagNameNS(PremisUtils.NS, "formatName");
+                String formatValue = "unknown";
+                if (formatNames.getLength() > 0) {
+                    formatValue = formatNames.item(0).getTextContent();
+                }
+
+                // Určíme velikost podle formátu
+                long sizeValue = formatSize.getOrDefault(formatValue, 0L);
+
+                // Přidáme nový element <premis:size>
+                Element sizeElement = document.createElementNS(PremisUtils.NS, "premis:size");
+                sizeElement.setTextContent(String.valueOf(sizeValue));
+                objectCharacteristics.appendChild(sizeElement);
+            }
+
+            // Převod zpět na XML string
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(document), new StreamResult(writer));
+
+            return writer.toString();
+        } catch (Exception e) {
+            return metsValue;
+        }
+    }
+
+    private Long getFileSize(HashMap<String, FileMD5Info> md5InfosMap, String type) {
+        FileMD5Info fileMD5Info = md5InfosMap.get(type);
+        if (fileMD5Info != null) {
+            return fileMD5Info.getSize();
+        }
+        return 0L;
+
     }
 
     private HashMap<String, FileMD5Info> createMd5InfoMap(MetsElement metsElement) throws DigitalObjectException {

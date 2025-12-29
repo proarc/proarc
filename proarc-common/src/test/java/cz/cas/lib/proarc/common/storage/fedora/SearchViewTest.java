@@ -132,10 +132,10 @@ public class SearchViewTest {
     public void testFindLastCreated() throws Exception {
         // XXX needs some assertions; it tests no exception now
 //        client.debug(true);
-        String user = NdkPlugin.MODEL_PERIODICAL;
+        String model = NdkPlugin.MODEL_PERIODICAL;
 //        String user = null;
         SearchView instance = new FedoraStorageSearchView(storage);
-        List<SearchViewItem> result = instance.findLastCreated(0, user, null, false, "desc");
+        List<SearchViewItem> result = instance.findLastCreated(0, model, "desc");
         System.out.println(result);
     }
 
@@ -173,7 +173,7 @@ public class SearchViewTest {
 
 //        fedora.getClient().debug(true);
         SearchView instance = new FedoraStorageSearchView(storage);
-        List<SearchViewItem> result = instance.findLastCreated(0, modelId, user.getUserNameAsPid(), false, "desc");
+        List<SearchViewItem> result = instance.findLastCreated(0, modelId, "desc");
         System.out.println(result);
         assertNotNull(result);
         assertEquals(1, result.size());

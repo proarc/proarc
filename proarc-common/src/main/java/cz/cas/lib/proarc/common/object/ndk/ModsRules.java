@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.object.ndk;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.mods.DateDefinition;
@@ -26,14 +27,18 @@ import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration.Configuration;
 
@@ -56,10 +61,19 @@ public class ModsRules {
     private List<String> acceptableSiglaId;
 
     public static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE ="Err_Ndk_Supplement_Genre_Type";
+    public static final String ERR_NDK_MODEL_GENRE_TYPE ="Err_Ndk_Model_Genre_Type";
     public static final String ERR_NDK_ORIGININFO_DATEISSSUED ="Err_Ndk_OriginInfo_DateIssued";
     public static final String ERR_NDK_PHYSICALLOCATION_MULTIPLE ="Err_Ndk_PhysicalLocation_Multiple";
     public static final String ERR_NDK_PHYSICALLOCATION_SIGLA ="Err_Ndk_PhysicalLocation_Sigla";
     public static final String ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA ="Err_Ndk_RelatedItem_PhysicalLocation_Sigla";
+
+    private static final Set<String> PICTURE_GENRE_MAP = new HashSet<>(Arrays.asList("photograph", "chart", "graphic", "illustration", "advertisement", "map", "plate", "table", "technicalPlanScheme", "unspecified"));
+    private static final Set<String> ARTICLE_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "dedication", "afterword", "editorsNote", "advertisement", "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction", "conclusion", "otherNote", "unspecified", "mainArticle", "editorial", "news"));
+    private static final Set<String> CHAPTER_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "dedication", "afterword", "editorsNote", "advertisement", "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction", "conclusion", "otherNote", "unspecified", "article", "chapter", "subchapter"));
+    public static final Set<String> PAGE_PART_TYPE = new HashSet<>(Arrays.asList("cover", "frontCover", "backCover", "appendix", "errata", "frontispiece", "spine", "impressum", "normalPage", "edge", "imprimatur", "blank", "jacket", "Jacket", "frontEndPaper",
+            "backEndPaper", "frontEndSheet", "backEndSheet", "frontJacket", "listOfIllustrations", "listOfMaps", "listOfTables", "colophon", "titlePage", "flyleaf",
+            "bibliography", "dedication", "afterword", "illustration", "advertisement", "map", "sheetMusic", "tableOfContents", "preface", "index", "table", "introduction", "conclusion",
+            "imgDisc", "manuscriptNotes", "calibrationTable", "fragmentsOfBookbinding", "scaleReference"));
 
     private ModsRules() {}
 
@@ -84,9 +98,7 @@ public class ModsRules {
     }
 
     public void check() throws DigitalObjectValidationException{
-        if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
-            checkGenreType(mods);
-        }
+        checkGenreType(mods, modelId);
         checkDateIssued(mods, modelId);
         checkPhysicalLocation(mods.getLocation());
         checkRelatedItemPhysicalLocation(mods.getRelatedItem());
@@ -97,9 +109,7 @@ public class ModsRules {
     }
 
     public void checkExtended() throws DigitalObjectValidationException{
-        if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
-            checkGenreType(mods);
-        }
+        checkGenreType(mods, modelId);
         checkDateIssued(mods, modelId);
         checkPhysicalLocation(mods.getLocation());
         checkPhysicalLocationCount(mods.getLocation());
@@ -141,14 +151,44 @@ public class ModsRules {
         }
     }
 
-    private void checkGenreType(ModsDefinition mods) {
-        String expectedType = getExpectedType();
-        if (mods != null) {
+    public void checkGenreType(ModsDefinition mods, String modelId) {
+        if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
+            String expectedType = getExpectedType();
+            if (mods != null) {
+                for (GenreDefinition genre : mods.getGenre()) {
+                    if (expectedType == null) {
+                        continue; // nenalezen expected type
+                    } else if (!expectedType.equals(genre.getType())) {
+                        exception.addValidation("MODS rules", ERR_NDK_SUPPLEMENT_GENRE_TYPE, false, expectedType, genre.getType());
+                    }
+                }
+            }
+        } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkPlugin.MODEL_PICTURE.equals(modelId)) {
             for (GenreDefinition genre : mods.getGenre()) {
-                if (expectedType == null) {
-                    continue; // nenalezen expected type
-                } else if (!expectedType.equals(genre.getType())) {
-                    exception.addValidation("MODS rules", ERR_NDK_SUPPLEMENT_GENRE_TYPE, false, expectedType, genre.getType());
+                String genreType = genre.getType();
+                if (genreType != null && !genreType.isEmpty()) {
+                    if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
+                        if (!CHAPTER_GENRE_MAP.contains(genreType)) {
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_CHAPTER);
+                        }
+                    } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
+                        if (!ARTICLE_GENRE_MAP.contains(genreType)) {
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_ARTICLE);
+                        }
+                    } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {
+                        if (!PICTURE_GENRE_MAP.contains(genreType)) {
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_PICTURE);
+                        }
+                    }
+                }
+            }
+        } else if (NdkPlugin.MODEL_PAGE.equals(modelId) || NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
+            for (PartDefinition part : mods.getPart()) {
+                String pageType = part.getType();
+                if (pageType != null && !pageType.isEmpty()) {
+                    if (!PAGE_PART_TYPE.contains(pageType)) {
+                        exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, pageType, modelId);
+                    }
                 }
             }
         }
@@ -190,9 +230,24 @@ public class ModsRules {
             return;
         }
         String parentDate = getDateIssued(parentMods);
-        if (parentDate != null) {
-            if (!value.contains(parentDate)) {
-                exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+        if (parentDate != null && parentDate.length() == 4) {
+            try {
+                int parentDateYear = Integer.parseInt(parentDate);
+                if (!(value.contains(parentDate) || value.contains(String.valueOf(parentDateYear - 1)) || value.contains(String.valueOf(parentDateYear + 1)))) {
+                    exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+                }
+            } catch (NumberFormatException e) {
+                if (parentDate != null) {
+                    if (!value.contains(parentDate)) {
+                        exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+                    }
+                }
+            }
+        } else if (parentDate != null){
+            if (parentDate != null) {
+                if (!value.contains(parentDate)) {
+                    exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+                }
             }
         }
     }
@@ -294,7 +349,7 @@ public class ModsRules {
         // Kontrola formátu DD.MM.RRRR
         public static boolean isValidFullDate(String datum) {
             try {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.uuuu").withResolverStyle(ResolverStyle.STRICT);
                 LocalDate.parse(datum, formatter); // Zde kontrolujeme, zda datum existuje (tj. např. 31.02. selže)
                 return true;
             } catch (DateTimeParseException e) {

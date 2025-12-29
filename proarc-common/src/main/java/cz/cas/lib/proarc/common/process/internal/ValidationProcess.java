@@ -10,41 +10,22 @@ import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippingsPlugin;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
-import cz.cas.lib.proarc.common.object.ndk.ModsRules;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.object.ndk.RdaRules;
+import cz.cas.lib.proarc.common.object.ndk.*;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveObjectProcessor;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.SearchViewItem;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
-import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
+import cz.cas.lib.proarc.common.storage.*;
+import cz.cas.lib.proarc.common.storage.akubra.*;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
+
+import static cz.cas.lib.proarc.common.object.ndk.ModsRules.PAGE_PART_TYPE;
 
 public class ValidationProcess {
 
@@ -65,7 +46,7 @@ public class ValidationProcess {
 
     private Map<String, Integer> pageTypeMap = new HashMap<>();
 
-    private static final Set<String> CONTAINS_PDF = new HashSet<String>(Arrays.asList(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE));
+    private static final Set<String> CONTAINS_PDF = new HashSet<String>(Arrays.asList(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE));
     private static final Set<String> CONTAINS_AUDIO_PAGE = new HashSet<String>(Arrays.asList(NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK));
     private static final Set<String> CONTAINS_PAGE = new HashSet<String>(Arrays.asList(
             NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
@@ -83,7 +64,7 @@ public class ValidationProcess {
             NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
             NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
-            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
+            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT
 //            OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
 //            OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC
@@ -246,7 +227,39 @@ public class ValidationProcess {
 
         // validace potomku
         for (SearchViewItem child : children) {
-            validatePid(child, result, item, type);
+            if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(child.getModel()) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(child.getModel())) {
+                int indexPageValue = this.indexPageValue;
+                boolean reprePageValue = this.reprePageValue;
+                String positionPageValue = this.positionPageValue;
+                int pageTypeConver = pageTypeMap.get("cover");
+                int pageTypeFrontCover = pageTypeMap.get("frontCover");
+                int pageTypeBackCover = pageTypeMap.get("backCover");
+                int pageTypeSpine = pageTypeMap.get("spine");
+                int pageTypeJacket = pageTypeMap.get("jacket");
+                int pageTypeFrontEndPaper = pageTypeMap.get("frontEndPaper");
+                int pageTypeBackEndPaper = pageTypeMap.get("backEndPaper");
+                int pageTypeFrontJacket = pageTypeMap.get("frontJacket");
+                int pageTypeTitlePage = pageTypeMap.get("titlePage");
+
+                validatePid(child, result, item, type);
+
+                this.indexPageValue = indexPageValue;
+                this.reprePageValue = reprePageValue;
+                this.positionPageValue = positionPageValue;
+                pageTypeMap.put("cover", pageTypeConver);
+                pageTypeMap.put("frontCover", pageTypeFrontCover);
+                pageTypeMap.put("backCover", pageTypeBackCover);
+                pageTypeMap.put("spine", pageTypeSpine);
+                pageTypeMap.put("jacket", pageTypeJacket);
+                pageTypeMap.put("frontEndPaper", pageTypeFrontEndPaper);
+                pageTypeMap.put("backEndPaper", pageTypeBackEndPaper);
+                pageTypeMap.put("frontJacket", pageTypeFrontJacket);
+                pageTypeMap.put("titlePage", pageTypeTitlePage);
+
+
+            } else {
+                validatePid(child, result, item, type);
+            }
         }
 
         // urnnbn validace jako posledni
@@ -446,6 +459,9 @@ public class ValidationProcess {
             }
         }
         if (item.getPageType() != null && !item.getPageType().isEmpty()) {
+            if (!PAGE_PART_TYPE.contains(item.getPageType())) {
+                result.getValidationResults().add(new ValidationResult(item.getPid(), String.format("Zvolený typ strany \"%s\" není podporován.", item.getPageType()), Level.SEVERE));
+            }
             if (pageTypeMap.containsKey(item.getPageType())) {
                 if (pageTypeMap.get(item.getPageType()) > 0) {
                     result.getValidationResults().add(new ValidationResult(item.getPid(), String.format("Vícenásobný výskyt typu strany \"%s\".", item.getPageType()), Level.WARNING));

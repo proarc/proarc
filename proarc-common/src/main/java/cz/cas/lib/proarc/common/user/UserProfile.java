@@ -54,6 +54,18 @@ public class UserProfile {
     private Boolean czidloFunction;
     private Boolean wfDeleteJobFunction;
     private Boolean importToCatalogFunction;
+    private Boolean changeObjectsOwnerFunction;
+    private Boolean deviceFunction;
+    private Boolean changePagesFunction;
+    private Boolean wfCreateJobFunction;
+    private Boolean createUserFunction;
+    private Boolean updateUserFunction;
+    private Boolean deleteUserFunction;
+    private Boolean solrFunction;
+    private Boolean deleteActionFunction;
+    private Boolean allObjectsFunction; // vidi vsechny objekty v obrazovce hledat (bez ohledu na organizaci)
+    private Boolean prepareBatchFunction;
+    private Boolean sysAdminFunction;
     private Date created;
     private Date lastLogin;
     private String status;
@@ -208,14 +220,6 @@ public class UserProfile {
         this.organization = organization;
     }
 
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
     public String getSurname() {
         return surname;
     }
@@ -268,12 +272,20 @@ public class UserProfile {
         return changeModelFunction;
     }
 
+    public Boolean hasChangeModelFunction() {
+        return Boolean.TRUE.equals(changeModelFunction);
+    }
+
     public void setChangeModelFunction(Boolean changeModelFunction) {
         this.changeModelFunction = changeModelFunction;
     }
 
     public Boolean getUpdateModelFunction() {
         return updateModelFunction;
+    }
+
+    public Boolean hasUpdateModelFunction() {
+        return Boolean.TRUE.equals(updateModelFunction);
     }
 
     public void setUpdateModelFunction(Boolean updateModelFunction) {
@@ -288,12 +300,20 @@ public class UserProfile {
         this.lockObjectFunction = lockObjectFunction;
     }
 
+    public Boolean hasLockObjectFunction() {
+        return Boolean.TRUE.equals(lockObjectFunction);
+    }
+
     public Boolean getUnlockObjectFunction() {
         return unlockObjectFunction;
     }
 
     public void setUnlockObjectFunction(Boolean unlockObjectFunction) {
         this.unlockObjectFunction = unlockObjectFunction;
+    }
+
+    public Boolean hasUnlockObjectFunction() {
+        return Boolean.TRUE.equals(unlockObjectFunction);
     }
 
     public Boolean getImportToProdFunction() {
@@ -328,6 +348,10 @@ public class UserProfile {
         this.wfDeleteJobFunction = wfDeleteJobFunction;
     }
 
+    public Boolean hasWfDeleteJobFunction() {
+        return Boolean.TRUE.equals(wfDeleteJobFunction);
+    }
+
     public Boolean getImportToCatalogFunction() {
         return importToCatalogFunction;
     }
@@ -338,6 +362,150 @@ public class UserProfile {
 
     public void setImportToCatalogFunction(Boolean importToCatalogFunction) {
         this.importToCatalogFunction = importToCatalogFunction;
+    }
+
+    public Boolean getChangeObjectsOwnerFunction() {
+        return changeObjectsOwnerFunction;
+    }
+
+    public Boolean hasChangeObjectsOwnerFunction() {
+        return Boolean.TRUE.equals(changeObjectsOwnerFunction);
+    }
+
+    public void setChangeObjectsOwnerFunction(Boolean changeObjectsOwnerFunction) {
+        this.changeObjectsOwnerFunction = changeObjectsOwnerFunction;
+    }
+
+    public Boolean getChangePagesFunction() {
+        return changePagesFunction;
+    }
+
+    public Boolean hasChangePagesFunction() {
+        return Boolean.TRUE.equals(changePagesFunction);
+    }
+
+    public void setChangePagesFunction(Boolean changePagesFunction) {
+        this.changePagesFunction = changePagesFunction;
+    }
+
+    public Boolean getDeviceFunction() {
+        return deviceFunction;
+    }
+
+    public Boolean hasDeviceFunction() {
+        return Boolean.TRUE.equals(deviceFunction);
+    }
+
+    public void setDeviceFunction(Boolean deviceFunction) {
+        this.deviceFunction = deviceFunction;
+    }
+
+    public Boolean getWfCreateJobFunction() {
+        return wfCreateJobFunction;
+    }
+
+    public Boolean hasWfCreateJobFunction() {
+        return Boolean.TRUE.equals(wfCreateJobFunction);
+    }
+
+    public void setWfCreateJobFunction(Boolean wfCreateJobFunction) {
+        this.wfCreateJobFunction = wfCreateJobFunction;
+    }
+
+    public Boolean getCreateUserFunction() {
+        return createUserFunction;
+    }
+
+    public Boolean hasCreateUserFunction() {
+        return Boolean.TRUE.equals(createUserFunction);
+    }
+
+    public void setCreateUserFunction(Boolean createUserFunction) {
+        this.createUserFunction = createUserFunction;
+    }
+
+    public Boolean getUpdateUserFunction() {
+        return updateUserFunction;
+    }
+
+    public Boolean hasUpdateUserFunction() {
+        return Boolean.TRUE.equals(updateUserFunction);
+    }
+
+    public void setUpdateUserFunction(Boolean updateUserFunction) {
+        this.updateUserFunction = updateUserFunction;
+    }
+
+    public Boolean getDeleteUserFunction() {
+        return deleteUserFunction;
+    }
+
+    public Boolean hasDeleteUserFunction() {
+        return Boolean.TRUE.equals(deleteUserFunction);
+    }
+
+    public void setDeleteUserFunction(Boolean deleteUserFunction) {
+        this.deleteUserFunction = deleteUserFunction;
+    }
+
+    public Boolean getSolrFunction() {
+        return solrFunction;
+    }
+
+    public Boolean hasSolrFunction() {
+        return Boolean.TRUE.equals(solrFunction);
+    }
+
+    public void setSolrFunction(Boolean solrFunction) {
+        this.solrFunction = solrFunction;
+    }
+
+    public Boolean getDeleteActionFunction() {
+        return deleteActionFunction;
+    }
+
+    public Boolean hasDeleteActionFunction() {
+        return Boolean.TRUE.equals(deleteActionFunction);
+    }
+
+    public void setDeleteActionFunction(Boolean deleteActionFunction) {
+        this.deleteActionFunction = deleteActionFunction;
+    }
+
+    public Boolean getAllObjectsFunction() {
+        return allObjectsFunction;
+    }
+
+    public Boolean hasAllObjectsFunction() {
+        return Boolean.TRUE.equals(allObjectsFunction);
+    }
+
+    public void setAllObjectsFunction(Boolean allObjectsFunction) {
+        this.allObjectsFunction = allObjectsFunction;
+    }
+
+    public Boolean getPrepareBatchFunction() {
+        return prepareBatchFunction;
+    }
+
+    public Boolean hasPrepareBatchFunction() {
+        return Boolean.TRUE.equals(prepareBatchFunction);
+    }
+
+    public void setPrepareBatchFunction(Boolean prepareBatchFunction) {
+        this.prepareBatchFunction = prepareBatchFunction;
+    }
+
+    public Boolean getSysAdminFunction() {
+        return sysAdminFunction;
+    }
+
+    public Boolean hasSysAdminFunction() {
+        return Boolean.TRUE.equals(sysAdminFunction);
+    }
+
+    public void setSysAdminFunction(Boolean sysAdminFunction) {
+        this.sysAdminFunction = sysAdminFunction;
     }
 
     @Override

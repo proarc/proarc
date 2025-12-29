@@ -16,18 +16,20 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -35,6 +37,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Provides value maps used by form pick lists.
@@ -47,11 +52,13 @@ public class ValueMapResourceV1 {
 
     private final SessionContext session;
     private final HttpHeaders httpHeaders;
+    protected final AppConfiguration appConfig;
 
     public ValueMapResourceV1(
             @Context HttpHeaders httpHeaders,
             @Context HttpServletRequest httpRequest
-            ) {
+            ) throws AppConfigurationException {
+        this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         session = SessionContext.from(httpRequest);
         this.httpHeaders = httpHeaders;
     }
@@ -81,6 +88,21 @@ public class ValueMapResourceV1 {
             result.addAll(vms);
         }
         return result;
+    }
+
+    @GET
+    @Path(ValueMapResourceApi.PERO_OCR_ENGINE)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<ValueMap> getPeroOcrEngines() {
+        ValueMap.Context context = new ValueMap.Context();
+        context.setUser(session.getUser());
+        context.setLocale(session.getLocale(httpHeaders));
+
+        ArrayList<ValueMap> result = new ArrayList<ValueMap>();
+
+        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(appConfig.getImportConfiguration().getOcrGenProcessor(), null);
+        result.add(ocrProcessor.getEnginesList());
+        return new SmartGwtResponse<>(result);
     }
 
 }

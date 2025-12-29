@@ -429,7 +429,7 @@ public class ImportPresenter {
                         ImportPresenter.this.getImportContext().setBatch(batch);
                         importSourceChooser.updateCache(ImportTreeDataSource.FolderState.IMPORTED);
                         placeController.goTo(new ImportPlace(Type.EDIT_ITEMS, batch.getId()));
-                    } else if (batch.getState() == ImportBatchDataSource.State.LOADING) {
+                    } else if (batch.getState() == ImportBatchDataSource.State.LOADING || batch.getState() == ImportBatchDataSource.State.IMPORT_PLANNED) {
                         // The import batch is still loading! An user chose to skip the progress.
                         importSourceChooser.refreshSelectedNode();
                     } else {

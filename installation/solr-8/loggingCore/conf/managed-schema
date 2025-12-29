@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- This schema is designed for Solr 8.x -->
 <schema name="loggingCore" version="2.0">
     <!-- log: odebrani nepotrebnych fildType, doplneni modelu -->
 

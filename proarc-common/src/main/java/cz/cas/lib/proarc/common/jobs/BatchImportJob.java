@@ -20,14 +20,13 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
-import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
-import cz.cas.lib.proarc.common.process.imports.ImportHandler;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess;
-import cz.cas.lib.proarc.common.process.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.*;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import org.apache.commons.configuration.Configuration;
+import org.quartz.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,14 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
-import org.quartz.Job;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
 
 import static cz.cas.lib.proarc.common.user.UserUtil.DEFAULT_ADMIN_USER;
 import static org.quartz.CronScheduleBuilder.cronSchedule;
@@ -183,7 +174,7 @@ public class BatchImportJob implements Job, ProArcJob {
                 UserProfile user = userManger.find(DEFAULT_ADMIN_USER);
 
                 process = ImportProcess.prepare(folder.getHandle(), folder.getHandle().getName(), user,
-                        BatchManager.getInstance(), deviceUUID, true, Batch.PRIORITY_MEDIUM, false, false, appConfig.getImportConfiguration(profile), appConfig);
+                        BatchManager.getInstance(), deviceUUID, null, true, Batch.PRIORITY_MEDIUM, false, false, null, false, appConfig.getImportConfiguration(profile), appConfig);
 
                 ImportDispatcher.getDefault().addImport(process);
                 Batch batch = process.getBatch();

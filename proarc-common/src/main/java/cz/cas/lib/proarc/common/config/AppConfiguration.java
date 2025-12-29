@@ -102,6 +102,9 @@ public final class AppConfiguration {
     public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
     public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
     public static final String EXPORT_BAGIT_SCRIPT_PATH = "export.bagit.scriptPath";
+
+    public static final String BATCH_SCHEDULER_START = "batch.scheduler.startTime";
+    public static final String BATCH_SCHEDULER_END = "batch.scheduler.endTime";
 //    public static final String PROPERTY_NEW_CLIENT_URL = "proarc.client.url";
 
     private static final Logger LOG = Logger.getLogger(AppConfiguration.class.getName());
@@ -199,6 +202,14 @@ public final class AppConfiguration {
 
     public String getBagitScriptPath() {
         return config.getString(EXPORT_BAGIT_SCRIPT_PATH);
+    }
+
+    public String getBatchSchedulerStartTime() {
+        return config.getString(BATCH_SCHEDULER_START);
+    }
+
+    public String getBatchSchedulerEndTime() {
+        return config.getString(BATCH_SCHEDULER_END);
     }
 
     public String getFedoraUsername() {

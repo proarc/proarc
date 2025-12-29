@@ -56,6 +56,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     public static final String MODEL_EMONOGRAPHVOLUME = "model:ndkemonographvolume";
     public static final String MODEL_EMONOGRAPHSUPPLEMENT = "model:ndkemonographsupplement";
     public static final String MODEL_EMONOGRAPHTITLE = "model:ndkemonographtitle";
+    public static final String MODEL_EMONOGRAPHUNIT = "model:ndkemonographunit";
     public static final String MODEL_ECHAPTER = "model:ndkechapter";
 
     public static final String MODEL_EPERIODICALISSUE = "model:ndkeperiodicalissue";
@@ -66,6 +67,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
 
     public static final Map<String, String> TYPE_MAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, Const.MONOGRAPH_UNIT);
+        put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, Const.MONOGRAPH_UNIT);
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, Const.MONOGRAPH_MULTIPART);
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, Const.SUPPLEMENT);
         put(FEDORAPREFIX + NdkEbornPlugin.MODEL_ECHAPTER, Const.CHAPTER);
@@ -95,6 +97,18 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
                 new RelationCriteria[] {}
         ));
+        // eMonograph unit should contain some media (e.g. PDF)
+        models.add(new MetaModel(
+                MODEL_EMONOGRAPHUNIT, null, null,
+                Arrays.asList(new ElementType("NDK eMonograph Unit", "en"), new ElementType("NDK Svazek Vícedílné eMonografie", "cs")),
+                ModsConstants.NS,
+                MODEL_EMONOGRAPHUNIT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
+                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
+        ));
         // eMonograph volume should contain some media (e.g. PDF)
         models.add(new MetaModel(
                 MODEL_EMONOGRAPHVOLUME, true, null,
@@ -104,8 +118,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
-                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
+                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA)
         ));
         models.add(new MetaModel(
                 MODEL_EMONOGRAPHSUPPLEMENT, null, null,
@@ -116,7 +129,10 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
-                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHVOLUME, RelationCriteria.Type.PID)}
+                new RelationCriteria[] {
+                        new RelationCriteria(MODEL_EMONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_EMONOGRAPHUNIT, RelationCriteria.Type.PID)
+                }
         ));
         models.add(new MetaModel(
                 MODEL_ECHAPTER, null, null,
@@ -130,7 +146,8 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.ATM),
                 //new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)} why periodical?
                 new RelationCriteria[] {
-                        new RelationCriteria(MODEL_EMONOGRAPHVOLUME, RelationCriteria.Type.PID)
+                        new RelationCriteria(MODEL_EMONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_EMONOGRAPHUNIT, RelationCriteria.Type.PID)
                 }
         ));
         models.add(new MetaModel(
@@ -179,7 +196,9 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
                 new RelationCriteria[] {
                         new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID),
-                        new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID)}
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
                 MODEL_EARTICLE, null, null,
@@ -194,7 +213,6 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID)}
 
         ));
-
         return Collections.unmodifiableList(models);
     }
 

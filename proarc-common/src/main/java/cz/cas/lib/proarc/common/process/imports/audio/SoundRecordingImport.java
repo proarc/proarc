@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -105,6 +106,7 @@ public class SoundRecordingImport extends FileSetImport {
             if (item != null) {
                 if (BatchItem.ObjectState.LOADING_FAILED == item.getState()) {
                     batch.setState(Batch.State.LOADING_FAILED);
+                    batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                     batch.setLog(item.getFile() + "\n" + item.getLog());
                     return ;
                 }

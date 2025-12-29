@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import java.sql.Timestamp;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -91,4 +92,21 @@ public abstract class AnnotatedBatchView extends BatchView {
     @Override
     public abstract String getPriority();
 
+    @XmlSchemaType(name = "dateTime")
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED)
+    @Override
+    public abstract Timestamp getItemUpdated();
+
+    @XmlSchemaType(name = "dateTime")
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_UPDATED)
+    @Override
+    public abstract Timestamp getUpdated();
+
+    @XmlElement(name = DigitalObjectResourceApi.BATCH_NIGHT_ONLY)
+    @Override
+    public abstract Boolean isNightOnly();
+
+    @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PARAMETERS)
+    @Override
+    public abstract String getParameters();
 }

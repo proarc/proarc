@@ -65,6 +65,10 @@ public abstract class AnnotatedAtmItem extends AtmItem {
     @Override
     public abstract String getDeviceId();
 
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_SOFTWARE)
+    @Override
+    public abstract String getSoftwareId();
+
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_FILENAME)
     @Override
     public abstract String getImportFile();

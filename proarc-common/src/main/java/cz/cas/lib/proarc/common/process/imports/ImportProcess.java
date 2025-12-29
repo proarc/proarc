@@ -30,6 +30,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -82,11 +84,11 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
-            String device, boolean generateIndices, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata,
+            String device, String software, boolean generateIndices, String priority,
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Boolean isNightOnly,
             ImportProfile profile, AppConfiguration config
             ) throws IOException {
-        return prepare(importFolder, description, user, batchManager, device, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, profile, config);
+        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, profile, config);
     }
 
     /**
@@ -96,14 +98,14 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
-            String device, boolean generateIndices, boolean generatePageNumber, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata, ImportProfile profile, AppConfiguration config
+            String device, String software, boolean generateIndices, boolean generatePageNumber, String priority,
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Boolean isNightOnly, ImportProfile profile, AppConfiguration config
             ) throws IOException {
 
-        ImportOptions options = new ImportOptions(importFolder, device,
+        ImportOptions options = new ImportOptions(importFolder, device, software,
                 generateIndices, generatePageNumber, user, profile, priority, useNewMetadata, useOriginalMetadata);
         ImportProcess process = new ImportProcess(options, batchManager, config);
-        process.prepare(description, user);
+        process.prepare(description, user, peroOcrEngine, isNightOnly);
         return process;
     }
 
@@ -134,7 +136,11 @@ public final class ImportProcess implements Runnable {
                                  AppConfiguration config) {
 
         Profiles profiles = config.getProfiles();
-        List<Batch> batches2schedule = ibm.findLoadingBatches();
+
+        List<Batch> batches2schedule = new ArrayList<>();
+        batches2schedule.addAll(ibm.findLoadingBatches());
+        batches2schedule.addAll(ibm.findWaitingImportBatches());
+
         for (Batch batch : batches2schedule) {
             try {
                 ConfigurationProfile profile = resolveProfile(batch, profiles);
@@ -156,6 +162,7 @@ public final class ImportProcess implements Runnable {
         }
         LOG.log(Level.INFO, batch.toString(), "has been stopped");
         batch.setState(Batch.State.STOPPED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         ibm.update(batch);
 
         importDispatcher.restart();
@@ -183,7 +190,7 @@ public final class ImportProcess implements Runnable {
         return profile;
     }
 
-    private void prepare(String description, UserProfile user) throws IOException {
+    private void prepare(String description, UserProfile user, Integer peroOcrEngine, Boolean isNightOnly) throws IOException {
         // validate import folder
         File importFolder = importConfig.getImportFolder();
         ImportFileScanner.validateImportFolder(importFolder);
@@ -204,6 +211,8 @@ public final class ImportProcess implements Runnable {
                     description,
                     user,
                     estimateItemNumber,
+                    peroOcrEngine,
+                    isNightOnly,
                     importConfig);
             importConfig.setBatch(batch);
             transactionFailed = false;
@@ -222,6 +231,7 @@ public final class ImportProcess implements Runnable {
         LOG.log(Level.SEVERE, batch.toString(), t);
         if (!Batch.State.LOADING_CONFLICT.equals(batch.getState())) {
             batch.setState(Batch.State.LOADING_FAILED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         }
         batch.setLog(BatchManager.toString(t));
         return batchManager.update(batch);
@@ -241,6 +251,9 @@ public final class ImportProcess implements Runnable {
         if (batch == null) {
             throw new IllegalStateException("run prepare first!");
         }
+        batch.setState(Batch.State.LOADED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
+        batch = batchManager.update(batch);
         File importFolder = importConfig.getImportFolder();
         try {
             try {
@@ -261,6 +274,7 @@ public final class ImportProcess implements Runnable {
             importConfig.getImporter().start(importConfig, batchManager, config);
             if (batch.getState() == Batch.State.LOADING) {
                 batch.setState(Batch.State.LOADED);
+                batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             }
             batch = batchManager.update(batch);
             return batch;
@@ -379,6 +393,7 @@ public final class ImportProcess implements Runnable {
          */
         private File targetFolder;
         private String device;
+        private String software;
         private boolean generateIndices;
         private boolean generatePageNumber;
         private int consumedFileCounter;
@@ -392,15 +407,20 @@ public final class ImportProcess implements Runnable {
         private boolean useNewMetadata;
         private boolean useOriginalMetadata;
 
-        public ImportOptions(File importFolder, String device, boolean generateIndices, UserProfile username, ImportProfile profile, String priority) {
-            this(importFolder, device, generateIndices, false, username, profile, priority, false, false);
+        // parametry kvuli auto migraci z k4 na ndk
+        private List<String> pidsToUpdate;
+        private boolean wasK4Model;
+
+        public ImportOptions(File importFolder, String device, String software, boolean generateIndices, UserProfile username, ImportProfile profile, String priority) {
+            this(importFolder, device, software, generateIndices, false, username, profile, priority, false, false);
         }
 
-        public ImportOptions(File importFolder, String device,
+        public ImportOptions(File importFolder, String device, String software,
                 boolean generateIndices, boolean gerenatePageNumber, UserProfile username,
                 ImportProfile profile, String priority, boolean useNewMetadata, boolean useOriginalMetadata
                 ) {
             this.device = device;
+            this.software = software;
             this.generateIndices = generateIndices;
             this.generatePageNumber = gerenatePageNumber;
             this.user = username;
@@ -409,6 +429,9 @@ public final class ImportProcess implements Runnable {
             this.priority = priority;
             this.useNewMetadata = useNewMetadata;
             this.useOriginalMetadata = useOriginalMetadata;
+
+            this.pidsToUpdate = new ArrayList<>();
+            this.wasK4Model = false;
         }
 
         public ImportHandler getImporter() {
@@ -444,6 +467,10 @@ public final class ImportProcess implements Runnable {
 
         public String getDevice() {
             return device;
+        }
+
+        public String getSoftware() {
+            return software;
         }
 
         public String getModel() {
@@ -502,7 +529,7 @@ public final class ImportProcess implements Runnable {
                                               boolean useNewMetadata, boolean useOriginalMetadata, UserProfile username, ImportProfile profile) {
 
             ImportOptions options = new ImportOptions(
-                    importFolder, batch.getDevice(),
+                    importFolder, batch.getDevice(), batch.getSoftware(),
                     batch.isGenerateIndices(), batch.isGeneratePageNumber(), username, profile, batch.getPriority(), useNewMetadata, useOriginalMetadata);
             options.setBatch(batch);
             return options;
@@ -546,6 +573,22 @@ public final class ImportProcess implements Runnable {
 
         public void setUseOriginalMetadata(boolean useOriginalMetadata) {
             this.useOriginalMetadata = useOriginalMetadata;
+        }
+
+        public List<String> getPidsToUpdate() {
+            return pidsToUpdate;
+        }
+
+        public void setPidsToUpdate(List<String> pidsToUpdate) {
+            this.pidsToUpdate = pidsToUpdate;
+        }
+
+        public boolean wasK4Model() {
+            return wasK4Model;
+        }
+
+        public void setWasK4Model(boolean wasK4Model) {
+            this.wasK4Model = wasK4Model;
         }
     }
 

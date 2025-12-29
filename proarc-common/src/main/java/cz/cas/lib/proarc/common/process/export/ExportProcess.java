@@ -76,6 +76,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -116,6 +117,10 @@ public final class ExportProcess implements Runnable {
         this.config = config;
         this.akubraConfiguration = akubraConfiguration;
         this.user = user;
+    }
+
+    public Batch getBatch() {
+        return exportOptions.getBatch();
     }
 
     /**
@@ -223,6 +228,7 @@ public final class ExportProcess implements Runnable {
             }
         }
         batch.setState(Batch.State.STOPPED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         importManager.update(batch);
 
         exportDispatcher.restart();
@@ -231,6 +237,7 @@ public final class ExportProcess implements Runnable {
 
     public static void cancelPlannedBatch(Batch batch, BatchManager importManager, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
         batch.setState(Batch.State.STOPPED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         importManager.update(batch);
     }
 
@@ -370,7 +377,7 @@ public final class ExportProcess implements Runnable {
                 ArchiveProducer.fixPdfFile(targetFolder);
             }
             try {
-                if (config.getArchiveExportOptions().isExtendedPackage() && params.isExtendedArchivePackage()) { // pokud neni tak normalne jedu dal
+                if (config.getArchiveExportOptions().isExtendedPackage() && params.getExtendedArchivePackage()) { // pokud neni tak normalne jedu dal
                     for (File folder : targetFolder.listFiles()) {
                         if (folder.isDirectory()) {
                             String pid = "uuid:" + folder.getName();
@@ -769,7 +776,7 @@ public final class ExportProcess implements Runnable {
             } else {
                 if (params.isDryRun()) {
                     for (String pid : params.getPids()) {
-                        List<MetsExportException.MetsExportExceptionElement> errors = export.validate(exportFolder, pid, params.isHierarchy(), batch);
+                        List<MetsExportException.MetsExportExceptionElement> errors = export.validate(exportFolder, pid, params.getHierarchy(), batch);
                         exceptions.addAll(errors);
                     }
                     if (exceptions.isEmpty()) {
@@ -779,7 +786,7 @@ public final class ExportProcess implements Runnable {
                     }
                 } else {
                     for (String pid : params.getPids()) {
-                        DesaExport.Result r = export.export(exportFolder, pid, null, false, params.isHierarchy(), false, exportOptions.getLog(), user, batch);
+                        DesaExport.Result r = export.export(exportFolder, pid, null, false, params.getHierarchy(), false, exportOptions.getLog(), user, batch);
                         if (r.getValidationError() != null) {
                             exceptions.addAll(r.getValidationError().getExceptions());
                         }
@@ -802,7 +809,7 @@ public final class ExportProcess implements Runnable {
             DataStreamExport export = new DataStreamExport(config, akubraConfiguration);
             URI exportUri = user.getExportFolder();
             File exportFolder = new File(exportUri);
-            File target = export.export(exportFolder, params.isHierarchy(), params.getPids(), params.getDsIds(), batch);
+            File target = export.export(exportFolder, params.getHierarchy(), params.getPids(), params.getDsIds(), batch);
 //            URI targetPath = user.getUserHomeUri().relativize(target.toURI());
             return BatchUtils.finishedExportSuccessfully(batchManager, batch, target.getAbsolutePath());
         } catch (Exception e) {
@@ -823,7 +830,7 @@ public final class ExportProcess implements Runnable {
 
             Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.getLicense(), params.isArchive());
             File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_KRAMERIUS);
-            Kramerius4Export.Result k4Result = export.export(exportFolder, params.isHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), batch, params.getPids().toArray(new String[params.getPids().size()]));
+            Kramerius4Export.Result k4Result = export.export(exportFolder, params.getHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), batch, params.getPids().toArray(new String[params.getPids().size()]));
             if (k4Result.getException() != null) {
                 String exportPath = MetsUtils.renameFolder(exportFolder, k4Result.getFile(), null);
                 finishedExportWithError(this.batchManager, batch, exportPath, k4Result.getException());
@@ -888,7 +895,7 @@ public final class ExportProcess implements Runnable {
             path = user.getExportFolder().getPath();
         }
         File exportFolder = new File(path);
-        Kramerius4Export.Result target = export.export(exportFolder, params.isHierarchy(), exportOptions.getLog(), null, batch, params.getPids().toArray(new String[params.getPids().size()]));
+        Kramerius4Export.Result target = export.export(exportFolder, params.getHierarchy(), exportOptions.getLog(), null, batch, params.getPids().toArray(new String[params.getPids().size()]));
         if (target.getException() != null) {
             MetsUtils.renameFolder(exportFolder, target.getFile(), null);
             throw target.getException();
@@ -902,7 +909,7 @@ public final class ExportProcess implements Runnable {
             path = user.getExportFolder().getPath();
         }
         File exportFolder = new File(path);
-        File target = export.export(exportFolder, params.isHierarchy(), params.getPids(), dsIds, batch);
+        File target = export.export(exportFolder, params.getHierarchy(), params.getPids(), dsIds, batch);
         return user.getUserHomeUri().relativize(target.toURI());
     }
 

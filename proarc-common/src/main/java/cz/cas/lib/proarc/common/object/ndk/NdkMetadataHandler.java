@@ -23,23 +23,6 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
-import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
-import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.SearchView;
-import cz.cas.lib.proarc.common.storage.SearchViewItem;
-import cz.cas.lib.proarc.common.storage.SearchViewQuery;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
@@ -57,22 +40,28 @@ import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.ModsDataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
-import cz.cas.lib.proarc.mods.DateDefinition;
-import cz.cas.lib.proarc.mods.FormDefinition;
+import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
+import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.SearchViewItem;
+import cz.cas.lib.proarc.common.storage.SearchViewQuery;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
-import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.OriginInfoDefinition;
-import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
-import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
-import cz.cas.lib.proarc.mods.RecordInfoDefinition;
-import cz.cas.lib.proarc.mods.RelatedItemDefinition;
-import cz.cas.lib.proarc.mods.StringPlusLanguage;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
-import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
 import java.io.StringReader;
@@ -158,410 +147,9 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
      * Override to support custom models.
      */
     protected ModsDefinition createDefault(String modelId) throws DigitalObjectException {
-        ModsDefinition defaultMods = ModsStreamEditor.defaultMods(fobject.getPid());
-        DigitalObjectHandler parent = handler.getParameterParent();
-        if (!(NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || NdkPlugin.MODEL_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId) || NdkAudioPlugin.MODEL_PAGE.equals(modelId))) {
-            setRules(defaultMods);
-        }
-        if (NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICALISSUE);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-        }
-        if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-        }
-        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)) {
-            // issue 124
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                inheritLocation(defaultMods, titleMods.getLocation());
-                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
-            }
-            String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
-            String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
-            String dateIssuedEndOfRangeVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE_END_OF_RANGE);
-            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal, dateIssuedEndOfRangeVal);
-
-            String signaturaVal = handler.getParameter(DigitalObjectHandler.PARAM_SIGNATURA);
-            replaceShelfLocator(defaultMods, signaturaVal);
-        } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
-            // issue 137
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_PERIODICAL);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-        } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)) {
-            // issue 240
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-//                inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
-                inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-            title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHUNIT);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-//                inheritOriginInfoDateIssued(defaultMods, titleMods.getOriginInfo());
-                inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-            title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
-                defaultMods.getName().addAll(titleMods.getName());
-                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
-                defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
-                defaultMods.getNote().addAll(titleMods.getNote());
-                defaultMods.getSubject().addAll(titleMods.getSubject());
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-        } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
-            // issue 241
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-                inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-            title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHUNIT);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "isbn");
-                inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-//        } else if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)) {
-        } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-            title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHUNIT);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-        } else if (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(modelId)) {
-            //issue 540
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkPlugin.MODEL_MONOGRAPHTITLE);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
-                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)) {
-            // issue 124
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                inheritLocation(defaultMods, titleMods.getLocation());
-                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-            String partNumberVal = handler.getParameter(DigitalObjectHandler.PARAM_PART_NUMBER);
-            String dateIssuedVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE);
-            String dateIssuedEndOfRangeVal = handler.getParameter(DigitalObjectHandler.PARAM_ISSUE_DATE_END_OF_RANGE);
-            fillIssueSeries(defaultMods, partNumberVal, dateIssuedVal, dateIssuedEndOfRangeVal);
-
-            String signaturaVal = handler.getParameter(DigitalObjectHandler.PARAM_SIGNATURA);
-            replaceShelfLocator(defaultMods, signaturaVal);
-        } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
-            // issue 859
-            RelatedItemDefinition relatedItem = new RelatedItemDefinition();
-            defaultMods.getRelatedItem().add(relatedItem);
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICAL);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                if (titleMods.getTitleInfo().size() != 0) {
-                    relatedItem.getTitleInfo().add(titleMods.getTitleInfo().get(0));
-                }
-                relatedItem.getName().addAll(titleMods.getName());
-                copyIdentifier(relatedItem, titleMods, "issn");
-            }
-            DigitalObjectHandler issue = findEnclosingObject(parent, NdkEbornPlugin.MODEL_EPERIODICALISSUE);
-            if (issue != null) {
-                ModsDefinition issueMods = issue.<ModsDefinition>metadata().getMetadata().getData();
-                if (relatedItem.getTitleInfo().size() != 0
-                        && issueMods.getTitleInfo().size() != 0
-                        && issueMods.getTitleInfo().get(0).getPartNumber().size() != 0) {
-                    relatedItem.getTitleInfo().get(0).getPartNumber().add(issueMods.getTitleInfo().get(0).getPartNumber().get(0));
-                }
-                copyIdentifier(relatedItem, issueMods, "uuid");
-            }
-        } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
-            DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
-            if (title != null) {
-                ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
-                defaultMods.getName().addAll(titleMods.getName());
-                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
-                defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
-                defaultMods.getLanguage().addAll(titleMods.getLanguage());
-                defaultMods.getTableOfContents().addAll(titleMods.getTableOfContents());
-                defaultMods.getNote().addAll(titleMods.getNote());
-                defaultMods.getSubject().addAll(titleMods.getSubject());
-                inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
-                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-            }
-        } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
-            if (parent != null) {
-                if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parent.relations().getModel())) {
-                    DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_MUSICDOCUMENT);
-                    ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                    modsCopyMusicDocument(titleMods, defaultMods);
-                    inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                    inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
-                } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parent.relations().getModel())){
-                    DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_PHONOGRAPH);
-                    ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                    modsCopyMusicDocument(titleMods, defaultMods);
-                    inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                    inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
-                } else if (NdkAudioPlugin.MODEL_SONG.equals(parent.relations().getModel())) {
-                    DigitalObjectHandler title = findEnclosingObject(parent, NdkAudioPlugin.MODEL_SONG);
-                    ModsDefinition titleMods = title.<ModsDefinition>metadata().getMetadata().getData();
-                    modsCopyMusicDocument(titleMods, defaultMods);
-                    inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                }
-            }
-        }
-
+        ModsDataHandler modsDataHandler = new ModsDataHandler(appConfiguration);
+        ModsDefinition defaultMods = modsDataHandler.createDefaultMetadata(fobject.getPid(), modelId, handler, null);
         return defaultMods;
-    }
-
-    private void replaceShelfLocator(ModsDefinition defaultMods, String signatura) {
-        if (signatura != null && !signatura.isEmpty()) {
-            LocationDefinition location = null;
-
-            if (defaultMods.getLocation().size() > 0) {
-                location = defaultMods.getLocation().get(0);
-            }
-
-            defaultMods.getLocation().clear();
-
-            if (location == null) {
-                location = new LocationDefinition();
-            }
-            location.getShelfLocator().clear();
-            StringPlusLanguage shelfLocator = new StringPlusLanguage();
-            shelfLocator.setValue(signatura);
-            location.getShelfLocator().add(shelfLocator);
-            defaultMods.getLocation().add(location);
-        }
-    }
-
-    public static void copyIdentifier(RelatedItemDefinition relatedItem, ModsDefinition mods, String key) {
-        List<IdentifierDefinition> identifiers = mods.getIdentifier();
-        if (key == null) {
-            return;
-        }
-        for (IdentifierDefinition identifier : identifiers) {
-            if (key.equals(identifier.getType())) {
-                relatedItem.getIdentifier().add(identifier);
-            }
-        }
-
-    }
-
-    public static void modsCopyMusicDocument(ModsDefinition titleMods, ModsDefinition defaultMods) {
-        if (titleMods != null) {
-            defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
-            defaultMods.getName().addAll(titleMods.getName());
-            defaultMods.getTypeOfResource().addAll(titleMods.getTypeOfResource());
-            defaultMods.getPhysicalDescription().addAll(titleMods.getPhysicalDescription());
-        }
-    }
-
-    private void setRules(ModsDefinition mods) {
-        StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
-        String rules = appConfiguration.getRules();
-        descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
-        RecordInfoDefinition recordInfo = new RecordInfoDefinition();
-        recordInfo.getDescriptionStandard().add(0, descriptionStandard);
-        mods.getRecordInfo().add(0, recordInfo);
-    }
-
-    private void fillIssueSeries(ModsDefinition mods, String partNumberVal, String dateIssuedVal, String dateIssuedEndOfRangeVal) {
-        if (partNumberVal != null) {
-            TitleInfoDefinition titleInfo = mods.getTitleInfo().stream()
-                    .filter(ti -> ti.getType() == null).findFirst().orElse(null);
-            if (titleInfo == null) {
-                mods.getTitleInfo().add(titleInfo = new TitleInfoDefinition());
-            }
-            StringPlusLanguage partNumber = titleInfo.getPartNumber().stream().findFirst().orElse(null);
-            if (partNumber == null) {
-                titleInfo.getPartNumber().add(partNumber = new StringPlusLanguage());
-            }
-            partNumber.setValue(partNumberVal);
-        }
-        if (dateIssuedVal != null) {
-            OriginInfoDefinition originInfo = mods.getOriginInfo().stream().findFirst().orElse(null);
-            if (originInfo == null) {
-                mods.getOriginInfo().add(originInfo = new OriginInfoDefinition());
-            }
-            DateDefinition dateIssued = new DateDefinition();
-            dateIssued.setValue(dateIssuedVal);
-            originInfo.getDateIssued().add(dateIssued);
-
-            if (dateIssuedEndOfRangeVal != null && !dateIssuedEndOfRangeVal.isEmpty()) {
-                dateIssued.setPoint("start");
-                DateDefinition dateIssuedEndOfRange = new DateDefinition();
-                dateIssuedEndOfRange.setValue(dateIssuedEndOfRangeVal);
-                dateIssuedEndOfRange.setPoint("end");
-                originInfo.getDateIssued().add(dateIssuedEndOfRange);
-            }
-        }
-    }
-
-    public static final void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids, String... includeIdTypes) {
-        for (IdentifierDefinition id : ids) {
-            String type = id.getType();
-            if (includeIdTypes == null) {
-                mods.getIdentifier().add(id);
-            } else {
-                for (String includeIdType : includeIdTypes) {
-                    if (includeIdType.equals(type)) {
-                        mods.getIdentifier().add(id);
-                    }
-                }
-            }
-        }
-    }
-
-    public static final void inheritIdentifierExclude(ModsDefinition mods, List<IdentifierDefinition> ids, String... excludeIdTypes) {
-        for (IdentifierDefinition id : ids) {
-            String type = id.getType();
-            if (excludeIdTypes == null) {
-                mods.getIdentifier().add(id);
-            } else {
-                boolean exclude = false;
-                for (String excludeIdType : excludeIdTypes) {
-                    if (excludeIdType.equals(type)) {
-                        exclude = true;
-                    }
-                }
-                if (!exclude) {
-                    mods.getIdentifier().add(id);
-                }
-            }
-        }
-    }
-
-    public static void inheritLocation(ModsDefinition mods, List<LocationDefinition> locs) {
-        for (LocationDefinition loc : locs) {
-            List<PhysicalLocationDefinition> pls = loc.getPhysicalLocation();
-            List<StringPlusLanguage> sls = loc.getShelfLocator();
-            if (!pls.isEmpty() || !sls.isEmpty()) {
-                loc.getUrl().clear();
-                mods.getLocation().add(loc);
-            }
-        }
-    }
-
-    public static final void inheritOriginInfoDateIssued(ModsDefinition mods, List<OriginInfoDefinition> ois) {
-        for (OriginInfoDefinition oi : ois) {
-            OriginInfoDefinition newOi = null;
-            for (DateDefinition dateIssued : oi.getDateIssued()) {
-                if (newOi == null) {
-                    newOi = new OriginInfoDefinition();
-                    mods.getOriginInfo().add(newOi);
-                }
-                newOi.getDateIssued().add(dateIssued);
-            }
-        }
-    }
-
-    public static final void inheritPhysicalDescriptionForm(ModsDefinition mods, List<PhysicalDescriptionDefinition> pds) {
-        for (PhysicalDescriptionDefinition pd : pds) {
-            PhysicalDescriptionDefinition newPd = null;
-            for (FormDefinition form : pd.getForm()) {
-                if (newPd == null) {
-                    newPd = new PhysicalDescriptionDefinition();
-                    mods.getPhysicalDescription().add(newPd);
-                }
-                newPd.getForm().add(form);
-            }
-        }
-    }
-
-    public static void inheritTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
-        for (TitleInfoDefinition ti : tis) {
-            if (ti.getType() == null) {
-                ti.getPartNumber().clear();
-                ti.getPartName().clear();
-                ti.getNonSort().clear();
-                mods.getTitleInfo().add(ti);
-            }
-        }
-    }
-
-    public static void inheritRecordInfo(ModsDefinition mods, List<RecordInfoDefinition> recordInfos) {
-        for (int i = 0; i < recordInfos.size(); i++) {
-            RecordInfoDefinition recordInfo = recordInfos.get(i);
-            if (recordInfo.getDescriptionStandard().size() > 0 && recordInfo.getDescriptionStandard().get(0).getValue() != null) {
-                RecordInfoDefinition ri;
-                if (mods.getRecordInfo().size() != 0 && mods.getRecordInfo().size() >= i) {
-                    ri = mods.getRecordInfo().get(i);
-                    if (ri.getDescriptionStandard().size() != 0) {
-                        ri.getDescriptionStandard().get(0).setValue(recordInfo.getDescriptionStandard().get(0).getValue());
-                    } else {
-                        StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
-                        description.setValue(recordInfo.getDescriptionStandard().get(0).getValue());
-                        ri.getDescriptionStandard().add(description);
-                    }
-                } else {
-                    ri =new RecordInfoDefinition();
-                    mods.getRecordInfo().add(ri);
-                    StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
-                    description.setValue(recordInfo.getDescriptionStandard().get(0).getValue());
-                    ri.getDescriptionStandard().add(description);
-                }
-            }
-        }
-    }
-
-    public static final void inheritSupplementTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
-        for (TitleInfoDefinition ti : tis) {
-            if (ti.getType() == null) {
-                ti.getPartNumber().clear();
-                ti.getPartName().clear();
-                ti.getNonSort().clear();
-                ti.getSubTitle().clear();
-                mods.getTitleInfo().add(ti);
-            }
-        }
     }
 
     @Override
@@ -786,6 +374,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             modsRules.checkPhysicalLocation(mods.getLocation());
             modsRules.checkRelatedItemPhysicalLocation(mods.getRelatedItem());
             modsRules.checkDateIssuedFormat(mods, modelId);
+            modsRules.checkGenreType(mods, modelId);
             if (!ex.getValidations().isEmpty()) {
                 throw ex;
             }
@@ -909,6 +498,8 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             checkBeforeWrite(false, mods, oldMods, options.isIgnoreValidation(), false, modelId, context);
         } else if (!(OPERATION_NEW.equals(typeRecord) || OPERATION_URNNBN.equals(typeRecord))) {
             checkBeforeWrite(false, mods, oldMods, options.isIgnoreValidation(), false, modelId, context);
+        } else if (OPERATION_NEW.equals(typeRecord)) {
+            checkBeforeCreate(mods, modelId, context);
         }
         NdkMapper mapper = mapperFactory.get(modelId);
         mapper.setModelId(modelId);
@@ -930,6 +521,16 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         // Label
         String label = mapper.toLabel(mods);
         fobject.setLabel(label);
+    }
+
+    private void checkBeforeCreate(ModsDefinition mods, String modelId, Context context) throws DigitalObjectValidationException {
+        DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
+                DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
+        ModsRules modsRules = new ModsRules(modelId, mods, ex, context, appConfiguration);
+        modsRules.checkDateIssued(mods, modelId);
+        if (!ex.getValidations().isEmpty()) {
+            throw ex;
+        }
     }
 
     protected final DigitalObjectHandler findEnclosingObject(

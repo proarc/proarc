@@ -100,7 +100,7 @@ public class NdkMonographSupplementMapper extends RdaNdkMapper {
         if (partNumber != null && partName != null) {
             return partNumber + ", " + partName;
         } else {
-            return partNumber != null ? partNumber : (partName != null ? partName : createTitleString(mods.getTitleInfo().get(0)));
+            return partNumber != null ? partNumber : (partName != null ? partName : (mods.getTitleInfo().size() > 0 ? createTitleString(mods.getTitleInfo().get(0)) : null));
         }
     }
 

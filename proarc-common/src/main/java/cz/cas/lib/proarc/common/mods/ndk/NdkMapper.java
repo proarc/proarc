@@ -235,41 +235,58 @@ public abstract class NdkMapper {
         Map<String, String> modelMap = new HashMap<String, String>() {
             {
                 put(NdkPlugin.MODEL_ARTICLE, "model:internalpart");
+                put(NdkEbornPlugin.MODEL_EARTICLE, "model:internalpart");
+
                 put(NdkPlugin.MODEL_CARTOGRAPHIC, "model:map");
                 put(OldPrintPlugin.MODEL_CARTOGRAPHIC, "model:map");
+
                 put(NdkPlugin.MODEL_CHAPTER, "model:internalpart");
                 put(OldPrintPlugin.MODEL_CHAPTER, "model:internalpart");
+                put(NdkEbornPlugin.MODEL_ECHAPTER, "model:internalpart");
+
                 put(NdkPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
                 put(OldPrintPlugin.MODEL_MONOGRAPHTITLE, "model:monograph");
+                put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "model:electronicmonograph");
+
                 put(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "model:supplement");
                 put(OldPrintPlugin.MODEL_SUPPLEMENT, "model:supplement");
+                put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "model:supplement");
+
                 put(NdkPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
                 put(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, "model:monograph");
+                put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "model:electronicmonograph");
+
                 put(NdkPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
                 put(OldPrintPlugin.MODEL_MONOGRAPHUNIT, "model:monographunit");
+                put(NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, "model:electronicmonographunit");
+
                 put(NdkPlugin.MODEL_PERIODICAL, "model:periodical");
+                put(NdkEbornPlugin.MODEL_EPERIODICAL, "model:electronic_periodical");
+
                 put(NdkPlugin.MODEL_PERIODICALISSUE, "model:periodicalitem");
+                put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "model:periodicitem");
+
                 put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "model:supplement");
+                put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, "model:supplement");
+
                 put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
+                put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "model:periodicvolume");
+
                 put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
+
                 put(NdkPlugin.MODEL_GRAPHIC, "model:graphic");
                 put(OldPrintPlugin.MODEL_GRAPHICS, "model:graphic");
+
                 put(NdkPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
                 put(OldPrintPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
+
                 put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
                 put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
-                put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, "model:electronicmonograph");
-                put(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, "model:electronicmonographunit");
-                put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, "model:supplement");
-                put(NdkEbornPlugin.MODEL_EPERIODICAL, "model:electronic_periodical");
-                put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "model:periodicvolume");
-                put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "model:periodicitem");
-                put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, "model:supplement");
-                put(NdkEbornPlugin.MODEL_ECHAPTER, "model:internalpart");
-                put(NdkEbornPlugin.MODEL_EARTICLE, "model:internalpart");
+
                 put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, "model:clippingcollection");
                 put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, "model:obálka");
                 put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, "model:clipping");
+
                 put(OldPrintPlugin.MODEL_CONVOLUTTE, "model:convolutte");
             }
         };

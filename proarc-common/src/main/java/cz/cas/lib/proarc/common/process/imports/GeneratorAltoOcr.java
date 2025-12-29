@@ -2,14 +2,13 @@ package cz.cas.lib.proarc.common.process.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.external.ExternalProcess;
-import cz.cas.lib.proarc.common.process.external.OcrGenerator;
+import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
+import org.codehaus.jettison.json.JSONException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
-
-import static cz.cas.lib.proarc.common.process.external.OcrGenerator.getOcrFiles;
 
 
 public class GeneratorAltoOcr implements ImportHandler {
@@ -18,7 +17,14 @@ public class GeneratorAltoOcr implements ImportHandler {
 
     @Override
     public int estimateItemNumber(ImportProcess.ImportOptions importConfig) throws IOException {
-        return 1;
+        File importFolder = importConfig.getImportFolder();
+        int size = 0;
+        for (File file : importFolder.listFiles()) {
+            if (file.isFile() && file.getName().endsWith(".tif") || file.getName().endsWith(".jpg") || file.getName().endsWith(".jpeg")) {
+                size++;
+            }
+        }
+        return size;
     }
 
     @Override
@@ -69,34 +75,37 @@ public class GeneratorAltoOcr implements ImportHandler {
     private static void generateTechnicalFiles(File imageFile, ImportProcess.ImportOptions importConfig) throws Exception {
         if (imageFile.getName().endsWith(".tif") || imageFile.getName().endsWith(".jpg") || imageFile.getName().endsWith(".jpeg")) {
             ImportProfile config = importConfig.getConfig();
-            File[] outputFiles = getOcrFiles(imageFile, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
+            Integer peroOcrEngine = null;
+            try {
+                peroOcrEngine = importConfig.getBatch().getParamsAsObject().getPeroOcrEngine();
+            } catch (NullPointerException e) {
+                peroOcrEngine = 1;
+            }
+            File[] outputFiles = PeroOcrProcessor.getOcrFiles(imageFile, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
 
             File outputOcr = outputFiles[0];
             File outputAlto = outputFiles[1];
             if (outputOcr.exists() && outputAlto.exists()) {
                 LOG.fine("Skipping file " + imageFile.getName() + " - files exists");
             } else {
-                try {
-                    generateFromExternalProcess(imageFile, config);
-                } catch (IOException ex) {
-                    Thread.sleep(30000);
-                    if (!(outputOcr.exists() && outputAlto.exists())) {
-                        generateFromExternalProcess(imageFile, config);
-                    }
-                }
+                generateFromExternalProcess(imageFile, config, peroOcrEngine);
             }
         } else {
             LOG.fine("Skipping file: " + imageFile.getName());
         }
     }
 
-    private static void generateFromExternalProcess(File imageFile, ImportProfile config) throws IOException {
-        ExternalProcess process = new OcrGenerator(config.getOcrGenProcessor(), imageFile, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
-        if (process != null) {
-            process.run();
-        }
-        if (!process.isOk()) {
-            throw new IOException("Generating OCR for " + imageFile.getName() + " failed. \n " + process.getFullOutput());
+    private static void generateFromExternalProcess(File imageFile, ImportProfile config, Integer peroOcrEngine) throws IOException {
+        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(config.getOcrGenProcessor(), peroOcrEngine);
+        try {
+            boolean processed = ocrProcessor.generate(imageFile, ".txt", ".xml");
+            if (processed) {
+                LOG.info("OCR GENERATED SUCCESSFULLY for " +  imageFile.getAbsolutePath());
+            }
+        } catch (JSONException ex) {
+            LOG.severe("Generating OCR for " + imageFile.getName() + " failed.");
+            ex.printStackTrace();
+            throw new IOException(ex);
         }
     }
 }

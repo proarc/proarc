@@ -129,6 +129,14 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     }
 
     @Override
+    public List<Batch> findWaitingImportBatches() {
+        BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
+        result.getCommand().where(table.state.is(State.IMPORT_PLANNED));
+        result.fetch(getConnection());
+        return Collections.unmodifiableList(result);
+    }
+
+    @Override
     public List<Batch> findExportingBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(State.EXPORTING));
@@ -199,7 +207,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public List<BatchView> view(Integer userId, Integer batchId, Set<State> state,
             Timestamp from, Timestamp to, int offset, int maxCount, String sortBy) {
 
-        return view(new BatchViewFilter().setUserId(userId).setBatchId(batchId)
+        return view(new BatchViewFilter().setUserId(userId).setBatchIds(Collections.singletonList(batchId))
                 .setState(state).setCreatedFrom(from).setCreatedTo(to)
                 .setOffset(offset).setMaxCount(maxCount).setSortBy(sortBy));
     }
@@ -213,26 +221,22 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         UserTable ut = db.tableUser;
         DBCommand cmd = db.createCommand();
         cmd.select(table.id, table.state, table.userId, table.folder, table.title,
-                table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber, table.priority);
+                table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber, table.priority, table.updated, table.itemUpdated, table.nightOnly);
         cmd.select(ut.username);
         cmd.join(table.userId, ut.id);
         if (filter.getCreatorId() != null) {
             cmd.where(ut.id.is(filter.getCreatorId()));
-        } else {
-            if (filter.getUserId() != null) {
-                if (filter.getSuperAdminUserIds() == null) {
-                    cmd.where(ut.id.in(new Integer[]{1, filter.getUserId()}));
-                } else {
-                    List<Integer> superAdminIds = filter.getSuperAdminUserIds();
-                    superAdminIds.add(1);
-                    superAdminIds.add(filter.getUserId());
-                    cmd.where(ut.id.in(superAdminIds));
-                }
-                //cmd.where(ut.id.is(filter.getUserId()));
-            }
         }
-        if (filter.getBatchId() != null) {
-            cmd.where(table.id.is(filter.getBatchId()));
+        if (filter.getBatchIds() != null && !filter.getBatchIds().isEmpty()) {
+            List<Integer> batchIds = new ArrayList<>();
+            for (Integer batchId : filter.getBatchIds()) {
+                if (batchId != null && batchId > 0) {
+                    batchIds.add(batchId);
+                }
+            }
+            if (!batchIds.isEmpty()) {
+                cmd.where(table.id.in(batchIds));
+            }
         }
         if (filter.getState() != null && !filter.getState().isEmpty()) {
             cmd.where(table.state.in(filter.getState()));
@@ -244,6 +248,22 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         if (filter.getCreatedTo() != null) {
             cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
                     table.create.isLessOrEqual(filter.getCreatedTo())));
+        }
+        if (filter.getUpdatedFrom() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.updated.isMoreOrEqual(filter.getUpdatedFrom())));
+        }
+        if (filter.getUpdatedTo() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.updated.isLessOrEqual(filter.getUpdatedTo())));
+        }
+        if (filter.getItemUpdatedFrom() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.itemUpdated.isMoreOrEqual(filter.getItemUpdatedFrom())));
+        }
+        if (filter.getItemUpdatedTo() != null) {
+            cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
+                    table.itemUpdated.isLessOrEqual(filter.getItemUpdatedTo())));
         }
         if (filter.getModifiedFrom() != null) {
             cmd.addWhereConstraints(Collections.<DBCompareExpr>singletonList(
@@ -298,6 +318,13 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         } finally {
             reader.close();
         }
+    }
+
+    @Override
+    public void removeBatch(int batchId) {
+        DBCommand cmd = db.createCommand();
+        cmd.where(table.id.is(batchId));
+        db.executeDelete(table, cmd, getConnection());
     }
 
 }

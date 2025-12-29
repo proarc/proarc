@@ -206,7 +206,7 @@ public class WaveImporterTest {
         String mimetype = ImportProcess.findMimeType(ac1);
         assertNotNull(mimetype);
 
-        ImportOptions ctx = new ImportOptions(ac1.getParentFile(), "scanner:scanner1",
+        ImportOptions ctx = new ImportOptions(ac1.getParentFile(), "scanner:scanner1", "software:objectSet",
                 true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
@@ -278,7 +278,7 @@ public class WaveImporterTest {
         assertTrue(targetFolder.exists());
 
         ImportOptions ctx = new ImportOptions(ac1.getParentFile(),
-                "scanner:scanner1", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
+                "scanner:scanner1", "software:objectSet", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);

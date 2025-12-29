@@ -17,15 +17,10 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.authentication.ProarcPrincipal;
-import cz.cas.lib.proarc.common.user.Permission;
-import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.common.user.UserUtil;
 import java.security.Principal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
@@ -85,27 +80,6 @@ public final class SessionContext {
 
     public String getIp() {
         return ip;
-    }
-
-    public boolean checkPermission(Permission... permissions) {
-        UserManager userManager = UserUtil.getDefaultManger();
-        Set<Permission> grants = userManager.findUserPermissions(user.getId());
-        return grants.containsAll(Arrays.asList(permissions));
-    }
-
-    public boolean checkRole(String requiredRole) {
-        UserManager userManager = UserUtil.getDefaultManger();
-        String role = userManager.findUserRole(user.getId());
-        if (role != null) {
-            return requiredRole.equals(role);
-        }
-        return false;
-    }
-
-    public void requirePermission(String role, Permission... permissions) {
-        if (!checkPermission(permissions)  && !checkRole(role)) {
-            throw new WebApplicationException(Status.FORBIDDEN);
-        }
     }
 
     /**

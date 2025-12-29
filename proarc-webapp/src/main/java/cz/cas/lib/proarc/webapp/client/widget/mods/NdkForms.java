@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEPeriodicalVolumeFor
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographChapterForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographSupplementForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographTitleForm;
+import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographUnitForm;
 import cz.cas.lib.proarc.webapp.client.widget.mods.eborn.NdkEmonographVolumeForm;
 import cz.cas.lib.proarc.webapp.shared.form.Field;
 import cz.cas.lib.proarc.webapp.shared.form.FieldBuilder;
@@ -80,6 +81,7 @@ public final class NdkForms {
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, new NdkEmonographSupplementForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_ECHAPTER, new NdkEmonographChapterForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, new NdkEmonographTitleForm()::build);
+        mappers.put(NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, new NdkEmonographUnitForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICAL, new NdkEPeriodicalForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, new NdkEPeriodicalIssueForm()::build);
         mappers.put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, new NdkEPeriodicalVolumeForm()::build);

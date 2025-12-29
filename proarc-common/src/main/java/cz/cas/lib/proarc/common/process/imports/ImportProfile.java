@@ -123,10 +123,14 @@ public final class ImportProfile {
                 return new KrameriusImport(FileReader.K4_MAP);
             case ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT:
                 return new KrameriusImport(FileReader.NDK_MONOGRAPH_MAP);
+            case ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.NDK_MONOGRAPH_TITLE_MAP);
             case ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT:
                 return new KrameriusImport(FileReader.NDK_PERIODICAL_MAP);
             case ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT:
                 return new KrameriusImport(FileReader.NDK_EMONOGRAPH_MAP);
+            case ConfigurationProfile.NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT:
+                return new KrameriusImport(FileReader.NDK_EMONOGRAPH_TITLE_MAP);
             case ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT:
                 return new KrameriusImport(FileReader.NDK_EPERIODICAL_MAP);
             case ConfigurationProfile.STT_KRAMERIUS_IMPORT:

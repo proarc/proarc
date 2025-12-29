@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.webapp.server.rest.v1.UserResourceV1;
 public final class UserResourceApi {
 
     public static final String PATH = "user";
+    public static final String PATH_USER_SETTING = "userSetting";
 
     public static final String USER_WHOAMI_PARAM = "whoAmI";
 
@@ -40,21 +41,32 @@ public final class UserResourceApi {
     public static final String USER_FORENAME = "forename";
     public static final String USER_SURNAME = "surname";
     public static final String USER_ORGANIZATION = "organization";
-    public static final String USER_ROLE = "role";
     public static final String USER_LASTLOGIN = "lastLogin";
     public static final String USER_STATUS = "status";
     public static final String USER_DEFAULTGROUP = "defaultGroup";
     public static final String USER_USERGROUP = "userGroup";
     public static final String USER_TIMESTAMP = "timestamp";
     public static final String USER_PASSWORD = "password";
-    public static final String USER_RUN_CHANGE_MODEL_FUNCTION = "changeModelFunction";
-    public static final String USER_RUN_UPDATE_MODEL_FUNCTION = "updateModelFunction";
-    public static final String USER_RUN_LOCK_OBJECT_FUNCTION = "lockObjectFunction";
-    public static final String USER_RUN_UNLOCK_OBJECT_FUNCTION = "unlockObjectFunction";
-    public static final String USER_IMPORT_TO_PROD_FUNCTION = "importToProdFunction";
-    public static final String USER_CZIDLO_FUNCTION = "czidloFunction";
-    public static final String USER_WF_DELETE_JOB_FUNCTION = "wfDeleteJobFunction";
-    public static final String USER_IMPORT_TO_CATALOG_FUNCTION = "importToCatalogFunction";
+    public static final String FUNCTION_CHANGE_MODEL = "changeModelFunction";
+    public static final String FUNCTION_UPDATE_MODEL = "updateModelFunction";
+    public static final String FUNCTION_LOCK_OBJECT = "lockObjectFunction";
+    public static final String FUNCTION_UNLOCK_OBJECT = "unlockObjectFunction";
+    public static final String FUNCTION_IMPORT_TO_PROD = "importToProdFunction";
+    public static final String FUNCTION_CZIDLO = "czidloFunction";
+    public static final String FUNCTION_WF_DELETE_JOB = "wfDeleteJobFunction";
+    public static final String FUNCTION_IMPORT_TO_CATALOG = "importToCatalogFunction";
+    public static final String FUNCTION_CHANGE_OBJECTS_OWNER = "changeObjectsOwnerFunction";
+    public static final String FUNCTION_CHANGE_PAGES = "changePagesFunction";
+    public static final String FUNCTION_DEVICE = "deviceFunction";
+    public static final String FUNCTION_WF_CREATE_JOB = "wfCreateJobFunction";
+    public static final String FUNCTION_CREATE_USER = "createUserFunction";
+    public static final String FUNCTION_UPDATE_USER = "updateUserFunction";
+    public static final String FUNCTION_DELETE_USER = "deleteUserFunction";
+    public static final String FUNCTION_SOLR = "solrFunction";
+    public static final String FUNCTION_DELETE_ACTION = "deleteActionFunction";
+    public static final String FUNCTION_ALL_OBJECTS = "allObjectsFunction";
+    public static final String FUNCTION_PREPARE_BATCH = "prepareBatchFunction";
+    public static final String FUNCTION_SYS_ADMIN = "sysAdminFunction";
     public static final String USER_START_ROW_PARAM = "_startRow";
-
+    public static final String USER_SETTING = "userSetting";
 }

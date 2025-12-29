@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.UpdateObjects;
 import cz.cas.lib.proarc.common.actions.UpdatePages;
 import cz.cas.lib.proarc.common.actions.UpdatePagesMetadata;
+import cz.cas.lib.proarc.common.actions.UpgradeMetadataObjects;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -46,6 +47,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager.CreateHierarchyHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.object.DisseminationInput;
 import cz.cas.lib.proarc.common.object.K4Plugin;
@@ -96,8 +98,8 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
+import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
@@ -109,9 +111,6 @@ import cz.cas.lib.proarc.common.urnnbn.UrnNbnService;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.PidResult;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnStatusHandler.StatusEntry;
-import cz.cas.lib.proarc.common.user.Group;
-import cz.cas.lib.proarc.common.user.Permissions;
-import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
@@ -152,6 +151,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -240,7 +240,7 @@ public class DigitalObjectResourceV1 {
     private final BatchManager importManager;
     private final Request httpRequest;
     private final HttpHeaders httpHeaders;
-    private final UserProfile user;
+    protected final UserProfile user;
     private final SessionContext session;
     private final BatchManager batchManager;
 
@@ -409,87 +409,57 @@ public class DigitalObjectResourceV1 {
     @DELETE
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> deleteObject(
+    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
             @DefaultValue("true") boolean hierarchy,
             @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
             @DefaultValue("false") boolean purge,
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
-            @DefaultValue("false") boolean restore
-    ) throws IOException, PurgeException {
+            @DefaultValue("false") boolean restore,
+            @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+    ) throws IOException {
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage fedora = FedoraStorage.getInstance(appConfig);
-            ArrayList<DigitalObject> result = new ArrayList<DigitalObject>(pids.size());
-            PurgeFedoraObject service = new PurgeFedoraObject(fedora);
-            for (String pid : pids) {
-                try {
-                    setWorkflow("task.deletionPA", getIMetsElement(pid, false));
-                } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
-                    if (e.getMessage() != null && e.getMessage().contains("low-level storage")) {
-                        LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                    } else if (e.getMessage() != null && e.getMessage().contains("Unable to get")) {
-                        LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                    } else {
-                        throw new IOException(e);
-                    }
-                }
-            }
-            if (purge) {
-                session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
-                service.purge(pids, hierarchy, session.asFedoraLog());
-            } else if (restore) {
-                service.restore(pids, session.asFedoraLog());
-            } else {
-                service.delete(pids, hierarchy, session.asFedoraLog());
-            }
-            for (String pid : pids) {
-                result.add(new DigitalObject(pid, null));
-            }
-            return new SmartGwtResponse<DigitalObject>(result);
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
-            ArrayList<DigitalObject> result = new ArrayList<>(pids.size());
-            PurgeAkubraObject service = new PurgeAkubraObject(akubra);
-            for (String pid : pids) {
-                try {
-                    setWorkflow("task.deletionPA", getIMetsElement(pid, false));
-                } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
-                    if (e.getMessage() != null && e.getMessage().contains("low-level storage")) {
-                        LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                    } else if (e.getMessage() != null && e.getMessage().contains("Unable to get")) {
-                        LOG.warning("Skiped setting task in workflow, " + e.getMessage() + " " + e.getStackTrace());
-                    } else {
-                        throw new IOException(e);
-                    }
-                }
-            }
-            if (purge) {
-                session.requirePermission(UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
-                service.purge(pids, hierarchy, session.asFedoraLog());
-            } else if (restore) {
-                service.restore(pids, session.asFedoraLog());
-            } else {
-                service.delete(pids, hierarchy, session.asFedoraLog());
-            }
-            for (String pid : pids) {
-                result.add(new DigitalObject(pid, null));
-            }
-            return new SmartGwtResponse<DigitalObject>(result);
-        } else {
-            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        if (purge || restore) {
+            checkPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_ACTION);
         }
+
+        AkubraStorage storage = null;
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            storage = AkubraStorage.getInstance(akubraConfiguration);
+            for (String pid : pids) {
+                if (storage != null) {
+                    try {
+                        storage.indexObjectStatus(pid, DigitalObjectStatusUtils.STATUS_TO_DELETE);
+                    } catch (Exception ex) {
+                        LOG.warning("Nepodarilo se zapsat docasnou zmenu stavu pro informaci o naplanovanem smazani objektu pid \"" + pid + "\".");
+                    }
+                }
+            }
+        }
+
+
+        BatchParams params = new BatchParams(pids);
+        params.setHierarchy(hierarchy);
+        params.setPurge(purge);
+        params.setRestore(restore);
+
+        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, pids.isEmpty() ? "DELETE 0 PIDs." : pids.get(0), user, Batch.INTERNAL_DELETION, isNightOnly, params);
+
+        InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<>(result);
     }
 
     @DELETE
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObject> deleteObject(
+    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
             ProArcRequest.DeleteObjectRequest deleteObjectRequest,
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
@@ -497,16 +467,42 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
             @DefaultValue("false") boolean purge,
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
-            @DefaultValue("false") boolean restore) throws PurgeException, IOException {
+            @DefaultValue("false") boolean restore,
+            @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+    ) throws PurgeException, IOException {
         if (deleteObjectRequest == null) {
-            return deleteObject(pids, hierarchy, purge, restore);
+            return deleteObject(pids, hierarchy, purge, restore, isNightOnly);
         } else {
-            return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
+            return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore, deleteObjectRequest.nightOnly);
         }
     }
 
+    @DELETE
+    @Path(DigitalObjectResourceApi.PURGE_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<InternalExternalProcessResult> purgeObjects(
+            @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
+            @DefaultValue("deleted") SearchType type,
+            @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+    ) throws DigitalObjectException, IOException, FedoraClientException {
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_ACTION);
+
+        BatchParams params = new BatchParams();
+        params.setType(type.name());
+        params.setHierarchy(true);
+        params.setPurge(true);
+
+        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, "DELETE \"" + type.name() + "\"" , user, Batch.INTERNAL_DELETION, isNightOnly, params);
+
+        InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
+        return new SmartGwtResponse<>(result);
+    }
+
     public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
-        return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, null, 0, null, null);
+        return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, 0, null, null);
     }
 
 //    @DELETE
@@ -532,7 +528,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.SEARCH_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.SEARCH_BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.SEARCH_PHRASE_PARAM) String phrase,
-            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM) String queryCreator,
+//            @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_CREATOR_PARAM) String queryCreator,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_IDENTIFIER_PARAM) String queryIdentifier,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_LABEL_PARAM) String queryLabel,
             @QueryParam(DigitalObjectResourceApi.SEARCH_QUERY_MODEL_PARAM) String queryModel,
@@ -557,34 +553,26 @@ public class DigitalObjectResourceV1 {
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
         }
-        String organization = user.getRole() == null || user.getRole().isEmpty() || UserRole.ROLE_SUPERADMIN.equals(user.getRole()) ? null : user.getOrganization();
-        String username = user.getRole() == null
-                || user.getRole().isEmpty()
-                || UserRole.ROLE_SUPERADMIN.equals(user.getRole())
-                || UserRole.ROLE_ADMIN.equals(user.getRole())
-                || !appConfig.getSearchOptions().getSearchFilterProcessor() ? null : user.getUserName();
-
-        Boolean allowAllForProcessor = appConfig.getSearchOptions().getSearchFilterAllowAllForProcessor();
-        Boolean filterWithoutExtension = appConfig.getSearchOptions().getSearchFilterWithoutExtension();
+        String organization = user.hasAllObjectsFunction() ? null : user.getOrganization();
 
         List<SearchViewItem> items;
         int total = 0;
         int page = 20;
         switch (type) {
             case ALPHABETICAL:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension);
-                items = search.findAlphabetical(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
+                total = search.countModels(queryModel, organization);
+                items = search.findAlphabetical(startRow, queryModel, organization, 100, sort.toString());
                 items = sortItems(items, sort);
                 break;
             case LAST_MODIFIED:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension);
-                items = search.findLastModified(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
+                total = search.countModels(queryModel, organization);
+                items = search.findLastModified(startRow, queryModel, organization, 100, sort.toString());
                 break;
             case QUERY:
                 items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator).setStatus(queryStatus)
-                        .setHasOwners(filterGroups(user)), "active");
+                        .setOwner(owner).setModel(queryModel).setStatus(queryStatus)
+                        , "active");
                 total = items.size();
                 page = 1;
                 break;
@@ -594,17 +582,7 @@ public class DigitalObjectResourceV1 {
                 page = 1;
                 break;
             case PHRASE:
-                if (session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER)) {
-                    // unsupported type
-                    throw new WebApplicationException(Status.FORBIDDEN);
-                }
-                if (username == null) {
-                    username = queryProcessor;
-                }
-                if (organization == null) {
-                    organization = queryOrganization;
-                }
-                items = search.findPhrase(phrase, null, null, null, queryModel, false, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
+                items = search.findPhrase(phrase, null, null, null, queryModel, sortField, sort.toString(), startRow, 100);
                 total = items.size();
                 page = 1;
                 break;
@@ -613,11 +591,17 @@ public class DigitalObjectResourceV1 {
                 total = items.size();
                 page = 1;
                 break;
+            case ORPHAN:
+                if (organization == null) {
+                    organization = queryOrganization;
+                }
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
+                break;
             case DELETED:
                 items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
                         .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
-                        .setHasOwners(filterGroups(user)), "deleted");
+                        .setOwner(owner).setModel(queryModel), "deleted");
                 ;
                 total = items.size();
                 page = 1;
@@ -627,21 +611,18 @@ public class DigitalObjectResourceV1 {
                 total = items.size();
                 break;
             case ADVANCED:
-                if (username == null) {
-                    username = queryProcessor;
-                }
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
+                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }
                 break;
             default:
-                total = search.countModels(queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension);
-                items = search.findLastCreated(startRow, queryModel, filterOwnObjects(user), organization, username, filterWithoutExtension, 100, sort.toString());
+                total = search.countModels(queryModel, organization);
+                items = search.findLastCreated(startRow, queryModel, organization, 100, sort.toString());
         }
         repairItemsModel(items);
         int count = items.size();
@@ -688,27 +669,6 @@ public class DigitalObjectResourceV1 {
                 item.setStatus(item.getStatus().substring(12));
             }
         }
-    }
-
-    private String filterOwnObjects(UserProfile user) {
-        boolean checkPermission = session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER);
-        return checkPermission ? user.getUserNameAsPid() : null;
-    }
-
-    private Collection<String> filterGroups(UserProfile user) {
-        boolean checkPermission = session.checkPermission(Permissions.REPO_SEARCH_GROUPOWNER);
-        if (checkPermission && user.getDefaultGroup() != null) {
-            UserManager userManager = UserUtil.getDefaultManger();
-            // FedoraClient.findObjects() does not support OR operator!
-            // Filter just the default group.
-            Group defGroup = userManager.findGroup(user.getDefaultGroup());
-            if (defGroup != null) {
-                return Collections.singletonList(UserUtil.toGroupPid(defGroup));
-            }
-//            List<Group> groups = userManager.findUserGroups(user.getId());
-//            return UserUtil.toGroupPid(groups);
-        }
-        return Collections.emptyList();
     }
 
     private List<SearchViewItem> searchParent(Integer batchId, List<String> pids, SearchView search)
@@ -845,6 +805,10 @@ public class DigitalObjectResourceV1 {
         members.clear();
         // add new members
         ArrayList<SearchViewItem> added = new ArrayList<SearchViewItem>();
+        AkubraStorage storage = null;
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            storage = AkubraStorage.getInstance(akubraConfiguration);
+        }
         for (String addPid : toSetPids) {
             if (!members.contains(addPid)) {
                 members.add(addPid);
@@ -855,6 +819,10 @@ public class DigitalObjectResourceV1 {
                 }
                 item.setParentPid(parentPid);
                 added.add(item);
+
+                if (storage != null) {
+                    storage.indexParentPid(item.getPid(), item.getParentPid());
+                }
             }
         }
         editor.setMembers(members);
@@ -989,7 +957,7 @@ public class DigitalObjectResourceV1 {
     private List<SearchViewItem> addMembers(DigitalObjectHandler parent,
                                             List<String> toAddPids,
                                             Map<String, SearchViewItem> memberSearchMap
-    ) throws DigitalObjectException {
+    ) throws DigitalObjectException, IOException {
 
         String parentPid = parent.getFedoraObject().getPid();
         HashSet<String> toAddPidSet = new HashSet<String>(toAddPids);
@@ -1000,6 +968,11 @@ public class DigitalObjectResourceV1 {
         RelationEditor editor = parent.relations();
         List<String> members = editor.getMembers();
         // add new members
+
+        AkubraStorage storage = null;
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            storage = AkubraStorage.getInstance(akubraConfiguration);
+        }
         for (String addPid : toAddPids) {
             if (!members.contains(addPid)) {
                 members.add(addPid);
@@ -1009,6 +982,10 @@ public class DigitalObjectResourceV1 {
                 }
                 item.setParentPid(parentPid);
                 added.add(item);
+
+                if (storage != null) {
+                    storage.indexParentPid(item.getPid(), item.getParentPid());
+                }
             } else {
                 throw RestException.plainText(Status.BAD_REQUEST,
                         parentPid + " already contains: " + addPid);
@@ -1079,7 +1056,7 @@ public class DigitalObjectResourceV1 {
      * @param parent         parent PID
      * @param toRemovePidSet PIDs of children to remove
      */
-    private void deleteMembers(DigitalObjectHandler parent, Set<String> toRemovePidSet) throws DigitalObjectException {
+    private void deleteMembers(DigitalObjectHandler parent, Set<String> toRemovePidSet) throws DigitalObjectException, IOException {
         RelationEditor editor = parent.relations();
         List<String> members = editor.getMembers();
         // check that PIDs being removed are members of parent object
@@ -1094,6 +1071,16 @@ public class DigitalObjectResourceV1 {
         if (members.removeAll(toRemovePidSet)) {
             editor.setMembers(members);
             editor.write(editor.getLastModified(), session.asFedoraLog());
+        }
+
+        AkubraStorage storage = null;
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            storage = AkubraStorage.getInstance(akubraConfiguration);
+        }
+        for (String pid : toRemovePidSet) {
+            if (storage != null) {
+                storage.indexParentPid(pid, parent.getFedoraObject().getPid());
+            }
         }
     }
 
@@ -1353,7 +1340,50 @@ public class DigitalObjectResourceV1 {
         }
 //        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
+
+        if (batchId != null) {
+            Batch batch = batchManager.get(batchId);
+            if (batch != null) {
+                batch.setItemUpdated(new Timestamp(System.currentTimeMillis()));
+                batch = batchManager.update(batch);
+            }
+        }
         return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_OBJECTS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<SearchViewItem> updateDescriptionMetadataObjects(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla
+    ) throws DigitalObjectException, IOException, FedoraClientException {
+
+        LOG.fine(String.format("pids: %s", pids.toArray()));
+
+        if (pids == null || pids.isEmpty()) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+
+        if (isLocked(pids)) {
+            DigitalObjectValidationException validationException = new DigitalObjectValidationException(pids.get(0), null, null, "Locked", null);
+            validationException.addValidation("Locked", ERR_IS_LOCKED, false);
+            return toValidationError(validationException, STATUS_LOCKED, session.getLocale(httpHeaders));
+        }
+        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, session.getLocale(httpHeaders));
+        updateObjects.createListOfPids(pids);
+        updateObjects.createPartNumber(partNumber);
+        try {
+            updateObjects.updateObjects(signatura, sigla);
+            return returnFunctionSuccess();
+        } catch (DigitalObjectValidationException ex) {
+            return toValidationError(ex, session.getLocale(httpHeaders));
+        } catch (DigitalObjectException ex) {
+            return SmartGwtResponse.asError(ex);
+        }
+
     }
 
     @POST
@@ -1926,7 +1956,7 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Map<String, Object>> updateDissemination(
+    public SmartGwtResponse<InternalExternalProcessResult> updateDissemination(
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
@@ -1941,7 +1971,7 @@ public class DigitalObjectResourceV1 {
             return updateDisseminationImpl(pid, batchId, dsId, file, fileInfo, fileBodyPart, mimeType);
         } catch (Throwable ex) {
             if (jsonErrors) {
-                return SmartGwtResponse.<Map<String, Object>>asError(ex);
+                return SmartGwtResponse.asError(ex);
             } else {
                 if (!(ex instanceof WebApplicationException)) {
                     ex = new WebApplicationException(ex);
@@ -1951,7 +1981,7 @@ public class DigitalObjectResourceV1 {
         }
     }
 
-    private SmartGwtResponse<Map<String, Object>> updateDisseminationImpl(
+    private SmartGwtResponse<InternalExternalProcessResult> updateDisseminationImpl(
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
@@ -1962,10 +1992,10 @@ public class DigitalObjectResourceV1 {
     ) throws IOException, DigitalObjectException {
 
         if (pid == null) {
-            return SmartGwtResponse.<Map<String, Object>>asError(DigitalObjectResourceApi.DIGITALOBJECT_PID, "Missing PID!");
+            return SmartGwtResponse.asError(DigitalObjectResourceApi.DIGITALOBJECT_PID, "Missing PID!");
         }
         if (fileContent == null) {
-            return SmartGwtResponse.<Map<String, Object>>asError(DigitalObjectResourceApi.DISSEMINATION_FILE, "Missing file!");
+            return SmartGwtResponse.asError(DigitalObjectResourceApi.DISSEMINATION_FILE, "Missing file!");
         }
 
         if (dsId != null && !dsId.equals(BinaryEditor.RAW_ID)) {
@@ -1983,7 +2013,7 @@ public class DigitalObjectResourceV1 {
             try {
                 mime = mimeType != null ? MediaType.valueOf(mimeType) : fileBodyPart.getMediaType();
             } catch (IllegalArgumentException ex) {
-                return SmartGwtResponse.<Map<String, Object>>asError(
+                return SmartGwtResponse.asError(
                         DigitalObjectResourceApi.DISSEMINATION_MIME, "Invalid MIME type! " + mimeType);
             }
             LOG.log(Level.FINE, "filename: {0}, user mime: {1}, resolved mime: {2}, {3}/{4}", new Object[]{filename, mimeType, mime, pid, dsId});
@@ -1995,7 +2025,8 @@ public class DigitalObjectResourceV1 {
         } finally {
             file.delete();
         }
-        return new SmartGwtResponse<Map<String, Object>>(Collections.singletonMap("processId", (Object) 0L));
+        return generateThumbnail(Collections.singletonList(pid), false);
+//        return new SmartGwtResponse<Map<String, Object>>(Collections.singletonMap("processId", (Object) 0L));
     }
 
     /**
@@ -2035,6 +2066,36 @@ public class DigitalObjectResourceV1 {
 
         return getDissemination(pid, batchId, BinaryEditor.THUMB_ID);
     }
+
+    @POST
+    @Path(DigitalObjectResourceApi.THUMB_PATH)
+    @Produces({MediaType.APPLICATION_JSON})
+    public SmartGwtResponse<InternalExternalProcessResult> generateThumbnail(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+
+    ) throws IOException {
+        if (pids == null) {
+            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+        }
+        BatchParams params = new BatchParams(pids);
+        List<Integer> batches = new ArrayList<>();
+        for (String pid : pids) {
+            Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_THUMBNAIL, isNightOnly, params);
+
+            InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+            InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+            batches.add(batch.getId());
+        }
+        if (batches.isEmpty()) {
+            InternalExternalProcessResult result = new InternalExternalProcessResult(null, "Proces není naplánován.");
+            return new SmartGwtResponse<>(result);
+        } else {
+            InternalExternalProcessResult result = new InternalExternalProcessResult(batches.get(0), batches.size() == 1 ? "Proces naplánován." : "Celkem naplánovány " + batches.size() + " procesy.");
+            return new SmartGwtResponse(result);
+        }
+    }
+
 
     @GET
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_PLAIN_PATH)
@@ -2107,13 +2168,14 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> generateAlto(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException {
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + DigitalObjectResourceApi.ATM_ITEM_PID);
         }
         BatchParams params = new BatchParams(Collections.singletonList(pid));
-        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PERO, params);
+        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PERO, isNightOnly, params);
 
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
@@ -2125,13 +2187,14 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.GENERATE_PDFA)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> generatePdfA(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException {
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         BatchParams params = new BatchParams(Collections.singletonList(pid));
-        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PDFA, params);
+        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PDFA, isNightOnly, params);
 
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
@@ -2183,7 +2246,7 @@ public class DigitalObjectResourceV1 {
         int batchId = 0;
         for (String pid : pidsToValidate) {
             BatchParams params = new BatchParams(Collections.singletonList(pid));
-            Batch batch = new BatchUtils().addNewInternalBatch(this.batchManager, pid, user, Batch.INTERNAL_VALIDATION, params);
+            Batch batch = new BatchUtils().addNewInternalBatch(this.batchManager, pid, user, Batch.INTERNAL_VALIDATION, false, params);
             batchId = batch.getId();
 
             InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
@@ -2358,6 +2421,31 @@ public class DigitalObjectResourceV1 {
         }
         DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), TechnicalMetadataMapper.PREMIS);
         return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_PREMIS_GENERATE_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> generateTechnicalMetadataPremis(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
+    ) throws IOException, DigitalObjectException {
+
+
+        if (isLocked(pids)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+
+        for (String pid : pids) {
+            ProArcObject object = findFedoraObject(pid, batchId);
+            RelationEditor relationEditor = new RelationEditor(object);
+            if (relationEditor == null) {
+                return null;
+            }
+            PremisEditor premisEditor = PremisEditor.ndkArchival(object);
+            premisEditor.regenerate(object, appConfig, akubraConfiguration);
+        }
+        return returnFunctionSuccess();
     }
 
 
@@ -2538,6 +2626,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_DEVICE) String deviceId,
+            @FormParam(DigitalObjectResourceApi.ATM_ITEM_SOFTWARE) String softwareId,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION) String organization,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_STATUS) String status,
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_USER) String userName,
@@ -2573,7 +2662,7 @@ public class DigitalObjectResourceV1 {
         for (String pid : pids) {
             ProArcObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
-            editor.write(deviceId, organization, userName, status, donator, archivalCopiesPath, session.asFedoraLog(), user.getRole());
+            editor.write(deviceId, softwareId, organization, userName, status, donator, archivalCopiesPath, session.asFedoraLog());
             fobject.flush();
             if (!(model != null && model.length() > 0 && model.contains("page"))) {
                 editor.setChild(pid, organization, userName, status, donator, appConfig, akubraConfiguration, search, session.asFedoraLog());
@@ -2642,7 +2731,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2677,7 +2766,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
 
         if (isLocked(pids)) {
@@ -2728,7 +2817,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
         List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
         if (urnNbnValue != null && !urnNbnValue.isEmpty()) {
@@ -2775,7 +2864,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2827,7 +2916,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_CZIDLO_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
 
         if (isLocked(pids)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2890,7 +2979,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_LOCK_OBJECT);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -2916,7 +3005,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UNLOCK_OBJECT);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -2982,7 +3071,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3017,7 +3106,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3049,7 +3138,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3081,7 +3170,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3113,7 +3202,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3145,7 +3234,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3177,7 +3266,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3210,7 +3299,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3243,7 +3332,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3276,7 +3365,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3308,7 +3397,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3340,7 +3429,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3373,7 +3462,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3406,7 +3495,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3439,7 +3528,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3472,7 +3561,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3505,7 +3594,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3538,7 +3627,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3571,7 +3660,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3604,7 +3693,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3631,13 +3720,79 @@ public class DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeNdkEMonographVolumeToNdkEMonographUnit(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+
+        if (pids == null || pids.isEmpty()) {
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT);
+            changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME);
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
+            }
+        }
+        return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> changeNdkEMonographUnitToNdkEMonographVolume(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+
+        if (pids == null || pids.isEmpty()) {
+            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
+        }
+        if (isLocked(pids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+        for (String pid : pids) {
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME);
+            changeModels.findObjects();
+
+            if (isLocked(changeModels.getPids())) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            String parentPid = changeModels.findRootObject();
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
+            if (result != null) {
+                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EMONOGRAPHUNIT);
+                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
+            }
+        }
+        return returnFunctionSuccess();
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeNdkMusicsheetToOldprintMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3670,7 +3825,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3704,7 +3859,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3737,7 +3892,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3770,7 +3925,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3803,7 +3958,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3836,7 +3991,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3869,7 +4024,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3902,7 +4057,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3935,7 +4090,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3968,7 +4123,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4001,7 +4156,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4034,7 +4189,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4067,7 +4222,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4100,7 +4255,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4133,7 +4288,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4166,7 +4321,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4199,7 +4354,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4232,7 +4387,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4265,7 +4420,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4298,7 +4453,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4331,7 +4486,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4364,7 +4519,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4397,7 +4552,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4430,7 +4585,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4463,7 +4618,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4496,7 +4651,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4529,7 +4684,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4562,7 +4717,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4596,15 +4751,17 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PARENT_PID) String parentPid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
-            @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
+            @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+
     ) throws DigitalObjectException, IOException, FedoraClientException {
         Batch internalBatch;
         if (batchId != null && batchId > 0) {
             BatchParams params = new BatchParams(Collections.singletonList(batchId.toString()));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
         } else {
             BatchParams params = new BatchParams(Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
         }
         Locale locale = session.getLocale(httpHeaders);
         try {
@@ -4651,15 +4808,15 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException, IOException, FedoraClientException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_ALL_OBJECTS_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS);
 
 
         Locale locale = session.getLocale(httpHeaders);
-        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
-        List<SearchViewItem> objects = updateObjects.findAllObjects();
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        List<SearchViewItem> objects = upgradeMetadataObjects.findAllObjects();
         //Map<String, Integer> map = updateObjects.countObjects(objects);
-        updateObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
-        LOG.log(Level.INFO, "Update finished, updated " + updateObjects.getUpdatedObjects() + "/" + objects.size() + " object(s).");
+        upgradeMetadataObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
+        LOG.log(Level.INFO, "Update finished, updated " + upgradeMetadataObjects.getUpdatedObjects() + "/" + objects.size() + " object(s).");
         return returnFunctionSuccess();
     }
 
@@ -4671,17 +4828,17 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
-        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
-        updateObjects.findObjects(pid, NdkPlugin.MODEL_ARTICLE);
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        upgradeMetadataObjects.findObjects(pid, NdkPlugin.MODEL_ARTICLE);
 
-        if (isLocked(updateObjects.getPids())) {
+        if (isLocked(upgradeMetadataObjects.getPids())) {
             return returnValidationError(ERR_IS_LOCKED);
         }
 
-        updateObjects.repair(NdkPlugin.MODEL_ARTICLE);
+        upgradeMetadataObjects.repair(NdkPlugin.MODEL_ARTICLE);
         return returnFunctionSuccess();
     }
 
@@ -4693,18 +4850,49 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
-        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
-        updateObjects.findObjects(pid, NdkPlugin.MODEL_NDK_PAGE);
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        upgradeMetadataObjects.findObjects(pid, NdkPlugin.MODEL_NDK_PAGE);
 
-        if (isLocked(updateObjects.getPids())) {
+        if (isLocked(upgradeMetadataObjects.getPids())) {
             return returnValidationError(ERR_IS_LOCKED);
         }
 
-        updateObjects.repair(NdkPlugin.MODEL_NDK_PAGE);
+        upgradeMetadataObjects.repair(NdkPlugin.MODEL_NDK_PAGE);
         return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_NDK_PAGE + "/" + "pageType")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SmartGwtResponse<SearchViewItem> updateNdkPageObjectsWithSpecificPageType(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+    ) throws DigitalObjectException, IOException, FedoraClientException {
+
+        String pageType = "flyleaf";
+
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
+
+        Locale locale = session.getLocale(httpHeaders);
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        List<SearchViewItem> items = upgradeMetadataObjects.findObjectsWithType(pid, MetaModel.MODELS_LEAF, pageType);
+
+        if (isLocked(getAsPidList(items))) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+
+        upgradeMetadataObjects.fixPageType(items, pageType, pageType); // stara hodnota ignoruje velikost pismen, nova je jiz jen jedna podoba zapisu
+        return returnFunctionSuccess();
+    }
+
+    private List<String> getAsPidList(List<SearchViewItem> items) {
+        List<String> pids = new ArrayList<>();
+        for (SearchViewItem item : items) {
+            pids.add(item.getPid());
+        }
+        return pids;
     }
 
     @POST
@@ -4715,17 +4903,17 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
-        UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, user, locale);
-        updateObjects.findObjects(pid, OldPrintPlugin.MODEL_PAGE);
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        upgradeMetadataObjects.findObjects(pid, OldPrintPlugin.MODEL_PAGE);
 
-        if (isLocked(updateObjects.getPids())) {
+        if (isLocked(upgradeMetadataObjects.getPids())) {
             return returnValidationError(ERR_IS_LOCKED);
         }
 
-        updateObjects.repair(OldPrintPlugin.MODEL_PAGE);
+        upgradeMetadataObjects.repair(OldPrintPlugin.MODEL_PAGE);
         return returnFunctionSuccess();
     }
 
@@ -4734,14 +4922,15 @@ public class DigitalObjectResourceV1 {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> updateCatalogRecord(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
-            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws DigitalObjectException, JSONException, IOException {
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN, UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG);
 
         CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
 
         BatchParams params = new BatchParams(pids);
-        Batch batch = BatchUtils.addNewBatch(this.importManager, pids, user, Batch.INTERNAL_UPDATE_CATALOG_RECORDS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+        Batch batch = BatchUtils.addNewBatch(this.importManager, pids, user, Batch.INTERNAL_UPDATE_CATALOG_RECORDS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
 
         StringBuilder builder = new StringBuilder();
         int count = 0;
@@ -4779,10 +4968,11 @@ public class DigitalObjectResourceV1 {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeObjectOwner (
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_OLD) String oldOwner,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException, FedoraClientException, DigitalObjectException, WorkflowException {
         Locale locale = session.getLocale(httpHeaders);
-        checkPermission(session, user, UserRole.ROLE_SUPERADMIN, Permissions.ADMIN);
+        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER);
 
         UserProfile oldUser = null;
         UserProfile newUser = null;
@@ -4815,7 +5005,7 @@ public class DigitalObjectResourceV1 {
         }
 
         BatchParams params = new BatchParams(Collections.singletonList(oldOwner + " --> " + newOwner));
-        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("Change object owner (" + oldOwner + " --> " + newOwner + ")."), user, Batch.INTERNAL_CHANGE_OBJECTS_OWNERS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("Change object owner (" + oldOwner + " --> " + newOwner + ")."), user, Batch.INTERNAL_CHANGE_OBJECTS_OWNERS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
 
         SearchView search = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
@@ -5131,7 +5321,7 @@ public class DigitalObjectResourceV1 {
         return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, Collections.singletonList(item));
     }
 
-    private SmartGwtResponse<SearchViewItem> returnFunctionSuccess() {
+    public static SmartGwtResponse<SearchViewItem> returnFunctionSuccess() {
         SearchViewItem item = new SearchViewItem();
         item.setStatus("OK");
         return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, 1, Collections.singletonList(item));

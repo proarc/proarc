@@ -74,7 +74,7 @@ public class BornDigitalDisseminationHandler implements DisseminationHandler {
             // XXX use importer
             ddh.setRawDissemination(inputFile, input.getFilename(), mime, storagetype, message);
             //ddh.setIconAsDissemination(BinaryEditor.PREVIEW_ID, mime, BinaryEditor.PREVIEW_LABEL, storagetype, message);
-            createThumbnail(inputFile, message);
+//            createThumbnail(inputFile, message);
         } else {
             throw new DigitalObjectException(objHandler.getFedoraObject().getPid(), null, dsId,
                     "Unsupported datastream ID!", null);

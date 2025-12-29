@@ -55,7 +55,7 @@ public class AcceptedExports {
             // ndkAudio //
             NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK, NdkAudioPlugin.MODEL_PHONOGRAPH,
             // ndkEPlugion //
-            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
+            NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
             NdkEbornPlugin.MODEL_EARTICLE,
             // ndkClipping //
@@ -85,7 +85,7 @@ public class AcceptedExports {
             NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_CARTOGRAPHIC,
             NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
-            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
+            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
             NdkEbornPlugin.MODEL_EARTICLE));
 
@@ -123,7 +123,7 @@ public class AcceptedExports {
 
     private final String EXPORT_NDK_SIP = "ndk_sip";
     private final Set<String> EXPORT_NDK_SIP_MODELS = new HashSet<>(Arrays.asList(
-            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
+            NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_ECHAPTER, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
             NdkEbornPlugin.MODEL_EARTICLE
     ));

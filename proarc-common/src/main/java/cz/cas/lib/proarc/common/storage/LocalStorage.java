@@ -39,6 +39,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
@@ -199,7 +200,16 @@ public final class LocalStorage {
 
         @Override
         public void purgeDatastream(String datastream, String logMessage) throws DigitalObjectException {
-            throw new UnsupportedOperationException(datastream);
+            List<DatastreamType> datastreamList = dobj.getDatastream();
+            Iterator<DatastreamType> iterator = datastreamList.iterator();
+            while (iterator.hasNext()) {
+                DatastreamType datastreamType = iterator.next();
+                if (datastream.equals(datastreamType.getID())) {
+                    iterator.remove();
+                    break;
+                }
+            }
+//            throw new UnsupportedOperationException(datastream);
         }
 
         @Override

@@ -5,6 +5,7 @@ import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -56,8 +57,10 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_INDEX
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_NUMBER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_POSITION;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_TYPE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PARENT_PID;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PART_NUMBER;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PID;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOFTWARE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOURCE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATE;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATUS;
@@ -74,7 +77,15 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         super(solrClient);
     }
 
-    public void feedDescriptionDocument(DigitalObject object, ProArcObject proArcObject, boolean commit) throws DigitalObjectException {
+    public void insertDescriptionDocument(DigitalObject object, ProArcObject proArcObject, boolean commit) throws DigitalObjectException {
+        addOrUpdateDescriptionDocument(object, proArcObject, commit, true);
+    }
+
+    public void updateDescriptionDocument(DigitalObject object, ProArcObject proArcObject, boolean commit) throws DigitalObjectException {
+        addOrUpdateDescriptionDocument(object, proArcObject, commit, false);
+    }
+
+    private void addOrUpdateDescriptionDocument(DigitalObject object, ProArcObject proArcObject, boolean commit, boolean insertNewDocument) throws DigitalObjectException {
         RelationEditor relationEditor = new RelationEditor(proArcObject);
         String pid = proArcObject.getPid();
         String model = relationEditor.getModel();
@@ -85,6 +96,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         String modified = getProperties(object, PROPERTY_LASTMODIFIED);
 
         String device = relationEditor.getDevice();
+        String software = relationEditor.getSoftware();
         String organization = relationEditor.getOrganization();
         String user = relationEditor.getUser();
         String status = relationEditor.getStatus();
@@ -109,14 +121,63 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         List<String> members = relationEditor.getMembers();
 
         try {
-            feedDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
-                    ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, members,
-                    pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber, identifiers);
+            addOrUpdateDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
+                        ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, software, members,
+                        pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber, identifiers,
+                    insertNewDocument);
             if (commit) {
                 commit();
             }
         } catch (SolrServerException | IOException ex) {
             throw new DigitalObjectException(pid, "Nepodarilo se zaindexovat objekt " + pid + " do SOLRu.");
+        }
+    }
+
+    private UpdateResponse addOrUpdateDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
+                                                     String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, String software, List<String> members, String pageIndex,
+                                                     String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers, boolean insertNewDocument) throws SolrServerException, IOException {
+        SolrInputDocument sdoc = new SolrInputDocument();
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+        sdoc.addField(FIELD_MODEL, addOrUpdateParameter(model, insertNewDocument));
+        sdoc.addField(FIELD_OWNER, addOrUpdateParameter(owner, insertNewDocument));
+        sdoc.addField(FIELD_LABEL, addOrUpdateParameter(label, insertNewDocument));
+        sdoc.addField(FIELD_STATE, addOrUpdateParameter(state, insertNewDocument));
+        sdoc.addField(FIELD_CREATED, addOrUpdateParameter(created, insertNewDocument));
+        sdoc.addField(FIELD_MODIFIED, addOrUpdateParameter(modified, insertNewDocument));
+        sdoc.addField(FIELD_ORGANIZATION, addOrUpdateParameter(organization, insertNewDocument));
+        sdoc.addField(FIELD_USER, addOrUpdateParameter(user, insertNewDocument));
+        sdoc.addField(FIELD_STATUS, addOrUpdateParameter(status, insertNewDocument));
+        sdoc.addField(FIELD_EXPORT_NDK, addOrUpdateParameter(ndkExport, insertNewDocument));
+        sdoc.addField(FIELD_EXPORT_KRAMERIUS, addOrUpdateParameter(krameriusExport, insertNewDocument));
+        sdoc.addField(FIELD_EXPORT_ARCHIVE, addOrUpdateParameter(archiveExport, insertNewDocument));
+        sdoc.addField(FIELD_EXPORT_CROSSREF, addOrUpdateParameter(crossrefExport, insertNewDocument));
+        sdoc.addField(FIELD_LOCKED, addOrUpdateParameter(isLocked, insertNewDocument));
+        sdoc.addField(FIELD_DEVICE, addOrUpdateParameter(device, insertNewDocument));
+        sdoc.addField(FIELD_SOFTWARE, addOrUpdateParameter(software, insertNewDocument));
+        sdoc.addField(FIELD_MEMBERS, addOrUpdateParameter(members.toArray(), insertNewDocument));
+        sdoc.addField(FIELD_PAGE_INDEX, addOrUpdateParameter(pageIndex, insertNewDocument));
+        sdoc.addField(FIELD_PAGE_NUMBER, addOrUpdateParameter(pageNumber, insertNewDocument));
+        sdoc.addField(FIELD_PAGE_TYPE, addOrUpdateParameter(pageType, insertNewDocument));
+        sdoc.addField(FIELD_PAGE_POSITION, addOrUpdateParameter(pagePosition, insertNewDocument));
+        sdoc.addField(FIELD_GENRE, addOrUpdateParameter(genre, insertNewDocument));
+        sdoc.addField(FIELD_URNNBN, addOrUpdateParameter(urnNbn, insertNewDocument));
+        sdoc.addField(FIELD_DESCRIPTION_STANDARD, addOrUpdateParameter(descriptionStandatd, insertNewDocument));
+        sdoc.addField(FIELD_VALIDATION_STATUS, addOrUpdateParameter(VALIDATION_STATUS_UNKNOWN, insertNewDocument));
+        sdoc.addField(FIELD_VALIDATION_PROCES, addOrUpdateParameter(0, insertNewDocument));
+        sdoc.addField(FIELD_PART_NUMBER, addOrUpdateParameter(partNumber, insertNewDocument));
+        sdoc.addField(FIELD_IDENTIFIRES, addOrUpdateParameter(identifiers, insertNewDocument));
+
+        return feedDescriptionDocument(sdoc);
+    }
+
+    private Object addOrUpdateParameter(Object value, boolean insertNewDocument) {
+        if (insertNewDocument) {
+            return value;
+        } else {
+            Map<String, Object> updateValue = new HashMap<>();
+            updateValue.put("set", value);
+            return updateValue;
         }
     }
 
@@ -188,43 +249,6 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         return null;
     }
 
-    private UpdateResponse feedDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
-            String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, List<String> members, String pageIndex,
-            String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers) throws SolrServerException, IOException {
-        SolrInputDocument sdoc = new SolrInputDocument();
-        sdoc.addField(FIELD_SOURCE, pid);
-        sdoc.addField(FIELD_PID, pid);
-        sdoc.addField(FIELD_MODEL, model);
-        sdoc.addField(FIELD_OWNER, owner);
-        sdoc.addField(FIELD_LABEL, label);
-        sdoc.addField(FIELD_STATE, state);
-        sdoc.addField(FIELD_CREATED, created);
-        sdoc.addField(FIELD_MODIFIED, modified);
-        sdoc.addField(FIELD_ORGANIZATION, organization);
-        sdoc.addField(FIELD_USER, user);
-        sdoc.addField(FIELD_STATUS, status);
-        sdoc.addField(FIELD_EXPORT_NDK, ndkExport);
-        sdoc.addField(FIELD_EXPORT_KRAMERIUS, krameriusExport);
-        sdoc.addField(FIELD_EXPORT_ARCHIVE, archiveExport);
-        sdoc.addField(FIELD_EXPORT_CROSSREF, crossrefExport);
-        sdoc.addField(FIELD_LOCKED, isLocked);
-        sdoc.addField(FIELD_DEVICE, device);
-        sdoc.addField(FIELD_MEMBERS, members.toArray());
-        sdoc.addField(FIELD_PAGE_INDEX, pageIndex);
-        sdoc.addField(FIELD_PAGE_NUMBER, pageNumber);
-        sdoc.addField(FIELD_PAGE_TYPE, pageType);
-        sdoc.addField(FIELD_PAGE_POSITION, pagePosition);
-        sdoc.addField(FIELD_GENRE, genre);
-        sdoc.addField(FIELD_URNNBN, urnNbn);
-        sdoc.addField(FIELD_DESCRIPTION_STANDARD, descriptionStandatd);
-        sdoc.addField(FIELD_VALIDATION_STATUS, VALIDATION_STATUS_UNKNOWN);
-        sdoc.addField(FIELD_VALIDATION_PROCES, 0);
-        sdoc.addField(FIELD_PART_NUMBER, partNumber);
-        sdoc.addField(FIELD_IDENTIFIRES, identifiers);
-
-        return feedDescriptionDocument(sdoc);
-    }
-
     public void feedValidationResult(String pid, Integer procesId, String status) throws DigitalObjectException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
@@ -243,6 +267,50 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
             commit();
         } catch (SolrServerException | IOException ex) {
             throw new DigitalObjectException(pid, "Nepodarilo se zapsat stav validace pro pid " + pid + " do SOLRu.");
+        }
+    }
+
+    public void feedParentPid(String pid, String parentPid, boolean commit) throws DigitalObjectException {
+        if (parentPid == null || parentPid.isEmpty()) {
+            parentPid = SolrUtils.PROPERTY_PARENTPID_NO_PARENT;
+        }
+        SolrInputDocument sdoc = new SolrInputDocument();
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+
+        Map<String, Object> updateParent = new HashMap<>();
+        updateParent.put("set", parentPid);
+        sdoc.addField(FIELD_PARENT_PID, updateParent);
+
+        try {
+            UpdateResponse response = feedDescriptionDocument(sdoc);
+            if (commit) {
+                commit();
+            }
+        } catch (SolrServerException | IOException ex) {
+            throw new DigitalObjectException(pid, "Nepodarilo se zapsat parent pid \"" + parentPid + "\" do pro pid \"" + pid + "\" do SOLRu.");
+        }
+    }
+
+    public void feedObjectStatus(String pid, String status, boolean commit) throws DigitalObjectException {
+        if (status == null || status.isEmpty()) {
+            status = DigitalObjectStatusUtils.STATUS_DESCRIBED;
+        }
+        SolrInputDocument sdoc = new SolrInputDocument();
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+
+        Map<String, Object> statusMap = new HashMap<>();
+        statusMap.put("set", status);
+        sdoc.addField(FIELD_STATUS, statusMap);
+
+        try {
+            UpdateResponse response = feedDescriptionDocument(sdoc);
+            if (commit) {
+                commit();
+            }
+        } catch (SolrServerException | IOException ex) {
+            throw new DigitalObjectException(pid, "Nepodarilo se zapsat status \"" + status + "\" do pro pid \"" + pid + "\" do SOLRu.");
         }
     }
 
@@ -288,6 +356,41 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_OWNER, owner);
         sdoc.addField(FIELD_LABEL, label);
         sdoc.addField(FIELD_STATE, state);
+        sdoc.addField(FIELD_CREATED, created);
+        sdoc.addField(FIELD_MODIFIED, modified);
+        return feedDescriptionDocument(sdoc);
+    }
+
+    public void feedDescriptionSoftware(DigitalObject object, ProArcObject proArcObject, boolean commit) throws DigitalObjectException {
+        RelationEditor relationEditor = new RelationEditor(proArcObject);
+        String pid = proArcObject.getPid();
+        String model = relationEditor.getModel();
+        String owner = getProperties(object, PROPERTY_OWNER);
+        String label = getProperties(object, PROPERTY_LABEL);
+        String state = updateState(getProperties(object, PROPERTY_STATE));
+        String created = getProperties(object, PROPERTY_CREATEDATE);
+        String modified = getProperties(object, PROPERTY_LASTMODIFIED);
+        List<String> members = relationEditor.getMembers();
+
+        try {
+            feedDescriptionSoftware(pid, model, owner, label, state, members, created, modified);
+            if (commit) {
+                commit();
+            }
+        } catch (SolrServerException | IOException ex) {
+            throw new DigitalObjectException(pid, "Nepodarilo se zaindexovat objekt " + pid + " do SOLRu.");
+        }
+    }
+
+    private UpdateResponse feedDescriptionSoftware(String pid, String model, String owner, String label, String state, List<String> members, String created, String modified) throws SolrServerException, IOException {
+        SolrInputDocument sdoc = new SolrInputDocument();
+        sdoc.addField(FIELD_SOURCE, pid);
+        sdoc.addField(FIELD_PID, pid);
+        sdoc.addField(FIELD_MODEL, model);
+        sdoc.addField(FIELD_OWNER, owner);
+        sdoc.addField(FIELD_LABEL, label);
+        sdoc.addField(FIELD_STATE, state);
+        sdoc.addField(FIELD_MEMBERS, members);
         sdoc.addField(FIELD_CREATED, created);
         sdoc.addField(FIELD_MODIFIED, modified);
         return feedDescriptionDocument(sdoc);

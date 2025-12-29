@@ -99,6 +99,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -173,12 +174,14 @@ public class FileReader {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
             Batch batch = ctx.getBatch();
             batch.setState(Batch.State.LOADING_CONFLICT);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch.setLog(BatchManager.toString(ex));
             iSession.getImportManager().update(batch);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
             Batch batch = ctx.getBatch();
             batch.setState(Batch.State.LOADING_FAILED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch.setLog(BatchManager.toString(ex));
             iSession.getImportManager().update(batch);
         }
@@ -472,7 +475,7 @@ public class FileReader {
                 return NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT;
             } else if (NdkPlugin.MODEL_MONOGRAPHTITLE.equals(parentModel) || NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(parentModel) || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(parentModel)) {
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
-            } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(parentModel)) {
+            } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(parentModel)) {
                 return NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT;
             } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel) || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)){
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
@@ -517,7 +520,7 @@ public class FileReader {
                     case STT:
                         return OldPrintPlugin.MODEL_MONOGRAPHUNIT;
                     case EBORN:
-                        return NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME;
+                        return NdkEbornPlugin.MODEL_EMONOGRAPHUNIT;
                 }
             }
         } else if ("CHAPTER".equalsIgnoreCase(divType)) {

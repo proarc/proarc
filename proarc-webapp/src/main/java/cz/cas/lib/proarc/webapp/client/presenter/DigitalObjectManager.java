@@ -79,6 +79,8 @@ import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.Ch
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndk.ChangeNdkPictureToOldprintGraphicAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEArticleToBdmArticleAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEArticleToNdkArticleAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEMonographUnitToNdkEMonographVolumeAction;
+import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEMonographVolumeToNdkEMonographUnitAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalIssueToNdkPeriodicalIssueAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction;
 import cz.cas.lib.proarc.webapp.client.action.administration.changeModels.ndke.ChangeNdkEPeriodicalToNdkPeriodicalAction;
@@ -185,6 +187,8 @@ public final class DigitalObjectManager {
     private ChangeNdkMonographVolumeToClippingsVolumeAction changeNdkMonographVolumeToClippingsVolumeAction;
     private ChangeNdkMonographVolumeToNdkMonographTitleAction changeNdkMonographVolumeToNdkMonographTitleAction;
     private ChangeNdkMonographVolumeToNdkMonographUnitAction changeNdkMonographVolumeToNdkMonographUnitAction;
+    private ChangeNdkEMonographVolumeToNdkEMonographUnitAction changeNdkEMonographVolumeToNdkEMonographUnitAction;
+    private ChangeNdkEMonographUnitToNdkEMonographVolumeAction changeNdkEMonographUnitToNdkEMonographVolumeAction;
     private ChangeNdkMonographTitleToClippingsTitleAction changeNdkMonographTitleToClippingsTitleAction;
     private ChangeNdkMonographTitleToNdkMonographVolumeAction changeNdkMonographTitleToNdkMonographVolumeAction;
     private ChangeNdkMonographUnitToNdkMonographVolumeAction changeNdkMonographUnitToNdkMonographVolumeAction;
@@ -408,6 +412,8 @@ public final class DigitalObjectManager {
         changeNdkMonographVolumeToClippingsVolumeAction = new ChangeNdkMonographVolumeToClippingsVolumeAction(i18n);
         changeNdkMonographVolumeToNdkMonographTitleAction = new ChangeNdkMonographVolumeToNdkMonographTitleAction(i18n);
         changeNdkMonographVolumeToNdkMonographUnitAction = new ChangeNdkMonographVolumeToNdkMonographUnitAction(i18n);
+        changeNdkEMonographVolumeToNdkEMonographUnitAction = new ChangeNdkEMonographVolumeToNdkEMonographUnitAction(i18n);
+        changeNdkEMonographUnitToNdkEMonographVolumeAction = new ChangeNdkEMonographUnitToNdkEMonographVolumeAction(i18n);
         changeNdkMonographTitleToClippingsTitleAction = new ChangeNdkMonographTitleToClippingsTitleAction(i18n);
         changeNdkMonographTitleToNdkMonographVolumeAction = new ChangeNdkMonographTitleToNdkMonographVolumeAction(i18n);
         changeNdkMonographUnitToNdkMonographVolumeAction = new ChangeNdkMonographUnitToNdkMonographVolumeAction(i18n);
@@ -498,12 +504,23 @@ public final class DigitalObjectManager {
             @Override
             public boolean accept(ActionEvent event) {
                 if (!(Editor.getInstance().hasPermission("proarc.permission.admin") ||
-                        Editor.getInstance().hasPermission(UserRole.ROLE_SUPERADMIN) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_CHANGE_MODEL_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UPDATE_MODEL_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_LOCK_OBJECT_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_RUN_UNLOCK_OBJECT_FUNCTION) ||
-                        Editor.getInstance().hasPermission(UserRole.PERMISSION_IMPORT_TO_CATALOG_FUNCTION))) {
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_CHANGE_MODEL) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_UPDATE_MODEL) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_LOCK_OBJECT) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_UNLOCK_OBJECT) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_DEVICE) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_CHANGE_PAGES) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_WF_CREATE_JOB) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_CREATE_USER) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_UPDATE_USER) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_DELETE_USER) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_SOLR) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_DELETE_ACTION) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_ALL_OBJECTS) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_PREPARE_BATCH) ||
+                        Editor.getInstance().hasPermission(UserRole.PERMISSION_FUNCTION_SYS_ADMIN))) {
                     return false;
                 } else {
                     Object[] selection = Actions.getSelection(event);
@@ -631,6 +648,8 @@ public final class DigitalObjectManager {
         changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEPeriodicalSupplementToNdkPeriodicalSupplementAction, actionSource, false));
         changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEArticleToNdkArticleAction, actionSource, false));
         changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEArticleToBdmArticleAction, actionSource, false));
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEMonographVolumeToNdkEMonographUnitAction, actionSource, false));
+        changeNdkEModelsMenu.addItem(Actions.asMenuItem(changeNdkEMonographUnitToNdkEMonographVolumeAction, actionSource, false));
         changeNdkEModels.setSubmenu(changeNdkEModelsMenu);
         return changeNdkEModels;
     }

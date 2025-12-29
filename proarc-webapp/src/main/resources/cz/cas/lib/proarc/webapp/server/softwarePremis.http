@@ -1,0 +1,258 @@
+### LOGIN
+POST {{proarcUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### GET ALL SOFTWARE
+
+GET {{proarcUrl}}/rest/v2/software
+
+### GET SOFTWARE WITH MODEL SOFTWARE AGENT
+
+GET {{proarcUrl}}/rest/v2/software?model=proarc:softwareagent
+
+### GET SOFTWARE WITH MODEL SOFTWARE EVENT
+
+GET {{proarcUrl}}/rest/v2/software?model=proarc:softwareevent
+
+### GET SOFTWARE WITH MODEL SOFTWARE OBJECT
+
+GET {{proarcUrl}}/rest/v2/software?model=proarc:softwareobject
+
+### GET SOFTWARE WITH MODEL SOFTWARE SET
+
+GET {{proarcUrl}}/rest/v2/software?model=proarc:softwareset
+
+### CREATE NEW SOFTWARE WITH MODEL AGENT
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=zarizeni 1&model=proarc:softwareagent
+
+### GET SOFTWARE WITH PID (agent)
+
+GET {{proarcUrl}}/rest/v2/software?id=software:320d7837-8fbc-440b-acac-b6c608869946
+
+### UPDATE SOFTWARE AGENT
+
+PUT {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+id=software:320d7837-8fbc-440b-acac-b6c608869946&model=proarc:softwareagent&label=zarizeni xx&timestamp=1742564098761
+    &description=<?xml version="1.0" encoding="utf-8" standalone="yes"?><mets:mets xmlns:premis="info:lc/xmlns/premis-v2" xmlns:mets="http://www.loc.gov/METS/" xmlns:ndktech="http://www.ndk.cz/standardy-digitalizace/ndktech" xmlns:docmd="http://www.fcla.edu/docmd" xmlns:nk="info:ndk/xmlns/nk-v1" xmlns:xlink="http://www.w3.org/1999/xlink"><mets:amdSec><mets:digiprovMD><mets:mdWrap MIMETYPE="text/xml" MDTYPE="PREMIS"><mets:xmlData><premis:agent><premis:agentIdentifier><premis:agentIdentifierType>ProArc_AgentID</premis:agentIdentifierType><premis:agentIdentifierValue>ProArc</premis:agentIdentifierValue></premis:agentIdentifier><premis:agentName>ProArc</premis:agentName><premis:agentType>softwarea</premis:agentType></premis:agent></mets:xmlData></mets:mdWrap></mets:digiprovMD></mets:amdSec></mets:mets>
+
+### CREATE NEW SOFTWARE WITH MODEL EVENT
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=event 1&model=proarc:softwareevent
+
+### GET SOFTWARE WITH PID (event)
+
+GET {{proarcUrl}}/rest/v2/software?id=software:ea364722-57ab-41a3-ad5a-f151c622e376
+
+### UPDATE SOFTWARE EVENT
+
+PUT {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+id=software:ea364722-57ab-41a3-ad5a-f151c622e376&model=proarc:softwareevent&label=zarizeni xx&timestamp=1742564312739
+    &members=software:73300247-68d4-4a72-9038-2b68558107e2
+    &description=<?xml version="1.0" encoding="utf-8" standalone="yes"?><mets:mets xmlns:premis="info:lc/xmlns/premis-v2" xmlns:mets="http://www.loc.gov/METS/" xmlns:ndktech="http://www.ndk.cz/standardy-digitalizace/ndktech" xmlns:docmd="http://www.fcla.edu/docmd" xmlns:nk="info:ndk/xmlns/nk-v1" xmlns:xlink="http://www.w3.org/1999/xlink"><mets:amdSec><mets:digiprovMD><mets:mdWrap MIMETYPE="text/xml" MDTYPE="PREMIS"><mets:xmlData><premis:event><premis:eventIdentifier><premis:eventIdentifierType>ProArc_EventID</premis:eventIdentifierType><premis:eventIdentifierValue>digitization_001</premis:eventIdentifierValue></premis:eventIdentifier><premis:eventType>capture</premis:eventType><premis:eventDateTime>2025-01-06T09:50:52.499 01:00</premis:eventDateTime><premis:eventDetail>capture/digitization</premis:eventDetail><premis:eventOutcomeInformation><premis:eventOutcome>successful</premis:eventOutcome></premis:eventOutcomeInformation></premis:event></mets:xmlData></mets:mdWrap></mets:digiprovMD></mets:amdSec></mets:mets>
+
+### UPDATE SOFTWARE EVENT
+
+PUT {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+id=software:25ce8e79-bc1f-4e5c-9e3d-f0e85e8095c7&model=proarc:softwareevent&label=zarizeni xx&timestamp=1742368145185
+    &members=software:511851ae-6070-45bf-9075-53048f65552b&members=software:e36af108-23b4-4a55-9f17-5a599446faf6
+
+
+### GET SOFTWARE WITH PREVIEW
+
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:77cf2c58-fbaa-479d-b60d-f3b4f0c4abac
+
+### GET SOFTWARE WITH PREVIEW
+
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:ea364722-57ab-41a3-ad5a-f151c622e376
+
+### CREATE NEW SOFTWARE WITH MODEL OBJECT
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=event 1&model=proarc:softwareobject
+
+### GET SOFTWARE WITH PID (object)
+
+GET {{proarcUrl}}/rest/v2/software?id=software:77cf2c58-fbaa-479d-b60d-f3b4f0c4abac
+
+### UPDATE SOFTWARE OBJECT
+
+PUT {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+id=software:2deeb368-a59c-45b3-8113-215cf3cdb834&model=proarc:softwareobject&label=zarizeni object 1&timestamp=1742567129516
+    &members=software:320d7837-8fbc-440b-acac-b6c608869946
+    &description=<?xml version="1.0" encoding="utf-8" standalone="yes"?><mets:mets xmlns:premis="info:lc/xmlns/premis-v2" xmlns:mets="http://www.loc.gov/METS/" xmlns:ndktech="http://www.ndk.cz/standardy-digitalizace/ndktech" xmlns:docmd="http://www.fcla.edu/docmd" xmlns:nk="info:ndk/xmlns/nk-v1" xmlns:xlink="http://www.w3.org/1999/xlink"><mets:amdSec ID="PAGE_0001"><mets:techMD ID="OBJ_002"><mets:mdWrap MIMETYPE="text/xml" MDTYPE="PREMIS"><mets:xmlData><premis:object xsi:type="premis:file" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><premis:objectIdentifier><premis:objectIdentifierType>ProArc_URI</premis:objectIdentifierType><premis:objectIdentifierValue>${uuid}/NDK_ARCHIVAL</premis:objectIdentifierValue></premis:objectIdentifier><premis:preservationLevel><premis:preservationLevelValue>preservation</premis:preservationLevelValue></premis:preservationLevel><premis:objectCharacteristics><premis:compositionLevel>0</premis:compositionLevel><premis:fixity><premis:messageDigestAlgorithm>MD5</premis:messageDigestAlgorithm><premis:messageDigestOriginator>ProArc</premis:messageDigestOriginator></premis:fixity><premis:size>872642</premis:size><premis:format><premis:formatDesignation><premis:formatName>image/jp2</premis:formatName><premis:formatVersion>1.0</premis:formatVersion></premis:formatDesignation><premis:formatRegistry><premis:formatRegistryName>PRONOM</premis:formatRegistryName><premis:formatRegistryKey>x-fmt/392</premis:formatRegistryKey></premis:formatRegistry></premis:format><premis:creatingApplication><premis:creatingApplicationName>ProArc</premis:creatingApplicationName><premis:creatingApplicationVersion>${proarcVersion}</premis:creatingApplicationVersion><premis:dateCreatedByApplication>${dateOfCreated}</premis:dateCreatedByApplication></premis:creatingApplication></premis:objectCharacteristics><premis:originalName>${filename}</premis:originalName><premis:relationship><premis:relationshipType>derivation</premis:relationshipType><premis:relationshipSubType>created from</premis:relationshipSubType><premis:relatedObjectIdentification><premis:relatedObjectIdentifierType>ProArc_URI</premis:relatedObjectIdentifierType><premis:relatedObjectIdentifierValue>${uuid}/RAW</premis:relatedObjectIdentifierValue></premis:relatedObjectIdentification></premis:relationship></premis:object></mets:xmlData></mets:mdWrap></mets:techMD></mets:amdSec></mets:mets>
+
+
+### GET SOFTWARE WITH PREVIEW
+
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:be365e96-0d5a-48eb-9efc-26decf1a6577
+
+### CREATE NEW SOFTWARE WITH MODEL SET
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=event 1&model=proarc:softwareset
+
+### GET SOFTWARE WITH PID (object)
+
+GET {{proarcUrl}}/rest/v2/software?id=software:2deeb368-a59c-45b3-8113-215cf3cdb834
+
+### UPDATE SOFTWARE OBJECT
+
+PUT {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+id=software:bfd081b1-1c08-4305-bb70-f0c65f16b68d&model=proarc:softwareset&label=zarizeni set&timestamp=1742565254009
+    &members=software:77cf2c58-fbaa-479d-b60d-f3b4f0c4abac&members=software:be365e96-0d5a-48eb-9efc-26decf1a6577
+
+
+### GET SOFTWARE WITH PREVIEW
+
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:bfd081b1-1c08-4305-bb70-f0c65f16b68d
+#GET {{proarcUrl}}/rest/v2/software/preview?id=software:be365e96-0d5a-48eb-9efc-26decf1a6577
+#GET {{proarcUrl}}/rest/v2/software/preview?id=software:77cf2c58-fbaa-479d-b60d-f3b4f0c4abac
+
+### DELETE SOFTWARE
+
+DELETE {{proarcUrl}}/rest/v2/software?id=software:bfd081b1-1c08-4305-bb70-f0c65f16b68d
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+### GET SOFTWARE WITH PID (deleted)
+
+GET {{proarcUrl}}/rest/v2/software?id=software:73300247-68d4-4a72-9038-2b68558107e2
+
+### LOGIN
+POST {{proarcUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### CREATE NEW SOFTWARE WITH MODEL AGENT AND DEFAULT METADATA
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=agent xx&model=proarc:softwareagent&createDefaultMetadata=default
+
+### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE DIGITALIZATION
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=eventDigitalization xx&model=proarc:softwareevent&createDefaultMetadata=eventDigitalization&members=software:0f0f7a7d-838b-4a57-ab71-e454974e190c
+
+### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE CREATION
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=eventCreation xx&model=proarc:softwareevent&createDefaultMetadata=eventCreation&members=software:0f0f7a7d-838b-4a57-ab71-e454974e190c
+
+### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE XML CREATION
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=eventXmlCreation xx&model=proarc:softwareevent&createDefaultMetadata=eventXmlCreation&members=software:0f0f7a7d-838b-4a57-ab71-e454974e190c
+
+### CREATE NEW SOFTWARE WITH MODEL EVENT AND DEFAULT METADATA FOR TYPE DELETION
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=eventDeletion xx&model=proarc:softwareevent&createDefaultMetadata=eventDeletion&members=software:0f0f7a7d-838b-4a57-ab71-e454974e190c
+
+### CREATE NEW SOFTWARE WITH MODEL OBJECT AND DEFAULT METADATA FOR TYPE PRESERVATION_ARCHIVAL
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=objectPreservationArchival xx&model=proarc:softwareobject&createDefaultMetadata=objectPreservationArchival&members=software:9fa44851-03f0-465c-81a8-20b176f703a2
+
+### CREATE NEW SOFTWARE WITH MODEL OBJECT AND DEFAULT METADATA FOR TYPE PRESERVATION_ALTO
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=objectPreservationAlto xx&model=proarc:softwareobject&createDefaultMetadata=objectPreservationAlto&members=software:0025ac40-0c3f-4bb5-a9b2-f4b97d4650ac
+
+### CREATE NEW SOFTWARE WITH MODEL OBJECT AND DEFAULT METADATA FOR TYPE DELETIONTIF
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=objectDeletionTif xx&model=proarc:softwareobject&createDefaultMetadata=objectDeletionTif&members=software:5227c490-bc72-4396-9550-4d07af3bfece
+
+### CREATE NEW SOFTWARE WITH MODEL SET
+
+POST {{proarcUrl}}/rest/v2/software
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+label=setLs xx&model=proarc:softwareset&members=software:88da5b35-00b5-4d9e-a655-1f090c70c284&members=software:9e88b298-2e28-4537-981d-1ff1abdd7318&members=software:f5cc0235-e29b-4891-a9b7-c0eaa8e1a71e
+
+
+### GET SOFTWARE WITH PREVIEW
+
+GET {{proarcUrl}}/rest/v2/software/preview?id=software:aec1bbdf-b802-4bc5-84c4-1017eee29c97
+
+
+### LOGIN
+POST {{proarcUrl}}/proarclogin
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+j_username={{proarcUsername}}&j_password={{proarcPwd}}
+
+### GENERATE PREMIS
+POST {{proarcUrl}}/rest/v2/object/technicalMetadataXmlPremisGenerate
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:c524bfdf-888d-4e84-b570-7bc240d1a024&pid=uuid:1a0186cd-6a0b-4a9f-9a46-777060f1177c&pid=uuid:d03d2484-457a-498d-b640-961631deb311&pid=uuid:fa6bb7c5-1d7b-4eaf-be27-830c7dc4450b&pid=uuid:e0956ea8-68b3-46c1-b8f3-082dda319c6b&pid=uuid:2b266421-37e5-43f7-80fc-5cb7447361d3&pid=uuid:5748743b-e95a-475d-afed-2957744c035d&pid=uuid:3542f416-a748-49a0-b3ba-dec315039d5d
+
+### GENERATE PREMIS
+POST {{proarcUrl}}/rest/v2/object/technicalMetadataXmlPremisGenerate
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+pid=uuid:3542f416-a748-49a0-b3ba-dec315039d5d

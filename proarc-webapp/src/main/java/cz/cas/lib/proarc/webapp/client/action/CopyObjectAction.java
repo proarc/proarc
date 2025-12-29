@@ -46,7 +46,7 @@ public class CopyObjectAction extends AbstractAction {
 
     public static final Set<String> COPY_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT,
-                    NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EPERIODICALISSUE,
+                    NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT,
                     GraphicPlugin.MODEL_GRAPHIC
             )));
 

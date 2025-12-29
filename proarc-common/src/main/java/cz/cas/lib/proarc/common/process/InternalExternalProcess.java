@@ -23,6 +23,8 @@ import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
 import cz.cas.lib.proarc.common.process.external.PdfaProcess;
 import cz.cas.lib.proarc.common.process.external.PeroProcess;
+import cz.cas.lib.proarc.common.process.external.ThumbnailPdfProcess;
+import cz.cas.lib.proarc.common.process.internal.DeleteProcess;
 import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -61,6 +63,10 @@ public final class InternalExternalProcess implements Runnable {
         this.akubraConfiguration = akubraConfiguration;
         this.user = user;
         this.options = options;
+    }
+
+    public Batch getBatch() {
+        return options.getBatch();
     }
 
     /**
@@ -104,8 +110,11 @@ public final class InternalExternalProcess implements Runnable {
             switch (profileId) {
                 case Batch.EXTERNAL_PERO:
                 case Batch.EXTERNAL_PDFA:
+                case Batch.EXTERNAL_THUMBNAIL:
                     return finishedExternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
                 case Batch.INTERNAL_VALIDATION:
+                    return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
+                case Batch.INTERNAL_DELETION:
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
                 default:
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
@@ -119,6 +128,12 @@ public final class InternalExternalProcess implements Runnable {
                 case Batch.EXTERNAL_PDFA:
                     batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
                     return pdfaProcess(batch, params);
+                case Batch.EXTERNAL_THUMBNAIL:
+                    batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
+                    return thumbnailProcess(batch, params);
+                case Batch.INTERNAL_DELETION:
+                    batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
+                    return deleteObjectProcess(batch, params);
                 case Batch.INTERNAL_VALIDATION:
                     batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
                     return validationProcess(batch, params);
@@ -133,7 +148,7 @@ public final class InternalExternalProcess implements Runnable {
     private Batch peroProcess(Batch batch, BatchParams params) {
         try {
             PeroProcess peroProcess = new PeroProcess(config, akubraConfiguration);
-            PeroProcess.Result result = peroProcess.generateAlto(params.getPids(), options.getFolder());
+            PeroProcess.Result result = peroProcess.generateAlto(params.getPids(), options.getFolder(), params.getPeroOcrEngine());
             if (result.getException() != null) {
                 batch = finishedExternalWithError(this.batchManager, batch, batch.getFolder(), result.getException());
                 throw result.getException();
@@ -162,6 +177,22 @@ public final class InternalExternalProcess implements Runnable {
         }
     }
 
+    private Batch thumbnailProcess(Batch batch, BatchParams params) {
+        try {
+            ThumbnailPdfProcess thumbnailProcess = new ThumbnailPdfProcess(config, akubraConfiguration);
+            ThumbnailPdfProcess.Result result = thumbnailProcess.generateThumbnail(params.getPids(), options.getFolder());
+            if (result.getException() != null) {
+                batch = finishedExternalWithError(this.batchManager, batch, batch.getFolder(), result.getException());
+                throw result.getException();
+            } else {
+                batch = finishedExternalSuccessfully(this.batchManager, batch, batch.getFolder());
+            }
+            return batch;
+        } catch (Exception ex) {
+            return finishedExternalWithError(this.batchManager, batch, batch.getFolder(), ex);
+        }
+    }
+
     private Batch validationProcess(Batch batch, BatchParams params) {
         try {
             ValidationProcess validationProcess = new ValidationProcess(config, akubraConfiguration, params.getPids(), options.getLocale());
@@ -172,6 +203,40 @@ public final class InternalExternalProcess implements Runnable {
                 batch = finishedInternalWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
             }
             validationProcess.indexResult(batch);
+            return batch;
+        } catch (Exception ex) {
+            return finishedInternalWithError(this.batchManager, batch, batch.getFolder(), ex);
+        }
+    }
+
+
+    private Batch deleteObjectProcess(Batch batch, BatchParams params) {
+        UserManager users = UserUtil.getDefaultManger();
+        UserProfile user = users.find(batch.getUserId());
+
+        if (params.getType() != null && ("orphan".equalsIgnoreCase(params.getType()) || "deleted".equalsIgnoreCase(params.getType()))) {
+            try {
+                DeleteProcess process = new DeleteProcess(config, akubraConfiguration, params.isPurge(), options.getLocale(), user);
+                DeleteProcess.Result result = process.findAndDelete(params.getType());
+                if (result.isStatusOk()) {
+                    batch = finishedInternalSuccessfully(this.batchManager, batch, batch.getFolder());
+                } else {
+                    batch = finishedInternalWithError(this.batchManager, batch, batch.getFolder(), result.getResult());
+                }
+                return batch;
+            } catch (Exception ex) {
+                return finishedInternalWithError(this.batchManager, batch, batch.getFolder(), ex);
+            }
+        }
+
+        try {
+            DeleteProcess process = new DeleteProcess(config, akubraConfiguration, params.getPids(), params.isPurge(), params.isRestore(), params.getHierarchy(), options.getLocale(), user);
+            DeleteProcess.Result result = process.deleteObject();
+            if (result.isStatusOk()) {
+                batch = finishedInternalSuccessfully(this.batchManager, batch, batch.getFolder());
+            } else {
+                batch = finishedInternalWithError(this.batchManager, batch, batch.getFolder(), result.getResult());
+            }
             return batch;
         } catch (Exception ex) {
             return finishedInternalWithError(this.batchManager, batch, batch.getFolder(), ex);

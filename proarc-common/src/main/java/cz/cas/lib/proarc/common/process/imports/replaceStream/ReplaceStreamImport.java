@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.process.imports.replaceStream.FileReader.ImportS
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
@@ -63,6 +64,7 @@ public class ReplaceStreamImport implements ImportHandler {
     private void ingest(ImportProcess.ImportOptions importConfig) throws InterruptedException {
         Batch batch = importConfig.getBatch();
         batch.setState(Batch.State.INGESTING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         iSession.getImportManager().update(batch);
         HashSet<String> uuids = new HashSet<>();
 
@@ -90,10 +92,12 @@ public class ReplaceStreamImport implements ImportHandler {
                 }
             }
             batch.setState(Batch.State.INGESTED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch.setLog(null);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, String.valueOf(batch), t);
             batch.setState(Batch.State.LOADING_FAILED);
+            batch.setUpdated(new Timestamp(System.currentTimeMillis()));
             batch.setLog(BatchManager.toString(t));
         } finally {
             iSession.getImportManager().update(batch);
@@ -117,6 +121,7 @@ public class ReplaceStreamImport implements ImportHandler {
         consume(importFiles, importConfig);
         Batch batch = importConfig.getBatch();
         batch.setState(Batch.State.LOADED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         iSession.getImportManager().update(batch);
     }
 

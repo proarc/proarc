@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.kramerius.KImporter;
 import cz.cas.lib.proarc.common.kramerius.KUtils;
 import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.ExportException;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog;
@@ -34,6 +35,8 @@ import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.common.process.export.mets.structure.SttElementVisitor;
+import cz.cas.lib.proarc.common.process.export.sip.SipElementVisitor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -334,7 +337,13 @@ public class NdkExport {
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
                     MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
                     mElm.setIgnoreValidation(ignoreMissingUrnNbn);
-                    mElm.accept(createMetsVisitor());
+                    if (NdkMapper.isNdkEModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                        mElm.accept(new SipElementVisitor());
+                    } else if (NdkMapper.isOldprintModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                        mElm.accept(new SttElementVisitor());
+                    } else {
+                        mElm.accept(new MetsElementVisitor());
+                    }
                     // XXX use relative path to users folder?
                 }
             }
@@ -492,7 +501,14 @@ public class NdkExport {
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
                     MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
                     mElm.setIgnoreValidation(ignoreMissingUrnNbn);
-                    mElm.accept(createMetsVisitor());
+                    if (NdkMapper.isNdkEModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                        mElm.accept(new SipElementVisitor());
+                    } else if (NdkMapper.isOldprintModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                        mElm.accept(new SttElementVisitor());
+                    } else {
+                        mElm.accept(new MetsElementVisitor());
+                    }
+
                     // XXX use relative path to users folder?
                 }
             }

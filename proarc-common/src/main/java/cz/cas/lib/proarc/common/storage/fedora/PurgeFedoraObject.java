@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -99,12 +100,14 @@ public final class PurgeFedoraObject {
         } catch (DigitalObjectException ex) {
             throw new PurgeException(ex);
         }
+        List<String> reversedPurge = new ArrayList<>(toPurge);
+        Collections.reverse(reversedPurge);
         if (setDeleted) {
-            setDeleted(toPurge);
+            setDeleted(reversedPurge);
         } else if (isRestore) {
-            setRestore(toPurge);
+            setRestore(reversedPurge);
         } else {
-            purge(toPurge);
+            purge(reversedPurge);
         }
     }
 
@@ -191,13 +194,13 @@ public final class PurgeFedoraObject {
         }
     }
 
-    private void purge(Set<String> pids) throws PurgeException {
+    private void purge(List<String> pids) throws PurgeException {
         for (String pid : pids) {
             purge(pid);
         }
     }
 
-    private void setDeleted(Set<String> pids) throws PurgeException {
+    private void setDeleted(List<String> pids) throws PurgeException {
         for (String pid : pids) {
             setDeleted(pid);
         }
@@ -212,7 +215,7 @@ public final class PurgeFedoraObject {
         }
     }
 
-    private void setRestore(Set<String> pids) throws PurgeException {
+    private void setRestore(List<String> pids) throws PurgeException {
         for (String pid : pids) {
             setRestore(pid);
         }

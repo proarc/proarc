@@ -432,7 +432,7 @@ public class DigitalObjectManager {
             }
             this.seriesPartNumberFrom = partNumberFrom;
             if (partNumberFrom != null) {
-                params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
+                    params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
             }
             return this;
         }
@@ -723,12 +723,8 @@ public class DigitalObjectManager {
             if (appConfig != null) {
                 defaultProcessor = appConfig.getImportConfiguration().getDefaultProcessor();
             }
+            relations.setUser(defaultProcessor);
 
-            if ("user".equals(user.getRole())) {
-                relations.setUser(user.getUserName());
-            } else {
-                relations.setUser(defaultProcessor);
-            }
             if (getUserGroup() != null) {
                 String grpPid = getUserGroup().getName();
                 relations.setOwners(Collections.singletonList(grpPid));
@@ -760,7 +756,7 @@ public class DigitalObjectManager {
                 if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
                     getRemotes().ingest(localObject, user.getUserName(), message);
                 } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                    getAkubraStorage().ingest(localObject, user.getUserName(), message);
+                    getAkubraStorage().ingest(localObject, parentPid, user.getUserName(), message);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
                 }

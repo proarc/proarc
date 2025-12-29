@@ -24,6 +24,7 @@ public final class DigitalObjectResourceApi {
 
     // resource /object
     public static final String PATH = "object";
+    public static final String PURGE_PATH = "purge";
 
     public static final String DIGITALOBJECT_PID = "pid";
     public static final String DIGITALOBJECT_PARENT_PID = "parent";
@@ -61,6 +62,7 @@ public final class DigitalObjectResourceApi {
     public static final String DELETE_PURGE_PARAM = "purge";
     public static final String DELETE_RESTORE_PARAM = "restore";
 
+    public static final String BATCH_NIGHT_ONLY = "nightOnly";
 
     public static final String SEARCH_PATH = "search";
     public static final String SEARCH_OWNER_PARAM = "owner";
@@ -163,6 +165,7 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_CUSTOM_PATH = "custom";
     public static final String MODS_CUSTOM_EDITORID = "editorId";
     public static final String MODS_CUSTOM_EDITOR_PAGES = "editorPages";
+    public static final String MODS_CUSTOM_EDITOR_OBJECTS = "editorObjects";
     public static final String MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA = "editorPagesCopyMetadata";
     public static final String MODS_CUSTOM_CUSTOMJSONDATA = "jsonData";
     public static final String MODS_CUSTOM_CUSTOMXMLDATA = "xmlData";
@@ -191,6 +194,10 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_PAGE_RULES_DOUBLE_COLUMNS = "doubleColumns";
     public static final String MODS_PAGE_RULES_PAGE_POSITION = "pagePosition";
     public static final String MODS_PAGE_RULES_REPRE_PAGE = "isReprePage";
+
+    public static final String MODS_OBJECT_RULES_PARTNUMBER = "partNumber";
+    public static final String MODS_OBJECT_RULES_SIGNATURA = "signatura";
+    public static final String MODS_OBJECT_RULES_SIGLA = "sigla";
 
     public static final String MODS_CUSTOM_FUNCTION_ADD_BRACKETS = "addBrackets";
     public static final String MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS = "removeBrackets";
@@ -241,6 +248,7 @@ public final class DigitalObjectResourceApi {
     public static final String TECHNICALMETADATA_XML_AES_PATH = "technicalMetadataAesXml";
     public static final String TECHNICALMETADATA_XML_CODING_HISTORY_PATH = "technicalMetadataXmlCodingHistory";
     public static final String TECHNICALMETADATA_XML_PREMIS_PATH = "technicalMetadataXmlPremis";
+    public static final String TECHNICALMETADATA_XML_PREMIS_GENERATE_PATH = "technicalMetadataXmlPremisGenerate";
 
     /** Resource /object/preview */
     public static final String PREVIEW_PATH = "preview";
@@ -259,6 +267,7 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_BATCHID = ImportResourceApi.BATCHITEM_BATCHID;
     public static final String ATM_ITEM_CREATED = MEMBERS_ITEM_CREATED;
     public static final String ATM_ITEM_DEVICE = "device";
+    public static final String ATM_ITEM_SOFTWARE = "software";
     public static final String ATM_ITEM_EXPORTRESULT = "exportResult";
     public static final String ATM_ITEM_NDK_EXPORT = "ndkExportResult";
     public static final String ATM_ITEM_ARCHIVE_EXPORT = "archiveExportResult";
@@ -320,6 +329,8 @@ public final class DigitalObjectResourceApi {
     public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME = "changeNdkMonographVolumeToClippingsVolume";
     public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE = "changeNdkMonographVolumeToNdkMonographTitle";
     public static final String CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_UNIT = "changeNdkMonographVolumeToNdkMonographUnit";
+    public static final String CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT = "changeNdkEMonographVolumeToNdkEMonographUnit";
+    public static final String CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME = "changeNdkEMonographUnitToNdkEMonographVolume";
     public static final String CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE = "changeClippingsTitleToNdkMonographTitle";
     public static final String CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE = "changeNdkMonographTitleToClippingsTitle";
     public static final String CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME = "changeNdkMonographTitleToNdkMonographVolume";
@@ -379,6 +390,7 @@ public final class DigitalObjectResourceApi {
         PHRASE("phrase"),
         QUERY("query"),
         DELETED("deleted"),
+        ORPHAN("orphan"),
         ALPHABETICAL("alphabetical"),
         ADVANCED("advanced"),
         STATUS("status"),

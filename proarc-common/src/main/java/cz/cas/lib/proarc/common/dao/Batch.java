@@ -51,6 +51,8 @@ public class Batch {
     public static final String UPLOAD_PROARC = "uploadProfile.proarc";
     public static final String UPLOAD_KRAMERIUS = "uploadProfile.kramerius";
 
+    public static final String INTERNAL_INDEX_OBJECTS_TO_SOLR = "internalProfile.indexObjectsToSolr";
+    public static final String INTERNAL_INDEX_PARENTS_TO_SOLR = "internalProfile.indexObjectsToSolr";
     public static final String INTERNAL_REINDEX = "internalProfile.reindex";
     public static final String INTERNAL_CHANGE_OBJECTS_OWNERS = "internalProfile.changeOwners";
     public static final String INTERNAL_UPDATE_CATALOG_RECORDS = "internalProfile.updateCatalogRecords";
@@ -60,10 +62,11 @@ public class Batch {
 
     public static final String EXTERNAL_PERO = "externalProfile.pero";
     public static final String EXTERNAL_PDFA = "externalProfile.pdfa";
+    public static final String EXTERNAL_THUMBNAIL = "externalProfile.thumbnail";
 
     public enum State {
 
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, LOADING_CONFLICT,
+        EMPTY, LOADING, IMPORT_PLANNED, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, LOADING_CONFLICT,
         EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
 //        REINDEXING, REINDEX_FAILED, REINDEX_DONE,
 //        CHANGING_OWNERS, CHANGE_OWNERS_FAILED, CHANGE_OWNERS_DONE,
@@ -79,17 +82,21 @@ public class Batch {
     private String parentPid;
     private Timestamp create;
     private Timestamp timestamp;
+    private Timestamp updated;
+    private Timestamp itemUpdated;
     private State state;
     private Integer userId;
     private Integer estimateItemNumber;
     // user input fields
     private String device;
+    private String software;
     private boolean generateIndices;
     private boolean generatePageNumber;
     private String log;
     private String profileId;
     private String priority;
     private String params;
+    private boolean nightOnly;
 
     public Integer getId() {
         return id;
@@ -179,6 +186,14 @@ public class Batch {
         this.device = device;
     }
 
+    public String getSoftware() {
+        return software;
+    }
+
+    public void setSoftware(String software) {
+        this.software = software;
+    }
+
     public boolean isGenerateIndices() {
         return generateIndices;
     }
@@ -211,8 +226,32 @@ public class Batch {
         this.profileId = profileId;
     }
 
+    public Timestamp getItemUpdated() {
+        return itemUpdated;
+    }
+
+    public void setItemUpdated(Timestamp itemUpdated) {
+        this.itemUpdated = itemUpdated;
+    }
+
+    public Timestamp getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(Timestamp updated) {
+        this.updated = updated;
+    }
+
     public String getParams() {
         return this.params;
+    }
+
+    public boolean isNightOnly() {
+        return nightOnly;
+    }
+
+    public void setNightOnly(boolean nightOnly) {
+        this.nightOnly = nightOnly;
     }
 
     public BatchParams getParamsAsObject() {
@@ -260,9 +299,9 @@ public class Batch {
                 + ", parentPid=" + parentPid + ", create=" + create
                 + ", timestamp=" + timestamp + ", state=" + state
                 + ", userId=" + userId + ", estimateItemNumber=" + estimateItemNumber
-                + ", device=" + device + ", generateIndices=" + generateIndices
-                + ", profileId=" + profileId + ", log=" + log
-                + ", priority=" + priority + ", params = " + params + "}";
+                + ", device=" + device + ", software=" + software
+                + ", generateIndices=" + generateIndices + ", profileId=" + profileId
+                + ", log=" + log + ", priority=" + priority + ", params = " + params + "}";
     }
 
 }

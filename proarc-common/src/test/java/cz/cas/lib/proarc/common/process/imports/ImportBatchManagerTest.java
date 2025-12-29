@@ -90,9 +90,11 @@ public class ImportBatchManagerTest {
         b.setId(1);
         b.setCreate(new Timestamp(System.currentTimeMillis()));
         b.setDevice("device");
+        b.setSoftware("software:objectSet");
         b.setFolder(ibm.relativizeBatchFile(batchFolder));
         b.setGenerateIndices(true);
         b.setState(State.LOADING);
+        b.setUpdated(new Timestamp(System.currentTimeMillis()));
 
         ibm.updateFolderStatus(b);
 
@@ -112,9 +114,11 @@ public class ImportBatchManagerTest {
         b.setId(1);
         b.setCreate(new Timestamp(System.currentTimeMillis()));
         b.setDevice("device");
+        b.setSoftware("software:objectSet");
         b.setFolder(ibm.relativizeBatchFile(batchFolder));
         b.setGenerateIndices(true);
         b.setState(State.LOADING);
+        b.setUpdated(new Timestamp(System.currentTimeMillis()));
 
         ImportFolderStatus result = ibm.getFolderStatus(b);
         assertNull(result);

@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.webapp.client.ds;
 
-import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.smartgwt.client.data.DataSource;
 import com.smartgwt.client.data.DataSourceField;
 import com.smartgwt.client.data.fields.DataSourceBooleanField;
 import com.smartgwt.client.data.fields.DataSourceTextField;
 import com.smartgwt.client.types.FieldType;
+import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import java.util.logging.Logger;
 
 /**
@@ -42,6 +42,7 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
     public static final String FIELD_CREATED = DigitalObjectResourceApi.ATM_ITEM_CREATED;
     public static final String FIELD_MODIFIED = DigitalObjectResourceApi.ATM_ITEM_MODIFIED;
     public static final String FIELD_DEVICE = DigitalObjectResourceApi.ATM_ITEM_DEVICE;
+    public static final String FIELD_SOFTWARE = DigitalObjectResourceApi.ATM_ITEM_SOFTWARE;
     public static final String FIELD_FILENAME = DigitalObjectResourceApi.ATM_ITEM_FILENAME;
     public static final String FIELD_EXPORT = DigitalObjectResourceApi.ATM_ITEM_EXPORTRESULT;
     public static final String FIELD_NDK_EXPORT = DigitalObjectResourceApi.ATM_ITEM_NDK_EXPORT;
@@ -74,6 +75,7 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
 
         DataSourceTextField created = new DataSourceTextField(FIELD_CREATED);
         DataSourceTextField device = new DataSourceTextField(FIELD_DEVICE);
+        DataSourceTextField software = new DataSourceTextField(FIELD_SOFTWARE);
         DataSourceTextField filename = new DataSourceTextField(FIELD_FILENAME);
         DataSourceTextField model = new DataSourceTextField(FIELD_MODEL);
         DataSourceTextField modified = new DataSourceTextField(FIELD_MODIFIED);
@@ -93,7 +95,7 @@ public final class DigitalObjectAdministrationDataSource extends ProarcDataSourc
         DataSourceTextField lockedBy = new DataSourceTextField(FIELD_LOCKED_BY);
         DataSourceTextField lockedDate = new DataSourceTextField(FIELD_LOCKED_DATE);
 
-        setFields(pid, model, state, owner, created, modified, device, filename, export, organization, user, ndkExport, archiveExport, krameriusExport, crossrefExport, status, locked, lockedBy, lockedDate, donator, archivalCopies);
+        setFields(pid, model, state, owner, created, modified, device, software, filename, export, organization, user, ndkExport, archiveExport, krameriusExport, crossrefExport, status, locked, lockedBy, lockedDate, donator, archivalCopies);
 
         setRequestProperties(RestConfig.createRestRequest(getDataFormat()));
         setOperationBindings(

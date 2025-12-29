@@ -17,5 +17,8 @@ public class RestConsts {
     public static final String STATUS_LOCKED = "locked";
     public static final String STATUS_DONT_BE_IGNORED = "dontIgnored";
     public static final String ERR_USER_WITHOUT_ORGANIZATION = "UserResource_User_without_organization";
+    public static final String ERR_UNKNOWN_USER = "Err_Unknown_user"; // 0 parameters
+
+    public static final String ERR_SOFTWARE_IN_USE= "SoftwareResource_Delete_InUse_Msg";
 
 }
