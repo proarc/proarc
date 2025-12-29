@@ -66,7 +66,7 @@ public class Batch {
 
     public enum State {
 
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, LOADING_CONFLICT,
+        EMPTY, LOADING, IMPORT_PLANNED, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, LOADING_CONFLICT,
         EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
 //        REINDEXING, REINDEX_FAILED, REINDEX_DONE,
 //        CHANGING_OWNERS, CHANGE_OWNERS_FAILED, CHANGE_OWNERS_DONE,
@@ -96,6 +96,7 @@ public class Batch {
     private String profileId;
     private String priority;
     private String params;
+    private boolean nightOnly;
 
     public Integer getId() {
         return id;
@@ -243,6 +244,14 @@ public class Batch {
 
     public String getParams() {
         return this.params;
+    }
+
+    public boolean isNightOnly() {
+        return nightOnly;
+    }
+
+    public void setNightOnly(boolean nightOnly) {
+        this.nightOnly = nightOnly;
     }
 
     public BatchParams getParamsAsObject() {

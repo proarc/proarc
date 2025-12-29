@@ -75,9 +75,11 @@ public final class ImportResourceApi {
     public static final String IMPORT_BATCH_USE_NEW_METADATA = "useNewMetadata";
     public static final String IMPORT_BATCH_USE_ORIGINAL_METADATA = "useOriginalMetadata";
     public static final String IMPORT_BATCH_PERO_OCR_ENGINE = "peroOcrEngine";
+    public static final String IMPORT_BATCH_PARAMETERS = "parameters";
     public static final String IMPORT_BATCH_PAGECOUNT = "pageCount";
     public static final String IMPORT_START_ROW_PARAM = "_startRow";
     public static final String IMPORT_FUNCTION_UNLOCK_FOLDER = "unlockFolder";
+    public static final String BATCH_NIGHT_ONLY = "nightOnly";
 
     // resource /import/batch/item
     public static final String BATCHITEM_PATH = "item";

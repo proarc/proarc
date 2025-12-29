@@ -65,6 +65,10 @@ public final class InternalExternalProcess implements Runnable {
         this.options = options;
     }
 
+    public Batch getBatch() {
+        return options.getBatch();
+    }
+
     /**
      * Prepares a new other process.
      * to run with {@link #start} immediately or later with {@link ExportDispatcher}.

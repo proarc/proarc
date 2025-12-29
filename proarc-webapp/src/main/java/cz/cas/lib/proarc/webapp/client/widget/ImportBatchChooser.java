@@ -67,6 +67,7 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
     private ImportBatchChooserHandler handler;
     private final ListGrid lGridBatches;
     private final DynamicForm logForm;
+    private final DynamicForm parametersForm;
     private final ClientMessages i18n;
     private final ActionSource actionSource;
     private Action resumeAction;
@@ -88,11 +89,13 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         ToolStrip toolbar = createToolbar();
 
         logForm = createLogForm();
+        parametersForm = createParametersForm();
 
         VLayout innerLayout = new VLayout();
         innerLayout.setMargin(4);
         innerLayout.addMember(lGridBatches);
         innerLayout.addMember(logForm);
+        innerLayout.addMember(parametersForm);
 
         setMembers(toolbar, innerLayout);
     }
@@ -269,11 +272,23 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         }
     }
 
+    private void showParameters(BatchRecord batch) {
+        if (batch != null) {
+            parametersForm.editRecord(batch.getDelegate());
+            String parameters = batch.getParameters();
+            parametersForm.setVisible(parameters != null && !parameters.isEmpty());
+        } else {
+            parametersForm.clearValues();
+            parametersForm.hide();
+        }
+    }
+
     private void updateOnSelection() {
         actionSource.fireEvent();
         BatchRecord r = getSelectedBatch();
         lastSelection = r;
         showLog(r);
+        showParameters(r);
     }
 
     private ToolStrip createToolbar() {
@@ -355,6 +370,23 @@ public final class ImportBatchChooser extends VLayout implements Refreshable {
         form.setWidth100();
         form.setHeight("40%");
         TextAreaItem textAreaItem = new TextAreaItem(ImportBatchDataSource.FIELD_LOG);
+        textAreaItem.setColSpan("*");
+        textAreaItem.setHeight("*");
+        textAreaItem.setWrap(TextAreaWrap.OFF);
+        textAreaItem.setShowTitle(false);
+        textAreaItem.setWidth("*");
+        textAreaItem.setCanEdit(false);
+        form.setItems(textAreaItem);
+        return form;
+    }
+
+    private DynamicForm createParametersForm() {
+        DynamicForm form = new DynamicForm();
+        form.setBrowserSpellCheck(false);
+        form.setCanEdit(false);
+        form.setWidth100();
+        form.setHeight("40%");
+        TextAreaItem textAreaItem = new TextAreaItem(ImportBatchDataSource.FIELD_PARAMETERS);
         textAreaItem.setColSpan("*");
         textAreaItem.setHeight("*");
         textAreaItem.setWrap(TextAreaWrap.OFF);

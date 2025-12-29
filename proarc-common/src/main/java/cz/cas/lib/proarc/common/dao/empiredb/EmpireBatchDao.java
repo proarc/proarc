@@ -129,6 +129,14 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     }
 
     @Override
+    public List<Batch> findWaitingImportBatches() {
+        BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
+        result.getCommand().where(table.state.is(State.IMPORT_PLANNED));
+        result.fetch(getConnection());
+        return Collections.unmodifiableList(result);
+    }
+
+    @Override
     public List<Batch> findExportingBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(State.EXPORTING));
@@ -213,7 +221,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         UserTable ut = db.tableUser;
         DBCommand cmd = db.createCommand();
         cmd.select(table.id, table.state, table.userId, table.folder, table.title,
-                table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber, table.priority, table.updated, table.itemUpdated);
+                table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber, table.priority, table.updated, table.itemUpdated, table.nightOnly);
         cmd.select(ut.username);
         cmd.join(table.userId, ut.id);
         if (filter.getCreatorId() != null) {

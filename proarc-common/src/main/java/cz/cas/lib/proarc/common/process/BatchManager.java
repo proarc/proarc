@@ -141,7 +141,7 @@ public class BatchManager {
      */
     public List<BatchItemObject> findLoadedObjects(Batch batch) {
         List<BatchItemObject> items = findBatchObjects(batch.getId(), null, ObjectState.LOADED);
-        if (batch.getState() == State.LOADING) {
+        if (batch.getState() == State.LOADING || batch.getState() == State.IMPORT_PLANNED) {
             // issue 245: scheduled or loading batches do not have created or complete
             //      the root object! Timestamp order should be sufficient here.
             return items;
@@ -194,6 +194,11 @@ public class BatchManager {
         try {
             List<BatchView> result = dao.view(filter);
             Set<Batch.State> state = filter.getState();
+            for (BatchView bv : result) {
+                Batch batchOriginal = get(bv.getId());
+                BatchParams params = batchOriginal.getParamsAsObject();
+                bv.setParameters(getImportantParams(params, bv.getProfileId()));
+            }
             if (state != null && !state.contains(Batch.State.INGESTING_FAILED)) {
                 return result;
             }
@@ -232,6 +237,64 @@ public class BatchManager {
         }
     }
 
+    private String getImportantParams(BatchParams params, String profileId) {
+        if (params == null || profileId == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (profileId.startsWith("exportProfile") || profileId.startsWith("uploadProfile")) {
+            if (params.getTypeOfPackage() != null && !params.getTypeOfPackage().isEmpty()) {
+                sb.append("Typ exportu: ").append(params.getTypeOfPackage()).append("\n");
+            }
+            if (params.getKrameriusInstanceId() != null && !params.getKrameriusInstanceId().isEmpty()) {
+                sb.append("Instance Krameria: ").append(params.getKrameriusInstanceId()).append("\n");
+            }
+            if (params.getPolicy() != null && !params.getPolicy().isEmpty()) {
+                sb.append("Příznak: ").append(params.getPolicy()).append("\n");
+            }
+            if (params.getLicense() != null && !params.getLicense().isEmpty()) {
+                sb.append("Licence: ").append(params.getLicense()).append("\n");
+            }
+            if (params.isIgnoreMissingUrnNbn() != null) {
+                sb.append("Ignorace chybějícího URN:NBN: ").append(getBooleanAs(params.isIgnoreMissingUrnNbn())).append("\n");
+            }
+            if (params.isBagit() != null) {
+                sb.append("Bagit export: ").append(getBooleanAs(params.isBagit())).append("\n");
+            }
+            if (params.isLtpCesnet() != null) {
+                sb.append("Nahrání do LTP Cesnet: ").append(getBooleanAs(params.isLtpCesnet())).append("\n");
+            }
+            if (params.getExtendedArchivePackage() != null) {
+                sb.append("Rozšířený archivní balík: ").append(getBooleanAs(params.getExtendedArchivePackage())).append("\n");
+            }
+            if (params.getNoTifAvailableMessage() != null && !params.getNoTifAvailableMessage().isEmpty()) {
+                sb.append("Zpráva (tiff není k dispozici): ").append(params.getNoTifAvailableMessage()).append("\n");
+            }
+        } else if (profileId.startsWith("internalProfile")) {
+            if (params.isPurge() != null) {
+                sb.append("Trvalé smazání objektů: ").append(getBooleanAs(params.isPurge())).append("\n");
+            }
+            if (params.isRestore() != null) {
+                sb.append("Obnova objektů: ").append(getBooleanAs(params.isRestore())).append("\n");
+            }
+        } else if (profileId.startsWith("profile.")) {
+            if (params.getPeroOcrEngine() != null) {
+                sb.append("PeroOCR engine: ").append(params.getPeroOcrEngine()).append("\n");
+            }
+        }
+        if (params.getNotBefore() != null && params.getNotAfter() != null) {
+            sb.append("Naplánováno mezi: ").append(params.getNotBefore()).append(" - ").append(params.getNotAfter()).append("\n");
+        }
+        if (params.getPids() != null && !params.getPids().isEmpty()) {
+            sb.append("PIDs: ").append(params.getPids()).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String getBooleanAs(Boolean booleanValue) {
+        return Boolean.TRUE.equals(booleanValue) ? "Ano" : "Ne";
+    }
+
     public List<BatchView> viewProcessingBatches(BatchViewFilter filter, UserProfile user) {
         BatchDao dao = daos.createBatch();
         BatchItemDao itemDao = daos.createBatchItem();
@@ -252,7 +315,7 @@ public class BatchManager {
         }
     }
 
-    public Batch add(File folder, String title, UserProfile user, int itemNumber, Integer peroOcrEngine, ImportProcess.ImportOptions options) {
+    public Batch add(File folder, String title, UserProfile user, int itemNumber, Integer peroOcrEngine, Boolean isNightOnly, ImportProcess.ImportOptions options) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(options.getDevice());
@@ -263,11 +326,12 @@ public class BatchManager {
         batch.setGenerateIndices(options.isGenerateIndices());
         batch.setGeneratePageNumber(options.isGeneratePageNumber());
         batch.setPriority(options.getPriority());
-        batch.setState(Batch.State.LOADING);
+        batch.setState(State.IMPORT_PLANNED);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setTitle(title);
         batch.setUserId(user.getId());
         batch.setProfileId(options.getConfig().getProfileId());
+        batch.setNightOnly(isNightOnly);
 
         BatchParams params = new BatchParams();
         params.setPeroOcrEngine(peroOcrEngine);
@@ -275,9 +339,14 @@ public class BatchManager {
 
         Batch updated = update(batch);
         updateFolderStatus(updated);
+
+        if (isNightOnly) {
+            updated = WorkWindow.scheduleBatch(batch);
+        }
+
         return updated;
     }
-    public Batch add(String pid, UserProfile user, String profile, State state, BatchParams params) {
+    public Batch add(String pid, UserProfile user, String profile, State state, Boolean isNightOnly, BatchParams params) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(null);
@@ -290,8 +359,14 @@ public class BatchManager {
         batch.setTitle(pid);
         batch.setUserId(user.getId());
         batch.setProfileId(profile);
+        batch.setNightOnly(isNightOnly);
         batch.setParamsFromObject(params);
         Batch updated = update(batch);
+
+        if (isNightOnly) {
+            updated = WorkWindow.scheduleBatch(updated);
+        }
+
         return updated;
     }
 
@@ -344,6 +419,17 @@ public class BatchManager {
         batchDao.setTransaction(tx);
         try {
             return batchDao.findLoadingBatches();
+        } finally {
+            tx.close();
+        }
+    }
+
+    public List<Batch> findWaitingImportBatches() {
+        BatchDao batchDao = daos.createBatch();
+        Transaction tx = daos.createTransaction();
+        batchDao.setTransaction(tx);
+        try {
+            return batchDao.findWaitingImportBatches();
         } finally {
             tx.close();
         }
@@ -676,7 +762,7 @@ public class BatchManager {
             throw new NullPointerException("batch");
         }
         Batch.State originalBatchState = batch.getState();
-        batch.setState(State.LOADING);
+        batch.setState(State.IMPORT_PLANNED);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setLog(null);
         BatchDao dao = daos.createBatch();

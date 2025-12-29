@@ -59,6 +59,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
     public static final String FIELD_LOG = ImportResourceApi.IMPORT_BATCH_FAILURE;
     public static final String FIELD_PROFILE_ID = ImportResourceApi.IMPORT_BATCH_PROFILE;
     public static final String FIELD_PRIORITY = ImportResourceApi.IMPORT_BATCH_PRIORITY;
+    public static final String FIELD_PARAMETERS = ImportResourceApi.IMPORT_BATCH_PARAMETERS;
 
     public static final String FIELD_DEVICE = ImportResourceApi.NEWBATCH_DEVICE_PARAM;
     public static final String FIELD_INDICES = ImportResourceApi.NEWBATCH_INDICES_PARAM;
@@ -74,6 +75,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         id.setPrimaryKey(true);
 
         DataSourceTextField description = new DataSourceTextField(FIELD_DESCRIPTION);
+        DataSourceTextField parameters = new DataSourceTextField(FIELD_PARAMETERS);
 
         DataSourceTextField user = new DataSourceTextField(FIELD_USER_DISPLAYNAME);
 
@@ -105,6 +107,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();
         states.put(State.LOADING.name(), i18n.ImportBatchDataSource_State_LOADING());
+        states.put(State.IMPORT_PLANNED.name(), i18n.ImportBatchDataSource_State_IMPORT_PLANNED());
         states.put(State.LOADING_FAILED.name(), i18n.ImportBatchDataSource_State_LOADING_FAILED());
         states.put(State.LOADED.name(), i18n.ImportBatchDataSource_State_LOADED());
         states.put(State.INGESTING.name(), i18n.ImportBatchDataSource_State_INGESTING());
@@ -186,7 +189,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
 
         DataSourceTextField log = new DataSourceTextField(FIELD_LOG);
 
-        setFields(id, description, userId, user, create, updated, itemUpdated, timestamp, state, parent, log, profileId, priority);
+        setFields(id, description, userId, user, create, updated, itemUpdated, timestamp, state, parent, log, profileId, priority, parameters);
         
         setOperationBindings(RestConfig.createAddOperation(), RestConfig.createUpdateOperation());
         
@@ -352,6 +355,10 @@ public final class ImportBatchDataSource extends ProarcDataSource {
             return delegate.getAttribute(FIELD_LOG);
         }
 
+        public String getParameters() {
+            return delegate.getAttribute(FIELD_PARAMETERS);
+        }
+
         public Record getDelegate() {
             return delegate;
         }
@@ -366,7 +373,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
      * XXX make it GWT accessible and remove this.
      */
     public enum State {
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,LOADING_CONFLICT,
+        EMPTY, LOADING, IMPORT_PLANNED, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,LOADING_CONFLICT,
         EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
 //        REINDEXING, REINDEX_FAILED, REINDEX_DONE,
 //        CHANGING_OWNERS, CHANGE_OWNERS_FAILED, CHANGE_OWNERS_DONE,

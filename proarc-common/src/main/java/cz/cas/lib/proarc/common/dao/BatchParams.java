@@ -1,7 +1,11 @@
 package cz.cas.lib.proarc.common.dao;
 
-import javax.xml.bind.annotation.*;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement(name = "params")
 @XmlAccessorType(XmlAccessType.PROPERTY)
@@ -13,12 +17,12 @@ public class BatchParams {
     private Boolean hierarchy;
     private String krameriusInstanceId;
     private String krameriusImportInstanceId;
-    private boolean forDownload;
-    private boolean dryRun;
+    private Boolean forDownload;
+    private Boolean dryRun;
     private String typeOfPackage;
-    private boolean ignoreMissingUrnNbn;
-    private boolean bagit;
-    private boolean ltpCesnet;
+    private Boolean ignoreMissingUrnNbn;
+    private Boolean bagit;
+    private Boolean ltpCesnet;
     private String ltpCesnetToken;
     private String noTifAvailableMessage;
     private String additionalInfoMessage;
@@ -28,6 +32,8 @@ public class BatchParams {
     private Boolean restore;
     private String type;
     private Integer peroOcrEngine;
+    private String notBefore;
+    private String notAfter;
 
     public BatchParams() {}
 
@@ -35,14 +41,7 @@ public class BatchParams {
         this.pids = pids;
     }
 
-    public BatchParams(List<String> pids, Boolean hierarchy, Boolean purge, Boolean restore) {
-        this.pids = pids;
-        this.hierarchy = hierarchy;
-        this.purge = purge;
-        this.restore = restore;
-    }
-
-    public BatchParams(List<String> pids, String policy, boolean hierarchy, String krameriusInstanceId, boolean bagit, String license) {
+    public BatchParams(List<String> pids, String policy, Boolean hierarchy, String krameriusInstanceId, Boolean bagit, String license) {
         this.pids = pids;
         this.policy = policy;
         this.hierarchy = hierarchy;
@@ -57,7 +56,7 @@ public class BatchParams {
         this.krameriusImportInstanceId = krameriusImportInstanceId;
     }
 
-    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, String noTifAvailableMessage, String additionalInfoMessage, Boolean extendedArchivePackage) {
+    public BatchParams(List<String> pids, String typeOfPackage, Boolean ignoreMissingUrnNbn, Boolean bagit, String noTifAvailableMessage, String additionalInfoMessage, Boolean extendedArchivePackage) {
         this.pids = pids;
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
@@ -67,7 +66,7 @@ public class BatchParams {
         this.extendedArchivePackage = extendedArchivePackage;
     }
 
-    public BatchParams(List<String> pids, String typeOfPackage, boolean ignoreMissingUrnNbn, boolean bagit, boolean ltpCesnet, String ltpCesnetToken, String krameriusInstanceId, String policy, String license) {
+    public BatchParams(List<String> pids, String typeOfPackage, Boolean ignoreMissingUrnNbn, Boolean bagit, Boolean ltpCesnet, String ltpCesnetToken, String krameriusInstanceId, String policy, String license) {
         this.pids = pids;
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
@@ -84,14 +83,14 @@ public class BatchParams {
         this.krameriusInstanceId = krameriusInstanceId;
     }
 
-    public BatchParams(List<String> pids, boolean hierarchy, boolean forDownload, boolean dryRun) {
+    public BatchParams(List<String> pids, Boolean hierarchy, Boolean forDownload, Boolean dryRun) {
         this.pids = pids;
         this.hierarchy = hierarchy;
         this.forDownload = forDownload;
         this.dryRun = dryRun;
     }
 
-    public BatchParams(List<String> pids, boolean hierarchy, List<String> dsIds) {
+    public BatchParams(List<String> pids, Boolean hierarchy, List<String> dsIds) {
         this.pids = pids;
         this.hierarchy = hierarchy;
         this.dsIds = dsIds;
@@ -152,20 +151,20 @@ public class BatchParams {
     }
 
     @XmlElement(name = "forDownload")
-    public boolean isForDownload() {
+    public Boolean isForDownload() {
         return forDownload;
     }
 
-    public void setForDownload(boolean forDownload) {
+    public void setForDownload(Boolean forDownload) {
         this.forDownload = forDownload;
     }
 
     @XmlElement(name = "dryRun")
-    public boolean isDryRun() {
+    public Boolean isDryRun() {
         return dryRun;
     }
 
-    public void setDryRun(boolean dryRun) {
+    public void setDryRun(Boolean dryRun) {
         this.dryRun = dryRun;
     }
 
@@ -179,35 +178,35 @@ public class BatchParams {
     }
 
     @XmlElement(name = "ignoreMissingUrnNbn")
-    public boolean isIgnoreMissingUrnNbn() {
+    public Boolean isIgnoreMissingUrnNbn() {
         return ignoreMissingUrnNbn;
     }
 
-    public void setIgnoreMissingUrnNbn(boolean ignoreMissingUrnNbn) {
+    public void setIgnoreMissingUrnNbn(Boolean ignoreMissingUrnNbn) {
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
     }
 
     @XmlElement(name = "bagit")
-    public boolean isBagit() {
+    public Boolean isBagit() {
         return bagit;
     }
 
-    public void setBagit(boolean bagit) {
+    public void setBagit(Boolean bagit) {
         this.bagit = bagit;
     }
 
     // pokud slouzi Kramerius Export jako archivace (STT konvoluty a STT Grafiky) je potreba, aby se exportovaly vsechny datastreamy
     @XmlTransient
-    public boolean isArchive() {
+    public Boolean isArchive() {
         return bagit;
     }
 
     @XmlElement(name = "ltpCesnet")
-    public boolean isLtpCesnet() {
+    public Boolean isLtpCesnet() {
         return ltpCesnet;
     }
 
-    public void setLtpCesnet(boolean ltpCesnet) {
+    public void setLtpCesnet(Boolean ltpCesnet) {
         this.ltpCesnet = ltpCesnet;
     }
 
@@ -290,5 +289,23 @@ public class BatchParams {
 
     public void setPeroOcrEngine(Integer peroOcrEngine) {
         this.peroOcrEngine = peroOcrEngine;
+    }
+
+    @XmlElement(name = "notBefore")
+    public String getNotBefore() {
+        return notBefore;
+    }
+
+    public void setNotBefore(String notBefore) {
+        this.notBefore = notBefore;
+    }
+
+    @XmlElement(name = "notAfter")
+    public String getNotAfter() {
+        return notAfter;
+    }
+
+    public void setNotAfter(String notAfter) {
+        this.notAfter = notAfter;
     }
 }
