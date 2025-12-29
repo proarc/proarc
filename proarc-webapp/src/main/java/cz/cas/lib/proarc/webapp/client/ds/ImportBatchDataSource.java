@@ -107,6 +107,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
         DataSourceEnumField state = new DataSourceEnumField(FIELD_STATE);
         LinkedHashMap<String, String> states = new LinkedHashMap<String, String>();
         states.put(State.LOADING.name(), i18n.ImportBatchDataSource_State_LOADING());
+        states.put(State.IMPORT_PLANNED.name(), i18n.ImportBatchDataSource_State_IMPORT_PLANNED());
         states.put(State.LOADING_FAILED.name(), i18n.ImportBatchDataSource_State_LOADING_FAILED());
         states.put(State.LOADED.name(), i18n.ImportBatchDataSource_State_LOADED());
         states.put(State.INGESTING.name(), i18n.ImportBatchDataSource_State_INGESTING());
@@ -372,7 +373,7 @@ public final class ImportBatchDataSource extends ProarcDataSource {
      * XXX make it GWT accessible and remove this.
      */
     public enum State {
-        EMPTY, LOADING, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,LOADING_CONFLICT,
+        EMPTY, LOADING, IMPORT_PLANNED, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, STOPPED,LOADING_CONFLICT,
         EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
 //        REINDEXING, REINDEX_FAILED, REINDEX_DONE,
 //        CHANGING_OWNERS, CHANGE_OWNERS_FAILED, CHANGE_OWNERS_DONE,

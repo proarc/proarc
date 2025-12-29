@@ -42,6 +42,7 @@ public class BatchView {
     private Integer estimateItemNumber;
     private String priority;
     private String parameters;
+    private Boolean nightOnly;
 
     public Integer getId() {
         return id;
@@ -176,6 +177,14 @@ public class BatchView {
 
     public void setUpdated(Timestamp updated) {
         this.updated = updated;
+    }
+
+    public Boolean isNightOnly() {
+        return nightOnly;
+    }
+
+    public void setNightOnly(Boolean nightOnly) {
+        this.nightOnly = nightOnly;
     }
 
     public String getParameters() {

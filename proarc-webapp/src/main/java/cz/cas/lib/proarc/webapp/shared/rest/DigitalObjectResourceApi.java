@@ -62,6 +62,7 @@ public final class DigitalObjectResourceApi {
     public static final String DELETE_PURGE_PARAM = "purge";
     public static final String DELETE_RESTORE_PARAM = "restore";
 
+    public static final String BATCH_NIGHT_ONLY = "nightOnly";
 
     public static final String SEARCH_PATH = "search";
     public static final String SEARCH_OWNER_PARAM = "owner";

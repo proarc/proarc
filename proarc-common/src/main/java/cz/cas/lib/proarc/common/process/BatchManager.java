@@ -141,7 +141,7 @@ public class BatchManager {
      */
     public List<BatchItemObject> findLoadedObjects(Batch batch) {
         List<BatchItemObject> items = findBatchObjects(batch.getId(), null, ObjectState.LOADED);
-        if (batch.getState() == State.LOADING) {
+        if (batch.getState() == State.LOADING || batch.getState() == State.IMPORT_PLANNED) {
             // issue 245: scheduled or loading batches do not have created or complete
             //      the root object! Timestamp order should be sufficient here.
             return items;
@@ -277,6 +277,13 @@ public class BatchManager {
             if (params.isRestore() != null) {
                 sb.append("Obnova objektů: ").append(getBooleanAs(params.isRestore())).append("\n");
             }
+        } else if (profileId.startsWith("profile.")) {
+            if (params.getPeroOcrEngine() != null) {
+                sb.append("PeroOCR engine: ").append(params.getPeroOcrEngine()).append("\n");
+            }
+        }
+        if (params.getNotBefore() != null && params.getNotAfter() != null) {
+            sb.append("Naplánováno mezi: ").append(params.getNotBefore()).append(" - ").append(params.getNotAfter()).append("\n");
         }
         if (params.getPids() != null && !params.getPids().isEmpty()) {
             sb.append("PIDs: ").append(params.getPids()).append("\n");
@@ -308,7 +315,7 @@ public class BatchManager {
         }
     }
 
-    public Batch add(File folder, String title, UserProfile user, int itemNumber, Integer peroOcrEngine, ImportProcess.ImportOptions options) {
+    public Batch add(File folder, String title, UserProfile user, int itemNumber, Integer peroOcrEngine, Boolean isNightOnly, ImportProcess.ImportOptions options) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(options.getDevice());
@@ -319,11 +326,12 @@ public class BatchManager {
         batch.setGenerateIndices(options.isGenerateIndices());
         batch.setGeneratePageNumber(options.isGeneratePageNumber());
         batch.setPriority(options.getPriority());
-        batch.setState(Batch.State.LOADING);
+        batch.setState(State.IMPORT_PLANNED);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setTitle(title);
         batch.setUserId(user.getId());
         batch.setProfileId(options.getConfig().getProfileId());
+        batch.setNightOnly(isNightOnly);
 
         BatchParams params = new BatchParams();
         params.setPeroOcrEngine(peroOcrEngine);
@@ -331,9 +339,14 @@ public class BatchManager {
 
         Batch updated = update(batch);
         updateFolderStatus(updated);
+
+        if (isNightOnly) {
+            updated = WorkWindow.scheduleBatch(batch);
+        }
+
         return updated;
     }
-    public Batch add(String pid, UserProfile user, String profile, State state, BatchParams params) {
+    public Batch add(String pid, UserProfile user, String profile, State state, Boolean isNightOnly, BatchParams params) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(null);
@@ -346,8 +359,14 @@ public class BatchManager {
         batch.setTitle(pid);
         batch.setUserId(user.getId());
         batch.setProfileId(profile);
+        batch.setNightOnly(isNightOnly);
         batch.setParamsFromObject(params);
         Batch updated = update(batch);
+
+        if (isNightOnly) {
+            updated = WorkWindow.scheduleBatch(updated);
+        }
+
         return updated;
     }
 
@@ -400,6 +419,17 @@ public class BatchManager {
         batchDao.setTransaction(tx);
         try {
             return batchDao.findLoadingBatches();
+        } finally {
+            tx.close();
+        }
+    }
+
+    public List<Batch> findWaitingImportBatches() {
+        BatchDao batchDao = daos.createBatch();
+        Transaction tx = daos.createTransaction();
+        batchDao.setTransaction(tx);
+        try {
+            return batchDao.findWaitingImportBatches();
         } finally {
             tx.close();
         }
@@ -732,7 +762,7 @@ public class BatchManager {
             throw new NullPointerException("batch");
         }
         Batch.State originalBatchState = batch.getState();
-        batch.setState(State.LOADING);
+        batch.setState(State.IMPORT_PLANNED);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setLog(null);
         BatchDao dao = daos.createBatch();

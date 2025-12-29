@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.process.imports;
 
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.process.WorkWindow;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.sql.Timestamp;
 import java.util.Comparator;
@@ -134,9 +135,26 @@ public final class ImportDispatcher {
             @Override
             protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
                 RunnableFuture<T> newTaskFor = super.newTaskFor(runnable, value);
-                return new PriorityFuture<>(newTaskFor, ((ImportProcess) value).getBatch().getPriority(), ((ImportProcess) value).getBatch().getCreate());
+                return new PriorityFuture<>(newTaskFor, ((ImportProcess) value), ((ImportProcess) value).getBatch().getPriority(), ((ImportProcess) value).getBatch().getCreate()
+                );
             }
 
+            @Override
+            protected void beforeExecute(Thread t, Runnable r) {
+                super.beforeExecute(t, r);
+
+                PriorityFuture<?> priorityFuture = (PriorityFuture<?>) r;
+                ImportProcess process = priorityFuture.getProcess();
+
+                if (!WorkWindow.isNotAllowed(process.getBatch())) {
+                    WorkWindow.reschedule(process.getBatch());
+
+                    // znovu zařadit do fronty
+                    addImport(process);
+
+                    throw new RuntimeException("Proces " + process.getBatch().getId() + " přeplánován.");
+                }
+            }
         };
         return executorService;
     }
@@ -248,11 +266,14 @@ public final class ImportDispatcher {
     private class PriorityFuture<T> implements RunnableFuture<T> {
 
         private RunnableFuture<T> src;
+        private ImportProcess process;
         private String priority;
         private Timestamp createdDate;
 
-        public PriorityFuture(RunnableFuture<T> newTaskFor, String priority, Timestamp createdDate) {
-            this.src = newTaskFor;
+        public PriorityFuture(RunnableFuture<T> src, ImportProcess process, String priority, Timestamp createdDate
+        ) {
+            this.src = src;
+            this.process = process;
             this.priority = priority;
             this.createdDate = createdDate;
         }
@@ -263,6 +284,10 @@ public final class ImportDispatcher {
 
         public Timestamp getCreatedDate() {
             return createdDate;
+        }
+
+        public ImportProcess getProcess() {
+            return process;
         }
 
         @Override

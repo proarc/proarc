@@ -186,7 +186,8 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
             @DefaultValue("false") boolean purge,
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
-            @DefaultValue("false") boolean restore
+            @DefaultValue("false") boolean restore,
+            @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (purge || restore) {
             if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_ACTION)) {
@@ -198,7 +199,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
-            return super.deleteObject(pids, hierarchy, purge, restore);
+            return super.deleteObject(pids, hierarchy, purge, restore, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -216,9 +217,11 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
             @DefaultValue("false") boolean purge,
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
-            @DefaultValue("false") boolean restore) {
+            @DefaultValue("false") boolean restore,
+            @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+    ) {
         try {
-            return super.deleteObject(deleteObjectRequest, pids, hierarchy, purge, restore);
+            return super.deleteObject(deleteObjectRequest, pids, hierarchy, purge, restore, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -230,13 +233,14 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> purgeObjects(
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
-            @DefaultValue("deleted") SearchType type) {
+            @DefaultValue("deleted") SearchType type,
+            @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly) {
 
         if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_USER)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
-            return super.purgeObjects(type);
+            return super.purgeObjects(type, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1006,13 +1010,14 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.THUMB_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> generateThumbnail(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids == null) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
-            return super.generateThumbnail(pids);
+            return super.generateThumbnail(pids, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1070,10 +1075,11 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> generateAlto(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         try {
-            return super.generateAlto(pid);
+            return super.generateAlto(pid, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -1084,10 +1090,11 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.GENERATE_PDFA)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> generatePdfA(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         try {
-            return super.generatePdfA(pid);
+            return super.generatePdfA(pid, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -2978,10 +2985,11 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PARENT_PID) String parentPid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
-            @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
+            @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         try {
-            return super.reindex(pid, parentPid, modelId, batchId);
+            return super.reindex(pid, parentPid, modelId, batchId, isNightOnly);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());
@@ -3110,7 +3118,8 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> updateCatalogRecord(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
-            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG)) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
@@ -3125,7 +3134,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
 
 
         try {
-            return super.updateCatalogRecord(pids, catalogId);
+            return super.updateCatalogRecord(pids, catalogId, isNightOnly);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());
@@ -3140,7 +3149,8 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeObjectOwner (
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_OLD) String oldOwner,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
 
         if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER)) {
@@ -3148,7 +3158,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         }
 
         try {
-            return super.changeObjectOwner(oldOwner, newOwner);
+            return super.changeObjectOwner(oldOwner, newOwner, isNightOnly);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return SmartGwtResponse.asError(ex.getMyMessage());

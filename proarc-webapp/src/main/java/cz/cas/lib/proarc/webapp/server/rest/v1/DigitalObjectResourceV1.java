@@ -416,7 +416,8 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
             @DefaultValue("false") boolean purge,
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
-            @DefaultValue("false") boolean restore
+            @DefaultValue("false") boolean restore,
+            @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException {
 
         if (isLocked(pids)) {
@@ -447,7 +448,7 @@ public class DigitalObjectResourceV1 {
         params.setPurge(purge);
         params.setRestore(restore);
 
-        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, pids.isEmpty() ? "DELETE 0 PIDs." : pids.get(0), user, Batch.INTERNAL_DELETION, params);
+        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, pids.isEmpty() ? "DELETE 0 PIDs." : pids.get(0), user, Batch.INTERNAL_DELETION, isNightOnly, params);
 
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
@@ -466,11 +467,13 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DELETE_PURGE_PARAM)
             @DefaultValue("false") boolean purge,
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
-            @DefaultValue("false") boolean restore) throws PurgeException, IOException {
+            @DefaultValue("false") boolean restore,
+            @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+    ) throws PurgeException, IOException {
         if (deleteObjectRequest == null) {
-            return deleteObject(pids, hierarchy, purge, restore);
+            return deleteObject(pids, hierarchy, purge, restore, isNightOnly);
         } else {
-            return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore);
+            return deleteObject(deleteObjectRequest.pids, deleteObjectRequest.hierarchy, deleteObjectRequest.purge, deleteObjectRequest.restore, deleteObjectRequest.nightOnly);
         }
     }
 
@@ -479,7 +482,9 @@ public class DigitalObjectResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> purgeObjects(
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
-            @DefaultValue("deleted") SearchType type) throws DigitalObjectException, IOException, FedoraClientException {
+            @DefaultValue("deleted") SearchType type,
+            @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+    ) throws DigitalObjectException, IOException, FedoraClientException {
 
         checkPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_ACTION);
 
@@ -488,7 +493,7 @@ public class DigitalObjectResourceV1 {
         params.setHierarchy(true);
         params.setPurge(true);
 
-        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, "DELETE \"" + type.name() + "\"" , user, Batch.INTERNAL_DELETION, params);
+        Batch batch = BatchUtils.addNewInternalBatch(this.batchManager, "DELETE \"" + type.name() + "\"" , user, Batch.INTERNAL_DELETION, isNightOnly, params);
 
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
@@ -2020,7 +2025,7 @@ public class DigitalObjectResourceV1 {
         } finally {
             file.delete();
         }
-        return generateThumbnail(Collections.singletonList(pid));
+        return generateThumbnail(Collections.singletonList(pid), false);
 //        return new SmartGwtResponse<Map<String, Object>>(Collections.singletonMap("processId", (Object) 0L));
     }
 
@@ -2066,7 +2071,9 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.THUMB_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> generateThumbnail(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+
     ) throws IOException {
         if (pids == null) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
@@ -2074,7 +2081,7 @@ public class DigitalObjectResourceV1 {
         BatchParams params = new BatchParams(pids);
         List<Integer> batches = new ArrayList<>();
         for (String pid : pids) {
-            Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_THUMBNAIL, params);
+            Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_THUMBNAIL, isNightOnly, params);
 
             InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
@@ -2161,13 +2168,14 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> generateAlto(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException {
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + DigitalObjectResourceApi.ATM_ITEM_PID);
         }
         BatchParams params = new BatchParams(Collections.singletonList(pid));
-        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PERO, params);
+        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PERO, isNightOnly, params);
 
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
@@ -2179,13 +2187,14 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.GENERATE_PDFA)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<InternalExternalProcessResult> generatePdfA(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException {
         if (pid == null || pid.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + DigitalObjectResourceApi.DIGITALOBJECT_PID);
         }
         BatchParams params = new BatchParams(Collections.singletonList(pid));
-        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PDFA, params);
+        Batch batch = BatchUtils.addNewExternalBatch(this.batchManager, pid, user, Batch.EXTERNAL_PDFA, isNightOnly, params);
 
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
@@ -2237,7 +2246,7 @@ public class DigitalObjectResourceV1 {
         int batchId = 0;
         for (String pid : pidsToValidate) {
             BatchParams params = new BatchParams(Collections.singletonList(pid));
-            Batch batch = new BatchUtils().addNewInternalBatch(this.batchManager, pid, user, Batch.INTERNAL_VALIDATION, params);
+            Batch batch = new BatchUtils().addNewInternalBatch(this.batchManager, pid, user, Batch.INTERNAL_VALIDATION, false, params);
             batchId = batch.getId();
 
             InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
@@ -4742,15 +4751,17 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PARENT_PID) String parentPid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
-            @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId
+            @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+
     ) throws DigitalObjectException, IOException, FedoraClientException {
         Batch internalBatch;
         if (batchId != null && batchId > 0) {
             BatchParams params = new BatchParams(Collections.singletonList(batchId.toString()));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
         } else {
             BatchParams params = new BatchParams(Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
         }
         Locale locale = session.getLocale(httpHeaders);
         try {
@@ -4911,14 +4922,15 @@ public class DigitalObjectResourceV1 {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> updateCatalogRecord(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
-            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId
+            @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws DigitalObjectException, JSONException, IOException {
         checkPermission(user, UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG);
 
         CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
 
         BatchParams params = new BatchParams(pids);
-        Batch batch = BatchUtils.addNewBatch(this.importManager, pids, user, Batch.INTERNAL_UPDATE_CATALOG_RECORDS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+        Batch batch = BatchUtils.addNewBatch(this.importManager, pids, user, Batch.INTERNAL_UPDATE_CATALOG_RECORDS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
 
         StringBuilder builder = new StringBuilder();
         int count = 0;
@@ -4956,7 +4968,8 @@ public class DigitalObjectResourceV1 {
     @Produces(MediaType.APPLICATION_JSON)
     public SmartGwtResponse<SearchViewItem> changeObjectOwner (
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_OLD) String oldOwner,
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner,
+            @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException, FedoraClientException, DigitalObjectException, WorkflowException {
         Locale locale = session.getLocale(httpHeaders);
         checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER);
@@ -4992,7 +5005,7 @@ public class DigitalObjectResourceV1 {
         }
 
         BatchParams params = new BatchParams(Collections.singletonList(oldOwner + " --> " + newOwner));
-        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("Change object owner (" + oldOwner + " --> " + newOwner + ")."), user, Batch.INTERNAL_CHANGE_OBJECTS_OWNERS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("Change object owner (" + oldOwner + " --> " + newOwner + ")."), user, Batch.INTERNAL_CHANGE_OBJECTS_OWNERS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
 
         SearchView search = null;
         if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {

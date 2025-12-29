@@ -98,10 +98,11 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         try {
-            return super.newBatch(path, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine);
+            return super.newBatch(path, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -135,10 +136,11 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         try {
-            return super.newBatches(pathes, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine);
+            return super.newBatches(pathes, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -311,10 +313,11 @@ public class ImportResource extends ImportResourceV1 {
     @Path(ImportResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DigitalObjectResourceV1.InternalExternalProcessResult> generateAlto(
-            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         try {
-            return super.generateAlto(path);
+            return super.generateAlto(path, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

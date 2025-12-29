@@ -142,7 +142,8 @@ public class ExportResource extends ExportResourceV1 {
     public SmartGwtResponse<ExportResult> datastream(
             @FormParam(ExportResourceApi.DATASTREAM_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
-            @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
+            @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids == null) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.DATASTREAM_PID_PARAM));
@@ -151,7 +152,7 @@ public class ExportResource extends ExportResourceV1 {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.DATASTREAM_DSID_PARAM));
         }
         try {
-            return super.datastream(pids, dsIds, hierarchy);
+            return super.datastream(pids, dsIds, hierarchy, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -167,7 +168,8 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
-            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.KRAMERIUS4_PID_PARAM));
@@ -177,7 +179,7 @@ public class ExportResource extends ExportResourceV1 {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
-            return super.kramerius4(pids, policy, license, hierarchy, krameriusInstanceId, isBagit);
+            return super.kramerius4(pids, policy, license, hierarchy, krameriusInstanceId, isBagit, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -191,13 +193,14 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.DESA_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
             @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
-            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun
+            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun,
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.DESA_PID_PARAM));
         }
         try {
-            return super.newDesaExport(pids, hierarchy, forDownload, dryRun);
+            return super.newDesaExport(pids, hierarchy, forDownload, dryRun, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -231,13 +234,14 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
-            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license
+            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.NDK_PID_PARAM));
         }
         try {
-            return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy, license);
+            return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy, license, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -248,13 +252,14 @@ public class ExportResource extends ExportResourceV1 {
     @Path(ExportResourceApi.CEJSH_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newCejshExport(
-            @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids
+            @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.CEJSH_PID_PARAM));
         }
         try {
-            return super.newCejshExport(pids);
+            return super.newCejshExport(pids, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -265,13 +270,14 @@ public class ExportResource extends ExportResourceV1 {
     @Path(ExportResourceApi.CROSSREF_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<ExportResult> newCrossrefExport(
-            @FormParam(ExportResourceApi.CROSSREF_PID_PARAM) List<String> pids
+            @FormParam(ExportResourceApi.CROSSREF_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.CROSSREF_PID_PARAM));
         }
         try {
-            return super.newCrossrefExport(pids);
+            return super.newCrossrefExport(pids, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -288,13 +294,14 @@ public class ExportResource extends ExportResourceV1 {
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
             @FormParam(ExportResourceApi.ARCHIVE_NO_TIF_AVAILABLE_MESSAGE) String noTifAvailableMessage,
             @FormParam(ExportResourceApi.ARCHIVE_ADDITIONAL_INFO_MESSAGE) String additionalInfoMessage,
-            @FormParam(ExportResourceApi.ARCHIVE_EXTENDED_PACKAGE_PARAM) @DefaultValue("false") boolean extendedArchivePackage
+            @FormParam(ExportResourceApi.ARCHIVE_EXTENDED_PACKAGE_PARAM) @DefaultValue("false") boolean extendedArchivePackage,
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.ARCHIVE_PID_PARAM));
         }
         try {
-            return super.newArchive(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage);
+            return super.newArchive(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);
@@ -308,13 +315,14 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
-            @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy
+            @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
             return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.KWIS_PID_PARAM));
         }
         try {
-            return super.newKwisExport(pids, policy, license, hierarchy);
+            return super.newKwisExport(pids, policy, license, hierarchy, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return SmartGwtResponse.asError(t);

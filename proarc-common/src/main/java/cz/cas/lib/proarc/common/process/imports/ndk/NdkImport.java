@@ -57,9 +57,16 @@ public class NdkImport implements ImportHandler {
     @Override
     public void start(ImportOptions importConfig, BatchManager batchManager, AppConfiguration config) throws Exception {
         iSession = new ImportSession(BatchManager.getInstance(), importConfig, config);
+
+        Batch batch = importConfig.getBatch();
+        batch.setState(Batch.State.LOADING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
+        batch = batchManager.update(batch);
+        importConfig.setBatch(batch);
+
         load(importConfig, config);
         ingest(importConfig, config);
-        Batch batch = importConfig.getBatch();
+        batch = batchManager.update(batch);
         if (Batch.State.INGESTED.equals(batch.getState())) {
             batch.setParentPid(iSession.getRootPid());
             iSession.getImportManager().update(batch);

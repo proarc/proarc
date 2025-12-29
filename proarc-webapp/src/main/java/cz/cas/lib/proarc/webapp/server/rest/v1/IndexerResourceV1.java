@@ -115,7 +115,7 @@ public class IndexerResourceV1 {
         }
 
         BatchParams params = new BatchParams(Collections.singletonList("INDEXACE OBJEKTŮ"));
-        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("INDEXACE OBJEKTŮ"), user, Batch.INTERNAL_INDEX_OBJECTS_TO_SOLR, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("INDEXACE OBJEKTŮ"), user, Batch.INTERNAL_INDEX_OBJECTS_TO_SOLR, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, false, params);
 
         try {
             String objectStorePath = this.akubraConfiguration.getObjectStorePath();
@@ -151,7 +151,7 @@ public class IndexerResourceV1 {
         }
 
         BatchParams params = new BatchParams(Collections.singletonList("INDEXACE NADŘAZENÝCH OBJEKTŮ"));
-        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("INDEXACE NADŘAZENÝCH OBJEKTŮ"), user, Batch.INTERNAL_INDEX_PARENTS_TO_SOLR, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, params);
+        Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("INDEXACE NADŘAZENÝCH OBJEKTŮ"), user, Batch.INTERNAL_INDEX_PARENTS_TO_SOLR, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, false, params);
 
         try {
             String objectStorePath = this.akubraConfiguration.getObjectStorePath();

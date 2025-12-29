@@ -16,12 +16,21 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.process.WorkWindow;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.sql.Timestamp;
+import java.util.Comparator;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -118,7 +127,34 @@ public final class ExportDispatcher {
     }
 
     private ExecutorService newThreadPool() {
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount, new ExportDispatcherThreadFactory());
+        ExecutorService executorService = new ThreadPoolExecutor(threadCount, threadCount, 0L,
+                TimeUnit.MILLISECONDS, new PriorityBlockingQueue<Runnable>(11, new ExportPriorityFutureComparator()), new ExportDispatcherThreadFactory()) {
+
+
+
+            @Override
+            protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
+                RunnableFuture<T> newTaskFor = super.newTaskFor(runnable, value);
+                return new ExportPriorityFuture<>(newTaskFor, ((ExportProcess) value), ((ExportProcess) value).getBatch().getPriority(), ((ExportProcess) value).getBatch().getCreate());
+            }
+
+            @Override
+            protected void beforeExecute(Thread t, Runnable r) {
+                super.beforeExecute(t, r);
+
+                ExportPriorityFuture<?> priorityFuture = (ExportPriorityFuture<?>) r;
+                ExportProcess process = priorityFuture.getProcess();
+
+                if (!WorkWindow.isNotAllowed(process.getBatch())) {
+                    WorkWindow.reschedule(process.getBatch());
+
+                    // znovu zařadit do fronty
+                    addExport(process);
+
+                    throw new RuntimeException("Proces " + process.getBatch().getId() + " přeplánován.");
+                }
+            }
+        };
         return executorService;
     }
 
@@ -176,6 +212,110 @@ public final class ExportDispatcher {
 //                delegate.uncaughtException(t, e);
 //            }
         }
+    }
 
+    private class ExportPriorityFutureComparator  implements Comparator<Runnable> {
+
+        @Override
+        public int compare(Runnable o1, Runnable o2) {
+            if (o1 == null && o2 == null) {
+                return 0;
+            } else if (o1 == null) {
+                return -1;
+            } else if (o2 ==null) {
+                return 1;
+            } else {
+                int priorityO1 = transform(((ExportPriorityFuture) o1).getPriority());
+                int priorityO2 = transform(((ExportPriorityFuture) o2).getPriority());
+
+                // -1 pro to, co ma bezet nejdriv
+                // 0 pokud maji stejnou prioritu --> pote rozhoduje cas vzniku
+                // 1 pro to, co ma bezet naposled
+                return priorityO1 > priorityO2 ? -1 : (priorityO1 == priorityO2 ? compareTimestamp(o1, o2) : 1);
+            }
+        }
+
+        private int compareTimestamp(Runnable o1, Runnable o2) {
+            Timestamp timestampO1 = ((ExportPriorityFuture) o1).getCreatedDate();
+            Timestamp timestampO2 = ((ExportPriorityFuture) o2).getCreatedDate();
+
+            return timestampO1.compareTo(timestampO2);
+        }
+
+        private int transform(String priority) {
+            if (priority == null) {
+                return 0;
+            } else if (Batch.PRIORITY_HIGHEST.equals(priority)) {
+                return 2;
+            } else if (Batch.PRIORITY_HIGH.equals(priority)) {
+                return 1;
+            } else if (Batch.PRIORITY_MEDIUM.equals(priority)) {
+                return 0;
+            } else if (Batch.PRIORITY_LOW.equals(priority)) {
+                return -1;
+            } else if (Batch.PRIORITY_LOWEST.equals(priority)) {
+                return -2;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    private class ExportPriorityFuture<T> implements RunnableFuture<T> {
+
+        private RunnableFuture<T> src;
+        private ExportProcess process;
+        private String priority;
+        private Timestamp createdDate;
+
+        public ExportPriorityFuture(RunnableFuture<T> src, ExportProcess process, String priority, Timestamp createdDate
+        ) {
+            this.src = src;
+            this.process = process;
+            this.priority = priority;
+            this.createdDate = createdDate;
+        }
+
+        public String getPriority() {
+            return priority;
+        }
+
+        public Timestamp getCreatedDate() {
+            return createdDate;
+        }
+
+        public ExportProcess getProcess() {
+            return process;
+        }
+
+        @Override
+        public void run() {
+            src.run();
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return src.cancel(mayInterruptIfRunning);
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return src.isCancelled();
+        }
+
+        @Override
+        public boolean isDone() {
+            return src.isDone();
+        }
+
+        @Override
+        public T get() throws InterruptedException, ExecutionException {
+            return src.get();
+        }
+
+        @Override
+        public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+            return src.get(timeout, unit);
+        }
     }
 }

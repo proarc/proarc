@@ -107,6 +107,9 @@ public class FileSetImport implements ImportHandler {
     public void start(ImportProcess.ImportOptions importConfig, BatchManager batchManager, AppConfiguration configuration) throws Exception {
         File importFolder = importConfig.getImportFolder();
         Batch batch = importConfig.getBatch();
+        batch.setState(Batch.State.LOADING);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
+        batch = batchManager.update(batch);
         ImportFileScanner scanner = new ImportFileScanner();
         List<File> files = scanner.findDigitalContent(importFolder);
         List<FileSet> fileSets = ImportFileScanner.getFileSets(files);

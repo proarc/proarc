@@ -174,7 +174,7 @@ public class BatchImportJob implements Job, ProArcJob {
                 UserProfile user = userManger.find(DEFAULT_ADMIN_USER);
 
                 process = ImportProcess.prepare(folder.getHandle(), folder.getHandle().getName(), user,
-                        BatchManager.getInstance(), deviceUUID, null, true, Batch.PRIORITY_MEDIUM, false, false, null, appConfig.getImportConfiguration(profile), appConfig);
+                        BatchManager.getInstance(), deviceUUID, null, true, Batch.PRIORITY_MEDIUM, false, false, null, false, appConfig.getImportConfiguration(profile), appConfig);
 
                 ImportDispatcher.getDefault().addImport(process);
                 Batch batch = process.getBatch();

@@ -1,7 +1,11 @@
 package cz.cas.lib.proarc.common.dao;
 
-import javax.xml.bind.annotation.*;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement(name = "params")
 @XmlAccessorType(XmlAccessType.PROPERTY)
@@ -28,6 +32,8 @@ public class BatchParams {
     private Boolean restore;
     private String type;
     private Integer peroOcrEngine;
+    private String notBefore;
+    private String notAfter;
 
     public BatchParams() {}
 
@@ -283,5 +289,23 @@ public class BatchParams {
 
     public void setPeroOcrEngine(Integer peroOcrEngine) {
         this.peroOcrEngine = peroOcrEngine;
+    }
+
+    @XmlElement(name = "notBefore")
+    public String getNotBefore() {
+        return notBefore;
+    }
+
+    public void setNotBefore(String notBefore) {
+        this.notBefore = notBefore;
+    }
+
+    @XmlElement(name = "notAfter")
+    public String getNotAfter() {
+        return notAfter;
+    }
+
+    public void setNotAfter(String notAfter) {
+        this.notAfter = notAfter;
     }
 }

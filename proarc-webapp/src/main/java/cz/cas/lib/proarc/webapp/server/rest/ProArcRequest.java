@@ -36,6 +36,10 @@ public class ProArcRequest {
         @DefaultValue("false")
         public boolean restore;
 
+        @XmlElement(name = DigitalObjectResourceApi.BATCH_NIGHT_ONLY)
+        @DefaultValue("false")
+        public boolean nightOnly;
+
         public Set<String> getPidsAsSet() {
             return new HashSet<String>(pids);
         }

@@ -2,6 +2,7 @@ package cz.cas.lib.proarc.common.dao;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.WorkWindow;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -16,10 +17,10 @@ public class BatchUtils {
 
     private static final Logger LOG = Logger.getLogger(BatchUtils.class.getName());
 
-    public static Batch addNewBatch(BatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state, Batch.State overWriteState, BatchParams params) {
+    public static Batch addNewBatch(BatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state, Batch.State overWriteState, Boolean isNightOnly, BatchParams params) {
         Batch batch = findBatchWithParams(batchManager, getPid(pids), processProfile, overWriteState);
         if (batch == null) {
-            return batchManager.add(getPid(pids), user, processProfile, state, params);
+            return batchManager.add(getPid(pids), user, processProfile, state, isNightOnly, params);
         } else {
             batch.setState(state);
             batch.setUpdated(new Timestamp(System.currentTimeMillis()));
@@ -27,8 +28,15 @@ public class BatchUtils {
             batch.setUserId(user.getId());
             batch.setProfileId(processProfile);
             batch.setParamsFromObject(params);
+            batch.setNightOnly(isNightOnly);
             //batch.setTimestamp(new Timestamp(System.currentTimeMillis()));
-            return batchManager.update(batch);
+            batch = batchManager.update(batch);
+
+            if (isNightOnly) {
+                batch = WorkWindow.scheduleBatch(batch);
+            }
+
+            return batch;
         }
     }
 
@@ -73,8 +81,8 @@ public class BatchUtils {
         return batchManager.update(batch);
     }
 
-    public static Batch addNewExportBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, BatchParams params) {
-        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.EXPORT_PLANNED, Batch.State.EXPORT_FAILED, params);
+    public static Batch addNewExportBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, Boolean isNightOnly, BatchParams params) {
+        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.EXPORT_PLANNED, Batch.State.EXPORT_FAILED, isNightOnly, params);
     }
 
     public static Batch startWaitingExportBatch(BatchManager batchManager, Batch batch) {
@@ -159,7 +167,7 @@ public class BatchUtils {
     }
 
     public static Batch addNewUploadBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, BatchParams params) {
-        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.UPLOADING, Batch.State.UPLOAD_FAILED, params);
+        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.UPLOADING, Batch.State.UPLOAD_FAILED, false, params);
     }
 
     public static Batch finishedUploadWithError(BatchManager batchManager, Batch batch, String path, Exception exception) {
@@ -170,8 +178,8 @@ public class BatchUtils {
         return finishedSuccessfully(batchManager, batch, path, null, Batch.State.UPLOAD_DONE);
     }
 
-    public static Batch addNewInternalBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, BatchParams params) {
-        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.INTERNAL_PLANNED, Batch.State.INTERNAL_FAILED, params);
+    public static Batch addNewInternalBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, Boolean isNightOnly, BatchParams params) {
+        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.INTERNAL_PLANNED, Batch.State.INTERNAL_FAILED, isNightOnly, params);
     }
 
     public static Batch finishedInternalWithError(BatchManager batchManager, Batch batch, String path, Batch.State state, Exception exception) {
@@ -196,8 +204,8 @@ public class BatchUtils {
         return batchManager.update(batch);
     }
 
-    public static Batch addNewExternalBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, BatchParams params) {
-        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.EXTERNAL_PLANNED, Batch.State.EXTERNAL_FAILED, params);
+    public static Batch addNewExternalBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, Boolean isNightOnly, BatchParams params) {
+        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.EXTERNAL_PLANNED, Batch.State.EXTERNAL_FAILED, isNightOnly, params);
     }
 
     public static Batch finishedExternalWithError(BatchManager batchManager, Batch batch, String path, Batch.State state, Exception exception) {

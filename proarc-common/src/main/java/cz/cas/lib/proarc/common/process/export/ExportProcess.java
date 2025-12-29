@@ -119,6 +119,10 @@ public final class ExportProcess implements Runnable {
         this.user = user;
     }
 
+    public Batch getBatch() {
+        return exportOptions.getBatch();
+    }
+
     /**
      * Prepares a new export process.
      * to run with {@link #start} immediately or later with {@link ExportDispatcher}.

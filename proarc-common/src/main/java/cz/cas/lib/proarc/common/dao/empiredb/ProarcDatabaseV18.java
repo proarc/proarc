@@ -82,7 +82,7 @@ public class ProarcDatabaseV18 extends DBDatabase {
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
 
     public static int upgradeToVersion19(
-            int currentSchemaVersion, ProarcDatabase schema,
+            int currentSchemaVersion,
             Connection conn, EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion < VERSION) {
@@ -95,7 +95,7 @@ public class ProarcDatabaseV18 extends DBDatabase {
         } else if (currentSchemaVersion != VERSION) {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
-//        ProarcDatabaseV19 schema = new ProarcDatabaseV19();
+        ProarcDatabaseV19 schema = new ProarcDatabaseV19();
         try {
             schema.open(conf.getDriver(), conn);
             upgradeDdl(schema, conn);
@@ -109,7 +109,7 @@ public class ProarcDatabaseV18 extends DBDatabase {
         }
     }
 
-    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+    private static void upgradeDdl(ProarcDatabaseV19 schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();
@@ -132,9 +132,9 @@ public class ProarcDatabaseV18 extends DBDatabase {
             script.run(driver, conn);
 
             Statement statement = conn.createStatement();
-            statement.addBatch("UPDATE proarc_users SET change_model_function = FALSE, update_model_function = FALSE, lock_object_function = FALSE, unlock_object_function = FALSE, czidlo_function = FALSE,  import_to_catalog_function = FALSE, change_objects_owner_function = FALSE, device_function = FALSE, change_pages_function = FALSE, wf_create_job_function = FALSE, create_user_function = FALSE, update_user_function = FALSE, update_user_permission_function = FALSE, delete_user_function = FALSE, solr_function = FALSE, delete_action_function = FALSE, all_objects_function = FALSE, prepare_batch_function = FALSE, sys_admin_function = FALSE, import_to_prod_function = FALSE, wf_delete_job_function = FALSE;");
+            statement.addBatch("UPDATE proarc_users SET change_model_function = FALSE, update_model_function = FALSE, lock_object_function = FALSE, unlock_object_function = FALSE, czidlo_function = FALSE,  import_to_catalog_function = FALSE, change_objects_owner_function = FALSE, device_function = FALSE, change_pages_function = FALSE, wf_create_job_function = FALSE, create_user_function = FALSE, update_user_function = FALSE, delete_user_function = FALSE, solr_function = FALSE, delete_action_function = FALSE, all_objects_function = FALSE, prepare_batch_function = FALSE, sys_admin_function = FALSE, import_to_prod_function = FALSE, wf_delete_job_function = FALSE;");
             statement.addBatch("UPDATE proarc_users SET change_model_function = TRUE, update_model_function = TRUE, lock_object_function = TRUE, unlock_object_function = TRUE, czidlo_function = TRUE, import_to_catalog_function = TRUE, change_objects_owner_function = TRUE, device_function = TRUE, change_pages_function = TRUE, wf_create_job_function = TRUE WHERE role = 'admin';");
-            statement.addBatch("UPDATE proarc_users SET change_model_function = TRUE, update_model_function = TRUE, lock_object_function = TRUE, unlock_object_function = TRUE, czidlo_function = TRUE, import_to_catalog_function = TRUE, change_objects_owner_function = TRUE, device_function = TRUE, change_pages_function = TRUE, wf_create_job_function = TRUE, create_user_function = TRUE, update_user_function = TRUE, update_user_permission_function = TRUE, delete_user_function = TRUE, solr_function = TRUE, delete_action_function = TRUE, all_objects_function = TRUE, prepare_batch_function = TRUE, sys_admin_function = TRUE, import_to_prod_function = TRUE, wf_delete_job_function = TRUE WHERE role = 'superAdmin';");
+            statement.addBatch("UPDATE proarc_users SET change_model_function = TRUE, update_model_function = TRUE, lock_object_function = TRUE, unlock_object_function = TRUE, czidlo_function = TRUE, import_to_catalog_function = TRUE, change_objects_owner_function = TRUE, device_function = TRUE, change_pages_function = TRUE, wf_create_job_function = TRUE, create_user_function = TRUE, update_user_function = TRUE, delete_user_function = TRUE, solr_function = TRUE, delete_action_function = TRUE, all_objects_function = TRUE, prepare_batch_function = TRUE, sys_admin_function = TRUE, import_to_prod_function = TRUE, wf_delete_job_function = TRUE WHERE role = 'superAdmin';");
             LOG.fine(statement.toString());
             statement.executeBatch();
 

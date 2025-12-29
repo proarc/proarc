@@ -101,4 +101,6 @@ public final class ExportResourceApi {
     public static final String RESULT_ERROR_WARNING = "iswarning";
     public static final String RESULT_ERROR_LOG = "log";
 
+    public static final String BATCH_NIGHT_ONLY = "nightOnly";
+
 }

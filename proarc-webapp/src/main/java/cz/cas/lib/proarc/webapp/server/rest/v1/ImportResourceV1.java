@@ -247,7 +247,8 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws URISyntaxException, IOException {
         
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}, software: {3}",
@@ -266,7 +267,7 @@ public class ImportResourceV1 {
             for (File importFile : folder.listFiles()) {
                 if (importFile.exists() && importFile.isDirectory()) {
                     ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
-                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, appConfig.getImportConfiguration(profile), appConfig);
+                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
                     ImportDispatcher.getDefault().addImport(process);
                     listBatches.add(process.getBatch());
                 }
@@ -274,7 +275,7 @@ public class ImportResourceV1 {
             return new SmartGwtResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, appConfig.getImportConfiguration(profile), appConfig);
+                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
             return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -297,7 +298,7 @@ public class ImportResourceV1 {
         File importFolder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, ConfigurationProfile.GENERATE_ALTO_OCR);
         ImportProcess process = ImportProcess.prepare(importFolder, folderPath, user,
-                importManager, null, null, false, null, false, false, null, appConfig.getImportConfiguration(profile), appConfig);
+                importManager, null, null, false, null, false, false, null, false, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -316,7 +317,8 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -336,7 +338,7 @@ public class ImportResourceV1 {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, appConfig.getImportConfiguration(profile), appConfig);
+                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {
@@ -510,6 +512,7 @@ public class ImportResourceV1 {
     ) throws IOException {
         if (batchState.isEmpty()) {
             batchState.add(Batch.State.LOADING);
+            batchState.add(Batch.State.IMPORT_PLANNED);
         }
         BatchViewFilter filterAll = new BatchViewFilter()
                 .setState(batchState)
@@ -534,7 +537,7 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        if (Batch.State.LOADING.equals(batch.getState())) {
+        if (Batch.State.LOADING.equals(batch.getState()) || Batch.State.IMPORT_PLANNED.equals(batch.getState())) {
             if (!(hasPermission(user, UserRole.PERMISSION_FUNCTION_PREPARE_BATCH) || isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - permission prepareBatchFunction.");
                 return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
@@ -680,7 +683,7 @@ public class ImportResourceV1 {
                 throw RestException.plainText(Status.BAD_REQUEST,
                         ServerMessages.get(locale).ImportResource_BatchLoadingFailed_Msg());
             }
-            if (!(batch.getState() == Batch.State.LOADED || batch.getState() == Batch.State.LOADING)) {
+            if (!(batch.getState() == Batch.State.LOADED || batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED)) {
                 String message = ServerMessages.get(locale).ImportResource_BatchNotLoaded_Msg();
                 return SmartGwtResponse.asError(message);
             }
@@ -726,14 +729,14 @@ public class ImportResourceV1 {
         }
 
         int totalImports = imports.size();
-        if (listLoadedItems && batch.getState() == Batch.State.LOADING
+        if (listLoadedItems && (batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED)
                 && totalImports > 0 && totalImports >= batch.getEstimateItemNumber()) {
 
             // #fix a situation when all items are already loaded but the batch has not been closed yet.
             --totalImports;
             imports.subList(0, totalImports);
         }
-        int totalRows = (batch.getState() == Batch.State.LOADING) ? batch.getEstimateItemNumber(): totalImports;
+        int totalRows = (batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED) ? batch.getEstimateItemNumber(): totalImports;
 
         if (totalImports == 0 || startRow >= totalImports) {
             return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, startRow, totalRows, null);
@@ -863,7 +866,8 @@ public class ImportResourceV1 {
     @Path(ImportResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<DigitalObjectResourceV1.InternalExternalProcessResult> generateAlto(
-            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException, URISyntaxException {
         if (path == null || path.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "missing values in parameter \"folderPath\".");
@@ -877,7 +881,7 @@ public class ImportResourceV1 {
         File folder = new File(folderUri);
 
         BatchParams params = new BatchParams(Collections.singletonList(folderPath));
-        Batch batch = BatchUtils.addNewExternalBatch(this.importManager, folderPath, user, Batch.EXTERNAL_PERO, params);
+        Batch batch = BatchUtils.addNewExternalBatch(this.importManager, folderPath, user, Batch.EXTERNAL_PERO, isNightOnly, params);
 
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, importManager, user, session.asFedoraLog(), session.getLocale(httpHeaders), folder);
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
