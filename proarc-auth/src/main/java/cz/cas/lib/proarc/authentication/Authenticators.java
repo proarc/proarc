@@ -32,9 +32,13 @@ import org.apache.commons.configuration.Configuration;
 public final class Authenticators {
 
     public static final String PROPERTY_AUTHENTICATORS = "authenticators";
-    /** The internal authenticator. */
+    /**
+     * The internal authenticator.
+     */
     public static final String TYPE_PROARC = "proarc";
-    /** The DESA authenticator. For now it stands for both type and ID. */
+    /**
+     * The DESA authenticator. For now it stands for both type and ID.
+     */
     public static final String TYPE_DESA = "desa";
 
     private static final Logger LOG = Logger.getLogger(Authenticators.class.getName());

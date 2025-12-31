@@ -1,29 +1,20 @@
 /*
  * Copyright (C) 2013 Pavel Stastny
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.authentication.desa;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import cz.cas.lib.proarc.authentication.Authenticator;
 import cz.cas.lib.proarc.authentication.ProarcPrincipal;
@@ -41,17 +32,25 @@ import cz.cas.lib.proarc.desa.DesaClient;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserFault;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserResponse;
 import cz.cas.lib.proarc.desa.soap.Role;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * DESA authentication.
  * It authenticates credentials in all registered DESA services. At least one
  * authentication response must contain required role to pass.
+ *
  * @author pavels
  */
 public class DESAAuthenticator implements Authenticator {
-    
+
     public static Logger LOGGER = Logger.getLogger(DESAAuthenticator.class.getName());
-    
+
     public static final String KOD_PUVODCE = "kod";
     public static final String REMOTE_TYPE = DesaServices.REMOTE_USER_TYPE;
     public static final String USER_PREFIX = "desa";
@@ -86,7 +85,7 @@ public class DESAAuthenticator implements Authenticator {
                 return createLocalUser(authorizedUser, tUser, code);
             }
         } catch (AppConfigurationException e) {
-            LOGGER.log(Level.SEVERE,e.getMessage(),e);
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
             throw new IllegalStateException("Cannot initialize configuration! See server log.");
         } catch (AuthenticateUserFault e) {
             LOGGER.log(Level.FINE, e.getMessage(), e);
@@ -132,8 +131,8 @@ public class DESAAuthenticator implements Authenticator {
 
     @Override
     public AuthenticatedState authenticate(Map<String, String> loginProperties,
-            HttpServletRequest request, HttpServletResponse response,
-            ProarcPrincipal principal) {
+                                           HttpServletRequest request, HttpServletResponse response,
+                                           ProarcPrincipal principal) {
 
         String user = loginProperties.get(LOGINNAME);
         String pswd = loginProperties.get(PASSWORD);
@@ -146,7 +145,7 @@ public class DESAAuthenticator implements Authenticator {
         if (authenticated != null) {
             principal.associateUserProfile(authenticated);
         }
-        
+
         return authenticated != null ? AuthenticatedState.AUTHENTICATED : AuthenticatedState.FORBIDDEN;
     }
 
