@@ -19,41 +19,66 @@
     <name>ProArc MIX JAXB Model</name>
     <url>${proarc.wiki}</url>
 
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.plugin.compiler.version}</version>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
+                </configuration>
             </plugin>
 
             <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <configuration>
-                    <generatePackage>cz.cas.lib.proarc.mix</generatePackage>
-                    <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                    <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mix</schemaDirectory>
-                    <schemaIncludes>
-                        <schemaInclude>mix20.xsd</schemaInclude>
-                    </schemaIncludes>
-                    <args>
-                        <!--
-                            Use custom package-info.java with preferred namespace prefixes.
-                            Requires JDK 1.6.0_24 or later or com.sun.xml.bind:jaxb-impl:2.2.2 dependency.
-                            -npa:  suppress generation of package level annotations (**/package-info.java)
-                        -->
-                        <arg>-npa</arg>
-                    </args>
-                    <extension>true</extension>
-                </configuration>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
+                <version>${maven.plugin.jaxb.version}</version>
                 <executions>
                     <execution>
+                        <id>generate-mix</id>
                         <goals>
                             <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mix</schemaDirectory>
+                            <schemaIncludes>
+                                <include>mix20.xsd</include>
+                            </schemaIncludes>
+                            <generatePackage>cz.cas.lib.proarc.mix</generatePackage>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjcMix</generateDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <target>
+                                <delete file="${project.build.directory}/generated-sources/xjcMix/cz/cas/lib/proarc/mix/package-info.java"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 
