@@ -50,11 +50,15 @@
             <artifactId>jaxb-runtime</artifactId>
         </dependency>
 
-        <!-- JAX-WS runtime (SOAP client) -->
         <dependency>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-rt</artifactId>
-            <version>4.0.3</version>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxws</artifactId>
+            <version>4.1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http</artifactId>
+            <version>4.1.4</version>
         </dependency>
 
         <!-- tests -->
