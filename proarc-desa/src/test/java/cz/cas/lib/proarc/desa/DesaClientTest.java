@@ -24,11 +24,14 @@ import java.util.List;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Assume;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -36,27 +39,32 @@ import org.junit.Assume;
  */
 public class DesaClientTest {
 
-    private DesaClient client;
-    private String producerCode;
-    private String operator;
+    private static DesaClient client;
+    private static String producerCode;
+    private static String operator;
 
     public DesaClientTest() {
     }
 
-    @Before
-    public void setUp() {
+    @BeforeAll
+    public static void initAll() {
         String soapUrl = System.getProperty("proarc-desa.DesaClient.soapUrl");
         String restUrl = System.getProperty("proarc-desa.DesaClient.restUrl");
         String user = System.getProperty("proarc-desa.DesaClient.user");
         String passwd = System.getProperty("proarc-desa.DesaClient.passwd");
         producerCode = System.getProperty("proarc-desa.DesaClient.producerCode");
         operator = System.getProperty("proarc-desa.DesaClient.operator");
-        Assume.assumeNotNull(soapUrl, restUrl, user, passwd, producerCode, operator);
+        Assumptions.assumeTrue(soapUrl != null);
+        Assumptions.assumeTrue(restUrl != null);
+        Assumptions.assumeTrue(user != null);
+        Assumptions.assumeTrue(passwd != null);
+        Assumptions.assumeTrue(producerCode != null);
+        Assumptions.assumeTrue(operator != null);
         client = new DesaClient(soapUrl, restUrl, user, passwd);
     }
 
-    @After
-    public void tearDown() {
+    @AfterAll
+    public static void tearDown() {
     }
 
     @Test
@@ -66,7 +74,7 @@ public class DesaClientTest {
         assertNotNull(result);
     }
 
-//    @Test
+    //    @Test
     public void testGetNomenclaturesSource() throws Exception {
         List<String> nomenclatureAcronyms = Arrays.asList("RecCl");
         Source result = client.getNomenclaturesSource(operator, producerCode, nomenclatureAcronyms);
@@ -74,7 +82,7 @@ public class DesaClientTest {
         TransformerFactory.newInstance().newTransformer().transform(result, new StreamResult(System.out));
     }
 
-//    @Test
+    //    @Test
     public void testSubmitPackage() {
         System.out.println("submitPackage");
         File file = null;
@@ -91,4 +99,4 @@ public class DesaClientTest {
         fail("The test case is a prototype.");
     }
 
-  }
+}

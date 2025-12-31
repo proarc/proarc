@@ -21,10 +21,23 @@ import cz.cas.lib.proarc.desa.soap.AuthenticateUserFault;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserRequest;
 import cz.cas.lib.proarc.desa.soap.AuthenticateUserResponse;
 import cz.cas.lib.proarc.desa.soap.FileHashAlg;
+import cz.cas.lib.proarc.desa.soap.GetNomenclaturesRequest;
 import cz.cas.lib.proarc.desa.soap.NomenclatureListType;
 import cz.cas.lib.proarc.desa.soap.SIPSubmission;
+import cz.cas.lib.proarc.desa.soap.SIPSubmissionError;
 import cz.cas.lib.proarc.desa.soap.SIPSubmissionFault;
 import cz.cas.lib.proarc.desa.soap.SIPSubmissionService;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.WebServiceException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.GregorianCalendar;
@@ -32,22 +45,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.WebServiceException;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
@@ -79,7 +81,7 @@ public final class DesaClient {
     /**
      * Gets SIP transporter.
      *
-     * @param operator operator user name
+     * @param operator     operator user name
      * @param producerCode producer code
      * @return the transporter
      */
@@ -89,7 +91,8 @@ public final class DesaClient {
 
     /**
      * Gets nomenclatures from the remote registry.
-     * @param operator operator login name
+     *
+     * @param operator             operator login name
      * @param nomenclatureAcronyms acronyms to query
      * @return nomenclatures
      */
@@ -106,7 +109,7 @@ public final class DesaClient {
     /**
      * Gets nomenclatures.
      *
-     * @param operator operator login name
+     * @param operator             operator login name
      * @param nomenclatureAcronyms acronyms to query
      * @return nomenclature list as XML
      */
@@ -115,7 +118,14 @@ public final class DesaClient {
         NomenclatureListType nsType = new NomenclatureListType();
         nsType.getNomenclatureAcronyme().addAll(nomenclatureAcronyms);
         try {
-            byte[] result = getSoapClient().getNomenclatures(null, producerCode, operator, nsType, currentDate);
+
+            GetNomenclaturesRequest req = new GetNomenclaturesRequest();
+            req.setProducerCode(producerCode);
+            req.setNomenlatureList(nsType);
+            req.setDate(currentDate);
+            req.setUserLogin(operator);
+            byte[] result = getSoapClient().getNomenclatures(req).getNomenclaturesData();
+
             ByteArrayInputStream bis = new ByteArrayInputStream(result);
             return new StreamSource(bis);
         } catch (SIPSubmissionFault e) {
@@ -126,18 +136,18 @@ public final class DesaClient {
 
     /**
      * Submits SIP via HTTP API.
-     * 
-     * @param file package contents
-     * @param operator user name who sends the package
-     * @param producerCode producer code (not ID)
+     *
+     * @param file          package contents
+     * @param operator      user name who sends the package
+     * @param producerCode  producer code (not ID)
      * @param producerSipId package ID
-     * @param fileHashAlg optional hash algorithm code
-     * @param fileHash optional package hash
-     * @param lang optional language of error messages
+     * @param fileHashAlg   optional hash algorithm code
+     * @param fileHash      optional package hash
+     * @param lang          optional language of error messages
      * @return AIP Version ID assigned by DESA
      */
     public String submitPackage(File file, String operator, String producerCode,
-            String producerSipId, FileHashAlg fileHashAlg, String fileHash, String lang) {
+                                String producerSipId, FileHashAlg fileHashAlg, String fileHash, String lang) {
 
         Response response = resource()
                 .path("submitpackage")
@@ -147,8 +157,8 @@ public final class DesaClient {
                 .queryParam("fileHashAlg", fileHashAlg == null ? null : fileHashAlg.value())
                 .queryParam("fileHash", fileHash)
                 .request()
-                    .acceptLanguage(lang)
-                    .post(Entity.entity(file, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+                .acceptLanguage(lang)
+                .post(Entity.entity(file, MediaType.APPLICATION_OCTET_STREAM_TYPE));
         try {
             if (response.getStatus() > 400) {
                 String error = response.readEntity(String.class);
@@ -164,12 +174,12 @@ public final class DesaClient {
     /**
      * Authenticates an operator.
      *
-     * @param operator operator user name
-     * @param passwd operator password
+     * @param operator     operator user name
+     * @param passwd       operator password
      * @param producerCode producer code (not ID)
      * @return the authenticated operator
      * @throws AuthenticateUserFault authentication failure
-     * @throws WebServiceException soap failure
+     * @throws WebServiceException   soap failure
      */
     public AuthenticateUserResponse authenticateUser(
             String operator, String passwd, String producerCode)
@@ -185,7 +195,7 @@ public final class DesaClient {
         } else {
             String msg = String.format("operator: %s, producer: %s, status: %s",
                     operator, producerCode, response.getStatus());
-            throw new AuthenticateUserFault(msg, null);
+            throw new AuthenticateUserFault(msg, new SIPSubmissionError());
         }
     }
 
