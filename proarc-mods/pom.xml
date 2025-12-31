@@ -20,6 +20,10 @@
     <url>${proarc.wiki}</url>
 
     <dependencies>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -27,33 +31,54 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.plugin.compiler.version}</version>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
+                </configuration>
             </plugin>
 
             <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <configuration>
-                    <generatePackage>cz.cas.lib.proarc.mods</generatePackage>
-                    <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                    <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mods</schemaDirectory>
-                    <schemaIncludes>
-                        <schemaInclude>mods-jaxb.xsd</schemaInclude>
-                    </schemaIncludes>
-                    <catalog>src/main/resources/cz/cas/lib/proarc/mods/catalog.cat</catalog>
-                    <args>
-                        <!--
-                            Use custom package-info.java with preferred namespace prefixes.
-                            Requires JDK 1.6.0_24 or later or com.sun.xml.bind:jaxb-impl:2.2.2 dependency.
-                            -npa:  suppress generation of package level annotations (**/package-info.java)
-                        -->
-                        <arg>-npa</arg>
-                    </args>
-                    <extension>true</extension>                
-                </configuration>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
+                <version>${maven.plugin.jaxb.version}</version>
                 <executions>
                     <execution>
+                        <id>generate-mods</id>
                         <goals>
                             <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <schemaLanguage>XMLSCHEMA</schemaLanguage>
+                            <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mods</schemaDirectory>
+                            <schemaIncludes>
+                                <schemaInclude>mods-jaxb.xsd</schemaInclude>
+                            </schemaIncludes>
+                            <catalog>src/main/resources/cz/cas/lib/proarc/mods/catalog.cat</catalog>
+                            <generatePackage>cz.cas.lib.proarc.mods</generatePackage>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjcMods</generateDirectory>
+                            <bindingDirectory>src/main/resources/cz/cas/lib/proarc/mods</bindingDirectory>
+                            <bindingIncludes>
+                                <bindingInclude>mods-jaxb-bindings.xjb</bindingInclude>
+                            </bindingIncludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <target>
+                                <delete file="${project.build.directory}/generated-sources/xjcMods/cz/cas/lib/proarc/mods/package-info.java"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
                         </goals>
                     </execution>
                 </executions>
