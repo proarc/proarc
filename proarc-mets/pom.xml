@@ -51,10 +51,10 @@
                         <configuration>
                             <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mets/info</schemaDirectory>
                             <schemaIncludes>
-                                <include>mets.xsd</include>
+                                <include>info.xsd</include>
                             </schemaIncludes>
                             <generatePackage>cz.cas.lib.proarc.mets.info</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/xjcMets</generateDirectory>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjcInfo</generateDirectory>
                         </configuration>
                     </execution>
                 </executions>
