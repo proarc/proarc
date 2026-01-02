@@ -20,13 +20,13 @@
  */
 @XmlSchema(
         namespace = AudioPremisUtils.NS,
-        elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
+        elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED,
         xmlns = {
                 @XmlNs(namespaceURI = AudioPremisUtils.NS, prefix = "nk"),
                 @XmlNs(namespaceURI = "http://www.w3.org/1999/xlink", prefix = "xlink")
         })
 package cz.cas.lib.proarc.audiopremis;
 
-import javax.xml.bind.annotation.XmlNs;
-import javax.xml.bind.annotation.XmlSchema;
+import jakarta.xml.bind.annotation.XmlNs;
+import jakarta.xml.bind.annotation.XmlSchema;
 
