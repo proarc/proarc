@@ -139,7 +139,7 @@
                                         <extraarg>-p</extraarg>
                                         <extraarg>cz.cas.lib.proarc.desa.soap</extraarg>
                                         <extraarg>-b</extraarg>
-                                        <extraarg>${basedir}/src/main/resources/jakarta.xjb</extraarg>
+                                        <extraarg>${basedir}/src/main/resources/desa-jaxb-bindings.xjb</extraarg>
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>
