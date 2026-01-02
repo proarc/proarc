@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro zatřídění dokumentu do hierarchie spisového plánu.
- * 
+ *
  * <p>Java class for tTrideniDokumentu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tTrideniDokumentu">
  *   &lt;complexContent>
@@ -33,17 +33,16 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tTrideniDokumentu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "typDokumentu",
-    "materskeEntity"
+        "typDokumentu",
+        "materskeEntity"
 })
 public class TTrideniDokumentu
-    extends TTrideni
-{
+        extends TTrideni {
 
     @XmlElement(name = "TypDokumentu", namespace = "http://www.mvcr.cz/nsesss/v2", required = true)
     protected TTypDokumentu typDokumentu;
@@ -52,11 +51,10 @@ public class TTrideniDokumentu
 
     /**
      * Gets the value of the typDokumentu property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TTypDokumentu }
-     *     
+     *
+     * @return possible object is
+     * {@link TTypDokumentu }
+     *
      */
     public TTypDokumentu getTypDokumentu() {
         return typDokumentu;
@@ -64,11 +62,10 @@ public class TTrideniDokumentu
 
     /**
      * Sets the value of the typDokumentu property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TTypDokumentu }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TTypDokumentu }
+     *
      */
     public void setTypDokumentu(TTypDokumentu value) {
         this.typDokumentu = value;
@@ -76,11 +73,10 @@ public class TTrideniDokumentu
 
     /**
      * Gets the value of the materskeEntity property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TMaterskeEntityDokumentu }
-     *     
+     *
+     * @return possible object is
+     * {@link TMaterskeEntityDokumentu }
+     *
      */
     public TMaterskeEntityDokumentu getMaterskeEntity() {
         return materskeEntity;
@@ -88,11 +84,10 @@ public class TTrideniDokumentu
 
     /**
      * Sets the value of the materskeEntity property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TMaterskeEntityDokumentu }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TMaterskeEntityDokumentu }
+     *
      */
     public void setMaterskeEntity(TMaterskeEntityDokumentu value) {
         this.materskeEntity = value;

@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro identifikaci výstupní entity (dokumentu nebo komponenty) vzešlé z procesu konverze.
- * 
+ *
  * <p>Java class for tVystup complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tVystup">
  *   &lt;complexContent>
@@ -33,13 +33,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tVystup", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "oduvodneni",
-    "odkazVystup"
+        "oduvodneni",
+        "odkazVystup"
 })
 public class TVystup {
 
@@ -50,11 +50,10 @@ public class TVystup {
 
     /**
      * Gets the value of the oduvodneni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOduvodneni() {
         return oduvodneni;
@@ -62,11 +61,10 @@ public class TVystup {
 
     /**
      * Sets the value of the oduvodneni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOduvodneni(String value) {
         this.oduvodneni = value;
@@ -74,11 +72,10 @@ public class TVystup {
 
     /**
      * Gets the value of the odkazVystup property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOdkaz }
-     *     
+     *
+     * @return possible object is
+     * {@link TOdkaz }
+     *
      */
     public TOdkaz getOdkazVystup() {
         return odkazVystup;
@@ -86,11 +83,10 @@ public class TVystup {
 
     /**
      * Sets the value of the odkazVystup property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOdkaz }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOdkaz }
+     *
      */
     public void setOdkazVystup(TOdkaz value) {
         this.odkazVystup = value;

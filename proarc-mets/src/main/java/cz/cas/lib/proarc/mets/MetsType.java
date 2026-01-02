@@ -17,21 +17,20 @@
 
 package cz.cas.lib.proarc.mets;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlIDREF;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlValue;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
@@ -40,15 +39,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * (descriptive metadata section), amdSec (administrative metadata section),
  * fileGrp (file inventory group), structLink (structural map linking),
  * structMap (structural map) and behaviorSec (behaviors section).
- * 
- * 
+ *
+ *
  * <p>
  * Java class for metsType complex type.
- * 
+ *
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="metsType">
  *   &lt;complexContent>
@@ -168,12 +167,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "metsType", namespace = "http://www.loc.gov/METS/", propOrder = { "metsHdr", "dmdSec", "amdSec", "fileSec", "structMap", "structLink", "behaviorSec" })
-@XmlSeeAlso({ Mets.class })
+@XmlType(name = "metsType", namespace = "http://www.loc.gov/METS/", propOrder = {"metsHdr", "dmdSec", "amdSec", "fileSec", "structMap", "structLink", "behaviorSec"})
+@XmlSeeAlso({Mets.class})
 public class MetsType {
 
     @XmlElement(namespace = "http://www.loc.gov/METS/")
@@ -206,9 +205,9 @@ public class MetsType {
 
     /**
      * Gets the value of the metsHdr property.
-     * 
+     *
      * @return possible object is {@link MetsType.MetsHdr }
-     * 
+     *
      */
     public MetsType.MetsHdr getMetsHdr() {
         return metsHdr;
@@ -216,10 +215,9 @@ public class MetsType {
 
     /**
      * Sets the value of the metsHdr property.
-     * 
-     * @param value
-     *            allowed object is {@link MetsType.MetsHdr }
-     * 
+     *
+     * @param value allowed object is {@link MetsType.MetsHdr }
+     *
      */
     public void setMetsHdr(MetsType.MetsHdr value) {
         this.metsHdr = value;
@@ -227,26 +225,26 @@ public class MetsType {
 
     /**
      * Gets the value of the dmdSec property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the dmdSec property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getDmdSec().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link MdSecType }
-     * 
-     * 
+     *
+     *
      */
     public List<MdSecType> getDmdSec() {
         if (dmdSec == null) {
@@ -257,26 +255,26 @@ public class MetsType {
 
     /**
      * Gets the value of the amdSec property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the amdSec property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getAmdSec().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link AmdSecType }
-     * 
-     * 
+     *
+     *
      */
     public List<AmdSecType> getAmdSec() {
         if (amdSec == null) {
@@ -287,9 +285,9 @@ public class MetsType {
 
     /**
      * Gets the value of the fileSec property.
-     * 
+     *
      * @return possible object is {@link MetsType.FileSec }
-     * 
+     *
      */
     public MetsType.FileSec getFileSec() {
         return fileSec;
@@ -297,10 +295,9 @@ public class MetsType {
 
     /**
      * Sets the value of the fileSec property.
-     * 
-     * @param value
-     *            allowed object is {@link MetsType.FileSec }
-     * 
+     *
+     * @param value allowed object is {@link MetsType.FileSec }
+     *
      */
     public void setFileSec(MetsType.FileSec value) {
         this.fileSec = value;
@@ -308,26 +305,26 @@ public class MetsType {
 
     /**
      * Gets the value of the structMap property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the structMap property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getStructMap().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link StructMapType }
-     * 
-     * 
+     *
+     *
      */
     public List<StructMapType> getStructMap() {
         if (structMap == null) {
@@ -338,9 +335,9 @@ public class MetsType {
 
     /**
      * Gets the value of the structLink property.
-     * 
+     *
      * @return possible object is {@link MetsType.StructLink }
-     * 
+     *
      */
     public MetsType.StructLink getStructLink() {
         return structLink;
@@ -348,10 +345,9 @@ public class MetsType {
 
     /**
      * Sets the value of the structLink property.
-     * 
-     * @param value
-     *            allowed object is {@link MetsType.StructLink }
-     * 
+     *
+     * @param value allowed object is {@link MetsType.StructLink }
+     *
      */
     public void setStructLink(MetsType.StructLink value) {
         this.structLink = value;
@@ -359,26 +355,26 @@ public class MetsType {
 
     /**
      * Gets the value of the behaviorSec property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the behaviorSec property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getBehaviorSec().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link BehaviorSecType }
-     * 
-     * 
+     *
+     *
      */
     public List<BehaviorSecType> getBehaviorSec() {
         if (behaviorSec == null) {
@@ -389,9 +385,9 @@ public class MetsType {
 
     /**
      * Gets the value of the id property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getID() {
         return id;
@@ -399,10 +395,9 @@ public class MetsType {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;
@@ -410,9 +405,9 @@ public class MetsType {
 
     /**
      * Gets the value of the objid property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getOBJID() {
         return objid;
@@ -420,10 +415,9 @@ public class MetsType {
 
     /**
      * Sets the value of the objid property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setOBJID(String value) {
         this.objid = value;
@@ -431,9 +425,9 @@ public class MetsType {
 
     /**
      * Gets the value of the label1 property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getLabel1() {
         return label1;
@@ -441,10 +435,9 @@ public class MetsType {
 
     /**
      * Sets the value of the label1 property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setLabel1(String value) {
         this.label1 = value;
@@ -452,9 +445,9 @@ public class MetsType {
 
     /**
      * Gets the value of the type property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getTYPE() {
         return type;
@@ -462,10 +455,9 @@ public class MetsType {
 
     /**
      * Sets the value of the type property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setTYPE(String value) {
         this.type = value;
@@ -473,9 +465,9 @@ public class MetsType {
 
     /**
      * Gets the value of the profile property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getPROFILE() {
         return profile;
@@ -483,10 +475,9 @@ public class MetsType {
 
     /**
      * Sets the value of the profile property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setPROFILE(String value) {
         this.profile = value;
@@ -495,11 +486,11 @@ public class MetsType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -519,11 +510,11 @@ public class MetsType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
-    @XmlType(name = "", propOrder = { "fileGrp" })
+    @XmlType(name = "", propOrder = {"fileGrp"})
     public static class FileSec {
 
         @XmlElement(namespace = "http://www.loc.gov/METS/", required = true)
@@ -536,26 +527,26 @@ public class MetsType {
 
         /**
          * Gets the value of the fileGrp property.
-         * 
+         *
          * <p>
          * This accessor method returns a reference to the live list, not a
          * snapshot. Therefore any modification you make to the returned list
          * will be present inside the JAXB object. This is why there is not a
          * <CODE>set</CODE> method for the fileGrp property.
-         * 
+         *
          * <p>
          * For example, to add a new item, do as follows:
-         * 
+         *
          * <pre>
          * getFileGrp().add(newItem);
          * </pre>
-         * 
-         * 
+         *
+         *
          * <p>
          * Objects of the following type(s) are allowed in the list
          * {@link MetsType.FileSec.FileGrp }
-         * 
-         * 
+         *
+         *
          */
         public List<MetsType.FileSec.FileGrp> getFileGrp() {
             if (fileGrp == null) {
@@ -566,9 +557,9 @@ public class MetsType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -576,10 +567,9 @@ public class MetsType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
@@ -588,11 +578,11 @@ public class MetsType {
         /**
          * <p>
          * Java class for anonymous complex type.
-         * 
+         *
          * <p>
          * The following schema fragment specifies the expected content
          * contained within this class.
-         * 
+         *
          * <pre>
          * &lt;complexType>
          *   &lt;complexContent>
@@ -601,8 +591,8 @@ public class MetsType {
          *   &lt;/complexContent>
          * &lt;/complexType>
          * </pre>
-         * 
-         * 
+         *
+         *
          */
         @XmlAccessorType(XmlAccessType.FIELD)
         @XmlType(name = "")
@@ -615,11 +605,11 @@ public class MetsType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -693,11 +683,11 @@ public class MetsType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
-    @XmlType(name = "", propOrder = { "agent", "altRecordID", "metsDocumentID" })
+    @XmlType(name = "", propOrder = {"agent", "altRecordID", "metsDocumentID"})
     public static class MetsHdr {
 
         @XmlElement(namespace = "http://www.loc.gov/METS/")
@@ -726,26 +716,26 @@ public class MetsType {
 
         /**
          * Gets the value of the agent property.
-         * 
+         *
          * <p>
          * This accessor method returns a reference to the live list, not a
          * snapshot. Therefore any modification you make to the returned list
          * will be present inside the JAXB object. This is why there is not a
          * <CODE>set</CODE> method for the agent property.
-         * 
+         *
          * <p>
          * For example, to add a new item, do as follows:
-         * 
+         *
          * <pre>
          * getAgent().add(newItem);
          * </pre>
-         * 
-         * 
+         *
+         *
          * <p>
          * Objects of the following type(s) are allowed in the list
          * {@link MetsType.MetsHdr.Agent }
-         * 
-         * 
+         *
+         *
          */
         public List<MetsType.MetsHdr.Agent> getAgent() {
             if (agent == null) {
@@ -756,26 +746,26 @@ public class MetsType {
 
         /**
          * Gets the value of the altRecordID property.
-         * 
+         *
          * <p>
          * This accessor method returns a reference to the live list, not a
          * snapshot. Therefore any modification you make to the returned list
          * will be present inside the JAXB object. This is why there is not a
          * <CODE>set</CODE> method for the altRecordID property.
-         * 
+         *
          * <p>
          * For example, to add a new item, do as follows:
-         * 
+         *
          * <pre>
          * getAltRecordID().add(newItem);
          * </pre>
-         * 
-         * 
+         *
+         *
          * <p>
          * Objects of the following type(s) are allowed in the list
          * {@link MetsType.MetsHdr.AltRecordID }
-         * 
-         * 
+         *
+         *
          */
         public List<MetsType.MetsHdr.AltRecordID> getAltRecordID() {
             if (altRecordID == null) {
@@ -786,9 +776,9 @@ public class MetsType {
 
         /**
          * Gets the value of the metsDocumentID property.
-         * 
+         *
          * @return possible object is {@link MetsType.MetsHdr.MetsDocumentID }
-         * 
+         *
          */
         public MetsType.MetsHdr.MetsDocumentID getMetsDocumentID() {
             return metsDocumentID;
@@ -796,10 +786,9 @@ public class MetsType {
 
         /**
          * Sets the value of the metsDocumentID property.
-         * 
-         * @param value
-         *            allowed object is {@link MetsType.MetsHdr.MetsDocumentID }
-         * 
+         *
+         * @param value allowed object is {@link MetsType.MetsHdr.MetsDocumentID }
+         *
          */
         public void setMetsDocumentID(MetsType.MetsHdr.MetsDocumentID value) {
             this.metsDocumentID = value;
@@ -807,9 +796,9 @@ public class MetsType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -817,10 +806,9 @@ public class MetsType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
@@ -828,26 +816,26 @@ public class MetsType {
 
         /**
          * Gets the value of the admid property.
-         * 
+         *
          * <p>
          * This accessor method returns a reference to the live list, not a
          * snapshot. Therefore any modification you make to the returned list
          * will be present inside the JAXB object. This is why there is not a
          * <CODE>set</CODE> method for the admid property.
-         * 
+         *
          * <p>
          * For example, to add a new item, do as follows:
-         * 
+         *
          * <pre>
          * getADMID().add(newItem);
          * </pre>
-         * 
-         * 
+         *
+         *
          * <p>
          * Objects of the following type(s) are allowed in the list
          * {@link Object }
-         * 
-         * 
+         *
+         *
          */
         public List<Object> getADMID() {
             if (admid == null) {
@@ -858,9 +846,9 @@ public class MetsType {
 
         /**
          * Gets the value of the createdate property.
-         * 
+         *
          * @return possible object is {@link XMLGregorianCalendar }
-         * 
+         *
          */
         public XMLGregorianCalendar getCREATEDATE() {
             return createdate;
@@ -868,10 +856,9 @@ public class MetsType {
 
         /**
          * Sets the value of the createdate property.
-         * 
-         * @param value
-         *            allowed object is {@link XMLGregorianCalendar }
-         * 
+         *
+         * @param value allowed object is {@link XMLGregorianCalendar }
+         *
          */
         public void setCREATEDATE(XMLGregorianCalendar value) {
             this.createdate = value;
@@ -879,9 +866,9 @@ public class MetsType {
 
         /**
          * Gets the value of the lastmoddate property.
-         * 
+         *
          * @return possible object is {@link XMLGregorianCalendar }
-         * 
+         *
          */
         public XMLGregorianCalendar getLASTMODDATE() {
             return lastmoddate;
@@ -889,10 +876,9 @@ public class MetsType {
 
         /**
          * Sets the value of the lastmoddate property.
-         * 
-         * @param value
-         *            allowed object is {@link XMLGregorianCalendar }
-         * 
+         *
+         * @param value allowed object is {@link XMLGregorianCalendar }
+         *
          */
         public void setLASTMODDATE(XMLGregorianCalendar value) {
             this.lastmoddate = value;
@@ -900,9 +886,9 @@ public class MetsType {
 
         /**
          * Gets the value of the recordstatus property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getRECORDSTATUS() {
             return recordstatus;
@@ -910,10 +896,9 @@ public class MetsType {
 
         /**
          * Sets the value of the recordstatus property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setRECORDSTATUS(String value) {
             this.recordstatus = value;
@@ -922,11 +907,11 @@ public class MetsType {
         /**
          * <p>
          * Java class for anonymous complex type.
-         * 
+         *
          * <p>
          * The following schema fragment specifies the expected content
          * contained within this class.
-         * 
+         *
          * <pre>
          * &lt;complexType>
          *   &lt;complexContent>
@@ -965,11 +950,11 @@ public class MetsType {
          *   &lt;/complexContent>
          * &lt;/complexType>
          * </pre>
-         * 
-         * 
+         *
+         *
          */
         @XmlAccessorType(XmlAccessType.FIELD)
-        @XmlType(name = "", propOrder = { "name", "note" })
+        @XmlType(name = "", propOrder = {"name", "note"})
         public static class Agent {
 
             @XmlElement(namespace = "http://www.loc.gov/METS/", required = true)
@@ -992,9 +977,9 @@ public class MetsType {
 
             /**
              * Gets the value of the name property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getName() {
                 return name;
@@ -1002,10 +987,9 @@ public class MetsType {
 
             /**
              * Sets the value of the name property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setName(String value) {
                 this.name = value;
@@ -1013,26 +997,26 @@ public class MetsType {
 
             /**
              * Gets the value of the note property.
-             * 
+             *
              * <p>
              * This accessor method returns a reference to the live list, not a
              * snapshot. Therefore any modification you make to the returned
              * list will be present inside the JAXB object. This is why there is
              * not a <CODE>set</CODE> method for the note property.
-             * 
+             *
              * <p>
              * For example, to add a new item, do as follows:
-             * 
+             *
              * <pre>
              * getNote().add(newItem);
              * </pre>
-             * 
-             * 
+             *
+             *
              * <p>
              * Objects of the following type(s) are allowed in the list
              * {@link String }
-             * 
-             * 
+             *
+             *
              */
             public List<String> getNote() {
                 if (note == null) {
@@ -1043,9 +1027,9 @@ public class MetsType {
 
             /**
              * Gets the value of the id property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getID() {
                 return id;
@@ -1053,10 +1037,9 @@ public class MetsType {
 
             /**
              * Sets the value of the id property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setID(String value) {
                 this.id = value;
@@ -1064,9 +1047,9 @@ public class MetsType {
 
             /**
              * Gets the value of the role property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getROLE() {
                 return role;
@@ -1074,10 +1057,9 @@ public class MetsType {
 
             /**
              * Sets the value of the role property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setROLE(String value) {
                 this.role = value;
@@ -1085,9 +1067,9 @@ public class MetsType {
 
             /**
              * Gets the value of the otherrole property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getOTHERROLE() {
                 return otherrole;
@@ -1095,10 +1077,9 @@ public class MetsType {
 
             /**
              * Sets the value of the otherrole property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setOTHERROLE(String value) {
                 this.otherrole = value;
@@ -1106,9 +1087,9 @@ public class MetsType {
 
             /**
              * Gets the value of the type property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getTYPE() {
                 return type;
@@ -1116,10 +1097,9 @@ public class MetsType {
 
             /**
              * Sets the value of the type property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setTYPE(String value) {
                 this.type = value;
@@ -1127,9 +1107,9 @@ public class MetsType {
 
             /**
              * Gets the value of the othertype property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getOTHERTYPE() {
                 return othertype;
@@ -1137,10 +1117,9 @@ public class MetsType {
 
             /**
              * Sets the value of the othertype property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setOTHERTYPE(String value) {
                 this.othertype = value;
@@ -1151,11 +1130,11 @@ public class MetsType {
         /**
          * <p>
          * Java class for anonymous complex type.
-         * 
+         *
          * <p>
          * The following schema fragment specifies the expected content
          * contained within this class.
-         * 
+         *
          * <pre>
          * &lt;complexType>
          *   &lt;simpleContent>
@@ -1166,11 +1145,11 @@ public class MetsType {
          *   &lt;/simpleContent>
          * &lt;/complexType>
          * </pre>
-         * 
-         * 
+         *
+         *
          */
         @XmlAccessorType(XmlAccessType.FIELD)
-        @XmlType(name = "", propOrder = { "value" })
+        @XmlType(name = "", propOrder = {"value"})
         public static class AltRecordID {
 
             @XmlValue
@@ -1185,9 +1164,9 @@ public class MetsType {
 
             /**
              * Gets the value of the value property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getValue() {
                 return value;
@@ -1195,10 +1174,9 @@ public class MetsType {
 
             /**
              * Sets the value of the value property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setValue(String value) {
                 this.value = value;
@@ -1206,9 +1184,9 @@ public class MetsType {
 
             /**
              * Gets the value of the id property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getID() {
                 return id;
@@ -1216,10 +1194,9 @@ public class MetsType {
 
             /**
              * Sets the value of the id property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setID(String value) {
                 this.id = value;
@@ -1227,9 +1204,9 @@ public class MetsType {
 
             /**
              * Gets the value of the type property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getTYPE() {
                 return type;
@@ -1237,10 +1214,9 @@ public class MetsType {
 
             /**
              * Sets the value of the type property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setTYPE(String value) {
                 this.type = value;
@@ -1251,11 +1227,11 @@ public class MetsType {
         /**
          * <p>
          * Java class for anonymous complex type.
-         * 
+         *
          * <p>
          * The following schema fragment specifies the expected content
          * contained within this class.
-         * 
+         *
          * <pre>
          * &lt;complexType>
          *   &lt;simpleContent>
@@ -1266,11 +1242,11 @@ public class MetsType {
          *   &lt;/simpleContent>
          * &lt;/complexType>
          * </pre>
-         * 
-         * 
+         *
+         *
          */
         @XmlAccessorType(XmlAccessType.FIELD)
-        @XmlType(name = "", propOrder = { "value" })
+        @XmlType(name = "", propOrder = {"value"})
         public static class MetsDocumentID {
 
             @XmlValue
@@ -1285,9 +1261,9 @@ public class MetsType {
 
             /**
              * Gets the value of the value property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getValue() {
                 return value;
@@ -1295,10 +1271,9 @@ public class MetsType {
 
             /**
              * Sets the value of the value property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setValue(String value) {
                 this.value = value;
@@ -1306,9 +1281,9 @@ public class MetsType {
 
             /**
              * Gets the value of the id property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getID() {
                 return id;
@@ -1316,10 +1291,9 @@ public class MetsType {
 
             /**
              * Sets the value of the id property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setID(String value) {
                 this.id = value;
@@ -1327,9 +1301,9 @@ public class MetsType {
 
             /**
              * Gets the value of the type property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getTYPE() {
                 return type;
@@ -1337,10 +1311,9 @@ public class MetsType {
 
             /**
              * Sets the value of the type property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setTYPE(String value) {
                 this.type = value;
@@ -1353,11 +1326,11 @@ public class MetsType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -1366,8 +1339,8 @@ public class MetsType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "")

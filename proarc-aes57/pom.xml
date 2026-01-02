@@ -19,38 +19,45 @@
     <name>ProArc AES57 JAXB Model</name>
     <url>${proarc.wiki}</url>
 
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>1.6</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.plugin.compiler.version}</version>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
+                <version>${maven.plugin.jaxb.version}</version>
                 <executions>
                     <execution>
-                        <id>aes</id>
+                        <id>aes57-generate</id>
                         <goals>
-                            <goal>xjc</goal>
+                            <goal>generate</goal>
                         </goals>
-                        <configuration>
-                            <!--forceRegenerate>true</forceRegenerate -->
-                            <arguments>-no-header</arguments>
-                            <schemaDirectory>src/main/resources/cz/cas/lib/proarc/aes57</schemaDirectory>
-                            <schemaFiles>aes20.xsd</schemaFiles>
-                            <clearOutputDir>false</clearOutputDir>
-                        </configuration>
                     </execution>
                 </executions>
                 <configuration>
-                    <arguments>-extension -Xwildcard</arguments>
+                    <schemaDirectory>src/main/resources/cz/cas/lib/proarc/aes57</schemaDirectory>
+                    <schemaIncludes>
+                        <include>aes20.xsd</include>
+                    </schemaIncludes>
+                    <generatePackage>org.aes.audioobject</generatePackage>
+                    <generateDirectory>${project.build.directory}/generated-sources/xjcAes57</generateDirectory>
                 </configuration>
-
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jvnet.jaxb2_commons</groupId>
-                        <artifactId>jaxb2-basics</artifactId>
-                        <version>0.8.2</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>

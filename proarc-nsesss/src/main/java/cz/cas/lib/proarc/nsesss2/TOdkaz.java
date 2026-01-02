@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro referenci na jinou entitu v podobě plně určeného spisového znaku a identifikátoru přiděleného ERMS.
- * 
+ *
  * <p>Java class for tOdkaz complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tOdkaz">
  *   &lt;complexContent>
@@ -34,14 +34,14 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tOdkaz", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "plneUrcenySpisovyZnak",
-    "identifikator",
-    "specifikace"
+        "plneUrcenySpisovyZnak",
+        "identifikator",
+        "specifikace"
 })
 public class TOdkaz {
 
@@ -54,11 +54,10 @@ public class TOdkaz {
 
     /**
      * Gets the value of the plneUrcenySpisovyZnak property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getPlneUrcenySpisovyZnak() {
         return plneUrcenySpisovyZnak;
@@ -66,11 +65,10 @@ public class TOdkaz {
 
     /**
      * Sets the value of the plneUrcenySpisovyZnak property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setPlneUrcenySpisovyZnak(String value) {
         this.plneUrcenySpisovyZnak = value;
@@ -78,11 +76,10 @@ public class TOdkaz {
 
     /**
      * Gets the value of the identifikator property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikator }
+     *
      */
     public TIdentifikator getIdentifikator() {
         return identifikator;
@@ -90,11 +87,10 @@ public class TOdkaz {
 
     /**
      * Sets the value of the identifikator property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikator }
+     *
      */
     public void setIdentifikator(TIdentifikator value) {
         this.identifikator = value;
@@ -102,11 +98,10 @@ public class TOdkaz {
 
     /**
      * Gets the value of the specifikace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getSpecifikace() {
         return specifikace;
@@ -114,11 +109,10 @@ public class TOdkaz {
 
     /**
      * Sets the value of the specifikace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setSpecifikace(String value) {
         this.specifikace = value;

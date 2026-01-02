@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro zaznamenání procesu redakce nebo konverze dokumentu.
- * 
+ *
  * <p>Java class for tPrevodDokumentu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tPrevodDokumentu">
  *   &lt;complexContent>
@@ -33,13 +33,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tPrevodDokumentu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "redakce",
-    "konverzeADDA"
+        "redakce",
+        "konverzeADDA"
 })
 public class TPrevodDokumentu {
 
@@ -50,11 +50,10 @@ public class TPrevodDokumentu {
 
     /**
      * Gets the value of the redakce property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TRedakce }
-     *     
+     *
+     * @return possible object is
+     * {@link TRedakce }
+     *
      */
     public TRedakce getRedakce() {
         return redakce;
@@ -62,11 +61,10 @@ public class TPrevodDokumentu {
 
     /**
      * Sets the value of the redakce property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TRedakce }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TRedakce }
+     *
      */
     public void setRedakce(TRedakce value) {
         this.redakce = value;
@@ -74,11 +72,10 @@ public class TPrevodDokumentu {
 
     /**
      * Gets the value of the konverzeADDA property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TKonverzeADDA }
-     *     
+     *
+     * @return possible object is
+     * {@link TKonverzeADDA }
+     *
      */
     public TKonverzeADDA getKonverzeADDA() {
         return konverzeADDA;
@@ -86,11 +83,10 @@ public class TPrevodDokumentu {
 
     /**
      * Sets the value of the konverzeADDA property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TKonverzeADDA }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TKonverzeADDA }
+     *
      */
     public void setKonverzeADDA(TKonverzeADDA value) {
         this.konverzeADDA = value;

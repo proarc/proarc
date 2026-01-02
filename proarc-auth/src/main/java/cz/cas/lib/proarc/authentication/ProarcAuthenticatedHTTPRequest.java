@@ -1,10 +1,9 @@
 package cz.cas.lib.proarc.authentication;
 
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
 
 public class ProarcAuthenticatedHTTPRequest implements InvocationHandler {
 
@@ -13,7 +12,7 @@ public class ProarcAuthenticatedHTTPRequest implements InvocationHandler {
     private String remoteUser;
 
     ProarcAuthenticatedHTTPRequest(HttpServletRequest request,
-            ProarcPrincipal uPrincipal, String rUser) {
+                                   ProarcPrincipal uPrincipal, String rUser) {
         super();
         this.reqest = request;
         this.userPrincipal = uPrincipal;
@@ -33,10 +32,10 @@ public class ProarcAuthenticatedHTTPRequest implements InvocationHandler {
     }
 
     public static HttpServletRequest newInstance(HttpServletRequest reqest,
-            ProarcPrincipal uPrincipal, String rUser) {
+                                                 ProarcPrincipal uPrincipal, String rUser) {
         return (HttpServletRequest) java.lang.reflect.Proxy.newProxyInstance(
                 ProarcAuthenticatedHTTPRequest.class.getClassLoader(),
-                new Class[] { ServletRequest.class, HttpServletRequest.class },
+                new Class[]{ServletRequest.class, HttpServletRequest.class},
                 new ProarcAuthenticatedHTTPRequest(reqest, uPrincipal, rUser));
     }
 }

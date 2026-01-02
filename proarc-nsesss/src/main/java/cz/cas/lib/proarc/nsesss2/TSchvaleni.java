@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro popis individuálního procesu schválení entity.
- * 
+ *
  * <p>Java class for tSchvaleni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tSchvaleni">
  *   &lt;complexContent>
@@ -33,13 +33,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tSchvaleni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "datumSchvaleni",
-    "schvalovatel"
+        "datumSchvaleni",
+        "schvalovatel"
 })
 public class TSchvaleni {
 
@@ -50,11 +50,10 @@ public class TSchvaleni {
 
     /**
      * Gets the value of the datumSchvaleni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatumSchvaleni() {
         return datumSchvaleni;
@@ -62,11 +61,10 @@ public class TSchvaleni {
 
     /**
      * Sets the value of the datumSchvaleni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatumSchvaleni(TDatum value) {
         this.datumSchvaleni = value;
@@ -74,11 +72,10 @@ public class TSchvaleni {
 
     /**
      * Gets the value of the schvalovatel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobaInterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobaInterni }
+     *
      */
     public TOsobaInterni getSchvalovatel() {
         return schvalovatel;
@@ -86,11 +83,10 @@ public class TSchvaleni {
 
     /**
      * Sets the value of the schvalovatel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobaInterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobaInterni }
+     *
      */
     public void setSchvalovatel(TOsobaInterni value) {
         this.schvalovatel = value;

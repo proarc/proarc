@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro popis systému vyřazování entit, který určuje datum zahájení plynutí skartační lhůty, vymezuje dobu ukládání entit a určuje typ skartační operace podle skartačního znaku.
- * 
+ *
  * <p>Java class for tSkartacniRezim complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tSkartacniRezim">
  *   &lt;complexContent>
@@ -38,18 +38,18 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tSkartacniRezim", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "identifikator",
-    "nazev",
-    "komentar",
-    "oduvodneni",
-    "skartacniZnak",
-    "skartacniLhuta",
-    "spousteciUdalost"
+        "identifikator",
+        "nazev",
+        "komentar",
+        "oduvodneni",
+        "skartacniZnak",
+        "skartacniLhuta",
+        "spousteciUdalost"
 })
 public class TSkartacniRezim {
 
@@ -70,11 +70,10 @@ public class TSkartacniRezim {
 
     /**
      * Gets the value of the identifikator property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikator }
+     *
      */
     public TIdentifikator getIdentifikator() {
         return identifikator;
@@ -82,11 +81,10 @@ public class TSkartacniRezim {
 
     /**
      * Sets the value of the identifikator property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikator }
+     *
      */
     public void setIdentifikator(TIdentifikator value) {
         this.identifikator = value;
@@ -94,11 +92,10 @@ public class TSkartacniRezim {
 
     /**
      * Gets the value of the nazev property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getNazev() {
         return nazev;
@@ -106,11 +103,10 @@ public class TSkartacniRezim {
 
     /**
      * Sets the value of the nazev property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setNazev(String value) {
         this.nazev = value;
@@ -118,11 +114,10 @@ public class TSkartacniRezim {
 
     /**
      * Gets the value of the komentar property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getKomentar() {
         return komentar;
@@ -130,11 +125,10 @@ public class TSkartacniRezim {
 
     /**
      * Sets the value of the komentar property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setKomentar(String value) {
         this.komentar = value;
@@ -142,11 +136,10 @@ public class TSkartacniRezim {
 
     /**
      * Gets the value of the oduvodneni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOduvodneni() {
         return oduvodneni;
@@ -154,11 +147,10 @@ public class TSkartacniRezim {
 
     /**
      * Sets the value of the oduvodneni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOduvodneni(String value) {
         this.oduvodneni = value;
@@ -166,11 +158,10 @@ public class TSkartacniRezim {
 
     /**
      * Gets the value of the skartacniZnak property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TSkartacniZnak }
-     *     
+     *
+     * @return possible object is
+     * {@link TSkartacniZnak }
+     *
      */
     public TSkartacniZnak getSkartacniZnak() {
         return skartacniZnak;
@@ -178,11 +169,10 @@ public class TSkartacniRezim {
 
     /**
      * Sets the value of the skartacniZnak property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TSkartacniZnak }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TSkartacniZnak }
+     *
      */
     public void setSkartacniZnak(TSkartacniZnak value) {
         this.skartacniZnak = value;
@@ -190,7 +180,7 @@ public class TSkartacniRezim {
 
     /**
      * Gets the value of the skartacniLhuta property.
-     * 
+     *
      */
     public int getSkartacniLhuta() {
         return skartacniLhuta;
@@ -198,7 +188,7 @@ public class TSkartacniRezim {
 
     /**
      * Sets the value of the skartacniLhuta property.
-     * 
+     *
      */
     public void setSkartacniLhuta(int value) {
         this.skartacniLhuta = value;
@@ -206,11 +196,10 @@ public class TSkartacniRezim {
 
     /**
      * Gets the value of the spousteciUdalost property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getSpousteciUdalost() {
         return spousteciUdalost;
@@ -218,11 +207,10 @@ public class TSkartacniRezim {
 
     /**
      * Sets the value of the spousteciUdalost property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setSpousteciUdalost(String value) {
         this.spousteciUdalost = value;

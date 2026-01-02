@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro mateřské entity součásti.
- * 
+ *
  * <p>Java class for tMaterskaEntitaSoucasti complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tMaterskaEntitaSoucasti">
  *   &lt;complexContent>
@@ -32,12 +32,12 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tMaterskaEntitaSoucasti", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "typovySpis"
+        "typovySpis"
 })
 public class TMaterskaEntitaSoucasti {
 
@@ -46,11 +46,10 @@ public class TMaterskaEntitaSoucasti {
 
     /**
      * Gets the value of the typovySpis property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TTypovySpis }
-     *     
+     *
+     * @return possible object is
+     * {@link TTypovySpis }
+     *
      */
     public TTypovySpis getTypovySpis() {
         return typovySpis;
@@ -58,11 +57,10 @@ public class TMaterskaEntitaSoucasti {
 
     /**
      * Sets the value of the typovySpis property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TTypovySpis }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TTypovySpis }
+     *
      */
     public void setTypovySpis(TTypovySpis value) {
         this.typovySpis = value;

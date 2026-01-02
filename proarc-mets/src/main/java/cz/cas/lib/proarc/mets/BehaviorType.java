@@ -20,16 +20,16 @@ package cz.cas.lib.proarc.mets;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlIDREF;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
@@ -40,15 +40,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * also has an behavior mechanism which is a module of executable code that
  * implements and runs the behavior defined abstractly by the interface
  * definition.
- * 
- * 
+ *
+ *
  * <p>
  * Java class for behaviorType complex type.
- * 
+ *
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="behaviorType">
  *   &lt;complexContent>
@@ -68,11 +68,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "behaviorType", namespace = "http://www.loc.gov/METS/", propOrder = { "interfaceDef", "mechanism" })
+@XmlType(name = "behaviorType", namespace = "http://www.loc.gov/METS/", propOrder = {"interfaceDef", "mechanism"})
 public class BehaviorType {
 
     @XmlElement(namespace = "http://www.loc.gov/METS/")
@@ -104,9 +104,9 @@ public class BehaviorType {
 
     /**
      * Gets the value of the interfaceDef property.
-     * 
+     *
      * @return possible object is {@link ObjectType }
-     * 
+     *
      */
     public ObjectType getInterfaceDef() {
         return interfaceDef;
@@ -114,10 +114,9 @@ public class BehaviorType {
 
     /**
      * Sets the value of the interfaceDef property.
-     * 
-     * @param value
-     *            allowed object is {@link ObjectType }
-     * 
+     *
+     * @param value allowed object is {@link ObjectType }
+     *
      */
     public void setInterfaceDef(ObjectType value) {
         this.interfaceDef = value;
@@ -125,9 +124,9 @@ public class BehaviorType {
 
     /**
      * Gets the value of the mechanism property.
-     * 
+     *
      * @return possible object is {@link ObjectType }
-     * 
+     *
      */
     public ObjectType getMechanism() {
         return mechanism;
@@ -135,10 +134,9 @@ public class BehaviorType {
 
     /**
      * Sets the value of the mechanism property.
-     * 
-     * @param value
-     *            allowed object is {@link ObjectType }
-     * 
+     *
+     * @param value allowed object is {@link ObjectType }
+     *
      */
     public void setMechanism(ObjectType value) {
         this.mechanism = value;
@@ -146,9 +144,9 @@ public class BehaviorType {
 
     /**
      * Gets the value of the id property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getID() {
         return id;
@@ -156,10 +154,9 @@ public class BehaviorType {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;
@@ -167,25 +164,25 @@ public class BehaviorType {
 
     /**
      * Gets the value of the structid property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the structid property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getSTRUCTID().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list {@link Object }
-     * 
-     * 
+     *
+     *
      */
     public List<Object> getSTRUCTID() {
         if (structid == null) {
@@ -196,9 +193,9 @@ public class BehaviorType {
 
     /**
      * Gets the value of the btype property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getBTYPE() {
         return btype;
@@ -206,10 +203,9 @@ public class BehaviorType {
 
     /**
      * Sets the value of the btype property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setBTYPE(String value) {
         this.btype = value;
@@ -217,9 +213,9 @@ public class BehaviorType {
 
     /**
      * Gets the value of the created property.
-     * 
+     *
      * @return possible object is {@link XMLGregorianCalendar }
-     * 
+     *
      */
     public XMLGregorianCalendar getCREATED() {
         return created;
@@ -227,10 +223,9 @@ public class BehaviorType {
 
     /**
      * Sets the value of the created property.
-     * 
-     * @param value
-     *            allowed object is {@link XMLGregorianCalendar }
-     * 
+     *
+     * @param value allowed object is {@link XMLGregorianCalendar }
+     *
      */
     public void setCREATED(XMLGregorianCalendar value) {
         this.created = value;
@@ -238,9 +233,9 @@ public class BehaviorType {
 
     /**
      * Gets the value of the label5 property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getLabel5() {
         return label5;
@@ -248,10 +243,9 @@ public class BehaviorType {
 
     /**
      * Sets the value of the label5 property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setLabel5(String value) {
         this.label5 = value;
@@ -259,9 +253,9 @@ public class BehaviorType {
 
     /**
      * Gets the value of the groupid property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getGROUPID() {
         return groupid;
@@ -269,10 +263,9 @@ public class BehaviorType {
 
     /**
      * Sets the value of the groupid property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setGROUPID(String value) {
         this.groupid = value;
@@ -280,25 +273,25 @@ public class BehaviorType {
 
     /**
      * Gets the value of the admid property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the admid property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getADMID().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list {@link Object }
-     * 
-     * 
+     *
+     *
      */
     public List<Object> getADMID() {
         if (admid == null) {

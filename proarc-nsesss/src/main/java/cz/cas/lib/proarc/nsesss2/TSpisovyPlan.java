@@ -8,24 +8,24 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
 /**
  * Sada elementů pro popis spisového plánu (hierarchického uspořádání věcných skupin) organizace.
- * 
+ *
  * <p>Java class for tSpisovyPlan complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tSpisovyPlan">
  *   &lt;complexContent>
@@ -42,16 +42,16 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tSpisovyPlan", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "identifikator",
-    "nazev",
-    "komentar",
-    "manipulace",
-    "vydavatel"
+        "identifikator",
+        "nazev",
+        "komentar",
+        "manipulace",
+        "vydavatel"
 })
 public class TSpisovyPlan {
 
@@ -73,11 +73,10 @@ public class TSpisovyPlan {
 
     /**
      * Gets the value of the identifikator property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikator }
+     *
      */
     public TIdentifikator getIdentifikator() {
         return identifikator;
@@ -85,11 +84,10 @@ public class TSpisovyPlan {
 
     /**
      * Sets the value of the identifikator property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikator }
+     *
      */
     public void setIdentifikator(TIdentifikator value) {
         this.identifikator = value;
@@ -97,11 +95,10 @@ public class TSpisovyPlan {
 
     /**
      * Gets the value of the nazev property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getNazev() {
         return nazev;
@@ -109,11 +106,10 @@ public class TSpisovyPlan {
 
     /**
      * Sets the value of the nazev property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setNazev(String value) {
         this.nazev = value;
@@ -121,11 +117,10 @@ public class TSpisovyPlan {
 
     /**
      * Gets the value of the komentar property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getKomentar() {
         return komentar;
@@ -133,11 +128,10 @@ public class TSpisovyPlan {
 
     /**
      * Sets the value of the komentar property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setKomentar(String value) {
         this.komentar = value;
@@ -145,11 +139,10 @@ public class TSpisovyPlan {
 
     /**
      * Gets the value of the manipulace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TManipulaceSpisovyPlan }
-     *     
+     *
+     * @return possible object is
+     * {@link TManipulaceSpisovyPlan }
+     *
      */
     public TManipulaceSpisovyPlan getManipulace() {
         return manipulace;
@@ -157,11 +150,10 @@ public class TSpisovyPlan {
 
     /**
      * Sets the value of the manipulace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TManipulaceSpisovyPlan }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TManipulaceSpisovyPlan }
+     *
      */
     public void setManipulace(TManipulaceSpisovyPlan value) {
         this.manipulace = value;
@@ -169,11 +161,10 @@ public class TSpisovyPlan {
 
     /**
      * Gets the value of the vydavatel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobaExterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobaExterni }
+     *
      */
     public TOsobaExterni getVydavatel() {
         return vydavatel;
@@ -181,11 +172,10 @@ public class TSpisovyPlan {
 
     /**
      * Sets the value of the vydavatel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobaExterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobaExterni }
+     *
      */
     public void setVydavatel(TOsobaExterni value) {
         this.vydavatel = value;
@@ -193,11 +183,10 @@ public class TSpisovyPlan {
 
     /**
      * Gets the value of the id property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getID() {
         return id;
@@ -205,11 +194,10 @@ public class TSpisovyPlan {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;

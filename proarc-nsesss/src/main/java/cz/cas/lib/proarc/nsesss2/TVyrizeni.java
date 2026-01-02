@@ -8,20 +8,20 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro evidenci údajů o vyřízení a uzavření entity.
- * 
+ *
  * <p>Java class for tVyrizeni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tVyrizeni">
  *   &lt;complexContent>
@@ -39,21 +39,21 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tVyrizeni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "datum",
-    "zpusob",
-    "obsahVyrizeni",
-    "oduvodneni",
-    "zpracovatel",
-    "konzultant",
-    "schvalovani"
+        "datum",
+        "zpusob",
+        "obsahVyrizeni",
+        "oduvodneni",
+        "zpracovatel",
+        "konzultant",
+        "schvalovani"
 })
 @XmlSeeAlso({
-    TVyrizeniEntity.class
+        TVyrizeniEntity.class
 })
 public class TVyrizeni {
 
@@ -74,11 +74,10 @@ public class TVyrizeni {
 
     /**
      * Gets the value of the datum property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatum() {
         return datum;
@@ -86,11 +85,10 @@ public class TVyrizeni {
 
     /**
      * Sets the value of the datum property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatum(TDatum value) {
         this.datum = value;
@@ -98,11 +96,10 @@ public class TVyrizeni {
 
     /**
      * Gets the value of the zpusob property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TZpusobVyrizeni }
-     *     
+     *
+     * @return possible object is
+     * {@link TZpusobVyrizeni }
+     *
      */
     public TZpusobVyrizeni getZpusob() {
         return zpusob;
@@ -110,11 +107,10 @@ public class TVyrizeni {
 
     /**
      * Sets the value of the zpusob property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TZpusobVyrizeni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TZpusobVyrizeni }
+     *
      */
     public void setZpusob(TZpusobVyrizeni value) {
         this.zpusob = value;
@@ -122,11 +118,10 @@ public class TVyrizeni {
 
     /**
      * Gets the value of the obsahVyrizeni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getObsahVyrizeni() {
         return obsahVyrizeni;
@@ -134,11 +129,10 @@ public class TVyrizeni {
 
     /**
      * Sets the value of the obsahVyrizeni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setObsahVyrizeni(String value) {
         this.obsahVyrizeni = value;
@@ -146,11 +140,10 @@ public class TVyrizeni {
 
     /**
      * Gets the value of the oduvodneni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOduvodneni() {
         return oduvodneni;
@@ -158,11 +151,10 @@ public class TVyrizeni {
 
     /**
      * Sets the value of the oduvodneni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOduvodneni(String value) {
         this.oduvodneni = value;
@@ -170,11 +162,10 @@ public class TVyrizeni {
 
     /**
      * Gets the value of the zpracovatel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobyInterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobyInterni }
+     *
      */
     public TOsobyInterni getZpracovatel() {
         return zpracovatel;
@@ -182,11 +173,10 @@ public class TVyrizeni {
 
     /**
      * Sets the value of the zpracovatel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobyInterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobyInterni }
+     *
      */
     public void setZpracovatel(TOsobyInterni value) {
         this.zpracovatel = value;
@@ -194,11 +184,10 @@ public class TVyrizeni {
 
     /**
      * Gets the value of the konzultant property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobyInterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobyInterni }
+     *
      */
     public TOsobyInterni getKonzultant() {
         return konzultant;
@@ -206,11 +195,10 @@ public class TVyrizeni {
 
     /**
      * Sets the value of the konzultant property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobyInterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobyInterni }
+     *
      */
     public void setKonzultant(TOsobyInterni value) {
         this.konzultant = value;
@@ -218,11 +206,10 @@ public class TVyrizeni {
 
     /**
      * Gets the value of the schvalovani property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TSchvalovani }
-     *     
+     *
+     * @return possible object is
+     * {@link TSchvalovani }
+     *
      */
     public TSchvalovani getSchvalovani() {
         return schvalovani;
@@ -230,11 +217,10 @@ public class TVyrizeni {
 
     /**
      * Sets the value of the schvalovani property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TSchvalovani }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TSchvalovani }
+     *
      */
     public void setSchvalovani(TSchvalovani value) {
         this.schvalovani = value;

@@ -10,19 +10,19 @@ package cz.cas.lib.proarc.nsesss2;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro popis konverze komponenty z digitální podoby do jiné digitální podoby (DD). V terminologii jiné profesní oblasti se jedná o migraci komponenty.
- * 
+ *
  * <p>Java class for tKonverzeDD complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tKonverzeDD">
  *   &lt;complexContent>
@@ -38,14 +38,14 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tKonverzeDD", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "ztvarneni",
-    "oduvodneni",
-    "odkazPuvodniKomponenta"
+        "ztvarneni",
+        "oduvodneni",
+        "odkazPuvodniKomponenta"
 })
 public class TKonverzeDD {
 
@@ -58,25 +58,25 @@ public class TKonverzeDD {
 
     /**
      * Gets the value of the ztvarneni property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the ztvarneni property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getZtvarneni().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link TZtvarneni }
-     * 
-     * 
+     *
+     *
      */
     public List<TZtvarneni> getZtvarneni() {
         if (ztvarneni == null) {
@@ -87,11 +87,10 @@ public class TKonverzeDD {
 
     /**
      * Gets the value of the oduvodneni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOduvodneni() {
         return oduvodneni;
@@ -99,11 +98,10 @@ public class TKonverzeDD {
 
     /**
      * Sets the value of the oduvodneni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOduvodneni(String value) {
         this.oduvodneni = value;
@@ -111,25 +109,25 @@ public class TKonverzeDD {
 
     /**
      * Gets the value of the odkazPuvodniKomponenta property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the odkazPuvodniKomponenta property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getOdkazPuvodniKomponenta().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link TOdkaz }
-     * 
-     * 
+     *
+     *
      */
     public List<TOdkaz> getOdkazPuvodniKomponenta() {
         if (odkazPuvodniKomponenta == null) {

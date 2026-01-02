@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.nsesss2.mapping;
 
-import cz.cas.lib.proarc.nsesss2.mapping.NsesssMapper;
 import cz.cas.lib.proarc.nsesss2.NsesssConstants;
 import cz.cas.lib.proarc.nsesss2.Spis;
 import cz.cas.lib.proarc.nsesss2.TDatum;
@@ -28,8 +27,10 @@ import cz.cas.lib.proarc.nsesss2.TSkartacniRezim;
 import cz.cas.lib.proarc.nsesss2.TSubjektExterni;
 import cz.cas.lib.proarc.nsesss2.mapping.NsesssMapper.SubjektExterni;
 import java.util.List;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  *

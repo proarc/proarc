@@ -17,18 +17,17 @@
 
 package cz.cas.lib.proarc.mets;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
@@ -37,15 +36,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * element is used to group individual behaviors within a hierarchical
  * structure. Such grouping can be useful to organize families of behaviors
  * together or to indicate other relationships between particular behaviors.
- * 
- * 
+ *
+ *
  * <p>
  * Java class for behaviorSecType complex type.
- * 
+ *
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="behaviorSecType">
  *   &lt;complexContent>
@@ -61,11 +60,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "behaviorSecType", namespace = "http://www.loc.gov/METS/", propOrder = { "behaviorSec", "behavior" })
+@XmlType(name = "behaviorSecType", namespace = "http://www.loc.gov/METS/", propOrder = {"behaviorSec", "behavior"})
 public class BehaviorSecType {
 
     @XmlElement(namespace = "http://www.loc.gov/METS/")
@@ -85,26 +84,26 @@ public class BehaviorSecType {
 
     /**
      * Gets the value of the behaviorSec property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the behaviorSec property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getBehaviorSec().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link BehaviorSecType }
-     * 
-     * 
+     *
+     *
      */
     public List<BehaviorSecType> getBehaviorSec() {
         if (behaviorSec == null) {
@@ -115,26 +114,26 @@ public class BehaviorSecType {
 
     /**
      * Gets the value of the behavior property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the behavior property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getBehavior().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link BehaviorType }
-     * 
-     * 
+     *
+     *
      */
     public List<BehaviorType> getBehavior() {
         if (behavior == null) {
@@ -145,9 +144,9 @@ public class BehaviorSecType {
 
     /**
      * Gets the value of the id property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getID() {
         return id;
@@ -155,10 +154,9 @@ public class BehaviorSecType {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;
@@ -166,9 +164,9 @@ public class BehaviorSecType {
 
     /**
      * Gets the value of the created property.
-     * 
+     *
      * @return possible object is {@link XMLGregorianCalendar }
-     * 
+     *
      */
     public XMLGregorianCalendar getCREATED() {
         return created;
@@ -176,10 +174,9 @@ public class BehaviorSecType {
 
     /**
      * Sets the value of the created property.
-     * 
-     * @param value
-     *            allowed object is {@link XMLGregorianCalendar }
-     * 
+     *
+     * @param value allowed object is {@link XMLGregorianCalendar }
+     *
      */
     public void setCREATED(XMLGregorianCalendar value) {
         this.created = value;
@@ -187,9 +184,9 @@ public class BehaviorSecType {
 
     /**
      * Gets the value of the label4 property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getLabel4() {
         return label4;
@@ -197,10 +194,9 @@ public class BehaviorSecType {
 
     /**
      * Sets the value of the label4 property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setLabel4(String value) {
         this.label4 = value;

@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro evidenci údajů o doručení dokumentu.
- * 
+ *
  * <p>Java class for tDorucenyDokument complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tDorucenyDokument">
  *   &lt;complexContent>
@@ -37,17 +37,17 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tDorucenyDokument", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "datumVytvoreni",
-    "autor",
-    "datumDoruceni",
-    "odesilatelovoEvidencniCislo",
-    "doruceneMnozstvi",
-    "odesilatel"
+        "datumVytvoreni",
+        "autor",
+        "datumDoruceni",
+        "odesilatelovoEvidencniCislo",
+        "doruceneMnozstvi",
+        "odesilatel"
 })
 public class TDorucenyDokument {
 
@@ -66,11 +66,10 @@ public class TDorucenyDokument {
 
     /**
      * Gets the value of the datumVytvoreni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatumVytvoreni() {
         return datumVytvoreni;
@@ -78,11 +77,10 @@ public class TDorucenyDokument {
 
     /**
      * Sets the value of the datumVytvoreni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatumVytvoreni(TDatum value) {
         this.datumVytvoreni = value;
@@ -90,11 +88,10 @@ public class TDorucenyDokument {
 
     /**
      * Gets the value of the autor property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobyExterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobyExterni }
+     *
      */
     public TOsobyExterni getAutor() {
         return autor;
@@ -102,11 +99,10 @@ public class TDorucenyDokument {
 
     /**
      * Sets the value of the autor property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobyExterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobyExterni }
+     *
      */
     public void setAutor(TOsobyExterni value) {
         this.autor = value;
@@ -114,11 +110,10 @@ public class TDorucenyDokument {
 
     /**
      * Gets the value of the datumDoruceni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatumDoruceni() {
         return datumDoruceni;
@@ -126,11 +121,10 @@ public class TDorucenyDokument {
 
     /**
      * Sets the value of the datumDoruceni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatumDoruceni(TDatum value) {
         this.datumDoruceni = value;
@@ -138,11 +132,10 @@ public class TDorucenyDokument {
 
     /**
      * Gets the value of the odesilatelovoEvidencniCislo property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOdesilatelovoEvidencniCislo() {
         return odesilatelovoEvidencniCislo;
@@ -150,11 +143,10 @@ public class TDorucenyDokument {
 
     /**
      * Sets the value of the odesilatelovoEvidencniCislo property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOdesilatelovoEvidencniCislo(String value) {
         this.odesilatelovoEvidencniCislo = value;
@@ -162,11 +154,10 @@ public class TDorucenyDokument {
 
     /**
      * Gets the value of the doruceneMnozstvi property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getDoruceneMnozstvi() {
         return doruceneMnozstvi;
@@ -174,11 +165,10 @@ public class TDorucenyDokument {
 
     /**
      * Sets the value of the doruceneMnozstvi property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setDoruceneMnozstvi(String value) {
         this.doruceneMnozstvi = value;
@@ -186,11 +176,10 @@ public class TDorucenyDokument {
 
     /**
      * Gets the value of the odesilatel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobaExterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobaExterni }
+     *
      */
     public TOsobaExterni getOdesilatel() {
         return odesilatel;
@@ -198,11 +187,10 @@ public class TDorucenyDokument {
 
     /**
      * Sets the value of the odesilatel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobaExterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobaExterni }
+     *
      */
     public void setOdesilatel(TOsobaExterni value) {
         this.odesilatel = value;

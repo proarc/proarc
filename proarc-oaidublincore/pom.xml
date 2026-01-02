@@ -19,6 +19,12 @@
     <url>${proarc.wiki}</url>
 
     <dependencies>
+
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -26,6 +32,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.plugin.compiler.version}</version>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
+                </configuration>
             </plugin>
 
             <!--Creates sources.jar to allow to inherit included GWT modules-->

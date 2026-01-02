@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro identifikaci právnické nebo fyzické osoby a pro uvedení její poštovní adresy (adresy pro doručování) nebo elektronického kontaktu. Tato osoba je identická s organizací, která tato metadata vytváří, nebo je v zaměstnaneckém poměru k této organizaci.
- * 
+ *
  * <p>Java class for tSubjektInterni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tSubjektInterni">
  *   &lt;complexContent>
@@ -38,18 +38,18 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tSubjektInterni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "identifikatorOrganizace",
-    "nazevOrganizace",
-    "identifikatorFyzickeOsoby",
-    "nazevFyzickeOsoby",
-    "organizacniUtvar",
-    "pracovniPozice",
-    "sidloOrganizace"
+        "identifikatorOrganizace",
+        "nazevOrganizace",
+        "identifikatorFyzickeOsoby",
+        "nazevFyzickeOsoby",
+        "organizacniUtvar",
+        "pracovniPozice",
+        "sidloOrganizace"
 })
 public class TSubjektInterni {
 
@@ -70,11 +70,10 @@ public class TSubjektInterni {
 
     /**
      * Gets the value of the identifikatorOrganizace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikator }
+     *
      */
     public TIdentifikator getIdentifikatorOrganizace() {
         return identifikatorOrganizace;
@@ -82,11 +81,10 @@ public class TSubjektInterni {
 
     /**
      * Sets the value of the identifikatorOrganizace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikator }
+     *
      */
     public void setIdentifikatorOrganizace(TIdentifikator value) {
         this.identifikatorOrganizace = value;
@@ -94,11 +92,10 @@ public class TSubjektInterni {
 
     /**
      * Gets the value of the nazevOrganizace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getNazevOrganizace() {
         return nazevOrganizace;
@@ -106,11 +103,10 @@ public class TSubjektInterni {
 
     /**
      * Sets the value of the nazevOrganizace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setNazevOrganizace(String value) {
         this.nazevOrganizace = value;
@@ -118,11 +114,10 @@ public class TSubjektInterni {
 
     /**
      * Gets the value of the identifikatorFyzickeOsoby property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikator }
+     *
      */
     public TIdentifikator getIdentifikatorFyzickeOsoby() {
         return identifikatorFyzickeOsoby;
@@ -130,11 +125,10 @@ public class TSubjektInterni {
 
     /**
      * Sets the value of the identifikatorFyzickeOsoby property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikator }
+     *
      */
     public void setIdentifikatorFyzickeOsoby(TIdentifikator value) {
         this.identifikatorFyzickeOsoby = value;
@@ -142,11 +136,10 @@ public class TSubjektInterni {
 
     /**
      * Gets the value of the nazevFyzickeOsoby property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getNazevFyzickeOsoby() {
         return nazevFyzickeOsoby;
@@ -154,11 +147,10 @@ public class TSubjektInterni {
 
     /**
      * Sets the value of the nazevFyzickeOsoby property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setNazevFyzickeOsoby(String value) {
         this.nazevFyzickeOsoby = value;
@@ -166,11 +158,10 @@ public class TSubjektInterni {
 
     /**
      * Gets the value of the organizacniUtvar property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOrganizacniUtvar() {
         return organizacniUtvar;
@@ -178,11 +169,10 @@ public class TSubjektInterni {
 
     /**
      * Sets the value of the organizacniUtvar property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOrganizacniUtvar(String value) {
         this.organizacniUtvar = value;
@@ -190,11 +180,10 @@ public class TSubjektInterni {
 
     /**
      * Gets the value of the pracovniPozice property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getPracovniPozice() {
         return pracovniPozice;
@@ -202,11 +191,10 @@ public class TSubjektInterni {
 
     /**
      * Sets the value of the pracovniPozice property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setPracovniPozice(String value) {
         this.pracovniPozice = value;
@@ -214,11 +202,10 @@ public class TSubjektInterni {
 
     /**
      * Gets the value of the sidloOrganizace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getSidloOrganizace() {
         return sidloOrganizace;
@@ -226,11 +213,10 @@ public class TSubjektInterni {
 
     /**
      * Sets the value of the sidloOrganizace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setSidloOrganizace(String value) {
         this.sidloOrganizace = value;

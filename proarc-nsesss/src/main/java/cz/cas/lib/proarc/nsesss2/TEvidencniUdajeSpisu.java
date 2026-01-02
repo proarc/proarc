@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro evidenční údaje entity "spis".
- * 
+ *
  * <p>Java class for tEvidencniUdajeSpisu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tEvidencniUdajeSpisu">
  *   &lt;complexContent>
@@ -38,23 +38,23 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tEvidencniUdajeSpisu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "identifikace",
-    "popis",
-    "souvislosti",
-    "pristupnost",
-    "poznamky",
-    "jineUdaje",
-    "evidence",
-    "puvod",
-    "trideni",
-    "vyrizeniUzavreni",
-    "vyrazovani",
-    "manipulace"
+        "identifikace",
+        "popis",
+        "souvislosti",
+        "pristupnost",
+        "poznamky",
+        "jineUdaje",
+        "evidence",
+        "puvod",
+        "trideni",
+        "vyrizeniUzavreni",
+        "vyrazovani",
+        "manipulace"
 })
 public class TEvidencniUdajeSpisu {
 
@@ -85,11 +85,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the identifikace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikace }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikace }
+     *
      */
     public TIdentifikace getIdentifikace() {
         return identifikace;
@@ -97,11 +96,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the identifikace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikace }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikace }
+     *
      */
     public void setIdentifikace(TIdentifikace value) {
         this.identifikace = value;
@@ -109,11 +107,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the popis property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TPopis }
-     *     
+     *
+     * @return possible object is
+     * {@link TPopis }
+     *
      */
     public TPopis getPopis() {
         return popis;
@@ -121,11 +118,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the popis property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TPopis }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TPopis }
+     *
      */
     public void setPopis(TPopis value) {
         this.popis = value;
@@ -133,11 +129,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the souvislosti property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TSouvislosti }
-     *     
+     *
+     * @return possible object is
+     * {@link TSouvislosti }
+     *
      */
     public TSouvislosti getSouvislosti() {
         return souvislosti;
@@ -145,11 +140,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the souvislosti property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TSouvislosti }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TSouvislosti }
+     *
      */
     public void setSouvislosti(TSouvislosti value) {
         this.souvislosti = value;
@@ -157,11 +151,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the pristupnost property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TPristupnost }
-     *     
+     *
+     * @return possible object is
+     * {@link TPristupnost }
+     *
      */
     public TPristupnost getPristupnost() {
         return pristupnost;
@@ -169,11 +162,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the pristupnost property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TPristupnost }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TPristupnost }
+     *
      */
     public void setPristupnost(TPristupnost value) {
         this.pristupnost = value;
@@ -181,11 +173,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the poznamky property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TPoznamky }
-     *     
+     *
+     * @return possible object is
+     * {@link TPoznamky }
+     *
      */
     public TPoznamky getPoznamky() {
         return poznamky;
@@ -193,11 +184,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the poznamky property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TPoznamky }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TPoznamky }
+     *
      */
     public void setPoznamky(TPoznamky value) {
         this.poznamky = value;
@@ -205,11 +195,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the jineUdaje property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TJineUdaje }
-     *     
+     *
+     * @return possible object is
+     * {@link TJineUdaje }
+     *
      */
     public TJineUdaje getJineUdaje() {
         return jineUdaje;
@@ -217,11 +206,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the jineUdaje property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TJineUdaje }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TJineUdaje }
+     *
      */
     public void setJineUdaje(TJineUdaje value) {
         this.jineUdaje = value;
@@ -229,11 +217,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the evidence property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TEvidence }
-     *     
+     *
+     * @return possible object is
+     * {@link TEvidence }
+     *
      */
     public TEvidence getEvidence() {
         return evidence;
@@ -241,11 +228,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the evidence property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TEvidence }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TEvidence }
+     *
      */
     public void setEvidence(TEvidence value) {
         this.evidence = value;
@@ -253,11 +239,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the puvod property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TPuvodSeskupeni }
-     *     
+     *
+     * @return possible object is
+     * {@link TPuvodSeskupeni }
+     *
      */
     public TPuvodSeskupeni getPuvod() {
         return puvod;
@@ -265,11 +250,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the puvod property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TPuvodSeskupeni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TPuvodSeskupeni }
+     *
      */
     public void setPuvod(TPuvodSeskupeni value) {
         this.puvod = value;
@@ -277,11 +261,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the trideni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TTrideniSpisu }
-     *     
+     *
+     * @return possible object is
+     * {@link TTrideniSpisu }
+     *
      */
     public TTrideniSpisu getTrideni() {
         return trideni;
@@ -289,11 +272,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the trideni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TTrideniSpisu }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TTrideniSpisu }
+     *
      */
     public void setTrideni(TTrideniSpisu value) {
         this.trideni = value;
@@ -301,11 +283,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the vyrizeniUzavreni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TVyrizeniEntity }
-     *     
+     *
+     * @return possible object is
+     * {@link TVyrizeniEntity }
+     *
      */
     public TVyrizeniEntity getVyrizeniUzavreni() {
         return vyrizeniUzavreni;
@@ -313,11 +294,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the vyrizeniUzavreni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TVyrizeniEntity }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TVyrizeniEntity }
+     *
      */
     public void setVyrizeniUzavreni(TVyrizeniEntity value) {
         this.vyrizeniUzavreni = value;
@@ -325,11 +305,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the vyrazovani property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TVyrazovani }
-     *     
+     *
+     * @return possible object is
+     * {@link TVyrazovani }
+     *
      */
     public TVyrazovani getVyrazovani() {
         return vyrazovani;
@@ -337,11 +316,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the vyrazovani property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TVyrazovani }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TVyrazovani }
+     *
      */
     public void setVyrazovani(TVyrazovani value) {
         this.vyrazovani = value;
@@ -349,11 +327,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Gets the value of the manipulace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TManipulaceSeskupeni }
-     *     
+     *
+     * @return possible object is
+     * {@link TManipulaceSeskupeni }
+     *
      */
     public TManipulaceSeskupeni getManipulace() {
         return manipulace;
@@ -361,11 +338,10 @@ public class TEvidencniUdajeSpisu {
 
     /**
      * Sets the value of the manipulace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TManipulaceSeskupeni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TManipulaceSeskupeni }
+     *
      */
     public void setManipulace(TManipulaceSeskupeni value) {
         this.manipulace = value;

@@ -8,24 +8,24 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
 /**
  * Sada elementů pro popis entity "věcná skupina" (položka spisového plánu).
- * 
+ *
  * <p>Java class for tVecnaSkupina complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tVecnaSkupina">
  *   &lt;complexContent>
@@ -38,12 +38,12 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tVecnaSkupina", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "evidencniUdaje"
+        "evidencniUdaje"
 })
 public class TVecnaSkupina {
 
@@ -57,11 +57,10 @@ public class TVecnaSkupina {
 
     /**
      * Gets the value of the evidencniUdaje property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TEvidencniUdajeVecneSkupiny }
-     *     
+     *
+     * @return possible object is
+     * {@link TEvidencniUdajeVecneSkupiny }
+     *
      */
     public TEvidencniUdajeVecneSkupiny getEvidencniUdaje() {
         return evidencniUdaje;
@@ -69,11 +68,10 @@ public class TVecnaSkupina {
 
     /**
      * Sets the value of the evidencniUdaje property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TEvidencniUdajeVecneSkupiny }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TEvidencniUdajeVecneSkupiny }
+     *
      */
     public void setEvidencniUdaje(TEvidencniUdajeVecneSkupiny value) {
         this.evidencniUdaje = value;
@@ -81,11 +79,10 @@ public class TVecnaSkupina {
 
     /**
      * Gets the value of the id property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getID() {
         return id;
@@ -93,11 +90,10 @@ public class TVecnaSkupina {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;

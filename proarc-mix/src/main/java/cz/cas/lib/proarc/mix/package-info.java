@@ -20,12 +20,14 @@
  */
 @XmlSchema(
         namespace = MixUtils.NS,
-        elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
+        elementFormDefault = QUALIFIED,
         xmlns = {
-            @XmlNs(namespaceURI = MixUtils.NS, prefix = "mix"),
+                @XmlNs(namespaceURI = MixUtils.NS, prefix = "mix"),
         })
 package cz.cas.lib.proarc.mix;
 
-import javax.xml.bind.annotation.XmlNs;
-import javax.xml.bind.annotation.XmlSchema;
+import jakarta.xml.bind.annotation.XmlNs;
+import jakarta.xml.bind.annotation.XmlSchema;
+
+import static jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED;
 

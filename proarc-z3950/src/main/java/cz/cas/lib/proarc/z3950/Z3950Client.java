@@ -85,10 +85,11 @@ public final class Z3950Client {
 
     /**
      * Queries Z39.50 server.
+     *
      * @param query RPN query
      * @return found records in Marc21 format
      * @see <a href='http://www.indexdata.com/zebra/doc/querymodel-rpn.html'>
-     *      RPN queries and semantics</a>
+     * RPN queries and semantics</a>
      */
     public Iterable<byte[]> search(String query) throws Z3950ClientException {
         this.query = query;
@@ -144,7 +145,7 @@ public final class Z3950Client {
         }
         return Collections.emptyList();
     }
-    
+
     private List<NamePlusRecord_type> getRecords(Records_type records) {
         if (records.which == Records_type.responserecords_CID) {
             @SuppressWarnings("unchecked")
@@ -167,7 +168,9 @@ public final class Z3950Client {
         throw new IllegalStateException("Unexpected record type: " + npr.record.which);
     }
 
-    /** Converts Marc21 to MarcXML */
+    /**
+     * Converts Marc21 to MarcXML
+     */
     public static Document toMarcXml(byte[] marc21, String charset) {
         MarcReader reader = new MyMarcStreamReader(new ByteArrayInputStream(marc21), charset);
         DOMResult result = new DOMResult();
@@ -187,14 +190,14 @@ public final class Z3950Client {
             throw new NullPointerException();
         }
         if (!LOG.isLoggable(LEVEL)) {
-            return ;
+            return;
         }
         LOG.log(LEVEL, String.format(
                 "Reference ID: %s"
-                    + ",\nPresent Status: %s"
-                    + ",\nNumber of Records: %s"
-                    + ",\nNext RS Position: %s"
-                    + ",\nOther Info: %s",
+                        + ",\nPresent Status: %s"
+                        + ",\nNumber of Records: %s"
+                        + ",\nNext RS Position: %s"
+                        + ",\nOther Info: %s",
                 toString(resp.referenceId),
                 resp.presentStatus,
                 resp.numberOfRecordsReturned,
@@ -207,14 +210,14 @@ public final class Z3950Client {
             throw new NullPointerException();
         }
         if (!LOG.isLoggable(LEVEL)) {
-            return ;
+            return;
         }
         LOG.log(LEVEL, String.format(
                 "Reference ID: %s"
-                    + "\nSearch Status: %s"
-                    + "\nResult Count: %s"
-                    + "\nNum Records Returned: %s"
-                    + "\nNext RS position: %s",
+                        + "\nSearch Status: %s"
+                        + "\nResult Count: %s"
+                        + "\nNum Records Returned: %s"
+                        + "\nNext RS position: %s",
                 toString(resp.referenceId),
                 resp.searchStatus,
                 resp.resultCount,
@@ -225,10 +228,10 @@ public final class Z3950Client {
     private static void logConnection(InitializeResponse_type resp, String host, int port) {
         if (!resp.result.booleanValue()) {
             LOG.log(Level.SEVERE, "Connection failed! {0}:{1}", new Object[]{host, port});
-            return ;
+            return;
         }
         if (!LOG.isLoggable(LEVEL)) {
-            return ;
+            return;
         }
         StringBuilder options = new StringBuilder();
         for (int i = 0; i < Z3950Constants.z3950_option_names.length; i++) {
@@ -242,16 +245,16 @@ public final class Z3950Client {
 
         LOG.log(LEVEL, String.format(
                 "Reference ID: %s"
-                    + ",\nImplementation ID: %s"
-                    + ",\nName: %s"
-                    + ",\nVersion: %s"
-                    + ",\nOptions: %s",
+                        + ",\nImplementation ID: %s"
+                        + ",\nName: %s"
+                        + ",\nVersion: %s"
+                        + ",\nOptions: %s",
                 toString(resp.referenceId),
                 resp.implementationId,
                 resp.implementationName,
                 resp.implementationVersion,
                 options
-                ));
+        ));
 
     }
 

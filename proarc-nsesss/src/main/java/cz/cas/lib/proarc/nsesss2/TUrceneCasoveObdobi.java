@@ -8,21 +8,21 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
  * Časový údaj o počátku a konci evidenčního období, ve kterém se spisům nebo dokumentům přidělují jedinečná pořadová čísla v rámci evidence dokumentů. Definice určeného časového období je variabilní a nejčastěji zahrnuje kalendářní rok.
- * 
+ *
  * <p>Java class for tUrceneCasoveObdobi complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tUrceneCasoveObdobi">
  *   &lt;complexContent>
@@ -48,18 +48,18 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tUrceneCasoveObdobi", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "datumOd",
-    "datumDo",
-    "mesicOd",
-    "mesicDo",
-    "rokOd",
-    "rokDo",
-    "rok"
+        "datumOd",
+        "datumDo",
+        "mesicOd",
+        "mesicDo",
+        "rokOd",
+        "rokDo",
+        "rok"
 })
 public class TUrceneCasoveObdobi {
 
@@ -87,11 +87,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Gets the value of the datumOd property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getDatumOd() {
         return datumOd;
@@ -99,11 +98,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Sets the value of the datumOd property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setDatumOd(XMLGregorianCalendar value) {
         this.datumOd = value;
@@ -111,11 +109,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Gets the value of the datumDo property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getDatumDo() {
         return datumDo;
@@ -123,11 +120,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Sets the value of the datumDo property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setDatumDo(XMLGregorianCalendar value) {
         this.datumDo = value;
@@ -135,11 +131,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Gets the value of the mesicOd property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getMesicOd() {
         return mesicOd;
@@ -147,11 +142,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Sets the value of the mesicOd property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setMesicOd(XMLGregorianCalendar value) {
         this.mesicOd = value;
@@ -159,11 +153,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Gets the value of the mesicDo property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getMesicDo() {
         return mesicDo;
@@ -171,11 +164,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Sets the value of the mesicDo property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setMesicDo(XMLGregorianCalendar value) {
         this.mesicDo = value;
@@ -183,11 +175,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Gets the value of the rokOd property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getRokOd() {
         return rokOd;
@@ -195,11 +186,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Sets the value of the rokOd property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setRokOd(XMLGregorianCalendar value) {
         this.rokOd = value;
@@ -207,11 +197,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Gets the value of the rokDo property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getRokDo() {
         return rokDo;
@@ -219,11 +208,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Sets the value of the rokDo property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setRokDo(XMLGregorianCalendar value) {
         this.rokDo = value;
@@ -231,11 +219,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Gets the value of the rok property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getRok() {
         return rok;
@@ -243,11 +230,10 @@ public class TUrceneCasoveObdobi {
 
     /**
      * Sets the value of the rok property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setRok(XMLGregorianCalendar value) {
         this.rok = value;

@@ -20,13 +20,15 @@
  */
 @XmlSchema(
         namespace = "http://www.loc.gov/mods/v3",
-        elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
+        elementFormDefault = QUALIFIED,
         xmlns = {
             @XmlNs(namespaceURI = "http://www.loc.gov/mods/v3", prefix = "mods"),
             @XmlNs(namespaceURI = "http://www.w3.org/1999/xlink", prefix = "xlink")
         })
 package cz.cas.lib.proarc.mods;
 
-import javax.xml.bind.annotation.XmlNs;
-import javax.xml.bind.annotation.XmlSchema;
+import jakarta.xml.bind.annotation.XmlNs;
+import jakarta.xml.bind.annotation.XmlSchema;
+
+import static jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED;
 

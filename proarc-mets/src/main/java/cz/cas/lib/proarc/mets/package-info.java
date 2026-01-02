@@ -20,15 +20,18 @@
  *
  * <p>Requires JDK 1.6.0_24 or later or com.sun.xml.bind:jaxb-impl:2.2.2 dependency.
  */
+
+
 @XmlSchema(namespace = cz.cas.lib.proarc.mets.MetsConstants.NS_METS,
-        elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
-        xmlns = { @XmlNs(namespaceURI = cz.cas.lib.proarc.mets.MetsConstants.NS_METS,
+        elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED,
+        xmlns = {@XmlNs(namespaceURI = cz.cas.lib.proarc.mets.MetsConstants.NS_METS,
                 prefix = cz.cas.lib.proarc.mets.MetsConstants.PREFIX_NS_METS),
                 @XmlNs(namespaceURI = cz.cas.lib.proarc.mets.MetsConstants.NS_XLINK,
                         prefix = cz.cas.lib.proarc.mets.MetsConstants.PREFIX_NS_XLINK)
         })
+
+
 package cz.cas.lib.proarc.mets;
 
-import javax.xml.bind.annotation.XmlNs;
-import javax.xml.bind.annotation.XmlSchema;
-
+import jakarta.xml.bind.annotation.XmlNs;
+import jakarta.xml.bind.annotation.XmlSchema;

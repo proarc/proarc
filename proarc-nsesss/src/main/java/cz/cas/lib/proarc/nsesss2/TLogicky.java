@@ -8,14 +8,14 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlEnum;
+import jakarta.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * <p>Java class for tLogicky.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
- * 
+ *
  */
 @XmlType(name = "tLogicky", namespace = "http://www.mvcr.cz/nsesss/v2")
 @XmlEnum
@@ -47,7 +47,7 @@ public enum TLogicky {
     }
 
     public static TLogicky fromValue(String v) {
-        for (TLogicky c: TLogicky.values()) {
+        for (TLogicky c : TLogicky.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

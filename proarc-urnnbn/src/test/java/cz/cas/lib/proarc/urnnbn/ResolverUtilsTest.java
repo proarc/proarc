@@ -18,11 +18,12 @@ package cz.cas.lib.proarc.urnnbn;
 
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.StringReader;
-import javax.xml.bind.JAXB;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static jakarta.xml.bind.JAXB.unmarshal;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -31,11 +32,11 @@ import static org.junit.Assert.*;
 public class ResolverUtilsTest {
 
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -63,7 +64,7 @@ public class ResolverUtilsTest {
                     + "<namePart type='termsOfAddress'>TermsOfAddress2</namePart>"
                 + "</name>"
                 + "</mods>";
-        ModsDefinition mods = JAXB.unmarshal(new StringReader(xml), ModsDefinition.class);
+        ModsDefinition mods = unmarshal(new StringReader(xml), ModsDefinition.class);
         String originator = ResolverUtils.getOriginator("personal", false, mods);
         assertEquals("FullName, Family, Given; Family2, Given2", originator);
 

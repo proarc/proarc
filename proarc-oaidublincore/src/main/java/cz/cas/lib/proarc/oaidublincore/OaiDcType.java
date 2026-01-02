@@ -16,19 +16,37 @@
  */
 package cz.cas.lib.proarc.oaidublincore;
 
-import static cz.cas.lib.proarc.oaidublincore.DcConstants.*;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.CONTRIBUTOR;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.COVERAGE;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.CREATOR;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.DATE;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.DC;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.DESCRIPTION;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.FORMAT;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.IDENTIFIER;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.LANGUAGE;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.NS_OAIDC;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.NS_PURL;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.PUBLISHER;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.RELATION;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.RIGHTS;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.SOURCE;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.SUBJECT;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.TITLE;
+import static cz.cas.lib.proarc.oaidublincore.DcConstants.TYPE;
 
 /**
  * <p>Java class for dc element of oai_dcType complex type.
- *
+ * <p>
  * It simplifies work with DC elements and allows to read and generate data
  * in JSON format.
  *
@@ -304,7 +322,7 @@ public class OaiDcType {
      */
     private static List<ElementType> collapse(List<ElementType> l) {
         if (l != null) {
-            for (int i = l.size() - 1; i >= 0 ; i--) {
+            for (int i = l.size() - 1; i >= 0; i--) {
                 ElementType elm = l.get(i);
                 String string = null;
                 if (elm != null) {

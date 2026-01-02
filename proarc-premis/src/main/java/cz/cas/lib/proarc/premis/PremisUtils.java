@@ -16,6 +16,12 @@
  */
 package cz.cas.lib.proarc.premis;
 
+import jakarta.xml.bind.DataBindingException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -23,13 +29,6 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.bind.DataBindingException;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
@@ -52,6 +51,7 @@ public final class PremisUtils {
 
     /**
      * Default context. Oracle JAXB RI's context should be thread safe.
+     *
      * @see <a href='http://jaxb.java.net/faq/index.html#threadSafety'>Are the JAXB runtime API's thread safe?</a>
      */
     public static JAXBContext defaultJaxbContext() throws JAXBException {
@@ -83,6 +83,7 @@ public final class PremisUtils {
         }
         return m;
     }
+
     /**
      * Dumps object to XML string.
      */
@@ -114,6 +115,7 @@ public final class PremisUtils {
             }
         }
     }
+
     public static <T> T unmarshal(String source, Class<T> type) {
         return unmarshal(new StreamSource(new StringReader(source)), type);
     }

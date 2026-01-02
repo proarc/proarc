@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Prvek pro zaznamenání časových údajů počátku a konce řádné platnosti certifikátu vydaného poskytovatelem certifikačních služeb.
- * 
+ *
  * <p>Java class for tPlatnost complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tPlatnost">
  *   &lt;complexContent>
@@ -33,13 +33,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tPlatnost", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "platnostOd",
-    "platnostDo"
+        "platnostOd",
+        "platnostDo"
 })
 public class TPlatnost {
 
@@ -50,11 +50,10 @@ public class TPlatnost {
 
     /**
      * Gets the value of the platnostOd property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getPlatnostOd() {
         return platnostOd;
@@ -62,11 +61,10 @@ public class TPlatnost {
 
     /**
      * Sets the value of the platnostOd property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setPlatnostOd(TDatum value) {
         this.platnostOd = value;
@@ -74,11 +72,10 @@ public class TPlatnost {
 
     /**
      * Gets the value of the platnostDo property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getPlatnostDo() {
         return platnostDo;
@@ -86,11 +83,10 @@ public class TPlatnost {
 
     /**
      * Sets the value of the platnostDo property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setPlatnostDo(TDatum value) {
         this.platnostDo = value;

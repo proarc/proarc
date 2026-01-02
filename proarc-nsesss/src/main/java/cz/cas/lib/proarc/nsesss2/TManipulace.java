@@ -8,20 +8,20 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro indikaci nezbytných dokumentů (dokumenty zásadního významu, které jsou nezbytné pro schopnost organizace pokračovat v pracovní činnosti s přihlédnutím k vytvořeným předpokladům vypořádat se s následky mimořádných událostí nebo krizových stavů, anebo ochránit své dlouhodobé ekonomické a právní zájmy) a dokumentů v analogové podobě v rámci entity.
- * 
+ *
  * <p>Java class for tManipulace complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tManipulace">
  *   &lt;complexContent>
@@ -34,17 +34,17 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tManipulace", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "nezbytnyDokument",
-    "analogovyDokument"
+        "nezbytnyDokument",
+        "analogovyDokument"
 })
 @XmlSeeAlso({
-    TManipulaceDokumentu.class,
-    TManipulaceSeskupeni.class
+        TManipulaceDokumentu.class,
+        TManipulaceSeskupeni.class
 })
 public class TManipulace {
 
@@ -55,11 +55,10 @@ public class TManipulace {
 
     /**
      * Gets the value of the nezbytnyDokument property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TLogicky }
-     *     
+     *
+     * @return possible object is
+     * {@link TLogicky }
+     *
      */
     public TLogicky getNezbytnyDokument() {
         return nezbytnyDokument;
@@ -67,11 +66,10 @@ public class TManipulace {
 
     /**
      * Sets the value of the nezbytnyDokument property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TLogicky }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TLogicky }
+     *
      */
     public void setNezbytnyDokument(TLogicky value) {
         this.nezbytnyDokument = value;
@@ -79,11 +77,10 @@ public class TManipulace {
 
     /**
      * Gets the value of the analogovyDokument property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TLogicky }
-     *     
+     *
+     * @return possible object is
+     * {@link TLogicky }
+     *
      */
     public TLogicky getAnalogovyDokument() {
         return analogovyDokument;
@@ -91,11 +88,10 @@ public class TManipulace {
 
     /**
      * Sets the value of the analogovyDokument property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TLogicky }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TLogicky }
+     *
      */
     public void setAnalogovyDokument(TLogicky value) {
         this.analogovyDokument = value;

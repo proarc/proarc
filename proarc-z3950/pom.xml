@@ -27,9 +27,19 @@
 
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring</artifactId>
-            <version>2.5</version>
-            <scope>compile</scope>
+            <artifactId>spring-core</artifactId>
+            <version>5.3.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.3.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.marc4j</groupId>
+            <artifactId>marc4j</artifactId>
+            <version>2.9.6</version>
         </dependency>
 
         <dependency>
@@ -65,7 +75,6 @@
                     <artifactId>classworlds</artifactId>
                     <groupId>classworlds</groupId>
                 </exclusion>
-                <!-- required by Z3950ServiceFactory, not by ZEndpoint -->
                 <exclusion>
                     <artifactId>commons-beanutils</artifactId>
                     <groupId>commons-beanutils</groupId>
@@ -186,10 +195,10 @@
                     <artifactId>wagon-provider-api</artifactId>
                     <groupId>org.apache.maven.wagon</groupId>
                 </exclusion>
-                <!--                <exclusion>
+                <exclusion>
                     <artifactId>xalan</artifactId>
                     <groupId>xalan</groupId>
-                </exclusion>-->
+                </exclusion>
                 <exclusion>
                     <artifactId>xercesImpl</artifactId>
                     <groupId>xerces</groupId>
@@ -206,8 +215,8 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         
@@ -220,11 +229,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.plugin.compiler.version}</version>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
+                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
                 <configuration>
                     <systemPropertyVariables>
                         <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
