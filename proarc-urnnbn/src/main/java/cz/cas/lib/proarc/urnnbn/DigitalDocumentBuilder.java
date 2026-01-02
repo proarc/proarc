@@ -16,12 +16,29 @@
  */
 package cz.cas.lib.proarc.urnnbn;
 
-import cz.cas.lib.proarc.mix.*;
-import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.FormatDesignation;
-import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics;
-import cz.cas.lib.proarc.mix.ImageAssessmentMetadataType.SpatialMetrics;
-import cz.cas.lib.proarc.urnnbn.model.registration.*;
 
+import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
+import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.FormatDesignation;
+import cz.cas.lib.proarc.mix.BasicImageInformationType;
+import cz.cas.lib.proarc.mix.BasicImageInformationType.BasicImageCharacteristics;
+import cz.cas.lib.proarc.mix.ImageAssessmentMetadataType;
+import cz.cas.lib.proarc.mix.ImageAssessmentMetadataType.SpatialMetrics;
+import cz.cas.lib.proarc.mix.MixType;
+import cz.cas.lib.proarc.mix.PositiveIntegerType;
+import cz.cas.lib.proarc.mix.RationalType;
+import cz.cas.lib.proarc.mix.SamplingFrequencyUnitType;
+import cz.cas.lib.proarc.mix.StringType;
+import cz.cas.lib.proarc.mix.TypeOfSamplingFrequencyUnitType;
+import cz.cas.lib.proarc.urnnbn.model.registration.Color;
+import cz.cas.lib.proarc.urnnbn.model.registration.Compression;
+import cz.cas.lib.proarc.urnnbn.model.registration.DigitalDocument;
+import cz.cas.lib.proarc.urnnbn.model.registration.Format;
+import cz.cas.lib.proarc.urnnbn.model.registration.PictureSize;
+import cz.cas.lib.proarc.urnnbn.model.registration.Predecessor;
+import cz.cas.lib.proarc.urnnbn.model.registration.RegistrarScopeIdentifier;
+import cz.cas.lib.proarc.urnnbn.model.registration.RegistrarScopeIdentifiers;
+import cz.cas.lib.proarc.urnnbn.model.registration.Resolution;
+import cz.cas.lib.proarc.urnnbn.model.registration.TechnicalMetadata;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;

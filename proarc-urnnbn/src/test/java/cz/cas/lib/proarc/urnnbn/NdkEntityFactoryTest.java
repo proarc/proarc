@@ -29,14 +29,17 @@ import cz.cas.lib.proarc.urnnbn.model.registration.PeriodicalIssue.TitleInfo;
 import cz.cas.lib.proarc.urnnbn.model.registration.PrimaryOriginator;
 import cz.cas.lib.proarc.urnnbn.model.registration.Publication;
 import cz.cas.lib.proarc.urnnbn.model.registration.TechnicalMetadata;
+import jakarta.xml.bind.JAXB;
 import java.math.BigInteger;
-import javax.xml.bind.JAXB;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  *
@@ -49,20 +52,20 @@ public class NdkEntityFactoryTest {
     public NdkEntityFactoryTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         factory = new NdkEntityFactory();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -76,20 +79,20 @@ public class NdkEntityFactoryTest {
                 periodicalMods, periodicalVolumeMods, periodicalIssueMods, mix, null, false, null);
         assertNotNull(imp);
         PeriodicalIssue pi = imp.getPeriodicalIssue();
-        assertNotNull("PeriodicalIssue", pi);
+        assertNotNull(pi, "PeriodicalIssue");
         assertEquals("ccnb", "cnb002372844", pi.getCcnb());
-        assertNull("issn", pi.getIssn());
-        assertNull("otherOriginator", pi.getOtherOriginator());
+        assertNull(pi.getIssn(), "issn");
+        assertNull(pi.getOtherOriginator(), "otherOriginator");
 
         PrimaryOriginator primaryOriginator = pi.getPrimaryOriginator();
-        assertNotNull("primaryOriginator", primaryOriginator);
-        assertEquals("primaryOriginator.type", OriginatorTypeType.CORPORATION, primaryOriginator.getType());
+        assertNotNull(primaryOriginator, "primaryOriginator");
+        assertEquals(OriginatorTypeType.CORPORATION, primaryOriginator.getType(), "primaryOriginator.type");
         assertEquals("primaryOriginator.value", "Okresní pedagogické středisko Hradec Králové", primaryOriginator.getValue());
 
         Publication pub = pi.getPublication();
-        assertNotNull("publication", pub);
-        assertEquals("place", "Hradec Králové", pub.getPlace());
-        assertEquals("publisher", "Okresní pedagogické středisko", pub.getPublisher());
+        assertNotNull(pub, "publication");
+        assertEquals("Hradec Králové", pub.getPlace(), "place");
+        assertEquals("Okresní pedagogické středisko", pub.getPublisher(), "publisher");
         assertEquals("1967", pub.getYear());
 
         TitleInfo titleInfo = pi.getTitleInfo();
@@ -99,7 +102,7 @@ public class NdkEntityFactoryTest {
         assertEquals("1-2", titleInfo.getIssueTitle());
 
         DigitalDocument dd = imp.getDigitalDocument();
-        assertNotNull("DigitalDocument", dd);
+        assertNotNull(dd, "DigitalDocument");
         assertEquals("uuid", dd.getRegistrarScopeIdentifiers().getId().get(0).getType());
         assertEquals("18ac200c-7e1a-4367-a089-71077231da1c", dd.getRegistrarScopeIdentifiers().getId().get(0).getValue());
         TechnicalMetadata tm = dd.getTechnicalMetadata();
@@ -114,6 +117,7 @@ public class NdkEntityFactoryTest {
         assertEquals(new BigInteger("118"), tm.getResolution().getVertical());
 //        JAXB.marshal(imp, new StreamResult(System.out));
     }
+
     @Test
     public void testCreatePeriodicalIssueImport_Supplement() throws Exception {
         ModsDefinition periodicalMods = mods("registration/ndkPeriodical2.xml");

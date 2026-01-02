@@ -18,6 +18,13 @@ package cz.cas.lib.proarc.urnnbn;
 
 import cz.cas.lib.proarc.urnnbn.model.registration.Import;
 import cz.cas.lib.proarc.urnnbn.model.response.Response;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.ResponseProcessingException;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -27,13 +34,6 @@ import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
@@ -60,7 +60,7 @@ public final class ResolverClient {
     private final String passwd;
 
     public ResolverClient(String serviceUrl, String registrar, Long archiver,
-            String user, String passwd) {
+                          String user, String passwd) {
 
         this.serviceUrl = serviceUrl;
         this.registrar = registrar;
@@ -77,6 +77,7 @@ public final class ResolverClient {
     /**
      * Registers an digital document to get URN:NBN.
      * <p>{@code POST http://resolver.nkp.cz/v4/registrars/boa001/digitalDocuments}
+     *
      * @param object a digital document
      * @return the resolver response
      */
@@ -98,7 +99,7 @@ public final class ResolverClient {
                     .path(registrar)
                     .path("digitalDocuments")
                     .request()
-                        .post(Entity.entity(object, MediaType.APPLICATION_XML_TYPE), Response.class);
+                    .post(Entity.entity(object, MediaType.APPLICATION_XML_TYPE), Response.class);
         } catch (WebApplicationException ex) {
             response = readResponseError(ex.getResponse(), ex);
         } catch (ResponseProcessingException ex) {
@@ -124,7 +125,7 @@ public final class ResolverClient {
                     .path("registrarScopeIdentifiers")
                     .path(identifier)
                     .request()
-                        .delete(Response.class);
+                    .delete(Response.class);
         } catch (WebApplicationException ex) {
             response = readResponseError(ex.getResponse(), ex);
         } catch (ResponseProcessingException ex) {
@@ -146,7 +147,7 @@ public final class ResolverClient {
                     .path("registrarScopeIdentifiers")
                     .path(identifier)
                     .request()
-                        .put(Entity.entity(value, MediaType.APPLICATION_XML_TYPE), Response.class);
+                    .put(Entity.entity(value, MediaType.APPLICATION_XML_TYPE), Response.class);
         } catch (WebApplicationException ex) {
             response = readResponseError(ex.getResponse(), ex);
         } catch (ResponseProcessingException ex) {
@@ -170,7 +171,7 @@ public final class ResolverClient {
         return response;
     }
 
-    private Response readResponseError(javax.ws.rs.core.Response errResponse, RuntimeException ex) {
+    private Response readResponseError(jakarta.ws.rs.core.Response errResponse, RuntimeException ex) {
         try {
             Response response = null;
             errResponse.bufferEntity();
@@ -207,7 +208,7 @@ public final class ResolverClient {
             try {
                 SSLContext sslCtx = SSLContext.getInstance("SSL");
                 TrustManager tm = new TrustThemAll();
-                sslCtx.init(null, new TrustManager[] {tm}, null);
+                sslCtx.init(null, new TrustManager[]{tm}, null);
 
                 httpClient = ClientBuilder.newBuilder()
                         .sslContext(sslCtx)

@@ -16,18 +16,17 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<jaxb:bindings xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-               xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-               version="2.1">
+<jaxb:bindings version="3.0"
+               xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+               xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-    <jaxb:bindings schemaLocation="response.xsd">
+    <jaxb:bindings schemaLocation="digDocRegistration.xsd">
         <jaxb:bindings
-            node="//xsd:complexType[@name='predecessor']/xsd:simpleContent/xsd:extension/xsd:attribute[@name='value']">
+            node="//xs:complexType[@name='predecessor']/xs:simpleContent/xs:extension/xs:attribute[@name='value']">
             <jaxb:property name="urnNbnValue" />
         </jaxb:bindings>
         <jaxb:bindings
-            node="//xsd:complexType[@name='successor']/xsd:simpleContent/xsd:extension/xsd:attribute[@name='value']">
+            node="//xs:complexType[@name='successor']/xs:simpleContent/xs:extension/xs:attribute[@name='value']">
             <jaxb:property name="urnNbnValue" />
         </jaxb:bindings>
     </jaxb:bindings>
