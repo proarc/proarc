@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro zaznamenání vzniku entit.
- * 
+ *
  * <p>Java class for tPuvodSeskupeni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tPuvodSeskupeni">
  *   &lt;complexContent>
@@ -32,12 +32,12 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tPuvodSeskupeni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "datumVytvoreni"
+        "datumVytvoreni"
 })
 public class TPuvodSeskupeni {
 
@@ -46,11 +46,10 @@ public class TPuvodSeskupeni {
 
     /**
      * Gets the value of the datumVytvoreni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatumVytvoreni() {
         return datumVytvoreni;
@@ -58,11 +57,10 @@ public class TPuvodSeskupeni {
 
     /**
      * Sets the value of the datumVytvoreni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatumVytvoreni(TDatum value) {
         this.datumVytvoreni = value;

@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro popis náležitostí skartačního řízení. Prvek je povinný jen u základní entity.
- * 
+ *
  * <p>Java class for tSkartacniRizeni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tSkartacniRizeni">
  *   &lt;complexContent>
@@ -36,16 +36,16 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tSkartacniRizeni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "datum",
-    "mnozstvi",
-    "skartacniOperace",
-    "oduvodneni",
-    "posuzovatel"
+        "datum",
+        "mnozstvi",
+        "skartacniOperace",
+        "oduvodneni",
+        "posuzovatel"
 })
 public class TSkartacniRizeni {
 
@@ -62,11 +62,10 @@ public class TSkartacniRizeni {
 
     /**
      * Gets the value of the datum property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatum() {
         return datum;
@@ -74,11 +73,10 @@ public class TSkartacniRizeni {
 
     /**
      * Sets the value of the datum property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatum(TDatum value) {
         this.datum = value;
@@ -86,11 +84,10 @@ public class TSkartacniRizeni {
 
     /**
      * Gets the value of the mnozstvi property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getMnozstvi() {
         return mnozstvi;
@@ -98,11 +95,10 @@ public class TSkartacniRizeni {
 
     /**
      * Sets the value of the mnozstvi property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setMnozstvi(String value) {
         this.mnozstvi = value;
@@ -110,11 +106,10 @@ public class TSkartacniRizeni {
 
     /**
      * Gets the value of the skartacniOperace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TSkartacniOperace }
-     *     
+     *
+     * @return possible object is
+     * {@link TSkartacniOperace }
+     *
      */
     public TSkartacniOperace getSkartacniOperace() {
         return skartacniOperace;
@@ -122,11 +117,10 @@ public class TSkartacniRizeni {
 
     /**
      * Sets the value of the skartacniOperace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TSkartacniOperace }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TSkartacniOperace }
+     *
      */
     public void setSkartacniOperace(TSkartacniOperace value) {
         this.skartacniOperace = value;
@@ -134,11 +128,10 @@ public class TSkartacniRizeni {
 
     /**
      * Gets the value of the oduvodneni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOduvodneni() {
         return oduvodneni;
@@ -146,11 +139,10 @@ public class TSkartacniRizeni {
 
     /**
      * Sets the value of the oduvodneni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOduvodneni(String value) {
         this.oduvodneni = value;
@@ -158,11 +150,10 @@ public class TSkartacniRizeni {
 
     /**
      * Gets the value of the posuzovatel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobaInterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobaInterni }
+     *
      */
     public TOsobaInterni getPosuzovatel() {
         return posuzovatel;
@@ -170,11 +161,10 @@ public class TSkartacniRizeni {
 
     /**
      * Sets the value of the posuzovatel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobaInterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobaInterni }
+     *
      */
     public void setPosuzovatel(TOsobaInterni value) {
         this.posuzovatel = value;

@@ -8,17 +8,17 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * <p>Java class for tOvereniCertifikatu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tOvereniCertifikatu">
  *   &lt;complexContent>
@@ -38,20 +38,20 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tOvereniCertifikatu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "posuzovanyOkamzik",
-    "platnostBezpecnostnihoPrvkuCertifikatu",
-    "cisloSeznamuCRL",
-    "stavRevokace",
-    "platnostBezpecnostnihoPrvkuCRL",
-    "platnostCertifikacniCesty",
-    "casOvereni",
-    "platnostCertifikatu",
-    "overovatel"
+        "posuzovanyOkamzik",
+        "platnostBezpecnostnihoPrvkuCertifikatu",
+        "cisloSeznamuCRL",
+        "stavRevokace",
+        "platnostBezpecnostnihoPrvkuCRL",
+        "platnostCertifikacniCesty",
+        "casOvereni",
+        "platnostCertifikatu",
+        "overovatel"
 })
 public class TOvereniCertifikatu {
 
@@ -76,11 +76,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Gets the value of the posuzovanyOkamzik property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getPosuzovanyOkamzik() {
         return posuzovanyOkamzik;
@@ -88,11 +87,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Sets the value of the posuzovanyOkamzik property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setPosuzovanyOkamzik(TDatum value) {
         this.posuzovanyOkamzik = value;
@@ -100,11 +98,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Gets the value of the platnostBezpecnostnihoPrvkuCertifikatu property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @return possible object is
+     * {@link TVysledekOvereni }
+     *
      */
     public TVysledekOvereni getPlatnostBezpecnostnihoPrvkuCertifikatu() {
         return platnostBezpecnostnihoPrvkuCertifikatu;
@@ -112,11 +109,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Sets the value of the platnostBezpecnostnihoPrvkuCertifikatu property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TVysledekOvereni }
+     *
      */
     public void setPlatnostBezpecnostnihoPrvkuCertifikatu(TVysledekOvereni value) {
         this.platnostBezpecnostnihoPrvkuCertifikatu = value;
@@ -124,11 +120,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Gets the value of the cisloSeznamuCRL property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikator }
+     *
      */
     public TIdentifikator getCisloSeznamuCRL() {
         return cisloSeznamuCRL;
@@ -136,11 +131,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Sets the value of the cisloSeznamuCRL property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikator }
+     *
      */
     public void setCisloSeznamuCRL(TIdentifikator value) {
         this.cisloSeznamuCRL = value;
@@ -148,11 +142,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Gets the value of the stavRevokace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TLogicky }
-     *     
+     *
+     * @return possible object is
+     * {@link TLogicky }
+     *
      */
     public TLogicky getStavRevokace() {
         return stavRevokace;
@@ -160,11 +153,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Sets the value of the stavRevokace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TLogicky }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TLogicky }
+     *
      */
     public void setStavRevokace(TLogicky value) {
         this.stavRevokace = value;
@@ -172,11 +164,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Gets the value of the platnostBezpecnostnihoPrvkuCRL property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @return possible object is
+     * {@link TVysledekOvereni }
+     *
      */
     public TVysledekOvereni getPlatnostBezpecnostnihoPrvkuCRL() {
         return platnostBezpecnostnihoPrvkuCRL;
@@ -184,11 +175,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Sets the value of the platnostBezpecnostnihoPrvkuCRL property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TVysledekOvereni }
+     *
      */
     public void setPlatnostBezpecnostnihoPrvkuCRL(TVysledekOvereni value) {
         this.platnostBezpecnostnihoPrvkuCRL = value;
@@ -196,11 +186,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Gets the value of the platnostCertifikacniCesty property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @return possible object is
+     * {@link TVysledekOvereni }
+     *
      */
     public TVysledekOvereni getPlatnostCertifikacniCesty() {
         return platnostCertifikacniCesty;
@@ -208,11 +197,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Sets the value of the platnostCertifikacniCesty property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TVysledekOvereni }
+     *
      */
     public void setPlatnostCertifikacniCesty(TVysledekOvereni value) {
         this.platnostCertifikacniCesty = value;
@@ -220,11 +208,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Gets the value of the casOvereni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getCasOvereni() {
         return casOvereni;
@@ -232,11 +219,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Sets the value of the casOvereni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setCasOvereni(TDatum value) {
         this.casOvereni = value;
@@ -244,11 +230,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Gets the value of the platnostCertifikatu property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @return possible object is
+     * {@link TVysledekOvereni }
+     *
      */
     public TVysledekOvereni getPlatnostCertifikatu() {
         return platnostCertifikatu;
@@ -256,11 +241,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Sets the value of the platnostCertifikatu property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TVysledekOvereni }
+     *
      */
     public void setPlatnostCertifikatu(TVysledekOvereni value) {
         this.platnostCertifikatu = value;
@@ -268,11 +252,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Gets the value of the overovatel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobaInterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobaInterni }
+     *
      */
     public TOsobaInterni getOverovatel() {
         return overovatel;
@@ -280,11 +263,10 @@ public class TOvereniCertifikatu {
 
     /**
      * Sets the value of the overovatel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobaInterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobaInterni }
+     *
      */
     public void setOverovatel(TOsobaInterni value) {
         this.overovatel = value;

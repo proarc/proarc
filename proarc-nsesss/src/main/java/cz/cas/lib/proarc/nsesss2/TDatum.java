@@ -8,22 +8,22 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlValue;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
  * Univerzální prvek pro zaznamenání časového údaje. Datum je zaznamenáno ve tvaru "YYYY-MM-DD".
- * 
+ *
  * <p>Java class for tDatum complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tDatum">
  *   &lt;simpleContent>
@@ -33,12 +33,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   &lt;/simpleContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tDatum", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "value"
+        "value"
 })
 public class TDatum {
 
@@ -51,11 +51,10 @@ public class TDatum {
 
     /**
      * Gets the value of the value property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getValue() {
         return value;
@@ -63,11 +62,10 @@ public class TDatum {
 
     /**
      * Sets the value of the value property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setValue(XMLGregorianCalendar value) {
         this.value = value;
@@ -75,11 +73,10 @@ public class TDatum {
 
     /**
      * Gets the value of the datum property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getDatum() {
         return datum;
@@ -87,11 +84,10 @@ public class TDatum {
 
     /**
      * Sets the value of the datum property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setDatum(XMLGregorianCalendar value) {
         this.datum = value;

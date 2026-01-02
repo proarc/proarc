@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Časové údaje evidující počátek a konec platnosti spisového plánu.
- * 
+ *
  * <p>Java class for tManipulaceSpisovyPlan complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tManipulaceSpisovyPlan">
  *   &lt;complexContent>
@@ -33,13 +33,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tManipulaceSpisovyPlan", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "datumOtevreni",
-    "datumUzavreni"
+        "datumOtevreni",
+        "datumUzavreni"
 })
 public class TManipulaceSpisovyPlan {
 
@@ -50,11 +50,10 @@ public class TManipulaceSpisovyPlan {
 
     /**
      * Gets the value of the datumOtevreni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatumOtevreni() {
         return datumOtevreni;
@@ -62,11 +61,10 @@ public class TManipulaceSpisovyPlan {
 
     /**
      * Sets the value of the datumOtevreni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatumOtevreni(TDatum value) {
         this.datumOtevreni = value;
@@ -74,11 +72,10 @@ public class TManipulaceSpisovyPlan {
 
     /**
      * Gets the value of the datumUzavreni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatumUzavreni() {
         return datumUzavreni;
@@ -86,11 +83,10 @@ public class TManipulaceSpisovyPlan {
 
     /**
      * Sets the value of the datumUzavreni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatumUzavreni(TDatum value) {
         this.datumUzavreni = value;

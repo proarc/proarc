@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro evidenci údajů o uzavření typového spisu, součásti nebo dílu.
- * 
+ *
  * <p>Java class for tUzavreni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tUzavreni">
  *   &lt;complexContent>
@@ -35,15 +35,15 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tUzavreni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "datum",
-    "zpracovatel",
-    "konzultant",
-    "schvalovani"
+        "datum",
+        "zpracovatel",
+        "konzultant",
+        "schvalovani"
 })
 public class TUzavreni {
 
@@ -58,11 +58,10 @@ public class TUzavreni {
 
     /**
      * Gets the value of the datum property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatum() {
         return datum;
@@ -70,11 +69,10 @@ public class TUzavreni {
 
     /**
      * Sets the value of the datum property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatum(TDatum value) {
         this.datum = value;
@@ -82,11 +80,10 @@ public class TUzavreni {
 
     /**
      * Gets the value of the zpracovatel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobyInterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobyInterni }
+     *
      */
     public TOsobyInterni getZpracovatel() {
         return zpracovatel;
@@ -94,11 +91,10 @@ public class TUzavreni {
 
     /**
      * Sets the value of the zpracovatel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobyInterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobyInterni }
+     *
      */
     public void setZpracovatel(TOsobyInterni value) {
         this.zpracovatel = value;
@@ -106,11 +102,10 @@ public class TUzavreni {
 
     /**
      * Gets the value of the konzultant property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobyInterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobyInterni }
+     *
      */
     public TOsobyInterni getKonzultant() {
         return konzultant;
@@ -118,11 +113,10 @@ public class TUzavreni {
 
     /**
      * Sets the value of the konzultant property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobyInterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobyInterni }
+     *
      */
     public void setKonzultant(TOsobyInterni value) {
         this.konzultant = value;
@@ -130,11 +124,10 @@ public class TUzavreni {
 
     /**
      * Gets the value of the schvalovani property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TSchvalovani }
-     *     
+     *
+     * @return possible object is
+     * {@link TSchvalovani }
+     *
      */
     public TSchvalovani getSchvalovani() {
         return schvalovani;
@@ -142,11 +135,10 @@ public class TUzavreni {
 
     /**
      * Sets the value of the schvalovani property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TSchvalovani }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TSchvalovani }
+     *
      */
     public void setSchvalovani(TSchvalovani value) {
         this.schvalovani = value;

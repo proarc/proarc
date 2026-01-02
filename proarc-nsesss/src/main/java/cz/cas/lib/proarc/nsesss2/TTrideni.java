@@ -8,20 +8,20 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro zatřídění entity do hierarchie spisového plánu. Prvek obsahuje údaje o jednoduchém spisovém znaku a plně určeném spisovém znaku entity.
- * 
+ *
  * <p>Java class for tTrideni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tTrideni">
  *   &lt;complexContent>
@@ -35,22 +35,22 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tTrideni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "jednoduchySpisovyZnak",
-    "plneUrcenySpisovyZnak",
-    "oduvodneni"
+        "jednoduchySpisovyZnak",
+        "plneUrcenySpisovyZnak",
+        "oduvodneni"
 })
 @XmlSeeAlso({
-    TTrideniSoucasti.class,
-    TTrideniVecneSkupiny.class,
-    TTrideniDilu.class,
-    TTrideniTypovehoSpisu.class,
-    TTrideniDokumentu.class,
-    TTrideniSpisu.class
+        TTrideniSoucasti.class,
+        TTrideniVecneSkupiny.class,
+        TTrideniDilu.class,
+        TTrideniTypovehoSpisu.class,
+        TTrideniDokumentu.class,
+        TTrideniSpisu.class
 })
 public class TTrideni {
 
@@ -63,11 +63,10 @@ public class TTrideni {
 
     /**
      * Gets the value of the jednoduchySpisovyZnak property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getJednoduchySpisovyZnak() {
         return jednoduchySpisovyZnak;
@@ -75,11 +74,10 @@ public class TTrideni {
 
     /**
      * Sets the value of the jednoduchySpisovyZnak property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setJednoduchySpisovyZnak(String value) {
         this.jednoduchySpisovyZnak = value;
@@ -87,11 +85,10 @@ public class TTrideni {
 
     /**
      * Gets the value of the plneUrcenySpisovyZnak property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getPlneUrcenySpisovyZnak() {
         return plneUrcenySpisovyZnak;
@@ -99,11 +96,10 @@ public class TTrideni {
 
     /**
      * Sets the value of the plneUrcenySpisovyZnak property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setPlneUrcenySpisovyZnak(String value) {
         this.plneUrcenySpisovyZnak = value;
@@ -111,11 +107,10 @@ public class TTrideni {
 
     /**
      * Gets the value of the oduvodneni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOduvodneni() {
         return oduvodneni;
@@ -123,11 +118,10 @@ public class TTrideni {
 
     /**
      * Sets the value of the oduvodneni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOduvodneni(String value) {
         this.oduvodneni = value;

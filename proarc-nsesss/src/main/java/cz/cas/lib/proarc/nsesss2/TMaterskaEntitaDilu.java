@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro mateřské entity dílu.
- * 
+ *
  * <p>Java class for tMaterskaEntitaDilu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tMaterskaEntitaDilu">
  *   &lt;complexContent>
@@ -32,12 +32,12 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tMaterskaEntitaDilu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "soucast"
+        "soucast"
 })
 public class TMaterskaEntitaDilu {
 
@@ -46,11 +46,10 @@ public class TMaterskaEntitaDilu {
 
     /**
      * Gets the value of the soucast property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TSoucast }
-     *     
+     *
+     * @return possible object is
+     * {@link TSoucast }
+     *
      */
     public TSoucast getSoucast() {
         return soucast;
@@ -58,11 +57,10 @@ public class TMaterskaEntitaDilu {
 
     /**
      * Sets the value of the soucast property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TSoucast }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TSoucast }
+     *
      */
     public void setSoucast(TSoucast value) {
         this.soucast = value;

@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro evidenci údajů o skartačním režimu entit, časovém rozsahu plynutí skartační lhůty a náležitostech skartačního řízení.
- * 
+ *
  * <p>Java class for tVyrazovani complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tVyrazovani">
  *   &lt;complexContent>
@@ -34,14 +34,14 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tVyrazovani", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "skartacniRezim",
-    "dataceVyrazeni",
-    "skartacniRizeni"
+        "skartacniRezim",
+        "dataceVyrazeni",
+        "skartacniRizeni"
 })
 public class TVyrazovani {
 
@@ -54,11 +54,10 @@ public class TVyrazovani {
 
     /**
      * Gets the value of the skartacniRezim property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TSkartacniRezim }
-     *     
+     *
+     * @return possible object is
+     * {@link TSkartacniRezim }
+     *
      */
     public TSkartacniRezim getSkartacniRezim() {
         return skartacniRezim;
@@ -66,11 +65,10 @@ public class TVyrazovani {
 
     /**
      * Sets the value of the skartacniRezim property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TSkartacniRezim }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TSkartacniRezim }
+     *
      */
     public void setSkartacniRezim(TSkartacniRezim value) {
         this.skartacniRezim = value;
@@ -78,11 +76,10 @@ public class TVyrazovani {
 
     /**
      * Gets the value of the dataceVyrazeni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDataceVyrazeni }
-     *     
+     *
+     * @return possible object is
+     * {@link TDataceVyrazeni }
+     *
      */
     public TDataceVyrazeni getDataceVyrazeni() {
         return dataceVyrazeni;
@@ -90,11 +87,10 @@ public class TVyrazovani {
 
     /**
      * Sets the value of the dataceVyrazeni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDataceVyrazeni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDataceVyrazeni }
+     *
      */
     public void setDataceVyrazeni(TDataceVyrazeni value) {
         this.dataceVyrazeni = value;
@@ -102,11 +98,10 @@ public class TVyrazovani {
 
     /**
      * Gets the value of the skartacniRizeni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TSkartacniRizeni }
-     *     
+     *
+     * @return possible object is
+     * {@link TSkartacniRizeni }
+     *
      */
     public TSkartacniRizeni getSkartacniRizeni() {
         return skartacniRizeni;
@@ -114,11 +109,10 @@ public class TVyrazovani {
 
     /**
      * Sets the value of the skartacniRizeni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TSkartacniRizeni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TSkartacniRizeni }
+     *
      */
     public void setSkartacniRizeni(TSkartacniRizeni value) {
         this.skartacniRizeni = value;
