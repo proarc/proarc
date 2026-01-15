@@ -82,10 +82,10 @@
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='titleInfoDefinition']/xs:sequence/xs:element[@ref='title']">
-        <jaxb:property name="titleType"/>
+        <jaxb:property name="titleStringPlusLanguage"/>
     </jaxb:bindings>
     <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='subjectTitleInfoDefinition']/xs:sequence/xs:element[@ref='title']">
-        <jaxb:property name="titleType"/>
+        <jaxb:property name="titleStringPlusLanguage"/>
     </jaxb:bindings>
 
     <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:element[@name='role']">
