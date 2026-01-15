@@ -60,22 +60,27 @@
     9. HEIGHT attribute added to HYP and SP elements.
 -->
 
-<xsd:schema targetNamespace="http://www.loc.gov/standards/alto/ns-v2#" xmlns="http://www.loc.gov/standards/alto/ns-v2#" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" elementFormDefault="qualified" attributeFormDefault="unqualified">
+<xsd:schema targetNamespace="http://www.loc.gov/standards/alto/ns-v2#" xmlns="http://www.loc.gov/standards/alto/ns-v2#"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink"
+            elementFormDefault="qualified" attributeFormDefault="unqualified">
     <xsd:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.loc.gov/standards/xlink/xlink.xsd"/>
     <xsd:element name="alto">
         <xsd:annotation>
             <xsd:documentation>ALTO (analyzed layout and text object) stores layout information and
-            OCR recognized text of pages of any kind of printed documents like books, journals and newspapers.
-            ALTO is a standardized XML format to store layout and content information.
-            It is designed to be used as an extension schema to METS (Metadata Encoding and Transmission Standard),
-            where METS provides metadata and structural information while ALTO contains content and physical information.
+                OCR recognized text of pages of any kind of printed documents like books, journals and newspapers.
+                ALTO is a standardized XML format to store layout and content information.
+                It is designed to be used as an extension schema to METS (Metadata Encoding and Transmission Standard),
+                where METS provides metadata and structural information while ALTO contains content and physical
+                information.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
                 <xsd:element name="Description" minOccurs="0">
                     <xsd:annotation>
-                        <xsd:documentation>Describes general settings of the alto file like measurement units and metadata</xsd:documentation>
+                        <xsd:documentation>Describes general settings of the alto file like measurement units and
+                            metadata
+                        </xsd:documentation>
                     </xsd:annotation>
                     <xsd:complexType>
                         <xsd:sequence>
@@ -84,20 +89,21 @@
                                     <xsd:documentation>
                                         All measurement values inside the alto file are related to
                                         this unit, except the font size.
-                                        Coordinates as being used in HPOS and VPOS are absolute coordinates referring to the upper-left corner of a page.
+                                        Coordinates as being used in HPOS and VPOS are absolute coordinates referring to
+                                        the upper-left corner of a page.
                                         The upper left corner of the page is defined as coordinate (0/0).
 
                                         values meaning:
-                                          mm10: 1/10th of millimeter
-                                          inch1200: 1/1200th of inch
-                                          pixel: 1 pixel
+                                        mm10: 1/10th of millimeter
+                                        inch1200: 1/1200th of inch
+                                        pixel: 1 pixel
 
                                         The values for pixel will be related to the resolution of the image based
                                         on which the layout is described. Incase the original image is not known
                                         the scaling factor can be calculated based on total width and height of
                                         the image and the according information of the PAGE element.
-                                        </xsd:documentation>
-                                    </xsd:annotation>
+                                    </xsd:documentation>
+                                </xsd:annotation>
                                 <xsd:simpleType>
                                     <xsd:restriction base="xsd:string">
                                         <xsd:enumeration value="pixel"/>
@@ -121,13 +127,15 @@
                 </xsd:element>
                 <xsd:element name="Styles" minOccurs="0">
                     <xsd:annotation>
-                        <xsd:documentation>Styles define properties of layout elements. A style defined in a parent element is used as default style for all related children elements. </xsd:documentation>
+                        <xsd:documentation>Styles define properties of layout elements. A style defined in a parent
+                            element is used as default style for all related children elements.
+                        </xsd:documentation>
                     </xsd:annotation>
                     <xsd:complexType>
                         <xsd:sequence>
                             <xsd:element name="TextStyle" minOccurs="0" maxOccurs="unbounded">
                                 <xsd:annotation>
-                                    <xsd:documentation>A text style defines font properties of text. </xsd:documentation>
+                                    <xsd:documentation>A text style defines font properties of text.</xsd:documentation>
                                 </xsd:annotation>
                                 <xsd:complexType>
                                     <xsd:attribute name="ID" type="xsd:ID"/>
@@ -136,13 +144,16 @@
                             </xsd:element>
                             <xsd:element name="ParagraphStyle" minOccurs="0" maxOccurs="unbounded">
                                 <xsd:annotation>
-                                    <xsd:documentation>A paragraph style defines formatting properties of text blocks.</xsd:documentation>
+                                    <xsd:documentation>A paragraph style defines formatting properties of text blocks.
+                                    </xsd:documentation>
                                 </xsd:annotation>
                                 <xsd:complexType>
                                     <xsd:attribute name="ID" type="xsd:ID" use="required"/>
                                     <xsd:attribute name="ALIGN" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Indicates the alignement of the paragraph. Could be left, right, center or justify.</xsd:documentation>
+                                            <xsd:documentation>Indicates the alignement of the paragraph. Could be left,
+                                                right, center or justify.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                         <xsd:simpleType>
                                             <xsd:restriction base="xsd:string">
@@ -155,22 +166,30 @@
                                     </xsd:attribute>
                                     <xsd:attribute name="LEFT" type="xsd:float" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Left indent of the paragraph in relation to the column.</xsd:documentation>
+                                            <xsd:documentation>Left indent of the paragraph in relation to the column.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                     <xsd:attribute name="RIGHT" type="xsd:float" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Right indent of the paragraph in relation to the column.</xsd:documentation>
+                                            <xsd:documentation>Right indent of the paragraph in relation to the
+                                                column.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                     <xsd:attribute name="LINESPACE" type="xsd:float" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Line spacing between two lines of the paragraph. Measurement calculated from baseline to baseline.</xsd:documentation>
+                                            <xsd:documentation>Line spacing between two lines of the paragraph.
+                                                Measurement calculated from baseline to baseline.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                     <xsd:attribute name="FIRSTLINE" type="xsd:float" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Indent of the first line of the paragraph if this is different from the other lines. A negative value indicates an indent to the left, a positive value indicates an indent to the right.</xsd:documentation>
+                                            <xsd:documentation>Indent of the first line of the paragraph if this is
+                                                different from the other lines. A negative value indicates an indent to
+                                                the left, a positive value indicates an indent to the right.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                 </xsd:complexType>
@@ -181,8 +200,10 @@
                 <xsd:element name="Tags" type="TagsType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Tag define properties of additional characteristic. The tags are referenced from related content element on Block or String element by attribute TAGREF via the tag ID.
-                            This container element contains the individual elements for LayoutTags, StructureTags, RoleTags, NamedEntityTags and OtherTags
+                            Tag define properties of additional characteristic. The tags are referenced from related
+                            content element on Block or String element by attribute TAGREF via the tag ID.
+                            This container element contains the individual elements for LayoutTags, StructureTags,
+                            RoleTags, NamedEntityTags and OtherTags
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -200,34 +221,46 @@
                                     <xsd:sequence>
                                         <xsd:element name="TopMargin" type="PageSpaceType" minOccurs="0">
                                             <xsd:annotation>
-                                                <xsd:documentation>The area between the top line of print and the upper edge of the leaf. It may contain page number or running title.</xsd:documentation>
+                                                <xsd:documentation>The area between the top line of print and the upper
+                                                    edge of the leaf. It may contain page number or running title.
+                                                </xsd:documentation>
                                             </xsd:annotation>
                                         </xsd:element>
                                         <xsd:element name="LeftMargin" type="PageSpaceType" minOccurs="0">
                                             <xsd:annotation>
-                                                <xsd:documentation>The area between the printspace and the left border of a page. May contain margin notes.</xsd:documentation>
+                                                <xsd:documentation>The area between the printspace and the left border
+                                                    of a page. May contain margin notes.
+                                                </xsd:documentation>
                                             </xsd:annotation>
                                         </xsd:element>
                                         <xsd:element name="RightMargin" type="PageSpaceType" minOccurs="0">
                                             <xsd:annotation>
-                                                <xsd:documentation>The area between the printspace and the right border of a page. May contain margin notes.</xsd:documentation>
+                                                <xsd:documentation>The area between the printspace and the right border
+                                                    of a page. May contain margin notes.
+                                                </xsd:documentation>
                                             </xsd:annotation>
                                         </xsd:element>
                                         <xsd:element name="BottomMargin" type="PageSpaceType" minOccurs="0">
                                             <xsd:annotation>
-                                                <xsd:documentation>The area between the bottom line of letterpress or writing and the bottom edge of the leaf. It may contain a page number, a signature number or a catch word.</xsd:documentation>
+                                                <xsd:documentation>The area between the bottom line of letterpress or
+                                                    writing and the bottom edge of the leaf. It may contain a page
+                                                    number, a signature number or a catch word.
+                                                </xsd:documentation>
                                             </xsd:annotation>
                                         </xsd:element>
                                         <xsd:element name="PrintSpace" type="PageSpaceType" minOccurs="0">
                                             <xsd:annotation>
-                                                <xsd:documentation>Rectangle covering the printed area of a page. Page number and running title are not part of the print space. </xsd:documentation>
+                                                <xsd:documentation>Rectangle covering the printed area of a page. Page
+                                                    number and running title are not part of the print space.
+                                                </xsd:documentation>
                                             </xsd:annotation>
                                         </xsd:element>
                                     </xsd:sequence>
                                     <xsd:attribute name="ID" type="xsd:ID" use="required"/>
                                     <xsd:attribute name="PAGECLASS" type="xsd:string" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Any user-defined class like title page.</xsd:documentation>
+                                            <xsd:documentation>Any user-defined class like title page.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                     <xsd:attribute name="STYLEREFS" type="xsd:IDREFS" use="optional"/>
@@ -235,17 +268,20 @@
                                     <xsd:attribute name="WIDTH" type="xsd:float" use="optional"/>
                                     <xsd:attribute name="PHYSICAL_IMG_NR" type="xsd:float" use="required">
                                         <xsd:annotation>
-                                            <xsd:documentation>The number of the page within the document.</xsd:documentation>
+                                            <xsd:documentation>The number of the page within the document.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                     <xsd:attribute name="PRINTED_IMG_NR" type="xsd:string" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>The page number that is printed on the page.</xsd:documentation>
+                                            <xsd:documentation>The page number that is printed on the page.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                     <xsd:attribute name="QUALITY" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Gives brief information about original page quality</xsd:documentation>
+                                            <xsd:documentation>Gives brief information about original page quality
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                         <xsd:simpleType>
                                             <xsd:restriction base="xsd:string">
@@ -261,12 +297,16 @@
                                     </xsd:attribute>
                                     <xsd:attribute name="QUALITY_DETAIL" type="xsd:string" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Gives more details about the original page quality, since QUALITY attribute gives only brief and restrictive information</xsd:documentation>
+                                            <xsd:documentation>Gives more details about the original page quality, since
+                                                QUALITY attribute gives only brief and restrictive information
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                     <xsd:attribute name="POSITION" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Position of the page. Could be lefthanded, righthanded, cover, foldout or single if it has no special position.</xsd:documentation>
+                                            <xsd:documentation>Position of the page. Could be lefthanded, righthanded,
+                                                cover, foldout or single if it has no special position.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                         <xsd:simpleType>
                                             <xsd:restriction base="xsd:string">
@@ -280,17 +320,23 @@
                                     </xsd:attribute>
                                     <xsd:attribute name="PROCESSING" type="xsd:IDREF" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>A link to the processing description that has been used for this page.</xsd:documentation>
+                                            <xsd:documentation>A link to the processing description that has been used
+                                                for this page.
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                     <xsd:attribute name="ACCURACY" type="xsd:float" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Estimated percentage of OCR Accuracy in range from 0 to 100 </xsd:documentation>
+                                            <xsd:documentation>Estimated percentage of OCR Accuracy in range from 0 to
+                                                100
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                     </xsd:attribute>
                                     <xsd:attribute name="PC" use="optional">
                                         <xsd:annotation>
-                                            <xsd:documentation>Page Confidence: Confidence level of the ocr for this page. A value between 0 (unsure) and 1 (sure).  </xsd:documentation>
+                                            <xsd:documentation>Page Confidence: Confidence level of the ocr for this
+                                                page. A value between 0 (unsure) and 1 (sure).
+                                            </xsd:documentation>
                                         </xsd:annotation>
                                         <xsd:simpleType>
                                             <xsd:restriction base="xsd:float">
@@ -325,7 +371,8 @@
             </xsd:element>
             <xsd:element name="GraphicalElement" type="GraphicalElementType">
                 <xsd:annotation>
-                    <xsd:documentation>A graphic used to separate blocks. Usually a line or rectangle.</xsd:documentation>
+                    <xsd:documentation>A graphic used to separate blocks. Usually a line or rectangle.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="ComposedBlock" type="ComposedBlockType">
@@ -351,7 +398,9 @@
         <xsd:attribute name="VPOS" type="xsd:float" use="required"/>
         <xsd:attribute name="ROTATION" type="xsd:float" use="optional">
             <xsd:annotation>
-                <xsd:documentation>Tells the rotation of the block e.g. text or illustration. The value is in degree counterclockwise.</xsd:documentation>
+                <xsd:documentation>Tells the rotation of the block e.g. text or illustration. The value is in degree
+                    counterclockwise.
+                </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="IDNEXT" type="xsd:IDREF" use="optional">
@@ -361,14 +410,17 @@
         </xsd:attribute>
         <xsd:attribute name="CS" type="xsd:boolean" use="optional">
             <xsd:annotation>
-                <xsd:documentation>Correction Status. Indicates whether manual correction has been done or not. The correction status should be recorded at the highest level possible (Block, TextLine, String).</xsd:documentation>
+                <xsd:documentation>Correction Status. Indicates whether manual correction has been done or not. The
+                    correction status should be recorded at the highest level possible (Block, TextLine, String).
+                </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attributeGroup ref="xlink:simpleLink"/>
     </xsd:complexType>
     <xsd:complexType name="StringType" mixed="false">
         <xsd:annotation>
-            <xsd:documentation>A sequence of chars. Strings are separated by white spaces or hyphenation chars.</xsd:documentation>
+            <xsd:documentation>A sequence of chars. Strings are separated by white spaces or hyphenation chars.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence minOccurs="0">
             <xsd:element name="ALTERNATIVE" maxOccurs="unbounded">
@@ -422,7 +474,9 @@
         </xsd:attribute>
         <xsd:attribute name="WC" use="optional">
             <xsd:annotation>
-                <xsd:documentation>Word Confidence: Confidence level of the ocr for this string. A value between 0 (unsure) and 1 (sure). </xsd:documentation>
+                <xsd:documentation>Word Confidence: Confidence level of the ocr for this string. A value between 0
+                    (unsure) and 1 (sure).
+                </xsd:documentation>
             </xsd:annotation>
             <xsd:simpleType>
                 <xsd:restriction base="xsd:float">
@@ -433,17 +487,23 @@
         </xsd:attribute>
         <xsd:attribute name="CC" type="xsd:string" use="optional">
             <xsd:annotation>
-                <xsd:documentation>Confidence level of each character in that string. A list of numbers, one number between 0 (sure) and 9 (unsure) for each character.</xsd:documentation>
+                <xsd:documentation>Confidence level of each character in that string. A list of numbers, one number
+                    between 0 (sure) and 9 (unsure) for each character.
+                </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="CS" type="xsd:boolean" use="optional">
             <xsd:annotation>
-                <xsd:documentation>Correction Status. Indicates whether manual correction has been done or not. The correction status should be recorded at the highest level possible (Block, TextLine, String).</xsd:documentation>
+                <xsd:documentation>Correction Status. Indicates whether manual correction has been done or not. The
+                    correction status should be recorded at the highest level possible (Block, TextLine, String).
+                </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="LANG" type="xsd:language" use="optional">
             <xsd:annotation>
-                <xsd:documentation>Attribute to record language of the string. The language should be recorded at the highest level possible.</xsd:documentation>
+                <xsd:documentation>Attribute to record language of the string. The language should be recorded at the
+                    highest level possible.
+                </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
@@ -486,7 +546,8 @@
     <xsd:complexType name="EllipseType">
         <xsd:annotation>
             <xsd:documentation>An ellipse shape. HPOS and VPOS describe the center of the ellipse.
-                                HLENGTH and VLENGTH are the width and height of the described ellipse.</xsd:documentation>
+                HLENGTH and VLENGTH are the width and height of the described ellipse.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:attribute name="HPOS" type="xsd:float" use="required"/>
         <xsd:attribute name="VPOS" type="xsd:float" use="required"/>
@@ -503,7 +564,9 @@
     </xsd:complexType>
     <xsd:attributeGroup name="formattingAttributeGroup">
         <xsd:annotation>
-            <xsd:documentation>Formatting attributes. Note that these attributes are assumed to be inherited from ancestor elements of the document hierarchy.</xsd:documentation>
+            <xsd:documentation>Formatting attributes. Note that these attributes are assumed to be inherited from
+                ancestor elements of the document hierarchy.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:attribute name="FONTFAMILY" type="xsd:string" use="optional">
             <xsd:annotation>
@@ -544,7 +607,8 @@
     </xsd:simpleType>
     <xsd:complexType name="sourceImageInformationType">
         <xsd:annotation>
-            <xsd:documentation>Information to identify the image file from which the OCR text was created.</xsd:documentation>
+            <xsd:documentation>Information to identify the image file from which the OCR text was created.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="fileName" type="xsd:string" minOccurs="0"/>
@@ -554,7 +618,10 @@
     <xsd:complexType name="fileIdentifierType">
         <xsd:annotation>
             <xsd:documentation>A unique identifier for the image file. This is drawn from MIX.</xsd:documentation>
-            <xsd:documentation> This identifier must be unique within the local system. To facilitate file sharing or interoperability with other systems, fileIdentifierLocation may be added to designate the system or application where the identifier is unique.</xsd:documentation>
+            <xsd:documentation>This identifier must be unique within the local system. To facilitate file sharing or
+                interoperability with other systems, fileIdentifierLocation may be added to designate the system or
+                application where the identifier is unique.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
@@ -568,7 +635,9 @@
     </xsd:complexType>
     <xsd:complexType name="ocrProcessingType">
         <xsd:annotation>
-            <xsd:documentation>Information on how the text was created, including preprocessing, OCR processing, and postprocessing steps.</xsd:documentation>
+            <xsd:documentation>Information on how the text was created, including preprocessing, OCR processing, and
+                postprocessing steps.
+            </xsd:documentation>
             <xsd:documentation>Where possible, this draws from MIX's change history.</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -589,17 +658,24 @@
             </xsd:element>
             <xsd:element name="processingAgency" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Identifies the organizationlevel producer(s) of the processed image.</xsd:documentation>
+                    <xsd:documentation>Identifies the organizationlevel producer(s) of the processed image.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="processingStepDescription" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
-                    <xsd:documentation>An ordinal listing of the image processing steps performed. For example, "image despeckling."</xsd:documentation>
+                    <xsd:documentation>An ordinal listing of the image processing steps performed. For example, "image
+                        despeckling."
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="processingStepSettings" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>A description of any setting of the processing application. For example, for a multi-engine OCR application this might include the engines which were used. Ideally, this description should be adequate so that someone else using the same application can produce identical results.</xsd:documentation>
+                    <xsd:documentation>A description of any setting of the processing application. For example, for a
+                        multi-engine OCR application this might include the engines which were used. Ideally, this
+                        description should be adequate so that someone else using the same application can produce
+                        identical results.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="processingSoftware" type="processingSoftwareType" minOccurs="0"/>
@@ -607,12 +683,15 @@
     </xsd:complexType>
     <xsd:complexType name="processingSoftwareType">
         <xsd:annotation>
-            <xsd:documentation>Information about a software application. Where applicable, the preferred method for determining this information is by selecting Help --> About.</xsd:documentation>
+            <xsd:documentation>Information about a software application. Where applicable, the preferred method for
+                determining this information is by selecting Help --> About.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="softwareCreator" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>The name of the organization or company that created the application.</xsd:documentation>
+                    <xsd:documentation>The name of the organization or company that created the application.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="softwareName" type="xsd:string" minOccurs="0">
@@ -627,7 +706,10 @@
             </xsd:element>
             <xsd:element name="applicationDescription" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>A description of any important characteristics of the application, especially for non-commercial applications. For example, if a non-commercial application is built using commercial components, e.g., an OCR engine SDK. Those components should be mentioned here.</xsd:documentation>
+                    <xsd:documentation>A description of any important characteristics of the application, especially for
+                        non-commercial applications. For example, if a non-commercial application is built using
+                        commercial components, e.g., an OCR engine SDK. Those components should be mentioned here.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -668,12 +750,16 @@
                 </xsd:sequence>
                 <xsd:attribute name="TYPE" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation>A user defined string to identify the type of composed block (e.g. table, advertisement, ...)</xsd:documentation>
+                        <xsd:documentation>A user defined string to identify the type of composed block (e.g. table,
+                            advertisement, ...)
+                        </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                 <xsd:attribute name="FILEID" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation>An ID to link to an image which contains only the composed block. The ID and the file link is defined in the related METS file.</xsd:documentation>
+                        <xsd:documentation>An ID to link to an image which contains only the composed block. The ID and
+                            the file link is defined in the related METS file.
+                        </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
             </xsd:extension>
@@ -687,7 +773,9 @@
             <xsd:extension base="BlockType">
                 <xsd:attribute name="TYPE" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation>A user defined string to identify the type of illustration like photo, map, drawing, chart, ...</xsd:documentation>
+                        <xsd:documentation>A user defined string to identify the type of illustration like photo, map,
+                            drawing, chart, ...
+                        </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                 <xsd:attribute name="FILEID" type="xsd:string" use="optional">
@@ -700,7 +788,7 @@
     </xsd:complexType>
     <xsd:complexType name="GraphicalElementType">
         <xsd:annotation>
-            <xsd:documentation>A graphic used to separate blocks. Usually a line or rectangle. </xsd:documentation>
+            <xsd:documentation>A graphic used to separate blocks. Usually a line or rectangle.</xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="BlockType"/>
@@ -736,7 +824,8 @@
                                 </xsd:sequence>
                                 <xsd:element name="HYP" minOccurs="0">
                                     <xsd:annotation>
-                                        <xsd:documentation>A hyphenation char. Can appear only at the end of a line.</xsd:documentation>
+                                        <xsd:documentation>A hyphenation char. Can appear only at the end of a line.
+                                        </xsd:documentation>
                                     </xsd:annotation>
                                     <xsd:complexType>
                                         <xsd:attribute name="HEIGHT" type="xsd:float" use="optional"/>
@@ -762,7 +851,10 @@
                             </xsd:attribute>
                             <xsd:attribute name="CS" type="xsd:boolean" use="optional">
                                 <xsd:annotation>
-                                    <xsd:documentation>Correction Status. Indicates whether manual correction has been done or not. The correction status should be recorded at the highest level possible (Block, TextLine, String).</xsd:documentation>
+                                    <xsd:documentation>Correction Status. Indicates whether manual correction has been
+                                        done or not. The correction status should be recorded at the highest level
+                                        possible (Block, TextLine, String).
+                                    </xsd:documentation>
                                 </xsd:annotation>
                             </xsd:attribute>
                         </xsd:complexType>
@@ -789,64 +881,66 @@
                 StructureTag – criteria about grouping or formation
                 RoleTag – criteria about function or mission
                 NamedEntityTag – criteria about assignment of terms to their relationship / meaning (NER)
-                OtherTag – criteria about any other characteristic not listed above, the TYPE attribute is intended to be used for classification within those.
+                OtherTag – criteria about any other characteristic not listed above, the TYPE attribute is intended to
+                be used for classification within those.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-        <xsd:choice minOccurs="0" maxOccurs="unbounded">
-          <xsd:element name="LayoutTag" type="TagType"/>
-          <xsd:element name="StructureTag" type="TagType"/>
-          <xsd:element name="RoleTag" type="TagType"/>
-          <xsd:element name="NamedEntityTag" type="TagType"/>
-          <xsd:element name="OtherTag" type="TagType"/>
-        </xsd:choice>
-      </xsd:sequence>
+            <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="LayoutTag" type="TagType"/>
+                <xsd:element name="StructureTag" type="TagType"/>
+                <xsd:element name="RoleTag" type="TagType"/>
+                <xsd:element name="NamedEntityTag" type="TagType"/>
+                <xsd:element name="OtherTag" type="TagType"/>
+            </xsd:choice>
+        </xsd:sequence>
     </xsd:complexType>
     <xsd:complexType name="TagType">
-      <xsd:sequence>
-        <xsd:element name="XmlData" minOccurs="0">
-          <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-              The xml data wrapper element XmlData is used to contain XML encoded metadata.
-              The content of an XmlData element can be in any namespace or in no namespace.
-              As permitted by the XML Schema Standard, the processContents attribute value for the
-              metadata in an XmlData is set to “lax”. Therefore, if the source schema and its location are
-              identified by means of an XML schemaLocation attribute, then an XML processor will validate
-              the elements for which it can find declarations. If a source schema is not identified, or cannot be
-              found at the specified schemaLocation, then an XML validator will check for well-formedness,
-              but otherwise skip over the elements appearing in the XmlData element.
-            </xsd:documentation>
-          </xsd:annotation>
-          <xsd:complexType>
-            <xsd:sequence>
-              <xsd:any namespace="##any" processContents="lax" maxOccurs="unbounded"/>
-            </xsd:sequence>
-          </xsd:complexType>
-        </xsd:element>
-      </xsd:sequence>
-      <xsd:attribute name="ID" type="xsd:ID" use="required"/>
-      <xsd:attribute name="TYPE" type="xsd:string" use="optional">
-        <xsd:annotation>
-          <xsd:documentation>Type can be used to classify and group the information within each tag
-            element type.
-          </xsd:documentation>
-        </xsd:annotation>
-      </xsd:attribute>
-      <xsd:attribute name="LABEL" type="xsd:string" use="required">
-        <xsd:annotation>
-          <xsd:documentation>Content / information value of the tag.</xsd:documentation>
-        </xsd:annotation>
-      </xsd:attribute>
-      <xsd:attribute name="DESCRIPTION" type="xsd:string" use="optional">
-        <xsd:annotation>
-          <xsd:documentation>Description text for tag information for clarification.</xsd:documentation>
-        </xsd:annotation>
-      </xsd:attribute>
-      <xsd:attribute name="URI" type="xsd:anyURI" use="optional">
-        <xsd:annotation>
-          <xsd:documentation>Any URI for authority or description relevant information.
-          </xsd:documentation>
-        </xsd:annotation>
-      </xsd:attribute>
+        <xsd:sequence>
+            <xsd:element name="XmlData" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        The xml data wrapper element XmlData is used to contain XML encoded metadata.
+                        The content of an XmlData element can be in any namespace or in no namespace.
+                        As permitted by the XML Schema Standard, the processContents attribute value for the
+                        metadata in an XmlData is set to “lax”. Therefore, if the source schema and its location are
+                        identified by means of an XML schemaLocation attribute, then an XML processor will validate
+                        the elements for which it can find declarations. If a source schema is not identified, or cannot
+                        be
+                        found at the specified schemaLocation, then an XML validator will check for well-formedness,
+                        but otherwise skip over the elements appearing in the XmlData element.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any namespace="##any" processContents="lax" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="TYPE" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>Type can be used to classify and group the information within each tag
+                    element type.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="LABEL" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation>Content / information value of the tag.</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="DESCRIPTION" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>Description text for tag information for clarification.</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="URI" type="xsd:anyURI" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>Any URI for authority or description relevant information.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
     </xsd:complexType>
 </xsd:schema>

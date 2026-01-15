@@ -66,7 +66,7 @@ public enum AudioMimeType {
         AudioMimeType[] arr = values;
         int len = values.length;
 
-        for(int i = 0; i < len; ++i) {
+        for (int i = 0; i < len; ++i) {
             AudioMimeType iType = arr[i];
             if (iType.getMimeType().equals(mime)) {
                 return iType;

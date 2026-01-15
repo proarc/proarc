@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
@@ -29,13 +28,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -43,13 +40,15 @@ import org.junit.Rule;
  */
 public class FilterFindParameterQueryTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
+
     private WorkflowProfiles wp;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        File xmlWorkflow = temp.newFile("workflowTest.xml");
+        File xmlWorkflow = new File(tempDir, "workflowTest.xml");
+        xmlWorkflow.createNewFile();
         FileUtils.copyURLToFile(WorkflowManagerTest.class.getResource("WorkflowManagerAddProfile.xml"), xmlWorkflow);
         WorkflowProfiles.setInstance(new WorkflowProfiles(xmlWorkflow));
         wp = WorkflowProfiles.getInstance();

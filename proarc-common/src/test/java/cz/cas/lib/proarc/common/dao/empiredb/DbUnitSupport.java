@@ -22,9 +22,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Statement;
 import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBContext;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
@@ -35,8 +35,8 @@ import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.ext.postgresql.PostgresqlDataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
-import org.junit.Assert;
-import org.junit.Assume;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -48,37 +48,27 @@ public class DbUnitSupport {
     private static String dtdSchema;
 
     public DbUnitSupport() {
-        Assume.assumeNotNull(System.getProperty("proarc-common.DbUnitSupport.jdbc.user"));
+        assertNotNull(System.getProperty("proarc-common.DbUnitSupport.jdbc.user"));
         emireCfg = new EmpireConfiguration(
-                System.getProperty("proarc-common.DbUnitSupport.jdbc.driver"),
                 System.getProperty("proarc-common.DbUnitSupport.jdbc.url"),
                 System.getProperty("proarc-common.DbUnitSupport.jdbc.user"),
                 System.getProperty("proarc-common.DbUnitSupport.jdbc.passwd"),
-                System.getProperty("proarc-common.DbUnitSupport.empiredb.driver"),
                 null
-                );
+        );
     }
 
     public EmpireConfiguration getEmireCfg() {
         return emireCfg;
     }
 
-    public IDatabaseConnection getConnection(Transaction tx) throws DatabaseUnitException, SQLException {
-        return getConnection(getSqlConnection(tx));
-    }
-
-    public IDatabaseConnection getConnection() throws DatabaseUnitException, SQLException {
-        return getConnection(emireCfg.getConnection());
-    }
-
-    public IDatabaseConnection getConnection(Connection c) throws DatabaseUnitException, SQLException {
-        return createProgresConnection(c);
+    public DBContext getContext(Transaction tx) {
+        return ((SqlTransaction) tx).getContext();
     }
 
     public Connection getSqlConnection(Transaction tx) {
-        return ((SqlTransaction) tx).getConnection();
+        return ((SqlTransaction) tx).getContext().getConnection();
     }
-    
+
     private IDatabaseConnection createProgresConnection(Connection c) throws DatabaseUnitException {
         DatabaseConnection dbc = new DatabaseConnection(c);
         DatabaseConfig config = dbc.getConfig();
@@ -88,7 +78,7 @@ public class DbUnitSupport {
         config.setProperty(DatabaseConfig.FEATURE_CASE_SENSITIVE_TABLE_NAMES, false);
         return dbc;
     }
-    
+
     public IDataSet loadFlatXmlDataStream(Class<?> c, String resource) throws Exception {
         return loadFlatXmlDataStream(c, resource, false);
     }
@@ -101,7 +91,9 @@ public class DbUnitSupport {
         return fds;
     }
 
-    /** initializes sequences after DBUnit inserts */
+    /**
+     * initializes sequences after DBUnit inserts
+     */
     public void initSequences(Transaction tx, int startWith, String... sqnName) throws Exception {
         initSequences(getSqlConnection(tx), startWith, sqnName);
     }
@@ -115,25 +107,26 @@ public class DbUnitSupport {
         }
     }
 
-    public void cleanInsert(IDatabaseConnection c, IDataSet dataset) throws Exception {
-        prepareForDelete(c.getConnection());
-        DatabaseOperation.CLEAN_INSERT.execute(c, dataset);
+    public void cleanInsert(DBContext context, IDataSet dataset) throws Exception {
+        prepareForDelete(context);
+        DatabaseOperation.CLEAN_INSERT.execute((IDatabaseConnection) context.getConnection(), dataset);
     }
 
     /**
      * Removes all constrained values that cannot be resolved with proper delete table order.
      */
-    public void prepareForDelete(Connection c) {
+    public void prepareForDelete(DBContext context) {
         ProarcDatabase schema = getEmireCfg().getSchema();
         DBCommand cmd = schema.createCommand();
         cmd.set(schema.tableUser.defaultGroup.to(null));
         cmd.set(schema.tableUser.userGroup.to(null));
-        schema.executeUpdate(cmd, c);
+
+        context.executeDelete(schema.tableUser, cmd);
     }
 
     private InputStream getResourceStream(Class<?> c, String resource) {
         InputStream stream = c.getResourceAsStream(resource);
-        Assert.assertNotNull("stream.name: " + resource + ", class: " + c, stream);
+        assertNotNull(stream, "stream.name: " + resource + ", class: " + c);
         return stream;
     }
 
@@ -143,16 +136,16 @@ public class DbUnitSupport {
 
     private Reader getDtdSchema(boolean resetDtdSchema) throws Exception {
         if (resetDtdSchema || dtdSchema == null) {
-            Connection c = getEmireCfg().getConnection();
+            DBContext context = getEmireCfg().getContext();
             try {
 
-                IDatabaseConnection dc = createProgresConnection(c);
+                IDatabaseConnection dc = createProgresConnection(context.getConnection());
                 StringWriter sw = new StringWriter();
                 FlatDtdDataSet.write(dc.createDataSet(), sw);
                 dtdSchema = sw.toString();
 //                System.out.println(dtdSchema);
             } finally {
-                c.close();
+                context.discard();
             }
         }
         return new StringReader(dtdSchema);

@@ -19,8 +19,7 @@ package cz.cas.lib.proarc.common.process.export.cejsh;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConversionException;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * The CEJSH configuration.
@@ -38,12 +37,8 @@ public class CejshConfig {
         CejshConfig cc = new CejshConfig();
         cc.setCejshXslUrl(conf.getString(PROP_MODS_XSL_URL, null));
 //        cc.setJournalUrl(conf.getString(PROP_JOURNALS_URL, null));
-        try {
-            boolean debug = conf.getBoolean(PROP_DEBUG, Boolean.FALSE);
-            cc.setLogLevel(debug ? Level.INFO : Level.FINE);
-        } catch (ConversionException ex) {
-            LOG.log(Level.SEVERE, PROP_DEBUG, ex);
-        }
+        boolean debug = conf.getBoolean(PROP_DEBUG, Boolean.FALSE);
+        cc.setLogLevel(debug ? Level.INFO : Level.FINE);
         return cc;
     }
 

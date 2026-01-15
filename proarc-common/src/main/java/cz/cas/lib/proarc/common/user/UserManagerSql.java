@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -49,7 +49,7 @@ import static cz.cas.lib.proarc.common.sql.DbUtils.rollback;
  * @author Jan Pokorsky
  */
 final class UserManagerSql implements UserManager {
-    
+
     private static final Logger LOG = Logger.getLogger(UserManagerSql.class.getName());
     private final DataSource source;
     private final AppConfiguration appConfig;
@@ -69,7 +69,7 @@ final class UserManagerSql implements UserManager {
             this.fedoraStorage = FedoraStorage.getInstance(config);
         } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             this.fedoraStorage = null;
-        } else{
+        } else {
             throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
         }
         this.daos = daos;
@@ -243,7 +243,7 @@ final class UserManagerSql implements UserManager {
             profile.setUserGroup(userGroup.getId());
             userDao.update(profile);
             // sql membership
-            groupStorage.addMembership(((SqlTransaction) tx).getConnection(), profile.getId(), membership);
+            groupStorage.addMembership(((SqlTransaction) tx).getContext().getConnection(), profile.getId(), membership);
 
             // filesystem
             UserUtil.createUserSubfolders(userHome);
@@ -300,7 +300,7 @@ final class UserManagerSql implements UserManager {
             }
             groupDao.update(group);
             if (!permissions.isEmpty()) {
-                permissionStorage.set(((SqlTransaction) tx).getConnection(), group.getId(),
+                permissionStorage.set(((SqlTransaction) tx).getContext().getConnection(), group.getId(),
                         permissions.toArray(new Permission[permissions.size()]));
             }
             commit(tx, ftx);

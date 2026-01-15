@@ -53,7 +53,9 @@ import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedo
  */
 public final class AtmEditor {
 
-    /** helper to clear current value */
+    /**
+     * helper to clear current value
+     */
     public static final String NULL = "null";
 
     private final ProArcObject fobject;
@@ -70,10 +72,11 @@ public final class AtmEditor {
 
     /**
      * Updates metadata.
-     * @param deviceId device ID to update. Use {@link #NULL} for clearing
-     * @param softwareId software ID to update. Use {@link #NULL} for clearing
-     * @param organization  ID to update. Use {@link #NULL} for clearing
-     * @param message audit message
+     *
+     * @param deviceId     device ID to update. Use {@link #NULL} for clearing
+     * @param softwareId   software ID to update. Use {@link #NULL} for clearing
+     * @param organization ID to update. Use {@link #NULL} for clearing
+     * @param message      audit message
      * @throws DigitalObjectException
      */
     public void write(String deviceId, String softwareId, String organization, String user, String status, String donator, String archivalCopiesPath, String message) throws DigitalObjectException {
@@ -128,7 +131,7 @@ public final class AtmEditor {
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
                 relationEditor.setStatus(status);
                 write = true;
-            } else if (newVal.equals(oldVal) && changedUser){
+            } else if (newVal.equals(oldVal) && changedUser) {
                 relationEditor.setStatus(STATUS_ASSIGN);
                 write = true;
             }
@@ -140,10 +143,11 @@ public final class AtmEditor {
 
     /**
      * Updates metadata.
-     * @param organization  ID to update. Use {@link #NULL} for clearing
-     * @param user  ID to update. Use {@link #NULL} for clearing
-     * @param status  ID to update. Use {@link #NULL} for clearing
-     * @param message audit message
+     *
+     * @param organization ID to update. Use {@link #NULL} for clearing
+     * @param user         ID to update. Use {@link #NULL} for clearing
+     * @param status       ID to update. Use {@link #NULL} for clearing
+     * @param message      audit message
      * @param fobject
      * @throws DigitalObjectException
      */
@@ -189,6 +193,7 @@ public final class AtmEditor {
 
     /**
      * Updates metadata.
+     *
      * @param status  ID to update. Use {@link #NULL} for clearing
      * @param message audit message
      * @throws DigitalObjectException
@@ -436,7 +441,9 @@ public final class AtmEditor {
             return lockedDate;
         }
 
-        public String getDonator() { return donator;}
+        public String getDonator() {
+            return donator;
+        }
 
         public String getArchivalCopies() {
             return archivalCopies;

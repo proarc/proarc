@@ -23,10 +23,11 @@ import java.util.HashMap;
  * Constatnts for ndkExport test
  *
  * @author Robert Simonovsky
- * 
+ *
  */
 public class TestConst {
     public static HashMap<String, String> parents = new HashMap<String, String>();
+
     static {
         parents.put("uuid:b46ab0eb-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");
         parents.put("uuid:b46aff0c-26af-11e3-88e3-001b63bd97ba", "uuid:2ad73b97-ef9d-429a-b3a5-65083fa4c317");

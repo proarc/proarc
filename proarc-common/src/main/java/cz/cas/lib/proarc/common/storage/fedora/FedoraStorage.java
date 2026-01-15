@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -38,6 +38,7 @@ import com.yourmediashelf.fedora.generated.foxml.StateType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.storage.AbstractProArcObject;
 import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -45,8 +46,8 @@ import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.object.DigitalObjectExistException;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -61,7 +62,6 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.ws.rs.core.Response.Status;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -113,7 +113,7 @@ public final class FedoraStorage {
             getClient().getLastModifiedDate(pid);
             return true;
         } catch (FedoraClientException ex) {
-            if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+            if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 return false;
             }
             throw new DigitalObjectException(pid, ex);
@@ -135,10 +135,11 @@ public final class FedoraStorage {
 
     /**
      * Ingests a digital object stored in a file.
-     * @param foxml persisted digital object
-     * @param pid PID of the digital object
+     *
+     * @param foxml      persisted digital object
+     * @param pid        PID of the digital object
      * @param ingestUser ignored in case the owner is already set for the object
-     * @param log message describing the action
+     * @param log        message describing the action
      * @throws DigitalObjectException failure
      */
     public void ingest(File foxml, String pid, String ingestUser, String log) throws DigitalObjectException, DigitalObjectExistException {
@@ -164,7 +165,8 @@ public final class FedoraStorage {
 
     /**
      * Ingests a digital object with default log message.
-     * @param object digital object to ingest
+     *
+     * @param object     digital object to ingest
      * @param ingestUser ignored in case the owner is already set for the object
      * @throws DigitalObjectException failure
      */
@@ -175,9 +177,10 @@ public final class FedoraStorage {
     /**
      * Ingests a digital object with default log message.
      * <p>See https://wiki.duraspace.org/display/FEDORA35/Using+File+URIs to reference external files for ingest.
-     * @param object digital object to ingest
+     *
+     * @param object     digital object to ingest
      * @param ingestUser ignored in case the owner is already set for the object
-     * @param log message describing the action
+     * @param log        message describing the action
      * @throws DigitalObjectException failure
      */
     public void ingest(LocalObject object, String ingestUser, String log) throws DigitalObjectException, DigitalObjectExistException {
@@ -215,6 +218,7 @@ public final class FedoraStorage {
 
     /**
      * Is the storage compatible with a version?
+     *
      * @param version the requested version
      * @return {@code true} if the repository is compatible.
      * @throws FedoraClientException failure
@@ -269,7 +273,7 @@ public final class FedoraStorage {
         public RemoteObject(String pid, FedoraClient client) {
             super(pid);
             this.client = client;
-            this.indexHierarchical =true;
+            this.indexHierarchical = true;
         }
 
         public FedoraClient getClient() {
@@ -333,7 +337,7 @@ public final class FedoraStorage {
                         .logMessage(qpEncode(logMessage))
                         .execute(client);
             } catch (FedoraClientException ex) {
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     throw new DigitalObjectNotFoundException(getPid(), ex);
                 } else {
                     throw new DigitalObjectException(getPid(), ex);
@@ -347,7 +351,7 @@ public final class FedoraStorage {
                         .logMessage(qpEncode(logMessage))
                         .execute(client);
             } catch (FedoraClientException ex) {
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     throw new DigitalObjectNotFoundException(getPid(), ex);
                 } else {
                     throw new DigitalObjectException(getPid(), ex);
@@ -359,7 +363,7 @@ public final class FedoraStorage {
             try {
                 FedoraClient.purgeObject(getPid()).logMessage(qpEncode(logMessage)).execute(client);
             } catch (FedoraClientException ex) {
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     //throw new DigitalObjectNotFoundException(getPid(), ex);
                     LOG.info("Error in object purge " + ex.getMessage() + " " + ex.getStackTrace());
                 } else {
@@ -369,14 +373,14 @@ public final class FedoraStorage {
         }
 
         @Override
-        public void purgeDatastream(String datastream ,String logMessage) throws DigitalObjectException {
+        public void purgeDatastream(String datastream, String logMessage) throws DigitalObjectException {
             try {
                 FedoraClient.purgeDatastream(getPid(), datastream).logMessage(qpEncode(logMessage)).execute(client);
             } catch (FedoraClientException ex) {
                 //if submitted pid was invalid, then 404 was received and client set NOT_FOUND status
                 //datastream presence is not checked and 200 is returned by Fedora whether datastream existed or not prior to purging
 
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     throw new DigitalObjectNotFoundException(getPid(), ex);
                 } else {
                     throw new DigitalObjectException(getPid(), ex);
@@ -390,7 +394,7 @@ public final class FedoraStorage {
                 FedoraResponse response = FedoraClient.getObjectXML(getPid()).execute(client);
                 return response.getEntity(String.class);
             } catch (FedoraClientException ex) {
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     throw new DigitalObjectNotFoundException(getPid(), ex);
                 }
                 throw new DigitalObjectException(getPid(), ex);
@@ -413,7 +417,7 @@ public final class FedoraStorage {
                 DatastreamProfile profile = response.getDatastreamProfile();
                 return Collections.singletonList(profile);
             } catch (FedoraClientException ex) {
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     if (FoxmlUtils.missingDatastream(ex)) {
                         // log
                         return Collections.emptyList();
@@ -438,7 +442,7 @@ public final class FedoraStorage {
                 }
                 return profiles;
             } catch (FedoraClientException ex) {
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     throw new DigitalObjectNotFoundException(getPid(), ex);
                 }
                 throw new DigitalObjectException(getPid(), ex);
@@ -454,7 +458,7 @@ public final class FedoraStorage {
                 List<DatastreamProfile> profiles = response.getDatastreamProfiles();
                 return profiles;
             } catch (FedoraClientException ex) {
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     throw new DigitalObjectNotFoundException(getPid(), ex);
                 }
                 throw new DigitalObjectException(getPid(), ex);
@@ -481,9 +485,10 @@ public final class FedoraStorage {
 
         /**
          * Constructor.
-         * @param object remote object
+         *
+         * @param object         remote object
          * @param defaultProfile optional profile to create new stream. {@code null}
-         *          means the editor can just edit existing stream.
+         *                       means the editor can just edit existing stream.
          */
         public RemoteXmlStreamEditor(RemoteObject object, DatastreamProfile defaultProfile) {
             if (object == null) {
@@ -497,8 +502,9 @@ public final class FedoraStorage {
 
         /**
          * Creates editor that will fail in case the stream not exist.
+         *
          * @param object remote object
-         * @param dsId data stream ID
+         * @param dsId   data stream ID
          */
         public RemoteXmlStreamEditor(RemoteObject object, String dsId) {
             this.object = object;
@@ -609,7 +615,7 @@ public final class FedoraStorage {
 
         private void fetchProfile() throws DigitalObjectException {
             if (profile != null || missingDataStream) {
-                return ;
+                return;
             }
             try {
                 GetDatastreamResponse response = FedoraClient.getDatastream(object.getPid(), dsId)
@@ -620,7 +626,7 @@ public final class FedoraStorage {
 
                 missingDataStream = false;
             } catch (FedoraClientException ex) {
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     // Missing datastream message:
                     // HTTP 404 Error: No datastream could be found. Either there is no datastream for the digital object "uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c5" with datastream ID of "TEXT_OCR"  OR  there are no datastreams that match the specified date/time value of "null".
                     // Missing object message:
@@ -657,11 +663,11 @@ public final class FedoraStorage {
 
         private void fetchData() throws DigitalObjectException {
             if (data != null || missingDataStream) {
-                return ;
+                return;
             }
             fetchProfile();
             if (missingDataStream) {
-                return ;
+                return;
             }
             try {
                 FedoraResponse response = FedoraClient.getDatastreamDissemination(object.getPid(), dsId)
@@ -670,16 +676,16 @@ public final class FedoraStorage {
                         .execute(object.getClient());
                 InputStream is = response.getEntityInputStream();
                 try {
-                   ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                   FoxmlUtils.copy(is, buffer);
-                   this.data = new DatastreamContent(buffer.toByteArray());
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    FoxmlUtils.copy(is, buffer);
+                    this.data = new DatastreamContent(buffer.toByteArray());
                 } catch (IOException ex) {
                     throw new DigitalObjectException(object.getPid(), ex);
                 } finally {
                     FoxmlUtils.closeQuietly(is, toLogString());
                 }
             } catch (FedoraClientException ex) {
-                if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 }
                 throw new DigitalObjectException(object.getPid(), ex);
             }
@@ -688,7 +694,7 @@ public final class FedoraStorage {
         @Override
         public void flush() throws DigitalObjectException {
             if (!modified) {
-                return ;
+                return;
             }
             try {
                 if (newProfile != null && !newProfile.getDsControlGroup().equals(profile.getDsControlGroup())) {
@@ -710,7 +716,7 @@ public final class FedoraStorage {
                 throw new DigitalObjectException(object.getPid(), toLogString(), ex);
             } catch (FedoraClientException ex) {
                 // HTTP 409 - conflict with the current state of the resource
-                if (ex.getStatus() == Status.CONFLICT.getStatusCode()) {
+                if (ex.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
                     throw new DigitalObjectConcurrentModificationException(object.getPid(), ex.getMessage());
                 }
                 throw new DigitalObjectException(object.getPid(), toLogString(), ex);
@@ -781,7 +787,7 @@ public final class FedoraStorage {
         private ModifyDatastreamResponse getResponse(ModifyDatastream request, int testNumber) throws FedoraClientException {
             try {
                 return request.execute(object.getClient());
-            }  catch (ClientHandlerException e) {
+            } catch (ClientHandlerException e) {
                 if (testNumber < 10) {
                     return getResponse(request, ++testNumber);
                 } else {

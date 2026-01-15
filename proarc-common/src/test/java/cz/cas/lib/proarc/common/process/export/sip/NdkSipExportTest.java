@@ -16,7 +16,6 @@
 
 package cz.cas.lib.proarc.common.process.export.sip;
 
-import com.mchange.util.AssertException;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -37,6 +36,9 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mets.info.Info;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
+import java.io.File;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,30 +46,25 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.List;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import org.apache.commons.lang.StringUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ErrorCollector;
-import org.junit.rules.TemporaryFolder;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
+import org.apache.commons.lang.StringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class NdkSipExportTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-
-    @Rule
-    public ErrorCollector collector = new ErrorCollector();
+    @TempDir
+    File tempDir;
 
     @Mocked
     private FedoraClient client;
@@ -83,7 +80,7 @@ public class NdkSipExportTest {
     public NdkSipExportTest() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
@@ -119,7 +116,7 @@ public class NdkSipExportTest {
         mc.setRemoteStorage(fedoraStorage);
 
         MetsElement mElm = MetsElement.getElement(dobj, null, mc, true);
-        assertNotNull("missing parent for " + mElm.getOriginalPid() + " (" + mElm.getElementType() + ")", mElm.getParent());
+        assertNotNull(mElm.getParent(), () -> "missing parent for " + mElm.getOriginalPid() + " (" + mElm.getElementType() + ")");
     }
 
     @Test
@@ -127,11 +124,21 @@ public class NdkSipExportTest {
         NdkExport export = new NdkSipExport(fedoraStorage, appConfig, akubraConfiguration);
         String pid = "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6";
 
-        List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
+        List<NdkExport.Result> resultsList = export.export(tempDir, Collections.singletonList(pid),
                 true, true, null, false, null, KRAMERIUS_INSTANCE_LOCAL, "public", null, null);
 
-        resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
-                .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));
+        assertAll(
+                resultsList.stream()
+                        .filter(result -> result.getValidationError() != null)
+                        .flatMap(result -> result.getValidationError().getExceptions().stream())
+                        .map(exception -> (org.junit.jupiter.api.function.Executable) () -> {
+                            if (exception.getEx() != null) {
+                                fail(exception.getEx());
+                            } else {
+                                fail(exception.getMessage());
+                            }
+                        })
+        );
 
         String sipIdentifier = "123";
         Path sip = resultsList.get(0).getTargetFolder().toPath().resolve(sipIdentifier);
@@ -155,14 +162,24 @@ public class NdkSipExportTest {
         NdkExport export = new NdkSipExport(fedoraStorage, appConfig, akubraConfiguration);
         String pid = "uuid:26342028-12c8-4446-9217-d3c9f249bd13";
 
-        List<NdkExport.Result> resultsList = export.export(folder.getRoot(), Collections.singletonList(pid),
+        List<NdkExport.Result> resultsList = export.export(tempDir, Collections.singletonList(pid),
                 true, true, null, false, null, KRAMERIUS_INSTANCE_LOCAL, "public", null, null);
 
-        resultsList.stream().filter(result -> result.getValidationError() != null).flatMap(result -> result.getValidationError().getExceptions().stream())
-                .forEach(exception -> collector.addError(exception.getEx() != null ? exception.getEx() : new AssertException(exception.getMessage())));
+        assertAll(
+                resultsList.stream()
+                        .filter(result -> result.getValidationError() != null)
+                        .flatMap(result -> result.getValidationError().getExceptions().stream())
+                        .map(exception -> (org.junit.jupiter.api.function.Executable) () -> {
+                            if (exception.getEx() != null) {
+                                fail(exception.getEx());
+                            } else {
+                                fail(exception.getMessage());
+                            }
+                        })
+        );
 
         String packageId = "123";
-        Path sip = folder.getRoot().toPath().resolve(StringUtils.removeStart(pid, "uuid:")).resolve(packageId);
+        Path sip = tempDir.toPath().resolve(StringUtils.removeStart(pid, "uuid:")).resolve(packageId);
 
         Files.walkFileTree(sip, new SimpleFileVisitor<Path>() {
             @Override
@@ -176,20 +193,20 @@ public class NdkSipExportTest {
     }
 
     private void validatePackage(Path sip, int metadatacount) throws Exception {
-        assertTrue("No SIP package", Files.isDirectory(sip));
+        assertTrue(Files.isDirectory(sip), "No SIP package");
 
         String identifier = sip.getFileName().toString();
 
-        assertTrue("No original files", Files.list(sip.resolve("original")).count() > 0);
-        assertEquals("Wrong count of metadata files", Files.list(sip.resolve("metadata")).count(), metadatacount);
-        assertTrue("No info.xml", Files.exists(sip.resolve("info_" + identifier + ".xml")));
-        assertTrue("No pdf file", Files.exists(sip.resolve("original/oc_" + identifier + ".pdf")));
-        assertTrue("Empty pdf file", Files.size(sip.resolve("original/oc_" + identifier + ".pdf")) > 0);
-        assertTrue("No mods file", Files.exists(sip.resolve("metadata/mods_volume.xml")));
+        assertTrue(Files.list(sip.resolve("original")).count() > 0, "No original files");
+        assertEquals(Files.list(sip.resolve("metadata")).count(), metadatacount, "Wrong count of metadata files");
+        assertTrue(Files.exists(sip.resolve("info_" + identifier + ".xml")), "No info.xml");
+        assertTrue(Files.exists(sip.resolve("original/oc_" + identifier + ".pdf")), "No pdf file");
+        assertTrue(Files.size(sip.resolve("original/oc_" + identifier + ".pdf")) > 0, "Empty pdf file");
+        assertTrue(Files.exists(sip.resolve("metadata/mods_volume.xml")), "No mods file");
 
 
         List<String> errors = MetsUtils.validateAgainstXSD(sip.resolve("info_" + identifier + ".xml").toFile(), Info.class.getResourceAsStream("info.xsd"));
-        assertTrue(errors.toString(), errors.isEmpty());
+        assertTrue(errors.isEmpty(), () -> errors.toString());
 
         JAXBContext jContext = JAXBContext.newInstance(Info.class);
         Unmarshaller unmarshallerObj = jContext.createUnmarshaller();

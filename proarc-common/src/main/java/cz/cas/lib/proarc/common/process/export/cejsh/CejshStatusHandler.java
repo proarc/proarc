@@ -46,6 +46,7 @@ public class CejshStatusHandler {
 
     /**
      * Starts to log next events for a new export hierarchy.
+     *
      * @param elm an export hierarchy root element
      */
     public void startInput(DigitalObjectElement elm) {
@@ -57,6 +58,7 @@ public class CejshStatusHandler {
 
     /**
      * Stops logging for the current root element.
+     *
      * @param elm an export hierarchy root
      */
     public void finishInput(DigitalObjectElement elm) {
@@ -113,8 +115,8 @@ public class CejshStatusHandler {
     }
 
     public void ok(DigitalObjectElement parent, List<DigitalObjectElement> articles, String path) {
-        LOG.log(logLevel,"Exported {1} article(s) to {2} for {0}.", new Object[]{
-            parent.toLog(), articles.size(), path});
+        LOG.log(logLevel, "Exported {1} article(s) to {2} for {0}.", new Object[]{
+                parent.toLog(), articles.size(), path});
         if (currentPkg != null) {
             currentPkg.setEnd();
             currentPkg.setStatus(ExportResultLog.ResultStatus.OK);

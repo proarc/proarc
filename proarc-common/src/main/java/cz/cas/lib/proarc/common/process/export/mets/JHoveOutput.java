@@ -17,13 +17,12 @@
 
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import java.util.Date;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -93,7 +92,7 @@ public class JHoveOutput {
     }
 
     public AudioObject getAes() {
-        return  aes;
+        return aes;
     }
 
     public void setAes(AudioObject aes) {

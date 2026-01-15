@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.process.export.crossref;
 
-import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -201,7 +199,7 @@ class CrossrefBuilder {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(packageFile), StandardCharsets.UTF_8));
             StringBuffer buffer = new StringBuffer();
             String line = reader.readLine();
-            while(line != null) {
+            while (line != null) {
                 line = line.replaceAll("&lt;", "<");
                 line = line.replaceAll("&gt;", ">");
                 buffer.append(line);
@@ -209,7 +207,7 @@ class CrossrefBuilder {
             }
             reader.close();
             String xmlFormatted = format(buffer.toString());
-            
+
             Writer writer = new OutputStreamWriter(new FileOutputStream(packageFile), StandardCharsets.UTF_8);
             writer.append(xmlFormatted);
             writer.close();
@@ -225,14 +223,16 @@ class CrossrefBuilder {
             InputSource is = new InputSource(new StringReader(xmlUnformatted));
             Document document = db.parse(is);
 
-            OutputFormat format = new OutputFormat(document);
-            format.setIndenting(true);
-            format.setIndent(4);
-            Writer out = new StringWriter();
-            XMLSerializer serializer = new XMLSerializer(out, format);
-            serializer.serialize(document);
 
-            return out.toString();
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(document), new StreamResult(writer));
+
+            return writer.toString();
         } catch (Exception e) {
             return xmlUnformatted;
         }
@@ -240,6 +240,7 @@ class CrossrefBuilder {
 
     /**
      * Transforms a collection of articles to the Crossref document.
+     *
      * @param src modsCollection in MODS format
      * @param dst Crossref document
      * @return the error handler
@@ -391,9 +392,9 @@ class CrossrefBuilder {
         StringBuilder builder = new StringBuilder();
         int count = 1;
         for (NameDefinition name : mods.getName()) {
-            if (name.getRole() != null && !name.getRole().isEmpty()
-                    && name.getRole().get(0).getRoleTerm() != null && !name.getRole().get(0).getRoleTerm().isEmpty()
-                    && hasAcceptedRoleTerm(name.getRole().get(0).getRoleTerm().get(0))
+            if (name.getRoleDefinition() != null && !name.getRoleDefinition().isEmpty()
+                    && name.getRoleDefinition().get(0).getRoleTerm() != null && !name.getRoleDefinition().get(0).getRoleTerm().isEmpty()
+                    && hasAcceptedRoleTerm(name.getRoleDefinition().get(0).getRoleTerm().get(0))
                     && name.getNamePart() != null && !name.getNamePart().isEmpty()) {
                 if ("corporate".equals(name.getType())) {
                     builder.append("<organization");
@@ -403,12 +404,12 @@ class CrossrefBuilder {
                         builder.append(" sequence=\"additional\"");
                     }
 
-                    if ("aut".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())
-                            || "rev".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                    if ("aut".equals(name.getRoleDefinition().get(0).getRoleTerm().get(0).getValue())
+                            || "rev".equals(name.getRoleDefinition().get(0).getRoleTerm().get(0).getValue())) {
                         builder.append(" contributor_role=\"author\"");
-                    } else if ("edt".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                    } else if ("edt".equals(name.getRoleDefinition().get(0).getRoleTerm().get(0).getValue())) {
                         builder.append(" contributor_role=\"editor\"");
-                    } else if ("trl".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                    } else if ("trl".equals(name.getRoleDefinition().get(0).getRoleTerm().get(0).getValue())) {
                         builder.append(" contributor_role=\"translator\"");
                     }
                     builder.append(">");
@@ -424,9 +425,9 @@ class CrossrefBuilder {
         }
 
         for (NameDefinition name : mods.getName()) {
-            if (name.getRole() != null && !name.getRole().isEmpty()
-                    && name.getRole().get(0).getRoleTerm() != null && !name.getRole().get(0).getRoleTerm().isEmpty()
-                    && hasAcceptedRoleTerm(name.getRole().get(0).getRoleTerm().get(0))
+            if (name.getRoleDefinition() != null && !name.getRoleDefinition().isEmpty()
+                    && name.getRoleDefinition().get(0).getRoleTerm() != null && !name.getRoleDefinition().get(0).getRoleTerm().isEmpty()
+                    && hasAcceptedRoleTerm(name.getRoleDefinition().get(0).getRoleTerm().get(0))
                     && name.getNamePart() != null && !name.getNamePart().isEmpty()) {
                 if ("personal".equals(name.getType())) {
                     builder.append("<person_name");
@@ -436,12 +437,12 @@ class CrossrefBuilder {
                         builder.append(" sequence=\"additional\"");
                     }
 
-                    if ("aut".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())
-                            || "rev".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                    if ("aut".equals(name.getRoleDefinition().get(0).getRoleTerm().get(0).getValue())
+                            || "rev".equals(name.getRoleDefinition().get(0).getRoleTerm().get(0).getValue())) {
                         builder.append(" contributor_role=\"author\"");
-                    } else if ("edt".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                    } else if ("edt".equals(name.getRoleDefinition().get(0).getRoleTerm().get(0).getValue())) {
                         builder.append(" contributor_role=\"editor\"");
-                    } else if ("trl".equals(name.getRole().get(0).getRoleTerm().get(0).getValue())) {
+                    } else if ("trl".equals(name.getRoleDefinition().get(0).getRoleTerm().get(0).getValue())) {
                         builder.append(" contributor_role=\"translator\"");
                     }
                     builder.append(">");
@@ -466,7 +467,7 @@ class CrossrefBuilder {
                     }
                     if (name.getNameIdentifier() != null && !name.getNameIdentifier().isEmpty()
                             && name.getNameIdentifier().get(0).getValue() != null && !name.getNameIdentifier().get(0).getValue().isEmpty()
-                            && "orcid".equals(name.getNameIdentifier().get(0).getType())) {
+                            && "orcid".equals(name.getNameIdentifier().get(0).getTypeString())) {
                         builder.append("<ORCID authenticated=\"true\">")
                                 .append("https://orcid.org/").append(name.getNameIdentifier().get(0).getValue())
                                 .append("</ORCID>");

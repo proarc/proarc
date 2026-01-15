@@ -16,9 +16,9 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
@@ -43,7 +43,9 @@ public class Task {
     private Integer priority;
     @XmlElement(name = WorkflowModelConsts.TASK_STATE)
     private State state;
-    /** The name of a task type in workflow profile. */
+    /**
+     * The name of a task type in workflow profile.
+     */
     @XmlElement(name = WorkflowModelConsts.TASK_PROFILENAME)
     private String typeRef;
     @XmlElement(name = WorkflowModelConsts.TASK_TIMESTAMP)

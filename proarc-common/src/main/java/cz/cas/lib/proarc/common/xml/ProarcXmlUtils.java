@@ -33,6 +33,7 @@ public final class ProarcXmlUtils {
 
     /**
      * Gets a thread safe XPath factory.
+     *
      * @return the factory
      */
     public static XPathFactory defaultXPathFactory() {

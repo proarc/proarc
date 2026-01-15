@@ -24,6 +24,7 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.object.technicalMetadata.CodingHistoryMapper;
 import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
@@ -38,8 +39,9 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.object.technicalMetadata.CodingHistoryMapper;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,8 +49,6 @@ import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 import javax.xml.transform.Source;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
@@ -106,6 +106,7 @@ public class CodingHistoryEditor {
 
     /**
      * Gets persisted Coding History.
+     *
      * @return PropertyType or {@code null}
      * @throws DigitalObjectException failure
      */
@@ -120,6 +121,7 @@ public class CodingHistoryEditor {
 
     /**
      * Gets persisted Coding History as {@link Property} class.
+     *
      * @return Property or {@code null}
      * @throws DigitalObjectException failure
      */
@@ -149,10 +151,10 @@ public class CodingHistoryEditor {
     /**
      * Generates and writes Coding History for the passed content.
      *
-     * @param content file containing e.g. an image
-     * @param jhoveCtx jHove context
+     * @param content   file containing e.g. an image
+     * @param jhoveCtx  jHove context
      * @param timestamp timestamp
-     * @param msg log message
+     * @param msg       log message
      * @throws DigitalObjectException failure
      */
     public void write(File content, JhoveContext jhoveCtx, long timestamp, String msg) throws DigitalObjectException {
@@ -192,7 +194,7 @@ public class CodingHistoryEditor {
                 }
                 String extension = MimeType.getExtension(ndkArchivalDS.getDatastreamVersion().get(0).getMIMETYPE());
                 if (importName.contains("/")) {
-                    importName = importName.split("/")[importName.split("/").length -1];
+                    importName = importName.split("/")[importName.split("/").length - 1];
                 } else if (importName.contains("\\")) {
                     importName = importName.split("\\\\")[importName.split("\\\\").length - 1];
                 }

@@ -101,11 +101,11 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.ATM)
         ));
         models.add(new MetaModel(MODEL_TRACK, null, null,
-               Arrays.asList(new ElementType("NDK Sound Part", "en"), new ElementType("NDK Část skladby", "cs")),
-               ModsConstants.NS, MODEL_TRACK, this,
-               EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                       DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                       DatastreamEditorType.ATM)
+                Arrays.asList(new ElementType("NDK Sound Part", "en"), new ElementType("NDK Část skladby", "cs")),
+                ModsConstants.NS, MODEL_TRACK, this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
         ));
         models.add(new MetaModel(
                 NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, null, null,

@@ -17,13 +17,15 @@
 package cz.cas.lib.proarc.common.process.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
-import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -36,12 +38,12 @@ public class ImportProfileTest {
     public ImportProfileTest() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         conf = new BaseConfiguration();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 

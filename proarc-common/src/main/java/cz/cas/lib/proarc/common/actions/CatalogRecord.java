@@ -26,7 +26,6 @@ import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import java.io.IOException;
 import java.util.logging.Logger;
-import org.codehaus.jettison.json.JSONException;
 
 
 /**
@@ -47,7 +46,7 @@ public class CatalogRecord {
     }
 
 
-    public boolean update(String catalogId, String pid) throws DigitalObjectException, JSONException, IOException {
+    public boolean update(String catalogId, String pid) throws DigitalObjectException, IOException {
 
         String field001 = UpdateCatalog.getObjectField001(pid);
         if (field001 == null || field001.isEmpty()) {

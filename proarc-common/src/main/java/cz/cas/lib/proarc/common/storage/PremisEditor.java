@@ -72,6 +72,10 @@ import cz.cas.lib.proarc.premis.PreservationLevelComplexType;
 import cz.cas.lib.proarc.premis.RelatedEventIdentificationComplexType;
 import cz.cas.lib.proarc.premis.RelatedObjectIdentificationComplexType;
 import cz.cas.lib.proarc.premis.RelationshipComplexType;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -85,9 +89,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -105,7 +106,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
@@ -162,6 +162,7 @@ public class PremisEditor {
 
     /**
      * Gets persisted Premis.
+     *
      * @return PropertyType or {@code null}
      * @throws DigitalObjectException failure
      */
@@ -176,6 +177,7 @@ public class PremisEditor {
 
     /**
      * Gets persisted Premis as {@link Property} class.
+     *
      * @return Property or {@code null}
      * @throws DigitalObjectException failure
      */
@@ -205,10 +207,10 @@ public class PremisEditor {
     /**
      * Generates and writes Coding History for the passed content.
      *
-     * @param content file containing e.g. an image
-     * @param jhoveCtx jHove context
+     * @param content   file containing e.g. an image
+     * @param jhoveCtx  jHove context
      * @param timestamp timestamp
-     * @param msg log message
+     * @param msg       log message
      * @throws DigitalObjectException failure
      */
     public void write(File content, JhoveContext jhoveCtx, long timestamp, String msg) throws DigitalObjectException {

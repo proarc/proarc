@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,21 +21,21 @@ import cz.cas.lib.proarc.common.mods.custom.ClassificationMapper.ClassificationI
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * UDC, DDC mapper.
  *
  * <pre>{@code
-     <classification authority="ddc">123</classification>
-     <classification authority="udc">321</classification>
- }</pre>
+ * <classification authority="ddc">123</classification>
+ * <classification authority="udc">321</classification>
+ * }</pre>
  * This should fetch pairs of DDC and UDC classifications in arbitrary order.
  *
  * @author Jan Pokorsky
@@ -142,7 +142,7 @@ final class ClassificationMapper {
 
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class ClassificationPair {
-        
+
         @XmlElement(name = ModsConstants.FIELD_CLASSIFICATION_DDC)
         private String ddc;
         @XmlElement(name = ModsConstants.FIELD_CLASSIFICATION_UDC)
@@ -236,7 +236,7 @@ final class ClassificationMapper {
             if (type != Type.OTHER) {
                 result.setValue(source.getValue());
             }
-            
+
             return result;
         }
 

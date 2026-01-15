@@ -258,7 +258,8 @@ public class ModsDataHandler {
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 }
             }
-        } if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
+        }
+        if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
             // issue 329
             ModsDefinition titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
@@ -310,7 +311,7 @@ public class ModsDataHandler {
     private void setRules(ModsDefinition mods) {
         StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
         String rules = appConfiguration.getRules();
-        descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+        descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules) ? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
         RecordInfoDefinition recordInfo = new RecordInfoDefinition();
         recordInfo.getDescriptionStandard().add(0, descriptionStandard);
         mods.getRecordInfo().add(0, recordInfo);
@@ -441,7 +442,7 @@ public class ModsDataHandler {
             return;
         }
         for (IdentifierDefinition identifier : identifiers) {
-            if (key.equals(identifier.getType())) {
+            if (key.equals(identifier.getTypeString())) {
                 relatedItem.getIdentifier().add(identifier);
             }
         }
@@ -491,7 +492,7 @@ public class ModsDataHandler {
 
     public static final void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids, String... includeIdTypes) {
         for (IdentifierDefinition id : ids) {
-            String type = id.getType();
+            String type = id.getTypeString();
             if (includeIdTypes == null) {
                 mods.getIdentifier().add(id);
             } else {
@@ -506,7 +507,7 @@ public class ModsDataHandler {
 
     public static final void inheritIdentifierExclude(ModsDefinition mods, List<IdentifierDefinition> ids, String... excludeIdTypes) {
         for (IdentifierDefinition id : ids) {
-            String type = id.getType();
+            String type = id.getTypeString();
             if (excludeIdTypes == null) {
                 mods.getIdentifier().add(id);
             } else {
@@ -586,7 +587,7 @@ public class ModsDataHandler {
                         ri.getDescriptionStandard().add(description);
                     }
                 } else {
-                    ri =new RecordInfoDefinition();
+                    ri = new RecordInfoDefinition();
                     mods.getRecordInfo().add(ri);
                     StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
                     description.setValue(recordInfo.getDescriptionStandard().get(0).getValue());

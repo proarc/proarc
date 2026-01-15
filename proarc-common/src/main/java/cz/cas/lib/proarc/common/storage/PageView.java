@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -92,14 +92,14 @@ public final class PageView {
         item.pageRepre = pvItem.getPageRepre();
         return item;
     }
+
     /**
      * Gets localized label of fedora object containing page.
      * It relies on page label syntax: {@code <pageLabel>, <pageType>}
      *
-     * @param label label of fedora object
+     * @param label          label of fedora object
      * @param pageTypeTitles bundle of page type titles in target locale
      * @return localized label
-     *
      * @see ModsUtils#getLabel
      */
     public static String resolveFedoraObjectLabel(String label, ResourceBundle pageTypeTitles) {
@@ -122,7 +122,9 @@ public final class PageView {
 
         PageViewItem createPageViewItem(Locale locale) throws DigitalObjectException;
 
-        /** Rewrites metadata with page. */
+        /**
+         * Rewrites metadata with page.
+         */
         void setPage(PageViewItem page, String message) throws DigitalObjectException;
 
     }
@@ -214,8 +216,8 @@ public final class PageView {
         }
 
         public Item(Integer batchId, String filename, String pid, String model,
-                String pageIndex, String pageNumber, String pageType, String pagePosition, String pageRepre,
-                long timestamp, String user, String label) {
+                    String pageIndex, String pageNumber, String pageType, String pagePosition, String pageRepre,
+                    long timestamp, String user, String label) {
             this.batchId = batchId;
             this.filename = filename;
             this.pid = pid;

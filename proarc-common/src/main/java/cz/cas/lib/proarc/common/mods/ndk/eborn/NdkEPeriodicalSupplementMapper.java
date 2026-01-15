@@ -62,18 +62,18 @@ public class NdkEPeriodicalSupplementMapper extends NdkPeriodicalSupplementMappe
             String type = null;
             if (genre.getValue() == null || "".equals(genre.getValue())) {
                 genre.setValue(Const.GENRE_SUPPLEMENT);
-            } else if (genre.getValue() != null && Const.GENRE_SUPPLEMENT.equals(genre.getValue()) && genre.getType() == null) {
+            } else if (genre.getValue() != null && Const.GENRE_SUPPLEMENT.equals(genre.getValue()) && genre.getTypeString() == null) {
                 if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(ctx.getParentModel())) {
-                    genre.setType("electronic_issue_supplement");
+                    genre.setTypeString("electronic_issue_supplement");
                 } else if (NdkEbornPlugin.MODEL_EPERIODICALVOLUME.equals(ctx.getParentModel())) {
-                    genre.setType("electronic_volume_supplement");
+                    genre.setTypeString("electronic_volume_supplement");
                 }
             } else if (genre.getValue() != null && !Const.GENRE_SUPPLEMENT.equals(genre.getValue())) {
                 if ("electronic_volume_supplement".equals(genre.getValue()) || "electronic_issue_supplement".equals(genre.getValue())) {
                     type = genre.getValue();
                     genre.setValue(Const.GENRE_SUPPLEMENT);
-                    if (genre.getType() == null || genre.getType().isEmpty()) {
-                        genre.setType(type);
+                    if (genre.getTypeString() == null || genre.getTypeString().isEmpty()) {
+                        genre.setTypeString(type);
                     }
                 }
             }

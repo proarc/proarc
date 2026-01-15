@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * This manages the configuration profiles.
@@ -44,8 +44,9 @@ public class Profiles {
     /**
      * Finds a profile ID among registered profiles of a given type.
      * Profiles with invalid file path are considered as not found.
+     *
      * @param profileGroup e.g. {@link ImportProfile#PROFILES}
-     * @param profileId ID to search
+     * @param profileId    ID to search
      * @return the found profile or {@code null}
      */
     public ConfigurationProfile getProfile(String profileGroup, String profileId) {
@@ -63,6 +64,7 @@ public class Profiles {
     /**
      * Gets a profile. The profile may not be part of any group.
      * Profiles with invalid file path are considered as not found.
+     *
      * @param profileId ID to search
      * @return the found profile or {@code null}
      */
@@ -96,7 +98,7 @@ public class Profiles {
             URI profileUri = configHomeUri.resolve(filePath);
             return new File(profileUri);
         } catch (Exception e) {
-            String err = String.format("Cannot resolve path '%s'!",filePath);
+            String err = String.format("Cannot resolve path '%s'!", filePath);
             LOG.log(Level.SEVERE, "Profile {0}. Cannot resolve path {1}!",
                     new Object[]{profile.getId(), filePath});
             profile.setError(err);

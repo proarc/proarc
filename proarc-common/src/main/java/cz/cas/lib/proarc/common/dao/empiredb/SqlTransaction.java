@@ -17,8 +17,8 @@
 package cz.cas.lib.proarc.common.dao.empiredb;
 
 import cz.cas.lib.proarc.common.dao.Transaction;
-import java.sql.Connection;
 import java.sql.SQLException;
+import org.apache.empire.db.DBContext;
 
 /**
  *
@@ -26,43 +26,30 @@ import java.sql.SQLException;
  */
 public final class SqlTransaction implements Transaction {
     
-    private final Connection c;
+    private final DBContext context;
 
-    public SqlTransaction(Connection c) {
+    public SqlTransaction(DBContext context) {
         try {
-            c.setAutoCommit(false);
-            this.c = c;
+            context.getConnection().setAutoCommit(false);
+            this.context = context;
         } catch (SQLException ex) {
             throw new IllegalStateException(ex);
         }
     }
 
-    public Connection getConnection() {
-        return c;
+    public DBContext getContext() {
+        return context;
     }
 
     public void commit() {
-        try {
-            c.commit();
-        } catch (SQLException ex) {
-            throw new IllegalStateException(ex);
-        }
+        context.commit();
     }
 
     public void rollback() {
-        try {
-            c.rollback();
-        } catch (SQLException ex) {
-            throw new IllegalStateException(ex);
-        }
+        context.rollback();
     }
 
     public void close() {
-        try {
-            c.close();
-        } catch (SQLException ex) {
-            throw new IllegalStateException(ex);
-        }
+        context.discard();
     }
-
 }

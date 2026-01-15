@@ -16,32 +16,32 @@
  */
 package cz.cas.lib.proarc.common.process.external;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
-import cz.cas.lib.proarc.common.process.imports.InputUtils;
-import cz.cas.lib.proarc.common.process.imports.TiffImporterTest;
 import cz.cas.lib.proarc.common.process.external.GenericExternalProcess.ParamHandler;
 import cz.cas.lib.proarc.common.process.external.GenericExternalProcess.ProcessResult;
+import cz.cas.lib.proarc.common.process.imports.InputUtils;
+import cz.cas.lib.proarc.common.process.imports.TiffImporterTest;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -49,22 +49,22 @@ import static org.junit.Assert.assertTrue;
  */
 public class GenericExternalProcessTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -72,10 +72,12 @@ public class GenericExternalProcessTest {
     public void testIMConvert() throws Exception {
 //        temp.setDeleteOnExit(false);
         String imageMagicExec = "/usr/bin/convert";
-        Assume.assumeTrue(new File(imageMagicExec).exists());
+        assertTrue(new File(imageMagicExec).exists());
 
-        File confFile = temp.newFile("props.cfg");
-        File root = temp.getRoot();
+        File confFile = new File(tempDir, "props.cfg");
+        confFile.createNewFile();
+
+        File root = tempDir;
         URL pdfaResource = TiffImporterTest.class.getResource("pdfa_test.pdf");
         File pdfa = new File(root, "pdfa_test.pdf");
         FileUtils.copyURLToFile(pdfaResource, pdfa);
@@ -90,7 +92,13 @@ public class GenericExternalProcessTest {
                 "arg=$${output.file}",
                 "id=test"
         ));
-        PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
+        Parameters params = new Parameters();
+        FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+                new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                        .configure(params.properties()
+                                .setFile(confFile));
+
+        PropertiesConfiguration conf = builder.getConfiguration();
         GenericExternalProcess gep = new GenericExternalProcess(conf);
         gep.addInputFile(pdfa);
         File output = new File(root, "pdfa.jpg");
@@ -98,18 +106,21 @@ public class GenericExternalProcessTest {
         gep.run();
 //        System.out.printf("#exit: %s, out: %s\nresults: %s\n",
 //                gep.getExitCode(), gep.getFullOutput(), gep.getResultParameters());
-        assertEquals("exit code", 0, gep.getExitCode());
-        assertTrue(output.toString(), output.exists());
-        assertTrue("Not JPEG", InputUtils.isJpeg(output));
+        assertEquals(0, gep.getExitCode(), () -> "exit code");
+        assertTrue(output.exists(), () -> output.toString());
+        assertTrue(InputUtils.isJpeg(output), () -> "Not JPEG");
     }
 
-    /** onExit is an experimental feature .*/
+    /**
+     * onExit is an experimental feature .
+     */
     @Test
     public void testIMConvertOnExit() throws Exception {
         String imageMagicExec = "/usr/bin/convert";
-        Assume.assumeTrue(new File(imageMagicExec).exists());
-        File confFile = temp.newFile("props.cfg");
-        File root = temp.getRoot();
+        assertTrue(new File(imageMagicExec).exists());
+        File confFile = new File(tempDir, "props.cfg");
+        confFile.createNewFile();
+        File root = tempDir;
         URL pdfaResource = TiffImporterTest.class.getResource("pdfa_test.pdf");
         File pdfa = new File(root, "pdfa_test.pdf");
         FileUtils.copyURLToFile(pdfaResource, pdfa);
@@ -126,25 +137,32 @@ public class GenericExternalProcessTest {
                 "onExit.0.param.output.file=$${input.folder}/$${input.file.name}.jpg",
                 "id=test"
         ));
-        PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
+        Parameters params = new Parameters();
+        FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+                new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                        .configure(params.properties()
+                                .setFile(confFile));
+
+        PropertiesConfiguration conf = builder.getConfiguration();
         GenericExternalProcess gep = new GenericExternalProcess(conf);
         gep.addInputFile(pdfa);
         gep.run();
 //        System.out.printf("#exit: %s, out: %s\nresults: %s\n",
 //                gep.getExitCode(), gep.getFullOutput(), gep.getResultParameters());
-        assertEquals("exit code", 0, gep.getExitCode());
+        assertEquals(0, gep.getExitCode(), () -> "exit code");
         File output = gep.getOutputFile();
         assertNotNull(output);
-        assertTrue(output.toString(), output.exists());
-        assertTrue("Not JPEG", InputUtils.isJpeg(output));
+        assertTrue(output.exists(), () -> output.toString());
+        assertTrue(InputUtils.isJpeg(output), () -> "Not JPEG");
     }
 
     @Test
     public void testIMConvertFailure() throws Exception {
         String imageMagicExec = "/usr/bin/convert";
-        Assume.assumeTrue(new File(imageMagicExec).exists());
-        File confFile = temp.newFile("props.cfg");
-        File root = temp.getRoot();
+        assertTrue(new File(imageMagicExec).exists());
+        File confFile = new File(tempDir, "props.cfg");
+        tempDir.createNewFile();
+        File root = tempDir;
         File pdfa = new File(root, "pdfa_test.pdf");
         FileUtils.writeLines(confFile, Arrays.asList(
                 "input.file.name=RESOLVED",
@@ -158,20 +176,27 @@ public class GenericExternalProcessTest {
                 "onExit.0.param.output.file=$${input.folder}/$${input.file.name}.jpg",
                 "id=test"
         ));
-        PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
+        Parameters params = new Parameters();
+        FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+                new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                        .configure(params.properties()
+                                .setFile(confFile));
+
+        PropertiesConfiguration conf = builder.getConfiguration();
         GenericExternalProcess gep = new GenericExternalProcess(conf);
         gep.addInputFile(pdfa);
         gep.run();
 //        System.out.printf("#exit: %s, out: %s\nresults: %s\n",
 //                gep.getExitCode(), gep.getFullOutput(), gep.getResultParameters());
-        assertEquals("exit code", 1, gep.getExitCode());
+        assertEquals(1, gep.getExitCode(), () -> "exit code");
         String outputPath = gep.getResultParameters().get("test.param." + GenericExternalProcess.DST_PATH);
         assertNull(outputPath);
     }
 
     @Test
     public void testEscapePropertiesConfiguration() throws Exception {
-        File confFile = temp.newFile("props.cfg");
+        File confFile = new File(tempDir, "props.cfg");
+        confFile.createNewFile();
         FileUtils.writeLines(confFile, Arrays.asList(
                 "input.file.name=RESOLVED",
                 "-1=ERR",
@@ -182,7 +207,13 @@ public class GenericExternalProcessTest {
                 "escape=-escape $${input.file.name}",
                 "resolve=-resolve ${input.file.name}[0]"
         ));
-        PropertiesConfiguration conf = new PropertiesConfiguration(confFile);
+        Parameters params = new Parameters();
+        FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+                new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                        .configure(params.properties()
+                                .setFile(confFile));
+
+        PropertiesConfiguration conf = builder.getConfiguration();
         assertEquals("ERR", conf.getString("-1"));
         assertEquals("ERR2", conf.getString("*"));
         assertEquals("ERR3", conf.getString("1-3"));
@@ -194,7 +225,8 @@ public class GenericExternalProcessTest {
 
     @Test
     public void testGetResultParameters() throws Exception {
-        File confFile = temp.newFile("props.cfg");
+        File confFile = new File(tempDir, "props.cfg");
+        confFile.createNewFile();
         FileUtils.writeLines(confFile, Arrays.asList(
                 "processor.test.param.mime=image/jpeg",
                 "processor.test.onExits=0, >10, 2\\,3, *",
@@ -205,9 +237,15 @@ public class GenericExternalProcessTest {
                 "processor.test.onExit.*.param.file=ERR_*\\:$${input.file.name}",
                 "processor.test.onSkip.param.file=SKIPPED\\:$${input.file.name}"
         ));
-        PropertiesConfiguration pconf = new PropertiesConfiguration(confFile);
+        Parameters params = new Parameters();
+        FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+                new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                        .configure(params.properties()
+                                .setFile(confFile));
+
+        PropertiesConfiguration configuration = builder.getConfiguration();
         String processorId = "processor.test";
-        Configuration conf = pconf.subset(processorId);
+        Configuration conf = configuration.subset(processorId);
         conf.setProperty("id", processorId);
         GenericExternalProcess gep = new GenericExternalProcess(conf);
         gep.addInputFile(confFile);
@@ -249,7 +287,8 @@ public class GenericExternalProcessTest {
     @Test
     public void testAddInputFile() throws Exception {
         final String inputName = "input.txt";
-        final File input = temp.newFile(inputName);
+        final File input = new File(tempDir, inputName);
+        input.createNewFile();
         final BaseConfiguration conf = new BaseConfiguration();
         conf.addProperty(ExternalProcess.PROP_EXEC, "test.sh");
         conf.addProperty(ExternalProcess.PROP_ARG, "-i ${input.file.name}");

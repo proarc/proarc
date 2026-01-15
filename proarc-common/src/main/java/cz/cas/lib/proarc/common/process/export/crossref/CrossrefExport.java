@@ -42,8 +42,8 @@ import java.util.List;
 /**
  * Exports born-digital articles in CrossRef format.
  *
- * @see <a href='https://github.com/proarc/proarc/issues/444'>issue 444</a>
  * @author Jan Pokorsky
+ * @see <a href='https://github.com/proarc/proarc/issues/444'>issue 444</a>
  */
 public class CrossrefExport {
 
@@ -102,12 +102,12 @@ public class CrossrefExport {
         List<CrossrefPackage> packages = selector.select(pids);
         if (packages.isEmpty()) {
             status.error(pids.get(0), "Nothing to export!", null);
-            return ;
+            return;
         }
 
         CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0), appConfiguration.getExportParams());
         if (crossRefBuilder == null) {
-            return ;
+            return;
         }
 
         for (CrossrefPackage aPackage : packages) {

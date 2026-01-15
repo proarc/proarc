@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.catalog.Z3950Catalog;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -50,27 +49,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.apache.commons.configuration.BaseConfiguration;
+import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.dbunit.database.IDatabaseConnection;
+import org.apache.empire.db.DBContext;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.DefaultDataSet;
 import org.dbunit.dataset.DefaultTable;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ITable;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -78,8 +77,8 @@ import static org.junit.Assert.fail;
  */
 public class WorkflowManagerTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
 
     private DbUnitSupport support;
     private ProarcDatabase schema;
@@ -89,15 +88,15 @@ public class WorkflowManagerTest {
     public WorkflowManagerTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         support = new DbUnitSupport();
         schema = support.getEmireCfg().getSchema();
@@ -105,20 +104,20 @@ public class WorkflowManagerTest {
         daos.init();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
     private static IDataSet emptyBatchSet(ProarcDatabase schema) throws Exception {
         ITable[] tables = {
-            new DefaultTable(schema.tableWorkflowJob.getName()),
-            new DefaultTable(schema.tableWorkflowTask.getName()),
-            new DefaultTable(schema.tableWorkflowParameter.getName()),
-            new DefaultTable(schema.tableWorkflowMaterial.getName()),
-            new DefaultTable(schema.tableWorkflowDigObj.getName()),
-            new DefaultTable(schema.tableWorkflowFolder.getName()),
-            new DefaultTable(schema.tableWorkflowPhysicalDoc.getName()),
-            new DefaultTable(schema.tableWorkflowMaterialInTask.getName()),
+                new DefaultTable(schema.tableWorkflowJob.getName()),
+                new DefaultTable(schema.tableWorkflowTask.getName()),
+                new DefaultTable(schema.tableWorkflowParameter.getName()),
+                new DefaultTable(schema.tableWorkflowMaterial.getName()),
+                new DefaultTable(schema.tableWorkflowDigObj.getName()),
+                new DefaultTable(schema.tableWorkflowFolder.getName()),
+                new DefaultTable(schema.tableWorkflowPhysicalDoc.getName()),
+                new DefaultTable(schema.tableWorkflowMaterialInTask.getName()),
         };
         return new DefaultDataSet(tables);
     }
@@ -132,12 +131,13 @@ public class WorkflowManagerTest {
     }
 
     private WorkflowManager initWorkflowManager(String profilesResourceName) throws Exception {
-        File xmlWorkflow = temp.newFile("workflowTest.xml");
+        File xmlWorkflow = new File(tempDir, "workflowTest.xml");
+        xmlWorkflow.createNewFile();
         FileUtils.copyURLToFile(WorkflowManagerTest.class.getResource(profilesResourceName), xmlWorkflow);
         WorkflowProfiles.setInstance(new WorkflowProfiles(xmlWorkflow));
         wp = WorkflowProfiles.getInstance();
         AppConfiguration config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+            put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
         }});
         UserManager users = UserUtil.createUserManagerPostgressImpl(config, null, daos);
         WorkflowManager wm = new WorkflowManager(wp, daos, users, config);
@@ -149,11 +149,11 @@ public class WorkflowManagerTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "user.xml"),
                 emptyBatchSet(schema)
-                );
-        final IDatabaseConnection dbcon = support.getConnection();
-        support.cleanInsert(dbcon, db);
-        dbcon.getConnection().commit();
-        dbcon.close();
+        );
+        final DBContext context = support.getEmireCfg().getContext();
+        support.cleanInsert(context, db);
+        context.commit();
+        context.discard();
 
         WorkflowManager wm = initWorkflowManager("WorkflowManagerAddProfile.xml");
         WorkflowDefinition workflow = wp.getProfiles();
@@ -221,11 +221,11 @@ public class WorkflowManagerTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "user.xml"),
                 support.loadFlatXmlDataStream(WorkflowManagerTest.class, "WorkflowManagerUpdateTaskState.xml")
-                );
-        final IDatabaseConnection dbcon = support.getConnection();
-        support.cleanInsert(dbcon, db);
-        dbcon.getConnection().commit();
-        dbcon.close();
+        );
+        final DBContext context = support.getEmireCfg().getContext();
+        support.cleanInsert(context, db);
+        context.commit();
+        context.discard();
 
         WorkflowManager wm = initWorkflowManager("WorkflowManagerUpdateTaskStateProfile.xml");
         TaskManager tm = wm.tasks();

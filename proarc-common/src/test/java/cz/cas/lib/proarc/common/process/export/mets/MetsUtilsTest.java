@@ -19,17 +19,19 @@ package cz.cas.lib.proarc.common.process.export.mets;
 
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mockrepository.MockFedoraClient;
 import cz.cas.lib.proarc.common.process.export.mockrepository.MockSearchView;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.info.Info;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -39,19 +41,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import mockit.Mocked;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class MetsUtilsTest {
     private static final Logger LOG = Logger.getLogger(MetsUtilsTest.class.getName());
@@ -73,10 +72,10 @@ public class MetsUtilsTest {
         this.testElements.add(periodikumPageTestElement);
     }
 
-    @Rule
-    public TemporaryFolder tmp = new TemporaryFolder();
+    @TempDir
+    File tempDir;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         initTestElements();
         MetaModelRepository.setInstance();
@@ -126,11 +125,11 @@ public class MetsUtilsTest {
      * Tests if the exception is thrown for invalid mets
      *
      */
-    @Test(expected = MetsExportException.class)
+    @Test
     public void saveInvalidMods() throws Exception {
         String sourceDirPath = getTargetPath() + File.separator +
                 "monographInvalid" + File.separator;
-        File resultDir = tmp.newFolder("result" + "monographInvalidMods");
+        File resultDir = tempDir;
         String path = sourceDirPath + "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml";
         DigitalObject dbObj = MetsUtils.readFoXML(path);
         MetsContext context = new MetsContext();
@@ -149,11 +148,11 @@ public class MetsUtilsTest {
      * Tests if the exception is thrown for invalid mets
      *
      */
-    @Test(expected = MetsExportException.class)
+    @Test
     public void saveInvalidDC() throws Exception {
         String sourceDirPath = getTargetPath() + File.separator +
                 "monographInvalid" + File.separator;
-        File resultDir = tmp.newFolder("result" + "monographInvalidDC");
+        File resultDir = tempDir;
         String path = sourceDirPath + "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml";
         DigitalObject dbObj = MetsUtils.readFoXML(path);
         MetsContext context = new MetsContext();
@@ -192,7 +191,7 @@ public class MetsUtilsTest {
             // copyFiles(testElement);
             String sourceDirPath = getTargetPath() + File.separator +
                     testElement.getDirectory() + File.separator;
-            File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
+            File resultDir = tempDir;
             String path = sourceDirPath + testElement.getInitialDocument();
             DigitalObject dbObj = MetsUtils.readFoXML(path);
             Configuration config = new BaseConfiguration();
@@ -233,7 +232,7 @@ public class MetsUtilsTest {
             assertEquals(testElement.getType(), mets.getTYPE());
 
             String expectedFileName = "txt_" + packageId + "_0001";
-            String actualFileName = ((FileType)(mets.getStructMap().get(1).getDiv().getDiv().get(0).getFptr().get(0).getFILEID())).getID();
+            String actualFileName = ((FileType) (mets.getStructMap().get(1).getDiv().getDiv().get(0).getFptr().get(0).getFILEID())).getID();
             assertEquals(expectedFileName, actualFileName);
 
             String expectedFileHref = "txt/" + expectedFileName + ".txt";
@@ -251,7 +250,7 @@ public class MetsUtilsTest {
             // copyFiles(testElement);
             String sourceDirPath = getTargetPath() + File.separator +
                     testElement.getDirectory() + File.separator;
-            File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
+            File resultDir = tempDir;
             String path = sourceDirPath + testElement.getInitialDocument();
             DigitalObject dbObj = MetsUtils.readFoXML(path);
             Configuration config = new BaseConfiguration();
@@ -269,7 +268,7 @@ public class MetsUtilsTest {
             MetsElementVisitor visitor = new MetsElementVisitor();
             try {
                 metsElement.accept(visitor);
-                Assert.fail("The validation error expected.");
+                fail("The validation error expected.");
             } catch (MetsExportException ex) {
                 String message = "Error - missing role. Please insert value in proarc.cfg into export.ndk.agent.creator and export.ndk.agent.archivist";
                 assertEquals(message, ex.getMessage());
@@ -278,11 +277,11 @@ public class MetsUtilsTest {
     }
 
     @Test
-    public void missingTitle()throws Exception{
+    public void missingTitle() throws Exception {
         MetsExportTestElement testElement = new MetsExportTestElement("periodikum", "periodikum", 7, 39, 5, "Periodical", "2ad73397-ef9d-429a-b3a5-65083fa4c333.xml");
         String sourceDirPath = getTargetPath() + File.separator +
                 testElement.getDirectory() + File.separator;
-        File resultDir = tmp.newFolder("result" + testElement.getResultFolder());
+        File resultDir = tempDir;
         String path = sourceDirPath + testElement.getInitialDocument();
         DigitalObject dbObj = MetsUtils.readFoXML(path);
         Configuration config = new BaseConfiguration();
@@ -298,11 +297,11 @@ public class MetsUtilsTest {
         context.setConfig(NdkExportOptions.getOptions(config));
         MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
         MetsElementVisitor visitor = new MetsElementVisitor();
-        try{
+        try {
             metsElement.accept(visitor);
-            Assert.fail("The missing title expected");
-        } catch (MetsExportException ex){
-            String message =  "Error - missing title. Please insert title.";
+            fail("The missing title expected");
+        } catch (MetsExportException ex) {
+            String message = "Error - missing title. Please insert title.";
             assertEquals(message, ex.getMessage());
         }
     }
@@ -321,7 +320,7 @@ public class MetsUtilsTest {
 
         List<String> pspIDs = MetsUtils.findPSPPIDs("uuid:26342028-12c8-4446-9217-d3c9f249bd13", ctx, true);
         Set<String> setPspIDs = new HashSet<>(pspIDs);
-        assertTrue("pspIds aren't unique", pspIDs.size() == setPspIDs.size());
+        assertTrue(pspIDs.size() == setPspIDs.size(), () -> "pspIds aren't unique");
 
         List<String> pspIdPeriodical = MetsUtils.findPSPPIDs("uuid:8548cc82-3601-45a6-8eb0-df6538db4de6", ctx, true);
         assertTrue(pspIdPeriodical.size() > 0);

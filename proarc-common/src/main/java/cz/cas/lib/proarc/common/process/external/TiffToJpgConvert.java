@@ -22,7 +22,7 @@ import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Converts input tiff image into jpeg image using external GraphicsMagick application
@@ -54,24 +54,24 @@ public class TiffToJpgConvert extends ExternalProcess {
     /**
      * Converts supplied tiff image into jpeg without resizing
      *
-     * @param conf processor configuration
-     * @param input tiff image file
+     * @param conf   processor configuration
+     * @param input  tiff image file
      * @param output to be generated jpeg file (!must not exist prior to running process)
      */
-    public TiffToJpgConvert (Configuration conf, File input, File output) {
+    public TiffToJpgConvert(Configuration conf, File input, File output) {
         this(conf, input, output, null, null);
     }
 
     /**
      * Converts supplied tiff image into jpeg with size constraints
      *
-     * @param conf processor configuration
-     * @param input tiff image file
-     * @param output to be generated jpeg file (!must not exist prior to running process)
-     * @param maxWidth jpeg maximum width
+     * @param conf      processor configuration
+     * @param input     tiff image file
+     * @param output    to be generated jpeg file (!must not exist prior to running process)
+     * @param maxWidth  jpeg maximum width
      * @param maxHeight jpeg maximum height
      */
-    public TiffToJpgConvert (Configuration conf, File input, File output, Integer maxWidth, Integer maxHeight) {
+    public TiffToJpgConvert(Configuration conf, File input, File output, Integer maxWidth, Integer maxHeight) {
         super(conf);
         this.input = input;
         this.output = output;
@@ -115,7 +115,7 @@ public class TiffToJpgConvert extends ExternalProcess {
             cmdLine.add(
                     maxWidth != null ? maxWidth.toString() : IMAGE_MAX_SIZE +
                             "x" +
-                    maxHeight != null ? maxHeight.toString() : IMAGE_MAX_SIZE
+                            maxHeight != null ? maxHeight.toString() : IMAGE_MAX_SIZE
             );
         }
 

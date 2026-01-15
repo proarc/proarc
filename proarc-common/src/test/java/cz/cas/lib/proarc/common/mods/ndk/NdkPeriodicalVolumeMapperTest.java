@@ -25,12 +25,13 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.transform.stream.StreamSource;
 import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -41,19 +42,19 @@ public class NdkPeriodicalVolumeMapperTest {
     public NdkPeriodicalVolumeMapperTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -69,7 +70,7 @@ public class NdkPeriodicalVolumeMapperTest {
         List<IdentifierDefinition> identifiersResult = mods.getIdentifier();
         assertEquals(1, identifiersResult.size());
         IdentifierDefinition idResult = identifiersResult.get(0);
-        assertEquals("uuid", idResult.getType());
+        assertEquals("uuid", idResult.getTypeString());
         assertEquals("testId", idResult.getValue());
 
         assertEquals(1, mods.getGenre().size());

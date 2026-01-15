@@ -17,17 +17,17 @@
 package cz.cas.lib.proarc.common.workflow.profile;
 
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
 import java.util.Optional;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 
 /**
  *
  * @author Martin Rumanek
  */
 @XmlAccessorType(value = XmlAccessType.FIELD)
-public class ModelDefinition  implements IDisplayableType<ModelDefinition> {
+public class ModelDefinition implements IDisplayableType<ModelDefinition> {
 
     @XmlAttribute(name = WorkflowProfileConsts.MODEL_PID)
     private String pid;

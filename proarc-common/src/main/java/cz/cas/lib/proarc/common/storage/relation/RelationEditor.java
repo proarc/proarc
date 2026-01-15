@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -34,11 +34,11 @@ import org.w3c.dom.Element;
 /**
  * RDF relations editor.
  *
- * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Digital+Object+Relationships'>
- *      Digital Object Relationships</a>
- * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Resource+Index'>
- *      Resource Index</a>
  * @author Jan Pokorsky
+ * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Digital+Object+Relationships'>
+ * Digital Object Relationships</a>
+ * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Resource+Index'>
+ * Resource Index</a>
  */
 public final class RelationEditor {
 
@@ -164,7 +164,7 @@ public final class RelationEditor {
      */
     public String getDonator() throws DigitalObjectException {
         Rdf rdf = getRdf();
-        String donator =  RdfRelation.toPid(rdf.getDescription().getDonator());
+        String donator = RdfRelation.toPid(rdf.getDescription().getDonator());
         return donator != null && donator.startsWith("donator:") ? donator.substring(8) : donator;
     }
 
@@ -244,6 +244,7 @@ public final class RelationEditor {
 
     /**
      * Sets some identifier of the export action.
+     *
      * @param result e.g. SIP ID or folder
      * @throws DigitalObjectException failure
      */
@@ -253,8 +254,9 @@ public final class RelationEditor {
 
     /**
      * Gets an export identifier.
+     *
      * @return the identifier
-     * @throws DigitalObjectException  failure
+     * @throws DigitalObjectException failure
      */
     public String getExportResult() throws DigitalObjectException {
         return getRdf().getDescription().getHasExport();
@@ -262,6 +264,7 @@ public final class RelationEditor {
 
     /**
      * Sets some identifier of the Ndk export action.
+     *
      * @param result e.g. SIP ID or folder
      * @throws DigitalObjectException failure
      */
@@ -271,8 +274,9 @@ public final class RelationEditor {
 
     /**
      * Gets a NDK export identifier.
+     *
      * @return the identifier
-     * @throws DigitalObjectException  failure
+     * @throws DigitalObjectException failure
      */
     public String getNdkExportResult() throws DigitalObjectException {
         return getRdf().getDescription().getHasNdkExport();
@@ -280,6 +284,7 @@ public final class RelationEditor {
 
     /**
      * Sets some identifier of the Kramerius export action.
+     *
      * @param result e.g. SIP ID or folder
      * @throws DigitalObjectException failure
      */
@@ -289,8 +294,9 @@ public final class RelationEditor {
 
     /**
      * Gets a Kramerius export identifier.
+     *
      * @return the identifier
-     * @throws DigitalObjectException  failure
+     * @throws DigitalObjectException failure
      */
     public String getKrameriusExportResult() throws DigitalObjectException {
         return getRdf().getDescription().getHasKrameriusExport();
@@ -298,6 +304,7 @@ public final class RelationEditor {
 
     /**
      * Sets some identifier of the Archive export action.
+     *
      * @param result e.g. SIP ID or folder
      * @throws DigitalObjectException failure
      */
@@ -307,8 +314,9 @@ public final class RelationEditor {
 
     /**
      * Gets a Archice export identifier.
+     *
      * @return the identifier
-     * @throws DigitalObjectException  failure
+     * @throws DigitalObjectException failure
      */
     public String getArchiveExportResult() throws DigitalObjectException {
         return getRdf().getDescription().getHasArchiveExport();
@@ -316,6 +324,7 @@ public final class RelationEditor {
 
     /**
      * Sets some identifier of the Ndk export action.
+     *
      * @param result e.g. SIP ID or folder
      * @throws DigitalObjectException failure
      */
@@ -325,8 +334,9 @@ public final class RelationEditor {
 
     /**
      * Gets a NDK export identifier.
+     *
      * @return the identifier
-     * @throws DigitalObjectException  failure
+     * @throws DigitalObjectException failure
      */
     public String getCrossrefExportResult() throws DigitalObjectException {
         return getRdf().getDescription().getHasCrossrefExport();
@@ -367,7 +377,7 @@ public final class RelationEditor {
     }
 
     public void setArchivalCopiesPath(String archivalCopiesPath) throws DigitalObjectException {
-        if (archivalCopiesPath == null || archivalCopiesPath.isEmpty() || "null".equals(archivalCopiesPath)  || "undefined".equals(archivalCopiesPath)) {
+        if (archivalCopiesPath == null || archivalCopiesPath.isEmpty() || "null".equals(archivalCopiesPath) || "undefined".equals(archivalCopiesPath)) {
             getRdf().getDescription().setArchivalCopiesPath(null);
             return;
         }
@@ -463,7 +473,7 @@ public final class RelationEditor {
     /**
      * Sets relations unrecognized by RelationEditor.
      * <b>Do not use for members, model, ...</b>
-     * 
+     *
      * @param elms list of custom relations
      */
     public void setRelations(List<Element> elms) throws DigitalObjectException {
@@ -475,6 +485,7 @@ public final class RelationEditor {
 
     /**
      * Replaces all relations.
+     *
      * @param rdf the relations
      */
     public void setRdf(Rdf rdf) {
@@ -483,6 +494,7 @@ public final class RelationEditor {
 
     /**
      * Prepares updates for {@link ProArcObject#flush() }
+     *
      * @param timestamp timestamp
      */
     public void write(long timestamp, String message) throws DigitalObjectException {

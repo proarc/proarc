@@ -20,27 +20,28 @@ import cz.cas.lib.proarc.common.workflow.model.DigitalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.FolderMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Material;
-import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialFilter;
+import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
-
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -59,15 +60,15 @@ public class EmpireWorkflowMaterialDaoTest {
     public EmpireWorkflowMaterialDaoTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         support = new DbUnitSupport();
         schema = support.getEmireCfg().getSchema();
@@ -80,7 +81,7 @@ public class EmpireWorkflowMaterialDaoTest {
         daoTask.setTransaction(tx);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (tx != null) {
             tx.close();
@@ -101,8 +102,8 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         FolderMaterial m = dao.create(MaterialType.FOLDER);
@@ -129,8 +130,8 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         DigitalMaterial m = dao.create(MaterialType.DIGITAL_OBJECT);
@@ -158,8 +159,8 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         PhysicalMaterial m = dao.create(MaterialType.PHYSICAL_DOCUMENT);
@@ -208,8 +209,8 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         // view a task's digital material
@@ -295,7 +296,7 @@ public class EmpireWorkflowMaterialDaoTest {
             filter = new MaterialFilter();
             filter.setJobId(BigDecimal.ONE);
             filter.setType(type);
-            assertTrue("returned objects should be " + type.name(), dao.view(filter).stream().allMatch(material-> type.equals(material.getType())));
+            assertTrue(dao.view(filter).stream().allMatch(material -> type.equals(material.getType())), () -> "returned objects should be " + type.name());
         }
 
     }
@@ -307,8 +308,8 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Material m1 = dao.find(BigDecimal.ONE);
@@ -335,8 +336,8 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Material m = new Material();

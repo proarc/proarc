@@ -1,38 +1,42 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.config;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
-import org.apache.commons.configuration.Configuration;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.apache.commons.configuration2.Configuration;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -44,32 +48,34 @@ public class AppConfigurationTest {
     private static final String TEST_PROPERTY_NAME = "cz.cas.lib.proarc.common.config.testProperty";
     private static final String TEST_DEFAULT_PROPERTY_NAME = "cz.cas.lib.proarc.common.config.testDefaultProperty";
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder();
     private AppConfigurationFactory factory;
     private File confHome;
     private File proarcCfg;
 
+    @TempDir
+    Path tempDir;
+
     public AppConfigurationTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         factory = AppConfigurationFactory.getInstance();
-        confHome = temp.newFolder(AppConfiguration.DEFAULT_APP_HOME_NAME);
+        confHome = tempDir.resolve(AppConfiguration.DEFAULT_APP_HOME_NAME).toFile();
         assertNotNull(confHome);
         proarcCfg = new File(confHome, AppConfiguration.CONFIG_FILE_NAME);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -163,19 +169,19 @@ public class AppConfigurationTest {
         final String importProfileGroup = ImportProfile.PROFILES;
 
         createConfigFile(new Properties() {{
-                put(importProfileGroup, "profile.ndk");
-                put("profile.ndk.label", "NDK label");
-                put("profile.ndk.description", "NDK description");
-                put("profile.ndk.file", "ndk.cfg");
-                put(ImportProfile.PLAIN_OCR_CHARSET, expDefaultProfileValue);
-            }},
-            new File(confHome, AppConfiguration.CONFIG_FILE_NAME));
+                             put(importProfileGroup, "profile.ndk");
+                             put("profile.ndk.label", "NDK label");
+                             put("profile.ndk.description", "NDK description");
+                             put("profile.ndk.file", "ndk.cfg");
+                             put(ImportProfile.PLAIN_OCR_CHARSET, expDefaultProfileValue);
+                         }},
+                new File(confHome, AppConfiguration.CONFIG_FILE_NAME));
 
         File ndkProfileFile = createConfigFile(new Properties() {{
-                put(TEST_PROPERTY_NAME, expProfileValue);
-                put(ImportProfile.PLAIN_OCR_CHARSET, expProfileValue);
-            }},
-            new File(confHome, "ndk.cfg"));
+                                                   put(TEST_PROPERTY_NAME, expProfileValue);
+                                                   put(ImportProfile.PLAIN_OCR_CHARSET, expProfileValue);
+                                               }},
+                new File(confHome, "ndk.cfg"));
 
         AppConfiguration config = factory.create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());

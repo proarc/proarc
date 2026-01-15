@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 import static cz.cas.lib.proarc.common.process.external.ExternalProcess.PROP_ARG;
 import static cz.cas.lib.proarc.common.process.external.ExternalProcess.PROP_EXEC;
@@ -48,7 +48,7 @@ public class LtpCesnetProcess {
             throw new IllegalStateException("Script doesnt exists! " + script.getAbsolutePath());
         }
 
-        String [] ltpUploadCmd = new String[14];
+        String[] ltpUploadCmd = new String[14];
         ltpUploadCmd[0] = exec;
         ltpUploadCmd[1] = pythonScriptHome;
         ltpUploadCmd[2] = "-t";
@@ -75,7 +75,7 @@ public class LtpCesnetProcess {
         BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
         StringWriter infoWriter = new StringWriter();
-        while(( s = in.readLine()) != null) {
+        while ((s = in.readLine()) != null) {
             System.out.println(s);
             infoWriter.append(s).append("\n");
         }
@@ -85,7 +85,7 @@ public class LtpCesnetProcess {
 
         StringWriter errorWriter = new StringWriter();
         BufferedReader error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-        while(( s = error.readLine()) != null) {
+        while ((s = error.readLine()) != null) {
             System.out.println(s);
             errorWriter.append(s).append("\n");
         }

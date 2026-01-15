@@ -53,8 +53,8 @@ public class OldPrintOmnibusVolumeMapper extends RdaNdkMapper {
             }
         }
         if (titleInfoDefinition != null) {
-            if (titleInfoDefinition.getTitle() != null && titleInfoDefinition.getTitle().size() > 0) {
-                StringPlusLanguage title = titleInfoDefinition.getTitle().get(0);
+            if (titleInfoDefinition.getTitleStringPlusLanguage() != null && titleInfoDefinition.getTitleStringPlusLanguage().size() > 0) {
+                StringPlusLanguage title = titleInfoDefinition.getTitleStringPlusLanguage().get(0);
                 if (title != null && title.getValue() != null && !title.getValue().startsWith("Konvolut začínající dílem:")) {
                     title.setValue("Konvolut začínající dílem: " + title.getValue());
                 }

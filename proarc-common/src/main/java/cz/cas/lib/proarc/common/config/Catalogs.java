@@ -19,14 +19,13 @@ package cz.cas.lib.proarc.common.config;
 import cz.cas.lib.proarc.common.catalog.AlephXServer;
 import cz.cas.lib.proarc.common.catalog.AlmaCatalog;
 import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
-import cz.cas.lib.proarc.common.catalog.DigitizationRegistryCatalog;
 import cz.cas.lib.proarc.common.catalog.OaiCatalog;
 import cz.cas.lib.proarc.common.catalog.Z3950Catalog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Manages bibliographic catalog configurations.
@@ -52,6 +51,7 @@ public final class Catalogs {
 
     /**
      * Gets configuration of all registered catalogs.
+     *
      * @return list of configurations
      */
     public List<CatalogConfiguration> getConfigurations() {
@@ -80,6 +80,7 @@ public final class Catalogs {
 
     /**
      * Gets configuration of all registered authority catalogs.
+     *
      * @return list of configurations
      */
     public List<CatalogConfiguration> getAuthorityConfigurations() {
@@ -95,6 +96,7 @@ public final class Catalogs {
 
     /**
      * Finds particular catalog.
+     *
      * @param id catalog id
      * @return catalog or {@code null}
      */
@@ -113,11 +115,7 @@ public final class Catalogs {
     }
 
     public static BibliographicCatalog getCatalog(CatalogConfiguration props, String customTemplatePath) {
-        BibliographicCatalog catalog = DigitizationRegistryCatalog.get(props, customTemplatePath);
-        if (catalog != null) {
-            return catalog;
-        }
-        catalog = AlephXServer.get(props, customTemplatePath);
+        BibliographicCatalog catalog = AlephXServer.get(props, customTemplatePath);
         if (catalog != null) {
             return catalog;
         }
@@ -135,6 +133,7 @@ public final class Catalogs {
 
     /**
      * Finds particular catalog configuration.
+     *
      * @param id catalog id
      * @return catalog configuration or {@code null}
      */

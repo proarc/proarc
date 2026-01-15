@@ -158,7 +158,7 @@ public class TaskManager {
     private <T extends Task> List<T> sortJobTaskByBlockers(JobDefinition job, List<T> tasks) {
         ArrayList<T> sorted = new ArrayList<T>(tasks.size());
         for (String sortTaskName : job.getTaskNamesSortedByBlockers()) {
-            for (Iterator<T> it = tasks.iterator(); it.hasNext();) {
+            for (Iterator<T> it = tasks.iterator(); it.hasNext(); ) {
                 T task = it.next();
                 if (sortTaskName.equals(task.getTypeRef())) {
                     sorted.add(task);
@@ -231,7 +231,7 @@ public class TaskManager {
                 throw new WorkflowException("Job not found: " + task.getJobId()).addJobNotFound(task.getJobId());
             }
             Job.State jobState = job.getState();
-            if (jobState != Job.State.OPEN ) {
+            if (jobState != Job.State.OPEN) {
                 throw new WorkflowException("Job already closed: " + jobState).addJobIsClosed();
             }
             WorkflowDefinition profiles = wp.getProfiles();
@@ -374,7 +374,7 @@ public class TaskManager {
     }
 
     private List<Task> getTaskStateUpdates(State newState, State oldState,
-            Task t, JobDefinition job, List<? extends Task> sortedTasks
+                                           Task t, JobDefinition job, List<? extends Task> sortedTasks
     ) throws WorkflowException {
         if (oldState == newState) {
             return Collections.emptyList();
@@ -402,7 +402,7 @@ public class TaskManager {
                 jobTask.setState(newState);
                 continue;
             }
-            if (jobTask.getState() == State.WAITING)  {
+            if (jobTask.getState() == State.WAITING) {
                 boolean blocked = isBlocked(getStepDefinition(job, jobTask.getTypeRef()), sortedTasks);
                 if (!blocked) {
                     jobTask.setState(State.READY);
@@ -470,7 +470,7 @@ public class TaskManager {
                 throw new WorkflowException("Job not found: " + jobId).addJobNotFound(jobId);
             }
             Job.State jobState = job.getState();
-            if (jobState != Job.State.OPEN ) {
+            if (jobState != Job.State.OPEN) {
                 throw new WorkflowException("Job already closed: " + jobState).addJobIsClosed();
             }
             JobDefinition jobDef = wp.getProfile(workflow, job.getProfileName());
@@ -525,15 +525,15 @@ public class TaskManager {
     }
 
     private Task createTask(WorkflowTaskDao taskDao, Timestamp now, Job job,
-            StepDefinition step, Map<String, UserProfile> users, UserProfile defaultUser,
-            boolean blocked
+                            StepDefinition step, Map<String, UserProfile> users, UserProfile defaultUser,
+                            boolean blocked
     ) throws ConcurrentModificationException {
 
         Task task = taskDao.create().addCreated(now)
                 .addJobId(job.getId())
                 .addOwnerId(WorkflowManager.resolveUserId(step.getWorker(), users, defaultUser, false))
                 .addPriority(job.getPriority())
-                .setState(blocked? Task.State.WAITING : Task.State.READY)
+                .setState(blocked ? Task.State.WAITING : Task.State.READY)
                 .addTimestamp(now)
                 .addTypeRef(step.getTask().getName());
         taskDao.update(task);

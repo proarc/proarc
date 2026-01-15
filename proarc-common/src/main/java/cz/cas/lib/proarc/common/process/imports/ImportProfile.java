@@ -29,8 +29,7 @@ import cz.cas.lib.proarc.common.process.imports.ndk.NdkImport;
 import cz.cas.lib.proarc.common.process.imports.replaceStream.ReplaceStreamImport;
 import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConversionException;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * The import configuration. There can be several versions declared
@@ -40,7 +39,9 @@ import org.apache.commons.configuration.ConversionException;
  */
 public final class ImportProfile {
 
-    /** The configuration key to register import configuration profiles. */
+    /**
+     * The configuration key to register import configuration profiles.
+     */
     public static final String PROFILES = "import.profiles";
 
     public static final String RAW_SUFFIX = "import.raw.file.suffix";
@@ -48,8 +49,8 @@ public final class ImportProfile {
     public static final String ALTO_FILE_PATH = "import.alto.file.path";
     public static final String ALTO_VERSION = "import.alto.file.version";
     public static final String MODEL_ID = "import.page.modelId";
-    public static final String MODEL_AUDIO_ID="import.ndkaudiopage.modelId";
-    public static final String PAGE_PATH="import.page.path";
+    public static final String MODEL_AUDIO_ID = "import.ndkaudiopage.modelId";
+    public static final String PAGE_PATH = "import.page.path";
     public static final String NDK_ARCHIVAL_PROCESSOR = "import.ndk_archival.processor";
     public static final String JP2_TO_TIFF_PROCESSOR = "import.jp2ToTiff.processor";
     public static final String NDK_ARCHIVAL_SUFFIX = "import.ndk_archival.file.suffix";
@@ -114,7 +115,7 @@ public final class ImportProfile {
     }
 
     public ImportHandler createImporter() {
-        switch(getProfileId()) {
+        switch (getProfileId()) {
             case ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT:
                 return new ArchiveImport();
             case ConfigurationProfile.DEFAULT_NDK_IMPORT:
@@ -233,7 +234,7 @@ public final class ImportProfile {
     }
 
     public List<Object> getNdkArchivalAudioFileSuffix() {
-        List<Object>  suffix = config.getList(NDK_ARCHIVAL_AUDIO_SUFFIX);
+        List<Object> suffix = config.getList(NDK_ARCHIVAL_AUDIO_SUFFIX);
         if (suffix == null || suffix.isEmpty()) {
             suffix.add("ac.wav");
         }
@@ -327,19 +328,19 @@ public final class ImportProfile {
         return config.subset(PROCESSOR + "." + processor);
     }
 
-    public Configuration getConvertorJp2Processor () {
+    public Configuration getConvertorJp2Processor() {
         String processor = config.getString(CONVERTOR_JP2_PROCESSOR, "-");
         return config.subset(PROCESSOR + "." + processor);
     }
 
-    public Configuration getConvertorTiffToJpgProcessor () {
+    public Configuration getConvertorTiffToJpgProcessor() {
         String processor = config.getString(CONVERTOR_TIFF_JPG_PROCESSOR, "-");
         return config.subset(PROCESSOR + "." + processor);
     }
 
     public Boolean getCreateModelsHierarchy() {
         String createHierarchy = config.getString(CREATE_MODELS_HIERARCHY, "false");
-        return  Boolean.parseBoolean(createHierarchy);
+        return Boolean.parseBoolean(createHierarchy);
     }
 
     public String getFoxmlImageServerPath() {
@@ -354,7 +355,7 @@ public final class ImportProfile {
 
     public String getDefaultProcessor() {
         String processor = config.getString(DEFAULT_PROCESSOR, "all");
-        return  processor;
+        return processor;
     }
 
     public boolean isTiffToJpgDefined() {
@@ -430,14 +431,15 @@ public final class ImportProfile {
             ScalingMethod hint = ScalingMethod.valueOf(val);
             return hint;
         } catch (Exception e) {
-            throw new ConversionException(key, e);
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
     }
 
     private Integer getPositiveInteger(String key) {
         Integer val = config.getInteger(key, null);
         if (val != null && val <= 0) {
-            throw new ConversionException(key + " expects positive integer!");
+            throw new RuntimeException(key + " expects positive integer!");
         }
         return val;
     }

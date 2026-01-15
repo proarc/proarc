@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,6 +26,7 @@ import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
+import jakarta.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -42,7 +43,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.ws.rs.core.MediaType;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
@@ -71,7 +71,7 @@ public final class LocalStorage {
     public LocalObject create() {
         return create((String) null, null);
     }
-    
+
     public LocalObject create(String pid) {
         return create(pid, null);
     }
@@ -79,7 +79,7 @@ public final class LocalStorage {
     public LocalObject create(DigitalObject dobj) {
         return create(null, dobj);
     }
-    
+
     public LocalObject create(File foxml, DigitalObject dobj) {
         String pid = dobj.getPID();
         pid = pid != null ? pid : FoxmlUtils.createPid();
@@ -89,7 +89,7 @@ public final class LocalStorage {
     public LocalObject create(File foxml) {
         return create(null, foxml);
     }
-    
+
     public LocalObject create(String pid, File foxml) {
         pid = pid != null ? pid : FoxmlUtils.createPid();
         DigitalObject dobj = FoxmlUtils.createFoxml(pid);
@@ -98,10 +98,14 @@ public final class LocalStorage {
 
     public static final class LocalObject extends AbstractProArcObject {
 
-        /** The helper property to mark a local FOXML as a copy of the remote object. */
+        /**
+         * The helper property to mark a local FOXML as a copy of the remote object.
+         */
         private static final String PROPERTY_REMOTE_COPY = "proarc:model#remoteCopy";
         private DigitalObject dobj;
-        /** {@code null} for in memory object. */
+        /**
+         * {@code null} for in memory object.
+         */
         private File foxml;
         private String modelId;
         private boolean indexHierarchical;
@@ -157,13 +161,17 @@ public final class LocalStorage {
             this.indexHierarchical = indexHierarchical;
         }
 
-        /** The helper property to mark a local FOXML as a copy of the remote object. */
+        /**
+         * The helper property to mark a local FOXML as a copy of the remote object.
+         */
         public void setRemoteCopy(boolean remote) {
             String val = remote ? Boolean.TRUE.toString() : null;
             FoxmlUtils.setProperty(dobj, PROPERTY_REMOTE_COPY, val);
         }
 
-        /** The helper property to mark a local FOXML as a copy of the remote object. */
+        /**
+         * The helper property to mark a local FOXML as a copy of the remote object.
+         */
         public boolean isRemoteCopy() {
             return FoxmlUtils.findProperty(dobj, PROPERTY_REMOTE_COPY) != null;
         }
@@ -323,6 +331,7 @@ public final class LocalStorage {
          * Gets {@link DatastreamVersionType} as {@link DatastreamProfile} for
          * {@link #setProfile setProfile}. Only dsId, dsLabel, dsCreateDate,
          * dsFormatURI and dsMIME are translated.
+         *
          * @return the stream profile
          * @throws DigitalObjectException
          */
@@ -344,6 +353,7 @@ public final class LocalStorage {
         /**
          * Updates {@link DatastreamVersionType} properties with {@link DatastreamProfile}
          * where it makes sense.
+         *
          * @param profile profile
          * @throws DigitalObjectException failure
          */
@@ -356,7 +366,7 @@ public final class LocalStorage {
             DatastreamVersionType version = FoxmlUtils.findDataStreamVersion(object.getDigitalObject(), dsId);
             if (version == null) {
                 defaultProfile = profile;
-                return ;
+                return;
             }
             version.setCREATED(profile.getDsCreateDate());
             version.setFORMATURI(profile.getDsFormatURI());
@@ -409,7 +419,7 @@ public final class LocalStorage {
             version.setCREATED(FoxmlUtils.createXmlDate());
             object.register(this);
         }
-        
+
         @Override
         public EditorResult createResult() {
             if (!isXml) {
@@ -486,8 +496,8 @@ public final class LocalStorage {
         }
 
         private void writeBytesOrStreamExternally(DatastreamVersionType version,
-                byte[] bytes, InputStream stream, String reference
-                ) throws DigitalObjectException {
+                                                  byte[] bytes, InputStream stream, String reference
+        ) throws DigitalObjectException {
 
             FileOutputStream fos = null;
             try {

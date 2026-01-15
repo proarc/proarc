@@ -16,22 +16,24 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
-import java.sql.Connection;
-import org.apache.empire.db.DBCmdType;
+import org.apache.empire.db.DBContext;
+import org.apache.empire.db.DBDDLGenerator;
 import org.apache.empire.db.DBDatabase;
-import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.operation.DatabaseOperation;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -42,58 +44,56 @@ public class ProarcDatabaseTest {
     private DbUnitSupport support;
     private ProarcDatabase schema;
     private EmpireConfiguration emireCfg;
-    private DBDatabaseDriver driver;
 
     public ProarcDatabaseTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         support = new DbUnitSupport();
         emireCfg = support.getEmireCfg();
         schema = emireCfg.getSchema();
-        driver = emireCfg.getDriver();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
     @Test
     public void testCreateSchemaScript() throws Exception {
-        Connection conn = emireCfg.getConnection();
+        DBContext context = emireCfg.getContext();
         try {
-            schema.open(driver, conn);
-            DBSQLScript script = new DBSQLScript();
-            schema.getCreateDDLScript(schema.getDriver(), script);
+            schema.open(context);
+            DBSQLScript script = new DBSQLScript(context);
+            schema.getCreateDDLScript(script);
             System.out.println("### create script:\n" + script);
         } finally {
-            conn.close();
+            context.discard();
         }
     }
 
     @Test
     public void testDropSchemaScript() throws Exception {
-        Connection conn = emireCfg.getConnection();
+        DBContext context = emireCfg.getContext();
         try {
-            schema.open(driver, conn);
-            DBSQLScript script = new DBSQLScript();
-            dropConstraints(schema, script);
-            dropTables(schema, script);
+            schema.open(context);
+            DBSQLScript script = new DBSQLScript(context);
+            dropConstraints(schema, context, script);
+            dropTables(schema, context, script);
             System.out.println("### drop script:\n" + script);
         } finally {
-            conn.close();
+            context.discard();
         }
     }
-    
+
     @Test
     public void testInit() throws Exception {
         // clear DB
@@ -107,7 +107,7 @@ public class ProarcDatabaseTest {
         ProarcDatabaseV2 v2 = new ProarcDatabaseV2();
         ProarcDatabaseV3 v3 = new ProarcDatabaseV3();
         ProarcDatabaseV4 v4 = new ProarcDatabaseV4();
-        final IDatabaseConnection con = support.getConnection();
+        final DBContext context = emireCfg.getContext();
         try {
             // clear DB
             dropSchema(schema);
@@ -116,19 +116,19 @@ public class ProarcDatabaseTest {
             dropSchema(v2);
             dropSchema(v1);
             v1.init(emireCfg);
-            assertEquals(1, ProarcDatabase.schemaExists(schema, con.getConnection()));
+            assertEquals(1, ProarcDatabase.schemaExists(schema, context));
 
             IDataSet db = support.loadFlatXmlDataStream(getClass(), "proarc_v1.xml", true);
             try {
-                DatabaseOperation.INSERT.execute(con, db);
-                con.getConnection().commit();
+                DatabaseOperation.INSERT.execute((IDatabaseConnection) context.getConnection(), db);
+                context.commit();
             } finally {
                 support.clearDtdSchema();
             }
             schema.init(emireCfg);
-            assertEquals(ProarcDatabase.VERSION, ProarcDatabase.schemaExists(schema, con.getConnection()));
+            assertEquals(ProarcDatabase.VERSION, ProarcDatabase.schemaExists(schema, context));
         } finally {
-            con.close();
+            context.discard();
             dropSchema(schema);
             dropSchema(v1);
         }
@@ -137,55 +137,55 @@ public class ProarcDatabaseTest {
     @Test
     public void testSchemaExists() throws Exception {
         schema.init(emireCfg);
-        Connection c = emireCfg.getConnection();
+        DBContext context = emireCfg.getContext();
         try {
-            boolean result = ProarcDatabase.schemaExists(schema, c) > 0;
+            boolean result = ProarcDatabase.schemaExists(schema, context) > 0;
             assertTrue(result);
         } finally {
-            c.close();
+            context.discard();
         }
     }
 
     @Test
     public void testSchemaNotExists() throws Exception {
         dropSchema(schema);
-        Connection c = emireCfg.getConnection();
+        DBContext context = emireCfg.getContext();
         try {
-            boolean result = ProarcDatabase.schemaExists(schema, c) > 0;
+            boolean result = ProarcDatabase.schemaExists(schema, context) > 0;
             assertFalse(result);
         } finally {
-            c.close();
+            context.discard();
+            ;
         }
     }
 
     private void dropSchema(DBDatabase schema) throws Exception {
-        Connection conn = emireCfg.getConnection();
+        DBContext context = emireCfg.getContext();
         try {
-            schema.open(driver, conn);
-            DBSQLScript script = new DBSQLScript();
-            dropConstraints(schema, script);
-            dropTables(schema, script);
-//            System.out.println("### drop script:\n" + script);
-            conn.setAutoCommit(true);
+            schema.open(context);
+            DBSQLScript script = new DBSQLScript(context);
+            dropConstraints(schema, context, script);
+            dropTables(schema, context, script);
+            context.getConnection().setAutoCommit(true);
             try {
-                script.run(driver, conn, true);
+                script.executeAll();
             } finally {
-                conn.setAutoCommit(false);
+                context.getConnection().setAutoCommit(false);
             }
         } finally {
-            conn.close();
+            context.discard();
         }
     }
 
-    private void dropTables(DBDatabase schema, DBSQLScript script) {
+    private void dropTables(DBDatabase schema, DBContext context, DBSQLScript script) {
         for (DBTable table : schema.getTables()) {
-            driver.getDDLScript(DBCmdType.DROP, table, script);
+            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.DROP, table, script);
         }
     }
 
-    private void dropConstraints(DBDatabase schema, DBSQLScript script) {
+    private void dropConstraints(DBDatabase schema, DBContext context, DBSQLScript script) {
         for (DBRelation relation : schema.getRelations()) {
-            EmpireUtils.dropRelation(relation, driver, script);
+            EmpireUtils.dropRelation(relation, context, script);
         }
     }
 

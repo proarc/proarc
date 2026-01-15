@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Settings for NDK export
@@ -71,32 +71,44 @@ public class NdkExportOptions {
         return options;
     }
 
-    /** Returns the creator organization - used for mets header */
+    /**
+     * Returns the creator organization - used for mets header
+     */
     public String getCreator() {
         return creator;
     }
 
-    /** Sets the creator organization*/
+    /**
+     * Sets the creator organization
+     */
     public void setCreator(String creator) {
         this.creator = creator;
     }
 
-    /** Returns the archivist organization - used for mets header */
+    /**
+     * Returns the archivist organization - used for mets header
+     */
     public String getArchivist() {
         return archivist;
     }
 
-    /** Sets the archivist organization */
+    /**
+     * Sets the archivist organization
+     */
     public void setArchivist(String archivist) {
         this.archivist = archivist;
     }
 
-    /** Returns value of version*/
+    /**
+     * Returns value of version
+     */
     public String getVersion() {
         return version;
     }
 
-    /** Sets value of Proarc version */
+    /**
+     * Sets value of Proarc version
+     */
     public void setVersion(String version) {
         this.version = version;
     }

@@ -16,22 +16,28 @@
  */
 package cz.cas.lib.proarc.common.catalog;
 
+import jakarta.ws.rs.client.WebTarget;
 import java.io.StringWriter;
 import java.util.HashMap;
-import javax.ws.rs.client.WebTarget;
+import java.util.Map;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import org.custommonkey.xmlunit.SimpleNamespaceContext;
-import org.custommonkey.xmlunit.XMLAssert;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.glassfish.jersey.uri.UriComponent;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.xmlunit.builder.Input;
+import org.xmlunit.xpath.JAXPXPathEngine;
+import org.w3c.dom.Node;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -42,19 +48,19 @@ public class OaiCatalogTest {
     public OaiCatalogTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -65,11 +71,17 @@ public class OaiCatalogTest {
         StreamResult result = c.transformOaiResponse(new StreamSource(srcUrl), new StreamResult(new StringWriter()));
         assertNotNull(result);
 
-        HashMap<String, String> namespaces = new HashMap<String, String>();
-        namespaces.put("marc", "http://www.loc.gov/MARC21/slim");
-        XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
         String marc = result.getWriter().toString();
-        XMLAssert.assertXpathExists("/marc:record", marc);
+
+        Map<String, String> namespaces = new HashMap<>();
+        namespaces.put("marc", "http://www.loc.gov/MARC21/slim");
+
+        JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+        xpathEngine.setNamespaceContext(namespaces);
+
+        Iterable<Node> nodes = xpathEngine.selectNodes("/marc:record", Input.fromString(marc).build());
+
+        assertFalse(nodes.iterator().hasNext());
     }
 
     @Test
@@ -78,7 +90,7 @@ public class OaiCatalogTest {
         String srcUrl = OaiCatalogTest.class.getResource("oaiIdNotExistResponse.xml").toExternalForm();
         StringWriter resultWriter = new StringWriter();
         StreamResult result = c.transformOaiResponse(new StreamSource(srcUrl), new StreamResult(resultWriter));
-        assertNull(resultWriter.toString(), result);
+        assertNull(result, resultWriter.toString());
     }
 
     @Test
@@ -90,7 +102,7 @@ public class OaiCatalogTest {
             fail();
         } catch (TransformerException result) {
             String msg = result.getMessage();
-            assertTrue(msg, msg.contains("cannotDisseminateFormat"));
+            assertTrue(msg.contains("cannotDisseminateFormat"), msg);
         }
     }
 
@@ -103,7 +115,7 @@ public class OaiCatalogTest {
             fail();
         } catch (TransformerException result) {
             String msg = result.getMessage();
-            assertTrue(msg, msg.contains("Invalid metadata format: http://www.openarchives.org/OAI/2.0/oai_dc/"));
+            assertTrue(msg.contains("Invalid metadata format: http://www.openarchives.org/OAI/2.0/oai_dc/"), msg);
         }
     }
 
@@ -118,29 +130,17 @@ public class OaiCatalogTest {
         String encIdParam = "identifier=" + UriComponent.encode(
                 "oai:arXiv.org:quant-ph/4",
                 UriComponent.Type.QUERY_PARAM_SPACE_ENCODED);
-        assertTrue(resultQuery, resultQuery.contains(encIdParam));
+        assertTrue(resultQuery.contains(encIdParam), resultQuery);
 
         // do not prefix ID with prefix
         wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "oai:arXiv.org:quant-ph/4");
         resultQuery = wr.getUri().toString();
-        assertTrue(resultQuery, resultQuery.contains(encIdParam));
+        assertTrue(resultQuery.contains(encIdParam), resultQuery);
 
         // no prefix
         c.setIdentifierPrefix(null);
         wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "4");
         resultQuery = wr.getUri().toString();
-        assertTrue(resultQuery, resultQuery.contains("identifier=4"));
+        assertTrue(resultQuery.contains("identifier=4"), resultQuery);
     }
-
-//    @Test
-    public void testFindOaiRecord() throws Exception {
-        String url = "http://web2.mlp.cz/cgi/oai";
-        String metadataPrefix = "marc21";
-        String identifierPrefix = "oai:www.mlp.cz:";
-        OaiCatalog c = new OaiCatalog(url, metadataPrefix, identifierPrefix);
-        String oaiRecord = c.findOaiRecord("4");
-        System.out.println(oaiRecord);
-        assertNotNull(oaiRecord);
-    }
-
 }

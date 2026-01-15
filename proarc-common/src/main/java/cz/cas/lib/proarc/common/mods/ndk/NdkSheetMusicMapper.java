@@ -67,7 +67,7 @@ public class NdkSheetMusicMapper extends RdaNdkMapper {
         // name/role/roleTerm@type="CODE"
         // name/role/roleTerm@authority="marcrelator"
         for (NameDefinition name : mods.getName()) {
-            for (RoleDefinition role : name.getRole()) {
+            for (RoleDefinition role : name.getRoleDefinition()) {
                 for (RoleTermDefinition roleTerm : role.getRoleTerm()) {
                     if (roleTerm.getAuthority() == null) {
                         roleTerm.setAuthority("marcrelator");
@@ -109,7 +109,7 @@ public class NdkSheetMusicMapper extends RdaNdkMapper {
             }
             // sets type in element dateOther
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
-                dateOther.setType(oi.getEventType());
+                dateOther.setTypeString(oi.getEventType());
             }
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
@@ -166,7 +166,8 @@ public class NdkSheetMusicMapper extends RdaNdkMapper {
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartNumber());
             addStringPlusLanguage(dc.getDescriptions(), titleInfo.getPartName());
         }
-        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
         addElementType(dc.getTypes(), getDcType());
         addOriginInfo(mods.getOriginInfo(), dc);
         addLanguage(mods.getLanguage(), dc);

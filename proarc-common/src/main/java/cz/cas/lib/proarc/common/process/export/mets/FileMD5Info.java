@@ -21,8 +21,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author Robert Simonovsky
- *
- *         Class is used to store md5 info and file size
+ * <p>
+ * Class is used to store md5 info and file size
  *
  */
 public class FileMD5Info {

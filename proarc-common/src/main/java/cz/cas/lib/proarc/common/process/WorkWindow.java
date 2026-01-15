@@ -29,7 +29,7 @@ import java.time.format.DateTimeFormatter;
 
 public class WorkWindow {
 
-    public static boolean isNotAllowed (Batch batch) {
+    public static boolean isNotAllowed(Batch batch) {
 
         if (batch == null) {
             return true;
@@ -56,7 +56,7 @@ public class WorkWindow {
         return !now.before(notBefore) && !now.after(notAfter);
     }
 
-    public static Timestamp nextWindowStart()  {
+    public static Timestamp nextWindowStart() {
         LocalTime windowStart = getWindowStart();
         LocalDateTime now = LocalDateTime.now();
 
@@ -117,7 +117,7 @@ public class WorkWindow {
 
     public static Batch scheduleBatch(Batch batch) {
         Timestamp nextStart = WorkWindow.nextWindowStart();
-        Timestamp nextEnd   = WorkWindow.nextWindowEnd(nextStart);
+        Timestamp nextEnd = WorkWindow.nextWindowEnd(nextStart);
 
         BatchParams params = batch.getParamsAsObject();
         if (params == null) {

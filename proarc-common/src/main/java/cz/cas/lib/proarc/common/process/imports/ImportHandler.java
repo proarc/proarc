@@ -31,6 +31,7 @@ public interface ImportHandler {
 
     /**
      * Estimates the number of items to import.
+     *
      * @param importConfig the settings
      * @return the number
      * @throws IOException failure
@@ -39,6 +40,7 @@ public interface ImportHandler {
 
     /**
      * Does the folder contain stuff that can be imported?
+     *
      * @param folder the folder
      * @return yes or no
      */
@@ -47,6 +49,7 @@ public interface ImportHandler {
     /**
      * The import implementation. It can just load items or load and ingest
      * items in one step.
+     *
      * @param importConfig the settings
      * @param batchManager
      * @throws Exception failure

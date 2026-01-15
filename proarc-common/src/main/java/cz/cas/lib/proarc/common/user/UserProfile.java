@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2011 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,7 +22,7 @@ import java.util.Date;
 
 /**
  * User settings.
- *
+ * <p>
  * User home should contain folders import (scanned TIFF files),
  * export (FOXMLs for publishing), images (JPEGs for external editing)
  *
@@ -31,7 +31,9 @@ import java.util.Date;
 public class UserProfile {
 
     private Integer userId;
-    /** holds folder path in platform independent form */
+    /**
+     * holds folder path in platform independent form
+     */
     private transient URI userHomeUri;
     private String userHome;
     private transient URI exportFolder;
@@ -102,6 +104,7 @@ public class UserProfile {
 
     /**
      * user folder with import hierarchy
+     *
      * @return folder path always terminated with '/'.
      */
     public URI getImportFolder() {
@@ -511,15 +514,15 @@ public class UserProfile {
     @Override
     public String toString() {
         return String.format("UserProfile[id:%s, username:%s, defGroup: %s, userGroup: %s,"
-                + " created:%s, lastLogin:%s, email:%s,"
-                + " remoteName:%s, remoteType:%s"
-                + " forename:%s, surname:%s, userHome:%s, userHomeUri:%s, userPasswordDigest:%s]",
+                        + " created:%s, lastLogin:%s, email:%s,"
+                        + " remoteName:%s, remoteType:%s"
+                        + " forename:%s, surname:%s, userHome:%s, userHomeUri:%s, userPasswordDigest:%s]",
                 userId, userName, defaultGroup, userGroup, created, lastLogin, email,
                 remoteName, remoteType,
                 forename, surname, userHome, userHomeUri, userPasswordDigest);
     }
 
-    void validateAsNew () {
+    void validateAsNew() {
         if (userName == null || !UserUtil.isValidUserName(userName)) {
             throw new IllegalArgumentException("Invalid user name: " + userName);
         }

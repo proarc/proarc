@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.user;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.DbUnitSupport;
@@ -24,27 +23,28 @@ import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireUserDaoTest;
 import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.sql.DataSource;
-import org.dbunit.database.IDatabaseConnection;
+import org.apache.empire.db.DBContext;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Integration tests.
@@ -53,8 +53,9 @@ import static org.junit.Assert.assertNull;
  */
 public class UserManagerSqlTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
+
     private AppConfiguration configuration;
     private DbUnitSupport db;
     private FedoraTestSupport fedora;
@@ -64,15 +65,15 @@ public class UserManagerSqlTest {
     public UserManagerSqlTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         // fedora init
         fedora = new FedoraTestSupport();
@@ -89,29 +90,30 @@ public class UserManagerSqlTest {
 
             @Override
             public Connection answer() throws Throwable {
-                return db.getEmireCfg().getConnection();
+                return db.getEmireCfg().getContext().getConnection();
             }
         }).anyTimes();
         IDataSet database = database(
                 // XXX related fedora objects do not exist!
                 db.loadFlatXmlDataStream(EmpireUserDaoTest.class, "user.xml")
 //                db.loadFlatXmlDataStream(getClass(), "group.xml")
-                );
-        final IDatabaseConnection con = db.getConnection();
+        );
+        final DBContext context = db.getEmireCfg().getContext();
         try {
-            db.cleanInsert(con, database);
-            db.initSequences(con.getConnection(), 10, db.getEmireCfg().getSchema().tableUser.id.getSequenceName());
-            db.initSequences(con.getConnection(), 10, db.getEmireCfg().getSchema().tableUserGroup.id.getSequenceName());
-            con.getConnection().commit();
+            db.cleanInsert(context, database);
+            db.initSequences(context.getConnection(), 10, (String) db.getEmireCfg().getSchema().tableUser.id.getDefaultValue());
+            db.initSequences(context.getConnection(), 10, (String) db.getEmireCfg().getSchema().tableUserGroup.id.getDefaultValue());
+            context.discard();
+            ;
         } finally {
-            con.getConnection().close();
+            context.discard();
         }
 
         EasyMock.replay(dataSource);
-        manager = new UserManagerSql(configuration, dataSource, temp.getRoot(), fedoraStorage, daos);
+        manager = new UserManagerSql(configuration, dataSource, tempDir, fedoraStorage, daos);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 

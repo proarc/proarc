@@ -58,7 +58,7 @@ public class KrameriusImport implements ImportHandler {
 
     @Override
     public boolean isImportable(File folder) {
-       return KrameriusScanner.isImportable(folder);
+        return KrameriusScanner.isImportable(folder);
     }
 
     @Override

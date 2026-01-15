@@ -23,14 +23,14 @@ import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -43,15 +43,15 @@ public class PurgeProArcObjectTest {
     public PurgeProArcObjectTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         support = new FedoraTestSupport();
         MetaModelRepository.setInstance(new String[]{NdkPlugin.ID});
@@ -69,7 +69,7 @@ public class PurgeProArcObjectTest {
         );
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -197,7 +197,7 @@ public class PurgeProArcObjectTest {
         List<SearchViewItem> found = support.getRemoteStorage().getSearch().find(false, pids);
         FedoraTestSupport.assertItem(found, pids);
         for (SearchViewItem item : found) {
-            assertEquals(item.getPid(), "fedora-system:def/model#Deleted", item.getState());
+            assertEquals("fedora-system:def/model#Deleted", item.getState(), () -> item.getPid());
         }
 
         found = support.getRemoteStorage().getSearch().find(pids);

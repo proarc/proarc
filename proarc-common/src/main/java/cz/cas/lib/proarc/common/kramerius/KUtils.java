@@ -96,6 +96,7 @@ public class KUtils {
             throw new IOException("Config home does not exists!");
         }
     }
+
     public static String getExpectedDestinationPath(KrameriusOptions.KrameriusInstance instance, String pid) {
         if (instance.getExportFoxmlFolder().endsWith("/") || instance.getExportFoxmlFolder().endsWith("\\")) {
             return instance.getExportFoxmlFolder() + "k7_edit_" + getPidAsFile(pid) + File.separator + getPidAsFile(pid) + ".xml";

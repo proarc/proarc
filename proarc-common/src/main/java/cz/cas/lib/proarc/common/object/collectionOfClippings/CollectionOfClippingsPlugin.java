@@ -87,7 +87,7 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
 
     @Override
     public <T extends HasDataHandler> T getHandlerProvider(Class<T> type) {
-        return type.isInstance(this) ? type.cast(this): null;
+        return type.isInstance(this) ? type.cast(this) : null;
     }
 
     @Override
@@ -103,7 +103,7 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {}
+                new RelationCriteria[]{}
         ));
         models.add(new MetaModel(
                 MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, true, null,
@@ -114,7 +114,7 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {
+                new RelationCriteria[]{
                         new RelationCriteria(MODEL_COLLECTION_OF_CLIPPINGS_TITLE, RelationCriteria.Type.PID)
                 }
         ));

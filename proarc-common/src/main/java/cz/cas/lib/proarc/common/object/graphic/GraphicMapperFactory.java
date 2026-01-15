@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
@@ -34,7 +35,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
  *
  * @author Lukas Sykora
  */
-public class GraphicMapperFactory extends NdkMapperFactory{
+public class GraphicMapperFactory extends NdkMapperFactory {
 
     private static final Map<String, Supplier<NdkMapper>> mappers = new HashMap<>();
 

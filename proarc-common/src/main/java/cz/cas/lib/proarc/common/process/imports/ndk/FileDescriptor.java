@@ -12,7 +12,6 @@ public class FileDescriptor {
     private StreamFileType fileType;
 
 
-
     public FileDescriptor(String filename, StreamFileType fileType) {
         super();
         this.filename = filename;

@@ -21,26 +21,26 @@ import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.kramerius.KUtils;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraDao;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.WorkflowStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraDao;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.kramerius.KUtils;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -122,6 +122,7 @@ public class DigitalObjectManager {
 
     /**
      * Creates the handler to edit a digital object contents.
+     *
      * @param fobject digital object
      * @return the handler
      */
@@ -182,7 +183,7 @@ public class DigitalObjectManager {
                 }
                 fobject = new LocalStorage().load(pid, pidFoxml);
             } catch (IOException ex) {
-              throw new DigitalObjectNotFoundException(pid, ex);
+                throw new DigitalObjectNotFoundException(pid, ex);
             }
 
         } else {
@@ -203,14 +204,14 @@ public class DigitalObjectManager {
     public SearchViewItem createDigitalObject(
             String modelId, String pid,
             String parentPid, UserProfile user, String xml, String message, boolean validation
-            ) throws DigitalObjectException, DigitalObjectExistException {
+    ) throws DigitalObjectException, DigitalObjectExistException {
         return create(modelId, pid, parentPid, user, xml, message).createDigitalObject(true, validation);
     }
 
     public CreateHandler create(
             String modelId, String pid,
             String parentPid, UserProfile user, String xml, String message
-            ) throws DigitalObjectException, DigitalObjectExistException {
+    ) throws DigitalObjectException, DigitalObjectExistException {
         return new CreateHandler(modelId, pid, parentPid, user, xml, message);
     }
 
@@ -252,7 +253,7 @@ public class DigitalObjectManager {
         }
     }
 
-    public class CreateHandler extends FedoraDao  {
+    public class CreateHandler extends FedoraDao {
 
         private final String modelId;
         private String pid;
@@ -327,9 +328,10 @@ public class DigitalObjectManager {
 
         /**
          * Prepares the handler to produce a series of NDK issues.
-         * @param from a date to start the series
-         * @param to an optional date to end the series, inclusive
-         * @param dayIdxs an optional list of ISO day indicies to include in the series
+         *
+         * @param from           a date to start the series
+         * @param to             an optional date to end the series, inclusive
+         * @param dayIdxs        an optional list of ISO day indicies to include in the series
          * @param partNumberFrom a partNumber to start the series
          * @return the handler
          */
@@ -391,7 +393,7 @@ public class DigitalObjectManager {
                     if (("hm".equalsIgnoreCase(seriesFrequency) || "w".equalsIgnoreCase(seriesFrequency)) && seriesMissingDaysIncluded) {
                         this.setPrecision = false;
                     }
-                } else if ("m".equalsIgnoreCase(seriesFrequency) || "qy".equalsIgnoreCase(seriesFrequency) || "hy".equalsIgnoreCase(seriesFrequency)){
+                } else if ("m".equalsIgnoreCase(seriesFrequency) || "qy".equalsIgnoreCase(seriesFrequency) || "hy".equalsIgnoreCase(seriesFrequency)) {
                     if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
                         throw new IllegalArgumentException("Nepovolená kombinace pole formátu a frekvence.");
                     } else if ("MM.yyyy".equalsIgnoreCase(seriesDateFormat)) {
@@ -404,7 +406,7 @@ public class DigitalObjectManager {
                         checkDaysRange();
                     }
                     this.setPrecision = false;
-                } else if ("y".equalsIgnoreCase(seriesFrequency)){
+                } else if ("y".equalsIgnoreCase(seriesFrequency)) {
                     if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
                         params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
                                 seriesDateFrom.format(DateTimeFormatter.ofPattern("yyyy")));
@@ -432,7 +434,7 @@ public class DigitalObjectManager {
             }
             this.seriesPartNumberFrom = partNumberFrom;
             if (partNumberFrom != null) {
-                    params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
+                params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
             }
             return this;
         }
@@ -452,7 +454,8 @@ public class DigitalObjectManager {
 
         public boolean hasNext() {
             if (hasNext == null) {
-                hasNext = (nextDate() && nextPartNumber()) || ("other".equals(seriesFrequency) && nextPartNumber() && anotherObjectCreate());;
+                hasNext = (nextDate() && nextPartNumber()) || ("other".equals(seriesFrequency) && nextPartNumber() && anotherObjectCreate());
+                ;
             }
             return hasNext;
         }
@@ -494,7 +497,7 @@ public class DigitalObjectManager {
                                         seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
                                 setTmpLastDateFromRange("dd.MM.yyyy");
                             }
-                        } else if ("m".equalsIgnoreCase(seriesFrequency) || "qy".equalsIgnoreCase(seriesFrequency) || "hy".equalsIgnoreCase(seriesFrequency)){
+                        } else if ("m".equalsIgnoreCase(seriesFrequency) || "qy".equalsIgnoreCase(seriesFrequency) || "hy".equalsIgnoreCase(seriesFrequency)) {
                             if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
                                 throw new IllegalArgumentException("Nepovolená kombinace pole formátu a frekvence.");
                             } else if ("MM.yyyy".equalsIgnoreCase(seriesDateFormat)) {
@@ -506,7 +509,7 @@ public class DigitalObjectManager {
                                         seriesDateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
                                 checkDaysRange();
                             }
-                        } else if ("y".equalsIgnoreCase(seriesFrequency)){
+                        } else if ("y".equalsIgnoreCase(seriesFrequency)) {
                             if ("yyyy".equalsIgnoreCase(seriesDateFormat)) {
                                 params.put(DigitalObjectHandler.PARAM_ISSUE_DATE,
                                         seriesDateFrom.format(DateTimeFormatter.ofPattern("yyyy")));
@@ -816,7 +819,7 @@ public class DigitalObjectManager {
             if (bCatalog != null) {
                 String field = bCatalog.getDefaultSearchField();
                 if (field != null && !field.isEmpty()) {
-                    this.catalogField=field;
+                    this.catalogField = field;
                 }
             } else {
                 throw new DigitalObjectException("Missing catalog configuration");

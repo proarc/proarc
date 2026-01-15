@@ -588,7 +588,7 @@ public class WorkflowManager {
         String jobLabel = StringUtils.defaultIfEmpty(physicalMaterial.getLabel(), "?");
 
         try {
-            Job job = createJob(jobDao, now, jobLabel, jobProfile, model,null, users, defaultUser);
+            Job job = createJob(jobDao, now, jobLabel, jobProfile, model, null, users, defaultUser);
             Map<String, Material> materialCache = new HashMap<>();
             Integer order = 1;
             for (StepDefinition step : jobProfile.getSteps()) {
@@ -667,7 +667,7 @@ public class WorkflowManager {
 //                jobLabel = physicalMaterial.getLabel();
 
 
-                /* Issue #1254: bylo rozhodnotu, ze se nebudou kopirovat metadata do podzameru, schvaleno M. Nezbedovou dne 2020.12.11 */
+            /* Issue #1254: bylo rozhodnotu, ze se nebudou kopirovat metadata do podzameru, schvaleno M. Nezbedovou dne 2020.12.11 */
                 /*physicalMaterial.setBarcode(mv.getBarcode());
                 physicalMaterial.setField001(mv.getField001());
                 physicalMaterial.setDetail(mv.getDetail());

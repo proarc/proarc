@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import cz.cas.lib.proarc.common.process.export.mets.NdkExportOptions;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.junit.Test;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 
 /**
  * Created by lsykora on 6/22/2017.

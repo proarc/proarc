@@ -16,10 +16,6 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -30,7 +26,6 @@ import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveProducer;
@@ -70,14 +65,18 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -165,8 +164,6 @@ public final class ExportProcess implements Runnable {
                     return datastreamExport(batch, params);
                 case Batch.EXPORT_NDK:
                     return ndkExport(batch, params);
-                case Batch.EXPORT_DESA:
-                    return desaExport(batch, params);
                 case Batch.EXPORT_CEJSH:
                     return cejshExport(batch, params);
                 case Batch.EXPORT_CROSSREF:
@@ -495,12 +492,15 @@ public final class ExportProcess implements Runnable {
         }
     }
 
-    private void createMd5File(File folder) throws IOException {
+    private void createMd5File(File folder) throws IOException, NoSuchAlgorithmException {
         StringBuilder checksumBuilder = new StringBuilder();
         for (File file : folder.listFiles()) {
-            ByteSource byteSource = Files.asByteSource(file);
-            HashCode hc = byteSource.hash(Hashing.md5());
-            checksumBuilder.append(hc.toString().toLowerCase()).append(" ").append("./" + folder.getName() + "/"+ file.getName()).append("\n");
+
+            byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
+            byte[] hash = MessageDigest.getInstance("MD5").digest(bytes);
+            String hashValue = DatatypeConverter.printHexBinary(hash);
+
+            checksumBuilder.append(hashValue.toLowerCase()).append(" ").append("./" + folder.getName() + "/" + file.getName()).append("\n");
         }
         writeToFile(new File(folder.getParentFile(), folder.getName() + ".md5"), checksumBuilder.toString());
     }
@@ -756,50 +756,6 @@ public final class ExportProcess implements Runnable {
         } catch (Throwable t) {
             t.printStackTrace();
             IOException ex = new IOException(t.getMessage(), t);
-            return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
-        }
-    }
-
-    private Batch desaExport(Batch batch, BatchParams params) {
-        try {
-            DesaExport export = new DesaExport(config, akubraConfiguration, MetaModelRepository.getInstance());
-            URI exportUri = user.getExportFolder();
-            File exportFolder = new File(exportUri);
-            List<MetsExportException.MetsExportExceptionElement> exceptions = new ArrayList<>();
-            if (params.isForDownload()) {
-                DesaExport.Result r = export.exportDownload(exportFolder, params.getPids().get(0), batch);
-                if (r.getValidationError() != null) {
-                    return finishedExportWithError(this.batchManager, batch, r.getValidationError().getExceptions());
-                } else {
-                    return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, r.getDownloadToken());
-                }
-            } else {
-                if (params.isDryRun()) {
-                    for (String pid : params.getPids()) {
-                        List<MetsExportException.MetsExportExceptionElement> errors = export.validate(exportFolder, pid, params.getHierarchy(), batch);
-                        exceptions.addAll(errors);
-                    }
-                    if (exceptions.isEmpty()) {
-                        return BatchUtils.finishedExportSuccessfully(batchManager, batch, batch.getFolder());
-                    } else {
-                        return finishedExportWithError(batchManager, batch, exceptions);
-                    }
-                } else {
-                    for (String pid : params.getPids()) {
-                        DesaExport.Result r = export.export(exportFolder, pid, null, false, params.getHierarchy(), false, exportOptions.getLog(), user, batch);
-                        if (r.getValidationError() != null) {
-                            exceptions.addAll(r.getValidationError().getExceptions());
-                        }
-//                        return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, r.getDownloadToken());
-                    }
-                    if (exceptions.isEmpty()) {
-                        return BatchUtils.finishedExportSuccessfully(batchManager, batch, batch.getFolder());
-                    } else {
-                        return finishedExportWithError(batchManager, batch, exceptions);
-                    }
-                }
-            }
-        } catch (Exception ex) {
             return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
         }
     }

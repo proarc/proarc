@@ -16,14 +16,6 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlElement;
-
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
 import cz.cas.lib.proarc.common.mods.custom.NameMapper.NameItem.NameRole;
 import cz.cas.lib.proarc.mods.CodeOrText;
@@ -33,24 +25,31 @@ import cz.cas.lib.proarc.mods.NamePartDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.mods.RoleDefinition;
 import cz.cas.lib.proarc.mods.RoleTermDefinition;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Usage:
  * <pre>
  * {@code
-        // read
-        List<NameItem> all = map(mods);
-        List<NameItem> authors = filter(all, true, NameRole.AUTHOR);
-        List<NameItem> contributors = filter(all, true, NameRole.CONTRIBUTOR);
-        // write
-        all = map(mods);
-        List<NameItem> others = filter(all, false, NameRole.AUTHOR, NameRole.CONTRIBUTOR);
-        List<NameItem> news = MapperUtils.mergeList(cast(authors, NameRole.AUTHOR),
-                cast(contributors, NameRole.CONTRIBUTOR), others);
-        map(mods, news);
+ * // read
+ * List<NameItem> all = map(mods);
+ * List<NameItem> authors = filter(all, true, NameRole.AUTHOR);
+ * List<NameItem> contributors = filter(all, true, NameRole.CONTRIBUTOR);
+ * // write
+ * all = map(mods);
+ * List<NameItem> others = filter(all, false, NameRole.AUTHOR, NameRole.CONTRIBUTOR);
+ * List<NameItem> news = MapperUtils.mergeList(cast(authors, NameRole.AUTHOR),
+ * cast(contributors, NameRole.CONTRIBUTOR), others);
+ * map(mods, news);
  * }
  * </pre>
- *
+ * <p>
  * {@code mods/name/namePart[@type={family,given}]}
  * {@code mods/name/role/roleTerm/[@type={CODE,TEXT}]}, see
  * authors:[{family:'', given:''}]
@@ -125,7 +124,7 @@ final class NameMapper {
             int familyCount = 0;
             int givenCount = 0;
 
-            for (RoleDefinition role : source.getRole()) {
+            for (RoleDefinition role : source.getRoleDefinition()) {
                 if (result.getRole() != null && result.getRole() != NameRole.OTHER) {
                     continue;
                 }
@@ -202,12 +201,12 @@ final class NameMapper {
             roleTerm.setType(CodeOrText.TEXT);
             roleTerm.setValue(role.getText());
             roleType.getRoleTerm().add(roleTerm);
-            name.getRole().add(roleType);
+            name.getRoleDefinition().add(roleType);
         }
 
     }
 
-    @javax.xml.bind.annotation.XmlAccessorType(XmlAccessType.FIELD)
+    @XmlAccessorType(XmlAccessType.FIELD)
     public static class NameItem implements ArrayItem {
 
         private Integer index;
@@ -258,8 +257,10 @@ final class NameMapper {
                 for (RoleDefinition role : roles) {
                     for (RoleTermDefinition roleTerm : role.getRoleTerm()) {
                         switch (roleTerm.getType()) {
-                            case CODE: return fromCode(roleTerm.getValue());
-                            case TEXT: return fromText(roleTerm.getValue());
+                            case CODE:
+                                return fromCode(roleTerm.getValue());
+                            case TEXT:
+                                return fromText(roleTerm.getValue());
                         }
                     }
                 }

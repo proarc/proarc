@@ -20,18 +20,6 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -39,6 +27,18 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -49,6 +49,7 @@ import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import jakarta.xml.bind.JAXBException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +61,6 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 
 /**
  * Imports files grouped to {@link FileSet file sets}.
@@ -116,7 +116,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
             importConfig.setJhoveContext(JhoveUtility.createContext());
             try {
                 consumeFileSets(batch, fileSets, importConfig);
-                if(batch.getState().equals(Batch.State.LOADING)
+                if (batch.getState().equals(Batch.State.LOADING)
                         && ConfigurationProfile.IMPORT_WITH_CREATION_PARENT.equals(importConfig.getConfig().getProfileId())) {
                     String pid = createObject(fileSets, batch, importConfig);
 
@@ -148,7 +148,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
         }
 
         String pid = FoxmlUtils.createPid();
-        DigitalObjectManager dom  = DigitalObjectManager.getDefault();
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
         DigitalObjectManager.CreateHandler handler = dom.create(catalog.getModel(), pid, catalog.getParent(), importConfig.getUser(), null, "create new object with pid: " + pid);
         handler.create();
 
@@ -248,7 +248,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
 
     private void setIdentifier(MetadataCatalog metadataCatalog, ModsDefinition mods) {
         IdentifierDefinition identifierLocalId = new IdentifierDefinition();
-        identifierLocalId.setType("localId");
+        identifierLocalId.setTypeString("localId");
         identifierLocalId.setValue(metadataCatalog.getLocalId());
         mods.getIdentifier().add(identifierLocalId);
     }
@@ -262,10 +262,10 @@ public class FileSetImportWithParentCreated extends FileSetImport {
 
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
             if (metadataCatalog.getTitle() != null) {
-                if (titleInfo.getTitle().isEmpty()) {
-                    titleInfo.getTitle().add(new StringPlusLanguage());
+                if (titleInfo.getTitleStringPlusLanguage().isEmpty()) {
+                    titleInfo.getTitleStringPlusLanguage().add(new StringPlusLanguage());
                 }
-                for (StringPlusLanguage title : titleInfo.getTitle()) {
+                for (StringPlusLanguage title : titleInfo.getTitleStringPlusLanguage()) {
                     if (title.getValue() == null || title.getValue().isEmpty()) {
                         title.setValue(metadataCatalog.getTitle());
                         break;

@@ -16,12 +16,12 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
@@ -61,7 +61,7 @@ public class JobDefinitionView extends WorkflowItemView {
     public List<WorkflowItemView> getModels() {
         return item.getModel().stream()
                 .map(modelDefinition ->
-                    new WorkflowItemView(modelDefinition, lang))
+                        new WorkflowItemView(modelDefinition, lang))
                 .collect(Collectors.toList());
     }
 

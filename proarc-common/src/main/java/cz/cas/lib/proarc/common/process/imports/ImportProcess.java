@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2011 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -42,7 +42,6 @@ import java.util.logging.Logger;
 
 /**
  * Import process
- * {@link #prepare(java.io.File, java.lang.String, cz.cas.lib.proarc.common.user.UserProfile, BatchManager, java.lang.String, java.lang.String, boolean) checks}
  * preconditions of the import,
  * {@link #start() runs} the import and if necessary {@link #resume resumes}
  * already prepared import.
@@ -59,7 +58,7 @@ public final class ImportProcess implements Runnable {
     private final ImportOptions importConfig;
     private final AppConfiguration config;
 
-    private static Map<String, String> myMimeType= new HashMap<>();
+    private static Map<String, String> myMimeType = new HashMap<>();
 
     static {
         myMimeType.put("flac", "audio/flac");
@@ -87,7 +86,7 @@ public final class ImportProcess implements Runnable {
             String device, String software, boolean generateIndices, String priority,
             boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Boolean isNightOnly,
             ImportProfile profile, AppConfiguration config
-            ) throws IOException {
+    ) throws IOException {
         return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, profile, config);
     }
 
@@ -100,7 +99,7 @@ public final class ImportProcess implements Runnable {
             UserProfile user, BatchManager batchManager,
             String device, String software, boolean generateIndices, boolean generatePageNumber, String priority,
             boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Boolean isNightOnly, ImportProfile profile, AppConfiguration config
-            ) throws IOException {
+    ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device, software,
                 generateIndices, generatePageNumber, user, profile, priority, useNewMetadata, useOriginalMetadata);
@@ -111,6 +110,7 @@ public final class ImportProcess implements Runnable {
 
     /**
      * Resumes a scheduled import process.
+     *
      * @see #prepare
      * @see ImportDispatcher
      */
@@ -178,7 +178,7 @@ public final class ImportProcess implements Runnable {
         String err = null;
         if (profile == null) {
             err = String.format("Cannot resume batch %s! Missing profile %s."
-                    + " Check proarc.cfg and %s registrations.",
+                            + " Check proarc.cfg and %s registrations.",
                     batch.getId(), profileId, ImportProfile.PROFILES);
         } else if (profile.getError() != null) {
             err = String.format("Cannot resume batch %s! Check proarc.cfg.\n%s\nProfile error: %s",
@@ -244,6 +244,7 @@ public final class ImportProcess implements Runnable {
 
     /**
      * Starts the process.
+     *
      * @return the import batch
      */
     public Batch start() {
@@ -263,8 +264,8 @@ public final class ImportProcess implements Runnable {
                     batchManager.updateFolderStatus(batch);
                 } else if (!batch.getId().equals(folderStatus.getBatchId())) {
                     throw new IllegalStateException(String.format(
-                        "The folder tracked by another batch import!\nfolder: %s\nfound ID: %s",
-                        importFolder, folderStatus.getBatchId()));
+                            "The folder tracked by another batch import!\nfolder: %s\nfound ID: %s",
+                            importFolder, folderStatus.getBatchId()));
                 }
             } catch (Throwable ex) {
                 return logBatchFailure(batch, ex);
@@ -318,7 +319,7 @@ public final class ImportProcess implements Runnable {
                 File folder = new File(importFolder, TMP_DIR_NAME);
                 return folder;
             } else {
-                String importFolderPath = path + importFolder.getPath().substring(importFolder.getPath().lastIndexOf("import")-1);
+                String importFolderPath = path + importFolder.getPath().substring(importFolder.getPath().lastIndexOf("import") - 1);
                 File folder = new File(importFolderPath, TMP_DIR_NAME);
                 return folder;
             }
@@ -386,9 +387,12 @@ public final class ImportProcess implements Runnable {
 
     public static final class ImportOptions {
 
-        /** Folder with origin scan. */
+        /**
+         * Folder with origin scan.
+         */
         private final File importFolder;
-        /** Folder containing generated stuff. It is available when the import
+        /**
+         * Folder containing generated stuff. It is available when the import
          * starts, not in prepare state.
          */
         private File targetFolder;
@@ -416,9 +420,9 @@ public final class ImportProcess implements Runnable {
         }
 
         public ImportOptions(File importFolder, String device, String software,
-                boolean generateIndices, boolean gerenatePageNumber, UserProfile username,
-                ImportProfile profile, String priority, boolean useNewMetadata, boolean useOriginalMetadata
-                ) {
+                             boolean generateIndices, boolean gerenatePageNumber, UserProfile username,
+                             ImportProfile profile, String priority, boolean useNewMetadata, boolean useOriginalMetadata
+        ) {
             this.device = device;
             this.software = software;
             this.generateIndices = generateIndices;

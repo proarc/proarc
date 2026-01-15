@@ -32,7 +32,7 @@ public class DigitalObjectElement {
     private SearchViewItem item;
     private DigitalObjectHandler handler;
 
-    private  DigitalObjectElement() {
+    private DigitalObjectElement() {
         this.item = new SearchViewItem();
     }
 
@@ -67,7 +67,7 @@ public class DigitalObjectElement {
         this.handler = handler;
     }
 
-    public <R,P> R accept(DigitalObjectVisitor<R,P> v, P p) throws VisitorException {
+    public <R, P> R accept(DigitalObjectVisitor<R, P> v, P p) throws VisitorException {
         if (LOG.isLoggable(Level.FINE)) {
             LOG.log(Level.FINE, toString());
         }

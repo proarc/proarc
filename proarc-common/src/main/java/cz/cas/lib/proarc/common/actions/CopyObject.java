@@ -103,10 +103,9 @@ public class CopyObject {
             List<SearchViewItem> items = null;
             items = handler.create();
             return items;
-        }
-         catch (Exception ex) {
+        } catch (Exception ex) {
             //throw new DigitalObjectValidationException(this.pidOld, null, "Nepodarilo se ziskat objekt z DB", "001", ex);
-             throw new DigitalObjectException(this.pidOld, "Nepodarilo se zkopirovat objekt", ex);
+            throw new DigitalObjectException(this.pidOld, "Nepodarilo se zkopirovat objekt", ex);
         }
     }
 
@@ -125,7 +124,7 @@ public class CopyObject {
 
         modsStreamEditorNew.write(modsOld, modsStreamEditorNew.getLastModified(), null);
         foNew.flush();
-        }
+    }
 
     private void repairStreams(DigitalObjectManager dom) throws DigitalObjectException {
         //repair ModsDatastream
@@ -194,12 +193,12 @@ public class CopyObject {
     private void repairIdentifiers(ModsDefinition mods) {
         List<IdentifierDefinition> identifiers = new ArrayList<>();
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if (!"urnnbn".equals(identifier.getType()) && !"uuid".equals(identifier.getType())) {
+            if (!"urnnbn".equals(identifier.getTypeString()) && !"uuid".equals(identifier.getTypeString())) {
                 identifiers.add(identifier);
             }
         }
         IdentifierDefinition identifierNew = new IdentifierDefinition();
-        identifierNew.setType("uuid");
+        identifierNew.setTypeString("uuid");
         identifierNew.setValue(getUuid());
         identifiers.add(identifierNew);
 

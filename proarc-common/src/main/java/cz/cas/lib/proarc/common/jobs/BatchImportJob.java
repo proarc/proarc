@@ -20,13 +20,14 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.*;
+import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
+import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
+import cz.cas.lib.proarc.common.process.imports.ImportHandler;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
-import org.apache.commons.configuration.Configuration;
-import org.quartz.*;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -34,6 +35,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.configuration2.Configuration;
+import org.quartz.Job;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 
 import static cz.cas.lib.proarc.common.user.UserUtil.DEFAULT_ADMIN_USER;
 import static org.quartz.CronScheduleBuilder.cronSchedule;
@@ -71,13 +80,13 @@ public class BatchImportJob implements Job, ProArcJob {
         String schedule = jobConfig.getString(JobHandler.JOB_SCHEDULE);
 
         if (schedule == null || schedule.isEmpty()) {
-            throw new IllegalArgumentException("Job: "+jobId+" is not set properly, schedule missing");
+            throw new IllegalArgumentException("Job: " + jobId + " is not set properly, schedule missing");
         }
         //job.name.path
         String importPath = jobConfig.getString(BATCH_IMPORT_JOB_PATH);
 
         if (importPath == null || importPath.isEmpty()) {
-            throw new IllegalArgumentException("Job: "+jobId+" is not set properly, path missing");
+            throw new IllegalArgumentException("Job: " + jobId + " is not set properly, path missing");
         }
         //job.name.profiles
         List<String> jobProfiles = Arrays.asList(jobConfig.getStringArray(BATCH_IMPORT_JOB_PROFILES));
@@ -179,7 +188,7 @@ public class BatchImportJob implements Job, ProArcJob {
                 ImportDispatcher.getDefault().addImport(process);
                 Batch batch = process.getBatch();
 
-                LOG.log(Level.FINE, "Imported: " + directory + " with batchId "+ batch.getId());
+                LOG.log(Level.FINE, "Imported: " + directory + " with batchId " + batch.getId());
             } catch (IOException e) {
                 LOG.log(Level.SEVERE, "Prepraring directory: " + folder.getHandle() + " for import failed.");
                 e.printStackTrace();
@@ -192,7 +201,7 @@ public class BatchImportJob implements Job, ProArcJob {
 
         ConfigurationProfile profile = appConfig.getProfiles().getProfile(ImportProfile.PROFILES, profileId);
         if (profile == null) {
-            LOG.log(Level.SEVERE,"Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
+            LOG.log(Level.SEVERE, "Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
                     new Object[]{ImportProfile.PROFILES, profileId, batchId});
             throw new IllegalArgumentException("Unknown profile: " + profileId);
         }

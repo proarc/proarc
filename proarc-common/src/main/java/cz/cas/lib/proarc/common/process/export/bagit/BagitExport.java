@@ -1,9 +1,5 @@
 package cz.cas.lib.proarc.common.process.export.bagit;
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -20,23 +16,27 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-import org.apache.commons.io.FileUtils;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import org.apache.commons.io.FileUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class BagitExport {
 
@@ -163,12 +163,12 @@ public class BagitExport {
         }
         StringBuilder checksumBuilder = new StringBuilder();
         for (File file : bagitFolder.listFiles()) {
-//            byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
-//            byte[] hash = MessageDigest.getInstance("MD5").digest(bytes);
-//            String hashValue = DatatypeConverter.printHexBinary(hash);
-            ByteSource byteSource = Files.asByteSource(file);
-            HashCode hc = byteSource.hash(Hashing.md5());
-            checksumBuilder.append("MD5").append(" ").append(hc.toString().toLowerCase());
+
+            byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
+            byte[] hash = MessageDigest.getInstance("MD5").digest(bytes);
+            String hashValue = DatatypeConverter.printHexBinary(hash);
+
+            checksumBuilder.append("MD5").append(" ").append(hashValue.toLowerCase());
         }
         File checksumFile = new File(bagitFolder, exportFolder.getName() + ".sums");
         BufferedWriter writer = null;
@@ -310,8 +310,8 @@ public class BagitExport {
     private String getTitle(ModsDefinition mods) {
         StringBuilder builder = new StringBuilder();
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            if (titleInfo.getTitle().size() > 0) {
-                builder.append(titleInfo.getTitle().get(0).getValue());
+            if (titleInfo.getTitleStringPlusLanguage().size() > 0) {
+                builder.append(titleInfo.getTitleStringPlusLanguage().get(0).getValue());
             }
             if (titleInfo.getSubTitle().size() > 0) {
                 builder.append(": ");
@@ -331,7 +331,7 @@ public class BagitExport {
 
     private String getUrnNbn(ModsDefinition mods) {
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if ("urnnbn".equals(identifier.getType()) && (identifier.getInvalid() == null || "".equals(identifier.getInvalid()) || "false".equals(identifier.getInvalid()))) {
+            if ("urnnbn".equals(identifier.getTypeString()) && (identifier.getInvalid() == null || "".equals(identifier.getInvalid()) || "false".equals(identifier.getInvalid()))) {
                 return identifier.getValue();
             }
         }

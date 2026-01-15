@@ -23,6 +23,7 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.object.technicalMetadata.AesMapper;
 import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
@@ -37,7 +38,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.object.technicalMetadata.AesMapper;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mix.Mix;
 import java.io.File;
@@ -106,6 +106,7 @@ public class AesEditor {
 
     /**
      * Gets persisted MIX.
+     *
      * @return MIX or {@code null}
      * @throws DigitalObjectException failure
      */
@@ -120,6 +121,7 @@ public class AesEditor {
 
     /**
      * Gets persisted MIX as {@link Mix} class.
+     *
      * @return AES or {@code null}
      * @throws DigitalObjectException failure
      */

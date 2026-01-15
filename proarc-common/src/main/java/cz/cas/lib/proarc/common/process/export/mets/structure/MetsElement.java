@@ -247,7 +247,7 @@ public class MetsElement implements IMetsElement {
             } else if ("3.5".equals(this.modsStream.get(0).getAttribute("version"))) {
                 validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-5.xsd"));
             } else {
-                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods.xsd"));
+                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-4.xsd"));
             }
         } catch (Exception ex) {
             throw new MetsExportException(this.getOriginalPid(), "Error while validating MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, ex);
@@ -270,7 +270,7 @@ public class MetsElement implements IMetsElement {
      * @throws MetsExportException
      */
     public MetsElement(DigitalObject digitalObject, Object parent, MetsContext metsContext, boolean fillChildren) throws MetsExportException {
-        this(digitalObject, parent,  metsContext, fillChildren, true);
+        this(digitalObject, parent, metsContext, fillChildren, true);
     }
 
     public MetsElement(DigitalObject digitalObject, Object parent, MetsContext metsContext, boolean fillChildren, boolean validation) throws MetsExportException {
@@ -313,12 +313,12 @@ public class MetsElement implements IMetsElement {
             LOG.log(Level.FINE, "Root element found:" + getOriginalPid() + "(" + getElementType() + ")");
         }
 
-        if (!Const.PAGE.equals(elementType))  {
+        if (!Const.PAGE.equals(elementType)) {
             NdkMapper mapper = NdkMapper.get(model.replaceAll("info:fedora/", ""));
             Document modsDocument = MetsUtils.getDocumentFromList(modsStream);
             DOMSource modsDOMSource = new DOMSource(modsDocument);
             ModsDefinition modsDefinition = ModsUtils.unmarshalModsType(modsDOMSource);
-            if (modsDefinition.getPart().size()>0) {
+            if (modsDefinition.getPart().size() > 0) {
                 for (PartDefinition part : modsDefinition.getPart()) {
                     if (part.getType() != null && part.getType().equals("pageIndex")) {
                         if (part.getExtent().size() > 0) {
@@ -338,7 +338,7 @@ public class MetsElement implements IMetsElement {
                     }
                 }
                 if (this.modsStart == null || this.modsEnd == null) {
-                    if (modsDefinition.getPart().get(0).getExtent().size()>0) {
+                    if (modsDefinition.getPart().get(0).getExtent().size() > 0) {
                         try {
                             ExtentDefinition extent = getExtent(modsDefinition.getPart().get(0).getExtent());
                             if (extent.getStart() != null && containsNumber(extent.getStart().getValue())) {
@@ -356,7 +356,7 @@ public class MetsElement implements IMetsElement {
 
             String parentModel = null;
             if (this.parent != null) {
-               parentModel = Const.typeMap.get(this.parent.getModel());
+                parentModel = Const.typeMap.get(this.parent.getModel());
             }
             NdkMapper.Context context = new NdkMapper.Context(digitalObject.getPID(), parentModel);
             OaiDcType dcType = mapper.toDc(modsDefinition, context);
@@ -397,7 +397,7 @@ public class MetsElement implements IMetsElement {
                                 }
                             }
                         } catch (NumberFormatException ex) {
-                            throw new MetsExportException(digitalObject.getPID(), "Unable to parse detail number from mods (" + digitalObject.getPID() +").", false, ex);
+                            throw new MetsExportException(digitalObject.getPID(), "Unable to parse detail number from mods (" + digitalObject.getPID() + ").", false, ex);
                         }
                     }
                 }

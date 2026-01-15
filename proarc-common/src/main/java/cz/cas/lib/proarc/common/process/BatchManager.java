@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2011 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,10 +18,18 @@ package cz.cas.lib.proarc.common.process;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
-import cz.cas.lib.proarc.common.dao.*;
+import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.Batch.State;
+import cz.cas.lib.proarc.common.dao.BatchDao;
+import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.dao.BatchItemDao;
+import cz.cas.lib.proarc.common.dao.BatchParams;
+import cz.cas.lib.proarc.common.dao.BatchView;
+import cz.cas.lib.proarc.common.dao.BatchViewFilter;
+import cz.cas.lib.proarc.common.dao.DaoFactory;
+import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportFolderStatus;
@@ -32,12 +40,19 @@ import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
-
-import javax.xml.bind.JAXB;
-import java.io.*;
+import jakarta.xml.bind.JAXB;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,12 +73,14 @@ public class BatchManager {
     private final DaoFactory daos;
 
 
-    public AppConfiguration getAppConfig(){
+    public AppConfiguration getAppConfig() {
         return appConfig;
     }
 
 
-    /** XXX replace with guice */
+    /**
+     * XXX replace with guice
+     */
     public static void setInstance(AppConfiguration config, DaoFactory daos) {
         INSTANCE = new BatchManager(config, daos);
     }
@@ -80,7 +97,9 @@ public class BatchManager {
         return INSTANCE;
     }
 
-    /** package private for unit tests */
+    /**
+     * package private for unit tests
+     */
     public BatchManager(AppConfiguration appConfig, DaoFactory daos) {
         if (appConfig == null) {
             throw new NullPointerException("appConfig");
@@ -94,8 +113,9 @@ public class BatchManager {
 
     /**
      * Finds given object.
+     *
      * @param batchId batch to find
-     * @param pid object ID to find
+     * @param pid     object ID to find
      * @return the object or {@code null}.
      */
     public BatchItemObject findBatchObject(int batchId, String pid) {
@@ -112,8 +132,9 @@ public class BatchManager {
 
     /**
      * Finds all objects of given batch.
+     *
      * @param batchId batch to find
-     * @param pid object ID to find; can be {@code null}
+     * @param pid     object ID to find; can be {@code null}
      * @return list of objects in unspecified order.
      */
     public List<BatchItemObject> findBatchObjects(int batchId, String pid, BatchItem.ObjectState state) {
@@ -136,6 +157,7 @@ public class BatchManager {
 
     /**
      * Finds objects of given batch prepared for ingest.
+     *
      * @param batch batch to find
      * @return objects sorted according to RELS-EXT.
      */
@@ -346,6 +368,7 @@ public class BatchManager {
 
         return updated;
     }
+
     public Batch add(String pid, UserProfile user, String profile, State state, Boolean isNightOnly, BatchParams params) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
@@ -398,6 +421,7 @@ public class BatchManager {
 
     /**
      * Gets batch import folder status.
+     *
      * @param batch
      * @return status or {@code null} in case of empty file (backward compatibility)
      * @throws FileNotFoundException missing batch import folder
@@ -595,7 +619,7 @@ public class BatchManager {
     private ConfigurationProfile findImportProfile(Integer batchId, String profileId) {
         ConfigurationProfile profile = appConfig.getProfiles().getProfile(ImportProfile.PROFILES, profileId);
         if (profile == null) {
-            LOG.log(Level.SEVERE,"Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
+            LOG.log(Level.SEVERE, "Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
                     new Object[]{ImportProfile.PROFILES, profileId, batchId});
             return null;
         }
@@ -637,7 +661,7 @@ public class BatchManager {
     public void update(AbstractBatchItem item) {
         update(item.getItem());
     }
-    
+
     public void update(BatchItem item) {
         BatchItemDao bitemDao = daos.createBatchItem();
         Transaction tx = daos.createTransaction();

@@ -44,7 +44,7 @@ public class Device {
     }
 
 
-    public void create(String audioDescription) throws DeviceException{
+    public void create(String audioDescription) throws DeviceException {
         try {
             AudioPremisUtils audioPremisUtils = new AudioPremisUtils(id, label, model, audioDescription);
             audioPremisUtils.createAudioDescription(audioDescription);
@@ -111,7 +111,7 @@ public class Device {
     @Override
     public String toString() {
         return "Device{" + "id=" + id + ", label=" + label
-                 + ", timestamp=" + timestamp+ ", description=" + description + ", audiodescription=" + audioDescription + '}';
+                + ", timestamp=" + timestamp + ", description=" + description + ", audiodescription=" + audioDescription + '}';
     }
 
 

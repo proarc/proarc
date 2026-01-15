@@ -1,22 +1,23 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.storage;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import jakarta.ws.rs.core.MediaType;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -27,7 +28,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import javax.ws.rs.core.MediaType;
 
 /**
  * Supports plaint text as Fedora data stream binary content.
@@ -147,7 +147,7 @@ public final class StringEditor {
         }
         StringBuilder sb = new StringBuilder(2048);
         try {
-            for (int c; (c = reader.read()) != -1;) {
+            for (int c; (c = reader.read()) != -1; ) {
                 sb.append((char) c);
             }
         } finally {

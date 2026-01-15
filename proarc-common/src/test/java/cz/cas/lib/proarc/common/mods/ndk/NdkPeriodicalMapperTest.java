@@ -31,12 +31,12 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.transform.stream.StreamSource;
 import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -47,15 +47,15 @@ public class NdkPeriodicalMapperTest {
     public NdkPeriodicalMapperTest() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -71,7 +71,7 @@ public class NdkPeriodicalMapperTest {
         List<IdentifierDefinition> identifiersResult = mods.getIdentifier();
         assertEquals(1, identifiersResult.size());
         IdentifierDefinition idResult = identifiersResult.get(0);
-        assertEquals("uuid", idResult.getType());
+        assertEquals("uuid", idResult.getTypeString());
         assertEquals("testId", idResult.getValue());
 
         assertEquals(1, mods.getTypeOfResource().size());
@@ -106,7 +106,7 @@ public class NdkPeriodicalMapperTest {
         List<IdentifierDefinition> identifiersResult = mods.getIdentifier();
         assertEquals(1, identifiersResult.size());
         IdentifierDefinition idResult = identifiersResult.get(0);
-        assertEquals("uuid", idResult.getType());
+        assertEquals("uuid", idResult.getTypeString());
         assertEquals("testId", idResult.getValue());
 
         assertEquals(1, mods.getTypeOfResource().size());
@@ -144,10 +144,10 @@ public class NdkPeriodicalMapperTest {
     public void testCreateLabel() {
         String xml = "<mods version='3.5' xmlns='http://www.loc.gov/mods/v3'>"
                 + "<titleInfo>"
-                    + "<nonSort>NS1</nonSort><title>T1</title><subTitle>S1</subTitle><partName>PNam1</partName><partNumber>PNum1</partNumber>"
+                + "<nonSort>NS1</nonSort><title>T1</title><subTitle>S1</subTitle><partName>PNam1</partName><partNumber>PNum1</partNumber>"
                 + "</titleInfo>"
                 + "<titleInfo>"
-                    + "<title>T2</title><subTitle>S2</subTitle>"
+                + "<title>T2</title><subTitle>S2</subTitle>"
                 + "</titleInfo>"
                 + "</mods>";
         ModsDefinition mods = ModsUtils.unmarshalModsType(new StreamSource(new StringReader(xml)));
@@ -161,10 +161,10 @@ public class NdkPeriodicalMapperTest {
     public void testCreateDc() {
         String xml = "<mods version='3.5' xmlns='http://www.loc.gov/mods/v3'>"
                 + "<titleInfo>"
-                    + "<nonSort>NS1</nonSort><title>T1</title><subTitle>S1</subTitle><partName>PNam1</partName><partNumber>PNum1</partNumber>"
+                + "<nonSort>NS1</nonSort><title>T1</title><subTitle>S1</subTitle><partName>PNam1</partName><partNumber>PNum1</partNumber>"
                 + "</titleInfo>"
                 + "<titleInfo>"
-                    + "<title>T2</title><subTitle>S2</subTitle>"
+                + "<title>T2</title><subTitle>S2</subTitle>"
                 + "</titleInfo>"
                 + "<name usage = 'primary' type='personal'>"
                 + "<namePart type='family'>Novotny</namePart>"

@@ -92,6 +92,9 @@ import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.premis.PremisComplexType;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -115,9 +118,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -2261,7 +2261,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(divType, physicalDiv, element);
             } else if (Const.ARTICLE.equals(element.getElementType())) {
-                    continue;
+                continue;
             } else {
                 throw new MetsExportException(element.getOriginalPid(), "Expected Page or Picture, got:" + element.getElementType(), false, null);
             }
@@ -2368,7 +2368,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      * @throws MetsExportException
      */
-        protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
+    protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
         mets.setTYPE("Monograph");
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
@@ -2944,7 +2944,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                         }
                                     }
                                 }
-                            } catch (JAXBException | IOException | TransformerException e) {
+                            } catch (IOException e) {
                                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                             }
                         }

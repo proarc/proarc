@@ -18,9 +18,9 @@ package cz.cas.lib.proarc.common.storage;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -47,7 +47,7 @@ import javax.xml.transform.stream.StreamSource;
 
 /**
  * Workflow storage
- *
+ * <p>
  * It contains objects with metadata BIBILIO MODS.
  * These objects are not stored in the Fedora Repository and are only a small subset of FOXML objects.
  *
@@ -259,7 +259,7 @@ public class WorkflowStorage {
 
         /**
          * Save BIBLIO_MODS to Physical material and label to JOB
-         *
+         * <p>
          * Only one editor is used (BIBLIO_MODS), but a label is saved later. DC from plugins and RELS-EXT are ignored.
          *
          * @throws DigitalObjectException
@@ -289,7 +289,7 @@ public class WorkflowStorage {
                     Job job = manager.findJob(jobFilter).get(0);
                     job.setLabel(workflowObject.getLabel());
                 }
-            } catch(WorkflowException e) {
+            } catch (WorkflowException e) {
                 throw new DigitalObjectException(e.getMessage());
             }
         }

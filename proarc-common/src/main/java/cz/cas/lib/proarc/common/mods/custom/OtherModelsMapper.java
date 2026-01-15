@@ -25,12 +25,17 @@ import cz.cas.lib.proarc.common.mods.custom.Mapping.Mapper;
 import cz.cas.lib.proarc.common.mods.custom.NameMapper.NameItem;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PublisherItem;
 import cz.cas.lib.proarc.common.mods.custom.PhysicalDescriptionMapper.ExtentPair;
-import cz.cas.lib.proarc.mods.*;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import cz.cas.lib.proarc.mods.LocationDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
+import cz.cas.lib.proarc.mods.ObjectFactory;
+import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
 /**

@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,13 +24,13 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import java.util.Arrays;
 import java.util.List;
-import org.hamcrest.core.Is;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -43,19 +43,19 @@ public class LanguageMapperTest {
     public LanguageMapperTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -70,8 +70,8 @@ public class LanguageMapperTest {
         List<LanguageItem> expect = Arrays.asList(
                 new LanguageItem(0, "cze"),
                 new LanguageItem(2, "ger")
-                );
-        assertThat(result, Is.is(expect));
+        );
+        assertEquals(result, expect);
     }
 
     @Test
@@ -84,15 +84,15 @@ public class LanguageMapperTest {
                 new LanguageItem(0, "cze-update"), // update
 //                new LanguageItem(2, "ger") // delete
                 new LanguageItem(null, "eng") // add
-                );
+        );
         LanguageMapper instance = new LanguageMapper();
         instance.map(mods, updates);
         List<LanguageItem> result = instance.map(mods);
         List<LanguageItem> expect = Arrays.asList(
                 new LanguageItem(0, "cze-update"),
                 new LanguageItem(1, "eng")
-                );
-        assertThat(result, Is.is(expect));
+        );
+        assertEquals(result, expect);
     }
 
     private LanguageDefinition language(String lang) {

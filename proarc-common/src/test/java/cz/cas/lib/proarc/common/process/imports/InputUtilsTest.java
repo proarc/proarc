@@ -16,16 +16,19 @@
  */
 package cz.cas.lib.proarc.common.process.imports;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.process.imports.audio.WaveImporterTest;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Rule;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -33,8 +36,8 @@ import org.junit.Rule;
  */
 public class InputUtilsTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder();
+    @TempDir
+    File tempDir;
 
     public InputUtilsTest() {
     }
@@ -42,62 +45,65 @@ public class InputUtilsTest {
     @Test
     public void testIsJp2000() throws Exception {
         String templatePath = "testscan.uc.jp2";
-        File result = createTestFile(templatePath, new File(temp.getRoot(), "test.jp2"));
-        assertTrue(templatePath, InputUtils.isJp2000(result));
+        File result = createTestFile(templatePath, new File(tempDir, "test.jp2"));
+        assertTrue(InputUtils.isJp2000(result), () -> templatePath);
     }
 
     @Test
     public void testIsJpeg() throws Exception {
         String templatePath = "testscan.jpg";
-        File result = createTestFile(templatePath, new File(temp.getRoot(), "test.jpg"));
-        assertTrue(templatePath, InputUtils.isJpeg(result));
+        File result = createTestFile(templatePath, new File(tempDir, "test.jpg"));
+        assertTrue(InputUtils.isJpeg(result), () -> templatePath);
     }
 
     @Test
     public void testIsPdf() throws Exception {
         String templatePath = "pdfa_test.pdf";
-        File result = createTestFile(templatePath, new File(temp.getRoot(), "test.pdf"));
-        assertTrue(templatePath, InputUtils.isPdf(result));
+        File result = createTestFile(templatePath, new File(tempDir, "test.pdf"));
+        assertTrue(InputUtils.isPdf(result), () -> templatePath);
     }
 
     @Test
     public void testIsTiff() throws Exception {
         String templatePath = "testscan-lzw.tiff";
-        File result = createTestFile(templatePath, new File(temp.getRoot(), "test.tiff"));
-        assertTrue(templatePath, InputUtils.isTiff(result));
+        File result = createTestFile(templatePath, new File(tempDir, "test.tiff"));
+        assertTrue(InputUtils.isTiff(result), () -> templatePath);
     }
 
     @Test
     public void testIsWav() throws Exception {
         String templatePath = "test_wav.mc.wav";
-        File result = createAudioTestFile(templatePath, new File(temp.getRoot(), "test.wav"));
-        assertTrue(templatePath, InputUtils.isWave(result));
+        File result = createAudioTestFile(templatePath, new File(tempDir, "test.wav"));
+        assertTrue(InputUtils.isWave(result), () -> templatePath);
     }
 
     @Test
     public void testIsMp3() throws Exception {
         String templatePath = "test_mp3.uc.mp3";
-        File result = createAudioTestFile(templatePath, new File(temp.getRoot(), "test.wav"));
-        assertTrue(templatePath, InputUtils.isMp3(result));
+        File result = createAudioTestFile(templatePath, new File(tempDir, "test.wav"));
+        assertTrue(InputUtils.isMp3(result), () -> templatePath);
     }
 
     @Test
     public void testIsTiffInvalid() throws Exception {
         String templatePath = "testscan.jpg";
-        File result = createTestFile(templatePath, new File(temp.getRoot(), "test.tiff"));
-        assertFalse(templatePath, InputUtils.isTiff(result));
+        File result = createTestFile(templatePath, new File(tempDir, "test.tiff"));
+        assertFalse(InputUtils.isTiff(result), () -> templatePath);
     }
 
-    @Test(expected = FileNotFoundException.class)
+    @Test
     public void testIsTiffMissingFile() throws Exception {
-        File result = new File(temp.getRoot(), "missing.tif");
-        InputUtils.isTiff(result);
+        File result = new File(tempDir, "missing.tif");
+        assertThrows(FileNotFoundException.class, () -> {
+            InputUtils.isTiff(result);
+        });
+
     }
 
     @Test
     public void testIsTiffEmptyFile() throws Exception {
-        File result = temp.newFile("empty.tif");
-        assertFalse(result.getName(), InputUtils.isTiff(result));
+        File result = new File(tempDir, "empty.tif");
+        assertFalse(InputUtils.isTiff(result), () -> result.getName());
     }
 
     private File createTestFile(String templatePath, File file) throws IOException {

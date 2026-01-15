@@ -27,12 +27,14 @@ import java.util.List;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -50,15 +52,15 @@ public class EmpireWorkflowTaskDaoTest {
     public EmpireWorkflowTaskDaoTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         support = new DbUnitSupport();
         schema = support.getEmireCfg().getSchema();
@@ -69,7 +71,7 @@ public class EmpireWorkflowTaskDaoTest {
         dao.setTransaction(tx);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (tx != null) {
             tx.close();
@@ -89,8 +91,8 @@ public class EmpireWorkflowTaskDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Task task = dao.create();
@@ -115,7 +117,7 @@ public class EmpireWorkflowTaskDaoTest {
         assertEquals(result.getTypeRef(), task.getTypeRef());
     }
 
-//    @Test
+    //    @Test
     public void testUpdate() {
     }
 
@@ -125,8 +127,8 @@ public class EmpireWorkflowTaskDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         TaskFilter filter = new TaskFilter();

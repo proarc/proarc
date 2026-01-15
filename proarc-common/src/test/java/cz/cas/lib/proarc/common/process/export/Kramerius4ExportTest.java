@@ -16,23 +16,22 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.storage.relation.Relations;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import java.io.File;
@@ -41,8 +40,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.HashMap;
-import javax.xml.bind.DatatypeConverter;
+import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -53,49 +53,50 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import org.custommonkey.xmlunit.SimpleNamespaceContext;
-import org.custommonkey.xmlunit.XMLAssert;
-import org.custommonkey.xmlunit.XMLUnit;
-import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xmlunit.xpath.JAXPXPathEngine;
 
-import static org.junit.Assert.assertNotNull;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.xmlunit.assertj.XmlAssert.assertThat;
 
 /**
- * 
+ *
  * @author Jan Pokorsky
  */
 public class Kramerius4ExportTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
 
     private static FedoraTestSupport fedora;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
+
     private AppConfiguration config;
     private AkubraConfiguration akubraConfiguration;
+    private JAXPXPathEngine xpathEngine;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+            put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
         }});
         if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
@@ -108,9 +109,9 @@ public class Kramerius4ExportTest {
         MetaModelRepository.setInstance(config.getPlugins());
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 config, akubraConfiguration,
-                EasyMock.createNiceMock(BatchManager.class),
+                createNiceMock(BatchManager.class),
                 MetaModelRepository.getInstance(),
-                EasyMock.createNiceMock(UserManager.class)));
+                createNiceMock(UserManager.class)));
 
         // check datastreams with xpath
         HashMap<String, String> namespaces = new HashMap<>();
@@ -120,11 +121,13 @@ public class Kramerius4ExportTest {
         namespaces.put("mods", ModsStreamEditor.DATASTREAM_FORMAT_URI);
         namespaces.put("oai", Kramerius4Export.OAI_NS);
         namespaces.put("proarc-rels", Relations.PROARC_RELS_NS);
-        XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
+
+        xpathEngine = new JAXPXPathEngine();
+        xpathEngine.setNamespaceContext(namespaces);
     }
 
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
     }
 
@@ -137,7 +140,7 @@ public class Kramerius4ExportTest {
         Document doc = db.parse(resPath.toFile());
 
         XPath xpath = XPathFactory.newInstance().newXPath();
-        NodeList nl = (NodeList)xpath
+        NodeList nl = (NodeList) xpath
                 .compile("//datastream[@ID='TEXT_OCR']/datastreamVersion/binaryContent")
                 .evaluate(doc, XPathConstants.NODESET);
 
@@ -163,7 +166,7 @@ public class Kramerius4ExportTest {
         String xml = writer.toString();
         fedora.ingest(xml);
 
-        File output = temp.getRoot();
+        File output = tempDir;
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         FedoraStorage storage = fedora.getRemoteStorage();
@@ -173,8 +176,11 @@ public class Kramerius4ExportTest {
         File foxml = ExportUtils.pidAsXmlFile(k4Result.getFile(), pids[0]);
         String foxmlAsURI = foxml.toURI().toASCIIString();
 
-        XMLAssert.assertXpathEvaluatesTo(DatatypeConverter.printBase64Binary(System.lineSeparator().getBytes()),
-                streamXPath(StringEditor.OCR_ID) + "//f:binaryContent", new InputSource(foxmlAsURI));
+        assertThat(
+                new InputSource(foxmlAsURI)).withNamespaceContext(
+                        Map.of("f", "info:fedora/fedora-system:def/foxml#")).valueByXPath(streamXPath(StringEditor.OCR_ID) + "//f:binaryContent")
+                .isEqualTo(Base64.getEncoder().encodeToString(System.lineSeparator().getBytes()));
+
 
         // test ingest of exported object
         fedora.cleanUp();
@@ -187,7 +193,7 @@ public class Kramerius4ExportTest {
     @Test
     public void testExport() throws Exception {
         fedora.ingest(Kramerius4ExportTest.class.getResource("Kramerius4ExportTestPage.xml"));
-        File output = temp.getRoot();
+        File output = tempDir;
         boolean hierarchy = true;
         String[] pids = {"uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2"};
         FedoraStorage storage = fedora.getRemoteStorage();
@@ -198,26 +204,29 @@ public class Kramerius4ExportTest {
         // check datastreams with xpath
         File foxml = ExportUtils.pidAsXmlFile(k4Result.getFile(), pids[0]);
         String foxmlSystemId = foxml.toURI().toASCIIString();
-        XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(DcStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(StringEditor.OCR_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath("IMG_FULL"), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath("IMG_PREVIEW"), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath("IMG_THUMB"), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathNotExists(streamXPath(BinaryEditor.RAW_ID), new InputSource(foxmlSystemId));
+
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(ModsStreamEditor.DATASTREAM_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(DcStreamEditor.DATASTREAM_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(StringEditor.OCR_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath("IMG_FULL"));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath("IMG_PREVIEW"));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath("IMG_THUMB"));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.RAW_ID));
 
         // check OAI ID
-        XMLAssert.assertXpathExists("//oai:itemID", new InputSource(foxmlSystemId));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath("//oai:itemID");
         // check kramerius:file
-        XMLAssert.assertXpathExists("//kramerius:file", new InputSource(foxmlSystemId));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath("//kramerius:file");
         // check exclusion of proarc-rels:hasDevice
-        XMLAssert.assertXpathNotExists("//proarc-rels:hasDevice", new InputSource(foxmlSystemId));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath("//proarc-rels:hasDevice");
         // check MODS starts with modsCollection
-        XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID) + "//f:xmlContent/mods:modsCollection/mods:mods", new InputSource(foxmlSystemId));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(ModsStreamEditor.DATASTREAM_ID) + "//f:xmlContent/mods:modsCollection/mods:mods");
         // check policy
-        XMLAssert.assertXpathEvaluatesTo("policy:private", streamXPath(DcStreamEditor.DATASTREAM_ID) + "//dc:rights", new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathEvaluatesTo("policy:private", streamXPath(RelationEditor.DATASTREAM_ID) + "//kramerius:policy", new InputSource(foxmlSystemId));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(ModsStreamEditor.DATASTREAM_ID) + "//f:xmlContent/mods:modsCollection/mods:mods");
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(DcStreamEditor.DATASTREAM_ID) + "//dc:rights");
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(DcStreamEditor.DATASTREAM_ID) + "//dc:rights");
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID) + "//kramerius:policy");
 
         // test export status
         RelationEditor relationEditor = new RelationEditor(storage.find(pids[0]));

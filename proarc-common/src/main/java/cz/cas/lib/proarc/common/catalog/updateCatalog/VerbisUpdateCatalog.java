@@ -39,8 +39,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_AUTHORIZATION_CATALOG_URL;
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_LOGIN_PASSWORD;
@@ -71,35 +71,35 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
     protected boolean allowUpdateRecord(CatalogConfiguration catalog) {
         boolean ok = true;
         if (catalog.getCatalogAuthorizationUrl() == null || catalog.getCatalogAuthorizationUrl().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_AUTHORIZATION_CATALOG_URL));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_AUTHORIZATION_CATALOG_URL));
             ok = false;
         }
         if (catalog.getCatalogUpdateUrl() == null || catalog.getCatalogUpdateUrl().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_UPDATE_CATALOG_URL));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_UPDATE_CATALOG_URL));
             ok = false;
         }
         if (catalog.getCatalogUsername() == null || catalog.getCatalogUsername().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_LOGIN_USERNAME));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_LOGIN_USERNAME));
             ok = false;
         }
         if (catalog.getCatalogPassword() == null || catalog.getCatalogPassword().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_LOGIN_PASSWORD));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_LOGIN_PASSWORD));
             ok = false;
         }
         if (catalog.getUpdateField() == null || catalog.getUpdateField().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_UPDATE_FIELD));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_UPDATE_FIELD));
             ok = false;
         }
         if (catalog.getUpdateSubfieldApp() == null || catalog.getUpdateSubfieldApp().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_UPDATE_SUBFIELD_APP));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_UPDATE_SUBFIELD_APP));
             ok = false;
         }
         if (catalog.getUpdateSubfieldObject() == null || catalog.getUpdateSubfieldObject().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_UPDATE_SUBFIELD_OBJECT));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_UPDATE_SUBFIELD_OBJECT));
             ok = false;
         }
         if (catalog.getUpdateSubfieldDigitalized() == null || catalog.getUpdateSubfieldDigitalized().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_UPDATE_SUBFIELD_DIGITALIZED));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_UPDATE_SUBFIELD_DIGITALIZED));
             ok = false;
         }
         return ok;
@@ -206,7 +206,7 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
                 "    ]" +
                 "}";
 
-        json = json.replaceAll("\\s+"," ");
+        json = json.replaceAll("\\s+", " ");
         httpPost.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
 
         HttpResponse response = httpClient.execute(httpPost);

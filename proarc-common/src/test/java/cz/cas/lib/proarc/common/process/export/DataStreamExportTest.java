@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -28,15 +27,15 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -47,21 +46,21 @@ public class DataStreamExportTest {
     private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
     private AkubraConfiguration akubraConfiguration = null;
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
 
     public DataStreamExportTest() throws Exception {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws AppConfigurationException {
         if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
@@ -70,7 +69,7 @@ public class DataStreamExportTest {
         }
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -80,7 +79,7 @@ public class DataStreamExportTest {
         fedora.cleanUp();
         fedora.ingest(DataStreamExportTest.class.getResource("Kramerius4ExportTestPage.xml"));
 
-        File output = temp.getRoot();
+        File output = tempDir;
         boolean hierarchy = true;
         List<String> pids = Arrays.asList("uuid:f74f3cf3-f3be-4cac-95da-8e50331414a2");
         List<String> dsIds = Arrays.asList(StringEditor.OCR_ID, "PREVIEW");

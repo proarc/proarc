@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.process.export.crossref;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.process.export.cejsh.CejshBuilderTest;
@@ -28,12 +27,12 @@ import java.util.List;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.w3c.dom.Document;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -43,15 +42,15 @@ public class CrossrefBuilderTest {
 
     private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
 
     public CrossrefBuilderTest() throws Exception {
     }
 
     @Test
     public void testCreateCrossrefXml() throws Exception {
-        File targetFolder = temp.getRoot();
+        File targetFolder = tempDir;
         CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportParams());
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print", "10.1000/1", null, "uuid:123-123-123");
         builder.addVolume("1", null, null);
@@ -63,15 +62,15 @@ public class CrossrefBuilderTest {
         StringWriter dump = new StringWriter();
         TransformErrorListener errors = builder.createCrossrefXml(new DOMSource(articles), new StreamResult(dump));
 //        System.out.println(dump);
-        assertTrue(errors.getErrors().toString(), errors.getErrors().isEmpty());
+        assertTrue(errors.getErrors().isEmpty(), () -> errors.getErrors().toString());
 
         List<String> validateErrors = builder.validateCrossref(new StreamSource(new StringReader(dump.toString())));
-        assertTrue(validateErrors.toString(), validateErrors.isEmpty());
+        assertTrue(validateErrors.isEmpty(), () -> validateErrors.toString());
     }
 
     @Test
     public void testCreateCrossrefXml_SkippedVolume() throws Exception {
-        File targetFolder = temp.getRoot();
+        File targetFolder = tempDir;
         CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportParams());
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print", "10.1000/1", null, "uuid:123-123-123");
         builder.addIssue("10", "2010", "uuid", "10.1000/1", null, "uuid:123-123-123");
@@ -82,15 +81,15 @@ public class CrossrefBuilderTest {
         StringWriter dump = new StringWriter();
         TransformErrorListener errors = builder.createCrossrefXml(new DOMSource(articles), new StreamResult(dump));
 //        System.out.println(dump);
-        assertTrue(errors.getErrors().toString(), errors.getErrors().isEmpty());
+        assertTrue(errors.getErrors().isEmpty(), () -> errors.getErrors().toString());
 
         List<String> validateErrors = builder.validateCrossref(new StreamSource(new StringReader(dump.toString())));
-        assertTrue(validateErrors.toString(), validateErrors.isEmpty());
+        assertTrue(validateErrors.isEmpty(), () -> validateErrors.toString());
     }
 
     @Test
     public void testCreateCrossrefXml_SkippedIssue() throws Exception {
-        File targetFolder = temp.getRoot();
+        File targetFolder = tempDir;
         CrossrefBuilder builder = new CrossrefBuilder(targetFolder, appConfig.getExportParams());
         builder.addPeriodicalTitle("1210-8510", "titleTest", "abbrevTest", "print", "10.1000/1", null, "uuid:123-123-123");
         builder.addVolume("1", "20.12.2012", "uuid");
@@ -101,10 +100,10 @@ public class CrossrefBuilderTest {
         StringWriter dump = new StringWriter();
         TransformErrorListener errors = builder.createCrossrefXml(new DOMSource(articles), new StreamResult(dump));
 //        System.out.println(dump);
-        assertTrue(errors.getErrors().toString(), errors.getErrors().isEmpty());
+        assertTrue(errors.getErrors().isEmpty(), () -> errors.getErrors().toString());
 
         List<String> validateErrors = builder.validateCrossref(new StreamSource(new StringReader(dump.toString())));
-        assertTrue(validateErrors.toString(), validateErrors.isEmpty());
+        assertTrue(validateErrors.isEmpty(), () -> validateErrors.toString());
     }
 
     @Test

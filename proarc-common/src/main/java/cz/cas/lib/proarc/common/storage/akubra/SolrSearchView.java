@@ -119,7 +119,7 @@ public class SolrSearchView extends SearchView {
             solrQuery = new SolrQuery(query);
             response = this.solrClient.query(solrQuery);
             total = response.getResults().size();
-            return  total > 0;
+            return total > 0;
         } catch (SolrServerException ex) {
             ex.printStackTrace();
             throw new IOException(ex);
@@ -201,7 +201,7 @@ public class SolrSearchView extends SearchView {
         List<SearchViewItem> items = find(memberPids);
         ArrayList<SearchViewItem> sortedItems = new ArrayList<SearchViewItem>(memberPids.size());
         for (String memberPid : memberPids) {
-            for (Iterator<SearchViewItem> it = items.iterator(); it.hasNext();) {
+            for (Iterator<SearchViewItem> it = items.iterator(); it.hasNext(); ) {
                 SearchViewItem item = it.next();
                 if (memberPid.equals(item.getPid())) {
                     sortedItems.add(item);
@@ -222,7 +222,7 @@ public class SolrSearchView extends SearchView {
         ArrayList<SearchViewItem> pageModelsList = new ArrayList<>();
         ArrayList<SearchViewItem> otherModelsList = new ArrayList<>();
         for (String memberPid : memberPids) {
-            for (Iterator<SearchViewItem> it = items.iterator(); it.hasNext();) {
+            for (Iterator<SearchViewItem> it = items.iterator(); it.hasNext(); ) {
                 SearchViewItem item = it.next();
                 if (memberPid.equals(item.getPid())) {
                     if (NdkPlugin.MODEL_PAGE.equals(item.getModel()) || NdkPlugin.MODEL_NDK_PAGE.equals(item.getModel()) || OldPrintPlugin.MODEL_PAGE.equals(item.getModel())) {
@@ -267,7 +267,7 @@ public class SolrSearchView extends SearchView {
         AkubraObject parent = storage.find(parentPid);
         List<String> memberPids = null;
         try {
-             memberPids = new RelationEditor(parent).getMembers();
+            memberPids = new RelationEditor(parent).getMembers();
         } catch (Exception ex) {
             memberPids = new ArrayList<>();
         }
@@ -309,7 +309,7 @@ public class SolrSearchView extends SearchView {
 
     @Override
     public List<SearchViewItem> findQuery(SearchViewQuery q, String status) throws IOException {
-        boolean onlyActive =  "active".equals(status) ? true : false;
+        boolean onlyActive = "active".equals(status) ? true : false;
         List<String> models = null;
         if (q.getModel() != null && !q.getModel().isEmpty()) {
             models = Collections.singletonList(q.getModel());
@@ -365,7 +365,7 @@ public class SolrSearchView extends SearchView {
     }
 
     private List<SearchViewItem> findLastImp(int offset, String model, String organization, int limit, String sortField, String sortOperation) throws IOException {
-        return searchImplementation(offset, limit, sortField, transfromSort(sortOperation), true,  Collections.singletonList(model), null, null, organization, null, null, null, null);
+        return searchImplementation(offset, limit, sortField, transfromSort(sortOperation), true, Collections.singletonList(model), null, null, organization, null, null, null, null);
     }
 
     private List<SearchViewItem> searchImplementation(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids) throws IOException {
@@ -375,19 +375,19 @@ public class SolrSearchView extends SearchView {
 
     private List<SearchViewItem> searchImplementation(Integer offset, Integer limit, String sortField, SolrUtils.SortOperation sortOperation, Boolean onlyActive, List<String> models, List<String> pids, String owner, String organization, String processor, String label, String status, String parentPid) throws IOException {
         if (pids == null || pids.isEmpty()) {
-            return searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, pids, owner, organization, processor, label, status, parentPid);
+            return searchImpl(offset, limit, sortField, sortOperation, onlyActive, models, pids, owner, organization, processor, label, status, parentPid);
         } else {
             List<SearchViewItem> items = new ArrayList<>();
             List<String> tmpPids = new ArrayList<>();
             for (int index = 0; index < pids.size(); index++) {
                 tmpPids.add(pids.get(index));
                 if (index % DEFAULT_PIDS_SIZE == 0) {
-                    items.addAll(searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, tmpPids, owner, organization, processor, label, status, parentPid));
+                    items.addAll(searchImpl(offset, limit, sortField, sortOperation, onlyActive, models, tmpPids, owner, organization, processor, label, status, parentPid));
                     tmpPids.clear();
                 }
             }
             if (!tmpPids.isEmpty()) {
-                items.addAll(searchImpl(offset, limit, sortField, sortOperation,  onlyActive, models, tmpPids, owner, organization, processor, label, status, parentPid));
+                items.addAll(searchImpl(offset, limit, sortField, sortOperation, onlyActive, models, tmpPids, owner, organization, processor, label, status, parentPid));
                 tmpPids.clear();
             }
             return items;
@@ -419,7 +419,7 @@ public class SolrSearchView extends SearchView {
         List<String> filterQueryList = defaultFilterQuery();
         if (onlyActive != null && onlyActive) {
             filterQueryList.add(FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_ACTIVE + "\"");
-        } else if (onlyActive != null && !onlyActive){
+        } else if (onlyActive != null && !onlyActive) {
             filterQueryList.add(FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_DEACTIVE + "\"");
         }
         if (models != null && !models.isEmpty() && hasValues(models)) {

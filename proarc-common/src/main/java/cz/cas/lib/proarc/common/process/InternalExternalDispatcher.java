@@ -35,7 +35,7 @@ import java.util.logging.Logger;
 
 /**
  * Dispatcher controls scheduling of {@link InternalExternalProcess}.
- *
+ * <p>
  * For now it runs processes in single thread to preserve memory resources.
  *
  * @author Lukas Sykora
@@ -81,7 +81,7 @@ public final class InternalExternalDispatcher {
 
     public void stop(long timeout, TimeUnit unit) {
         if (pool == null) {
-            return ;
+            return;
         }
         pool.shutdown(); // Disable new tasks from being submitted
         try {
@@ -128,7 +128,6 @@ public final class InternalExternalDispatcher {
     private ExecutorService newThreadPool() {
         ExecutorService executorService = new ThreadPoolExecutor(threadCount, threadCount, 0L,
                 TimeUnit.MILLISECONDS, new PriorityBlockingQueue<Runnable>(11, new IaEPriorityFutureComparator()), new IaEDispatcherThreadFactory()) {
-
 
 
             @Override
@@ -214,7 +213,7 @@ public final class InternalExternalDispatcher {
 
     }
 
-    private class IaEPriorityFutureComparator  implements Comparator<Runnable> {
+    private class IaEPriorityFutureComparator implements Comparator<Runnable> {
 
         @Override
         public int compare(Runnable o1, Runnable o2) {
@@ -222,7 +221,7 @@ public final class InternalExternalDispatcher {
                 return 0;
             } else if (o1 == null) {
                 return -1;
-            } else if (o2 ==null) {
+            } else if (o2 == null) {
                 return 1;
             } else {
                 int priorityO1 = transform(((IaEPriorityFuture) o1).getPriority());

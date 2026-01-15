@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  *
  * @author Lukas Sykora
  */
-public class CollectionOfClippingsMapperFactory extends NdkMapperFactory{
+public class CollectionOfClippingsMapperFactory extends NdkMapperFactory {
 
     private static final Map<String, Supplier<NdkMapper>> mappers = new HashMap<>();
 

@@ -20,6 +20,12 @@ import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.i18n.BundleValueMap;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItemDefinition;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.UnmarshalException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.ValidationEvent;
+import jakarta.xml.bind.util.ValidationEventCollector;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -35,12 +41,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.UnmarshalException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationEvent;
-import javax.xml.bind.util.ValidationEventCollector;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -71,12 +71,13 @@ public class WorkflowProfiles {
 
     /**
      * Creates a new workflow definition file if not exists.
+     *
      * @param target
      * @throws IOException error
      */
     public static void copyDefaultFile(File target) throws IOException {
         if (target.exists()) {
-            return ;
+            return;
         }
         FileUtils.copyURLToFile(WorkflowProfiles.class.getResource("workflow.xml"), target);
     }
@@ -121,6 +122,7 @@ public class WorkflowProfiles {
 
     /**
      * Finds job's step.
+     *
      * @return the step or {@code null}
      */
     public static StepDefinition findStep(JobDefinition job, String stepName) {
@@ -232,7 +234,7 @@ public class WorkflowProfiles {
         for (Entry<String, Set<String>> taskEntry : taskDeps.entrySet()) {
             String taskName = taskEntry.getKey();
             Set<String> blockers = taskEntry.getValue();
-            for (Iterator<String> it = blockers.iterator(); it.hasNext();) {
+            for (Iterator<String> it = blockers.iterator(); it.hasNext(); ) {
                 if (!taskDeps.containsKey(it.next())) {
                     it.remove();
                 }
@@ -258,7 +260,7 @@ public class WorkflowProfiles {
     private void read() throws JAXBException {
         long currentTime = file.lastModified();
         if (currentTime == lastModified) {
-            return ;
+            return;
         }
         Unmarshaller unmarshaller = getUnmarshaller();
         ValidationEventCollector errors = (ValidationEventCollector) unmarshaller.getEventHandler();
@@ -287,7 +289,7 @@ public class WorkflowProfiles {
 
     private void readCaches(WorkflowDefinition wf) {
         if (wf == null) {
-            return ;
+            return;
         }
         for (JobDefinition job : wf.getJobs()) {
             job.setTaskNamesSortedByBlockers(Collections.unmodifiableList(getSortedTaskNames(job)));

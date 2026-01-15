@@ -32,7 +32,7 @@ import java.util.Locale;
 
 /**
  * Workflow action handler
- *
+ * <p>
  * Running actions after task changes
  *
  * @author Martin Rumanek
@@ -45,7 +45,7 @@ public class WorkflowActionHandler {
     /**
      *
      * @param workflow loaded from workflow.xml
-     * @param locale locale
+     * @param locale   locale
      */
     public WorkflowActionHandler(WorkflowDefinition workflow, Locale locale) {
         this.workflow = workflow;
@@ -55,10 +55,10 @@ public class WorkflowActionHandler {
     /**
      * Run command after task change. Task is defined in workflow.xml
      *
-     * @see @linktourl{https://github.com/proarc/proarc/wiki/RDflow}
      * @param task changed task
      * @throws WorkflowException probably bad workflow profile
-     * @throws IOException error when executing the command
+     * @throws IOException       error when executing the command
+     * @see @linktourl{https://github.com/proarc/proarc/wiki/RDflow}
      */
     public void runAction(Task task) throws WorkflowException, IOException {
 

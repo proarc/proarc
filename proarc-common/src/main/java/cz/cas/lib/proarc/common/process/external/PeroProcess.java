@@ -23,16 +23,19 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.export.DataStreamExport;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.storage.*;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import org.codehaus.jettison.json.JSONException;
-
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBException;
-import javax.xml.transform.TransformerException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,6 +44,8 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.transform.TransformerException;
+import org.json.JSONException;
 
 public class PeroProcess {
 
@@ -119,7 +124,7 @@ public class PeroProcess {
                     FileOutputStream outputStream = new FileOutputStream(jpgFile);
                     try {
                         MetsUtils.copyStream(inputStream, outputStream);
-                            Thread.sleep(5000);
+                        Thread.sleep(5000);
                         done = true;
                     } finally {
                         try {
@@ -180,7 +185,7 @@ public class PeroProcess {
         try {
             boolean processed = ocrProcessor.generate(jpgFile, ".txt", ".xml");
             if (processed) {
-                LOG.info("OCR GENERATED SUCCESSFULLY for " +  jpgFile.getAbsolutePath());
+                LOG.info("OCR GENERATED SUCCESSFULLY for " + jpgFile.getAbsolutePath());
             }
         } catch (JSONException ex) {
             LOG.severe("Generating OCR for " + jpgFile.getName() + " failed.");

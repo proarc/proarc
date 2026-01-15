@@ -1,9 +1,29 @@
 {
-    "__comment":"CEJSH roleTerms according to issue #343. Czech localization.",
-    "data":[
-        {"type": "code", "authority":"marcrelator", "value":"aut", "label":"Autor"},
-        {"type": "code", "authority":"marcrelator", "value":"rev", "label":"Recenzent"},
-        {"type": "code", "authority":"marcrelator", "value":"trl", "label":"Překladatel"},
-        {"type": "code", "authority":"marcrelator", "value":"ill", "label":"Ilustrátor"}
-    ]
+  "__comment": "CEJSH roleTerms according to issue #343. Czech localization.",
+  "data": [
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "aut",
+      "label": "Autor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "rev",
+      "label": "Recenzent"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "trl",
+      "label": "Překladatel"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "ill",
+      "label": "Ilustrátor"
+    }
+  ]
 }

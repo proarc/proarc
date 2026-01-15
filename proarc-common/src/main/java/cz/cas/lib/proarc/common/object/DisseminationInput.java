@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.common.object;
 
+import jakarta.ws.rs.core.MediaType;
 import java.io.File;
-import javax.ws.rs.core.MediaType;
 
 /**
  * Describes updated contents of a digital object.

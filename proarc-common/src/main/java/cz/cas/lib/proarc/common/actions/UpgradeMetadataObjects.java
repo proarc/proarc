@@ -155,7 +155,7 @@ public class UpgradeMetadataObjects {
             if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
                 FedoraStorage rstorage = FedoraStorage.getInstance(config);
                 search = rstorage.getSearch(locale);
-            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())){
+            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 search = akubraStorage.getSearch(locale);
             } else {

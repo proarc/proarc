@@ -3,12 +3,11 @@ package cz.cas.lib.proarc.common.process.imports;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
-import org.codehaus.jettison.json.JSONException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import org.json.JSONException;
 
 
 public class GeneratorAltoOcr implements ImportHandler {
@@ -100,7 +99,7 @@ public class GeneratorAltoOcr implements ImportHandler {
         try {
             boolean processed = ocrProcessor.generate(imageFile, ".txt", ".xml");
             if (processed) {
-                LOG.info("OCR GENERATED SUCCESSFULLY for " +  imageFile.getAbsolutePath());
+                LOG.info("OCR GENERATED SUCCESSFULLY for " + imageFile.getAbsolutePath());
             }
         } catch (JSONException ex) {
             LOG.severe("Generating OCR for " + imageFile.getName() + " failed.");

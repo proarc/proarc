@@ -28,6 +28,9 @@ import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -35,8 +38,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Maps OriginInfoType to publishers, printers and frequency item.
@@ -301,7 +302,7 @@ final class OriginInfoMapper {
 
     }
 
-    @javax.xml.bind.annotation.XmlAccessorType(XmlAccessType.FIELD)
+    @XmlAccessorType(XmlAccessType.FIELD)
     public static final class PublisherItem implements OriginInfoItem {
 
         @XmlElement(name = ModsConstants.FIELD_PRINTER_PUBLISHER_NAME)

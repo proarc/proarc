@@ -1,12 +1,11 @@
 package cz.cas.lib.proarc.common.process.imports;
 
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class ImportArchiveCatalog {
         if (archivy == null) {
             archivy = new ArrayList<>();
         }
-        return  archivy;
+        return archivy;
     }
 
     @XmlType(namespace = ProarcXmlUtils.NS_IMPORT)

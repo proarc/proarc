@@ -1,23 +1,22 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.process.imports;
 
 import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -27,8 +26,16 @@ import cz.cas.lib.proarc.common.dao.BatchItemDao;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.MixEditor;
 import cz.cas.lib.proarc.common.storage.Storage;
@@ -36,14 +43,6 @@ import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
@@ -56,22 +55,21 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import org.apache.commons.io.FileUtils;
-import org.custommonkey.xmlunit.SimpleNamespaceContext;
-import org.custommonkey.xmlunit.XMLAssert;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.xml.sax.InputSource;
+import org.xmlunit.xpath.JAXPXPathEngine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.xmlunit.assertj.XmlAssert.assertThat;
 
 /**
  *
@@ -79,9 +77,9 @@ import static org.junit.Assert.assertTrue;
  */
 public class TiffImporterTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder();
-    
+    @TempDir
+    File tempDir;
+
     private File tiff1;
     private File ocr1;
     private File alto1;
@@ -89,7 +87,8 @@ public class TiffImporterTest {
     private File uc1;
     private AppConfiguration config;
     private AkubraConfiguration akubraConfiguration;
-    private ArrayList<Object> toVerify = new ArrayList<Object>();;
+    private ArrayList<Object> toVerify = new ArrayList<Object>();
+    ;
     private JhoveContext jhoveContext;
     private UserProfile junit;
     private BatchManager ibm;
@@ -97,19 +96,19 @@ public class TiffImporterTest {
     public TiffImporterTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         junit = new UserProfile();
         junit.setUserName("junit");
-        File root = temp.getRoot();
+        File root = tempDir;
         System.out.println("root: " + root.toString());
         tiff1 = new File(root, "img1.tiff");
 
@@ -123,8 +122,8 @@ public class TiffImporterTest {
         alto1 = new File(root, "img1.ocr.xml");
         FileUtils.writeStringToFile(alto1,
                 "<alto xmlns=\"http://www.loc.gov/standards/alto/ns-v2#\">"
-                    + "<Layout><Page ID=\"Page1\" PHYSICAL_IMG_NR=\"1\"/></Layout>"
-                + "</alto>",
+                        + "<Layout><Page ID=\"Page1\" PHYSICAL_IMG_NR=\"1\"/></Layout>"
+                        + "</alto>",
                 "UTF-8");
 
         ac1 = new File(root, "img1.ac.jp2");
@@ -136,7 +135,7 @@ public class TiffImporterTest {
         assertTrue(uc1.length() > 0);
 
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+            put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
         }});
         if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
@@ -144,11 +143,13 @@ public class TiffImporterTest {
             this.akubraConfiguration = null;
         }
 
-        jhoveContext = JhoveUtility.createContext(temp.newFolder("jhove"));
+        File jhoveFolder = new File(tempDir, "jhove");
+        jhoveFolder.mkdirs();
+        jhoveContext = JhoveUtility.createContext(jhoveFolder);
 
         DaoFactory daos = createMockDaoFactory();
         ibm = new BatchManager(config, daos);
-        
+
 //        MetaModelRepository.setInstance(new String[]{K4Plugin.ID});
         MetaModelRepository.setInstance(new String[]{NdkPlugin.ID});
         DigitalObjectManager.setDefault(new DigitalObjectManager(config, akubraConfiguration,
@@ -158,7 +159,7 @@ public class TiffImporterTest {
         );
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (jhoveContext != null) {
             jhoveContext.destroy();
@@ -167,15 +168,14 @@ public class TiffImporterTest {
 
     @Test
     public void testConsume() throws Exception {
-        temp.setDeleteOnExit(true);
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration(), null);
+        File targetFolder = ImportProcess.createTargetFolder(tempDir, config.getImportConfiguration(), null);
         assertTrue(targetFolder.exists());
 
         String mimetype = ImportProcess.findMimeType(tiff1);
         assertNotNull(mimetype);
 
         ImportOptions ctx = new ImportOptions(tiff1.getParentFile(),
-                "scanner:scanner1", "software:objectSet",true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
+                "scanner:scanner1", "software:objectSet", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);
@@ -190,12 +190,12 @@ public class TiffImporterTest {
         assertTrue(pid.startsWith("uuid"));
 
         assertEquals(ObjectState.LOADED, result.getState());
-        
+
         File foxml = result.getFile();
-        assertTrue(foxml.toString(), foxml.exists());
+        assertTrue(foxml.exists(), () -> foxml.toString());
 
         File rootFoxml = new File(foxml.getParent(), BatchManager.ROOT_ITEM_FILENAME);
-        assertTrue(rootFoxml.toString(), rootFoxml.exists());
+        assertTrue(rootFoxml.exists(), () -> rootFoxml.toString());
 
         File raw1 = new File(targetFolder, "img1.full.jpg");
         assertTrue(raw1.exists() && raw1.length() > 0);
@@ -216,24 +216,26 @@ public class TiffImporterTest {
         // check datastreams with xpath
         HashMap<String, String> namespaces = new HashMap<String, String>();
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
-        XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
+        JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+        xpathEngine.setNamespaceContext(namespaces);
+
         String foxmlSystemId = foxml.toURI().toASCIIString();
-        XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(DcStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(StringEditor.OCR_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(AltoDatastream.ALTO_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.FULL_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.PREVIEW_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.THUMB_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.RAW_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(MixEditor.RAW_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_ARCHIVAL_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_USER_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(MixEditor.NDK_ARCHIVAL_ID), new InputSource(foxmlSystemId));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(ModsStreamEditor.DATASTREAM_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(DcStreamEditor.DATASTREAM_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(StringEditor.OCR_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(AltoDatastream.ALTO_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.FULL_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.PREVIEW_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.THUMB_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.RAW_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(MixEditor.RAW_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.NDK_ARCHIVAL_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.NDK_USER_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(MixEditor.NDK_ARCHIVAL_ID));
 
         String rootSystemId = rootFoxml.toURI().toASCIIString();
-        XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(rootSystemId));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID));
         EasyMock.verify(toVerify.toArray());
     }
 
@@ -242,14 +244,14 @@ public class TiffImporterTest {
         assertTrue(alto1.delete());
         assertTrue(config.getImportConfiguration().getRequiredDatastreamId().contains(AltoDatastream.ALTO_ID));
 
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration(), null);
+        File targetFolder = ImportProcess.createTargetFolder(tempDir, config.getImportConfiguration(), null);
         assertTrue(targetFolder.exists());
 
         String mimetype = ImportProcess.findMimeType(tiff1);
         assertNotNull(mimetype);
 
         ImportOptions ctx = new ImportOptions(tiff1.getParentFile(),
-                "scanner:scanner1", "software:objectSet",true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
+                "scanner:scanner1", "software:objectSet", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);
@@ -264,7 +266,7 @@ public class TiffImporterTest {
         assertEquals(ObjectState.LOADING_FAILED, result.getState());
         String log = result.getLog();
         assertNotNull(log);
-        assertTrue(log, log.contains("Missing ALTO"));
+        assertTrue(log.contains("Missing ALTO"), () -> log);
     }
 
     private static String streamXPath(String dsId) {

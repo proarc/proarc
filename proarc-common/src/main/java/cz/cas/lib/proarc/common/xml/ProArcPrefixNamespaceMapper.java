@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.xml;
 
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
 import cz.cas.lib.proarc.common.xml.docmd.DocumentMdUtils;
 import cz.cas.lib.proarc.common.xml.ndktech.NdkTechnicalUtils;
 import cz.cas.lib.proarc.premis.PremisUtils;
@@ -51,6 +51,6 @@ public class ProArcPrefixNamespaceMapper extends NamespacePrefixMapper {
 
     @Override
     public String[] getPreDeclaredNamespaceUris() {
-        return new String[] {DOCMD_URI, NDKTECH_URI};
+        return new String[]{DOCMD_URI, NDKTECH_URI};
     }
 }

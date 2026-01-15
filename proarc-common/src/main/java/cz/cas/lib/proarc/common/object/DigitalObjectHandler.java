@@ -44,8 +44,8 @@ public final class DigitalObjectHandler {
      */
     public static final String PARAM_PART_NUMBER = "series.mods.titleInfo.partNumber";
     /**
-    * Special Signatura
-    */
+     * Special Signatura
+     */
     public static final String PARAM_SIGNATURA = "series.mods.physicalLocation.signatura";
     public static final String PARAM_ISSUE_DATE_END_OF_RANGE = "series.mods.issueCreated.endOfRange";
     static final String PARAM_PARENT = DigitalObjectHandler.class.getName() + ".parent";
@@ -72,6 +72,7 @@ public final class DigitalObjectHandler {
 
     /**
      * Writes changes to a storage.
+     *
      * @throws DigitalObjectException failure
      */
     public void commit() throws DigitalObjectException {
@@ -79,8 +80,10 @@ public final class DigitalObjectHandler {
     }
 
     // XXX replace with MetadataHandler<OaiDcType> impl
+
     /**
      * The administrative metadata of the digital object.
+     *
      * @return metadata
      * @throws DigitalObjectException failure
      */
@@ -99,6 +102,7 @@ public final class DigitalObjectHandler {
 
     /**
      * The description metadata.
+     *
      * @param <T> type of metadata
      * @return metadata
      * @throws DigitalObjectException failure
@@ -132,7 +136,7 @@ public final class DigitalObjectHandler {
     public MetaModel getModel() throws DigitalObjectException {
         MetaModel model;
         if (getFedoraObject() instanceof WorkflowStorage.WorkflowObject) {
-            WorkflowStorage.WorkflowObject workflowObject = (WorkflowStorage.WorkflowObject)getFedoraObject();
+            WorkflowStorage.WorkflowObject workflowObject = (WorkflowStorage.WorkflowObject) getFedoraObject();
             model = models.find(workflowObject.getModel());
         } else {
             // XXX optimize not to require rels-ext fetch
@@ -162,7 +166,7 @@ public final class DigitalObjectHandler {
      * Sets parameters to customize object handling. Parameters are shared
      * among handler implementations.
      *
-     * @param name parameter name
+     * @param name  parameter name
      * @param value parameter value
      */
     public void setParameter(String name, Object value) {

@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.info;
 
-import com.sun.xml.ws.util.StringUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.BufferedReader;
@@ -25,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import org.apache.commons.lang.StringUtils;
 
 public class ApplicationInfo {
 

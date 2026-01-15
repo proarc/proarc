@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.common.catalog;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 
 /**
  * Describes metadata item fetched from catalog.

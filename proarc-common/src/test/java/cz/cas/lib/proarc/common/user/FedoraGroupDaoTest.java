@@ -18,14 +18,18 @@ package cz.cas.lib.proarc.common.user;
 
 import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import java.io.File;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -33,45 +37,48 @@ import org.junit.rules.TestName;
  */
 public class FedoraGroupDaoTest {
 
-    @Rule
-    public TestName testName = new TestName();
+    @TempDir
+    File tempDir;
+
+
     private FedoraTestSupport support;
     private FedoraTransaction tx;
+    private String testValue = "testValue";
 
     public FedoraGroupDaoTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         support = new FedoraTestSupport();
         support.cleanUp();
         tx = new FedoraTransaction(support.getRemoteStorage());
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
     @Test
     public void testAddGroup() throws Exception {
-        Group g = Group.create(testName.getMethodName(), testName.getMethodName() + "Title");
+        Group g = Group.create(testValue, testValue + "Title");
         FedoraGroupDao dao = new FedoraGroupDao();
         dao.setTransaction(tx);
-        dao.addGroup(g, support.getTestUser(), testName.getMethodName());
-        assertEquals(UserUtil.toGroupPid(testName.getMethodName()), g.getName());
+        dao.addGroup(g, support.getTestUser(), testValue);
+        assertEquals(UserUtil.toGroupPid(testValue), g.getName());
         String pid = g.getName();
         assertTrue(tx.getRemoteStorage().exist(pid));
 
         try {
-            dao.addGroup(g, support.getTestUser(), testName.getMethodName());
+            dao.addGroup(g, support.getTestUser(), testValue);
             fail("Created the duplicate of group! " + pid);
         } catch (Exception e) {
         }
@@ -79,16 +86,16 @@ public class FedoraGroupDaoTest {
 
     @Test
     public void testAddNewGroup() throws Exception {
-        Group g = Group.create(testName.getMethodName(), testName.getMethodName() + "Title");
+        Group g = Group.create(testValue, testValue + "Title");
         FedoraGroupDao dao = new FedoraGroupDao();
         dao.setTransaction(tx);
-        dao.addNewGroup(g, support.getTestUser(), testName.getMethodName());
-        assertEquals(UserUtil.toGroupPid(testName.getMethodName()), g.getName());
+        dao.addNewGroup(g, support.getTestUser(), testValue);
+        assertEquals(UserUtil.toGroupPid(testValue), g.getName());
         String pid = g.getName();
         assertTrue(tx.getRemoteStorage().exist(pid));
 
-        dao.addNewGroup(g, support.getTestUser(), testName.getMethodName());
-        assertNotEquals(UserUtil.toGroupPid(testName.getMethodName()), g.getName());
+        dao.addNewGroup(g, support.getTestUser(), testValue);
+        assertNotEquals(UserUtil.toGroupPid(testValue), g.getName());
         pid = g.getName();
         assertTrue(tx.getRemoteStorage().exist(pid));
     }

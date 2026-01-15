@@ -42,9 +42,13 @@ import java.util.logging.Logger;
  */
 public class BdmArticleMapper extends NdkArticleMapper {
 
-    /** {@code mods/genre/text()='article'}. */
+    /**
+     * {@code mods/genre/text()='article'}.
+     */
     public static final String GENRE_ARTICLE_VALUE = "article";
-    /** {@code mods/genre/@type='peer-reviewed'}. */
+    /**
+     * {@code mods/genre/@type='peer-reviewed'}.
+     */
     public static final String GENRE_PEER_REVIEWED_TYPE = "peer-reviewed";
     private static final Logger LOG = Logger.getLogger(BdmArticleMapper.class.getName());
 
@@ -108,7 +112,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
         for (GenreDefinition genre : mods.getGenre()) {
             if (Const.GENRE_ARTICLE.equals(genre.getValue())) {
                 countArticle++;
-                if (genre.getType() == null) {
+                if (genre.getTypeString() == null) {
                     isEmpty = true;
                 }
             }
@@ -118,7 +122,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
             Iterator<GenreDefinition> iterator = mods.getGenre().iterator();
             while (iterator.hasNext()) {
                 GenreDefinition genre = iterator.next();
-                if (Const.GENRE_ARTICLE.equals(genre.getValue()) && genre.getType() == null) {
+                if (Const.GENRE_ARTICLE.equals(genre.getValue()) && genre.getTypeString() == null) {
                     iterator.remove();
                 }
             }
@@ -180,7 +184,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
     /**
      * Sets FormDefinitions
      *
-     * @param form element created by user
+     * @param form              element created by user
      * @param newFormDefinition element created by computer
      */
     public static void setFormDefinition(FormDefinition form, FormDefinition newFormDefinition, String value) {
@@ -197,7 +201,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
         mw.setMods(mods);
         GenreDefinition rGenre = null;
         for (GenreDefinition genre : mods.getGenre()) {
-            if (GENRE_ARTICLE_VALUE.equals(genre.getValue()) && GENRE_PEER_REVIEWED_TYPE.equals(genre.getType())) {
+            if (GENRE_ARTICLE_VALUE.equals(genre.getValue()) && GENRE_PEER_REVIEWED_TYPE.equals(genre.getTypeString())) {
                 rGenre = genre;
                 break;
             }
@@ -208,17 +212,17 @@ public class BdmArticleMapper extends NdkArticleMapper {
         } else {
             mw.setReviewed(Boolean.FALSE);
         }
-        if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()){
+        if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {
             return mw;
         } else {
-           String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
-           if (descriptionStandard.equals(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
-               mw.setRdaRules(true);
-           } else {
-               mw.setRdaRules(false);
-           }
+            String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
+            if (descriptionStandard.equals(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
+                mw.setRdaRules(true);
+            } else {
+                mw.setRdaRules(false);
+            }
             mods.getRecordInfo().get(0).getDescriptionStandard().clear();
-           return mw;
+            return mw;
         }
     }
 
@@ -229,7 +233,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
         if (wrapper.getReviewed() != null && wrapper.getReviewed()) {
             GenreDefinition reviewed = new GenreDefinition();
             reviewed.setValue(GENRE_ARTICLE_VALUE);
-            reviewed.setType(GENRE_PEER_REVIEWED_TYPE);
+            reviewed.setTypeString(GENRE_PEER_REVIEWED_TYPE);
             mods.getGenre().add(0, reviewed);
         }
         StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();

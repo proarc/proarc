@@ -16,48 +16,43 @@
 
 package cz.cas.lib.proarc.common.object;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.object.model.MetaModel;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 import org.easymock.EasyMock;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import mockit.Mocked;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DigitalObjectPluginTest {
-
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
 
     private AppConfiguration config;
     private AkubraConfiguration akubraConfiguration;
 
-    @Mocked
-    FedoraStorage fedoraStorage;
+    @TempDir
+    File tempDir;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         ServiceLoader<DigitalObjectPlugin> pluginLoader = ServiceLoader.load(DigitalObjectPlugin.class);
 
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+            put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
         }});
         if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
@@ -83,7 +78,7 @@ public class DigitalObjectPluginTest {
             // Skip desa plugin. Desa-des doesn't have correct handler provider. Not sure it's a bug.
             if (Arrays.asList("desa-des").contains(plugin.getId())) continue;
 
-            assertNotNull("no handler provider for plugin " + plugin.getId(), plugin.getHandlerProvider(HasMetadataHandler.class));
+            assertNotNull(plugin.getHandlerProvider(HasMetadataHandler.class), () -> "no handler provider for plugin " + plugin.getId());
 
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
 

@@ -113,7 +113,7 @@ public class ArchiveImport implements ImportHandler {
         }
         if (folder.isDirectory()) {
             for (File file : folder.listFiles()) {
-                File requiredFile =  getImportFolder(config, file);
+                File requiredFile = getImportFolder(config, file);
                 if (requiredFile != null) {
                     return requiredFile;
                 }

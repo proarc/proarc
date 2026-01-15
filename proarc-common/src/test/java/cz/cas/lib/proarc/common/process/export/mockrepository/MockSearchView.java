@@ -33,11 +33,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Document;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Document;
 
 /**
  * Part of mocking of Fedora repository (risearch). Methods which are neccessary for NDK SIP export are implemented.
@@ -62,7 +62,7 @@ public class MockSearchView extends MockUp<SearchView> {
         relations.put("uuid:15d30091-a3f1-4acc-86d9-09c2493454b4", "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6"); // volume hasParent periodical
 
         if (relations.containsKey(pid)) {
-            return relations.get(pid) == null ? Collections.EMPTY_LIST :Collections.singletonList(new SearchViewItem(relations.get(pid)));
+            return relations.get(pid) == null ? Collections.EMPTY_LIST : Collections.singletonList(new SearchViewItem(relations.get(pid)));
         } else {
             throw new IllegalArgumentException("Unknown parent for " + pid + " (fake risearch)");
         }
@@ -86,7 +86,7 @@ public class MockSearchView extends MockUp<SearchView> {
                 SimpleNamespaceContext namespaces = new SimpleNamespaceContext().add("fedora-model", "info:fedora/fedora-system:def/model#")
                         .add("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
                 xPath.setNamespaceContext(namespaces);
-                String value  = (String) xPath.compile("//fedora-model:hasModel/@rdf:resource").evaluate(document, XPathConstants.STRING);
+                String value = (String) xPath.compile("//fedora-model:hasModel/@rdf:resource").evaluate(document, XPathConstants.STRING);
                 item.setModel(StringUtils.removeStart(value, "info:fedora/"));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -100,9 +100,6 @@ public class MockSearchView extends MockUp<SearchView> {
     public List<SearchViewItem> findSortedChildren(String parentPid) {
         return find(parentPid);
     }
-
-
-
 
 
 }

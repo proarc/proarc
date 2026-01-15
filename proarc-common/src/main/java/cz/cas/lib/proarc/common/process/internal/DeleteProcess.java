@@ -216,7 +216,7 @@ public class DeleteProcess {
         int countDeleted = 0;
         Result result = new Result();
 
-        while(true) {
+        while (true) {
             List<SearchViewItem> items = new ArrayList<>();
             switch (type.toLowerCase()) {
                 case "orphan":

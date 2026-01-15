@@ -26,13 +26,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FilenameUtils;
 
 /**
  *
  * Prepares tiff image from jpeg at input for TiffImporter
- *
+ * <p>
  * Original .jpg image is not used after the conversion into .tiff,
  * .tiff image is furthermore treated as original image
  *
@@ -52,7 +52,9 @@ public class TiffAsJpegImporter implements ImageImporter {
     }
 
     @Override
-    public boolean accept(FileSet fileSet) { return isJpeg(fileSet); }
+    public boolean accept(FileSet fileSet) {
+        return isJpeg(fileSet);
+    }
 
     @Override
     public BatchManager.BatchItemObject consume(FileSet fileSet, ImportProcess.ImportOptions ctx) {
@@ -86,7 +88,9 @@ public class TiffAsJpegImporter implements ImageImporter {
         return null;
     }
 
-    private boolean isJpeg(FileSet fileSet) { return findJpeg(fileSet) != null;}
+    private boolean isJpeg(FileSet fileSet) {
+        return findJpeg(fileSet) != null;
+    }
 
     private FileSet.FileEntry findJpeg(FileSet fileSet) {
 

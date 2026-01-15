@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export.archive;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Settings for Archive export

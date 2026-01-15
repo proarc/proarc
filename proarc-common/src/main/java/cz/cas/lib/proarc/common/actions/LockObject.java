@@ -63,7 +63,7 @@ public class LockObject {
         pids.add(element.getOriginalPid());
 
         for (IMetsElement childElement : element.getChildren()) {
-                findChildrens(childElement);
+            findChildrens(childElement);
         }
     }
 
@@ -141,7 +141,7 @@ public class LockObject {
     }
 
     private void setLocked(DigitalObjectManager dom, String pid) throws DigitalObjectException {
-        ProArcObject proArcObject = dom.find(pid,null);
+        ProArcObject proArcObject = dom.find(pid, null);
         DigitalObjectHandler handler = dom.createHandler(proArcObject);
         RelationEditor relationEditor = handler.relations();
         if (relationEditor.isLocked()) {
@@ -153,7 +153,7 @@ public class LockObject {
     }
 
     private void setUnlocked(DigitalObjectManager dom, String pid) throws DigitalObjectException {
-        ProArcObject proArcObject = dom.find(pid,null);
+        ProArcObject proArcObject = dom.find(pid, null);
         DigitalObjectHandler handler = dom.createHandler(proArcObject);
         RelationEditor relationEditor = handler.relations();
         if (!relationEditor.isLocked()) {

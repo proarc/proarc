@@ -17,12 +17,15 @@
 package cz.cas.lib.proarc.common.user;
 
 import java.util.Arrays;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -33,19 +36,19 @@ public class UserUtilTest {
     public UserUtilTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -61,7 +64,7 @@ public class UserUtilTest {
         char[] chars = new char[100];
         Arrays.fill(chars, 'A');
         String result = UserUtil.toUserName(String.valueOf(chars));
-        assertTrue(result, UserUtil.isValidUserName(result));
+        assertTrue(UserUtil.isValidUserName(result), () -> result);
     }
 
     @Test

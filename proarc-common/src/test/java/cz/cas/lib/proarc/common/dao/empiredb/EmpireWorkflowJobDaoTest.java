@@ -16,10 +16,10 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
-import cz.cas.lib.proarc.common.workflow.model.JobFilter;
-import cz.cas.lib.proarc.common.workflow.model.JobView;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Job.State;
+import cz.cas.lib.proarc.common.workflow.model.JobFilter;
+import cz.cas.lib.proarc.common.workflow.model.JobView;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -27,12 +27,14 @@ import java.util.List;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -49,15 +51,15 @@ public class EmpireWorkflowJobDaoTest {
     public EmpireWorkflowJobDaoTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         support = new DbUnitSupport();
         schema = support.getEmireCfg().getSchema();
@@ -68,7 +70,7 @@ public class EmpireWorkflowJobDaoTest {
         dao.setTransaction(tx);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (tx != null) {
             tx.close();
@@ -87,8 +89,8 @@ public class EmpireWorkflowJobDaoTest {
     public void testCreate() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
 
         Job job = dao.create();
         job.addCreated(dbTimestamp).addFinanced("financed").addLabel("label")
@@ -116,8 +118,8 @@ public class EmpireWorkflowJobDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Job job = dao.find(BigDecimal.ONE);
@@ -138,8 +140,8 @@ public class EmpireWorkflowJobDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         JobFilter filter = new JobFilter();
@@ -158,15 +160,15 @@ public class EmpireWorkflowJobDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         JobFilter filter = new JobFilter();
         filter.setCreated(Arrays.asList(
                 ">", "2015-10-24T23:00:00",
                 "<", "2015-10-26T23:00:00"
-                ));
+        ));
         List<JobView> jobs = dao.view(filter);
         assertEquals(1, jobs.size());
         JobView job0 = jobs.get(0);
@@ -181,8 +183,8 @@ public class EmpireWorkflowJobDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         JobFilter filter = new JobFilter();
