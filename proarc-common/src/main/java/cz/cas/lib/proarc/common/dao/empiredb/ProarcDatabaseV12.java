@@ -241,7 +241,7 @@ public class ProarcDatabaseV12 extends DBDatabase {
          */
         public final DBTableColumn remoteName;
         /**
-         * type of the remote user null(PROARC), DESA, LDAP, ...
+         * type of the remote user null(PROARC), LDAP, ...
          */
         public final DBTableColumn remoteType;
         public final DBTableColumn timestamp;
@@ -298,7 +298,7 @@ public class ProarcDatabaseV12 extends DBDatabase {
          */
         public final DBTableColumn remoteName;
         /**
-         * type of the remote group null(PROARC), DESA, LDAP, ...
+         * type of the remote group null(PROARC), LDAP, ...
          */
         public final DBTableColumn remoteType;
         public final DBTableColumn created;

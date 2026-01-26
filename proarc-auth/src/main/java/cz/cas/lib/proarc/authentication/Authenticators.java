@@ -35,10 +35,6 @@ public final class Authenticators {
      * The internal authenticator.
      */
     public static final String TYPE_PROARC = "proarc";
-    /**
-     * The DESA authenticator. For now it stands for both type and ID.
-     */
-    public static final String TYPE_DESA = "desa";
 
     private static final Logger LOG = Logger.getLogger(Authenticators.class.getName());
     private static Authenticators INSTANCE;
@@ -78,12 +74,6 @@ public final class Authenticators {
     }
 
     public String getLoginType() {
-        List<Object> authenticatorIds = conf.getList(PROPERTY_AUTHENTICATORS);
-        for (Object aid : authenticatorIds) {
-            if (TYPE_DESA.equals(aid)) {
-                return TYPE_DESA;
-            }
-        }
         return TYPE_PROARC;
     }
 

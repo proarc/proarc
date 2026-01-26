@@ -8,7 +8,7 @@
     <groupId>cz.cas.lib.proarc</groupId>
     <artifactId>proarc</artifactId>
     <packaging>pom</packaging>
-    <version>4.3.1-DEV</version>
+    <version>5.0.0-SNAPSHOT</version>
     <name>ProArc</name>
     <url>${proarc.wiki}</url>
 
@@ -31,7 +31,6 @@
         <module>proarc-foxml</module>
         <module>proarc-codingHistory</module>
         <module>proarc-auth</module>
-        <module>proarc-desa</module>
         <module>proarc-mets</module>
         <module>proarc-mix</module>
         <module>proarc-mods</module>

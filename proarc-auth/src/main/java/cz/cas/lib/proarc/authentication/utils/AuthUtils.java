@@ -31,7 +31,7 @@ public final class AuthUtils {
 
     /**
      * The HTTP header in unauthorized response to choose a login form/type on client.
-     * Expect values like proarc, desa, ....
+     * Expect values like proarc, ....
      */
     public static final String HEADER_AUTHENTICATE_TYPE = "ProArc-Authenticate";
 

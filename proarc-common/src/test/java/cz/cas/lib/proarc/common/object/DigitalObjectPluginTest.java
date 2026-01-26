@@ -28,7 +28,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
@@ -75,8 +74,6 @@ public class DigitalObjectPluginTest {
     public void testGetModel() throws DigitalObjectException {
         ServiceLoader<DigitalObjectPlugin> pluginLoader = ServiceLoader.load(DigitalObjectPlugin.class);
         for (DigitalObjectPlugin plugin : pluginLoader) {
-            // Skip desa plugin. Desa-des doesn't have correct handler provider. Not sure it's a bug.
-            if (Arrays.asList("desa-des").contains(plugin.getId())) continue;
 
             assertNotNull(plugin.getHandlerProvider(HasMetadataHandler.class), () -> "no handler provider for plugin " + plugin.getId());
 

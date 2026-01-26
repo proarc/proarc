@@ -234,7 +234,7 @@ public class ProarcDatabaseV14 extends DBDatabase {
         public final DBTableColumn userGroup;
         /** use to identify external user. */
         public final DBTableColumn remoteName;
-        /** type of the remote user null(PROARC), DESA, LDAP, ... */
+        /** type of the remote user null(PROARC), LDAP, ... */
         public final DBTableColumn remoteType;
         public final DBTableColumn timestamp;
         public final DBTableColumn changeModelFunction;
@@ -289,7 +289,7 @@ public class ProarcDatabaseV14 extends DBDatabase {
         public final DBTableColumn title;
         /** use to identify group of external users. */
         public final DBTableColumn remoteName;
-        /** type of the remote group null(PROARC), DESA, LDAP, ... */
+        /** type of the remote group null(PROARC), LDAP, ... */
         public final DBTableColumn remoteType;
         public final DBTableColumn created;
         public final DBTableColumn timestamp;
