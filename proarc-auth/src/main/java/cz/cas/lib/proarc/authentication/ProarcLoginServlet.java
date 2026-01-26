@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.authentication;
 
-import cz.cas.lib.proarc.authentication.desa.DESAAuthenticator;
 import cz.cas.lib.proarc.authentication.utils.AuthUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
@@ -48,7 +47,6 @@ public class ProarcLoginServlet extends HttpServlet {
         {
             loginProperties.put(Authenticator.LOGINNAME, username);
             loginProperties.put(Authenticator.PASSWORD, password);
-            loginProperties.put(DESAAuthenticator.KOD_PUVODCE, code);
         }
 
         ProarcPrincipal proarcPrincipal = new ProarcPrincipal(username);

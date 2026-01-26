@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.authentication;
 
-import cz.cas.lib.proarc.authentication.desa.DESAAuthenticator;
 import cz.cas.lib.proarc.authentication.proarc.ProArcAuthenticator;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -71,8 +70,6 @@ public final class Authenticators {
         for (Object id : ids) {
             if (TYPE_PROARC.equals(id)) {
                 authenticators.add(new ProArcAuthenticator());
-            } else if (TYPE_DESA.equals(id)) {
-                authenticators.add(new DESAAuthenticator());
             } else {
                 LOG.warning("Unknown authenticator: " + id);
             }

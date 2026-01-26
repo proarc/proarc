@@ -31,152 +31,91 @@
         <dependency>
             <groupId>cz.incad</groupId>
             <artifactId>img-support</artifactId>
-            <version>0.0.1</version>
         </dependency>
-
-<!--        <dependency>-->
-<!--            <groupId>cz.registrdigitalizace</groupId>-->
-<!--            <artifactId>soapclient</artifactId>-->
-<!--            <version>1.1</version>-->
-<!--            <exclusions>-->
-<!--                &lt;!&ndash; JAX-WS 2.2 JDK 1.6 support&ndash;&gt;-->
-<!--                &lt;!&ndash;excluded jaxb-api and jaxws-api that must be placed in ${catalina.base}/endorsed folder&ndash;&gt;-->
-<!--                <exclusion>-->
-<!--                    <artifactId>jaxws-api</artifactId>-->
-<!--                    <groupId>javax.xml.ws</groupId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.ehcache</groupId>-->
-<!--            <artifactId>ehcache</artifactId>-->
-<!--            <version>3.3.0</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.hazelcast</groupId>-->
-<!--            <artifactId>hazelcast-all</artifactId>-->
-<!--            <version>3.11.2</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>fast-md5</groupId>-->
-<!--            <artifactId>fast-md5</artifactId>-->
-<!--            <version>2.5</version>-->
-<!--        </dependency>-->
-
-        <!-- ____________________________________ AFTER UPDATE  _________________________________________ -->
         <dependency>
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
-            <version>2.11.5</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.20.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-configuration2</artifactId>
-            <version>2.13.0</version>
         </dependency>
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>4.0.4</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>3.1.6</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
-            <version>3.1.6</version>
         </dependency>
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
-            <version>2.5.2</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>4.0.5</version>
         </dependency>
         <dependency>
             <groupId>org.openpreservation.jhove</groupId>
             <artifactId>jhove-core</artifactId>
-            <version>1.34.0</version>
         </dependency>
-<!--        @deprecated -->
-<!--        <dependency>-->
-<!--            <groupId>org.openpreservation.jhove</groupId>-->
-<!--            <artifactId>jhove-modules</artifactId>-->
-<!--            <version>1.34.0</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.yourmediashelf.fedora.client</groupId>
             <artifactId>fedora-client-core</artifactId>
-            <version>0.7</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-jaxb-annotations</artifactId>
-            <version>2.19.4</version>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>5.6.0</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.jmockit</groupId>
             <artifactId>jmockit</artifactId>
-            <version>1.49</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
-            <version>8.11.3</version>
         </dependency>
         <dependency>
             <groupId>org.akubraproject</groupId>
             <artifactId>akubra-core</artifactId>
-            <version>0.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.akubraproject</groupId>
             <artifactId>akubra-fs</artifactId>
-            <version>0.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.akubraproject</groupId>
             <artifactId>akubra-map</artifactId>
-            <version>0.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>26.0.2-1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.empire-db</groupId>
             <artifactId>empire-db</artifactId>
-            <version>3.4.0</version>
         </dependency>
 
 
@@ -245,51 +184,35 @@
             <artifactId>proarc-foxml</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20250107</version>
-            <scope>compile</scope>
         </dependency>
-
-
-
         <dependency>
             <groupId>cz.incad.kramerius</groupId>
             <artifactId>common</artifactId>
-            <version>7.0.9</version>
         </dependency>
-
-
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-core</artifactId>
-            <version>2.11.0</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-assertj</artifactId>
-            <version>2.11.0</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.dbunit</groupId>
             <artifactId>dbunit</artifactId>
-            <version>3.0.0</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.8</version>
         </dependency>
 
 
@@ -321,16 +244,15 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
                 <configuration>
-                    <release>${java.version}</release>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
                 </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
                 <configuration>
                     <systemPropertyVariables>
                         <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties
@@ -343,7 +265,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>

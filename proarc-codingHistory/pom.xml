@@ -18,6 +18,7 @@
 
     <name>ProArc Coding History JAXB Model</name>
     <url>${proarc.wiki}</url>
+
     <dependencies>
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
@@ -30,7 +31,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.plugin.compiler.version}</version>
                 <configuration>
                     <source>${maven.compiler.release}</source>
                     <target>${maven.compiler.release}</target>
@@ -40,7 +40,6 @@
             <plugin>
                 <groupId>org.jvnet.jaxb</groupId>
                 <artifactId>jaxb-maven-plugin</artifactId>
-                <version>${maven.plugin.jaxb.version}</version>
                 <executions>
                     <execution>
                         <id>generate-codinghistory</id>

@@ -111,7 +111,7 @@ public class NdkEntityFactory {
             // required
             //mods:titleInfo/mods:partNumber
             //mods:titleInfo/mods:partName
-            titleInfo.setTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getTitleType()));
+            titleInfo.setTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getTitleStringPlusLanguage()));
             // optional
             titleInfo.setSubTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getSubTitle()));
         }
@@ -143,7 +143,7 @@ public class NdkEntityFactory {
         Monograph.TitleInfo titleInfo = new Monograph.TitleInfo();
         TitleInfoDefinition modsTitle = ResolverUtils.getTitleInfo(documentMods);
         if (modsTitle != null) {
-            titleInfo.setTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getTitleType()));
+            titleInfo.setTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getTitleStringPlusLanguage()));
             titleInfo.setSubTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getSubTitle()));
         }
         m.setTitleInfo(titleInfo);
@@ -275,7 +275,7 @@ public class NdkEntityFactory {
             // required
             //mods:titleInfo/mods:partNumber
             //mods:titleInfo/mods:partName
-            titleInfo.setTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getTitleType()));
+            titleInfo.setTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getTitleStringPlusLanguage()));
             // optional
             titleInfo.setSubTitle(ResolverUtils.getStringPlusLanguage(modsTitle.getSubTitle()));
         }

@@ -46,49 +46,44 @@
     <properties>
         <proarc.version>${project.version}</proarc.version>
         <proarc.wiki>https://github.com/proarc/proarc/wiki</proarc.wiki>
-        <gwtVersion>2.10.0</gwtVersion>
-        <jacksonVersion>2.8.1</jacksonVersion>
-        <jerseyVersion>1.17.1</jerseyVersion>
-        <!--if you upgrade, check the version of javax.ws.rs-api-*.jar
-            in proarc-webapp/src/main/webapp/META-INF/context.xml
-        -->
-        <jerseyVersion2>2.23.1</jerseyVersion2>
-        <smartGwtVersion>6.0-p20171208</smartGwtVersion>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <!--
-        Keep the JDK platform property here instead of nb-configuration.xml
-        to inherit it in child projects.
-        -->
-        <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
+
+        <!-- App settings -->
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <slf4j.version>1.7.21</slf4j.version>
+
+        <!-- Dependencies -->
+        <com.fasterxml.jackson.jaxrs.version>2.18.3</com.fasterxml.jackson.jaxrs.version>
+        <junit.jupiter.version>5.11.0</junit.jupiter.version>
+        <org.akubraproject.version>0.4.0</org.akubraproject.version>
+        <org.apache.cxf.version>4.1.4</org.apache.cxf.version>
+        <org.glassfish.jersey.media.version>3.1.11</org.glassfish.jersey.media.version>
+        <org.xmlunit.version>2.11.0</org.xmlunit.version>
+        <slf4j.version>2.0.16</slf4j.version>
+
+        <!-- plugins -->
+        <maven.plugin.jaxb.version>4.0.8</maven.plugin.jaxb.version>
+        <maven.plugin.compiler.version>3.9.0</maven.plugin.compiler.version>
     </properties>
 
     <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>proarc.repository</id>
             <name>ProArc Repository</name>
             <url>https://github.com/proarc/proarc.mvnrepo/raw/master</url>
             <snapshots>
                 <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>rd.repository</id>
-            <name>RD Repository</name>
-            <url>https://github.com/incad/registrdigitalizace.mvnrepo/raw/master</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <!--org.moxieapps.gwt:org.moxieapps.gwt.uploader-->
-        <repository>
-            <id>geosdi</id>
-            <name>geoSDI Repository</name>
-            <url>https://repo.geosdi.org</url>
-            <snapshots>
-                <enabled>false</enabled>
             </snapshots>
         </repository>
         <repository>
@@ -99,77 +94,413 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>JBOSS</id>
-            <name>JBOSS Repository</name>
-            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
     </repositories>
 
     <dependencyManagement>
 
         <dependencies>
-
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${com.fasterxml.jackson.jaxrs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${com.fasterxml.jackson.jaxrs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${com.fasterxml.jackson.jaxrs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-base</artifactId>
+                <version>${com.fasterxml.jackson.jaxrs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${com.fasterxml.jackson.jaxrs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jaxb-annotations</artifactId>
+                <version>2.19.4</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yourmediashelf.fedora.client</groupId>
+                <artifactId>fedora-client-core</artifactId>
+                <version>0.7</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>1.20.0</version>
+            </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>2.7</version>
+                <version>2.16.1</version>
             </dependency>
-
             <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
+                <groupId>cz.incad</groupId>
+                <artifactId>img-support</artifactId>
+                <version>0.0.1</version>
             </dependency>
-
+            <dependency>
+                <groupId>cz.incad.kramerius</groupId>
+                <artifactId>common</artifactId>
+                <version>7.0.9</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>6.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.ws.rs</groupId>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>4.0.4</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.ws</groupId>
+                <artifactId>jakarta.xml.ws-api</artifactId>
+                <version>4.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>net.lingala.zip4j</groupId>
+                <artifactId>zip4j</artifactId>
+                <version>2.11.5</version>
+            </dependency>
+            <dependency>
+                <groupId>org.akubraproject</groupId>
+                <artifactId>akubra-core</artifactId>
+                <version>${org.akubraproject.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.akubraproject</groupId>
+                <artifactId>akubra-fs</artifactId>
+                <version>${org.akubraproject.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.akubraproject</groupId>
+                <artifactId>akubra-map</artifactId>
+                <version>${org.akubraproject.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-configuration2</artifactId>
+                <version>2.13.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxws</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-transports-http</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.empire-db</groupId>
+                <artifactId>empire-db</artifactId>
+                <version>3.4.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents.client5</groupId>
+                <artifactId>httpclient5</artifactId>
+                <version>5.5.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.solr</groupId>
+                <artifactId>solr-solrj</artifactId>
+                <version>8.11.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.dbunit</groupId>
+                <artifactId>dbunit</artifactId>
+                <version>3.0.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.easymock</groupId>
+                <artifactId>easymock</artifactId>
+                <version>5.6.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>4.0.5</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-servlet-core</artifactId>
+                <version>${org.glassfish.jersey.media.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-client</artifactId>
+                <version>${org.glassfish.jersey.media.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-json-jackson</artifactId>
+                <version>${org.glassfish.jersey.media.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-multipart</artifactId>
+                <version>${org.glassfish.jersey.media.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <version>26.0.2-1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jmockit</groupId>
+                <artifactId>jmockit</artifactId>
+                <version>1.49</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>20250107</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jzkit</groupId>
+                <artifactId>jzkit_z3950_plugin</artifactId>
+                <version>3.0.0</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>ant</artifactId>
+                        <groupId>ant</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>antlr</artifactId>
+                        <groupId>antlr</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>asm</artifactId>
+                        <groupId>asm</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>asm-attrs</artifactId>
+                        <groupId>asm</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>avalon-framework</artifactId>
+                        <groupId>avalon-framework</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>cglib</artifactId>
+                        <groupId>cglib</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>classworlds</artifactId>
+                        <groupId>classworlds</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>commons-beanutils</artifactId>
+                        <groupId>commons-beanutils</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>commons-collections</artifactId>
+                        <groupId>commons-collections</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>commons-digester</artifactId>
+                        <groupId>commons-digester</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>commons-discovery</artifactId>
+                        <groupId>commons-discovery</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>commons-fileupload</artifactId>
+                        <groupId>commons-fileupload</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>commons-io</artifactId>
+                        <groupId>commons-io</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>commons-logging</artifactId>
+                        <groupId>commons-logging</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>dom4j</artifactId>
+                        <groupId>dom4j</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>ehcache</artifactId>
+                        <groupId>net.sf.ehcache</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>hibernate</artifactId>
+                        <groupId>org.hibernate</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>hibernate-annotations</artifactId>
+                        <groupId>org.hibernate</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>hibernate-commons-annotations</artifactId>
+                        <groupId>org.hibernate</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>jdbm</artifactId>
+                        <groupId>jdbm</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>jta</artifactId>
+                        <groupId>javax.transaction</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>junit</artifactId>
+                        <groupId>junit</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>logkit</artifactId>
+                        <groupId>logkit</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <groupId>org.apache.maven.plugins</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>maven-artifact</artifactId>
+                        <groupId>org.apache.maven</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>maven-artifact-manager</artifactId>
+                        <groupId>org.apache.maven</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>maven-model</artifactId>
+                        <groupId>org.apache.maven</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>maven-plugin-api</artifactId>
+                        <groupId>org.apache.maven</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>maven-profile</artifactId>
+                        <groupId>org.apache.maven</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>maven-project</artifactId>
+                        <groupId>org.apache.maven</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>maven-repository-metadata</artifactId>
+                        <groupId>org.apache.maven</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>persistence-api</artifactId>
+                        <groupId>javax.persistence</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>plexus-container-default</artifactId>
+                        <groupId>org.codehaus.plexus</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>plexus-utils</artifactId>
+                        <groupId>org.codehaus.plexus</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>servlet-api</artifactId>
+                        <groupId>javax.servlet</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>spring</artifactId>
+                        <groupId>org.springframework</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>wagon-provider-api</artifactId>
+                        <groupId>org.apache.maven.wagon</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>xalan</artifactId>
+                        <groupId>xalan</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>xercesImpl</artifactId>
+                        <groupId>xerces</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>xml-apis</artifactId>
+                        <groupId>xml-apis</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>xmlParserAPIs</artifactId>
+                        <groupId>xerces</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.marc4j</groupId>
+                <artifactId>marc4j</artifactId>
+                <version>2.9.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openpreservation.jhove</groupId>
+                <artifactId>jhove-core</artifactId>
+                <version>1.34.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>42.7.8</version>
+            </dependency>
+            <dependency>
+                <groupId>org.quartz-scheduler</groupId>
+                <artifactId>quartz</artifactId>
+                <version>2.5.2</version>
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-jdk14</artifactId>
+                <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
-
-            <!-- tests -->
-            <!-- Don't use 1.39! https://github.com/jmockit/jmockit1/issues/516 -->
             <dependency>
-                <groupId>org.jmockit</groupId>
-                <artifactId>jmockit</artifactId>
-                <version>1.38</version>
-            </dependency>
-
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.13.1</version>
-                <!--<scope>test</scope>-->
+                <groupId>org.xmlunit</groupId>
+                <artifactId>xmlunit-assertj</artifactId>
+                <version>${org.xmlunit.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>xmlunit</groupId>
-                <artifactId>xmlunit</artifactId>
-                <version>1.6</version>
-                <!--<scope>test</scope>-->
+                <groupId>org.xmlunit</groupId>
+                <artifactId>xmlunit-core</artifactId>
+                <version>${org.xmlunit.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.easymock</groupId>
-                <artifactId>easymock</artifactId>
-                <version>3.4</version>
-                <!--<scope>test</scope>-->
+                <groupId>xalan</groupId>
+                <artifactId>xalan</artifactId>
+                <version>2.7.2</version>
             </dependency>
-            <dependency>
-                <groupId>postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>9.1-901-1.jdbc4</version>
-                <!--<scope>test</scope>-->
-            </dependency>
-
         </dependencies>
 
     </dependencyManagement>
@@ -204,114 +535,68 @@
         </plugins>
 
         <pluginManagement>
-
             <plugins>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>3.0.0</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.0.0</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>1.10</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>gwt-maven-plugin</artifactId>
-                    <version>${gwtVersion}</version>
-                </plugin>
-
-                <!-- Copy static web files before executing gwt:run -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <version>2.6</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.0.0</version>
-                    <configuration>
-                        <archive>
-                            <manifest>
-                                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            </manifest>
-                            <manifestEntries>
-                                <Implementation-Build>${timestamp}, revision ${buildNumber}</Implementation-Build>
-                                <Implementation-Version>${project.version}</Implementation-Version>
-                            </manifestEntries>
-                        </archive>
-                    </configuration>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <!--<version>3.1</version>-->
-                    <version>3.5.1</version>
+                    <version>3.13.0</version>
                     <configuration>
-                        <!--                        <showDeprecation>true</showDeprecation>
-                                                <showWarnings>true</showWarnings>
-                                                <compilerArguments>
-                                                    <Xlint />
-                                                    <Xlint:-path />
-                                                </compilerArguments>-->
+                        <release>${java.version}</release>
+                        <source>${maven.compiler.release}</source>
+                        <target>${maven.compiler.release}</target>
                     </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.cxf</groupId>
+                    <artifactId>cxf-codegen-plugin</artifactId>
+                    <version>4.0.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.3.0</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.21.0</version>
-                    <configuration>
-                        <!--set an encoding for the surefire output-->
-                        <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
-                    </configuration>
+                    <version>3.2.5</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.6</version>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.4.0</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>buildnumber-maven-plugin</artifactId>
-                    <version>1.2</version>
+                    <version>3.2.0</version>
                 </plugin>
 
                 <plugin>
-                    <groupId>org.jvnet.jaxb2.maven2</groupId>
-                    <artifactId>maven-jaxb2-plugin</artifactId>
-                    <version>0.13.1</version>
+                    <groupId>org.jvnet.jaxb</groupId>
+                    <artifactId>jaxb-maven-plugin</artifactId>
+                    <version>4.0.8</version>
                 </plugin>
 
-                <plugin>
-                    <groupId>org.jvnet.jax-ws-commons</groupId>
-                    <artifactId>jaxws-maven-plugin</artifactId>
-                    <version>2.3</version>
-                    <configuration>
-                        <vmArgs>
-                            <!-- https://java.net/jira/browse/JAX_WS_COMMONS-129 -->
-                            <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
-                        </vmArgs>
-                    </configuration>
-                </plugin>
+<!--                <plugin>-->
+<!--                    <groupId>org.apache.maven.plugins</groupId>-->
+<!--                    <artifactId>maven-jar-plugin</artifactId>-->
+<!--                    <version>3.4.2</version>-->
+<!--                </plugin>-->
 
             </plugins>
-
         </pluginManagement>
 
     </build>
@@ -320,14 +605,6 @@
 
         <profile>
             <id>proarc.production</id>
-        </profile>
-
-        <profile>
-            <!--fast check of project; no GWT compilation and tests-->
-            <id>proarc.nogwt</id>
-            <properties>
-                <gwt.compiler.skip>true</gwt.compiler.skip>
-            </properties>
         </profile>
 
     </profiles>

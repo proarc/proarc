@@ -102,7 +102,7 @@ public class ResolverUtils {
             if (ti.getType() != null) {
                 continue;
             }
-            String value = getStringPlusLanguage(ti.getTitleType());
+            String value = getStringPlusLanguage(ti.getTitleStringPlusLanguage());
             if (value != null) {
                 return value;
             }
@@ -115,7 +115,7 @@ public class ResolverUtils {
             if (ti.getType() != null) {
                 continue;
             }
-            String value = getStringPlusLanguage(ti.getTitleType());
+            String value = getStringPlusLanguage(ti.getTitleStringPlusLanguage());
             if (value != null) {
                 return ti;
             }
